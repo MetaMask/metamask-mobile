@@ -1,9 +1,14 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createComponentViewQueryClient,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
+import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatGameStartShort } from '../../events/game';
 import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
@@ -12,18 +17,31 @@ import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/c
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
+import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictDepositScreenTestIds } from '../PredictDeposit/PredictDepositScreen.testIds';
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
-import { PredictError, PredictErrorCode } from '../../errors';
+import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
+import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
+import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
+import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
+import { makeFailedDeposit } from '../../funding/deposit/testUtils';
+import { encodeUsdcTransfer } from '../../funding/deposit/usdcTransfer';
 import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../../config/venueCatalogs';
+  clearAllSessionDepositTransfers,
+  recordSessionDepositTransfer,
+} from '../../funding';
+import { strings } from '../../../../../../locales/i18n';
+import { PredictError, PredictErrorCode } from '../../errors';
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
+  PredictAmount,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
+  PredictHex,
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
@@ -45,7 +63,9 @@ import {
   nflEvents,
   politicsEvents,
   PREDICT_NEXT_FEED_IDS,
+  publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
+  waitForPredictFeedQueries,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 const {
@@ -103,6 +123,13 @@ const rowEventIds = (row: Parameters<typeof within>[0]) =>
     );
 const eventIdsOf = (events: readonly PredictEvent[]) =>
   events.map((event) => event.id);
+/** The test ids of the portfolio actions, in display order. */
+const portfolioActionOrder = (view: {
+  getByTestId: (id: string) => Parameters<typeof within>[0];
+}) =>
+  within(view.getByTestId(PredictHomeTestIds.ACTIONS))
+    .getAllByRole('button')
+    .map((action) => String(action.props.testID));
 /** The messenger calls to one action, in call order. */
 const callsTo = (action: string) =>
   messengerCall.mock.calls.filter(([name]) => name === action);
@@ -124,6 +151,8 @@ describe('PredictHome', () => {
   });
 
   afterEach(() => {
+    clearAllSessionDepositTransfers();
+    Engine.context.TransactionController.state.transactions = [];
     jest.restoreAllMocks();
     onlineManager.setOnline(true);
   });
@@ -260,12 +289,103 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('offers no funding actions while none is implemented', async () => {
+  it('offers Add funds and Withdraw where the Venue lists them', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
-    expect(view.queryByText('Add Funds')).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
+  });
+
+  it('hides Withdraw where the Venue does not list it', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.WITHDRAW),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Add funds when the Kalshi catalog omits deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'withdraw'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
+  });
+
+  it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    configurePredictNextCatalog(legacyCatalog);
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', nflEvents[0].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('opens the Withdraw screen from the Withdraw action', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
+
+    expect(
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Kalshi deposit from Add funds when the Kalshi catalog includes deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+    ]);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
     expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 
@@ -534,7 +654,7 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the Trending Feed Screen from the Trending header and returns Home', async () => {
+    it('opens the Sports Feed Screen from the Trending header and returns Home', async () => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       messengerCall.mockClear();
@@ -542,7 +662,7 @@ describe('PredictHome', () => {
       const tabs = await openFeedScreenFrom(
         view,
         PredictHomeTestIds.HOME_TRENDING_HEADER,
-        'Trending',
+        'Sports',
         async () => {
           const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
           expect(
@@ -578,7 +698,7 @@ describe('PredictHome', () => {
         await openFeedScreenFrom(
           view,
           PredictHomeTestIds.HOME_TRENDING_HEADER,
-          'Trending',
+          'Sports',
         ),
       ).toEqual(['NFL', 'NCAAF']);
       expect(
@@ -597,6 +717,39 @@ describe('PredictHome', () => {
       ).toEqual(['Trump', 'Congress', 'Iran']);
       expect(
         view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the rows but makes no header pressable when the catalog serves no Feed Screens', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: [],
+      });
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+      );
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_SPORTS_HEADER));
+      fireEvent.press(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      );
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toHaveTextContent('Politics');
+      expect(view.getByRole('header', { name: 'Politics' })).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictFeedScreenTestIds.VIEW),
       ).not.toBeOnTheScreen();
     });
 
@@ -1317,7 +1470,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
+      await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines')),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
@@ -1652,18 +1805,39 @@ describe('PredictHome', () => {
 
     it('sits below the Trending and Sports rows and above Politics', async () => {
       configureFullHomeFeeds();
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      const queryClient = createComponentViewQueryClient();
+      try {
+        const view = renderPredictNext(false, { queryClient });
 
-      const order = [
-        PredictHomeTestIds.HOME_TRENDING,
-        PredictHomeTestIds.HOME_SPORTS,
-        PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
-      ];
-      const blocks = view.getAllByTestId(new RegExp(`^(${order.join('|')})$`));
-      expect(blocks.map((block) => block.props.testID)).toEqual(order);
+        // Cold shard 3 runs PredictHome first; await feed query settlement in
+        // act instead of racing findBy's 5 s wall clock against GC/coverage.
+        await act(async () => {
+          await waitForPredictFeedQueries(queryClient, [
+            NFL_GAMES_FEED_ID,
+            NCAA_GAMES_FEED_ID,
+            POLITICS_TRUMP_FEED_ID,
+          ]);
+        });
+
+        expect(
+          view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4')),
+        ).toBeOnTheScreen();
+        expect(
+          view.getByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
+        ).toBeOnTheScreen();
+        const order = [
+          PredictHomeTestIds.HOME_TRENDING,
+          PredictHomeTestIds.HOME_SPORTS,
+          PredictHomeTestIds.CATEGORIES,
+          PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+        ];
+        const blocks = view.getAllByTestId(
+          new RegExp(`^(${order.join('|')})$`),
+        );
+        expect(blocks.map((block) => block.props.testID)).toEqual(order);
+      } finally {
+        queryClient.clear();
+      }
     });
 
     it('opens the Politics Feed Screen on the Trump tab from the Politics chip', async () => {
@@ -1796,6 +1970,60 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('shows a Category added only on the server, labelled with its screen title, and opens that screen', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          economics: 'economics-fed',
+          'economics-fed': 'economics-fed',
+        },
+        categories: [...KALSHI_STATIC_VENUE_CATALOG.categories, 'economics'],
+        screens: [
+          ...KALSHI_STATIC_VENUE_CATALOG.screens,
+          {
+            id: 'economics',
+            title: 'Economics',
+            tabs: [{ id: 'fed', title: 'Fed', feed: 'economics-fed' }],
+          },
+        ],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+        PredictHomeTestIds.categoryChip('politics'),
+        PredictHomeTestIds.categoryChip('economics'),
+      ]);
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      ).toHaveTextContent('Economics');
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(feedScreenTabLabels(feedScreen)).toEqual(['Fed']);
+    });
+
+    it('drops the chip of a Category whose screen the server removed', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: KALSHI_STATIC_VENUE_CATALOG.screens.filter(
+          ({ id }) => id !== 'politics',
+        ),
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+      ]);
+    });
+
     it.each([
       ["another Venue's catalog", POLYMARKET_STATIC_VENUE_CATALOG],
       ['a pending catalog', 'pending' as const],
@@ -1824,6 +2052,8 @@ describe('PredictHome', () => {
           trending: 'test-trending',
         },
         searchSupported: false,
+        // Kalshi's layout: the parser keeps only what this Venue's Feeds serve.
+        home: KALSHI_STATIC_VENUE_CATALOG.home,
       });
       const testEvents = [
         makePredictNextGameEvent('test-1', 'Owls', 'Hawks', 'NCAAF'),
@@ -1955,6 +2185,570 @@ describe('PredictHome', () => {
             expect.objectContaining({ q: 'chiefs' }),
           ),
         );
+      });
+    });
+  });
+
+  describe('deposit status line', () => {
+    it('shows awaiting_transfer under balance and opens DepositInProgressSheet with Continue and Cancel on tap', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
+      // Pending deposit amount is never added to the authoritative balance ($123.13).
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+
+      fireEvent.press(statusLine);
+
+      expect(
+        await view.findByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Deposit processing under balance without adding pending funds', async () => {
+      configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit processing');
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+    });
+
+    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
+      configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent(
+        `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
+      );
+
+      const copyButton = view.getByTestId(
+        `${PredictHomeTestIds.DEPOSIT_STATUS}-copy`,
+      );
+      expect(copyButton).toHaveProp('hitSlop', {
+        top: 11,
+        bottom: 11,
+        left: 16,
+        right: 16,
+      });
+      fireEvent.press(copyButton);
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        needsReviewDeposit.next.supportReference,
+      );
+      expect(announce).toHaveBeenCalledWith('Support reference copied');
+    });
+
+    it.each([
+      [
+        'completed',
+        { ...awaitingTransferDeposit, status: 'completed', next: null },
+      ],
+      ['cancelled', cancelledDeposit],
+    ])(
+      'rechecks live deposit before Continue can send USDC when %s and creates no transaction',
+      async (_label, resolvedDeposit) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(resolvedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:getDeposit',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(
+          callsTo('PredictFundingService:reportDepositTransfer'),
+        ).toHaveLength(0);
+      },
+    );
+
+    it('hides Continue live when an open sheet transitions to cancelled', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      fireEvent.press(statusLine);
+      expect(
+        await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        ),
+      ).toBeOnTheScreen();
+
+      act(() =>
+        publishPredictNextDepositStatus({
+          ...awaitingTransferDeposit,
+          status: 'cancelled',
+          next: null,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CLOSE),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      [
+        'loading',
+        'pending' as const,
+        PredictDepositScreenTestIds.IN_PROGRESS_LOADING,
+        strings('predict_next.deposit.in_progress.checking_availability'),
+      ],
+      [
+        'unavailable',
+        new Error('catalog failed'),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable_error'),
+      ],
+      [
+        'missing_environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable'),
+      ],
+    ])(
+      'shows %s reason and disables Continue while keeping Cancel enabled on the open sheet',
+      async (_label, catalogState, statusTestId, expectedCopy) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:cancelDeposit') {
+              return Promise.resolve({
+                ...awaitingTransferDeposit,
+                status: 'cancelled',
+                next: null,
+              });
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        const cancelButton = view.getByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CANCEL,
+        );
+        expect(continueButton).toBeDisabled();
+        expect(cancelButton).toBeEnabled();
+        expect(view.getByTestId(statusTestId)).toHaveTextContent(expectedCopy);
+
+        await act(async () => {
+          fireEvent.press(cancelButton);
+        });
+
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictFundingService:cancelDeposit',
+          'kalshi',
+          awaitingTransferDeposit.operationId,
+        );
+      },
+    );
+
+    it.each([
+      ['catalog read error', new Error('catalog failed')],
+      [
+        'catalog omitting environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+      ],
+    ])(
+      'keeps Continue enabled, hides Cancel and unavailable copy, and reports a submitted transfer on %s',
+      async (_label, catalogState) => {
+        const txHash: PredictHex = `0x${'ab'.repeat(32)}`;
+        recordSessionDepositTransfer(
+          {
+            venueId: 'kalshi' as PredictVenueId,
+            operationId: awaitingTransferDeposit.operationId,
+            from: '0x0000000000000000000000000000000000000001',
+            plan: {
+              chainId: awaitingTransferDeposit.next.chainId,
+              tokenContract: awaitingTransferDeposit.next
+                .tokenContract as PredictHex,
+              amount: awaitingTransferDeposit.next.amount as PredictAmount,
+              depositAddress: awaitingTransferDeposit.next
+                .depositAddress as PredictHex,
+              planExpiresAt: awaitingTransferDeposit.next
+                .planExpiresAt as PredictTimestamp,
+            },
+          },
+          {
+            txHash,
+            chainId: awaitingTransferDeposit.chainId,
+            to: awaitingTransferDeposit.next.tokenContract,
+            data: encodeUsdcTransfer(
+              awaitingTransferDeposit.next.depositAddress,
+              awaitingTransferDeposit.next.amount as PredictAmount,
+            ),
+          },
+        );
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(awaitingTransferDeposit);
+            }
+            if (action === 'PredictFundingService:reportDepositTransfer') {
+              return Promise.resolve(transferReportedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        expect(continueButton).toBeEnabled();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.getByText(
+            strings('predict_next.deposit.in_progress.processing', {
+              amount: '$25.50',
+            }),
+          ),
+        ).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:reportDepositTransfer',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+            {
+              txHash,
+              chainId: awaitingTransferDeposit.chainId,
+            },
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(callsTo('PredictFundingService:cancelDeposit')).toHaveLength(0);
+      },
+    );
+
+    it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {
+      const failedA = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f' as PredictEntityId,
+      });
+      const failedB = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e60' as PredictEntityId,
+      });
+      const pending = [failedA, failedB];
+      configurePredictNextFeeds({ depositStatus: failedA });
+      const baseImplementation = messengerCall.getMockImplementation();
+      messengerCall.mockImplementation((action: string, ...args: unknown[]) => {
+        if (action === 'PredictFundingService:getDepositStatus') {
+          return pending[0] ?? null;
+        }
+        if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+          const opId = args[1] as string;
+          const idx = pending.findIndex((item) => item.operationId === opId);
+          if (idx !== -1) {
+            pending.splice(idx, 1);
+            publishPredictNextDepositStatus(pending[0] ?? null);
+          }
+          return undefined;
+        }
+        return baseImplementation?.(action, ...args);
+      });
+
+      const firstVisit = renderPredictNext();
+      expect(
+        await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+        ]),
+      );
+      firstVisit.unmount();
+
+      const secondVisit = renderPredictNext();
+      expect(
+        await secondVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedB.operationId,
+          ],
+        ]),
+      );
+      secondVisit.unmount();
+
+      const thirdVisit = renderPredictNext();
+      await thirdVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      expect(
+        thirdVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['failed', makeFailedDeposit(), 'Deposit failed'],
+      ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+    ])(
+      'shows %s deposit status once and removes it on the next visit',
+      async (_label, fixture, expectedText) => {
+        configurePredictNextFeeds({ depositStatus: fixture });
+        const firstVisit = renderPredictNext();
+
+        expect(
+          await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent(expectedText);
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            fixture.operationId,
+          ),
+        );
+        firstVisit.unmount();
+
+        const secondVisit = renderPredictNext();
+        await secondVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+        expect(
+          secondVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    describe('accessibility', () => {
+      const failedDeposit = makeFailedDeposit({
+        operationId: transferReportedDeposit.operationId as PredictEntityId,
+      });
+      const underReviewDeposit = {
+        ...needsReviewDeposit,
+        operationId: transferReportedDeposit.operationId,
+      };
+      const underReviewText = `Deposit under review · Ref ${underReviewDeposit.next.supportReference}`;
+      const depositAnnouncements = (announce: jest.SpyInstance) =>
+        announce.mock.calls
+          .map(([message]) => message)
+          .filter((message: string) => message.startsWith('Deposit'));
+
+      it('extends the awaiting_transfer tap target to 44pt without changing layout', async () => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const view = renderPredictNext();
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveProp('hitSlop', { top: 11, bottom: 11 });
+      });
+
+      it('announces each live status change once and stays silent for an open status on mount or an identical update', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        const statusLine = () =>
+          view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        expect(depositAnnouncements(announce)).toEqual([]);
+
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent(underReviewText),
+        );
+        act(() => publishPredictNextDepositStatus({ ...underReviewDeposit }));
+        act(() => publishPredictNextDepositStatus(failedDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent('Deposit failed'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([
+          underReviewText,
+          'Deposit failed',
+        ]);
+      });
+
+      it('announces a transfer moving into processing but not a new awaiting_transfer deposit', async () => {
+        configurePredictNextFeeds();
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+        act(() => publishPredictNextDepositStatus(awaitingTransferDeposit));
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit waiting for your transfer');
+        act(() =>
+          publishPredictNextDepositStatus({
+            ...awaitingTransferDeposit,
+            status: 'processing',
+          }),
+        );
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent('Deposit processing'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual(['Deposit processing']);
+      });
+
+      it.each([
+        ['failed', failedDeposit, 'Deposit failed'],
+        ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+      ])(
+        'announces a %s notice once when it first shows on mount',
+        async (_label, fixture, expectedText) => {
+          configurePredictNextFeeds({ depositStatus: fixture });
+          const announce = jest.spyOn(
+            AccessibilityInfo,
+            'announceForAccessibility',
+          );
+          const view = renderPredictNext();
+
+          expect(
+            await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(expectedText);
+          await waitFor(() =>
+            expect(messengerCall).toHaveBeenCalledWith(
+              'PredictFundingService:acknowledgeDepositNotice',
+              'kalshi',
+              fixture.operationId,
+            ),
+          );
+
+          expect(depositAnnouncements(announce)).toEqual([expectedText]);
+        },
+      );
+
+      it('announces a change only on the focused Portfolio, not on Home underneath it', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+        expect(
+          await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(underReviewText),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([underReviewText]);
       });
     });
   });

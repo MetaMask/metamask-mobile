@@ -2,7 +2,9 @@ import type { QuoteTokensResponse } from '@metamask/social-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import {
+  isQuoteTokenListLoaded,
   isUnsupportedPostTradeAsset,
+  prefetchQuoteTokens,
   QUOTE_TOKENS_QUERY_KEY,
 } from './quoteTokens';
 
@@ -96,5 +98,39 @@ describe('isUnsupportedPostTradeAsset', () => {
     setQuoteTokens(quoteTokens);
 
     expect(isUnsupportedPostTradeAsset(tokenAddress, chain)).toBe(false);
+  });
+});
+
+describe('isQuoteTokenListLoaded', () => {
+  afterEach(() => {
+    ReactQueryService.queryClient.clear();
+  });
+
+  it('returns false while the quote-token list is not loaded', () => {
+    expect(isQuoteTokenListLoaded()).toBe(false);
+  });
+
+  it('returns true once the quote-token list is cached', () => {
+    setQuoteTokens(quoteTokens);
+
+    expect(isQuoteTokenListLoaded()).toBe(true);
+  });
+});
+
+describe('prefetchQuoteTokens', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('prefetches the quote-token query', () => {
+    const prefetchQuery = jest
+      .spyOn(ReactQueryService.queryClient, 'prefetchQuery')
+      .mockResolvedValue(undefined);
+
+    prefetchQuoteTokens();
+
+    expect(prefetchQuery).toHaveBeenCalledWith({
+      queryKey: QUOTE_TOKENS_QUERY_KEY,
+    });
   });
 });

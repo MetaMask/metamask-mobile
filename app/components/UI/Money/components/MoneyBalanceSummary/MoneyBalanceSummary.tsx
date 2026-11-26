@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   Box,
   BoxAlignItems,
@@ -80,7 +81,9 @@ const MoneyBalanceSummary = ({
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
-    displayState.kind === 'balance' || displayState.kind === 'unavailable';
+    displayState.kind === 'balance' ||
+    displayState.kind === 'unavailable' ||
+    displayState.kind === 'loading';
   const hasApy = showApy && isPositiveNumberOrZero(apy);
 
   const pendingPill =
@@ -156,6 +159,10 @@ const MoneyBalanceSummary = ({
     onBalancePress ? (
       <TouchableOpacity
         onPress={onBalancePress}
+        accessibilityRole="button"
+        accessibilityHint={strings(
+          privacyMode ? 'money.balance_show_hint' : 'money.balance_hide_hint',
+        )}
         testID={MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE}
       >
         {content}
@@ -177,6 +184,15 @@ const MoneyBalanceSummary = ({
           >
             {displayState.value}
           </SensitiveText>,
+        );
+      case 'loading':
+        return (
+          <Skeleton
+            height={56}
+            width={160}
+            twClassName="rounded-lg"
+            testID={MoneyBalanceSummaryTestIds.BALANCE_LOADING}
+          />
         );
       case 'noAccount':
         return (

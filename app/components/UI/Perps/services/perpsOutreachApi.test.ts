@@ -1,12 +1,12 @@
-import axios, { CanceledError } from 'axios';
+import axios, { AxiosError, CanceledError, type AxiosResponse } from 'axios';
 import {
   buildPerpsOutreachUrl,
   fetchPerpsOutreachBanner,
   type PerpsOutreachBanner,
 } from './perpsOutreachApi';
 
-// Only `get` is stubbed: `isCancel` and `CanceledError` stay real so the
-// cancellation branch is exercised the way axios actually reports aborts.
+// Only `get` is stubbed: `CanceledError` stays real so the cancellation
+// branch is exercised the way axios actually reports aborts.
 jest.mock('axios', () => {
   const actual = jest.requireActual('axios');
   return {
@@ -98,9 +98,9 @@ describe('fetchPerpsOutreachBanner', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null for a non-success response', async () => {
+  it('returns null for a client error response', async () => {
     mockAxiosGet.mockResolvedValue({
-      status: 503,
+      status: 404,
       data: { show: false, banner: null },
     });
 
@@ -110,6 +110,39 @@ describe('fetchPerpsOutreachBanner', () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it('lets axios reject server errors instead of resolving them', async () => {
+    mockAxiosGet.mockResolvedValue({
+      status: 200,
+      data: { show: false, banner: null },
+    });
+    await fetchPerpsOutreachBanner({ endpoint: ENDPOINT, address: '0xabc' });
+
+    const { validateStatus } = mockAxiosGet.mock.calls.at(-1)?.[1] ?? {};
+
+    // A 5xx is not the backend answering "no campaign": axios must reject it
+    // so the catch re-throws and React Query retries, while 2xx and 4xx
+    // resolve for inspection.
+    expect(validateStatus?.(503)).toBe(false);
+    expect(validateStatus?.(500)).toBe(false);
+    expect(validateStatus?.(200)).toBe(true);
+    expect(validateStatus?.(404)).toBe(true);
+  });
+
+  it('re-throws server errors so React Query retries instead of caching an empty campaign', async () => {
+    const serverError = new AxiosError(
+      'Service Unavailable',
+      AxiosError.ERR_BAD_RESPONSE,
+      undefined,
+      undefined,
+      { status: 503 } as AxiosResponse,
+    );
+    mockAxiosGet.mockRejectedValue(serverError);
+
+    await expect(
+      fetchPerpsOutreachBanner({ endpoint: ENDPOINT, address: '0xabc' }),
+    ).rejects.toBe(serverError);
   });
 
   it('returns null for a malformed response', async () => {
@@ -212,15 +245,16 @@ describe('fetchPerpsOutreachBanner', () => {
     expect(result).toEqual({ ...bannerWithoutContact, contact: null });
   });
 
-  it('returns null when the request rejects', async () => {
-    mockAxiosGet.mockRejectedValue(new Error('network unavailable'));
+  it('re-throws transport failures so React Query retries instead of caching an empty campaign', async () => {
+    const networkError = new AxiosError(
+      'network unavailable',
+      AxiosError.ERR_NETWORK,
+    );
+    mockAxiosGet.mockRejectedValue(networkError);
 
-    const result = await fetchPerpsOutreachBanner({
-      endpoint: ENDPOINT,
-      address: '0xabc',
-    });
-
-    expect(result).toBeNull();
+    await expect(
+      fetchPerpsOutreachBanner({ endpoint: ENDPOINT, address: '0xabc' }),
+    ).rejects.toBe(networkError);
   });
 
   it('re-throws cancellations so they are not cached as an empty campaign', async () => {

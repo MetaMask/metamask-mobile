@@ -459,12 +459,6 @@ describe('usePredictPrices', () => {
 
       rerender({ pollingInterval: undefined });
 
-      await waitFor(() => {
-        expect(
-          Engine.context.PredictController.getPrices,
-        ).toHaveBeenCalledTimes(2);
-      });
-
       await act(async () => {
         resolvers[0]?.(mockPrices);
         await Promise.resolve();
@@ -474,8 +468,182 @@ describe('usePredictPrices', () => {
         jest.advanceTimersByTime(15000);
       });
 
+      // Stopping polling cancels the next tick; it does not fetch again.
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        2,
+        1,
+      );
+    });
+
+    it('does not refetch when polling stops after a completed fetch', async () => {
+      jest.useFakeTimers();
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+      const { rerender } = renderHook<
+        ReturnType<typeof usePredictPrices>,
+        { pollingInterval?: number }
+      >(
+        ({ pollingInterval }) => usePredictPrices({ queries, pollingInterval }),
+        {
+          initialProps: { pollingInterval: 2000 },
+        },
+      );
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ pollingInterval: undefined });
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('fetches at once when polling starts', async () => {
+      jest.useFakeTimers();
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+      const { rerender } = renderHook<
+        ReturnType<typeof usePredictPrices>,
+        { pollingInterval?: number }
+      >(
+        ({ pollingInterval }) => usePredictPrices({ queries, pollingInterval }),
+        { initialProps: {} },
+      );
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ pollingInterval: 2000 });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('polls at the interval once polling starts', async () => {
+      jest.useFakeTimers();
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+      const { rerender } = renderHook<
+        ReturnType<typeof usePredictPrices>,
+        { pollingInterval?: number }
+      >(
+        ({ pollingInterval }) => usePredictPrices({ queries, pollingInterval }),
+        { initialProps: {} },
+      );
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+      rerender({ pollingInterval: 2000 });
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(2);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    it('does not poll while disabled', async () => {
+      jest.useFakeTimers();
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+      const { rerender } = renderHook<
+        ReturnType<typeof usePredictPrices>,
+        { enabled: boolean; pollingInterval?: number }
+      >(
+        ({ enabled, pollingInterval }) =>
+          usePredictPrices({ queries, enabled, pollingInterval }),
+        { initialProps: { enabled: true, pollingInterval: 2000 } },
+      );
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ enabled: false, pollingInterval: 2000 });
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('runs one fetch when re-enabled, even if polling stops on the next render', async () => {
+      jest.useFakeTimers();
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+      const { rerender } = renderHook<
+        ReturnType<typeof usePredictPrices>,
+        { enabled: boolean; pollingInterval?: number }
+      >(
+        ({ enabled, pollingInterval }) =>
+          usePredictPrices({ queries, enabled, pollingInterval }),
+        { initialProps: { enabled: false, pollingInterval: 2000 } },
+      );
+
+      // Re-enable with polling on, then the socket connects and polling stops
+      // on the next render, as on a return to Predict home.
+      rerender({ enabled: true, pollingInterval: 2000 });
+      rerender({ enabled: true, pollingInterval: undefined });
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        1,
       );
     });
   });

@@ -40,6 +40,7 @@ import {
 import { getDecimalChainId } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
   QuickBuyEventProperties,
   buildQuickBuySharedAnalyticsProperties,
@@ -73,6 +74,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
+  isCopyTrade?: boolean;
+  copyTradeOrigin?: CopyTradeOrigin;
 }
 
 export type EnrichedQuickBuyQuote = QuoteResponse;
@@ -433,6 +436,8 @@ export function useQuickBuyQuotes({
           ...buildQuickBuySharedAnalyticsProperties({
             source: analyticsContext.source,
             originalEntryPoint: analyticsContext.originalEntryPoint,
+            isCopyTrade: analyticsContext.isCopyTrade,
+            copyTradeOrigin: analyticsContext.copyTradeOrigin,
           }),
           ...(analyticsContext.traderAddress
             ? {

@@ -143,6 +143,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition?.symbol || '',
+    providerId: routePosition?.providerId,
     mode: mode || 'add',
     inputAmount: marginAmount,
   });
@@ -310,9 +311,13 @@ const PerpsAdjustMarginView: React.FC = () => {
     };
 
     if (isAddMode) {
-      await handleAddMargin(position.symbol, marginAmount);
+      await handleAddMargin(position.symbol, marginAmount, position.providerId);
     } else {
-      await handleRemoveMargin(position.symbol, marginAmount);
+      await handleRemoveMargin(
+        position.symbol,
+        marginAmount,
+        position.providerId,
+      );
     }
   }, [
     marginAmount,

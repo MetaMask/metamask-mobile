@@ -9,7 +9,7 @@ import Matchers from '../../../framework/Matchers.js';
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
-import { startRedesignedNativeSendFiveEthToReview } from '../../../flows/confirmations.flow.js';
+import { startNativeSendFiveEthToReview } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager.js';
@@ -17,6 +17,7 @@ import {
   setupMockPostRequest,
   setupMockRequest,
 } from '../../../api-mocking/helpers/mockHelpers.js';
+import { accountsMultiaccountBalancesV4 } from '../../../api-mocking/api-mocks.js';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -175,27 +176,23 @@ appiumTest.describe.skip(
         Object.assign({}, ...remoteFeatureEip7702),
       );
 
-      await setupMockRequest(mockServer, {
-        url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-        response: {
-          balances: [
-            {
-              object: 'token',
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              name: 'Ether',
-              type: 'native',
-              decimals: 18,
-              chainId: 1337,
-              balance: '10.000000000000000000',
-              accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
-            },
-          ],
-          unprocessedNetworks: [],
-        },
-        requestMethod: 'GET',
-        responseCode: 200,
-      });
+      await accountsMultiaccountBalancesV4.register(mockServer, () => ({
+        count: 1,
+        balances: [
+          {
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ether',
+            type: 'native',
+            decimals: 18,
+            chainId: 1337,
+            balance: '10.000000000000000000',
+            accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+          },
+        ],
+        unprocessedNetworks: [],
+      }));
     };
 
     const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -282,9 +279,7 @@ appiumTest.describe.skip(
               balance: 'Bal: $25.25 USD',
             };
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await startRedesignedNativeSendFiveEthToReview(
-              RECIPIENT_ADDRESS_MOCK,
-            );
+            await startNativeSendFiveEthToReview(RECIPIENT_ADDRESS_MOCK);
 
             await Assertions.expectElementToBeVisible(
               RowComponents.NetworkFeeGasFeeTokenArrow,

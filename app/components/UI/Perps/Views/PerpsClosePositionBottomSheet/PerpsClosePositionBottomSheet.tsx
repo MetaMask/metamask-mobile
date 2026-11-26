@@ -1,6 +1,7 @@
 import PerpsFeeCaption from '../../components/PerpsFeesDisplay/PerpsFeeCaption';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -80,6 +81,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
+    summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
     receiveAmount,
@@ -107,6 +109,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
 
   const limitPriceInput = usePerpsLimitPriceInput({
+    providerId: position.providerId,
     asset: position.symbol,
     currentPrice,
     // Closing a long is a sell, so the presets mirror the opposite direction.
@@ -193,6 +196,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
     >
       <PerpsClosePositionSheetHeader
+        providerId={position.providerId}
         symbol={position.symbol}
         isLong={isLong}
         leverage={livePosition.leverage?.value}
@@ -254,6 +258,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           pnl={summaryPnl}
           roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
+          marginMode={summaryMarginMode}
         />
       )}
 

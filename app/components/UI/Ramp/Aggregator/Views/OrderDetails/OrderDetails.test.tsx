@@ -233,6 +233,76 @@ describe('OrderDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('fiat formatting', () => {
+    const eurOrder: DeepPartial<FiatOrder> = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      amount: '1234.5',
+      cryptoFee: '2.5',
+      currency: 'EUR',
+      currencySymbol: '€',
+      data: {
+        cryptoCurrency: { symbol: 'ETH', network: { shortName: 'ETH' } },
+        provider: { name: 'Test Provider' },
+        fiatCurrency: { decimals: 2 },
+        exchangeRate: 3000.5,
+      },
+    };
+
+    it('formats the fiat amounts with the order currency', () => {
+      render(OrderDetails, [eurOrder]);
+
+      expect(screen.getAllByText('€1,232.00')).toHaveLength(2);
+      expect(screen.getByText('€2.50')).toBeOnTheScreen();
+      expect(screen.getByText('€1,234.50')).toBeOnTheScreen();
+      expect(screen.getByText('1 ETH @ €3,000.50')).toBeOnTheScreen();
+    });
+
+    it('formats the amounts when the provider sends no symbol or decimals', () => {
+      render(OrderDetails, [
+        {
+          ...eurOrder,
+          currencySymbol: undefined,
+          data: { ...eurOrder.data, fiatCurrency: undefined },
+        },
+      ]);
+
+      expect(screen.getAllByText('€1,232.00')).toHaveLength(2);
+      expect(screen.getByText('€1,234.50')).toBeOnTheScreen();
+    });
+
+    it('shows an exchange rate under one cent as <€0.01 instead of €0.00', () => {
+      render(OrderDetails, [
+        {
+          ...eurOrder,
+          cryptocurrency: 'SHIB',
+          data: { ...eurOrder.data, exchangeRate: 0.0000123 },
+        },
+      ]);
+
+      expect(screen.getByText('1 SHIB @ <€0.01')).toBeOnTheScreen();
+    });
+
+    it('shows an ellipsis instead of a fee when the sell fee is missing', () => {
+      const sellOrder: DeepPartial<FiatOrder> = {
+        ...eurOrder,
+        orderType: OrderOrderTypeEnum.Sell,
+        data: { ...eurOrder.data, totalFeesFiat: 2.5 },
+      };
+      const { unmount } = render(OrderDetails, [sellOrder]);
+      const ellipsesWithFee = screen.queryAllByText('...').length;
+      expect(screen.getByText('€2.50')).toBeOnTheScreen();
+      unmount();
+
+      render(OrderDetails, [
+        { ...sellOrder, data: { ...sellOrder.data, totalFeesFiat: undefined } },
+      ]);
+
+      expect(screen.queryByText('€2.50')).not.toBeOnTheScreen();
+      expect(screen.queryAllByText('...')).toHaveLength(ellipsesWithFee + 1);
+    });
+  });
+
   it('renders a cancelled order', () => {
     const cancelledOrder = {
       ...mockOrder,

@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
@@ -28,6 +29,16 @@ const mockUseTokensFeed = jest.mocked(useTokensFeed);
 const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
 
+interface TileCarouselMockProps {
+  testID?: string;
+  data: unknown[];
+  renderItem: (item: unknown, index: number) => React.ReactElement;
+}
+const mockTileCarousel = jest.fn((_props: TileCarouselMockProps) => null);
+const mockPerpsMarketTileCard = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -40,6 +51,57 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: jest.fn(),
+  }),
+);
+
+const mockTopTradersProps = jest.fn();
+jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  function MockTopTradersSection({
+    source,
+    prefetchProfiles,
+    chains,
+  }: {
+    source?: string;
+    prefetchProfiles?: boolean;
+    chains?: string[];
+  }) {
+    MockReact.useEffect(() => {
+      mockTopTradersProps({ source, prefetchProfiles, chains });
+    });
+    return MockReact.createElement(
+      View,
+      {
+        testID: 'top-traders-section',
+        accessibilityHint: source,
+        accessibilityLabel: String(prefetchProfiles),
+      },
+      MockReact.createElement(Text, null, 'Top traders'),
+    );
+  }
+  return {
+    __esModule: true,
+    default: MockTopTradersSection,
+  };
+});
+
+const mockUseNetworkTier = jest.fn();
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
+  useNetworkTier: () => mockUseNetworkTier(),
+}));
+
+const mockGetHardwareTier = jest.fn();
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: () => mockGetHardwareTier(),
 }));
 
 jest.mock('../../../UI/Earn/selectors/visibility', () => ({
@@ -75,18 +137,16 @@ jest.mock('../components/SectionHeader', () => ({
 
 jest.mock('../components/TileCarousel', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: TileCarouselMockProps) => mockTileCarousel(props),
 }));
 
-jest.mock('../../../UI/RobinhoodBanner', () => ({
-  RobinhoodBanner: () => null,
-  RobinhoodBannerSurface: { ExploreCrypto: 'explore_crypto' },
-  useRobinhoodBanner: () => ({
-    dismiss: jest.fn(),
-    handlePress: jest.fn(),
-    shouldShow: false,
+jest.mock(
+  '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard',
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) => mockPerpsMarketTileCard(props),
   }),
-}));
+);
 
 jest.mock('../../../UI/Trending/contexts', () => ({
   useTrendingQuickBuySheet: () => ({
@@ -109,9 +169,11 @@ const defaultTabProps = {
 const arrangeMocks = ({
   perpsEnabled = false,
   earnSectionVisible = false,
+  topTradersEnabled = true,
 }: {
   perpsEnabled?: boolean;
   earnSectionVisible?: boolean;
+  topTradersEnabled?: boolean;
 } = {}) => {
   jest.clearAllMocks();
   mockUseIsFocused.mockReturnValue(true);
@@ -122,6 +184,7 @@ const arrangeMocks = ({
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
+    if (selector === selectSocialLeaderboardEnabled) return topTradersEnabled;
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
@@ -130,6 +193,9 @@ const arrangeMocks = ({
       engine: { backgroundState },
     });
   });
+
+  mockUseNetworkTier.mockReturnValue(null);
+  mockGetHardwareTier.mockReturnValue(null);
 
   mockUseTokensFeed.mockReturnValue({
     data: [],
@@ -149,15 +215,16 @@ const arrangeMocks = ({
   } as never);
 };
 
-const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
-  const sectionIds = new Set([
+const getSectionOrder = (
+  tree: ReturnType<typeof render>['root'],
+  trackedIds: ReadonlySet<string> = new Set([
     'explore-section-crypto_perps',
     'explore-section-earn',
-  ]);
-
+  ]),
+): string[] => {
   const walk = (node: typeof tree): string[] => {
     const testID = node.props?.testID;
-    const ownSection = sectionIds.has(testID) ? [testID] : [];
+    const ownSection = trackedIds.has(testID) ? [testID] : [];
     const childSections = node.children.flatMap((child) =>
       typeof child === 'string' ? [] : walk(child),
     );
@@ -258,5 +325,120 @@ describe('CryptoTab — section ordering', () => {
       'explore-section-crypto_perps',
       'explore-section-earn',
     ]);
+  });
+
+  it('renders the top traders section above the other sections', () => {
+    arrangeMocks({ perpsEnabled: true, earnSectionVisible: true });
+
+    const { root } = render(<CryptoTab {...defaultTabProps} />);
+
+    expect(
+      getSectionOrder(
+        root,
+        new Set([
+          'top-traders-section',
+          'explore-section-crypto_perps',
+          'explore-section-earn',
+        ]),
+      ),
+    ).toEqual([
+      'top-traders-section',
+      'explore-section-crypto_perps',
+      'explore-section-earn',
+    ]);
+  });
+});
+
+describe('CryptoTab — Top Traders section', () => {
+  it('renders the top traders section when the feature flag is enabled', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.getByTestId('top-traders-section')).toBeOnTheScreen();
+  });
+
+  it('omits chains so the section defaults to the spot chains', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockTopTradersProps).toHaveBeenLastCalledWith({
+      source: 'explore_crypto',
+      prefetchProfiles: true,
+      chains: undefined,
+    });
+  });
+
+  it('hides top traders when the social leaderboard flag is off', () => {
+    arrangeMocks({ topTradersEnabled: false });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.queryByTestId('top-traders-section')).not.toBeOnTheScreen();
+  });
+
+  it('hides top traders when there is no network', () => {
+    arrangeMocks();
+    mockUseNetworkTier.mockReturnValue('NONE');
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.queryByTestId('top-traders-section')).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['LOW', 'SLOW_CELLULAR', 'false'],
+    ['LOW', 'WIFI', 'true'],
+    ['MID', 'SLOW_CELLULAR', 'true'],
+    [null, 'SLOW_CELLULAR', 'true'],
+    ['LOW', null, 'true'],
+    [null, null, 'true'],
+  ])(
+    'with %s hardware and %s network, top traders profile prefetch is %s',
+    (hardwareTier, networkTier, expected) => {
+      arrangeMocks();
+      mockGetHardwareTier.mockReturnValue(hardwareTier);
+      mockUseNetworkTier.mockReturnValue(networkTier);
+
+      render(<CryptoTab {...defaultTabProps} />);
+
+      expect(
+        screen.getByTestId('top-traders-section').props.accessibilityLabel,
+      ).toBe(expected);
+    },
+  );
+
+  it('keeps top traders on slow cellular', () => {
+    arrangeMocks();
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.getByTestId('top-traders-section')).toBeOnTheScreen();
+  });
+});
+
+describe('CryptoTab — Perps tiles', () => {
+  it('passes the device tiers to each Perps tile', () => {
+    arrangeMocks({ perpsEnabled: true });
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
+    render(<CryptoTab {...defaultTabProps} />);
+    const perpsCarousel = mockTileCarousel.mock.calls.find(
+      ([props]) => props.testID === 'explore-crypto_perps-carousel',
+    )?.[0];
+    if (!perpsCarousel) {
+      throw new Error('Perps carousel did not render');
+    }
+
+    render(perpsCarousel.renderItem(perpsCarousel.data[0], 0));
+
+    expect(mockPerpsMarketTileCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        market: { symbol: 'BTC' },
+        deviceCapability: { hardwareTier: 'LOW', networkTier: 'SLOW_CELLULAR' },
+      }),
+    );
   });
 });

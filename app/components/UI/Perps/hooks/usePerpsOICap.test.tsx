@@ -8,10 +8,12 @@ import { usePerpsOICap } from './usePerpsOICap';
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 
-// Mock PerpsStreamManager — same pattern as usePerpsMarkets.test.ts
-const mockSubscribe = jest.fn();
+// Mock PerpsStreamManager — same pattern as usePerpsMarkets.test.ts.
+// TAT-4407: the hook now subscribes through the venue-scoped
+// subscribeToSymbol; the mock delegates so the symbol/venue args are visible.
+const mockSubscribeToSymbol = jest.fn();
 const mockOiCaps = {
-  subscribe: mockSubscribe,
+  subscribeToSymbol: mockSubscribeToSymbol,
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -30,7 +32,7 @@ describe('usePerpsOICap', () => {
 
   it('returns isAtCap true when symbol in caps list', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;
@@ -57,7 +59,7 @@ describe('usePerpsOICap', () => {
 
   it('returns isAtCap false when symbol not in caps list', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;
@@ -80,7 +82,7 @@ describe('usePerpsOICap', () => {
 
   it('returns isLoading true until first data received', () => {
     // Don't call callback - simulates waiting for first data
-    mockSubscribe.mockImplementation(() => mockUnsubscribe);
+    mockSubscribeToSymbol.mockImplementation(() => mockUnsubscribe);
 
     const { result } = renderHook(() => usePerpsOICap('BTC'));
 
@@ -91,7 +93,7 @@ describe('usePerpsOICap', () => {
 
   it('returns isLoading false after first data received', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;
@@ -115,7 +117,7 @@ describe('usePerpsOICap', () => {
   });
 
   it('handles undefined symbol gracefully', async () => {
-    mockSubscribe.mockImplementation(() => mockUnsubscribe);
+    mockSubscribeToSymbol.mockImplementation(() => mockUnsubscribe);
 
     const { result } = renderHook(() => usePerpsOICap(undefined));
 
@@ -124,16 +126,16 @@ describe('usePerpsOICap', () => {
     expect(result.current.isAtCap).toBe(false);
 
     // subscribe should not have been called (symbol is undefined)
-    expect(mockSubscribe).not.toHaveBeenCalled();
+    expect(mockSubscribeToSymbol).not.toHaveBeenCalled();
   });
 
   it('unsubscribes when component unmounts', () => {
-    mockSubscribe.mockReturnValue(mockUnsubscribe);
+    mockSubscribeToSymbol.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = renderHook(() => usePerpsOICap('BTC'));
 
     // Subscription should be created
-    expect(mockSubscribe).toHaveBeenCalled();
+    expect(mockSubscribeToSymbol).toHaveBeenCalled();
 
     // Unmount component
     unmount();
@@ -144,7 +146,7 @@ describe('usePerpsOICap', () => {
 
   it('updates isAtCap when caps list changes', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;
@@ -183,7 +185,7 @@ describe('usePerpsOICap', () => {
 
   it('handles empty caps list correctly', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;
@@ -204,34 +206,34 @@ describe('usePerpsOICap', () => {
   });
 
   it('resubscribes when symbol changes', () => {
-    mockSubscribe.mockReturnValue(mockUnsubscribe);
+    mockSubscribeToSymbol.mockReturnValue(mockUnsubscribe);
 
     const { rerender } = renderHook(({ symbol }) => usePerpsOICap(symbol), {
       initialProps: { symbol: 'BTC' as string | undefined },
     });
 
-    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(1);
 
     // Change symbol
     rerender({ symbol: 'ETH' });
 
     // Should have unsubscribed from old and subscribed to new
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(2);
   });
 
   it('does not subscribe when symbol is undefined', () => {
-    mockSubscribe.mockReturnValue(mockUnsubscribe);
+    mockSubscribeToSymbol.mockReturnValue(mockUnsubscribe);
 
     renderHook(() => usePerpsOICap(undefined));
 
     // Should not have subscribed
-    expect(mockSubscribe).not.toHaveBeenCalled();
+    expect(mockSubscribeToSymbol).not.toHaveBeenCalled();
   });
 
   it('uses memoized isAtCap value to avoid unnecessary re-renders', async () => {
     let capturedCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribe.mockImplementation(
+    mockSubscribeToSymbol.mockImplementation(
       ({ callback }: { callback: (caps: string[]) => void }) => {
         capturedCallback = callback;
         return mockUnsubscribe;

@@ -34,6 +34,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
       fetchCardHomeData: jest.fn(),
+      state: { isAuthenticated: true },
     },
   },
 }));
@@ -134,6 +135,9 @@ jest.mock('../components/MoneyTransferSheet', () => () => (
 jest.mock('../components/MoneyApyInfoSheet', () => () => (
   <MockView testID="mock-money-apy-info-sheet" />
 ));
+jest.mock('../components/MoneyEstimatedBalanceSheet', () => () => (
+  <MockView testID="mock-money-estimated-balance-sheet" />
+));
 jest.mock('../components/MoneyEarningsInfoSheet', () => () => (
   <MockView testID="mock-money-earnings-info-sheet" />
 ));
@@ -177,6 +181,7 @@ jest.mock('../components/MoneyDeeplinkModal/MoneyDeeplinkModal', () => ({
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Engine.context.CardController.state.isAuthenticated = true;
   });
 
   it('registers Money home, activity, and how-it-works screens', () => {
@@ -230,6 +235,19 @@ describe('MoneyTabScreenStack', () => {
     ).toHaveBeenCalledWith();
   });
 
+  it('does not prefetch card home data when the cardholder is logged out', () => {
+    Engine.context.CardController.state.isAuthenticated = false;
+    const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    fireEvent.press(getByTestId(`money-screen-${Routes.MONEY.HOME}-focus`));
+
+    expect(
+      Engine.context.CardController.fetchCardHomeData,
+    ).not.toHaveBeenCalled();
+  });
+
   it('does not attach card prefetch listeners to other Money routes', () => {
     const { queryByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
@@ -249,15 +267,13 @@ describe('MoneyConfirmationScreenStack', () => {
     jest.clearAllMocks();
   });
 
-  it('registers the redesigned confirmations screen', () => {
+  it('registers the confirmations screen', () => {
     const { getByTestId } = renderWithProvider(
       <MoneyConfirmationScreenStack />,
       { theme: themeWithCustomBackground },
     );
 
-    expect(
-      getByTestId('money-screen-RedesignedConfirmations'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('money-screen-Confirmations')).toBeOnTheScreen();
   });
 
   it('hides the stack header', () => {
@@ -332,6 +348,16 @@ describe('MoneyModalStack', () => {
     });
 
     expect(getByTestId('money-screen-MoneyApyInfoSheet')).toBeOnTheScreen();
+  });
+
+  it('registers the estimated balance sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyEstimatedBalanceSheet'),
+    ).toBeOnTheScreen();
   });
 
   it('registers the Earnings info sheet as a modal screen', () => {

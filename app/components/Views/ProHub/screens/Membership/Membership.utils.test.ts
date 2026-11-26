@@ -7,7 +7,10 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
-import { getMembershipDetails } from './Membership.utils';
+import {
+  getMembershipDetails,
+  getRenewalRowLabelKey,
+} from './Membership.utils';
 
 const readyPricing = {
   monthly: {
@@ -57,10 +60,17 @@ const createSubscription = (
 });
 
 describe('getMembershipDetails', () => {
+  // Before the fixture period end, so Renews on stays the charge day.
+  const beforePeriodEnd = new Date('2026-10-07T00:00:00.000Z');
+
   it('maps an annual card subscription and comparison pricing', () => {
     const subscription = createSubscription();
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      beforePeriodEnd,
+    );
 
     expect(result).toEqual({
       plan: 'Annual',
@@ -69,7 +79,7 @@ describe('getMembershipDetails', () => {
       totalOriginal: '$119.88',
       savingsNote: '2 months on us',
       payingWith: 'VISA •••• 4242',
-      renewsOn: 'Jul 19, 2027',
+      renewsOn: 'Jul 20, 2027',
     });
   });
 
@@ -95,14 +105,18 @@ describe('getMembershipDetails', () => {
       },
     });
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-08-01T00:00:00.000Z'),
+    );
 
     expect(result.plan).toBe('Monthly');
     expect(result.total).toBe('$9.99');
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
     expect(result.payingWith).toBe('Money account');
-    expect(result.renewsOn).toBe('Aug 19, 2026');
+    expect(result.renewsOn).toBe('Aug 20, 2026');
   });
 
   it('renews on the period end even when the subscription has a scheduled end date', () => {
@@ -110,9 +124,57 @@ describe('getMembershipDetails', () => {
       endDate: '2026-09-20T00:00:00.000Z',
     });
 
-    const result = getMembershipDetails(subscription, readyPricing);
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      beforePeriodEnd,
+    );
 
-    expect(result.renewsOn).toBe('Jul 19, 2027');
+    expect(result.renewsOn).toBe('Jul 20, 2027');
+  });
+
+  it('shows the last day of access for a scheduled cancellation', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-12-05T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('Dec 4, 2026');
+  });
+
+  it('shows the last day of access for a lapsed membership', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('May 31, 2026');
+  });
+
+  it('shows the charge day for an active renewal at midnight UTC', () => {
+    const subscription = createSubscription({
+      currentPeriodEnd: '2026-12-05T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(
+      subscription,
+      readyPricing,
+      new Date('2026-10-07T00:00:00.000Z'),
+    );
+
+    expect(result.renewsOn).toBe('Dec 5, 2026');
   });
 
   it('returns unavailable values when the subscription is absent', () => {
@@ -141,5 +203,67 @@ describe('getMembershipDetails', () => {
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
     expect(result.renewsOn).toBe(MEMBERSHIP_UNAVAILABLE_VALUE);
+  });
+});
+
+describe('getRenewalRowLabelKey', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('says Renews on for an active plan that will renew', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.renews_on',
+    );
+  });
+
+  it('says Ends on while a period-end cancellation is scheduled', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ends_on',
+    );
+  });
+
+  it.each([
+    SUBSCRIPTION_STATUSES.pastDue,
+    SUBSCRIPTION_STATUSES.paused,
+    SUBSCRIPTION_STATUSES.unpaid,
+  ])('says Ended on for a %s plan whose period end has passed', (status) => {
+    const subscription = createSubscription({
+      status,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ended_on',
+    );
+  });
+
+  it('says Ended on instead of Ends on when a cancelled period has already passed', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+    });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.ended_on',
+    );
+  });
+
+  it('keeps Renews on when there is no period end to compare', () => {
+    const subscription = createSubscription({ currentPeriodEnd: undefined });
+
+    expect(getRenewalRowLabelKey(subscription, now)).toBe(
+      'pro_hub.membership.renews_on',
+    );
   });
 });

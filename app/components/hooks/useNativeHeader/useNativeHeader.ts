@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState } from 'react';
+import type { TextStyle } from 'react-native';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type {
   NativeStackHeaderItem,
@@ -18,6 +19,11 @@ export interface NativeHeaderConfig {
   isEnabled?: boolean;
   /** Turns off UIKit's top scroll edge effect, for screens that draw their own backdrop. */
   hidesScrollEdgeEffect?: boolean;
+  /** Centered bar title. */
+  title?: string;
+  titleStyle?: Pick<TextStyle, 'fontFamily' | 'fontSize'>;
+  /** Hides UIKit's own back button, for screens whose left items handle back. */
+  hidesBackButton?: boolean;
 }
 
 /** Compact UINavigationBar height, below the status bar. */
@@ -26,6 +32,7 @@ export const NATIVE_HEADER_BAR_HEIGHT = 44;
 const HIDDEN_HEADER_OPTIONS: NativeStackNavigationOptions = {
   headerShown: false,
   headerTransparent: false,
+  headerBackVisible: undefined,
   unstable_headerLeftItems: undefined,
   unstable_headerRightItems: undefined,
   scrollEdgeEffects: undefined,
@@ -51,6 +58,9 @@ export const useNativeHeader = ({
   rightItems,
   isEnabled = true,
   hidesScrollEdgeEffect = false,
+  title = '',
+  titleStyle,
+  hidesBackButton = false,
 }: NativeHeaderConfig = {}): boolean => {
   const isNativeHeader = useIsNativeHeader() && isEnabled;
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
@@ -65,8 +75,11 @@ export const useNativeHeader = ({
       headerTransparent: true,
       headerShadowVisible: false,
       headerTintColor: colors.icon.default,
+      // Left unset unless hiding: `true` would add UIKit's back button next to custom left items.
+      headerBackVisible: hidesBackButton ? false : undefined,
       // An empty title stops react-navigation printing the route name.
-      title: '',
+      title,
+      headerTitleStyle: { ...titleStyle, color: colors.text.default },
       unstable_headerLeftItems: leftItems,
       unstable_headerRightItems: rightItems,
       scrollEdgeEffects: hidesScrollEdgeEffect ? { top: 'hidden' } : undefined,
@@ -75,9 +88,13 @@ export const useNativeHeader = ({
     isNativeHeader,
     navigation,
     colors.icon.default,
+    colors.text.default,
     leftItems,
     rightItems,
     hidesScrollEdgeEffect,
+    title,
+    titleStyle,
+    hidesBackButton,
   ]);
 
   useLayoutEffect(() => {

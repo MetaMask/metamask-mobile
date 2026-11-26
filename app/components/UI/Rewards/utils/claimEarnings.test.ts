@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 import { base58 } from 'ethers/lib/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -15,6 +17,7 @@ import type {
   LedgerEarningEntryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import Engine from '../../../../core/Engine';
+import { byAddressRowFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -27,10 +30,18 @@ import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
   cashbackMeetsClaimMinimum,
+  claimBlockedOnThisDevice,
+  claimHasUnsignableAddress,
+  claimWaitCaption,
+  claimWaitMinutesRemaining,
+  displayClaimTotals,
+  familyDisplayTotals,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
+  routesSignableOnDevice,
   selectClaimRoutes,
+  canSignEarningAddress,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
@@ -49,6 +60,7 @@ import {
   mergeInFlightClaims,
   runEarningsClaim,
   submitClaimVoucher,
+  type ClaimRouteOutcome,
 } from './claimEarnings';
 
 jest.mock('@metamask/eth-snap-keyring/v2', () => ({
@@ -61,7 +73,7 @@ jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
-      KeyringController: { withKeyringV2: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn(), state: { keyrings: [] } },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -203,6 +215,100 @@ describe('cashbackMeetsClaimMinimum', () => {
   });
 });
 
+describe('displayClaimTotals', () => {
+  it('keeps a route at the minimum available', () => {
+    expect(
+      displayClaimTotals(
+        summary({ claimable: ONE_DOLLAR, cashback: ONE_DOLLAR }),
+      ),
+    ).toEqual({ claimable: ONE_DOLLAR, pending: '0' });
+  });
+
+  it('moves a route under the minimum into pending', () => {
+    expect(
+      displayClaimTotals(
+        summary({ claimable: UNDER_DOLLAR, cashback: UNDER_DOLLAR }),
+      ),
+    ).toEqual({ claimable: '0', pending: UNDER_DOLLAR });
+  });
+
+  it('keeps cashback available and moves revenue share under the minimum', () => {
+    const mixed = summary({
+      claimable: '1400000',
+      cashback: ONE_DOLLAR,
+      revShare: '400000',
+    });
+    mixed.pending = '250000';
+
+    expect(displayClaimTotals(mixed)).toEqual({
+      claimable: ONE_DOLLAR,
+      pending: '650000',
+    });
+  });
+
+  it('adds delay pending to a route under the minimum', () => {
+    const below = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+    });
+    below.pending = '100000';
+
+    expect(displayClaimTotals(below)).toEqual({
+      claimable: '0',
+      pending: '1099999',
+    });
+  });
+
+  it('leaves a route in claimable when the minimum is missing', () => {
+    const missing = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+      minimum: '',
+    });
+
+    expect(displayClaimTotals(missing)).toEqual({
+      claimable: UNDER_DOLLAR,
+      pending: '0',
+    });
+  });
+
+  it('leaves a route in claimable when the minimum is unreadable', () => {
+    const unreadable = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+      minimum: 'abc',
+    });
+
+    expect(displayClaimTotals(unreadable)).toEqual({
+      claimable: UNDER_DOLLAR,
+      pending: '0',
+    });
+  });
+
+  it('leaves a server-closed route in blocked and a tax hold in held', () => {
+    const closed = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+      revShare: '0',
+    });
+    closed.held = '2000000';
+    closed.blocked = '400000';
+
+    expect(displayClaimTotals(closed)).toEqual({
+      claimable: ONE_DOLLAR,
+      pending: '0',
+    });
+    expect(closed.held).toBe('2000000');
+    expect(closed.blocked).toBe('400000');
+  });
+
+  it('keeps root claimable that no family accounts for', () => {
+    expect(
+      displayClaimTotals(summary({ claimable: '500000', cashback: '0' })),
+    ).toEqual({ claimable: '500000', pending: '0' });
+  });
+});
+
 describe('selectClaimRoutes', () => {
   const routes = [
     'referral-trade-fee-cashback',
@@ -238,6 +344,137 @@ describe('selectClaimRoutes', () => {
     expect(
       selectClaimRoutes([...routes], { cashbackOnly: true, omitIncome: true }),
     ).toEqual(['referral-trade-fee-cashback']);
+  });
+});
+
+const ON_DEVICE = 'eip155:0x1111111111111111111111111111111111111111';
+const ELSEWHERE = 'eip155:0x3333333333333333333333333333333333333333';
+
+describe('claimWaitCaption', () => {
+  const text = {
+    claimFailureWaitMinutesToast: 'Try again in {minutes} minutes.',
+    claimFailureWaitToast: 'Try again later.',
+  };
+
+  it('counts whole minutes still left, and at least one while the wait is running', () => {
+    expect(claimWaitMinutesRemaining(90_000, 0)).toBe(2);
+    expect(claimWaitMinutesRemaining(1_000, 0)).toBe(1);
+    expect(claimWaitMinutesRemaining(0, 1)).toBe(0);
+  });
+
+  it('fills the minutes in the wait sentence', () => {
+    expect(claimWaitCaption(text, 120_000, 0)).toBe('Try again in 2 minutes.');
+  });
+
+  it('uses the later sentence when the template has no minutes placeholder', () => {
+    expect(
+      claimWaitCaption(
+        { ...text, claimFailureWaitMinutesToast: 'Wait a bit' },
+        120_000,
+        0,
+      ),
+    ).toBe('Try again later.');
+  });
+});
+
+describe('routesSignableOnDevice', () => {
+  const canSign = (address: string) => address === ON_DEVICE;
+
+  it('keeps a route whose claimable addresses are not listed', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual(['referral-trade-fee-cashback']);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(false);
+  });
+
+  it('drops a cashback or follow-trade route when none of its claimable addresses can be signed here', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+    cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [byAddressRowFixture(ELSEWHERE, ONE_DOLLAR)];
+    const follow = summary({
+      claimable: ONE_DOLLAR,
+      followTrade: ONE_DOLLAR,
+      cashback: '0',
+    });
+    follow.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE.by_address = [
+      byAddressRowFixture(ELSEWHERE, ONE_DOLLAR),
+    ];
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual([]);
+    expect(
+      routesSignableOnDevice(follow, ['social-follow-trade'], canSign),
+    ).toEqual([]);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(true);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
+    expect(
+      claimBlockedOnThisDevice(follow, { includeFollowTrade: true }, canSign),
+    ).toBe(true);
+    expect(
+      claimHasUnsignableAddress(follow, { includeFollowTrade: true }, canSign),
+    ).toBe(true);
+  });
+
+  it('keeps the route when one claimable address can be signed here', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+    cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [
+        byAddressRowFixture(ELSEWHERE, ONE_DOLLAR),
+        byAddressRowFixture(ON_DEVICE, ONE_DOLLAR),
+      ];
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual(['referral-trade-fee-cashback']);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
+  });
+
+  it('leaves revenue share alone, since it has no address list', () => {
+    const revShare = summary({
+      claimable: ONE_DOLLAR,
+      revShare: ONE_DOLLAR,
+      cashback: '0',
+    });
+
+    expect(
+      routesSignableOnDevice(revShare, ['referral-rev-share'], canSign),
+    ).toEqual(['referral-rev-share']);
+    expect(
+      claimBlockedOnThisDevice(revShare, { includeRevShare: true }, canSign),
+    ).toBe(false);
+  });
+
+  it('does not block a tax-only claim, which opens documentation rather than a proof', () => {
+    const held = summary({ claimable: '0', cashback: '0' });
+
+    expect(claimBlockedOnThisDevice(held, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(held, undefined, canSign)).toBe(false);
   });
 });
 
@@ -750,6 +987,46 @@ describe('isTaxDeterminationRefusal', () => {
   });
 });
 
+describe('canSignEarningAddress', () => {
+  const ACCOUNT = '0x1111111111111111111111111111111111111111';
+  const OTHER = '0x2222222222222222222222222222222222222222';
+  const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
+    (
+      Engine.context.KeyringController as unknown as {
+        state: { keyrings: unknown[] };
+      }
+    ).state = { keyrings };
+  };
+
+  afterEach(() => {
+    setKeyrings([]);
+  });
+
+  it('signs for an EVM software key this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(true);
+  });
+
+  it('does not sign for a hardware account this phone lists', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.ledger, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for a snap account this phone lists', () => {
+    setKeyrings([{ type: KeyringTypes.snap, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for an address no keyring on this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [OTHER] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+});
+
 describe('evmAddressFromEarningAddress', () => {
   it('reads the address after the first colon', () => {
     expect(
@@ -1013,6 +1290,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher,
     });
 
@@ -1022,7 +1300,7 @@ describe('runEarningsClaim', () => {
       claim_intent_id: 'intent-1',
       proofs: [{ earning_address: 'eip155:0xabc', signature: '0xsig' }],
     });
-    expect(submitVoucher).toHaveBeenCalledWith(voucher);
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xmoney');
     expect(outcomes).toEqual([
       {
         route: 'referral-trade-fee-cashback',
@@ -1044,6 +1322,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: partial }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1119,6 +1398,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         earningAddress === 'eip155:0xabc',
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1169,6 +1449,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         evmAddressFromEarningAddress(earningAddress) !== null,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1216,6 +1497,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: (earningAddress) => earningAddress === bitcoin,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1254,6 +1536,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => false,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1276,6 +1559,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1331,6 +1615,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1351,6 +1636,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1372,6 +1658,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1399,6 +1686,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: opened() }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: async () => {
         throw new Error('rejected');
       },
@@ -1413,6 +1701,131 @@ describe('runEarningsClaim', () => {
       },
     ]);
     expect(claimToastKey(outcomes)).toBe('claimFailureRetryToast');
+  });
+});
+
+describe('PAYOUT_ADDRESS_MIGRATED', () => {
+  const migrated = () =>
+    new RewardsMoneyClaimRefusalError(422, 'PAYOUT_ADDRESS_MIGRATED');
+  const migratedOutcome: ClaimRouteOutcome = {
+    route: 'referral-trade-fee-cashback',
+    submitted: false,
+    opened: false,
+    reason: 'PAYOUT_ADDRESS_MIGRATED',
+  };
+
+  it('shows its own toast and reports its own failure bucket', () => {
+    expect(claimToastKey([migratedOutcome])).toBe(
+      'claimFailurePayoutMigratedToast',
+    );
+    expect(claimFailureReason('PAYOUT_ADDRESS_MIGRATED')).toBe(
+      'payout_migrated',
+    );
+  });
+
+  it('falls back to the generic sentence when the server does not send the key', () => {
+    const localizedText = {
+      claimFailureToast: 'Earnings could not be claimed.',
+    } as unknown as Parameters<typeof claimToastText>[0];
+
+    expect(claimToastText(localizedText, [migratedOutcome])).toBe(
+      'Earnings could not be claimed.',
+    );
+  });
+
+  it('retries the route once with the address the store now names', async () => {
+    const initiateClaim = jest.fn(
+      async (_route, body): Promise<InitiateClaimResult> => {
+        if (body.money_account_address === '0xold') {
+          throw migrated();
+        }
+        return { kind: 'authorized', body: opened() };
+      },
+    );
+    const submitVoucher = jest.fn().mockResolvedValue(undefined);
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(initiateClaim.mock.calls[1][1]).toEqual({
+      money_account_address: '0xnew',
+    });
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xnew');
+    expect(outcomes).toEqual([
+      {
+        route: 'referral-trade-fee-cashback',
+        submitted: true,
+        opened: true,
+      },
+    ]);
+  });
+
+  it('keeps the refusal when the store still names the same address', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xOLD',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xold',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('stops after one retry when the new address is refused too', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('does not retry a route refused for another reason', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw new RewardsMoneyClaimRefusalError(422, 'UNDER_REVIEW');
+    });
+
+    await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1832,5 +2245,89 @@ describe('isPendingClaimRow', () => {
         payout_method: 'VOUCHER',
       }),
     ).toBe(false);
+  });
+});
+
+describe('familyDisplayTotals', () => {
+  const familySummary = (
+    family: Record<string, string>,
+    minimum = ONE_DOLLAR,
+  ) =>
+    ({
+      minimum_musd_base_units: minimum,
+      self_earned: { by_claim_family: {} },
+      earned_by_others: {
+        by_claim_family: { REFERRAL_REV_SHARE: family },
+      },
+    }) as unknown as EarningsSummaryDto;
+
+  it('reads each field of the named family and branch', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({
+          claimable: '2000000',
+          pending: '300000',
+          held: '40',
+          blocked: '5',
+          voided: '6',
+          claimed: '7000000',
+        }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toEqual({
+      claimable: '2000000',
+      pending: '300000',
+      held: '40',
+      blocked: '5',
+      voided: '6',
+      claimed: '7000000',
+    });
+  });
+
+  it('moves a claimable under the minimum into pending', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({ claimable: UNDER_DOLLAR, pending: '100000' }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: '0', pending: '1099999' });
+  });
+
+  it('keeps a claimable when the minimum is unknown', () => {
+    const summaryWithoutMinimum = familySummary({ claimable: UNDER_DOLLAR });
+    delete (summaryWithoutMinimum as Partial<EarningsSummaryDto>)
+      .minimum_musd_base_units;
+
+    expect(
+      familyDisplayTotals(
+        summaryWithoutMinimum,
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: UNDER_DOLLAR, pending: '0' });
+  });
+
+  it('reads zero for a missing family or summary', () => {
+    const zero = {
+      claimable: '0',
+      pending: '0',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      claimed: '0',
+    };
+
+    expect(
+      familyDisplayTotals(
+        familySummary({}),
+        'self_earned',
+        'REFERRAL_TRADE_FEE_CASHBACK',
+      ),
+    ).toEqual(zero);
+    expect(
+      familyDisplayTotals(null, 'earned_by_others', 'SOCIAL_FOLLOW_TRADE'),
+    ).toEqual(zero);
   });
 });

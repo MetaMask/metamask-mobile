@@ -154,9 +154,30 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
+    ])
   ) {
     return <PerpsWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
+    return <PerpsDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsLighterDepositAndOrder,
+    ])
+  ) {
+    return <PerpsOrderView />;
   }
 
   const { requestData } = approvalRequest ?? {

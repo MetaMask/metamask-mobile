@@ -372,26 +372,6 @@ export type RewardsControllerLogoutAction = {
 };
 
 /**
- * Get geo rewards metadata including location and support status
- * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
- */
-export type RewardsControllerGetGeoRewardsMetadataAction = {
-  type: `RewardsController:getGeoRewardsMetadata`;
-  handler: RewardsController['getGeoRewardsMetadata'];
-};
-
-/**
- * Validate a bonus code
- * @param code - The bonus code to validate
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<boolean> - True if the code is valid, false otherwise
- */
-export type RewardsControllerValidateBonusCodeAction = {
-  type: `RewardsController:validateBonusCode`;
-  handler: RewardsController['validateBonusCode'];
-};
-
-/**
  * Get candidate subscription ID with fallback logic
  * @returns Promise<string | null> - The subscription ID or null if none found
  */
@@ -475,6 +455,7 @@ export type RewardsControllerGetCampaignsAction = {
  * Opt a subscription into a campaign.
  * @param campaignId - The campaign ID to opt into.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one.
  * @returns The participant status after opting in.
  */
 export type RewardsControllerOptInToCampaignAction = {
@@ -492,6 +473,7 @@ export type RewardsControllerOptInToCampaignAction = {
  * post-event status fetches hit cache instead of the network.
  * @param campaignIds - Campaign IDs to opt into, in call order.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
  * @returns Per-campaign participant statuses after opting in.
  */
 export type RewardsControllerOptInToCampaignsAction = {
@@ -744,18 +726,6 @@ export type RewardsControllerPostBenefitImpressionAction = {
 };
 
 /**
- * Apply a bonus code to a subscription.
- * @param bonusCode - The bonus code to apply.
- * @param subscriptionId - The subscription ID to apply the bonus code to.
- * @returns Promise that resolves when the bonus code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyBonusCodeAction = {
-  type: `RewardsController:applyBonusCode`;
-  handler: RewardsController['applyBonusCode'];
-};
-
-/**
  * Fetch the minimum client version requirements from the public API.
  * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
@@ -963,8 +933,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInAction
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
-  | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction
   | RewardsControllerLinkAccountsToSubscriptionCandidateAction
@@ -999,7 +967,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction

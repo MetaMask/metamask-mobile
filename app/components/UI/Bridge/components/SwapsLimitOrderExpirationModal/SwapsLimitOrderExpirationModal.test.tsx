@@ -9,6 +9,14 @@ import {
 import SwapsLimitOrderExpirationModal from './SwapsLimitOrderExpirationModal';
 import { SwapsLimitOrderExpirationModalSelectorsIDs } from './testIds';
 import type { SwapsLimitOrderExpirationModalProps } from './types';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -94,6 +102,21 @@ describe('SwapsLimitOrderExpirationModal', () => {
 
     expect(props.onSelect).toHaveBeenCalledTimes(1);
     expect(props.onSelect).toHaveBeenCalledWith(10080);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the active expiration silent', () => {
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(
+        SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(
+          SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+        ),
+      ),
+    );
+
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   describe('closing after selection', () => {

@@ -6,20 +6,13 @@ import {
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
   selectBridgeControllerState,
-  selectDestToken,
   selectIsSlippageUserOverride,
   selectIsGasIncludedSTXSendBundleSupported,
-  selectSlippage,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  AMBIENT_PRICE_COLOR_VARIANTS,
-} from '../../../components/UI/TokenDetails/components/abTestConfig';
 import {
   CHAIN_VALUE_ORDER_AB_KEY,
   CHAIN_VALUE_ORDER_VARIANTS,
@@ -41,6 +34,9 @@ import {
   recordSocialTrade,
 } from '../../social/socialActivityStorage';
 import { captureException } from '@sentry/react-native';
+import { useBridgeSession } from '../../../components/UI/Bridge/hooks/useBridgeSession';
+import { loadAssetsForAddresses } from '../../../core/Assets/accountGroupAssetLoader';
+import { resolveMoneyAccountOperation } from '../money-operations';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -57,18 +53,14 @@ function mergeTransactionActiveAbTests(
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
-  const walletAddress = useSelector(selectSourceWalletAddress);
-  const destToken = useSelector(selectDestToken);
-  const slippage = useSelector(selectSlippage);
+  const {
+    quoteParams: { srcToken, destToken, slippage, walletAddress },
+  } = useBridgeSession();
   const isSlippageUserOverride =
     useSelector(selectIsSlippageUserOverride) ?? false;
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const abTestContext = useSelector(selectAbTestContext);
-  const {
-    variantName: ambientColorVariantName,
-    isActive: isAmbientColorAbActive,
-  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
   const {
     variantName: chainValueOrderVariantName,
     isActive: isChainValueOrderAbActive,
@@ -83,15 +75,6 @@ export default function useSubmitBridgeTx() {
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
 
-    if (isAmbientColorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          AMBIENT_PRICE_COLOR_AB_KEY,
-          ambientColorVariantName,
-        ),
-      );
-    }
-
     if (isChainValueOrderAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -102,12 +85,12 @@ export default function useSubmitBridgeTx() {
     }
 
     return tests.length > 0 ? tests : undefined;
-  }, [
-    isAmbientColorAbActive,
-    ambientColorVariantName,
-    isChainValueOrderAbActive,
-    chainValueOrderVariantName,
-  ]);
+  }, [isChainValueOrderAbActive, chainValueOrderVariantName]);
+
+  const operation = useMemo(
+    () => resolveMoneyAccountOperation(srcToken, destToken),
+    [srcToken, destToken],
+  );
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -164,6 +147,7 @@ export default function useSubmitBridgeTx() {
                 inputPrimaryDenomination,
                 quotesReceivedContext,
                 migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+                operation,
               })
             : await Engine.context.BridgeStatusController.submitTx({
                 accountAddress: walletAddress,
@@ -176,15 +160,31 @@ export default function useSubmitBridgeTx() {
                 tokenSecurityTypeDestination,
                 inputPrimaryDenomination,
                 migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+                operation,
               });
 
           if (isSocialTradeSource(location)) {
             recordSocialTrade();
           }
 
+          if (operation) {
+            const moneyAccount =
+              Engine.context.MoneyAccountController.getMoneyAccount();
+            moneyAccount?.address &&
+              loadAssetsForAddresses([moneyAccount?.address]).catch(
+                (error: Error) => {
+                  captureException(error, {
+                    tags: {
+                      feature: SwapFeatureTag.SWAP,
+                    },
+                  });
+                },
+              );
+          }
+
           return submittedTransaction;
         } catch (error) {
-          captureException(error as Error, {
+          captureException(error, {
             tags: {
               feature: SwapFeatureTag.SWAP,
             },

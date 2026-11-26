@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../../../../../core/Engine';
@@ -55,12 +56,15 @@ const renderWithVariant = (
     price?: string;
     /** Enables the close-position limit-order flag for limit tests. */
     limitOrderFlag?: boolean;
+    /** Enables the cross margin flag. */
+    crossMarginFlag?: boolean;
   } = {},
 ) => {
   const {
     position = createLongPositionForViews(),
     price = '2500',
     limitOrderFlag = false,
+    crossMarginFlag = false,
   } = options;
 
   const remoteFeatureFlags: FeatureFlags = {};
@@ -75,6 +79,7 @@ const renderWithVariant = (
   }
 
   const result = renderPerpsClosePositionRouter({
+    crossMarginEnabled: crossMarginFlag || undefined,
     initialParams: { position },
     overrides: Object.keys(remoteFeatureFlags).length
       ? ({
@@ -165,6 +170,63 @@ describe('PerpsClosePositionRouter', () => {
         ),
       ).toBeNull();
     });
+  });
+
+  it.each<{ mode: 'isolated' | 'cross'; pnlLabel: string }>([
+    {
+      mode: 'isolated',
+      pnlLabel: strings('perps.close_position.included_pnl'),
+    },
+    // Cross margin never holds the P&L, so the row does not say it is included.
+    { mode: 'cross', pnlLabel: strings('perps.close_position.pnl') },
+  ])(
+    'shows $mode margin without a Margin row in the close bottom sheet',
+    async ({ mode, pnlLabel }) => {
+      calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+      renderWithVariant(ScreenVsBottomSheetVariant.Treatment, {
+        position: createLongPositionForViews({
+          unrealizedPnl: '150',
+          leverage: { value: 3, type: mode },
+        }),
+        price: '2650',
+        crossMarginFlag: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW,
+        ),
+      ).toHaveTextContent(new RegExp(`^${escapeRegExp(pnlLabel)}`));
+    },
+  );
+
+  it('hides the margin row in the close bottom sheet without the cross margin flag', async () => {
+    renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+
+    expect(
+      await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).toBeNull();
   });
 
   it('presents a Core grant quote in the full-page close flow', async () => {

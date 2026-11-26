@@ -60,6 +60,7 @@ import {
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
 import { useRecurringSwaps } from '../../hooks/useRecurringSwaps';
+import { useRecurringOrder } from '../../hooks/useRecurringOrder';
 import {
   formatRecurringExecutionPrice,
   formatRecurringInterval,
@@ -80,6 +81,7 @@ import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 
 const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
@@ -144,7 +146,7 @@ function RecurringOrderDetailsView() {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const { order } = useParams<RecurringOrderDetailsRouteParams>();
+  const { order: routeOrder } = useParams<RecurringOrderDetailsRouteParams>();
   const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
   const currentCurrency = useSelector(selectCurrentCurrency) ?? 'USD';
   const currencyRates = useSelector(selectCurrencyRates);
@@ -155,9 +157,18 @@ function RecurringOrderDetailsView() {
     isSubmitting,
     reset: resetCancelMutation,
   } = useCancelRecurringOrder();
+  const networkTier = useNetworkTier();
+  const isRemoteDataEnabled = networkTier !== 'NONE';
+  const orderQuery = useRecurringOrder({
+    orderId: routeOrder.id,
+    accountAddress: routeOrder.account,
+    enabled: isRemoteDataEnabled,
+  });
+  const order = orderQuery.order ?? routeOrder;
   const swapsQuery = useRecurringSwaps({
     orderId: order.id,
-    accountAddress: order.accountAddress,
+    accountAddress: order.account,
+    enabled: isRemoteDataEnabled,
   });
 
   const handleBack = useCallback(() => {
@@ -238,7 +249,7 @@ function RecurringOrderDetailsView() {
     order.src.asset.decimals,
   );
   const totalSourceAmount = formatRecurringTokenAmount(
-    (BigInt(order.src.amount) * BigInt(order.schedule.repeatCount)).toString(),
+    order.totalAmount,
     order.src.asset.decimals,
   );
   const sizePerOrder = formatRecurringTokenAmount(
@@ -514,7 +525,7 @@ function RecurringOrderDetailsView() {
         </Box>
       ) : null}
 
-      {order.state === RecurringOrderState.Completed ? (
+      {order.state !== RecurringOrderState.Open ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

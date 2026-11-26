@@ -2,6 +2,7 @@ import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -4313,6 +4314,156 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('falls back to pendingPriceToBeat when the endpoint omits priceToBeat', () => {
+    // `GET /events/:id`, used by the details screen, only returns
+    // `pendingPriceToBeat` while a window is live.
+    const event: PolymarketApiEvent = {
+      id: 'gold-event',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '12967',
+          slug: 'xau-up-or-down-15m',
+          title: 'Gold Up or Down 15m',
+          recurrence: '15m',
+        },
+      ],
+      markets: [],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        pendingPriceToBeat: 3643.22,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({
+        id: 'gold-event',
+        priceToBeat: 3643.22,
+      }),
+    ]);
+  });
+
+  it('prefers priceToBeat over pendingPriceToBeat', () => {
+    const event: PolymarketApiEvent = {
+      id: 'gold-event-both',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        priceToBeat: 3643.22,
+        pendingPriceToBeat: 3600,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({ priceToBeat: 3643.22 }),
+    ]);
+  });
+
+  it('parses startTime from event.startTime and falls back to markets[0].eventStartTime', () => {
+    const eventWithStartTime: PolymarketApiEvent = {
+      id: 'gold-event-start-time',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      startTime: '2026-11-10T23:15:00Z',
+      series: [],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          eventStartTime: '2026-11-10T23:00:00Z',
+        },
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+    const eventWithMarketStartTime: PolymarketApiEvent = {
+      ...eventWithStartTime,
+      id: 'gold-event-market-start-time',
+      startTime: undefined,
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          eventStartTime: '2026-11-10T23:15:00Z',
+        },
+      ],
+    };
+    const eventWithoutStartTime: PolymarketApiEvent = {
+      ...eventWithStartTime,
+      id: 'gold-event-no-start-time',
+      startTime: undefined,
+      markets: [],
+    };
+
+    expect(
+      parsePolymarketEvents(
+        [eventWithStartTime, eventWithMarketStartTime, eventWithoutStartTime],
+        'crypto',
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'gold-event-start-time',
+        startTime: '2026-11-10T23:15:00Z',
+      }),
+      expect.objectContaining({
+        id: 'gold-event-market-start-time',
+        startTime: '2026-11-10T23:15:00Z',
+      }),
+      expect.not.objectContaining({ startTime: expect.anything() }),
+    ]);
+  });
+
+  it.each([
+    ['zero', 0],
+    ['negative', -1],
+    ['not a number', 'n/a'],
+  ])(
+    'ignores a %s pendingPriceToBeat',
+    (_label, pendingPriceToBeat: number | string) => {
+      const event: PolymarketApiEvent = {
+        id: 'gold-event-invalid',
+        slug: 'xau-updown-15m-1795464000',
+        title: 'Gold Up or Down 15m',
+        description: 'Description',
+        icon: '',
+        closed: false,
+        active: true,
+        series: [],
+        markets: [],
+        tags: [],
+        liquidity: 0,
+        volume: 0,
+        eventMetadata: { pendingPriceToBeat },
+      };
+
+      expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+        expect.not.objectContaining({ priceToBeat: expect.anything() }),
+      ]);
+    },
+  );
+
   it('parses the TWAP window from Polymarket crypto market config', () => {
     const event: PolymarketApiEvent = {
       id: 'crypto-twap-event',
@@ -4476,6 +4627,87 @@ describe('parseCryptoPriceProvider', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).toEqual(
       expect.objectContaining({ cryptoPriceProvider: 'binance' }),
     );
+  });
+
+  describe('a crypto up/down market without a known vendor', () => {
+    const cryptoEvent = (
+      id: string,
+      resolutionSource?: string,
+    ): PolymarketApiEvent => ({
+      id,
+      slug: 'btc-updown-5m-1763000000',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: 'series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down 5m',
+          recurrence: '5m',
+        },
+      ],
+      markets: [{ ...createPolymarketApiMarket(), resolutionSource }],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+    });
+
+    beforeEach(() => {
+      jest.mocked(captureMessage).mockClear();
+    });
+
+    it.each([
+      ['an unknown', 'unknown-source-event', 'https://pythdata.app/BTC'],
+      ['a missing', 'missing-source-event', undefined],
+    ])(
+      'warns Sentry once for %s resolution source',
+      (_case, id, resolutionSource) => {
+        const event = cryptoEvent(id, resolutionSource);
+
+        parsePolymarketEvents([event], 'crypto');
+        parsePolymarketEvents([event], 'crypto');
+
+        expect(jest.mocked(captureMessage).mock.calls).toEqual([
+          [
+            'Polymarket: crypto market settles on an unknown vendor',
+            {
+              level: 'warning',
+              tags: { feature: 'Predict', provider: 'polymarket' },
+              contexts: {
+                parsePolymarketEvents: {
+                  marketId: id,
+                  slug: 'btc-updown-5m-1763000000',
+                  symbol: 'BTC',
+                  resolutionSource: resolutionSource ?? null,
+                  defaultProvider: 'chainlink',
+                },
+              },
+            },
+          ],
+        ]);
+      },
+    );
+
+    it('does not warn for a known vendor or a market that is not crypto up/down', () => {
+      parsePolymarketEvents(
+        [
+          cryptoEvent(
+            'chainlink-source-event',
+            'https://data.chain.link/streams/btc-usd',
+          ),
+          { ...cryptoEvent('not-crypto-event'), tags: [] },
+        ],
+        'crypto',
+      );
+
+      expect(jest.mocked(captureMessage)).not.toHaveBeenCalled();
+    });
   });
 });
 

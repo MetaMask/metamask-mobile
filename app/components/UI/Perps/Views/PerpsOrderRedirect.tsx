@@ -62,6 +62,7 @@ const PerpsOrderRedirect: React.FC = () => {
     stayOnCurrentScreen,
     source,
     copyTradeOrigin,
+    isCopyTrade,
   } = route.params;
   const orderSource = source ?? PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN;
 
@@ -113,6 +114,8 @@ const PerpsOrderRedirect: React.FC = () => {
         source: orderSource,
         transactionActiveAbTests,
         ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
+        ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
+        ...(isCopyTrade ? { isCopyTrade: true } : {}),
       };
       // Lighter has no sheet. From the transparent modal stack, the full
       // order screen lives in the Perps stack, so leave the modal first.
@@ -151,23 +154,21 @@ const PerpsOrderRedirect: React.FC = () => {
         );
         // Replace current screen with confirmation (no back to loader)
         navigation.dispatch(
-          StackActions.replace(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              direction,
-              asset,
-              leverage,
-              fromTokenDetails,
-              source: orderSource,
-              ...(useBottomSheet
-                ? { useBottomSheet: true, forceBottomSheet: true }
-                : {}),
-              ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
-              ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
-            },
-          ),
+          StackActions.replace(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+            direction,
+            asset,
+            leverage,
+            fromTokenDetails,
+            source: orderSource,
+            ...(useBottomSheet
+              ? { useBottomSheet: true, forceBottomSheet: true }
+              : {}),
+            ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
+            ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
+            ...(isCopyTrade ? { isCopyTrade: true } : {}),
+            showPerpsHeader:
+              CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          }),
         );
       } catch (error: unknown) {
         if (useBottomSheet) {
@@ -211,6 +212,7 @@ const PerpsOrderRedirect: React.FC = () => {
     fromTokenDetails,
     stayOnCurrentScreen,
     copyTradeOrigin,
+    isCopyTrade,
     orderSource,
     transactionActiveAbTests,
     useBottomSheet,

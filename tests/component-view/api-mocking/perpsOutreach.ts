@@ -4,10 +4,11 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
 import { getTerminalOutreachUrl } from '../../../app/components/UI/Perps/constants/terminalApi';
 import type { PerpsOutreachBanner } from '../../../app/components/UI/Perps/services/perpsOutreachApi';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
+import { installDefaultApiMocks } from './defaults';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -30,7 +31,7 @@ export const mockPerpsOutreachBanner: PerpsOutreachBanner = {
 
 export function setupPerpsOutreachApiMock(
   banner: PerpsOutreachBanner | null = mockPerpsOutreachBanner,
-): Scope {
+): nock.Scope {
   // A previous suite in the same Jest worker can leave a persistent interceptor
   // on this host. That answer is consumed first and fails banner validation, so
   // the home view renders with no outreach banner.
@@ -62,6 +63,8 @@ export function setupPerpsOutreachApiMock(
       .query(true)
       .reply(200, () => body);
   }
+
+  installDefaultApiMocks();
 
   return scope;
 }

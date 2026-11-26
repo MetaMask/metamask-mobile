@@ -44,6 +44,7 @@ import {
 } from '../utils/hardwareDepositSigning';
 import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
 import { subscribeMusdRescueSetupFailures } from '../utils/musdRescueInFlight';
+import { isFiatOrderDeclineError } from '../../../../util/errorHandling/isFiatOrderDeclineError';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -246,8 +247,12 @@ export const useMoneyTransactionStatus = () => {
       } else if (isSend) {
         showToast(MoneyToastOptions.send.failed({ onPress }));
       } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = resolveDepositIntent(transactionMeta);
-        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
+        if (isFiatOrderDeclineError(transactionMeta.error?.message)) {
+          showToast(MoneyToastOptions.deposit.declined({ onPress }));
+        } else {
+          const intent = resolveDepositIntent(transactionMeta);
+          showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
+        }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());

@@ -1,0 +1,151 @@
+import React from 'react';
+import { Pressable } from 'react-native';
+import {
+  Box,
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
+
+import { PredictAmountEntryTestIds } from './PredictAmountEntry.testIds';
+
+const DIGIT_ROWS = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+] as const;
+
+interface PredictKeypadProps {
+  /** Called with the pressed digit or decimal-point key. */
+  onKeyPress: (key: string) => void;
+  /** Removes the last character of the amount. */
+  onDelete: () => void;
+  /** Hides the decimal-point key for integer-only entry, as in sell mode. */
+  showsDecimalKey?: boolean;
+  /** Puts the period and delete keys on the same filled tile as the digits
+   * (the buy sheet and the Withdraw screen); otherwise they sit on a
+   * transparent tile. */
+  hasFilledActionKeys?: boolean;
+  disabled?: boolean;
+  /** The keypad's test ID; each key's is `${testID}-key-${key}`. Defaults to
+   * the shared amount-entry test ID. */
+  testID?: string;
+}
+
+interface KeyProps {
+  testID: string;
+  onPress: () => void;
+  /** The period and delete keys sit on a transparent tile, like Base/Keypad. */
+  isPlain?: boolean;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  children: React.ReactNode;
+}
+
+const Key = ({
+  testID,
+  onPress,
+  isPlain = false,
+  disabled = false,
+  accessibilityLabel,
+  children,
+}: KeyProps) => {
+  const tw = useTailwind();
+  return (
+    <Pressable
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) =>
+        tw.style(
+          'h-12 flex-1 items-center justify-center rounded-xl',
+          !isPlain && (pressed ? 'bg-pressed' : 'bg-muted'),
+          disabled && 'opacity-50',
+        )
+      }
+    >
+      {children}
+    </Pressable>
+  );
+};
+
+/**
+ * The numeric keypad shared by the Order sheet and the Withdraw screen,
+ * styled after the legacy Base/Keypad: muted 48px tiles on a 12px grid,
+ * DisplayMd labels at medium weight (the legacy keypad overrides the
+ * variant's bold default with font-medium). The period and backspace keys are
+ * bare unless `hasFilledActionKeys` is set.
+ */
+export const PredictKeypad = ({
+  onKeyPress,
+  onDelete,
+  showsDecimalKey = true,
+  hasFilledActionKeys = false,
+  disabled = false,
+  testID = PredictAmountEntryTestIds.KEYPAD,
+}: PredictKeypadProps) => (
+  <Box testID={testID} twClassName="gap-3 px-4 py-4">
+    {DIGIT_ROWS.map((row) => (
+      <Box key={row.join('')} twClassName="flex-row gap-3">
+        {row.map((digit) => (
+          <Key
+            key={digit}
+            testID={`${testID}-key-${digit}`}
+            onPress={() => onKeyPress(digit)}
+            disabled={disabled}
+          >
+            <Text
+              variant={TextVariant.DisplayMd}
+              fontWeight={FontWeight.Medium}
+            >
+              {digit}
+            </Text>
+          </Key>
+        ))}
+      </Box>
+    ))}
+    <Box twClassName="flex-row gap-3">
+      {showsDecimalKey ? (
+        <Key
+          isPlain={!hasFilledActionKeys}
+          testID={`${testID}-key-.`}
+          onPress={() => onKeyPress('.')}
+          disabled={disabled}
+        >
+          <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
+            .
+          </Text>
+        </Key>
+      ) : (
+        // Keeps the grid positions of the remaining keys unchanged.
+        <Box twClassName="h-12 flex-1" />
+      )}
+      <Key
+        testID={`${testID}-key-0`}
+        onPress={() => onKeyPress('0')}
+        disabled={disabled}
+      >
+        <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
+          0
+        </Text>
+      </Key>
+      <Key
+        isPlain={!hasFilledActionKeys}
+        testID={`${testID}-key-delete`}
+        onPress={onDelete}
+        disabled={disabled}
+        accessibilityLabel={strings('predict_next.amount_entry.delete')}
+      >
+        <Icon name={IconName.Backspace} size={IconSize.Xl} />
+      </Key>
+    </Box>
+  </Box>
+);

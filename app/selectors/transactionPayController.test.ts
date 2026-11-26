@@ -15,6 +15,7 @@ import {
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayTransactionData,
   selectAccountOverrideByTransactionId,
+  selectAccountOverrideAddressByTransactionId,
   selectPaymentOverrideByTransactionId,
 } from './transactionPayController';
 
@@ -22,10 +23,14 @@ const TRANSACTION_ID_MOCK = 'tx-1';
 
 function createMockRootState(
   transactionData: Record<string, Record<string, unknown>> = {},
+  accounts: Record<string, { id: string; address: string }> = {},
 ): RootState {
   return {
     engine: {
       backgroundState: {
+        AccountsController: {
+          internalAccounts: { accounts, selectedAccount: '' },
+        },
         TransactionPayController: {
           transactionData,
         },
@@ -190,7 +195,7 @@ describe('transactionPayController selectors', () => {
 
   describe('selectTransactionPaymentTokenByTransactionId', () => {
     it('returns payment token from transaction data', () => {
-      const paymentToken = { address: '0xToken', chainId: '0x1' };
+      const paymentToken = { assetId: 'eip155:1/erc20:0xToken' };
       const state = createMockRootState({
         [TRANSACTION_ID_MOCK]: { paymentToken },
       });
@@ -309,7 +314,7 @@ describe('transactionPayController selectors', () => {
   describe('selectAccountOverrideByTransactionId', () => {
     it('returns accountOverride from transaction data', () => {
       const state = createMockRootState({
-        [TRANSACTION_ID_MOCK]: { accountOverride: '0xOverrideAddress' },
+        [TRANSACTION_ID_MOCK]: { accountOverride: 'override-account-id' },
       });
 
       const result = selectAccountOverrideByTransactionId(
@@ -317,7 +322,7 @@ describe('transactionPayController selectors', () => {
         TRANSACTION_ID_MOCK,
       );
 
-      expect(result).toBe('0xOverrideAddress');
+      expect(result).toBe('override-account-id');
     });
 
     it('returns undefined when accountOverride is not set', () => {
@@ -337,6 +342,51 @@ describe('transactionPayController selectors', () => {
       const state = createMockRootState({});
 
       const result = selectAccountOverrideByTransactionId(state, 'nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectAccountOverrideAddressByTransactionId', () => {
+    it('returns the address of the account override', () => {
+      const state = createMockRootState(
+        { [TRANSACTION_ID_MOCK]: { accountOverride: 'override-account-id' } },
+        {
+          'override-account-id': {
+            id: 'override-account-id',
+            address: '0xOverrideAddress',
+          },
+        },
+      );
+
+      const result = selectAccountOverrideAddressByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe('0xOverrideAddress');
+    });
+
+    it('returns undefined when the account override is not a known account', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: { accountOverride: 'unknown-account-id' },
+      });
+
+      const result = selectAccountOverrideAddressByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when accountOverride is not set', () => {
+      const state = createMockRootState({ [TRANSACTION_ID_MOCK]: {} });
+
+      const result = selectAccountOverrideAddressByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
 
       expect(result).toBeUndefined();
     });
@@ -386,13 +436,11 @@ describe('transactionPayController selectors', () => {
     };
 
     const MATCHING_PAYMENT_TOKEN = {
-      address: '0xrequiredtoken',
-      chainId: '0xa4b1',
+      assetId: 'eip155:42161/erc20:0xrequiredtoken',
     };
 
     const OTHER_PAYMENT_TOKEN = {
-      address: '0xOtherToken',
-      chainId: '0x1',
+      assetId: 'eip155:1/erc20:0xOtherToken',
     };
 
     it('returns true when an executable quote is in state', () => {

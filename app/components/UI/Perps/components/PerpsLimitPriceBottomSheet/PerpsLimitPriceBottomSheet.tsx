@@ -20,6 +20,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
+  type PerpsProviderType,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
 } from '@metamask/perps-controller';
@@ -45,6 +46,7 @@ interface PerpsLimitPriceBottomSheetProps {
   onClose: () => void;
   onConfirm: (limitPrice: string) => void;
   asset: string;
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
@@ -74,6 +76,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   onClose,
   onConfirm,
   asset,
+  providerId,
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
@@ -99,6 +102,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     resetInputMethod,
   } = usePerpsLimitPriceInput({
     asset,
+    providerId,
     currentPrice: passedCurrentPrice,
     direction,
     limitPrice,
@@ -289,6 +293,7 @@ export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   return (
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.asset === nextProps.asset &&
+    prevProps.providerId === nextProps.providerId &&
     prevProps.limitPrice === nextProps.limitPrice &&
     prevProps.direction === nextProps.direction &&
     prevProps.restingOrderSize === nextProps.restingOrderSize &&

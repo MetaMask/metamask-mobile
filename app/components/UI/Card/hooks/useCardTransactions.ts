@@ -20,6 +20,11 @@ export interface UseCardTransactionsOptions {
   fromDate?: number;
   /** Epoch ms. Must be paired with `fromDate`. */
   toDate?: number;
+  /**
+   * When false, the list query does not run. Defaults to true so existing
+   * history screens keep fetching.
+   */
+  enabled?: boolean;
 }
 
 export interface UseCardTransactionsResult {
@@ -52,7 +57,7 @@ export interface UseCardTransactionsResult {
 export function useCardTransactions(
   options: UseCardTransactionsOptions = {},
 ): UseCardTransactionsResult {
-  const { fromDate, toDate } = options;
+  const { fromDate, toDate, enabled = true } = options;
   const queryClient = useQueryClient();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const providerId = useSelector(selectCardActiveProviderId);
@@ -91,7 +96,8 @@ export function useCardTransactions(
     },
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
-    enabled: Boolean(cardController && isAuthenticated && providerId),
+    enabled:
+      enabled && Boolean(cardController && isAuthenticated && providerId),
     // The app QueryClient treats data as fresh for 5 minutes. A purchase
     // happens outside the app, so every open of this screen must request.
     staleTime: 0,

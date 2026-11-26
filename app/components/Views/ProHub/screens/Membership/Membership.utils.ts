@@ -7,8 +7,34 @@ import {
 } from '@metamask/subscription-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
-import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import {
+  formatSubscriptionPeriodEnd,
+  isMembershipPeriodEnded,
+  isPeriodEndCancellationPending,
+} from '../../ProHub.utils';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
+
+/**
+ * Locale key for the date row. A period that has already ended says
+ * "Ended on", even if it was never cancelled. A cancel that is still
+ * scheduled says "Ends on". Otherwise the row says "Renews on".
+ *
+ * @param subscription - Money Account Plus subscription, when one exists.
+ * @param now - Clock used to compare `currentPeriodEnd`.
+ * @returns The translation key for the date row label.
+ */
+export const getRenewalRowLabelKey = (
+  subscription: Subscription | undefined,
+  now: Date = new Date(),
+): string => {
+  if (isMembershipPeriodEnded(subscription, now)) {
+    return 'pro_hub.membership.ended_on';
+  }
+  if (isPeriodEndCancellationPending(subscription, now)) {
+    return 'pro_hub.membership.ends_on';
+  }
+  return 'pro_hub.membership.renews_on';
+};
 
 export interface MembershipPricing {
   status: 'ready' | 'unavailable' | 'malformed';
@@ -28,12 +54,30 @@ export interface MembershipDetails {
   renewsOn: string;
 }
 
-const formatRenewalDate = (date: string | undefined): string =>
-  // Pinned to en-US so the row keeps the designed "Oct 8, 2026" order rather
-  // than following the device locale. The day matches Pro Hub: the last
-  // included UTC day of currentPeriodEnd.
-  formatSubscriptionPeriodEnd(date, { locale: 'en-US' }) ??
-  MEMBERSHIP_UNAVAILABLE_VALUE;
+/**
+ * Formats the date shown on the row labelled by `getRenewalRowLabelKey`.
+ *
+ * "Renews on" names the charge day, which is `currentPeriodEnd` itself.
+ * "Ends on" and "Ended on" name the last day of access, one millisecond
+ * earlier. Pinned to en-US so the row keeps the designed "Oct 8, 2026" order
+ * rather than following the device locale.
+ *
+ * @param subscription - Money Account Plus subscription.
+ * @param now - Clock used to pick the row label.
+ * @returns The formatted date, or the unavailable placeholder.
+ */
+const formatRenewalDate = (subscription: Subscription, now: Date): string => {
+  const isEndOfAccessRow =
+    isMembershipPeriodEnded(subscription, now) ||
+    isPeriodEndCancellationPending(subscription, now);
+
+  return (
+    formatSubscriptionPeriodEnd(subscription.currentPeriodEnd, {
+      locale: 'en-US',
+      exclusivePeriodEnd: isEndOfAccessRow,
+    }) ?? MEMBERSHIP_UNAVAILABLE_VALUE
+  );
+};
 
 const formatPaymentMethod = (
   subscription: Subscription,
@@ -93,11 +137,13 @@ const getAnnualSavings = (
  *
  * @param subscription - Active Money Account Plus subscription.
  * @param plusPricing - Current Money Account Plus pricing.
+ * @param now - Clock used to pick the date row label.
  * @returns Display-ready membership values.
  */
 export const getMembershipDetails = (
   subscription: Subscription | undefined,
   plusPricing: MembershipPricing,
+  now: Date = new Date(),
 ): MembershipDetails => {
   if (subscription === undefined) {
     return {
@@ -137,7 +183,7 @@ export const getMembershipDetails = (
     lifetimeEarnings: MEMBERSHIP_UNAVAILABLE_VALUE,
     total,
     payingWith: formatPaymentMethod(subscription),
-    renewsOn: formatRenewalDate(subscription.currentPeriodEnd),
+    renewsOn: formatRenewalDate(subscription, now),
     ...annualSavings,
   };
 };

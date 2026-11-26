@@ -9,6 +9,7 @@ import {
   View,
   Modal,
   NativeScrollEvent,
+  Pressable,
   type LayoutChangeEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -31,7 +32,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontFamily,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   useHeaderStandardAnimated,
   SensitiveText,
   SensitiveTextLength,
@@ -47,6 +51,7 @@ import {
   formatPnl,
   formatPercentage,
   formatPerpsBalance,
+  formatCrossMarginRatio,
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -94,6 +99,10 @@ import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
+import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
+import PerpsCrossMarginRatioBanner from '../../components/PerpsCrossMarginRatioBanner';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -411,6 +420,57 @@ const PerpsHomeView = () => {
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
   const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const {
+    isCrossMarginEnabled,
+    accountRatio: crossMarginRatio,
+    tone: crossMarginTone,
+  } = usePerpsCrossMarginSummary();
+  const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const openBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(true),
+    [],
+  );
+  const closeBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(false),
+    [],
+  );
+  const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
+
+  let availableBalance: React.ReactNode;
+  if (!isBalanceEmpty) {
+    const availableBalanceLabel = (
+      <PerpsAvailableBalanceLabel
+        spendableBalance={spendableBalance}
+        isHidden={privacyMode}
+        variant={TextVariant.BodySm}
+      />
+    );
+    availableBalance = isCrossMarginEnabled ? (
+      <Pressable
+        onPress={openBalanceSheet}
+        accessibilityRole="button"
+        testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          accessible={false}
+        >
+          {availableBalanceLabel}
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+            testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON}
+          />
+        </Box>
+      </Pressable>
+    ) : (
+      availableBalanceLabel
+    );
+  }
 
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
@@ -1299,9 +1359,6 @@ const PerpsHomeView = () => {
       isGlass={isBrandRefresh}
       onLayout={handleFloatingHeaderLayout}
       includesTopInset={headerIncludesTopInset}
-      // h-16 (64px) matches the Figma header when the Lite pill is shown
-      // (HeaderBase defaults to 56px).
-      twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
       scrollY={headerScrollY}
       titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
@@ -1350,7 +1407,7 @@ const PerpsHomeView = () => {
       scrollEventThrottle={16}
       testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
     >
-      <Box paddingBottom={3}>
+      <Box>
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
@@ -1380,18 +1437,21 @@ const PerpsHomeView = () => {
                 </SensitiveText>
               ) : undefined
             }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <PerpsAvailableBalanceLabel
-                  spendableBalance={spendableBalance}
-                  isHidden={privacyMode}
-                  variant={TextVariant.BodySm}
-                />
-              ) : undefined
-            }
-            twClassName="px-4 pb-3"
+            bottomLabel={availableBalance}
+            twClassName="px-4 pb-5 pt-5"
           />
         </PerpsMarketBalanceActions>
+
+        {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
+          <Box twClassName="px-4 pb-3">
+            <PerpsCrossMarginRatioBanner
+              ratio={formatCrossMarginRatio(crossMarginRatio)}
+              severity={crossMarginBannerSeverity}
+              isRatioHidden={privacyMode}
+              testID={PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
+            />
+          </Box>
+        )}
 
         <PerpsCompetitionBanner
           isGlass={isGlass}
@@ -1448,6 +1508,14 @@ const PerpsHomeView = () => {
           onClose={handleCloseAllSheetClose}
         />
       )}
+
+      {isBalanceSheetVisible ? (
+        <PerpsBalanceBottomSheet
+          isVisible
+          onClose={closeBalanceSheet}
+          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+        />
+      ) : null}
 
       {/* Cancel All Orders Bottom Sheet */}
       {showCancelAllSheet && (

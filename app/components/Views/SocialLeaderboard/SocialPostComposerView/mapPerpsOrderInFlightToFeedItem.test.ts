@@ -90,4 +90,45 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
 
     expect(item.asset.avatar.tokenSymbol).toBe('ETH');
   });
+
+  it('maps a full close to a perpsClosed card with exit price and PnL', () => {
+    const closePreview: SocialPostPerpsPreview = {
+      ...preview,
+      action: 'close',
+      exitPriceLabel: '$3,400.00',
+      pnlLabel: '+250.00%',
+      pnlValueLabel: '+$250.00',
+      isPnlPositive: true,
+    };
+
+    const item = mapPerpsOrderInFlightToFeedItem(closePreview, 'took profit', {
+      timestamp: 1_700_000_000_000,
+    });
+
+    expect(item.variant).toBe('perpsClosed');
+    if (item.variant !== 'perpsClosed') {
+      return;
+    }
+    expect(item.comment).toBe('took profit');
+    expect(item.direction).toBe('long');
+    expect(item.leverageLabel).toBe('40x');
+    expect(item.entryPriceLabel).toBe('$3,200.00');
+    expect(item.exitPriceLabel).toBe('$3,400.00');
+    expect(item.pnlLabel).toBe('+250.00%');
+    expect(item.valueLabel).toBe('+$250.00');
+    expect(item.isPnlPositive).toBe(true);
+    expect(item.closedAtMs).toBe(1_700_000_000_000);
+  });
+
+  it('marks a losing close as negative PnL', () => {
+    const item = mapPerpsOrderInFlightToFeedItem(
+      { ...preview, action: 'close', isPnlPositive: false },
+      '',
+    );
+
+    expect(item.variant).toBe('perpsClosed');
+    expect(item.isPnlPositive).toBe(false);
+    expect(item.pnlLabel).toBe('');
+    expect(item.valueLabel).toBe('');
+  });
 });

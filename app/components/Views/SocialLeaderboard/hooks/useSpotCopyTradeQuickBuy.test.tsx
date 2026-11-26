@@ -58,7 +58,7 @@ describe('useSpotCopyTradeQuickBuy', () => {
 
     expect(mockShowQuickBuy).toHaveBeenCalledWith({
       target: PUMP_TARGET,
-      copyTradeOrigin: { commentId: 'comment-1' },
+      copyTradeOrigin: { commentId: 'comment-1', authorId: 'v1-trader-frog' },
       features: TOP_TRADERS_QUICK_BUY_FEATURES,
       initialTradeMode: 'buy',
       analyticsContext: {

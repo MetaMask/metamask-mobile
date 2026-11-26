@@ -1,9 +1,15 @@
-import { migrationList, asyncifyMigrations, MigrationsList } from './';
+import {
+  migrationList,
+  asyncifyMigrations,
+  MigrationsList,
+  REMOVED_CONTROLLER_NAMES,
+} from './';
 import {
   MigrationManifest,
   PersistedState,
   createMigrate,
 } from 'redux-persist';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
 
@@ -21,6 +27,7 @@ jest.mock('../persistConfig', () => ({
   ControllerStorage: {
     getAllPersistedState: jest.fn(),
     setItem: jest.fn(),
+    removeItem: jest.fn(),
   },
 }));
 
@@ -211,6 +218,179 @@ describe('Critical Error Handling', () => {
 
       expect((result as Record<string, unknown>).test).toEqual('passed');
       expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('loads the persisted files of removed controllers', async () => {
+      const testMigrationList = {
+        108: (state: unknown) => state,
+      };
+      const asyncMigrations = asyncifyMigrations(testMigrationList);
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.getAllPersistedState).toHaveBeenCalledWith(
+        REMOVED_CONTROLLER_NAMES,
+      );
+    });
+  });
+
+  describe('removed controller file cleanup', () => {
+    const persistedTokensAndAssetsState = {
+      backgroundState: {
+        TokensController: { allTokens: {} },
+        AssetsController: { assetsInfo: {} },
+      },
+    };
+
+    const dropTokensControllerMigration = (state: unknown): unknown => {
+      const { TokensController: _removed, ...backgroundState } = (
+        state as { engine: { backgroundState: Record<string, unknown> } }
+      ).engine.backgroundState;
+      return { ...(state as object), engine: { backgroundState } };
+    };
+
+    const persistedAssetsAndCurrencyState = {
+      backgroundState: {
+        AssetsController: { assetsInfo: { imported: true } },
+        CurrencyRateController: { currentCurrency: 'eur' },
+      },
+    };
+
+    it('removes the files of removed controllers dropped by the migrations after deflation', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue(
+        persistedTokensAndAssetsState,
+      );
+      const asyncMigrations = asyncifyMigrations({
+        108: dropTokensControllerMigration,
+      });
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:AssetsController',
+        JSON.stringify({ assetsInfo: {} }),
+      );
+      expect(mockedControllerStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(mockedControllerStorage.removeItem).toHaveBeenCalledWith(
+        'persist:TokensController',
+      );
+    });
+
+    it('keeps the file of a removed controller whose state is still present', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          TokensController: { allTokens: {} },
+        },
+      });
+      const asyncMigrations = asyncifyMigrations({
+        108: (state: unknown) => state,
+      });
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:TokensController',
+        JSON.stringify({ allTokens: {} }),
+      );
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalled();
+    });
+
+    it('keeps a removed controller file that inflation did not load', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: {
+          AssetsController: { assetsInfo: {} },
+        },
+      });
+      const asyncMigrations = asyncifyMigrations({
+        108: (state: unknown) => state,
+      });
+
+      await asyncMigrations['108'](initialState);
+
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:AssetsController',
+        JSON.stringify({ assetsInfo: {} }),
+      );
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalled();
+    });
+
+    it('deletes a loaded migration 159 source file only after the migrated state is written', async () => {
+      const removePersistedFile = jest
+        .spyOn(FilesystemStorage, 'removeItem')
+        .mockResolvedValue(undefined);
+      try {
+        mockedControllerStorage.getAllPersistedState.mockResolvedValue(
+          persistedAssetsAndCurrencyState,
+        );
+        const asyncMigrations = asyncifyMigrations({
+          159: migrationList[159],
+        });
+
+        await asyncMigrations['159'](initialState);
+
+        expect(removePersistedFile).not.toHaveBeenCalled();
+        expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+          'persist:AssetsController',
+          JSON.stringify({ assetsInfo: { imported: true } }),
+        );
+        expect(mockedControllerStorage.removeItem).toHaveBeenCalledTimes(1);
+        expect(mockedControllerStorage.removeItem).toHaveBeenCalledWith(
+          'persist:CurrencyRateController',
+        );
+        expect(
+          mockedControllerStorage.setItem.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          mockedControllerStorage.removeItem.mock.invocationCallOrder[0],
+        );
+      } finally {
+        removePersistedFile.mockRestore();
+      }
+    });
+
+    it('keeps migration 159 source files when deflation fails', async () => {
+      const removePersistedFile = jest
+        .spyOn(FilesystemStorage, 'removeItem')
+        .mockResolvedValue(undefined);
+      try {
+        mockedControllerStorage.getAllPersistedState.mockResolvedValue(
+          persistedAssetsAndCurrencyState,
+        );
+        mockedControllerStorage.setItem.mockRejectedValue(
+          new Error('Disk full'),
+        );
+        const asyncMigrations = asyncifyMigrations({
+          159: migrationList[159],
+        });
+
+        await expect(asyncMigrations['159'](initialState)).rejects.toThrow(
+          'Disk full',
+        );
+
+        expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+          'persist:AssetsController',
+          JSON.stringify({ assetsInfo: { imported: true } }),
+        );
+        expect(removePersistedFile).not.toHaveBeenCalled();
+        expect(mockedControllerStorage.removeItem).not.toHaveBeenCalled();
+      } finally {
+        removePersistedFile.mockRestore();
+      }
+    });
+
+    it('does not remove any file when deflation fails', async () => {
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue(
+        persistedTokensAndAssetsState,
+      );
+      mockedControllerStorage.setItem.mockRejectedValue(new Error('Disk full'));
+      const asyncMigrations = asyncifyMigrations({
+        108: dropTokensControllerMigration,
+      });
+
+      await expect(asyncMigrations['108'](initialState)).rejects.toThrow(
+        'Disk full',
+      );
+
+      expect(mockedControllerStorage.removeItem).not.toHaveBeenCalled();
     });
   });
 
