@@ -85,6 +85,8 @@ const renderComponent = (
     hasAlertOnlyState?: boolean;
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
+    providerId?: string;
+    account?: { verificationStatus: string | null };
     hiddenQuickActionRows?: CardHomeActionVisibility;
     spendingLimitReadOnly?: boolean;
     spendingLimitOnly?: boolean;
@@ -100,7 +102,9 @@ const renderComponent = (
   render(
     <ManageCardOptions
       card={overrides.card === undefined ? CARD : overrides.card}
-      account={{ verificationStatus: 'VERIFIED' } as never}
+      account={
+        (overrides.account ?? { verificationStatus: 'VERIFIED' }) as never
+      }
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
       isAuthenticated={overrides.isAuthenticated ?? true}
@@ -140,6 +144,7 @@ const renderComponent = (
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
       hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
+      providerId={overrides.providerId}
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
       showTransactionHistoryDuringSetup={
@@ -695,6 +700,81 @@ describe('ManageCardOptions transaction history gating', () => {
 
     expect(
       queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+    ).toBeNull();
+  });
+
+  it('shows mUSD Back for Immersve without a Baanx verified status', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsCashback: false,
+        supportsFundingLimits: false,
+      }),
+      {
+        providerId: 'immersve',
+        account: { verificationStatus: null },
+      },
+    );
+
+    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
+  });
+
+  it('shows 3% mUSD Back for Immersve', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsCashback: false,
+        supportsFundingLimits: false,
+      }),
+      { providerId: 'immersve', account: { verificationStatus: null } },
+    );
+
+    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toHaveTextContent(
+      strings('card.card_home.manage_card_options.cashback', {
+        cashbackPercentage: '3',
+      }),
+    );
+  });
+
+  it.each([
+    ['virtual', CardType.VIRTUAL],
+    ['metal', CardType.METAL],
+  ])(
+    'hides the mUSD Back row for a verified Baanx %s card (the Card home panel replaces it)',
+    (_label, type) => {
+      const { queryByTestId } = renderComponent(
+        buildCapabilities({
+          supportsCashback: true,
+          supportsFundingLimits: false,
+        }),
+        {
+          providerId: 'baanx',
+          card: { ...CARD, type },
+          account: { verificationStatus: 'VERIFIED' },
+        },
+      );
+
+      expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+    },
+  );
+
+  it('hides cashback for an unverified Baanx account', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsCashback: true,
+        supportsFundingLimits: false,
+      }),
+      { providerId: 'baanx', account: { verificationStatus: null } },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions cashback prototypes', () => {
+  it('shows no auto payout row (it lives in the More sheet)', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}));
+
+    expect(
+      queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
     ).toBeNull();
   });
 });

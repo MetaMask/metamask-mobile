@@ -21,6 +21,13 @@ import type {
   RedeemWalletResponse,
   RedeemWithdrawEstimationResponse,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CASHBACK_PROTOTYPE,
+  MOCK_CASHBACK_STATES,
+  useMockCashback,
+  mockWithdraw,
+  mockResetWithdraw,
+} from '../cashbackPanelPrototype'; // PROTOTYPE-DO-NOT-MERGE
 
 export type RedeemableWalletMode = RedeemWalletMode;
 
@@ -143,6 +150,34 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   // surface the mutation rejection as withdrawError (duplicate failure toasts).
   const withdrawError =
     monitoringStatus === 'idle' ? withdrawMutation.error : null;
+
+  const mockCashback = useMockCashback(); // PROTOTYPE-DO-NOT-MERGE
+  if (CASHBACK_PROTOTYPE && mode === 'cashback') {
+    // PROTOTYPE-DO-NOT-MERGE: fake wallet + fake claim, nothing is sent.
+    const def = MOCK_CASHBACK_STATES[mockCashback.name]; // PROTOTYPE-DO-NOT-MERGE
+    return {
+      wallet: {
+        balance: String(mockCashback.balance),
+        currency: 'musd',
+        isWithdrawable: true,
+        lifetimeEarned: String(mockCashback.lifetimeEarned),
+      }, // PROTOTYPE-DO-NOT-MERGE
+      isLoading: false,
+      error: null,
+      fetchWallet: walletQuery.refetch, // PROTOTYPE-DO-NOT-MERGE
+      estimation: { price: def.price, network: def.network, currency: 'musd' }, // PROTOTYPE-DO-NOT-MERGE
+      isEstimating: false,
+      estimationError: null,
+      fetchEstimation: () => Promise.resolve(undefined), // PROTOTYPE-DO-NOT-MERGE
+      withdraw: (amount: string) => mockWithdraw(amount), // PROTOTYPE-DO-NOT-MERGE
+      isWithdrawing: false,
+      withdrawError: null,
+      txHash: null, // PROTOTYPE-DO-NOT-MERGE
+      monitoringStatus: mockCashback.status,
+      monitoringError: null, // PROTOTYPE-DO-NOT-MERGE
+      resetWithdraw: mockResetWithdraw, // PROTOTYPE-DO-NOT-MERGE
+    } as never; // PROTOTYPE-DO-NOT-MERGE: typed by the real return below
+  }
 
   return {
     wallet: walletQuery.data ?? null,

@@ -8,9 +8,11 @@ import React, {
 } from 'react';
 import { RefreshControl, ScrollView, useWindowDimensions } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextVariant,
   Button,
@@ -21,8 +23,6 @@ import {
   IconSize,
   Spinner,
   IconName as MMDSIconName,
-  SegmentedControl,
-  FilterButton,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
@@ -68,7 +68,6 @@ import {
   CardProviderIds,
   type CardAction,
   type CardAlert,
-  type CardTransaction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
@@ -122,9 +121,17 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
+import CardCashbackPanel from '../../components/CashbackPanel/CardCashbackPanel';
+import { getCashbackPercentage } from '../../util/cashbackRate';
+import { playCashbackCountUpHaptics } from '../../util/cashbackHaptics';
+import CashbackCoinRain from '../../components/CashbackPanel/CashbackCoinRain';
+import { CASHBACK_PAYOUT_INCREMENT } from '../../components/CashbackPanel/CashbackPanel.utils';
+import {
+  IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED,
+  setCashbackAutoPayoutPrototype,
+  useCashbackAutoPayoutPrototype,
+} from '../../util/cashbackAutoPayoutPrototype';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
-import CardHomeRecentActivity from './components/CardHomeRecentActivity';
-import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
 import { cardQueries } from '../../queries';
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
@@ -162,17 +169,13 @@ interface CardHomeRouteParams {
   fromCardOnboarding?: boolean;
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
+  /** Opened from a "cashback paid out" push: plays the payout celebration. */
+  cashbackPayoutAmount?: string;
 }
 
 /** MMDS Button Lg height (h-12) and the CardHome px-4 gutter. */
 const ADD_TO_WALLET_HEIGHT = 48;
 const ADD_TO_WALLET_SIDE_PADDING = 16;
-
-/** Local tabs under the action button row (active and frozen states only). */
-enum CardHomeSegment {
-  Activity = 'activity',
-  Manage = 'manage',
-}
 
 const CardHome = () => {
   // --- Data ---
@@ -202,18 +205,6 @@ const CardHome = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
   const { width: windowWidth } = useWindowDimensions();
-  const [activeHomeSegment, setActiveHomeSegment] = useState<CardHomeSegment>(
-    CardHomeSegment.Manage,
-  );
-  const handleRecentTransactionPress = useCallback(
-    (transaction: CardTransaction) => {
-      navigation.navigate(Routes.CARD.TRANSACTION_DETAILS, {
-        transactionId: transaction.id,
-        transaction,
-      });
-    },
-    [navigation],
-  );
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
     data?.primaryFundingAsset?.walletAddress,
@@ -475,8 +466,8 @@ const CardHome = () => {
           return;
         }
       }
-      // Activity rows live in their own query. Invalidating only refetches
-      // the list while that segment is on screen.
+      // Card transactions live in their own query; invalidate so history
+      // refetches next time it opens.
       await Promise.all([
         refetch(),
         queryClient.invalidateQueries({
@@ -860,32 +851,69 @@ const CardHome = () => {
       Boolean(actions.cardDetailsImageUrl),
   });
 
-  // Activity / Manage segments only in the active and frozen states of a
-  // fully set-up card whose history is the provider feed. Money-history users
-  // keep the management list with its history row, since the Activity panel
-  // previews provider transactions only.
-  const showHomeSegments =
-    transactionHistoryDestination === 'card' &&
-    !isLoading &&
+  // Baanx cashback lives on Card home as a panel (claim in place). Immersve
+  // keeps its own mUSD Back row until its claim flow moves here too.
+  const showCashbackPanel =
     isAuthenticated &&
-    (data?.card?.status === CardStatus.ACTIVE ||
-      data?.card?.status === CardStatus.FROZEN) &&
+    !isLoading &&
+    !isBlocked &&
+    !isUkMigrationForced &&
     !hasSetupActions &&
-    !hasSetupAlerts &&
     !hasAlertOnlyState &&
-    !isUkMigrationForced;
-  const showRecentActivity =
-    showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
-  const showManageOptions =
-    !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
-  const {
-    transactions: recentTransactions,
-    isLoading: isRecentActivityLoading,
-    error: recentActivityError,
-    refetch: refetchRecentTransactions,
-  } = useCardRecentTransactions({
-    enabled: showRecentActivity && isFocused,
-  });
+    !isImmersve &&
+    capabilities?.supportsCashback === true &&
+    data?.account?.verificationStatus === 'VERIFIED';
+  const isCashbackAutoPayoutOn = useCashbackAutoPayoutPrototype();
+  // Same rate the old mUSD Back row showed.
+  const cashbackPercentage = getCashbackPercentage(
+    activeProviderId,
+    data?.card?.type,
+  );
+  // Cashback payout coin rain covers the whole view, so the screen owns it.
+  const [coinRainKey, setCoinRainKey] = useState<number | null>(null);
+  const coinRainDoneRef = useRef<(() => void) | null>(null);
+  // Hold the balance during the coin rain so the count-up plays once the
+  // coins have mostly cleared, not behind them. The panel celebrates from its
+  // own effect, which runs before this screen's effects in the same commit,
+  // so the hold is in place before the new balance is shown.
+  const isBalanceHeldRef = useRef(false);
+  const latestBalanceAmountRef = useRef(balanceAmount);
+  latestBalanceAmountRef.current = balanceAmount;
+  const [shownBalanceAmount, setShownBalanceAmount] = useState(balanceAmount);
+  useEffect(() => {
+    if (!isBalanceHeldRef.current) {
+      setShownBalanceAmount(balanceAmount);
+    }
+  }, [balanceAmount]);
+  const reduceMotion = useReducedMotion();
+  const cancelCountUpHapticsRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => cancelCountUpHapticsRef.current?.(), []);
+  const releaseBalance = useCallback(() => {
+    if (!isBalanceHeldRef.current) return;
+    isBalanceHeldRef.current = false;
+    setShownBalanceAmount(latestBalanceAmountRef.current);
+    // Light ticks while the new balance rolls in, a firmer tap as it lands.
+    // Privacy mode hides the figure (no roll), so only the landing plays.
+    cancelCountUpHapticsRef.current?.();
+    cancelCountUpHapticsRef.current = playCashbackCountUpHaptics({
+      reduceMotion: reduceMotion || privacyMode,
+    });
+  }, [privacyMode, reduceMotion]);
+  const handleCashbackCelebrate = useCallback((onDone: () => void) => {
+    coinRainDoneRef.current = onDone;
+    isBalanceHeldRef.current = true;
+    setCoinRainKey(Date.now());
+  }, []);
+  const handleCoinRainComplete = useCallback(() => {
+    const onDone = coinRainDoneRef.current;
+    coinRainDoneRef.current = null;
+    setCoinRainKey(null);
+    releaseBalance();
+    onDone?.();
+  }, [releaseBalance]);
+  const handleCashbackPushHandled = useCallback(() => {
+    navigation.setParams({ cashbackPayoutAmount: undefined } as never);
+  }, [navigation]);
 
   // Callers that open Card Home directly still leave when logged out.
   // Signed-out KYC review is the only layout this screen renders without a session.
@@ -917,6 +945,25 @@ const CardHome = () => {
           : undefined
       }
       onNavigateToCardTos={actions.navigateToCardTosPage}
+      cashbackAutoPayout={
+        IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED && showCashbackPanel
+          ? {
+              isOn: isCashbackAutoPayoutOn,
+              onToggle: setCashbackAutoPayoutPrototype,
+              targetLabel: formatWithThreshold(
+                CASHBACK_PAYOUT_INCREMENT,
+                0.01,
+                'en-US',
+                {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                },
+              ),
+            }
+          : undefined
+      }
     />
   ) : null;
 
@@ -1092,7 +1139,7 @@ const CardHome = () => {
             {isAuthenticated && !hasSetupActions && !hasAlertOnlyState && (
               <CardBalanceDisplay
                 isLoading={isLoading}
-                balanceAmount={balanceAmount}
+                balanceAmount={shownBalanceAmount}
                 privacyMode={privacyMode}
                 currentCurrency={currentCurrency}
                 onTogglePrivacy={handleTogglePrivacy}
@@ -1100,6 +1147,7 @@ const CardHome = () => {
                 onInfoPress={handleOpenCreditBalanceTooltip}
                 infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
                 isUnavailable={primaryToken?.isUnavailable}
+                animateBalance={showCashbackPanel}
               />
             )}
 
@@ -1162,7 +1210,8 @@ const CardHome = () => {
               !isLoading &&
               walletEntry === 'push' &&
               !isUkMigrationForced && (
-                <Box twClassName="w-full px-4 pt-3 items-center justify-center">
+                // 16pt below the card art; the native button frame adds ~10pt.
+                <Box twClassName="w-full px-4 pt-1.5 items-center justify-center">
                   {isProvisioning ? (
                     <Box twClassName="h-12 items-center justify-center">
                       <Spinner
@@ -1191,7 +1240,7 @@ const CardHome = () => {
             {isAuthenticated && (
               <CardHomeActionButtonRow
                 isGlass={isGlassSurface}
-                isTightTop={
+                followsWalletButton={
                   !isLoading && walletEntry === 'push' && !isUkMigrationForced
                 }
                 add={
@@ -1237,51 +1286,20 @@ const CardHome = () => {
               />
             )}
 
-            {showHomeSegments && (
-              <Box twClassName="px-4 mt-4 mb-4">
-                <SegmentedControl
-                  value={activeHomeSegment}
-                  onChange={(value) =>
-                    setActiveHomeSegment(value as CardHomeSegment)
-                  }
-                  isFullWidth
-                  testID={CardHomeSelectors.HOME_SEGMENTS}
-                >
-                  <FilterButton
-                    value={CardHomeSegment.Manage}
-                    testID={CardHomeSelectors.MANAGE_SEGMENT}
-                  >
-                    {strings('card.card_home.segments.manage')}
-                  </FilterButton>
-                  <FilterButton
-                    value={CardHomeSegment.Activity}
-                    testID={CardHomeSelectors.ACTIVITY_SEGMENT}
-                  >
-                    {strings('card.card_home.segments.activity')}
-                  </FilterButton>
-                </SegmentedControl>
+            {showCashbackPanel && (
+              // 16pt either side: action row pb-2 + pt-2 above; pb-1 + the
+              // Manage rows' 12pt list padding below.
+              <Box
+                twClassName="pt-2 pb-1"
+                testID={CardHomeSelectors.CASHBACK_PANEL_SLOT}
+              >
+                <CardCashbackPanel
+                  pushPayoutAmount={route.params?.cashbackPayoutAmount}
+                  onPushPayoutHandled={handleCashbackPushHandled}
+                  onCelebrate={handleCashbackCelebrate}
+                  cashbackPercentage={cashbackPercentage}
+                />
               </Box>
-            )}
-
-            {showRecentActivity && (
-              <CardHomeRecentActivity
-                transactions={recentTransactions}
-                isLoading={isRecentActivityLoading}
-                hasError={Boolean(recentActivityError)}
-                onRetry={() => {
-                  void refetchRecentTransactions();
-                }}
-                onSeeAll={
-                  transactionHistoryDestination
-                    ? () =>
-                        actions.transactionHistoryAction(
-                          transactionHistoryDestination,
-                        )
-                    : undefined
-                }
-                onTransactionPress={handleRecentTransactionPress}
-                privacyMode={privacyMode}
-              />
             )}
 
             {isAuthenticated &&
@@ -1332,17 +1350,20 @@ const CardHome = () => {
               </>
             )}
 
+            {/* Prototype: no Activity / Manage segments. The Manage rows sit
+                directly under the cashback panel, and transaction history is
+                a Manage row for every history destination. */}
             {isAuthenticated &&
               !isUkMigrationForced &&
-              ((showManageOptions && !isBlocked) ||
-                showSpendingLimitProgress) && (
+              (!isBlocked || showSpendingLimitProgress) && (
                 <ManageCardOptions
-                  spendingLimitOnly={!(showManageOptions && !isBlocked)}
+                  spendingLimitOnly={isBlocked}
                   spendingLimitReadOnly={isBlocked}
                   privacyMode={privacyMode}
                   card={data?.card}
                   account={data?.account}
                   capabilities={capabilities}
+                  providerId={activeProviderId}
                   isSpendingLimitActive={isSpendingLimitActive}
                   showLimitedSpendingAmounts={showSpendingLimitProgress}
                   spendingLimitRemaining={
@@ -1405,9 +1426,9 @@ const CardHome = () => {
                   showTransactionHistoryDuringSetup={
                     isImmersve && hasSetupActions
                   }
-                  showTransactionHistoryRow={
-                    transactionHistoryDestination === 'money'
-                  }
+                  showTransactionHistoryRow={Boolean(
+                    transactionHistoryDestination,
+                  )}
                 />
               )}
 
@@ -1419,6 +1440,13 @@ const CardHome = () => {
           </>
         )}
       </ScrollView>
+      {coinRainKey !== null ? (
+        <CashbackCoinRain
+          key={coinRainKey}
+          onComplete={handleCoinRainComplete}
+          onClearing={releaseBalance}
+        />
+      ) : null}
       {/* Outside the ScrollView so the sheet covers the whole screen,
           header included, and does not scroll with the list. */}
       {moreSheet}

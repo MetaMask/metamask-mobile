@@ -47,7 +47,11 @@ export interface CardPostAuthRedirect {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardScreensStackParamList = {
   CardHome:
-    | { fromCardOnboarding?: boolean; fromKycPending?: boolean }
+    | {
+        fromCardOnboarding?: boolean;
+        fromKycPending?: boolean;
+        cashbackPayoutAmount?: string;
+      }
     | undefined;
   CardApplePaySplash: undefined;
   CardApplePayConfirmation: undefined;

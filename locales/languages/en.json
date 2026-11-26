@@ -12275,10 +12275,6 @@
         "freeze": "Freeze",
         "unfreeze": "Unfreeze"
       },
-      "segments": {
-        "activity": "Activity",
-        "manage": "Manage"
-      },
       "recent_activity": {
         "see_all": "See all"
       },
@@ -12380,6 +12376,34 @@
         },
         "ok_button": "OK"
       },
+      "cashback_panel": {
+        "title": "Cashback",
+        "title_rate": "{{percentage}}% cashback",
+        "zero": "Spend to start earning",
+        "lifetime": "{{amount}} lifetime",
+        "getting_there": "Getting there, unlocks at {{target}}",
+        "ready": "Your cashback is ready",
+        "claiming": "On its way…",
+        "setup_money_account": "Set up Money account to claim",
+        "setup_funding": "Set up Linea funding to claim",
+        "auto_payout": "Pays out at {{target}}",
+        "unavailable": "Cashback isn't available right now",
+        "set_up": "Set up",
+        "claim_a11y": "Claim {{amount}} cashback",
+        "progress_a11y": "Cashback progress, {{amount}} of {{target}}",
+        "password_description": "Enter your password to claim your cashback.",
+        "payout_toast": "{{amount}} cashback added to your Money account",
+        "payout_toast_wallet": "{{amount}} cashback sent to {{wallet}}",
+        "payout_toast_generic": "Cashback paid out",
+        "payout_failed": "Cashback payout failed. Try again.",
+        "auto_payout_title": "Auto payout",
+        "auto_payout_description": "Every {{target}} you earn",
+        "confirm_title": "Claim {{amount}} cashback?",
+        "confirm_message": "It goes to your Money account.",
+        "confirm_message_wallet": "It goes to {{wallet}}.",
+        "confirm_cancel": "Cancel",
+        "confirm_claim": "Claim"
+      },
       "manage_card_options": {
         "view_card_details": "View card details",
         "hide_card_details": "Hide card details",
@@ -12418,6 +12442,23 @@
         "contact_details_description": "Update your email and phone number",
         "add_to_digital_wallet": "Add to digital wallet",
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+      },
+      "cashback_screen": {
+        "title": "mUSD back",
+        "claimable": "Ready to claim",
+        "pending": "Pending",
+        "held": "Held",
+        "blocked": "Blocked",
+        "claimed": "Claimed",
+        "pairing_pending": "Finish pairing your Money account to claim your mUSD back.",
+        "below_minimum": "You'll need at least {{amount}} to claim.",
+        "claim": "Claim",
+        "claim_failed": "Claim failed. Try again.",
+        "mpc_unavailable": "Claims aren't available for this Money account yet.",
+        "unavailable": "mUSD back isn't available yet.",
+        "loading": "Loading mUSD back",
+        "empty_ledger": "No mUSD back yet",
+        "rate": "{{rate}}% back"
       }
     },
     "contact_details": {

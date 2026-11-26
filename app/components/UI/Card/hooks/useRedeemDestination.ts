@@ -18,6 +18,8 @@ import {
   resolveRedeemReceivingEntry,
 } from '../util/redeemDestination';
 import { MONEY_ACCOUNT_DELEGATION_NETWORK } from '../util/vedaToken';
+import { CASHBACK_PROTOTYPE, useMockCashback } from '../cashbackPanelPrototype'; // PROTOTYPE-DO-NOT-MERGE
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController'; // PROTOTYPE-DO-NOT-MERGE
 
 interface RedeemDestination {
   caipChainId: CaipChainId | undefined;
@@ -56,7 +58,11 @@ const useRedeemDestination = ({
     selectCardDelegationToken(state, params),
   );
 
-  return useMemo(() => {
+  const mockCashback = useMockCashback(); // PROTOTYPE-DO-NOT-MERGE
+  const mockAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  ); // PROTOTYPE-DO-NOT-MERGE
+  const real = useMemo(() => {
     const isMonadRedeem = network === MONEY_ACCOUNT_DELEGATION_NETWORK;
     // Monad redemptions can only land in the Money Account vault, and residents
     // of blocked regions have no Money Account, so Monad is not withdrawable
@@ -114,6 +120,22 @@ const useRedeemDestination = ({
     isResidencyBlocked,
     primaryMoneyAccount,
   ]);
+  if (
+    CASHBACK_PROTOTYPE &&
+    (network === 'monad' || network === 'linea') &&
+    currency === 'musd'
+  ) {
+    // PROTOTYPE-DO-NOT-MERGE: drive destination + blockers from the mock state.
+    const isMonad = network === 'monad'; // PROTOTYPE-DO-NOT-MERGE
+    return {
+      ...real,
+      isResolved: true,
+      isMoneyAccountDestination: isMonad,
+      hasApprovedDestination: !mockCashback.blocked,
+      receivingAddress: isMonad ? undefined : mockAddress,
+    }; // PROTOTYPE-DO-NOT-MERGE
+  }
+  return real;
 };
 
 export default useRedeemDestination;

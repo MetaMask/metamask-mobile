@@ -5,6 +5,16 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import CardHomeMoreSheet from './CardHomeMoreSheet';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import {
+  fireSwitchHaptic,
+  playSelection,
+} from '../../../../../../util/haptics';
+
+jest.mock('../../../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../../../util/haptics'),
+  fireSwitchHaptic: jest.fn(),
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -212,5 +222,69 @@ describe('CardHomeMoreSheet', () => {
     const { queryByTestId } = renderSheet();
 
     expect(queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).not.toBeOnTheScreen();
+  });
+
+  describe('cashback auto payout (prototype)', () => {
+    it('hides the auto payout row when no toggle is passed', () => {
+      const { queryByTestId } = renderSheet();
+
+      expect(
+        queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the auto payout row and toggles it without closing the sheet', () => {
+      const onToggle = jest.fn();
+      const { getByTestId, getByText } = renderSheet({
+        cashbackAutoPayout: { isOn: false, onToggle, targetLabel: '$5' },
+      });
+
+      expect(
+        getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('card.card_home.cashback_panel.auto_payout_title'),
+      ).toBeOnTheScreen();
+
+      fireEvent(
+        getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_TOGGLE),
+        'valueChange',
+        true,
+      );
+
+      expect(onToggle).toHaveBeenCalledWith(true);
+      expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    });
+
+    it('plays a selection tick when the row is tapped', () => {
+      const onToggle = jest.fn();
+      const { getByTestId } = renderSheet({
+        cashbackAutoPayout: { isOn: false, onToggle, targetLabel: '$5' },
+      });
+
+      fireEvent.press(getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      expect(onToggle).toHaveBeenCalledWith(true);
+    });
+
+    it('leaves the switch tick to the platform switch haptic', () => {
+      const { getByTestId } = renderSheet({
+        cashbackAutoPayout: {
+          isOn: true,
+          onToggle: jest.fn(),
+          targetLabel: '$5',
+        },
+      });
+
+      fireEvent(
+        getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_TOGGLE),
+        'valueChange',
+        false,
+      );
+
+      expect(fireSwitchHaptic).toHaveBeenCalledTimes(1);
+      expect(playSelection).not.toHaveBeenCalled();
+    });
   });
 });

@@ -3,6 +3,7 @@ import { Image, Platform, StyleSheet, Switch } from 'react-native';
 import {
   Box,
   IconName,
+  Switch as DSSwitch,
   SensitiveText,
   SensitiveTextLength,
   TextColor,
@@ -25,12 +26,28 @@ import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardType } from '../../../types';
+import { getCashbackPercentage } from '../../../util/cashbackRate';
 import {
   CardStatus,
   type CardDetails,
   type CardAccountStatus,
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+/**
+ * The mUSD Back row is only for Immersve now. Baanx cards show the Card home
+ * cashback panel instead, which claims in place (no menu diving).
+ */
+function showCashbackRow(
+  isFullySetUp: boolean,
+  hideManageOptions: boolean,
+  providerId: string | null | undefined,
+): boolean {
+  if (!isFullySetUp || hideManageOptions) {
+    return false;
+  }
+  return providerId === 'immersve';
+}
 
 interface ManageCardOptionsProps {
   card: CardDetails | null | undefined;
@@ -85,6 +102,7 @@ interface ManageCardOptionsProps {
    */
   hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
+  providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
@@ -95,8 +113,8 @@ interface ManageCardOptionsProps {
    */
   spendingLimitOnly?: boolean;
   /**
-   * Keeps the history row for a fully set-up card whose history has no
-   * Activity panel on Card home (history lives in Money activity).
+   * Shows the history row for a fully set-up card (Card home has no
+   * Activity panel).
    */
   showTransactionHistoryRow?: boolean;
 }
@@ -143,6 +161,7 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   hiddenQuickActionRows,
   onCashback,
+  providerId,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
@@ -194,9 +213,8 @@ const ManageCardOptions = ({
       ? 'card.card_home.manage_card_options.manage_spending_limit_description_remaining'
       : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
-  // Recent activity panel (with its own "See all"). This row only remains for
-  // the setup override (Immersve while setup actions are pending) and for
-  // Money-history users, where the panel is not shown.
+  // History row: the setup override (Immersve while setup actions are
+  // pending) and fully set-up cards when Card home asks for it.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
@@ -295,22 +313,23 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
             />
           )}
-        {isFullySetUp &&
-          !hideManageOptions &&
-          capabilities?.supportsCashback &&
-          account?.verificationStatus === 'VERIFIED' && (
-            <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback', {
-                cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
-              })}
-              description={strings(
-                'card.card_home.manage_card_options.cashback_description',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={onCashback}
-              testID={CardHomeSelectors.CASHBACK_ITEM}
-            />
-          )}
+        {showCashbackRow(
+          Boolean(isFullySetUp),
+          hideManageOptions,
+          providerId,
+        ) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.cashback', {
+              cashbackPercentage: getCashbackPercentage(providerId, card?.type),
+            })}
+            description={strings(
+              'card.card_home.manage_card_options.cashback_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={onCashback}
+            testID={CardHomeSelectors.CASHBACK_ITEM}
+          />
+        )}
         {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&

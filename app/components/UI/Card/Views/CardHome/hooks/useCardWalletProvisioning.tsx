@@ -21,10 +21,15 @@ import {
 } from '../../../pushProvisioning';
 import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
+import { CARD_HOME_PROTOTYPE_VIEW } from '../../../../../../selectors/cardController'; // PROTOTYPE-DO-NOT-MERGE
 import {
   CardStatus,
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+// PROTOTYPE-DO-NOT-MERGE: with the Card home prototype on (dev only), set to
+// true to show Add to Apple Wallet; false hides every wallet entry.
+const PROTOTYPE_SHOW_WALLET_BUTTON = false;
 
 export type WalletEntry = 'push' | 'instructions' | 'none';
 
@@ -164,6 +169,11 @@ export function useCardWalletProvisioning(
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
-    walletEntry,
+    // PROTOTYPE-DO-NOT-MERGE: sim wallet entry follows PROTOTYPE_SHOW_WALLET_BUTTON.
+    walletEntry: CARD_HOME_PROTOTYPE_VIEW
+      ? PROTOTYPE_SHOW_WALLET_BUTTON
+        ? ('push' as const)
+        : ('none' as const)
+      : walletEntry,
   };
 }

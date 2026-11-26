@@ -1,10 +1,15 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking } from 'react-native';
+import { Linking, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   Box,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
+  Switch,
   Text,
   TextButton,
   TextColor,
@@ -12,6 +17,13 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  ImpactFeedbackStyle,
+  fireSwitchHaptic,
+  playSelection,
+} from '../../../../../../util/haptics';
+import { useStyles } from '../../../../../../component-library/hooks';
+import moneySheetOptionsStyleSheet from '../../../../Money/components/MoneySheetOptionsList/MoneySheetOptionsList.styles';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../../../../Money/components/MoneySheetOptionsList';
@@ -44,6 +56,15 @@ interface CardHomeMoreSheetProps {
   showLegalDocumentsError?: boolean;
   onRetryLegalDocuments?: () => void;
   onNavigateToCardTos: () => void;
+  /**
+   * PROTOTYPE: local-only cashback auto payout toggle. Omitted: no row.
+   * `targetLabel` is the payout increment, e.g. "$5".
+   */
+  cashbackAutoPayout?: {
+    isOn: boolean;
+    onToggle: (value: boolean) => void;
+    targetLabel: string;
+  };
 }
 
 /**
@@ -63,7 +84,9 @@ const CardHomeMoreSheet = ({
   showLegalDocumentsError = false,
   onRetryLegalDocuments,
   onNavigateToCardTos,
+  cashbackAutoPayout,
 }: CardHomeMoreSheetProps) => {
+  const { styles: optionStyles } = useStyles(moneySheetOptionsStyleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
 
@@ -153,6 +176,49 @@ const CardHomeMoreSheet = ({
             </TextButton>
           ) : null}
         </Box>
+      ) : null}
+      {cashbackAutoPayout ? (
+        // Same row layout as MoneySheetOptionsList (icon, label, no
+        // background), plus a description and a switch.
+        <TouchableOpacity
+          onPress={() => {
+            playSelection().catch(() => undefined);
+            cashbackAutoPayout.onToggle(!cashbackAutoPayout.isOn);
+          }}
+          style={optionStyles.row}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: cashbackAutoPayout.isOn }}
+          testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM}
+        >
+          <Icon
+            name={IconName.Refresh}
+            size={IconSize.Lg}
+            color={IconColor.IconDefault}
+          />
+          <View style={optionStyles.rowLabelContainer}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('card.card_home.cashback_panel.auto_payout_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'card.card_home.cashback_panel.auto_payout_description',
+                { target: cashbackAutoPayout.targetLabel },
+              )}
+            </Text>
+          </View>
+          <Switch
+            isOn={cashbackAutoPayout.isOn}
+            onValueChange={(value) => {
+              // iOS UISwitch already ticks; this adds the tick on Android.
+              fireSwitchHaptic(ImpactFeedbackStyle.Light);
+              cashbackAutoPayout.onToggle(value);
+            }}
+            testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_TOGGLE}
+          />
+        </TouchableOpacity>
       ) : null}
       <Box twClassName="pb-4">
         <MoneySheetOptionsList options={options} />

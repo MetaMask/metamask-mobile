@@ -68,6 +68,8 @@ interface CardBalanceDisplayProps {
   infoBadgeTestID?: string;
   /** Balance could not be read. Renders a dash instead of zero. */
   isUnavailable?: boolean;
+  /** Roll the balance digits on change (used when a cashback payout lands). */
+  animateBalance?: boolean;
 }
 
 /**
@@ -86,6 +88,7 @@ const CardBalanceDisplay = ({
   onInfoPress,
   infoBadgeTestID,
   isUnavailable = false,
+  animateBalance = false,
 }: CardBalanceDisplayProps) => {
   const isBalanceLoading =
     isLoading ||
@@ -130,6 +133,7 @@ const CardBalanceDisplay = ({
         displayState={displayState}
         privacyMode={privacyMode}
         onBalancePress={() => onTogglePrivacy(!privacyMode)}
+        animateBalance={animateBalance}
       />
       <Box
         flexDirection={BoxFlexDirection.Row}
