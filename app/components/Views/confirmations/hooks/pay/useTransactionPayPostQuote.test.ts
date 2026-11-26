@@ -226,6 +226,33 @@ describe('useTransactionPayPostQuote', () => {
     expect(computeProxyAddressMock).not.toHaveBeenCalled();
   });
 
+  it('sets no refundTo or isHyperliquidSource for perpsLighterWithdraw', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+      type: TransactionType.perpsLighterWithdraw,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as {
+      isPostQuote?: boolean;
+      refundTo?: Hex;
+      isHyperliquidSource?: boolean;
+    };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.isHyperliquidSource).toBeUndefined();
+    expect(config.refundTo).toBeUndefined();
+    expect(computeProxyAddressMock).not.toHaveBeenCalled();
+  });
+
   it('does not set isHyperliquidSource for non-perps withdrawals', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,

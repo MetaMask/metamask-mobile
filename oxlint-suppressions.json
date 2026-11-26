@@ -1230,9 +1230,6 @@
     }
   },
   "app/components/UI/Bridge/Views/BridgeView/BridgeMarketView/index.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
     }
@@ -1850,9 +1847,6 @@
     }
   },
   "app/components/UI/Bridge/hooks/useBridgeQuoteRequest/index.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 2
     }
@@ -10868,9 +10862,6 @@
     }
   },
   "app/components/UI/Ramp/Views/OrderDetails/OrderDetails.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-misused-promises": {
       "count": 2
     },
