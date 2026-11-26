@@ -301,7 +301,14 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       // Estimation failure surfaces via estimationError / button state; still
       // allow withdraw — controller re-fetches estimation at submit time.
     }
-    withdraw(balance);
+    if (destination.isMoneyAccountDestination && destination.receivingAddress) {
+      withdraw({
+        amount: balance,
+        moneyAccountAddress: destination.receivingAddress,
+      });
+    } else {
+      withdraw(balance);
+    }
   }, [
     balance,
     withdraw,
@@ -311,6 +318,8 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     isFundingStatusUnavailable,
     isWithdrawing,
     monitoringStatus,
+    destination.isMoneyAccountDestination,
+    destination.receivingAddress,
   ]);
 
   const handleNavigateToSpendingLimit = useCallback(() => {

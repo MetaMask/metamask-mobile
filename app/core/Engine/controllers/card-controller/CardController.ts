@@ -35,6 +35,7 @@ import {
   type CardHomeDataErrorReason,
   type CardRedeemWithdrawal,
   type CardRedeemWithdrawalError,
+  type CardCashbackClaim,
   type CardAccountLookupCacheEntry,
   type CardRedeemWithdrawalErrorReason,
   type CardLink,
@@ -297,6 +298,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
+  cashbackClaim: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
   signInLink: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -343,6 +350,7 @@ export const defaultCardControllerState: CardControllerState = {
   cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
   redeemWithdrawal: null,
+  cashbackClaim: null,
   signInLink: null,
   accountLookupCache: {},
   cardLinks: null,
@@ -370,6 +378,8 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
+  private cashbackClaimAmount: string | null = null;
+  private cashbackClaimMoneyAddress: string | null = null;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
   #migrationInProgress = false;
@@ -3496,6 +3506,7 @@ export class CardController extends BaseController<
   async withdrawRedeemable(params: {
     mode: RedeemWalletMode;
     amount: string;
+    moneyAccountAddress?: string;
   }): Promise<CreditWithdrawResponse | CashbackWithdrawResponse> {
     const { mode } = params;
     const amount = capRedeemAmount(params.amount);
@@ -3515,6 +3526,9 @@ export class CardController extends BaseController<
     const submittedAt = Date.now();
     const generation = ++this.redeemGeneration;
     const amountBucket = bucketRedeemAmount(amount);
+    this.cashbackClaimAmount = mode === 'cashback' ? amount : null;
+    this.cashbackClaimMoneyAddress =
+      mode === 'cashback' ? (params.moneyAccountAddress ?? null) : null;
     this.#setRedeemWithdrawal(
       {
         mode,
@@ -3698,6 +3712,14 @@ export class CardController extends BaseController<
     });
   }
 
+  clearCashbackClaim(): void {
+    this.cashbackClaimAmount = null;
+    this.cashbackClaimMoneyAddress = null;
+    this.update((state) => {
+      state.cashbackClaim = null;
+    });
+  }
+
   #getRedeemWithdrawal(): CardRedeemWithdrawal | null {
     return this.state.redeemWithdrawal as CardRedeemWithdrawal | null;
   }
@@ -3705,9 +3727,27 @@ export class CardController extends BaseController<
   /** No-ops when the withdrawal was cleared or superseded while awaiting. */
   #setRedeemWithdrawal(value: CardRedeemWithdrawal, generation: number): void {
     if (generation !== this.redeemGeneration) return;
+    const claim: CardCashbackClaim | null =
+      value.mode === 'cashback' &&
+      this.cashbackClaimAmount !== null &&
+      this.cashbackClaimMoneyAddress !== null
+        ? {
+            status: value.status === 'failed' ? 'failed' : 'pending',
+            amount: this.cashbackClaimAmount,
+            moneyAddress: this.cashbackClaimMoneyAddress,
+            submittedAt: value.submittedAt,
+            txHash: value.txHash,
+            chainId: value.chainId,
+            error: value.error,
+          }
+        : null;
     this.update((s) => {
       (s as unknown as CardControllerState).redeemWithdrawal =
         value as unknown as CardControllerState['redeemWithdrawal'];
+      if (claim) {
+        (s as unknown as CardControllerState).cashbackClaim =
+          claim as unknown as CardControllerState['cashbackClaim'];
+      }
     });
   }
 

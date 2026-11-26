@@ -343,6 +343,7 @@ describe('CardController', () => {
       cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
       redeemWithdrawal: null,
+      cashbackClaim: null,
       signInLink: null,
       accountLookupCache: {},
       cardLinks: null,
@@ -5086,6 +5087,99 @@ describe('CardController — data pass-throughs', () => {
           }),
         }),
       );
+    });
+    it('clears the cashback claim', async () => {
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xclaim' }),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawRedeemable({
+        mode: 'cashback',
+        amount: '10.5',
+        moneyAccountAddress: '0xMoneyAccount',
+      });
+
+      expect(controller.state.cashbackClaim).toMatchObject({
+        status: 'pending',
+        amount: '10.5',
+        moneyAddress: '0xMoneyAccount',
+        txHash: '0xclaim',
+      });
+
+      controller.clearCashbackClaim();
+
+      expect(controller.state.cashbackClaim).toBeNull();
+    });
+
+    it('marks the cashback claim failed when the provider rejects', async () => {
+      const provider = buildMockProvider({
+        withdrawCashback: undefined,
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+
+      await expect(
+        controller.withdrawRedeemable({
+          mode: 'cashback',
+          amount: '10.5',
+          moneyAccountAddress: '0xMoneyAccount',
+        }),
+      ).rejects.toThrow('Cashback withdrawal not supported');
+
+      expect(controller.state.cashbackClaim).toMatchObject({
+        status: 'failed',
+        amount: '10.5',
+        moneyAddress: '0xMoneyAccount',
+        error: { reason: 'submit_failed' },
+      });
+    });
+
+    it('does not record a cashback claim for a credit withdrawal', async () => {
+      const provider = buildMockProvider({
+        withdrawCredit: jest.fn().mockResolvedValue({ txHash: '0xcredit' }),
+        getCreditWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawRedeemable({
+        mode: 'credit',
+        amount: '5',
+        moneyAccountAddress: '0xMoneyAccount',
+      });
+
+      expect(controller.state.cashbackClaim).toBeNull();
+    });
+
+    it('does not record a cashback claim without a Money account address', async () => {
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xexternal' }),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawRedeemable({
+        mode: 'cashback',
+        amount: '5',
+      });
+
+      expect(controller.state.cashbackClaim).toBeNull();
     });
   });
 

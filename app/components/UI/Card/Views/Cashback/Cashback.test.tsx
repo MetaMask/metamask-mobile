@@ -676,7 +676,10 @@ describe('Cashback Component', () => {
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
       await waitFor(() => {
-        expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+        expect(mockWithdraw).toHaveBeenCalledWith({
+          amount: '10.00',
+          moneyAccountAddress: '0x1111111111111111111111111111111111111111',
+        });
       });
     });
   });

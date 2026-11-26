@@ -102,6 +102,23 @@ export interface CardRedeemWithdrawal {
   error: CardRedeemWithdrawalError | null;
 }
 
+export type CardCashbackClaimStatus = 'pending' | 'failed';
+
+/**
+ * Last cashback withdrawal that may not have reached Money activity yet.
+ * Not persisted. Cleared when the Accounts API reports the settlement.
+ * Typed as Record fields where needed for StateConstraint.
+ */
+export interface CardCashbackClaim {
+  status: CardCashbackClaimStatus;
+  amount: string;
+  moneyAddress: string;
+  submittedAt: number;
+  txHash: string | null;
+  chainId: string | null;
+  error: CardRedeemWithdrawalError | null;
+}
+
 export interface FetchCardHomeDataOptions {
   force?: boolean;
 }
@@ -182,6 +199,7 @@ export type CardControllerState = {
    * Typed as Record<string, Json> for StateConstraint; cast at read sites.
    */
   redeemWithdrawal: Record<string, Json> | null;
+  cashbackClaim: Record<string, Json> | null;
   signInLink: Record<string, Json> | null;
   accountLookupCache: Record<string, Json>;
   /** `null` until fetched; `[]` means never linked. */

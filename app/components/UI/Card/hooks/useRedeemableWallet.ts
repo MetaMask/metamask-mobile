@@ -84,8 +84,17 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   );
 
   const withdrawMutation = useMutation({
-    mutationFn: async (amount: string) =>
-      Engine.context.CardController.withdrawRedeemable({ mode, amount }),
+    mutationFn: async (
+      input: string | { amount: string; moneyAccountAddress?: string },
+    ) => {
+      const { amount, moneyAccountAddress } =
+        typeof input === 'string' ? { amount: input } : input;
+      return Engine.context.CardController.withdrawRedeemable({
+        mode,
+        amount,
+        moneyAccountAddress,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queries.allKey });
     },
