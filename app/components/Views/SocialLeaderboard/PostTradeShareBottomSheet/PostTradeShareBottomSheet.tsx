@@ -60,7 +60,7 @@ const StatusIcon = ({ status }: { status: PostTradeShareStatus }) => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         backgroundColor={BoxBackgroundColor.PrimaryMuted}
-        twClassName="h-12 w-12 rounded-full"
+        className="h-12 w-12 rounded-full"
       >
         <Spinner
           color={IconColor.PrimaryDefault}
@@ -293,10 +293,10 @@ const PostTradeShareBottomSheet: React.FC = () => {
       >
         <StatusIcon status={session.status} />
       </BottomSheetHeaderGlass>
-      <Box alignItems={BoxAlignItems.Center} twClassName="gap-1 px-4 py-3">
+      <Box alignItems={BoxAlignItems.Center} className="gap-1 px-4 py-3">
         <Text
           variant={TextVariant.HeadingLg}
-          twClassName="text-center"
+          className="text-center"
           testID={PostTradeShareBottomSheetSelectorsIDs.TITLE}
         >
           {getTitle(session)}
@@ -305,7 +305,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={PostTradeShareBottomSheetSelectorsIDs.PAIR}
           >
             {session.pairLabel}
@@ -313,11 +313,11 @@ const PostTradeShareBottomSheet: React.FC = () => {
         ) : null}
       </Box>
       {session.status !== 'failed' ? (
-        <Box twClassName="px-4 pt-4 pb-6">
+        <Box className="px-4 pt-4 pb-6">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
+            className="gap-2 rounded-xl border border-muted bg-muted p-3"
             testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
           >
             {isCreateProfile ? (
@@ -333,7 +333,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
                 height={ILLUSTRATION_SIZE}
               />
             )}
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -359,7 +359,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
           </Box>
         </Box>
       ) : null}
-      <Box twClassName="px-4 pb-6">
+      <Box className="px-4 pb-6">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

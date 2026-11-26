@@ -134,7 +134,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   }
 
   return (
-    <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
+    <Box className="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -151,7 +151,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="flex-1 min-w-0"
+            className="flex-1 min-w-0"
           >
             <TraderAvatar
               imageUrl={item.avatarUri}
@@ -164,7 +164,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               numberOfLines={1}
-              twClassName="flex-1 min-w-0"
+              className="flex-1 min-w-0"
             >
               <Text
                 variant={TextVariant.BodySm}
@@ -215,7 +215,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName={tradeCardTwClassName}
+          className={tradeCardTwClassName}
         >
           <PositionTokenAvatar
             position={item.tokenAvatar}
@@ -223,7 +223,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             showChainBadge
           />
 
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -234,7 +234,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {symbol}
               </Text>
@@ -264,7 +264,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
               {item.hasPnlData ? (
                 <Text
                   variant={TextVariant.BodySm}
-                  twClassName={
+                  className={
                     item.isPnlPositive
                       ? 'text-success-default'
                       : 'text-error-default'

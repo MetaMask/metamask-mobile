@@ -14,7 +14,7 @@ const PopularTraderCardSkeleton: React.FC = () => {
 
   return (
     <Card
-      twClassName={POPULAR_TRADER_CARD_SURFACE}
+      className={POPULAR_TRADER_CARD_SURFACE}
       testID={PopularTradersCarouselSelectorsIDs.SKELETON}
     >
       <SocialFeedSkeletonPlaceholder>

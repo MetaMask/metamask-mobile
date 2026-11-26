@@ -57,7 +57,7 @@ const CloseSlot: React.FC<{
   }));
   return (
     <Animated.View style={[styles.closeSlot, slotStyle]}>
-      <Box twClassName="ml-1">
+      <Box className="ml-1">
         <Icon
           name={IconName.Close}
           size={IconSize.Sm}
@@ -176,7 +176,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
   }));
 
   const avatar = (
-    <Box twClassName="mr-1">
+    <Box className="mr-1">
       <PositionTokenAvatar position={token.avatar} size={AvatarTokenSize.Sm} />
     </Box>
   );

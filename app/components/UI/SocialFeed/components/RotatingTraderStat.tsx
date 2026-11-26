@@ -108,7 +108,7 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
   }
 
   return (
-    <Box twClassName="overflow-hidden">
+    <Box className="overflow-hidden">
       {/* The first stat appears with its row, and a row leaving the list does
           not wait for its stat to swipe out. */}
       <LayoutAnimationConfig skipEntering skipExiting>

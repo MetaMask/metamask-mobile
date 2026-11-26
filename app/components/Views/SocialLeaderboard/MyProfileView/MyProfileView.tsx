@@ -1063,7 +1063,7 @@ const MyProfileView: React.FC = () => {
 
         {isLoading && isOwner && !displayProfile ? (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             paddingTop={12}
             testID={MyProfileViewSelectorsIDs.LOADING}
@@ -1072,7 +1072,7 @@ const MyProfileView: React.FC = () => {
           </Box>
         ) : error && isOwner && !displayProfile ? (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             paddingHorizontal={4}
             paddingTop={12}
@@ -1162,7 +1162,7 @@ const MyProfileView: React.FC = () => {
               {isOwner ? (
                 <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                   {isPrivate ? null : (
-                    <Box twClassName="flex-1">
+                    <Box className="flex-1">
                       <Button
                         variant={ButtonVariant.Secondary}
                         isFullWidth
@@ -1176,7 +1176,7 @@ const MyProfileView: React.FC = () => {
                       </Button>
                     </Box>
                   )}
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
@@ -1192,7 +1192,7 @@ const MyProfileView: React.FC = () => {
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                 >
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     {isBlocked ? (
                       <Button
                         variant={ButtonVariant.Secondary}
@@ -1235,7 +1235,7 @@ const MyProfileView: React.FC = () => {
             </Box>
 
             {isBlocked ? (
-              <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-12">
+              <Box alignItems={BoxAlignItems.Center} className="px-6 pt-12">
                 <TabEmptyState
                   icon={
                     <>
@@ -1246,7 +1246,28 @@ const MyProfileView: React.FC = () => {
                       />
                       <Text
                         variant={TextVariant.HeadingSm}
-                        twClassName="text-center"
+                        className="text-center"
+                      >
+                        {strings(
+                          'social_leaderboard.trader_profile.blocked_title',
+                          { name: displayProfile.handle },
+                        )}
+                      </Text>
+                    </>
+                  }
+                  description={strings(
+                    'social_leaderboard.trader_profile.blocked_description',
+                  )}
+                  className="max-w-80"
+                  testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
+                /><Icon
+                        name={IconName.Ban}
+                        size={IconSize.Lg}
+                        color={IconColor.IconAlternative}
+                      />
+                      <Text
+                        variant={TextVariant.HeadingSm}
+                        className="text-center"
                       >
                         {strings(
                           'social_leaderboard.trader_profile.blocked_title',
@@ -1265,13 +1286,13 @@ const MyProfileView: React.FC = () => {
             ) : isPrivate ? (
               <>
                 <SectionDivider marginVertical={4} />
-                <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+                <Box alignItems={BoxAlignItems.Center} className="px-8 py-12">
                   <TabEmptyState
                     icon={
                       <Box
                         alignItems={BoxAlignItems.Center}
                         gap={4}
-                        twClassName="w-full"
+                        className="w-full"
                       >
                         <Box
                           accessibilityElementsHidden
@@ -1283,10 +1304,10 @@ const MyProfileView: React.FC = () => {
                             color={IconColor.IconDefault}
                           />
                         </Box>
-                        <Box gap={1} twClassName="w-full">
+                        <Box gap={1} className="w-full">
                           <Text
                             variant={TextVariant.HeadingSm}
-                            twClassName="text-center"
+                            className="text-center"
                           >
                             {strings(
                               isOwner
@@ -1299,7 +1320,66 @@ const MyProfileView: React.FC = () => {
                             color={TextColor.TextAlternative}
                             numberOfLines={3}
                             ellipsizeMode="tail"
-                            twClassName="text-center"
+                            className="text-center"
+                          >
+                            {isOwner
+                              ? strings(
+                                  'social_leaderboard.trader_profile.private_description_own',
+                                )
+                              : strings(
+                                  'social_leaderboard.trader_profile.private_description',
+                                  { name: displayProfile.handle },
+                                )}
+                          </Text>
+                        </Box>
+                      </Box>
+                    }
+                    actionButtonText={
+                      isOwner
+                        ? strings(
+                            'social_leaderboard.trader_profile.privacy_settings',
+                          )
+                        : undefined
+                    }
+                    onAction={isOwner ? handleOpenPrivacySettings : undefined}
+                    actionButtonProps={{
+                      twClassName: 'self-center rounded-xl',
+                      testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
+                    }}
+                    className="w-full max-w-none"
+                    testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
+                  /><Box
+                        alignItems={BoxAlignItems.Center}
+                        gap={4}
+                        className="w-full"
+                      >
+                        <Box
+                          accessibilityElementsHidden
+                          importantForAccessibility="no-hide-descendants"
+                        >
+                          <Icon
+                            name={IconName.EyeSlash}
+                            size={IconSize.Xl}
+                            color={IconColor.IconDefault}
+                          />
+                        </Box>
+                        <Box gap={1} className="w-full">
+                          <Text
+                            variant={TextVariant.HeadingSm}
+                            className="text-center"
+                          >
+                            {strings(
+                              isOwner
+                                ? 'social_leaderboard.trader_profile.private_title_own'
+                                : 'social_leaderboard.trader_profile.private_title',
+                            )}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            numberOfLines={3}
+                            ellipsizeMode="tail"
+                            className="text-center"
                           >
                             {isOwner
                               ? strings(
@@ -1341,9 +1421,9 @@ const MyProfileView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="bg-default mt-5 pr-4"
+                  className="bg-default mt-5 pr-4"
                 >
-                  <Box twClassName="min-w-0 flex-1">
+                  <Box className="min-w-0 flex-1">
                     <TabsBar
                       tabs={profileTabs}
                       activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
@@ -1392,7 +1472,7 @@ const MyProfileView: React.FC = () => {
                 {!isAwaitingPrivacy && !privacyLoadError ? (
                   <Box
                     paddingTop={4}
-                    twClassName={activeTab === 'posts' ? undefined : 'hidden'}
+                    className={activeTab === 'posts' ? undefined : 'hidden'}
                   >
                     <SocialFeed
                       scope="all"
@@ -1415,7 +1495,7 @@ const MyProfileView: React.FC = () => {
                 {activeTab !== 'posts' && isFetchingMorePositions ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
-                    twClassName="px-4"
+                    className="px-4"
                     testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
                   >
                     <Spinner />
@@ -1426,7 +1506,7 @@ const MyProfileView: React.FC = () => {
           </Animated.ScrollView>
         ) : (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             paddingHorizontal={4}
@@ -1436,14 +1516,14 @@ const MyProfileView: React.FC = () => {
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('social_leaderboard.my_profile.no_profile_title')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('social_leaderboard.my_profile.no_profile_description')}
             </Text>

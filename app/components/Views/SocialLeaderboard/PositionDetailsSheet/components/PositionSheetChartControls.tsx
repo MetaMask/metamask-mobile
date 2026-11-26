@@ -50,7 +50,7 @@ const ValueSegment = ({
   >
     <Box
       alignItems={BoxAlignItems.Center}
-      twClassName={`h-7 justify-center rounded-full px-3 ${isSelected ? 'bg-muted' : ''}`}
+      className={`h-7 justify-center rounded-full px-3 ${isSelected ? 'bg-muted' : ''}`}
     >
       <Text
         variant={TextVariant.BodySm}
@@ -99,14 +99,14 @@ const PositionSheetChartControls = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="justify-between px-4 pb-6 pt-4"
+      className="justify-between px-4 pb-6 pt-4"
       testID={PositionDetailsSheetSelectorsIDs.CHART_CONTROLS}
     >
       <FilterButtonGroup
         value={period}
         onChange={handlePeriodChange}
         variant={FilterButtonVariant.Secondary}
-        twClassName="gap-1"
+        className="gap-1"
         testID={PositionDetailsSheetSelectorsIDs.CHART_PERIODS}
       >
         {CHART_PERIODS.map((option) => (
@@ -125,7 +125,7 @@ const PositionSheetChartControls = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="rounded-full border border-border-muted p-0.5"
+          className="rounded-full border border-border-muted p-0.5"
           testID={PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE}
         >
           <ValueSegment

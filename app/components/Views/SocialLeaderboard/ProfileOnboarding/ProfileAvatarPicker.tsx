@@ -60,7 +60,7 @@ const ProfileAvatarPicker: React.FC<ProfileAvatarPickerProps> = ({
         isLowTier={isLowTier}
       />
       <Box
-        twClassName="flex-row flex-wrap justify-center gap-4 mt-11"
+        className="flex-row flex-wrap justify-center gap-4 mt-11"
         style={tw.style({ width: AVATAR_GRID_WIDTH })}
       >
         {PROFILE_AVATAR_PRESETS.map((preset, index) => {

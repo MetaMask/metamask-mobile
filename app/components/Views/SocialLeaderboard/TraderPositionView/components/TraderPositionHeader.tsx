@@ -47,9 +47,9 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="px-2 py-2"
+    className="px-2 py-2"
   >
-    <Box twClassName="w-10">
+    <Box className="w-10">
       <ButtonIcon
         iconName={IconName.ArrowLeft}
         size={ButtonIconSize.Md}
@@ -67,7 +67,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
       onPress={onTraderPress}
       testID={traderNameTestID}
     />
-    <Box twClassName="w-10" alignItems={BoxAlignItems.End}>
+    <Box className="w-10" alignItems={BoxAlignItems.End}>
       {onShare && isSharing ? (
         <ShareButtonSpinner
           testID={TraderPositionViewSelectorsIDs.SHARE_SPINNER}

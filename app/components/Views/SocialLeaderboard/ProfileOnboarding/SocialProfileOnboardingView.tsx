@@ -241,7 +241,7 @@ const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <Box twClassName={twClassName}>
+  <Box className={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
@@ -364,14 +364,14 @@ const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
 
   return (
     <Box
-      twClassName="relative w-full"
+      className="relative w-full"
       style={slotHeight > 0 ? { minHeight: slotHeight } : undefined}
       testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT}
     >
       {INTRO_TITLE_STEPS.map((sizerStep) => (
         <Box
           key={sizerStep}
-          twClassName="absolute left-0 right-0 top-0 w-full opacity-0"
+          className="absolute left-0 right-0 top-0 w-full opacity-0"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           pointerEvents="none"
@@ -455,7 +455,7 @@ const ConnectXLabel: React.FC = () => (
 
 const LiveActivityFallback: React.FC = () => (
   <Box
-    twClassName="flex-1 justify-center px-8"
+    className="flex-1 justify-center px-8"
     gap={3}
     testID={SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK}
   >
@@ -463,9 +463,9 @@ const LiveActivityFallback: React.FC = () => (
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName="px-2"
+      className="px-2"
     >
-      <Box twClassName="w-2 h-2 rounded-full bg-error-default" />
+      <Box className="w-2 h-2 rounded-full bg-error-default" />
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('social_leaderboard.profile_onboarding.live_activity')}
       </Text>
@@ -476,7 +476,7 @@ const LiveActivityFallback: React.FC = () => (
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="bg-muted rounded-full px-3 py-2"
+        className="bg-muted rounded-full px-3 py-2"
       >
         <Text variant={TextVariant.BodyLg}>{trade.emoji}</Text>
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -495,7 +495,7 @@ const LiveActivityFallback: React.FC = () => (
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {trade.asset}
         </Text>
-        <Box twClassName="flex-1" />
+        <Box className="flex-1" />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {trade.seconds == null
             ? strings('social_leaderboard.profile_onboarding.just_now')
@@ -516,29 +516,29 @@ const ReadyCardFallback: React.FC<{
   isVerified: boolean;
 }> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
-    <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
+    <Text className="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
     </Text>
-    <Text twClassName="absolute right-8 top-10" variant={TextVariant.HeadingMd}>
+    <Text className="absolute right-8 top-10" variant={TextVariant.HeadingMd}>
       ✨
     </Text>
     <Text
-      twClassName="absolute left-10 bottom-16"
+      className="absolute left-10 bottom-16"
       variant={TextVariant.HeadingMd}
     >
       🐱
     </Text>
     <Box
       alignItems={BoxAlignItems.Center}
-      twClassName="pt-10"
+      className="pt-10"
       testID={SocialProfileOnboardingSelectorsIDs.READY_FALLBACK}
     >
-      <Box twClassName="bg-success-muted rounded-full px-4 py-2 mb-2">
+      <Box className="bg-success-muted rounded-full px-4 py-2 mb-2">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('social_leaderboard.profile_onboarding.hi')}
         </Text>
       </Box>
-      <Box twClassName="rounded-full border-4 border-success-default p-1">
+      <Box className="rounded-full border-4 border-success-default p-1">
         <ProfileAvatar
           imageUrl={imageUrl}
           avatarPresetId={avatarPresetId}
@@ -550,7 +550,7 @@ const ReadyCardFallback: React.FC<{
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="pt-3"
+        className="pt-3"
       >
         <Text
           variant={TextVariant.BodyMd}
@@ -1622,7 +1622,7 @@ const SocialProfileOnboardingView: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           {step === 'intro' ? (
             <SafeAreaInsetsContext.Provider value={introInsets}>
               <MarketingMoment
@@ -1747,6 +1747,31 @@ const SocialProfileOnboardingView: React.FC = () => {
                         testID:
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
+                    /><Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.TextAlternative}
+                        >
+                          @
+                        </Text>
+                      }
+                      endAccessory={
+                        <UsernameShuffleDie
+                          onPress={handleShuffleUsername}
+                          accessibilityLabel={strings(
+                            'social_leaderboard.profile_onboarding.shuffle_username',
+                          )}
+                          testID={
+                            SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON
+                          }
+                        />
+                      }
+                      inputProps={{
+                        autoCapitalize: 'none',
+                        autoCorrect: false,
+                        maxLength: MAX_USERNAME_LENGTH,
+                        testID:
+                          SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+                      }}
                     />
                     <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
@@ -1766,6 +1791,19 @@ const SocialProfileOnboardingView: React.FC = () => {
                       endAccessory={
                         draft.displayName.trim() && !displayNameError ? (
                           <Icon
+                            name={IconName.Check}
+                            size={IconSize.Sm}
+                            color={IconColor.SuccessDefault}
+                          />
+                        ) : undefined
+                      }
+                      inputProps={{
+                        autoCapitalize: 'words',
+                        maxLength: MAX_DISPLAY_NAME_LENGTH,
+                        testID:
+                          SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
+                      }}
+                    /><Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
                             color={IconColor.SuccessDefault}
@@ -1812,7 +1850,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'account' ? (
                 <Box
                   gap={3}
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle twClassName="mx-0.5 mt-0.5 pt-3 px-3 pb-3">
@@ -1851,7 +1889,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'ready' ? (
                 <Box
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.READY_STEP}
                 >
                   <OnboardingTitle twClassName="pt-2">
@@ -1862,14 +1900,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
-                    twClassName="text-center pt-3 px-4"
+                    className="text-center pt-3 px-4"
                   >
                     {strings(
                       'social_leaderboard.profile_onboarding.feed_awaits_description',
                     )}
                   </Text>
                   <Box
-                    twClassName="w-full flex-1 items-center justify-center"
+                    className="w-full flex-1 items-center justify-center"
                     testID={SocialProfileOnboardingSelectorsIDs.READY_CARD_SLOT}
                   >
                     <ProfileReadyAnimation
@@ -1902,7 +1940,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
-                  twClassName="text-center pb-3"
+                  className="text-center pb-3"
                 >
                   {finishError}
                 </Text>

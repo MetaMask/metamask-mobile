@@ -656,7 +656,7 @@ const PositionDetailsSheet = () => {
 
   const details = (
     <View>
-      <Box twClassName="px-4 py-3" gap={2}>
+      <Box className="px-4 py-3" gap={2}>
         <PositionSheetTradeSummary
           title={data.summaryTitle}
           tagLabel={data.summaryTagLabel}
@@ -685,7 +685,7 @@ const PositionDetailsSheet = () => {
           ref={sheetRef}
           isInteractable
           goBack={handleSheetClosed}
-          twClassName={`h-[${sheetHeight}px]`}
+          className={`h-[${sheetHeight}px]`}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
         >
           <PositionSheetHeader

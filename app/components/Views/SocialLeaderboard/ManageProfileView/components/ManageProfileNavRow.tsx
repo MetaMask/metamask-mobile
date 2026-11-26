@@ -44,7 +44,7 @@ const ManageProfileNavRow: React.FC<ManageProfileNavRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={`px-4 py-3 ${showTopBorder ? 'border-t border-muted' : ''}`}
+      className={`px-4 py-3 ${showTopBorder ? 'border-t border-muted' : ''}`}
     >
       <Text
         variant={TextVariant.BodyMd}
@@ -55,7 +55,7 @@ const ManageProfileNavRow: React.FC<ManageProfileNavRowProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-shrink min-w-0 ml-4"
+        className="flex-shrink min-w-0 ml-4"
         gap={2}
       >
         {valueAccessory}
@@ -64,7 +64,7 @@ const ManageProfileNavRow: React.FC<ManageProfileNavRowProps> = ({
             variant={TextVariant.BodyMd}
             color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
             numberOfLines={1}
-            twClassName="flex-shrink"
+            className="flex-shrink"
           >
             {value}
           </Text>

@@ -83,7 +83,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
       ) : (
         <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
       )}
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -94,7 +94,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink leading-none"
+            className="shrink leading-none"
           >
             {symbol}
           </Text>
@@ -106,7 +106,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             />
           ) : null}
           {canCopyTokenAddress ? (
-            <Box twClassName="translate-y-0.5">
+            <Box className="translate-y-0.5">
               <Icon
                 name={IconName.Copy}
                 size={IconSize.Sm}
@@ -118,7 +118,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
         {pricePercentChange != null ? (
           <Text
             variant={TextVariant.BodySm}
-            twClassName={
+            className={
               pricePercentChange >= 0
                 ? 'text-success-default'
                 : 'text-error-default'
@@ -143,7 +143,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   );
 
   if (!canCopyTokenAddress) {
-    return <Box twClassName="flex-1 min-w-0 mr-3">{content}</Box>;
+    return <Box className="flex-1 min-w-0 mr-3">{content}</Box>;
   }
 
   return (
@@ -216,7 +216,7 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
+    className="px-4 py-3"
   >
     <TraderTokenIdentity
       symbol={symbol}

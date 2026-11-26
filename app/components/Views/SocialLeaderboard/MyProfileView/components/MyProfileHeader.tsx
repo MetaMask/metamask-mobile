@@ -115,7 +115,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           />
         )}
 
-        <Box twClassName="flex-1 min-w-0" gap={1}>
+        <Box className="flex-1 min-w-0" gap={1}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -125,7 +125,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
               numberOfLines={1}
-              twClassName="flex-shrink"
+              className="flex-shrink"
               testID={MyProfileViewSelectorsIDs.DISPLAY_NAME}
             >
               {profile.displayName}
@@ -140,7 +140,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
-            twClassName="-mt-2"
+            className="-mt-2"
             testID={MyProfileViewSelectorsIDs.HANDLE}
           >
             @{profile.handle}
@@ -149,7 +149,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
       </Box>
 
       {thesis ? (
-        <Box twClassName="pt-[14px] pb-[10px]">
+        <Box className="pt-[14px] pb-[10px]">
           <Text
             variant={TextVariant.BodyMd}
             testID={MyProfileViewSelectorsIDs.BIO}

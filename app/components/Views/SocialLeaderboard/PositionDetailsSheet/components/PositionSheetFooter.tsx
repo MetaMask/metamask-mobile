@@ -135,7 +135,7 @@ const PositionSheetFooter = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       gap={3}
-      twClassName="px-4 pt-4 pb-5"
+      className="px-4 pt-4 pb-5"
     >
       {renderActions()}
     </Box>

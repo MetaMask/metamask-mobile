@@ -31,7 +31,7 @@ const SocialV1FeedPostList: React.FC<SocialV1FeedPostListProps> = ({
             )}
           />
         ) : null}
-        <Box twClassName="px-4">{renderPost(post)}</Box>
+        <Box className="px-4">{renderPost(post)}</Box>
       </Fragment>
     ))}
   </Box>

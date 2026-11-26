@@ -105,7 +105,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       backTestID={ManageProfileLinkedAccountSelectorsIDs.BACK_BUTTON}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Box twClassName="mt-2">
+        <Box className="mt-2">
           <SocialAccountSectionList
             accounts={accounts}
             disabled={!isControllerBacked || !profile || isUpdating}
@@ -122,7 +122,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
             color={TextColor.ErrorDefault}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
-            twClassName="mx-4 mt-3"
+            className="mx-4 mt-3"
           >
             {errorMessage}
           </Text>
@@ -130,7 +130,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
-          twClassName="mx-4 mt-4 px-3 py-3 rounded-2xl border border-muted"
+          className="mx-4 mt-4 px-3 py-3 rounded-2xl border border-muted"
           gap={1}
         >
           <Icon
@@ -142,7 +142,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings(
               'social_leaderboard.manage_profile.linked_account_footnote',

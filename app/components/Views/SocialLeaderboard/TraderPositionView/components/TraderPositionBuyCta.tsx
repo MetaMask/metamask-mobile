@@ -224,7 +224,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   return (
     <>
-      <Box twClassName="px-4 py-3">
+      <Box className="px-4 py-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

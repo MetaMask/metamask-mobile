@@ -28,7 +28,7 @@ const UsernameStatusLine: React.FC<UsernameStatusLineProps> = ({
           ? TextColor.SuccessDefault
           : TextColor.ErrorDefault
       }
-      twClassName={align === 'center' ? 'text-center' : undefined}
+      className={align === 'center' ? 'text-center' : undefined}
       testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
     >
       {feedback.message}
