@@ -459,15 +459,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // carries them when it arrived from the list, and the enrichment catalog
   // covers the rest.
   const tradeOnVenues = useMemo(() => {
+    // A grouped route market (from the markets list) carries its venue rows.
     const routeVenueRows = (routeMarket as Partial<PerpsMarketRow>)?.venues;
     if (routeVenueRows?.length) {
       return routeVenueRows;
     }
+    // The enrichment catalog is ungrouped per-venue listings: every row
+    // matching the symbol is one venue's data for that market. Case-
+    // insensitive, matching the enrichment lookup above.
     const routeSymbol = routeMarket?.symbol?.toLowerCase();
-    const fullRow = markets.find(
-      (row) => row.symbol.toLowerCase() === routeSymbol,
-    );
-    return fullRow?.venues ?? [];
+    return markets.filter((row) => row.symbol.toLowerCase() === routeSymbol);
   }, [markets, routeMarket]);
   const marketVenueIds = useMemo<readonly PerpsProviderType[]>(() => {
     if (tradeOnVenues.length > 0) {
