@@ -203,7 +203,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           );
         }
       } else {
-        await NetworkController.addNetwork({
+        NetworkController.addNetwork({
           ...networkConfig,
         } as unknown as AddNetworkFields);
         identify(addItemToChainIdList(networkConfig.chainId));
