@@ -388,9 +388,6 @@ describe('PredictOrderFlow', () => {
     await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
   };
 
-  const flushDebounce = () =>
-    act(() => new Promise((resolve) => setTimeout(resolve, 600)));
-
   /** Presses the probe and lets the Venue catalog read settle. */
   const pressProbeAndSettle = async (Component: React.ComponentType) => {
     renderProbe(Component);
@@ -452,7 +449,6 @@ describe('PredictOrderFlow', () => {
   const reviewOrder = async () => {
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -516,8 +512,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheet();
       typeAmount('20');
-      await flushDebounce();
-
       const breakdown = await expectBreakdownReconciles('20');
 
       expect(breakdown).toEqual({ fee: 76, contracts: 1900, total: 1976 });
@@ -531,8 +525,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheet();
       typeAmount('1');
-      await flushDebounce();
-
       const breakdown = await expectBreakdownReconciles('1');
 
       expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
@@ -546,8 +538,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheet();
       typeAmount('1.5');
-      await flushDebounce();
-
       const breakdown = await expectBreakdownReconciles('1.5');
 
       expect(breakdown).toEqual({ fee: 6, contracts: 141, total: 147 });
@@ -584,7 +574,6 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
 
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -597,8 +586,6 @@ describe('PredictOrderFlow', () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
-    await flushDebounce();
-
     await waitFor(() =>
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
@@ -624,7 +611,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -641,7 +627,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -705,7 +690,6 @@ describe('PredictOrderFlow', () => {
     ).not.toBeOnTheScreen();
 
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -734,7 +718,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -758,7 +741,6 @@ describe('PredictOrderFlow', () => {
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
 
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -769,7 +751,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -781,7 +762,6 @@ describe('PredictOrderFlow', () => {
     ).toHaveTextContent('$50');
     expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
 
-    await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   });
 
@@ -790,7 +770,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -798,7 +777,6 @@ describe('PredictOrderFlow', () => {
     replaceAmount('20', '50');
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
 
-    await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
@@ -821,7 +799,9 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
+    // The first quote must be on the wire before the amount changes, so the
+    // discard below has an in-flight quote to drop.
+    await waitFor(() => expect(previewCalls()).toHaveLength(1));
     replaceAmount('20', '0.50');
     await act(async () => {
       resolveQuote({ body: makePreview() });
@@ -840,7 +820,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('05');
-    await flushDebounce();
 
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
@@ -911,7 +890,6 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toHaveTextContent('$92.34');
 
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -934,14 +912,12 @@ describe('PredictOrderFlow', () => {
 
       await openSheetWithBalance();
       typeAmount('5');
-      await flushDebounce();
       await waitFor(() => expect(previewCalls()).toHaveLength(1));
 
       pressQuickAmount('50');
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toHaveTextContent('$61.56');
-      await flushDebounce();
       await waitFor(() => expect(previewCalls()).toHaveLength(2));
       expect(previewCalls()[1]?.body).toEqual({
         marketId: 'KXTEST-26-A',
@@ -962,8 +938,6 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toHaveTextContent('$123.12');
-      await flushDebounce();
-
       const breakdown = await expectBreakdownReconciles('123.12');
 
       expect(breakdown).toEqual({ fee: 472, contracts: 11800, total: 12272 });
@@ -984,8 +958,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheetWithBalance();
       pressQuickAmount('max');
-      await flushDebounce();
-
       expect(
         await screen.findByText('Not enough balance for this order.'),
       ).toBeOnTheScreen();
@@ -998,19 +970,18 @@ describe('PredictOrderFlow', () => {
       ).toHaveTextContent('$123.12');
 
       // Nothing re-requests on its own, and pressing Max again keeps the
-      // same amount without another request.
+      // same amount without another request. The zero-delay flush drains
+      // any pending one-shot chains before the negative assertion.
       pressQuickAmount('max');
-      await flushDebounce();
-      await flushDebounce();
+      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(requestedAmounts()).toEqual(['123.12']);
 
       // Refresh asks once more for the same amount, never a smaller one.
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
-      await flushDebounce();
       await waitFor(() =>
         expect(requestedAmounts()).toEqual(['123.12', '123.12']),
       );
-      await flushDebounce();
+      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(requestedAmounts()).toEqual(['123.12', '123.12']);
     });
 
@@ -1022,8 +993,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheetWithBalance();
       pressQuickAmount('max');
-      await flushDebounce();
-
       const breakdown = await expectBreakdownReconciles('1.02');
 
       expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
@@ -1099,11 +1068,13 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('0.50');
-    await flushDebounce();
-    await flushDebounce();
+    // The minimum-amount error is the observable outcome of the typed value;
+    // a zero-delay flush drains pending chains before asserting that no
+    // quote was requested.
+    await screen.findByText(/Enter at least \$1/);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 
     expect(previewCalls()).toHaveLength(0);
-    expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
   });
 
   it('marks an expired preview, refuses approval, and refreshes', async () => {
@@ -1120,7 +1091,6 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
     expect(
       await screen.findByTestId(PredictOrderFlowTestIds.EXPIRED),
@@ -1132,7 +1102,6 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
-    await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   });
 
@@ -1147,9 +1116,10 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
-    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.ERROR),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText('Not enough balance for this order.'),
     ).toBeOnTheScreen();
@@ -1170,7 +1140,6 @@ describe('PredictOrderFlow', () => {
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
     await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
     typeAmount('20');
-    await flushDebounce();
 
     fireEvent.press(
       await screen.findByTestId(PredictOrderFlowTestIds.ADD_FUNDS),
@@ -1202,9 +1171,10 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
-    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.ERROR),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.ADD_FUNDS)).toBeNull();
   });
 
@@ -1289,7 +1259,6 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
-    await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   }, 30000);
 
@@ -1447,7 +1416,6 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
-    await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   }, 30000);
 
@@ -1610,7 +1578,6 @@ describe('PredictOrderFlow', () => {
       fireEvent.press(screen.getByTestId(PROBE_BUTTON));
       await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
       typeAmount('20');
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1628,13 +1595,14 @@ describe('PredictOrderFlow', () => {
         screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
       ).not.toBeOnTheScreen();
       // The amount can no longer be edited, so nothing re-quotes the stale
-      // intent, and nothing was committed.
+      // intent, and nothing was committed. The zero-delay flush drains any
+      // pending one-shot chains before the negative assertions.
       const quotes = previewCalls().length;
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD),
       ).not.toBeOnTheScreen();
-      await flushDebounce();
+      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(previewCalls()).toHaveLength(quotes);
       expect(commitCalls()).toHaveLength(0);
     });
@@ -1645,7 +1613,6 @@ describe('PredictOrderFlow', () => {
       fireEvent.press(screen.getByTestId(PROBE_BUTTON));
       await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
       typeAmount('20');
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1674,7 +1641,6 @@ describe('PredictOrderFlow', () => {
         fireEvent.press(screen.getByTestId(PROBE_BUTTON));
         await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
         typeAmount('20');
-        await flushDebounce();
         await waitFor(() =>
           expect(
             screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1702,7 +1668,9 @@ describe('PredictOrderFlow', () => {
       fireEvent.press(
         screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
       );
-      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+      // The disabled button cannot dispatch; a zero-delay flush drains any
+      // pending one-shot chains before the negative call-count assertion.
+      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(commitCalls()).toHaveLength(1);
     });
   });
@@ -1768,9 +1736,8 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
-    fireEvent.press(screen.getByText('Learn more'));
+    fireEvent.press(await screen.findByText('Learn more'));
 
     expect(openURL).toHaveBeenCalledWith(
       'https://kalshi.com/regulatory/agreement',
@@ -1783,12 +1750,13 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
-    expect(screen.queryByText('Learn more')).toBeNull();
+    // The disclaimer rendering is the observable that the preview row is up;
+    // the link absence is asserted once it could have rendered.
     expect(
-      screen.getByText("By continuing, you accept Kalshi's terms."),
+      await screen.findByText("By continuing, you accept Kalshi's terms."),
     ).toBeOnTheScreen();
+    expect(screen.queryByText('Learn more')).toBeNull();
   });
 
   it('does not break the Order flow when the terms URL fails to open', async () => {
@@ -1798,9 +1766,8 @@ describe('PredictOrderFlow', () => {
 
     await openSheet();
     typeAmount('20');
-    await flushDebounce();
 
-    fireEvent.press(screen.getByText('Learn more'));
+    fireEvent.press(await screen.findByText('Learn more'));
 
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1836,7 +1803,6 @@ describe('PredictOrderFlow', () => {
     const reviewSellOrder = async (count = '75') => {
       await openSheet(SellProbe);
       typeContracts(count);
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1923,7 +1889,6 @@ describe('PredictOrderFlow', () => {
 
       await openSheet(SellProbe);
       typeContracts('70');
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -1960,7 +1925,6 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toHaveTextContent('75');
 
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -2045,17 +2009,17 @@ describe('PredictOrderFlow', () => {
 
       await openSheet(SellProbe);
       typeContracts('80');
-      await flushDebounce();
 
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR),
+        await screen.findByTestId(
+          PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR,
+        ),
       ).toHaveTextContent('You can sell up to 75 contracts.');
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
       expect(previewCalls()).toHaveLength(0);
 
       // Recovering with the Max chip quotes the full position.
       pressQuickContract('max');
-      await flushDebounce();
       await waitFor(() =>
         expect(
           screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
@@ -2069,10 +2033,11 @@ describe('PredictOrderFlow', () => {
 
       await openSheet(SellProbe);
       typeContracts('0');
-      await flushDebounce();
 
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR),
+        await screen.findByTestId(
+          PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR,
+        ),
       ).toHaveTextContent('Enter at least 1 contract.');
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
       expect(previewCalls()).toHaveLength(0);
@@ -2089,10 +2054,9 @@ describe('PredictOrderFlow', () => {
 
       await openSheet(SellProbe);
       typeContracts('70');
-      await flushDebounce();
 
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.ERROR),
+        await screen.findByTestId(PredictOrderFlowTestIds.ERROR),
       ).toBeOnTheScreen();
       expect(
         screen.getByText('Not enough contracts in this position.'),
@@ -2289,7 +2253,6 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
-      await flushDebounce();
       await waitFor(() => expect(previewCalls()).toHaveLength(2));
     }, 30000);
 
