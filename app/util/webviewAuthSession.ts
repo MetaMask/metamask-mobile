@@ -3,9 +3,10 @@ import Routes from '../constants/navigation/Routes';
 
 /**
  * Maximum time to wait for `SimpleWebview` to mount and attach its close
- * handler after deferred navigation is requested. Bounds session cleanup if
- * `NavigationService`'s `requestAnimationFrame`-deferred dispatch fails or is
- * dropped.
+ * handler once `NavigationService`'s `requestAnimationFrame`-deferred
+ * navigation frame runs. Bounds session cleanup if the deferred dispatch fails
+ * or is dropped without timing out while animation frames are paused in the
+ * background.
  */
 export const WEBVIEW_AUTH_MOUNT_TIMEOUT_MS = 5000;
 
@@ -58,8 +59,8 @@ export function attachWebviewAuthSessionClose(
   if (!session || session.settled) {
     return false;
   }
-  session.clearMountTimeout();
   session.close = close;
+  session.clearMountTimeout();
   return true;
 }
 
@@ -116,9 +117,14 @@ export async function openWebviewAuthSession(options: {
 
   return await new Promise<string | undefined>((resolve, reject) => {
     let onAbort: (() => void) | undefined;
+    let mountFrame: number | undefined;
     let mountTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const clearMountTimeout = (): void => {
+      if (mountFrame !== undefined) {
+        cancelAnimationFrame(mountFrame);
+        mountFrame = undefined;
+      }
       if (mountTimeout !== undefined) {
         clearTimeout(mountTimeout);
         mountTimeout = undefined;
@@ -176,17 +182,27 @@ export async function openWebviewAuthSession(options: {
       return;
     }
 
-    mountTimeout = setTimeout(() => {
-      if (session.settled) {
+    if (session.settled || session.close) {
+      return;
+    }
+
+    mountFrame = requestAnimationFrame(() => {
+      mountFrame = undefined;
+      if (session.settled || session.close) {
         return;
       }
-      session.settled = true;
-      mountTimeout = undefined;
-      activeSessions.delete(sessionId);
-      if (signal && onAbort) {
-        signal.removeEventListener('abort', onAbort);
-      }
-      reject(new WebviewAuthMountTimeoutError());
-    }, WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
+      mountTimeout = setTimeout(() => {
+        if (session.settled) {
+          return;
+        }
+        session.settled = true;
+        mountTimeout = undefined;
+        activeSessions.delete(sessionId);
+        if (signal && onAbort) {
+          signal.removeEventListener('abort', onAbort);
+        }
+        reject(new WebviewAuthMountTimeoutError());
+      }, WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
+    });
   });
 }

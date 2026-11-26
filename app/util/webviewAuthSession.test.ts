@@ -250,6 +250,132 @@ describe('webviewAuthSession', () => {
     }
   });
 
+  it('does not time out while animation frames are paused before deferred navigation runs', async () => {
+    jest.useFakeTimers();
+    const pendingFrames: FrameRequestCallback[] = [];
+    const rafSpy = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((callback: FrameRequestCallback) => {
+        pendingFrames.push(callback);
+        return pendingFrames.length;
+      });
+    const cancelRafSpy = jest
+      .spyOn(global, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+
+    try {
+      let navigationRan = false;
+      mockNavigate.mockImplementationOnce(() => {
+        requestAnimationFrame(() => {
+          navigationRan = true;
+        });
+      });
+
+      const promise = openWebviewAuthSession({
+        url: AUTH_URL,
+        redirectUri: REDIRECT_URI,
+      });
+      const sessionId = getLastAuthSessionId();
+
+      jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS * 10);
+
+      expect(navigationRan).toBe(false);
+
+      pendingFrames.splice(0).forEach((callback) => callback(Date.now()));
+
+      expect(navigationRan).toBe(true);
+      expect(attachWebviewAuthSessionClose(sessionId, jest.fn())).toBe(true);
+
+      const redirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+      expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
+      dismissWebviewAuthSession(sessionId);
+
+      await expect(promise).resolves.toBe(redirectUrl);
+    } finally {
+      rafSpy.mockRestore();
+      cancelRafSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('starts the mount timeout only after the deferred navigation frame runs', async () => {
+    jest.useFakeTimers();
+    const pendingFrames: FrameRequestCallback[] = [];
+    const rafSpy = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((callback: FrameRequestCallback) => {
+        pendingFrames.push(callback);
+        return pendingFrames.length;
+      });
+    const cancelRafSpy = jest
+      .spyOn(global, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+
+    try {
+      const promise = openWebviewAuthSession({
+        url: AUTH_URL,
+        redirectUri: REDIRECT_URI,
+      });
+      const caughtErrorPromise = promise.catch((caught: unknown) => caught);
+      let settled = false;
+      promise.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+
+      jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS * 3);
+      await Promise.resolve();
+
+      expect(settled).toBe(false);
+
+      pendingFrames.splice(0).forEach((callback) => callback(Date.now()));
+      jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS - 1);
+      await Promise.resolve();
+
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(1);
+
+      await expect(caughtErrorPromise).resolves.toBeInstanceOf(
+        WebviewAuthMountTimeoutError,
+      );
+    } finally {
+      rafSpy.mockRestore();
+      cancelRafSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('cancels the pending animation frame when the WebView attaches before the frame runs', async () => {
+    const rafSpy = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockReturnValue(42);
+    const cancelRafSpy = jest
+      .spyOn(global, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+
+    try {
+      const promise = openWebviewAuthSession({
+        url: AUTH_URL,
+        redirectUri: REDIRECT_URI,
+      });
+      const sessionId = getLastAuthSessionId();
+
+      expect(attachWebviewAuthSessionClose(sessionId, jest.fn())).toBe(true);
+      expect(cancelRafSpy).toHaveBeenCalledWith(42);
+
+      dismissWebviewAuthSession(sessionId);
+      await expect(promise).resolves.toBeUndefined();
+    } finally {
+      rafSpy.mockRestore();
+      cancelRafSpy.mockRestore();
+    }
+  });
+
   it('requires exact protocol, host, and pathname match for redirect URIs', async () => {
     const promise = openWebviewAuthSession({
       url: AUTH_URL,
