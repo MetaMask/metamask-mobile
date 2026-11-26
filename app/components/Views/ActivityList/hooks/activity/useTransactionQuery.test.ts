@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../../core/apiClient';
-import { selectEvmAddress } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTransactionQuery } from './useTransactionQuery';
 
@@ -44,15 +43,7 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when inputs are missing', () => {
-    useSelectorMock.mockImplementation((selector) => {
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return undefined;
-      }
-      if (selector === selectEvmAddress) {
-        return undefined;
-      }
-      return undefined;
-    });
+    useSelectorMock.mockReturnValue(undefined);
 
     renderHook(() =>
       useTransactionQuery({
@@ -80,15 +71,7 @@ describe('useTransactionQuery', () => {
   });
 
   it('enables the query for valid EVM chain, address, and hash inputs', () => {
-    useSelectorMock.mockImplementation((selector) => {
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return { address: '0x1234567890abcdef' };
-      }
-      if (selector === selectEvmAddress) {
-        return '0x9999999999999999';
-      }
-      return undefined;
-    });
+    useSelectorMock.mockReturnValue({ address: '0x1234567890abcdef' });
 
     renderHook(() =>
       useTransactionQuery({
@@ -112,34 +95,6 @@ describe('useTransactionQuery', () => {
         retry: false,
         select: expect.any(Function),
       }),
-    );
-  });
-
-  it('uses global EVM address when group account is not available', () => {
-    useSelectorMock.mockImplementation((selector) => {
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return undefined;
-      }
-      if (selector === selectEvmAddress) {
-        return '0xglobaladdress';
-      }
-      return undefined;
-    });
-
-    renderHook(() =>
-      useTransactionQuery({
-        chainId: 'eip155:1',
-        enabled: true,
-        txHash: '0xdef',
-      }),
-    );
-
-    expect(
-      apiClient.accounts.getV5TransactionByIdQueryOptions,
-    ).toHaveBeenCalledWith(
-      'eip155:1:0xglobaladdress',
-      '0xdef',
-      expect.any(Object),
     );
   });
 });

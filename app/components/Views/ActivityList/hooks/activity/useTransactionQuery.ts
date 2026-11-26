@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import type { V5TransactionRecord } from '@metamask/core-backend';
 import {
   isCaipChainId,
   KnownCaipNamespace,
@@ -9,7 +10,6 @@ import {
 } from '@metamask/utils';
 import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
-import { selectEvmAddress } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 export function useTransactionQuery({
@@ -21,11 +21,8 @@ export function useTransactionQuery({
   enabled: boolean;
   txHash: string | undefined;
 }) {
-  const groupEvmAccount = useSelector(
-    selectSelectedAccountGroupEvmInternalAccount,
-  );
-  const globalEvmAddress = useSelector(selectEvmAddress);
-  const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const evmAddress = evmAccount?.address ?? '';
 
   const accountId = useMemo(() => {
     if (!chainId || !isCaipChainId(chainId) || !evmAddress) {
@@ -57,6 +54,6 @@ export function useTransactionQuery({
     ...queryOptions,
     queryFn: enabled && accountId && txHash ? queryOptions.queryFn : skipToken,
     retry: false,
-    select: (response) => response.data,
+    select: (response): V5TransactionRecord => response.data,
   });
 }

@@ -86,7 +86,7 @@ function toValueTransferAssetType(
   return toCaipAssetType(KnownCaipNamespace.Eip155, reference, 'slip44', '60');
 }
 
-function toV5TransactionRecord(
+export function toV5TransactionRecord(
   transaction: MockAccountsApiTransaction,
   subjectAddress: string,
 ): V5TransactionRecord {
