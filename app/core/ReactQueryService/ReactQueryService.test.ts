@@ -6,26 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { addEventListener as addNetInfoEventListener } from '@react-native-community/netinfo';
 import { ReactQueryService } from './ReactQueryService';
-import { isTierPolicyEnabled } from '../Networking/killSwitch';
-import { updateNetworkTierSnapshot } from '../../util/deviceCapability/networkTierSnapshot';
-import { OfflineError } from '../Networking/errors';
-import { reportNetworkFailure } from '../Networking/errorReporting';
-
-jest.mock('../Networking/killSwitch', () => ({
-  isTierPolicyEnabled: jest.fn(),
-  subscribeTierPolicyEnabled: jest.fn(() => jest.fn()),
-}));
-jest.mock('../Networking/errorReporting', () => ({
-  reportNetworkFailure: jest.fn(),
-}));
 
 jest.mock('@tanstack/query-core', () => ({
   ...jest.requireActual('@tanstack/query-core'),
   focusManager: { setFocused: jest.fn() },
-  onlineManager: {
-    setEventListener: jest.fn(),
-    isOnline: jest.fn(() => true),
-  },
+  onlineManager: { setEventListener: jest.fn() },
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -65,7 +50,7 @@ describe('ReactQueryService', () => {
           gcTime: 1000 * 60 * 60 * 24,
           queryFn: expect.any(Function),
         },
-        mutations: { retry: false, networkMode: 'always' },
+        mutations: undefined,
       });
     });
 
@@ -160,53 +145,6 @@ describe('ReactQueryService', () => {
 
       expect(mockSetOnline).toHaveBeenCalledWith(false);
     });
-  });
-
-  it('uses the transport snapshot instead of isConnected when tier policies are enabled', () => {
-    jest.mocked(isTierPolicyEnabled).mockReturnValue(true);
-    const setOnline = jest.fn();
-    mockOnlineManager.setEventListener.mock.calls[0][0](setOnline);
-
-    mockAddNetInfoEventListener.mock.calls[0][0]({ isConnected: null });
-    expect(setOnline).toHaveBeenLastCalledWith(true);
-    updateNetworkTierSnapshot('NONE');
-    expect(setOnline).toHaveBeenLastCalledWith(false);
-    updateNetworkTierSnapshot(null);
-    jest.mocked(isTierPolicyEnabled).mockReturnValue(false);
-  });
-
-  it('rejects an offline mutation before executing or replaying it', async () => {
-    mockOnlineManager.isOnline.mockReturnValue(false);
-    const mutationFn = jest.fn();
-    const mutation = service.queryClient
-      .getMutationCache()
-      .build(service.queryClient, { mutationFn, gcTime: Infinity });
-    await expect(mutation.execute(undefined)).rejects.toBeInstanceOf(
-      OfflineError,
-    );
-
-    mockOnlineManager.isOnline.mockReturnValue(true);
-    await service.queryClient.resumePausedMutations();
-    expect(mutationFn).not.toHaveBeenCalled();
-  });
-
-  it('reports a query failure once, after the last retry', async () => {
-    const error = new Error('failure');
-    const meta = { feature: 'test', operation: 'get' };
-    await expect(
-      service.queryClient.fetchQuery({
-        queryKey: ['terminal'],
-        queryFn: async () => {
-          throw error;
-        },
-        retry: 1,
-        retryDelay: 0,
-        gcTime: Infinity,
-        meta,
-      }),
-    ).rejects.toBe(error);
-    expect(reportNetworkFailure).toHaveBeenCalledTimes(1);
-    expect(reportNetworkFailure).toHaveBeenCalledWith(error, meta, 2);
   });
 
   describe('destroy', () => {

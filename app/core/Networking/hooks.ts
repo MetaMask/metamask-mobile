@@ -8,6 +8,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 import { getNetworkConditions } from '../../util/deviceCapability/conditions';
+import { reportNetworkFailure, type NetworkIntent } from './errorReporting';
 import { isTierPolicyEnabled } from './killSwitch';
 import {
   resolveGcTime,
@@ -18,15 +19,6 @@ import {
   type Freshness,
   type PollProfile,
 } from './policies';
-
-interface NetworkIntent {
-  /** Static feature identifier used in error reports and spans. */
-  feature: string;
-  /** Static operation identifier used in error reports and spans. */
-  operation: string;
-  /** HTTP statuses the feature handles itself and does not report. */
-  expectedStatuses?: readonly number[];
-}
 
 /** Caching, retries and polling are owned by the hook and follow the tier. */
 type OwnedQueryOptions =
@@ -63,23 +55,29 @@ export function useNetworkQuery<
   expectedStatuses,
   freshness = 'standard',
   poll = 'manual',
-  meta,
   ...options
 }: NetworkQueryOptions<QueryData, Data, Key>): UseQueryResult<Data, Error> {
   return useQuery({
     ...options,
-    meta: { ...meta, networking: true, feature, operation, expectedStatuses },
-    networkMode: 'online',
     staleTime: STALE_TIMES[freshness],
     gcTime: resolveGcTime(getNetworkConditions(), isTierPolicyEnabled()),
     // Functions so each retry or poll reads the conditions at that moment.
-    retry: (index, error) =>
-      shouldRetryQuery(
+    retry: (index, error) => {
+      const again = shouldRetryQuery(
         index,
         error,
         getNetworkConditions(),
         isTierPolicyEnabled(),
-      ),
+      );
+      // TanStack asks once per failed attempt, so "no" marks the terminal failure.
+      if (!again)
+        reportNetworkFailure(
+          error,
+          { feature, operation, expectedStatuses },
+          index + 1,
+        );
+      return again;
+    },
     retryDelay: (index, error) =>
       resolveRetryDelay(
         index,
@@ -89,19 +87,18 @@ export function useNetworkQuery<
       ),
     refetchInterval: () =>
       resolvePoll(poll, getNetworkConditions(), isTierPolicyEnabled()),
-    refetchIntervalInBackground: false,
   });
 }
 
 /**
- * The app's mutation hook. A mutation never retries and never waits for the
- * connection: offline, it fails at once (global defaults in ReactQueryService).
+ * The app's mutation hook. A mutation is never retried and never waits for the
+ * connection, so nothing replays after a reconnect.
  */
 export function useNetworkMutation<Data, Variables = void, Context = unknown>({
   feature,
   operation,
   expectedStatuses,
-  meta,
+  onError,
   ...options
 }: Omit<
   UseMutationOptions<Data, Error, Variables, Context>,
@@ -110,6 +107,11 @@ export function useNetworkMutation<Data, Variables = void, Context = unknown>({
   NetworkIntent): UseMutationResult<Data, Error, Variables, Context> {
   return useMutation({
     ...options,
-    meta: { ...meta, networking: true, feature, operation, expectedStatuses },
+    retry: false,
+    networkMode: 'always',
+    onError: (error, ...rest) => {
+      reportNetworkFailure(error, { feature, operation, expectedStatuses }, 1);
+      return onError?.(error, ...rest);
+    },
   });
 }

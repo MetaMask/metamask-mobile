@@ -12,6 +12,7 @@ import {
 } from '@tanstack/react-query';
 import { getNetworkConditions } from '../../util/deviceCapability/conditions';
 import { HttpError } from './errors';
+import { reportNetworkFailure } from './errorReporting';
 import { useNetworkMutation, useNetworkQuery } from './hooks';
 import { isTierPolicyEnabled } from './killSwitch';
 
@@ -19,6 +20,7 @@ jest.mock('../../util/deviceCapability/conditions', () => ({
   getNetworkConditions: jest.fn(),
 }));
 jest.mock('./killSwitch', () => ({ isTierPolicyEnabled: jest.fn() }));
+jest.mock('./errorReporting', () => ({ reportNetworkFailure: jest.fn() }));
 
 const intent = { feature: 'prices', operation: 'spot' };
 
@@ -28,9 +30,10 @@ const wrapper = ({ children }: React.PropsWithChildren) => (
 );
 
 beforeEach(() => {
-  // Mirrors the app-wide mutation defaults set in ReactQueryService.
+  jest.clearAllMocks();
+  // The shared client retries mutations by default; the hook must not.
   client = new QueryClient({
-    defaultOptions: { mutations: { retry: false, gcTime: Infinity } },
+    defaultOptions: { mutations: { retry: 2, gcTime: Infinity } },
   });
 });
 
@@ -51,7 +54,7 @@ describe('useNetworkQuery', () => {
     });
   });
 
-  it('applies the tier policies and tags the query', async () => {
+  it('applies the tier policies', async () => {
     const { result } = renderHook(
       () =>
         useNetworkQuery({
@@ -67,11 +70,9 @@ describe('useNetworkQuery', () => {
     await waitFor(() => expect(result.current.data).toBe(3));
     const query = client.getQueryCache().find({ queryKey: ['prices', 'spot'] });
     const observer = query?.observers[0];
-    expect(query?.meta).toMatchObject({ networking: true, ...intent });
     expect(observer?.options).toMatchObject({
       staleTime: 30000,
       gcTime: 300000,
-      refetchIntervalInBackground: false,
     });
     const { refetchInterval } = observer?.options ?? {};
     if (typeof refetchInterval !== 'function' || !query)
@@ -104,22 +105,32 @@ describe('useNetworkQuery', () => {
     await waitFor(() => expect(result.current.data).toBe(2));
   });
 
-  it('does not retry a non-retryable error', async () => {
-    const queryFn = jest.fn().mockRejectedValue(new HttpError(404, 'host'));
+  it('does not retry a non-retryable error and reports it once', async () => {
+    const error = new HttpError(404, 'host');
+    const queryFn = jest.fn().mockRejectedValue(error);
     const { result } = renderHook(
       () => useNetworkQuery({ ...intent, queryKey: ['missing'], queryFn }),
       { wrapper },
     );
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(queryFn).toHaveBeenCalledTimes(1);
+    expect(reportNetworkFailure).toHaveBeenCalledTimes(1);
+    expect(reportNetworkFailure).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining(intent),
+      1,
+    );
   });
 });
 
 describe('useNetworkMutation', () => {
-  it('tags the mutation and keeps the global no-retry default', async () => {
-    const mutationFn = jest.fn().mockRejectedValue(new HttpError(503, 'host'));
+  it('runs offline, fails once without retrying, and reports the failure', async () => {
+    const error = new HttpError(503, 'host');
+    const mutationFn = jest.fn().mockRejectedValue(error);
+    const onError = jest.fn();
+    act(() => onlineManager.setOnline(false));
     const { result } = renderHook(
-      () => useNetworkMutation({ ...intent, mutationFn }),
+      () => useNetworkMutation({ ...intent, mutationFn, onError }),
       { wrapper },
     );
 
@@ -128,9 +139,11 @@ describe('useNetworkMutation', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(mutationFn).toHaveBeenCalledTimes(1);
-    expect(client.getMutationCache().getAll()[0]?.meta).toMatchObject({
-      networking: true,
-      ...intent,
-    });
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(reportNetworkFailure).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining(intent),
+      1,
+    );
   });
 });
