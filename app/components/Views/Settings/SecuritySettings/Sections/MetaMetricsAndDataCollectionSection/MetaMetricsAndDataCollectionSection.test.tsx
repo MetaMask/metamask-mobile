@@ -16,7 +16,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 
@@ -59,11 +58,6 @@ jest.mock('../../../../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
-  updateMarketingOptInStatus: jest.fn(),
-  getMarketingOptInStatus: jest.fn(),
-}));
-
 const mockAutoSignIn = jest.fn();
 jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
   useAutoSignIn: () => ({
@@ -77,16 +71,6 @@ import { analytics } from '../../../../../../util/analytics/analytics';
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 // Alias for tests that reference mockMetrics
 const mockMetrics = mockAnalytics;
-
-const mockUpdateMarketingOptInStatus =
-  OAuthService.updateMarketingOptInStatus as jest.MockedFunction<
-    typeof OAuthService.updateMarketingOptInStatus
-  >;
-
-const mockGetMarketingOptInStatus =
-  OAuthService.getMarketingOptInStatus as jest.MockedFunction<
-    typeof OAuthService.getMarketingOptInStatus
-  >;
 
 jest.mock('../../../../../../selectors/onboarding', () => ({
   selectOnboardingAccountType: jest.fn(),
@@ -187,7 +171,6 @@ const initialStateMarketingFalse = {
 describe('MetaMetricsAndDataCollectionSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUpdateMarketingOptInStatus.mockClear();
     (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
     (mockAnalytics.trackEvent as jest.Mock).mockClear();
     (mockAnalytics.optIn as jest.Mock).mockClear();
@@ -792,82 +775,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           );
         });
       });
-    });
-  });
-
-  describe('Marketing OAuth backend sync', () => {
-    beforeEach(() => {
-      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
-    });
-
-    it.each([true, false])(
-      'posts the marketing switch value to the OAuth backend without reverting when set to %s for social login users',
-      async (value) => {
-        mockMetrics.isEnabled.mockReturnValue(true);
-
-        const { findByTestId, store } = renderScreen(
-          MetaMetricsAndDataCollectionSection,
-          { name: 'MetaMetricsAndDataCollectionSection' },
-          { state: initialStateSocialLogin(!value) },
-        );
-
-        const marketingSwitch = await findByTestId(
-          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
-        );
-        expect(marketingSwitch.props.value).toBe(!value);
-
-        fireEvent(marketingSwitch, 'valueChange', value);
-
-        await waitFor(() => {
-          expect(store.getState().security.dataCollectionForMarketing).toBe(
-            value,
-          );
-        });
-        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(value);
-        expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
-      },
-    );
-
-    it('keeps the local marketing decision when the OAuth backend sync fails', async () => {
-      mockMetrics.isEnabled.mockReturnValue(true);
-      mockUpdateMarketingOptInStatus.mockRejectedValue(
-        new Error('sync failed'),
-      );
-
-      const { findByTestId, store } = renderScreen(
-        MetaMetricsAndDataCollectionSection,
-        { name: 'MetaMetricsAndDataCollectionSection' },
-        { state: initialStateSocialLogin(true) },
-      );
-
-      const marketingSwitch = await findByTestId(
-        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
-      );
-
-      fireEvent(marketingSwitch, 'valueChange', false);
-
-      await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(
-          false,
-        );
-      });
-      expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
-      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
-    });
-
-    it('does not fetch the marketing opt-in status on mount for social login users', async () => {
-      const { findByTestId, store } = renderScreen(
-        MetaMetricsAndDataCollectionSection,
-        { name: 'MetaMetricsAndDataCollectionSection' },
-        { state: initialStateSocialLogin(false) },
-      );
-
-      await findByTestId(
-        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
-      );
-
-      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
-      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
     });
   });
 });

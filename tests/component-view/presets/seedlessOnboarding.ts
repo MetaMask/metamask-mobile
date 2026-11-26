@@ -35,10 +35,9 @@ export const initialStateSeedlessOnboarding = () =>
  * Baseline Redux state for the Security & privacy marketing-consent section
  * (MetaMetricsAndDataCollectionSection) rendered for a social-login user.
  *
- * Mirrors the desync setup from GE-644 / GE-647: the user has marketing
- * consent enabled locally while the auth server still holds its own
- * `is_opt_in` value, and every toggle POSTs the new choice to the auth
- * server (see tests/component-view/api-mocking/seedless-onboarding.ts).
+ * The local choice is the only source of truth: nothing is read from or
+ * written to the auth server. The seedless login flow marker is still set
+ * because it gates how the section resolves consent signals.
  */
 export const initialStateSeedlessSecuritySettings = (
   options: {
@@ -65,8 +64,7 @@ export const initialStateSeedlessSecuritySettings = (
       engine: {
         backgroundState: {
           // A vault marks the seedless login flow
-          // (selectSeedlessOnboardingLoginFlow), which is what routes every
-          // consent write to OAuthService.updateMarketingOptInStatus.
+          // (selectSeedlessOnboardingLoginFlow).
           SeedlessOnboardingController: {
             vault: 'seedless-cv-vault',
           },

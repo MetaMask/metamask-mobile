@@ -48,7 +48,6 @@ import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 import {
   watchMarketingAttributionOnClearOnboarding,
@@ -600,10 +599,6 @@ export function* rootSaga() {
   yield fork(handleDeeplinkSaga);
   yield fork(initializeSDKServicesSaga);
   yield fork(rewardsBulkLinkSaga);
-
-  // Send one-time analytics backfill for migrated social login users after
-  // persisted state has been rehydrated and app services are available.
-  yield fork(backfillSocialLoginMarketingConsentSaga);
 
   yield fork(watchMarketingAttributionOnConsentChange);
   yield fork(watchMarketingAttributionOnControllerConsent);

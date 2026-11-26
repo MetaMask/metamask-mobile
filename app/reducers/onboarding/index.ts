@@ -7,7 +7,6 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
-  SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
   SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT,
@@ -31,9 +30,6 @@ export interface OnboardingState {
   completedOnboarding: boolean;
   accountType?: AccountType;
   onboardingVersion?: string;
-
-  // used to backfill analytic preferences selected event for social login users
-  pendingSocialLoginMarketingConsentBackfill: string | null;
 
   seedlessOnboarding?: {
     clientId: string;
@@ -69,7 +65,6 @@ export interface OnboardingState {
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
-  pendingSocialLoginMarketingConsentBackfill: null,
   iosGoogleWarningSheetLastDismissedAt: null,
   walletHomeOnboardingStepsEligible: false,
   walletHomeOnboardingSkipInitialBalanceWait: false,
@@ -113,11 +108,6 @@ const onboardingReducer = (
         ...state,
         accountType: undefined,
         onboardingVersion: undefined,
-      };
-    case SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL:
-      return {
-        ...state,
-        pendingSocialLoginMarketingConsentBackfill: action.authConnection,
       };
     case SET_SEEDLESS_ONBOARDING:
       return {
