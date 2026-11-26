@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Allowed browsing Social V1 without creating a profile, and required Social terms and profile onboarding for follow, copy trade, reactions, and trade actions (#40539)
+- Refined random username generation word list (#40533)
 
 ## [8.21.1]
 
