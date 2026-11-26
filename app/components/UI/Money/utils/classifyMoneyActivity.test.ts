@@ -54,6 +54,14 @@ describe('classifyMoneyActivity', () => {
     expect(classifyMoneyActivity(tx)).toBe('deposited');
   });
 
+  it('classifies a fiat-strategy deposit as a deposit before order metadata exists', () => {
+    const tx = makeTx({
+      type: TransactionType.moneyAccountDeposit,
+      metamaskPay: { strategy: 'fiat', targetFiat: '4.96' },
+    });
+    expect(classifyMoneyActivity(tx)).toBe('deposited');
+  });
+
   it('classifies an mUSD-funded moneyAccountDeposit as a deposit (top-up, not conversion)', () => {
     const tx = makeTx({
       type: TransactionType.moneyAccountDeposit,

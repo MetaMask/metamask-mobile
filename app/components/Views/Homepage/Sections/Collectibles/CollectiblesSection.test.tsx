@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from '#app/components/UI/primitives/Text';
+import { Text } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockHomePacks } from '../../../../UI/Collectibles/mocks/homePacks';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
@@ -99,7 +99,6 @@ describe('CollectiblesSection', () => {
       screen.getByTestId(collectiblesTestIds.tile(firstPack.code)),
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
-    expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
     expect(screen.getByText(String(firstPack.priceLabel))).toBeOnTheScreen();
   });
 

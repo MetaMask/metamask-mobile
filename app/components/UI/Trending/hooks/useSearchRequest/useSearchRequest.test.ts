@@ -118,6 +118,39 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('ignores an in-flight response after the query is cleared', async () => {
+    const staleResults = [createMockSearchResult({ symbol: 'STALE' })];
+    let resolveSearch: ((value: unknown) => void) | undefined;
+    spySearchTokens.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSearch = resolve;
+      }),
+    );
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      return {
+        ...useSearchRequest({
+          chainIds: ['eip155:1'],
+          query,
+          limit: 10,
+        }),
+        setQuery,
+      };
+    });
+
+    await waitFor(() => expect(spySearchTokens).toHaveBeenCalledTimes(1));
+    act(() => result.current.setQuery(''));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      resolveSearch?.({ data: staleResults });
+    });
+
+    expect(result.current.results).toEqual([]);
+    expect(result.current.isLoadingMore).toBe(false);
+    unmount();
+  });
+
   it('sets error state and clears results when search fails', async () => {
     const mockError = new Error('Network error');
     spySearchTokens.mockRejectedValue(mockError);
@@ -404,6 +437,88 @@ describe('useSearchRequest', () => {
 
     expect(result.current.results).toEqual(newQueryResults);
     expect(result.current.hasNextPage).toBe(false);
+
+    unmount();
+  });
+
+  it('ignores an in-flight pagination response after the request is disabled', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const page2Results = [createMockSearchResult({ symbol: 'BTC' })];
+    let resolveMore: ((value: unknown) => void) | undefined;
+
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveMore = resolve;
+        }),
+      );
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [enabled, setEnabled] = useState(true);
+      return {
+        ...useSearchRequest({
+          chainIds: ['eip155:1'],
+          query: 'ETH',
+          limit: 10,
+          enabled,
+        }),
+        setEnabled,
+      };
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    act(() => {
+      void result.current.loadMore();
+      result.current.setEnabled(false);
+    });
+
+    await waitFor(() => {
+      expect(result.current.results).toEqual([]);
+      expect(result.current.isLoadingMore).toBe(false);
+    });
+
+    await act(async () => {
+      resolveMore?.({ data: page2Results });
+    });
+
+    expect(result.current.results).toEqual([]);
+    unmount();
+  });
+
+  it('reports loading immediately when a disabled request is enabled again', async () => {
+    const mockResults = [createMockSearchResult()];
+    spySearchTokens.mockResolvedValue({ data: mockResults });
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [enabled, setEnabled] = useState(false);
+      return {
+        ...useSearchRequest({
+          chainIds: ['eip155:1'],
+          query: 'ETH',
+          limit: 10,
+          enabled,
+        }),
+        setEnabled,
+      };
+    });
+
+    act(() => {
+      result.current.setEnabled(true);
+    });
+
+    expect(result.current.isLoading).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.results).toEqual(mockResults);
+      expect(result.current.isLoading).toBe(false);
+    });
 
     unmount();
   });

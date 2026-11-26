@@ -60,25 +60,8 @@ export function getStepKind(
     : HardwareWalletsSwapsStepKind.Transaction;
 }
 
-/**
- * Send-mode step-kind resolver: a Sendbundle's two txs share one type, so
- * distinguish by `txParams.to === gasTokenAddress` → FeeTransfer, else Transaction.
- */
-export function getSendStepKind(
-  transactionMeta: TransactionMeta,
-  normalizedGasTokenAddress: string | undefined,
-): HardwareWalletsSwapsStepKind {
-  if (normalizedGasTokenAddress) {
-    const normalizedTo = normalizeAddress(transactionMeta.txParams.to);
-    if (normalizedTo && normalizedTo === normalizedGasTokenAddress) {
-      return HardwareWalletsSwapsStepKind.FeeTransfer;
-    }
-  }
-  return HardwareWalletsSwapsStepKind.Transaction;
-}
-
 /** Transaction has been signed (or has progressed past signing). */
-export function isPostSignBatchTransaction(tx: TransactionMeta): boolean {
+function isPostSignBatchTransaction(tx: TransactionMeta): boolean {
   return POST_SIGN_BATCH_STATUSES.has(tx.status);
 }
 

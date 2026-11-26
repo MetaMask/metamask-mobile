@@ -53,11 +53,9 @@ export interface SocialPreviewReferralOffer {
 
 /**
  * Whether the trader preview should offer the link's Money referral code.
- * Uses the same checks as the standalone invite: basic functionality, the
- * Rewards Money flag, a fresh referral me showing the user can still be
- * referred, and an allowed region. Only a read that succeeded counts: one
- * slower than the invite's load budget, one that fails, or one that leaves an
- * errored entry offers nothing.
+ * The preview requires a fresh referral-me read to confirm eligibility and an
+ * allowed region. Unlike the standalone invite, it has no fallback screen, so
+ * slow, failed, or errored reads offer nothing.
  */
 export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
   const store = useStore<RootState>();

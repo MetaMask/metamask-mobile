@@ -420,6 +420,9 @@ describeForPlatforms('Send', () => {
       expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const addressInput = await findByTestId(
@@ -459,6 +462,9 @@ describeForPlatforms('Send', () => {
       expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
@@ -651,6 +657,9 @@ describeForPlatforms('Send', () => {
       expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByRole('button', { name: 'Max' }));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
@@ -930,6 +939,9 @@ describeForPlatforms('Send', () => {
       expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
