@@ -183,15 +183,19 @@ const hasCanonicalBody = (
 ): boolean => {
   const expected = BODY_SOURCES[intent];
   const fields = payload.body?.json;
+  if (expected === undefined || fields === undefined) {
+    return false;
+  }
+  const keys = Object.keys(expected);
   return (
-    expected !== undefined &&
-    fields !== undefined &&
-    fields.length === Object.keys(expected).length &&
+    fields.length === keys.length &&
     fields.every(
       (field) =>
         Object.hasOwn(expected, field.key) &&
         matchesValue(field.value, expected[field.key]),
-    )
+    ) &&
+    // With equal counts and only known keys, this rejects duplicates too.
+    keys.every((key) => fields.some((field) => field.key === key))
   );
 };
 

@@ -265,6 +265,25 @@ const hostileVariants: {
       field.value = { value: key, shape: { kind: 'decimal', scale: 4 } };
     },
   })),
+  ...(
+    [
+      ['create_order', 'ticker', 'side'],
+      ['wallet_register', 'wallet_address', 'network'],
+      ['crypto_deposit_address', 'amount_cents', 'networks'],
+    ] as [string, string, string][]
+  ).map(([payloadName, dropped, duplicated]) => ({
+    name: `a duplicated ${duplicated} field replacing ${dropped}`,
+    reason: 'invalid_body_contract' as const,
+    mutate: (profile: HostileProfile) => {
+      const field = profile.payloads[payloadName].body.json.find(
+        (entry) => entry.key === dropped,
+      );
+      if (!field) {
+        throw new Error(`fixture ${dropped} missing`);
+      }
+      field.key = duplicated;
+    },
+  })),
   ...['side', 'reduce_only'].map((key) => ({
     name: `a noncanonical ${key} map`,
     reason: 'invalid_body_contract' as const,
