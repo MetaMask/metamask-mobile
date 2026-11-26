@@ -46,7 +46,12 @@ describe('AI flaky recovery wiring in shared helpers', () => {
           hideKeyboard: jest.fn(),
           sleep,
         },
-        limits: { maxRecoveriesPerTest: 2, maxDiagnosesPerTest: 4 },
+        limits: {
+          maxRecoveriesPerTest: 2,
+          maxDiagnosesPerTest: 4,
+          minStepTimeoutMs: 6_000,
+          diagnosisTimeoutMs: 30_000,
+        },
         test: { title: 't', file: 'f.spec.ts', retry: 0 },
         onRecovered,
       }),
@@ -128,7 +133,7 @@ describe('AI flaky recovery wiring in shared helpers', () => {
 
       await AppiumAssertions.expectElementToBeVisible(createElement(), {
         description: 'Account list',
-        timeout: 1_000,
+        timeout: 10_000,
       });
 
       expect(pollUntilVisible).toHaveBeenCalledTimes(2);
@@ -148,12 +153,50 @@ describe('AI flaky recovery wiring in shared helpers', () => {
       await expect(
         AppiumAssertions.expectElementToBeVisible(createElement(), {
           description: 'balance is 1.5 ETH',
-          timeout: 1_000,
+          timeout: 10_000,
         }),
       ).rejects.toThrow('not visible');
 
       expect(pollUntilVisible).toHaveBeenCalledTimes(1);
       expect(onRecovered).not.toHaveBeenCalled();
+    });
+
+    it('leaves a short-timeout presence probe alone', async () => {
+      const original = new Error('not visible');
+      const pollUntilVisible = jest
+        .spyOn(
+          AppiumAssertions as unknown as { pollUntilVisible: PollUntilVisible },
+          'pollUntilVisible',
+        )
+        .mockRejectedValue(original);
+
+      await expect(
+        AppiumAssertions.expectElementToBeVisible(createElement(), {
+          description: 'Account list',
+          timeout: 1_500,
+        }),
+      ).rejects.toBe(original);
+
+      expect(pollUntilVisible).toHaveBeenCalledTimes(1);
+      expect(globalThis.driver?.getPageSource).not.toHaveBeenCalled();
+      expect(onRecovered).not.toHaveBeenCalled();
+    });
+
+    it('leaves a short-timeout tap probe alone', async () => {
+      const original = new Error('not displayed');
+      const waitAndTap = jest
+        .spyOn(AppiumGestures, 'waitAndTap')
+        .mockRejectedValue(original);
+
+      await expect(
+        Gestures.waitAndTap(Promise.resolve(createElement()), {
+          elemDescription: 'Optional skip button',
+          timeout: 2_000,
+        }),
+      ).rejects.toBe(original);
+
+      expect(waitAndTap).toHaveBeenCalledTimes(1);
+      expect(globalThis.driver?.getPageSource).not.toHaveBeenCalled();
     });
 
     it('rethrows the original error when the retried step fails again', async () => {

@@ -1,4 +1,5 @@
 import { ClaudeProvider } from '../ai-visual/providers/claude';
+import { createAppiumLogger } from '../appiumLogger.ts';
 import { pageSourceContainsSecrets } from '../ai-locator/ClaudeLocatorRecoveryProvider.ts';
 import type { RecoveredLocator } from '../ai-locator/SelfHealingLocator.ts';
 import {
@@ -16,8 +17,11 @@ import type {
   ScrollDirection,
 } from './FlakyRecoveryTypes.ts';
 
+const logger = createAppiumLogger('ClaudeFlakyRecoveryProvider');
+
 const MAX_PAGE_SOURCE_CHARS = 100_000;
 const MAX_TEXT_FIELD_CHARS = 400;
+const LOGGED_RESPONSE_CHARS = 300;
 
 const CAUSES: readonly FlakyCause[] = [
   'unexpected-overlay',
@@ -38,7 +42,7 @@ export class ClaudeFlakyRecoveryProvider implements FlakyRecoveryProvider {
   private readonly provider: ClaudeProvider;
 
   constructor() {
-    this.provider = new ClaudeProvider({ maxTokens: 700 });
+    this.provider = new ClaudeProvider({ maxTokens: 1024 });
   }
 
   async diagnose(
@@ -52,9 +56,16 @@ export class ClaudeFlakyRecoveryProvider implements FlakyRecoveryProvider {
       Buffer.from(context.screenshotBase64, 'base64'),
     );
     if (!result.success) {
+      logger.warn(`Claude call failed: ${result.summary}`);
       return null;
     }
-    return parseFlakyDiagnosis(result.rawResponse);
+    const diagnosis = parseFlakyDiagnosis(result.rawResponse);
+    if (!diagnosis) {
+      logger.warn(
+        `Unparseable flaky diagnosis: ${result.rawResponse.slice(0, LOGGED_RESPONSE_CHARS)}`,
+      );
+    }
+    return diagnosis;
   }
 }
 
@@ -88,7 +99,7 @@ Failure: ${truncate(step.errorMessage)}
 Accessibility tree:
 ${context.pageSource.slice(0, MAX_PAGE_SOURCE_CHARS)}
 
-Return only valid JSON with this exact shape:
+Answer with ONLY one JSON object (no prose, no markdown, no code fence) of this exact shape:
 {"classification":"recoverable|real-failure","cause":"unexpected-overlay|slow-to-appear|needs-scroll|keyboard-covering|stale-locator","reason":"why the step failed","solution":"one sentence: what the fix does","fix":{...}}
 
 The fix object depends on the cause and must be exactly one of:
@@ -208,6 +219,44 @@ function parseFix(value: unknown): FlakyFix | undefined {
 }
 
 /**
+ * First balanced `{...}` in the text, skipping braces inside JSON strings.
+ * Models often wrap the object in prose or a code fence despite the prompt.
+ */
+export function extractJsonObject(text: string): string | undefined {
+  const start = text.indexOf('{');
+  if (start === -1) {
+    return undefined;
+  }
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index++) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+    } else if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return text.slice(start, index + 1);
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
  * Parses the model answer. A "recoverable" answer without a well-formed cause
  * and fix is downgraded to a real failure, so a malformed reply can never
  * trigger a retry. Returns null for unparseable text.
@@ -215,10 +264,10 @@ function parseFix(value: unknown): FlakyFix | undefined {
 export function parseFlakyDiagnosis(
   rawResponse: string,
 ): FlakyDiagnosis | null {
-  const json = rawResponse
-    .replace(/^\s*```(?:json)?\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim();
+  const json = extractJsonObject(rawResponse);
+  if (json === undefined) {
+    return null;
+  }
 
   let parsed: unknown;
   try {

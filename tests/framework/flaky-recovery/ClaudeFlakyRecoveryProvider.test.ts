@@ -3,6 +3,7 @@ import {
   ClaudeFlakyRecoveryProvider,
   createClaudeFlakyRecoveryProvider,
   createFlakyRecoveryPrompt,
+  extractJsonObject,
   parseFlakyDiagnosis,
 } from './ClaudeFlakyRecoveryProvider';
 import type { FlakyDiagnosisContext } from './FlakyRecoveryTypes';
@@ -67,6 +68,25 @@ describe('parseFlakyDiagnosis', () => {
     expect(parseFlakyDiagnosis(raw)).toEqual({
       classification: 'real-failure',
       reason: 'wrong screen',
+    });
+  });
+
+  it('parses an answer wrapped in prose and a code fence', () => {
+    const raw = [
+      'Looking at the screenshot, the list is still loading.',
+      '',
+      '```json',
+      '{"classification":"recoverable","cause":"slow-to-appear","reason":"spinner {visible}","solution":"Wait for the list","fix":{"type":"wait","waitMs":3000}}',
+      '```',
+      'Let me know if you need more.',
+    ].join('\n');
+
+    expect(parseFlakyDiagnosis(raw)).toEqual({
+      classification: 'recoverable',
+      cause: 'slow-to-appear',
+      reason: 'spinner {visible}',
+      solution: 'Wait for the list',
+      fix: { type: 'wait', waitMs: 3000 },
     });
   });
 
@@ -219,6 +239,23 @@ describe('parseFlakyDiagnosis', () => {
     });
 
     expect(parseFlakyDiagnosis(raw)?.classification).toBe('real-failure');
+  });
+});
+
+describe('extractJsonObject', () => {
+  it('returns the first balanced object', () => {
+    expect(extractJsonObject('x {"a":{"b":1}} y {"c":2}')).toBe(
+      '{"a":{"b":1}}',
+    );
+  });
+
+  it('ignores braces and escaped quotes inside strings', () => {
+    expect(extractJsonObject('{"a":"} \\" {"} tail')).toBe('{"a":"} \\" {"}');
+  });
+
+  it('returns undefined without a complete object', () => {
+    expect(extractJsonObject('no json here')).toBeUndefined();
+    expect(extractJsonObject('{"a":1')).toBeUndefined();
   });
 });
 

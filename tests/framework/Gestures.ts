@@ -163,6 +163,7 @@ export default class Gestures {
         {
           intent,
           trigger: 'tap-failure',
+          timeoutMs: options.timeout,
           describeTarget: () => describeElement(target),
           retryWithLocator: async (locator) =>
             waitAndTap(await getElementForLocator(locator)),
@@ -342,6 +343,7 @@ export default class Gestures {
         kind: 'type',
         intent:
           options.elemDescription ?? 'replace text in the current mobile input',
+        timeoutMs: timeout,
         describeTarget: async () => describeElement(el),
         retryWithLocator: async (locator) =>
           replace(await getElementForLocator(locator)),
@@ -409,6 +411,7 @@ export default class Gestures {
       {
         kind: 'scroll-to',
         intent: 'scroll the target element into view',
+        timeoutMs: options.timeout,
         describeTarget: async () => describeElement(el),
       },
     );

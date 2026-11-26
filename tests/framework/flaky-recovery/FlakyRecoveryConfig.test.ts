@@ -1,5 +1,7 @@
 import {
+  DEFAULT_DIAGNOSIS_TIMEOUT_MS,
   DEFAULT_MAX_DIAGNOSES_PER_TEST,
+  DEFAULT_MIN_STEP_TIMEOUT_MS,
   DEFAULT_MAX_RECOVERIES_PER_TEST,
   isFlakyRecoveryEnabled,
   resolveFlakyRecoveryLimits,
@@ -58,7 +60,11 @@ describe('resolveFlakyRecoveryLimits', () => {
     expect(resolveFlakyRecoveryLimits({})).toEqual({
       maxRecoveriesPerTest: DEFAULT_MAX_RECOVERIES_PER_TEST,
       maxDiagnosesPerTest: DEFAULT_MAX_DIAGNOSES_PER_TEST,
+      minStepTimeoutMs: DEFAULT_MIN_STEP_TIMEOUT_MS,
+      diagnosisTimeoutMs: DEFAULT_DIAGNOSIS_TIMEOUT_MS,
     });
+    expect(DEFAULT_MIN_STEP_TIMEOUT_MS).toBe(6_000);
+    expect(DEFAULT_DIAGNOSIS_TIMEOUT_MS).toBe(30_000);
     expect(DEFAULT_MAX_RECOVERIES_PER_TEST).toBe(2);
   });
 
@@ -68,7 +74,16 @@ describe('resolveFlakyRecoveryLimits', () => {
         AI_FLAKY_RECOVERY_MAX_PER_TEST: '5',
         AI_FLAKY_RECOVERY_MAX_DIAGNOSES_PER_TEST: '9',
       }),
-    ).toEqual({ maxRecoveriesPerTest: 5, maxDiagnosesPerTest: 9 });
+    ).toMatchObject({ maxRecoveriesPerTest: 5, maxDiagnosesPerTest: 9 });
+  });
+
+  it('reads the probe threshold and the diagnosis timeout', () => {
+    expect(
+      resolveFlakyRecoveryLimits({
+        AI_FLAKY_RECOVERY_MIN_STEP_TIMEOUT_MS: '2500',
+        AI_FLAKY_RECOVERY_DIAGNOSIS_TIMEOUT_MS: '15000',
+      }),
+    ).toMatchObject({ minStepTimeoutMs: 2500, diagnosisTimeoutMs: 15000 });
   });
 
   it('accepts 0 to allow no recoveries', () => {

@@ -92,6 +92,8 @@ const createHarness = (
     pageSources?: string[];
     maxRecoveriesPerTest?: number;
     maxDiagnosesPerTest?: number;
+    minStepTimeoutMs?: number;
+    diagnosisTimeoutMs?: number;
   } = {},
 ): Harness => {
   const adapter = createAdapter(options.pageSources);
@@ -116,6 +118,8 @@ const createHarness = (
     limits: {
       maxRecoveriesPerTest: options.maxRecoveriesPerTest ?? 2,
       maxDiagnosesPerTest: options.maxDiagnosesPerTest ?? 4,
+      minStepTimeoutMs: options.minStepTimeoutMs ?? 6_000,
+      diagnosisTimeoutMs: options.diagnosisTimeoutMs ?? 30_000,
     },
     test: { title: 'a test', file: 'a.spec.ts', retry: 0 },
     onRecovered,
@@ -594,6 +598,103 @@ describe('InterruptingScreenGuard with AI flaky recovery', () => {
       }
 
       expect(provider.diagnose).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('presence probes', () => {
+    it('does nothing for a step whose timeout is below the probe threshold', async () => {
+      const { guard, adapter, provider, executor } = createHarness(
+        recoverable({
+          cause: 'slow-to-appear',
+          fix: { type: 'wait', waitMs: 2000 },
+        }),
+        { pageSources: [EXPERIENCE_ENHANCER] },
+      );
+      const original = new Error('not visible');
+      const action = jest.fn().mockRejectedValue(original);
+
+      await expect(
+        guard.retryAfterInterruption(action, { ...wait, timeoutMs: 1_500 }),
+      ).rejects.toBe(original);
+
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(adapter.getPageSource).not.toHaveBeenCalled();
+      expect(adapter.tapped).toEqual([]);
+      expect(provider.diagnose).not.toHaveBeenCalled();
+      expect(executor.takeScreenshot).not.toHaveBeenCalled();
+    });
+
+    it('recovers a step whose timeout reaches the probe threshold', async () => {
+      const { guard, onRecovered } = createHarness(
+        recoverable({
+          cause: 'slow-to-appear',
+          fix: { type: 'wait', waitMs: 2000 },
+        }),
+      );
+      const action = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('slow'))
+        .mockResolvedValueOnce(undefined);
+
+      await guard.retryAfterInterruption(action, { ...wait, timeoutMs: 6_000 });
+
+      expect(onRecovered).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies the threshold to taps and scroll / type steps too', async () => {
+      const { guard, adapter } = createHarness(null);
+      const original = new Error('boom');
+
+      await expect(
+        guard.retryTapAfterInterruption(failWith(original), {
+          intent: 'tap optional skip',
+          trigger: 'tap-failure',
+          timeoutMs: 2_000,
+          describeTarget: async () => [],
+        }),
+      ).rejects.toBe(original);
+      await expect(
+        guard.retryStepWithFlakyRecovery(failWith(original), {
+          kind: 'scroll-to',
+          intent: 'scroll',
+          timeoutMs: 3_000,
+        }),
+      ).rejects.toBe(original);
+
+      expect(adapter.getPageSource).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cost bounds', () => {
+    it('rethrows the original error when the model does not answer in time', async () => {
+      const { guard, provider, onRecovered } = createHarness(null, {
+        diagnosisTimeoutMs: 10,
+      });
+      provider.diagnose.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+      const original = new Error('slow');
+
+      await expect(
+        guard.retryAfterInterruption(failWith(original), wait),
+      ).rejects.toBe(original);
+      expect(onRecovered).not.toHaveBeenCalled();
+    });
+
+    it('takes no screenshot once the model budget is used and no known screen is up', async () => {
+      const { guard, executor } = createHarness(
+        { classification: 'real-failure', reason: 'x' },
+        { maxDiagnosesPerTest: 1 },
+      );
+
+      await guard
+        .retryAfterInterruption(failWith(new Error('first')), wait)
+        .catch(() => undefined);
+      await guard
+        .retryAfterInterruption(failWith(new Error('second')), wait)
+        .catch(() => undefined);
+
+      expect(executor.takeScreenshot).toHaveBeenCalledTimes(1);
     });
   });
 

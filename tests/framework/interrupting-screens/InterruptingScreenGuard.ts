@@ -124,6 +124,8 @@ export interface RetryContext<TResult = unknown> {
    * when the model finds an equivalent control for a stale locator.
    */
   retryWithLocator?: (locator: RecoveredLocator) => Promise<TResult>;
+  /** Timeout the step waited for, when known. Short ones are treated as probes. */
+  timeoutMs?: number;
 }
 
 export interface TapRetryContext extends RetryContext<void> {
@@ -138,6 +140,8 @@ export interface FlakyStepContext<TResult = void> {
   /** testID / text / label of the control the step is aimed at. */
   describeTarget?: () => Promise<string[]>;
   retryWithLocator?: (locator: RecoveredLocator) => Promise<TResult>;
+  /** Timeout the step waited for, when known. Short ones are treated as probes. */
+  timeoutMs?: number;
 }
 
 type FlakyRetry =
@@ -524,6 +528,7 @@ export class InterruptingScreenGuard {
             kind: 'wait',
             intent: context.intent,
             retryWithLocator: context.retryWithLocator,
+            timeoutMs: context.timeoutMs,
           },
           context.trigger,
           error,
@@ -563,6 +568,7 @@ export class InterruptingScreenGuard {
             intent: context.intent,
             describeTarget: context.describeTarget,
             retryWithLocator: context.retryWithLocator,
+            timeoutMs: context.timeoutMs,
           },
           context.trigger,
           error,
@@ -693,6 +699,14 @@ export class InterruptingScreenGuard {
     error: unknown,
   ): Promise<FlakyAttempt | undefined> {
     const failure = errorMessage(error);
+    if (
+      context.timeoutMs !== undefined &&
+      context.timeoutMs < runtime.limits.minStepTimeoutMs
+    ) {
+      // Presence probes (try/catch around a short wait) fail by design; a
+      // recovery there would only add latency inside the caller's poll loop.
+      return undefined;
+    }
     if (!runtime.canRecover()) {
       logger.info(
         `Flaky recovery budget (${runtime.limits.maxRecoveriesPerTest}) used up; "${context.intent}" fails as before`,
@@ -737,6 +751,10 @@ export class InterruptingScreenGuard {
         supportsAlternativeLocator: context.retryWithLocator !== undefined,
       };
 
+      const hasKnownScreen = this.#findKnownScreens(pageSource).length > 0;
+      if (!hasKnownScreen && !runtime.canDiagnose()) {
+        return undefined;
+      }
       let screenshotBeforeBase64: string | undefined;
       try {
         screenshotBeforeBase64 = await runtime.executor.takeScreenshot();
@@ -825,15 +843,31 @@ export class InterruptingScreenGuard {
     runtime.noteDiagnosis();
 
     let diagnosis;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      diagnosis = await runtime.provider.diagnose({
-        step,
-        pageSource,
-        screenshotBase64: screenshotBeforeBase64,
-      });
+      diagnosis = await Promise.race([
+        runtime.provider.diagnose({
+          step,
+          pageSource,
+          screenshotBase64: screenshotBeforeBase64,
+        }),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `no answer within ${runtime.limits.diagnosisTimeoutMs}ms`,
+                ),
+              ),
+            runtime.limits.diagnosisTimeoutMs,
+          );
+        }),
+      ]);
     } catch (error) {
       logger.warn(`AI flaky diagnosis failed: ${errorMessage(error)}`);
       return undefined;
+    } finally {
+      clearTimeout(timer);
     }
     if (this.#abandoned()) {
       return undefined;
