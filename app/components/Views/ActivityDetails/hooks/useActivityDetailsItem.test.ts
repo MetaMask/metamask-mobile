@@ -502,6 +502,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xwithvaluestransfers');
+    expect(result.current.item).toBeTruthy();
   });
 
   it('maps a fetched v5 transaction without the v1 participation gate', () => {
@@ -569,6 +570,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetchedreceive');
+    expect(result.current.item).toBeTruthy();
   });
 
   it('maps a fetched v5 native transaction with incoming value transfers', () => {
@@ -604,6 +606,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetchednativereceive');
+    expect(result.current.item).toBeTruthy();
   });
 
   it('maps a fetched v5 token transaction with incoming value transfers', () => {
@@ -640,6 +643,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetchedtokenreceive');
+    expect(result.current.item).toBeTruthy();
   });
 
   it('does not request a single-transaction fetch when that fallback is disabled', () => {
