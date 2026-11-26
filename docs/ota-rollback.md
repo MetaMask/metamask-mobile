@@ -9,7 +9,7 @@ How to take a bad OTA (EAS Update) off users' devices with the **OTA Rollback** 
 | `republish` | An earlier update group, served again as a new update           | An earlier good OTA exists for the same store version                        |
 | `embedded`  | A directive to run the bundle that shipped in their store build | The bad OTA is the first one for that store version, or every OTA is suspect |
 
-Prefer `republish` when you can. Devices see it as a new update, so users get the "update available" sheet. An `embedded` rollback shows no sheet and only applies on a later cold start (see [What a rollback can't do](#what-a-rollback-cant-do)).
+Prefer `republish` when you can. It applies faster on iOS, where users are offered a reload, and it rolls back less code, so there's less state risk (see [What happens to the user and their data](#what-happens-to-the-user-and-their-data)).
 
 ## Who can run it
 
@@ -25,24 +25,25 @@ Anyone with write access can start the workflow, but nothing is signed or publis
 1. **Find the update group** (for `republish`). Use the group of the last good OTA for the affected store version:
    - The **Update group** line in the summary of that OTA's "Runway OTA Production" run.
    - Or, with the Expo CLI: `eas update:list --branch production`.
-2. **Start the workflow.** Go to **Actions → OTA Rollback → Run workflow** and fill in:
-   - **Use workflow from:** `release/x.y.z`, the release branch of the affected store version. The runtime version comes from that branch's `package.json`, so a run from another branch would target the wrong version. Production and RC runs fail fast unless the branch is `release/X.Y.Z` or `release/X.Y.Z-ota`.
+2. **Check the bad OTA's diff** against the list in [Before you roll back](#before-you-roll-back).
+3. **Start the workflow.** Go to **Actions → OTA Rollback → Run workflow** and fill in:
+   - **Use workflow from:** `release/X.Y.Z`, the release branch of the affected store version. The runtime version comes from that branch's `package.json`, so a run from another branch would target the wrong version. Production and RC runs fail fast unless the branch is `release/X.Y.Z` or `release/X.Y.Z-ota`.
    - **channel:** `production`.
    - **mode:** `republish` or `embedded`.
    - **group_id:** the group from step 1. Leave it empty for `embedded`.
    - **platform:** `all` unless only one platform is affected.
    - **reason:** a short description, for example the incident link. It goes into the update message.
    - **drill:** leave unchecked.
-3. **Get it approved.** Ask a second release-team member to review the summary and approve the `build-production` deployment.
-4. **Check the result.** The run summary lists the new update IDs. Then:
+4. **Get it approved.** The approval request only appears after the "Setup dependencies" job finishes, which takes a few minutes, so ask a second release-team member as soon as you start the run. They review the summary and approve the `build-production` deployment.
+5. **Check the result.** The run summary lists the new update IDs. Then:
    - Install the affected store build on a test device and launch it twice. To see which update is running, go to **Settings → About MetaMask** and long-press the fox.
    - Watch the share of Sentry events tagged with the bad `expo-update-id` fall.
 
-If a bad OTA went out to more than one store version, run the workflow once per release branch.
+If a bad OTA went out to more than one store version, run the workflow once per release branch. If you rolled back to the wrong group, run it again with the right one; each run publishes a new latest update.
 
 ### What the workflow checks before signing
 
-- The inputs are consistent: `republish` needs a group ID, `embedded` must not have one, and a reason is required.
+- The inputs are consistent: `republish` needs a group ID, `embedded` must not have one, and a single-line reason is required.
 - Production and RC runs come from a `release/X.Y.Z` or `release/X.Y.Z-ota` branch, the same pattern the OTA push enforces.
 - The environment's channel matches the requested channel.
 - The project resolves the expected runtime version.
@@ -50,23 +51,45 @@ If a bad OTA went out to more than one store version, run the workflow once per 
 
 `eas-cli` also refuses to republish a group signed with a different key than the channel's.
 
+## What happens to the user and their data
+
+### On the device
+
+The app checks for updates once per launch, from JavaScript (`useOTAUpdates`), when the `otaUpdatesEnabled` remote flag is on. Production builds never check natively (`checkAutomatically: 'NEVER'`).
+
+| Mode        | iOS                                                                                 | Android                                                                          |
+| ----------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `republish` | Downloads on launch, then offers a reload. If dismissed, applies on next cold start | Downloads on launch, shows an acknowledge-only sheet, applies on next cold start |
+| `embedded`  | Downloads on launch, no sheet, applies on next cold start                           | Same as iOS                                                                      |
+
+Users who haven't finished onboarding get no sheet; the update applies on their next launch. Applying an update restarts the JavaScript app, so the wallet starts locked and the user unlocks with biometrics or their password, as after any cold start.
+
+### Their data
+
+Rolling back means an older bundle runs on data written by a newer one. Nothing in the app handles this case specially; this is how the existing persistence code behaves:
+
+- **Settings and other Redux state (`persist:root`).** The stored migration version is higher than the older bundle knows, so redux-persist skips migrations and loads the data as it is. On the next save, the older bundle writes its own, lower version number. Data in a shape that a newer migration changed is now read by older code. This is the most likely cause of errors or crashes after a rollback.
+- **Controller state (`persist:<Controller>` files).** The older bundle only loads the controllers it knows. Files for newer controllers stay on disk, unused. When a controller it knows saves, the whole file is rewritten with only the fields the older code marks as persistent, so fields added by the newer bundle are lost, with a Sentry error for each. If the bad OTA had a migration that removed a controller (`REMOVED_CONTROLLER_NAMES` in `app/store/migrations/index.ts`), its file was deleted, and the older bundle starts that controller empty. For example, migration 164 deletes `TokensController`.
+- **The vault.** Decryption uses the key-derivation settings stored with the vault, so older code can unlock a vault that newer code re-encrypted. Keyrings of a type the older code doesn't know are kept as "unsupported" and written back unchanged: their accounts are hidden until a newer bundle runs, not deleted. A copy of the vault is backed up in the keychain. If the wallet fails to load, the app opens the restore-wallet screen. The worst case is restoring from the Secret Recovery Phrase. Keys never leave the device, so funds stay safe.
+- **Other storage** (MMKV, keychain entries). The older bundle ignores keys it doesn't know; they stay as they are.
+- **Going forward again.** The next newer bundle sees the lowered version and re-runs every migration above it, on data that may already be migrated. Migrations that check before changing anything are safe to re-run. Migrations 162 to 164 are, for example. One that isn't can corrupt data, and a migration that throws sends users with a vault backup to vault recovery.
+
+### Before you roll back
+
+Check the bad OTA's diff for:
+
+- new migrations, especially ones that remove a controller or change the shape of existing data;
+- new persisted fields in controllers;
+- vault, keyring or keychain changes.
+
+If it has any of these and isn't actively harmful, a forward fix through "Runway OTA Production" that keeps its migrations (emptied out if needed) is safer than a rollback. If it is actively harmful, roll back and accept the risk. Either way, make sure the forward fix's migrations are safe to re-run.
+
 ## What a rollback can't do
 
-- **It only reaches devices that still check for updates.** The app checks once per launch, from JavaScript, when the `otaUpdatesEnabled` remote flag is on. A malicious bundle can skip that check, and then no OTA reaches the device again. Those devices need a store release with a new version, or a reinstall.
-- **It needs a restart.** Nothing reloads a running app.
-  - A `republish` shows the update sheet after it downloads. If the user dismisses it, it applies on the next cold start.
-  - An `embedded` rollback shows no sheet. It applies on the cold start after it downloads, which means two cold starts in total.
+- **It only reaches devices that still check for updates.** A malicious bundle can skip the check, and then no OTA reaches the device again. Those devices need a store release with a new version, or a reinstall.
+- **Nothing reloads a running app.** See [On the device](#on-the-device).
 - **Don't turn off `otaUpdatesEnabled` while you roll back.** That stops devices from fetching the bad update, but it also stops them from fetching the rollback. Use it only if a rollback can't be published soon, for example when the signing key itself is compromised.
 - **A compromised signing key is a different incident.** Anyone with the key and an Expo token can publish more valid updates after the rollback. The fix is a new certificate, which only reaches users through a store release.
-
-## State and migration risk
-
-Persisted Redux and controller state carries one migration version (`app/store/migrations`).
-
-- **Rolling back downgrades the state version.** The older bundle sees a higher stored version, keeps the state as it is, and writes its own lower version on the next save. When a newer bundle ships again, it re-runs every migration above that version. A migration that isn't idempotent can corrupt state at that point.
-- **The vault and keychain are the worst case.** If the bad OTA changed how they're encrypted, the older bundle may not be able to unlock, and the user has to restore from their Secret Recovery Phrase. Keys never leave the device, so funds stay safe.
-
-Before rolling back, check the bad OTA's diff for new migrations, vault or keychain changes, and new persisted fields. If it has any of those and isn't actively harmful, a forward fix through "Runway OTA Production" that keeps its migrations (emptied out if needed) is safer than a rollback. If it is actively harmful, roll back and accept the risk. Either way, make sure the next store release's migrations are idempotent.
 
 ## Rehearse without affecting users
 
@@ -87,8 +110,10 @@ With **drill** checked, the workflow publishes on runtime version `0.0.0-rollbac
 This checks what devices actually do. The exp channel only reaches internal nightly installs, so tell the nightly testers before you start.
 
 1. Install the current nightly build on an iOS device and an Android device, and confirm both run the latest exp OTA.
-2. **Republish:** run with channel `exp`, mode `republish` and the latest exp update group. That's the same bundle the testers already run, so nothing changes for them except the update sheet. Confirm both devices show the sheet and, after reloading, run the new update ID.
-3. **Embedded:** run with mode `embedded`. Confirm no sheet appears and both devices run the embedded bundle after the second cold start.
+2. **Republish:** run with channel `exp`, mode `republish` and the latest exp update group. That's the same bundle the testers already run, so their data isn't affected. Confirm that:
+   - iOS shows the reload sheet and runs the new update ID after reloading;
+   - Android shows the acknowledge sheet and runs the new update ID after the next cold start.
+3. **Embedded:** run with mode `embedded`. Confirm no sheet appears and both devices run the embedded bundle on the cold start after the download. Unlock, and check that accounts, balances and settings look right.
 4. **Restore:** republish the latest exp group again so testers go back to the current OTA.
 
 Run these from `main`, which nightly builds are made from. If `main`'s `package.json` version changed since the installed nightly, the runtime check fails; install a fresh nightly first. The `build-exp` environment also has to allow `main`. Its branch list is empty today, so a repo admin needs to add it first.

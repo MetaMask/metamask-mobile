@@ -117,6 +117,15 @@ jobs:
               ;;
           esac
 
+          if [[ "$MODE" != "republish" && "$MODE" != "embedded" ]]; then
+            echo "::error::Unknown mode: ${MODE}"
+            exit 1
+          fi
+          if [[ "$PLATFORM" != "all" && "$PLATFORM" != "ios" && "$PLATFORM" != "android" ]]; then
+            echo "::error::Unknown platform: ${PLATFORM}"
+            exit 1
+          fi
+
           if [[ -z "${REASON// /}" ]]; then
             echo "::error::reason is required."
             exit 1
@@ -198,6 +207,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ needs.plan.outputs.github_environment }}
+    outputs:
+      update_group: ${{ steps.publish.outputs.update-group }}
     permissions:
       contents: read
       id-token: write # AWS OIDC for the code-signing key
@@ -383,6 +394,8 @@ jobs:
               ;;
           esac
 
+          echo "update-group=$(jq -r '[.[].group // empty] | unique | join(",")' "$result")" >> "$GITHUB_OUTPUT"
+
           {
             echo "### ✅ Rollback published"
             echo
@@ -393,7 +406,7 @@ jobs:
             if [[ "$DRILL" == "true" ]]; then
               echo "Drill: published on runtime \`${RUNTIME_VERSION}\`, which no store build uses."
             elif [[ "$MODE" == "republish" ]]; then
-              echo "Devices pick this up on their next launch check and show the update sheet."
+              echo "Devices download this on their next launch check. iOS offers a reload; Android applies it on the next cold start."
             else
               echo "Devices download this on their next launch check and run the embedded bundle after the following cold start."
             fi
