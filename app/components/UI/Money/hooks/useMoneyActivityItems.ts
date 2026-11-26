@@ -25,6 +25,7 @@ import {
 } from '../selectors/featureFlags';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectIsImmersveCardHistoryInMoney } from '../../Card/hooks/useCardTransactionHistoryDestination';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
@@ -327,6 +328,10 @@ export function useMoneyActivityItems({
     isGeoEligible &&
     (capabilities?.supportsTransactionHistory ?? false) &&
     (capabilities?.supportsMoneyAccountLinking ?? false);
+  const isImmersveCardHistoryInMoney = useSelector(
+    selectIsImmersveCardHistoryInMoney,
+  );
+  const cardIndexEnabled = enrichmentEnabled || isImmersveCardHistoryInMoney;
 
   // While Accounts API still has pages, stop the Card index at the oldest
   // fetched API row — declines below the watermark would be withheld anyway.
@@ -351,10 +356,10 @@ export function useMoneyActivityItems({
     isError: isEnrichmentError,
   } = useCardTransactionIndex({
     oldestVisibleTime,
-    enabled: enrichmentEnabled,
+    enabled: cardIndexEnabled,
   });
 
-  const enrichmentReady = enrichmentEnabled && !isEnrichmentError;
+  const enrichmentReady = cardIndexEnabled && !isEnrichmentError;
 
   const declinedForFeed = useMemo(
     () => (enrichmentReady ? declined : []),
@@ -426,7 +431,7 @@ export function useMoneyActivityItems({
   const isSettling =
     isLoading ||
     (fillCount === 0 &&
-      ((enrichmentEnabled && isEnrichmentSettling) ||
+      ((cardIndexEnabled && isEnrichmentSettling) ||
         ((completedActivityEnabled || pendingActivityEnabled) &&
           isVbaTransfersLoading) ||
         isMicrodepositsLoading ||
