@@ -658,7 +658,7 @@ const BuildQuote = () => {
           ? toTokenMinimalUnit(maxResult.amount, selectedAsset.decimals ?? 0)
           : null;
       } catch {
-        return maxRequestTokenRef.current === requestToken ? null : null;
+        return null;
       }
     },
     [fromAccount, selectedAsset],
@@ -701,7 +701,7 @@ const BuildQuote = () => {
         return;
       }
 
-      let amountToSet = amountPercentage;
+      let amountToSet: bigint;
 
       const isTronMax = value === 1 && isTron && isOffRampNonEvmEnabled;
       if (isTronMax) {
