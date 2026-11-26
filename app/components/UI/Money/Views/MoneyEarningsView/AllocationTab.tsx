@@ -41,8 +41,8 @@ const AllocationTab = (): React.ReactElement => {
     setAllocationScrollEnabled(scrollViewRef.current, enabled);
   }, []);
 
-  const handleRetry = useCallback(async (): Promise<void> => {
-    await refetch();
+  const handleRetry = useCallback((): void => {
+    void refetch();
   }, [refetch]);
 
   const renderContent = (): React.ReactElement => {
