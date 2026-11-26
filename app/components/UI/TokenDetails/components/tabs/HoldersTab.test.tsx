@@ -300,20 +300,8 @@ describe('TokenDetailsHoldersTab', () => {
   });
 
   describe('social onboarding', () => {
-    it('opens Social terms / onboarding when a row is tapped before onboarding', () => {
+    it('opens the holder profile without accepted Social terms', () => {
       mockHasAcceptedSocialTerms.mockReturnValue(false);
-      mockState({ rows: [toRow(0), toRow(1)] });
-
-      renderTab();
-      const rows = screen.getAllByTestId(TokenHolderRowSelectorsIDs.PRESS);
-      fireEvent.press(rows[1]);
-
-      expect(rows).toHaveLength(2);
-      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledTimes(1);
-      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-    });
-
-    it('opens the holder profile once Social terms are accepted', () => {
       mockState({ rows: [toRow(1)] });
 
       renderTab();
@@ -329,6 +317,7 @@ describe('TokenDetailsHoldersTab', () => {
         }),
         {},
       );
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
     });
   });
 });

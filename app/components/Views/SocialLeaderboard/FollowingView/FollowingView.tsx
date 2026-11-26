@@ -247,7 +247,6 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
-          requireSocialProfile
           testID={testID}
           scrollTestID={scrollTestID}
         />

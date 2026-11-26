@@ -56,7 +56,7 @@ import {
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
-import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip, {
@@ -150,7 +150,7 @@ const TraderProfileView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
-  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const hasSocialV1Access = useSelector(selectHasSocialV1Access);
   const isFocused = useIsFocused();
 
   const {
@@ -219,7 +219,8 @@ const TraderProfileView = () => {
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const { followWithSetup } = useFollowWithNotificationSetup({
-    requireSocialProfile: isSocialV1Enabled,
+    requireSocialTerms: hasSocialV1Access,
+    requireSocialProfile: hasSocialV1Access,
   });
   const handleMutePress = useCallback(
     () => onMutePress(traderId),
