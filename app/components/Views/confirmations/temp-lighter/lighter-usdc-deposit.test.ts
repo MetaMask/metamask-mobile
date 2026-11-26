@@ -1,4 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { LIGHTER_BRIDGE_CONFIG } from '@metamask/perps-controller/constants/lighterConfig';
 import { Hex, decodeFunctionData, parseAbi } from 'viem';
 
@@ -7,6 +10,7 @@ import {
   LIGHTER_USDC_DEPOSIT_ASSET_INDEX,
   buildLighterUsdcDepositTransaction,
   getLighterUsdcDepositAmountCalls,
+  isLighterAccountCreationDeposit,
   userHasLighterAccount,
 } from './lighter-usdc-deposit';
 
@@ -134,6 +138,43 @@ describe('buildLighterUsdcDepositTransaction', () => {
   });
 });
 
+describe('isLighterAccountCreationDeposit', () => {
+  it('is true for a Lighter deposit that carries the approve and deposit calls', () => {
+    const built = buildLighterUsdcDepositTransaction(USER, 1_000_000n);
+
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsLighterDeposit,
+        nestedTransactions: [built.approve, built.deposit],
+      } as unknown as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('is false for a deposit into an existing account, which has no calldata', () => {
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsLighterDeposit,
+        txParams: { from: USER, to: USER },
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('is false for a Hyperliquid deposit', () => {
+    const built = buildLighterUsdcDepositTransaction(USER, 1_000_000n);
+
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsDeposit,
+        nestedTransactions: [built.approve, built.deposit],
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('is false when there is no transaction', () => {
+    expect(isLighterAccountCreationDeposit(undefined)).toBe(false);
+  });
+});
+
 describe('getLighterUsdcDepositAmountCalls', () => {
   it('re-encodes the approve and deposit for the entered USDC amount', () => {
     const placeholder = buildLighterUsdcDepositTransaction(USER, 0n);
@@ -153,6 +194,19 @@ describe('getLighterUsdcDepositAmountCalls', () => {
       { nestedTransactionIndex: 0, transactionData: updated.approve.data },
       { nestedTransactionIndex: 1, transactionData: updated.deposit.data },
     ]);
+  });
+
+  it('returns no calls for a deposit without calldata', () => {
+    const calls = getLighterUsdcDepositAmountCalls(
+      {
+        id: 'tx-1',
+        type: TransactionType.perpsLighterDeposit,
+        txParams: { from: USER, to: USER },
+      } as never,
+      '1.5',
+    );
+
+    expect(calls).toStrictEqual([]);
   });
 
   it('returns undefined when the confirmation is not a Lighter deposit', () => {

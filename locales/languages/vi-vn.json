@@ -684,7 +684,6 @@
     "gas_education_3": "MetaMask không thu lợi từ phí gas.",
     "gas_education_4": "Phí gas dao động theo lưu lượng truy cập mạng và độ phức tạp của giao dịch.",
     "gas_education_learn_more": "Tìm hiểu thêm về phí gas",
-    "confusable_title": "Kiểm tra địa chỉ người nhận",
     "confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự có thể gây nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh khả năng bị lừa đảo."
   },
   "custom_gas": {
@@ -831,8 +830,6 @@
     "hash_copied_to_clipboard": "Đã sao chép mã băm vào khay nhớ tạm",
     "address_copied_to_clipboard": "Đã sao chép địa chỉ vào khay nhớ tạm",
     "transaction_error": "Lỗi giao dịch",
-    "address_to_placeholder": "Tìm kiếm, địa chỉ công khai (0x) hoặc ENS",
-    "address_from_balance": "Số dư:",
     "status": "Trạng thái",
     "date": "Ngày",
     "nonce": "Số chỉ dùng một lần",
@@ -847,11 +844,8 @@
     "delete_contact": "Xóa người liên hệ",
     "delete": "xóa",
     "cancel": "Hủy",
-    "add_to_address_book": "Thêm vào sổ địa chỉ",
-    "enter_an_alias": "Nhập một biệt danh",
     "add_this_address": "Thêm địa chỉ này vào sổ địa chỉ của bạn",
     "next": "Tiếp theo",
-    "enter_an_alias_placeholder": "ví dụ: Vitalik B.",
     "add_contact_title": "Thêm người liên hệ",
     "add_contact": "Thêm người liên hệ",
     "edit_contact_title": "Chỉnh sửa người liên hệ",

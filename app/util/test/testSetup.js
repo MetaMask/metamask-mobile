@@ -1212,6 +1212,7 @@ jest.mock('@sentry/react-native', () => ({
     name: 'ReactNavigation',
     registerNavigationContainer: jest.fn(),
   })),
+  spotlightIntegration: jest.fn(() => ({ name: 'Spotlight' })),
 
   // User feedback
   lastEventId: jest.fn(),

@@ -102,14 +102,13 @@ const PerpsProOrderFormPanel = ({
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Hyperliquid refuses Cross on HIP-3 dexes (non-null source). The form then
-  // reads the asset's isolated-only restriction from the venue, whichever
-  // backend serves the market list.
+  // Cross eligibility is per market: the form reads each market's venue
+  // restrictions (`onlyIsolated`, `marginMode`) from its metadata, so HIP-3
+  // (`marketSource`) markets that permit Cross stay selectable.
   const isCrossMarginAvailable =
     isProModeActive &&
     isCrossMarginFlagEnabled &&
-    selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
-    !market.marketSource;
+    selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
   const isChaseBaseEnabled = isProModeActive && isChaseFlagEnabled;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;

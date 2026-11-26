@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   LIGHTER_BRIDGE_CONFIG,
   getLighterHttpEndpoint,
@@ -18,6 +21,14 @@ import { UpdateTransactionPayAmountCall } from '../types/transactions';
 export const LIGHTER_USDC_DECIMALS = 6;
 
 /**
+ * First Lighter deposit cap as a percentage of balance. The first deposit
+ * creates the account with an approve plus deposit call, and the cap leaves a
+ * gas buffer so the approve-plus-deposit transaction does not consume the
+ * entire balance and revert.
+ */
+export const LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE = 90;
+
+/**
  * USDC asset id on the Lighter L1 `deposit` call. `assetDetails` reports USDC
  * as 3 and ETH as 1. Do not use the perps package's `LIGHTER_USDC_ASSET_INDEX`
  * (1) here: it is the L2 withdraw index, and an L1 deposit for asset 1 is an
@@ -32,7 +43,7 @@ export const LIGHTER_PERPS_ROUTE_TYPE = 0;
  * Lighter returns this application code when the L1 address has no account.
  * The HTTP status is 400.
  */
-const LIGHTER_ACCOUNT_NOT_FOUND_CODE = 21100;
+export const LIGHTER_ACCOUNT_NOT_FOUND_CODE = 21100;
 
 const LIGHTER_DEPOSIT_SELECTOR = '0x8a857083';
 
@@ -142,10 +153,30 @@ export function buildLighterUsdcDepositTransaction(
 }
 
 /**
+ * True for the first deposit into Lighter, which creates the account with an
+ * approve plus `deposit` call. A deposit into an existing account has no
+ * calldata, so it is not matched.
+ *
+ * @param transactionMeta - Open confirmation.
+ * @returns Whether this confirmation creates the Lighter account.
+ */
+export function isLighterAccountCreationDeposit(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(
+    transactionMeta?.type === TransactionType.perpsLighterDeposit &&
+      transactionMeta.nestedTransactions?.some((transaction) =>
+        transaction.data?.toLowerCase().startsWith(LIGHTER_DEPOSIT_SELECTOR),
+      ),
+  );
+}
+
+/**
  * Re-encodes the Lighter approve and deposit when the user changes the amount.
  *
  * Returns undefined when this confirmation is not a Lighter USDC deposit, so
- * the generic token-transfer updater can run instead.
+ * the generic token-transfer updater can run instead. Returns no calls for a
+ * deposit into an existing account, which has no calldata.
  *
  * @param transactionMeta - Confirmation being updated.
  * @param amountHuman - Human-readable USDC amount.
@@ -156,6 +187,16 @@ export function getLighterUsdcDepositAmountCalls(
   amountHuman: string,
 ): UpdateTransactionPayAmountCall[] | undefined {
   const nestedTransactions = transactionMeta.nestedTransactions;
+
+  // A deposit into an existing account has no calldata. Only the required
+  // asset amount changes, which the caller commits.
+  if (
+    !nestedTransactions?.length &&
+    (!transactionMeta.txParams?.data || transactionMeta.txParams.data === '0x')
+  ) {
+    return [];
+  }
+
   const depositIndex = nestedTransactions?.findIndex((transaction) =>
     transaction.data?.toLowerCase().startsWith(LIGHTER_DEPOSIT_SELECTOR),
   );

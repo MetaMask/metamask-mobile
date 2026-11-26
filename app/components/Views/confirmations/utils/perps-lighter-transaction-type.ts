@@ -1,4 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 export type PerpsProviderSelection = 'hyperliquid' | 'lighter';
 
@@ -74,4 +77,36 @@ export function perpsProviderSelectionForType(
   }
 
   return 'hyperliquid';
+}
+
+/**
+ * Perps withdraw type of a confirmation. The Perps withdraw is created as a
+ * batch whose single nested transaction carries the type, so the type on the
+ * confirmation itself is `batch`.
+ *
+ * @param transactionMeta - Open confirmation.
+ * @returns The withdraw type, or undefined when this is not a Perps withdraw.
+ */
+export function getPerpsWithdrawType(
+  transactionMeta:
+    | Pick<TransactionMeta, 'type' | 'nestedTransactions'>
+    | undefined,
+):
+  | TransactionType.perpsWithdraw
+  | TransactionType.perpsLighterWithdraw
+  | undefined {
+  const types = [
+    transactionMeta?.type,
+    ...(transactionMeta?.nestedTransactions?.map(({ type }) => type) ?? []),
+  ];
+
+  return types.find(
+    (
+      type,
+    ): type is
+      | TransactionType.perpsWithdraw
+      | TransactionType.perpsLighterWithdraw =>
+      type === TransactionType.perpsWithdraw ||
+      type === TransactionType.perpsLighterWithdraw,
+  );
 }

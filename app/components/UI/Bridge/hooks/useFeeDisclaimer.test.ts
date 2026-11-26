@@ -6,7 +6,7 @@ import { useFeeDisclaimer } from './useFeeDisclaimer';
 const quoteWithFee = (metabridge: {
   quoteBpsFee?: number;
   baseBpsFee?: number;
-  discountType?: DiscountType | 'free';
+  discountType?: DiscountType;
 }): QuoteResponse =>
   ({
     quote: {
@@ -63,13 +63,13 @@ describe('useFeeDisclaimer', () => {
         activeQuote: quoteWithFee({
           quoteBpsFee: 0,
           baseBpsFee: 87.5,
-          discountType: 'free',
+          discountType: DiscountType.FREE,
         }),
       }),
     );
 
     expect(result.current.discountBadge).toEqual({
-      type: 'free',
+      type: DiscountType.FREE,
       label: strings('bridge.discount_badge_free'),
     });
     expect(result.current.infoText).toBe(

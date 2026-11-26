@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
 import { readFromTokenWatchList, type WatchlistBlob } from '../storage';
@@ -9,12 +9,18 @@ import {
 } from './useTokenWatchlistMutations';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
-export const useTokenWatchlistAssetIds = (): string[] => {
-  const { data: blob } = useQuery<WatchlistBlob>({
+export const useTokenWatchlistMembershipQuery = (
+  enabled = true,
+): UseQueryResult<WatchlistBlob, Error> =>
+  useQuery<WatchlistBlob, Error>({
     queryKey: tokenWatchlistQueryKeys.blob,
     queryFn: readFromTokenWatchList,
     staleTime: Infinity,
+    enabled,
   });
+
+export const useTokenWatchlistAssetIds = (): string[] => {
+  const { data: blob } = useTokenWatchlistMembershipQuery();
   return blob?.assets ?? [];
 };
 

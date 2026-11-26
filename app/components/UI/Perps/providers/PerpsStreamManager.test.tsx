@@ -115,101 +115,113 @@ const TestPriceComponent = ({
   return <Text testID="price-display">Test Component</Text>;
 };
 
-describe('PerpsStreamManager', () => {
-  let mockSubscribeToPrices: jest.Mock;
-  let mockUnsubscribeFromPrices: jest.Mock;
-  let mockSubscribeToOrders: jest.Mock;
-  let mockSubscribeToPositions: jest.Mock;
-  let mockSubscribeToAccount: jest.Mock;
-  let testStreamManager: PerpsStreamManager;
+// Shared mocks for both stream-manager suites; the setup helper below
+// keeps the copies from drifting (the first multi-venue copy had already
+// dropped waitForConnection, StorageWrapper and DevLogger).
+let mockSubscribeToPrices: jest.Mock;
+let mockUnsubscribeFromPrices: jest.Mock;
+let mockSubscribeToOrders: jest.Mock;
+let mockSubscribeToPositions: jest.Mock;
+let mockSubscribeToAccount: jest.Mock;
+let testStreamManager: PerpsStreamManager;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
-    resetPerpsLifecycleContextForTests();
+/**
+ * Per-test setup shared by the single-venue and multi-venue suites. The
+ * only difference between them is the routing provider handed to the
+ * selector.
+ */
+const setupStreamManagerMocks = ({ provider }: { provider: string }): void => {
+  jest.clearAllMocks();
+  jest.clearAllTimers();
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
+  resetPerpsLifecycleContextForTests();
 
-    // Restore the default Terminal flag state (enabled) after any per-test override.
-    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
-    mockSelectHip3ConfigVersion.mockReturnValue(0);
-    mockSelectPerpsNetwork.mockReturnValue('mainnet');
-    mockSelectPerpsProvider.mockReturnValue('hyperliquid');
-    mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
+  // Restore the default Terminal flag state (enabled) after any per-test override.
+  mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+  mockSelectHip3ConfigVersion.mockReturnValue(0);
+  mockSelectPerpsNetwork.mockReturnValue('mainnet');
+  mockSelectPerpsProvider.mockReturnValue(provider);
+  mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
 
-    // Create a fresh stream manager for each test
-    testStreamManager = new PerpsStreamManager();
+  // Create a fresh stream manager for each test
+  testStreamManager = new PerpsStreamManager();
 
-    // Setup default mocks
-    mockSubscribeToPrices = jest.fn();
-    mockUnsubscribeFromPrices = jest.fn();
-    mockSubscribeToOrders = jest.fn();
-    mockSubscribeToPositions = jest.fn();
-    mockSubscribeToAccount = jest.fn();
+  // Setup default mocks
+  mockSubscribeToPrices = jest.fn().mockReturnValue(jest.fn());
+  mockUnsubscribeFromPrices = jest.fn();
+  mockSubscribeToOrders = jest.fn();
+  mockSubscribeToPositions = jest.fn();
+  mockSubscribeToAccount = jest.fn();
 
-    // Setup mock return values for all subscription methods
-    mockSubscribeToOrders.mockReturnValue(jest.fn());
-    mockSubscribeToPositions.mockReturnValue(jest.fn());
-    mockSubscribeToAccount.mockReturnValue(jest.fn());
+  // Setup mock return values for all subscription methods
+  mockSubscribeToOrders.mockReturnValue(jest.fn());
+  mockSubscribeToPositions.mockReturnValue(jest.fn());
+  mockSubscribeToAccount.mockReturnValue(jest.fn());
 
-    mockEngine.context.PerpsController = {
-      subscribeToPrices: mockSubscribeToPrices,
-      unsubscribeFromPrices: mockUnsubscribeFromPrices,
-      subscribeToOrders: mockSubscribeToOrders,
-      subscribeToPositions: mockSubscribeToPositions,
-      subscribeToAccount: mockSubscribeToAccount,
-      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
-      getMarkets: jest
-        .fn()
-        .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
-      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
-      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
-      state: {
-        cachedMarketDataByProvider: {},
-        cachedUserDataByProvider: {},
-      },
-    } as unknown as typeof mockEngine.context.PerpsController;
-
-    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
-    mockEngine.context.AccountTreeController = {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x123456789',
-          id: 'account-1',
-          type: 'eip155:eoa',
-          metadata: {
-            name: 'Test Account',
-            importTime: 0,
-            keyring: { type: 'HD Key Tree' },
-          },
-          methods: [],
-          options: {},
-          scopes: [],
-        },
-      ]),
-    } as unknown as typeof mockEngine.context.AccountTreeController;
-
-    mockDevLogger.log = jest.fn();
-
-    // Mock PerpsConnectionManager.getConnectionState for channel connect guards
-    mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
-      isInitialized: true,
-      isConnected: true,
-      isConnecting: false,
-      error: null,
-    });
-    mockPerpsConnectionManager.isCurrentlyConnecting = jest
+  mockEngine.context.PerpsController = {
+    subscribeToPrices: mockSubscribeToPrices,
+    unsubscribeFromPrices: mockUnsubscribeFromPrices,
+    subscribeToOrders: mockSubscribeToOrders,
+    subscribeToPositions: mockSubscribeToPositions,
+    subscribeToAccount: mockSubscribeToAccount,
+    isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+    getMarkets: jest
       .fn()
-      .mockReturnValue(false);
-    mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
-      new Promise((_resolve) => {
-        /* never resolves */
-      }),
-    );
-    mockStorageWrapper.getItem.mockResolvedValue(null);
-    mockStorageWrapper.getItemSync.mockReturnValue(null);
-    mockStorageWrapper.setItem.mockResolvedValue(undefined);
-    mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+      .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+    getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
+    getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
+    state: {
+      cachedMarketDataByProvider: {},
+      cachedUserDataByProvider: {},
+    },
+  } as unknown as typeof mockEngine.context.PerpsController;
+
+  // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+  mockEngine.context.AccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x123456789',
+        id: 'account-1',
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Test Account',
+          importTime: 0,
+          keyring: { type: 'HD Key Tree' },
+        },
+        methods: [],
+        options: {},
+        scopes: [],
+      },
+    ]),
+  } as unknown as typeof mockEngine.context.AccountTreeController;
+
+  mockDevLogger.log = jest.fn();
+
+  // Mock PerpsConnectionManager.getConnectionState for channel connect guards
+  mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
+    isInitialized: true,
+    isConnected: true,
+    isConnecting: false,
+    error: null,
+  });
+  mockPerpsConnectionManager.isCurrentlyConnecting = jest
+    .fn()
+    .mockReturnValue(false);
+  mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+    new Promise((_resolve) => {
+      /* never resolves */
+    }),
+  );
+  mockStorageWrapper.getItem.mockResolvedValue(null);
+  mockStorageWrapper.getItemSync.mockReturnValue(null);
+  mockStorageWrapper.setItem.mockResolvedValue(undefined);
+  mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+};
+
+describe('PerpsStreamManager', () => {
+  beforeEach(() => {
+    setupStreamManagerMocks({ provider: 'hyperliquid' });
   });
 
   afterEach(() => {
@@ -2962,6 +2974,24 @@ describe('PerpsStreamManager', () => {
       // Should notify subscriber with data
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+    });
+
+    it('notifies subscribers when the initial market fetch fails', async () => {
+      const fetchError = new Error('Market fetch failed');
+      const onError = jest.fn();
+      mockGetMarketDataWithPrices.mockRejectedValue(fetchError);
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback: jest.fn(),
+        onError,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(fetchError);
       });
 
       unsubscribe();
@@ -6839,70 +6869,11 @@ describe('PerpsStreamManager', () => {
 });
 
 describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
-  let mockSubscribeToPrices: jest.Mock;
-  let mockSubscribeToAccount: jest.Mock;
-  let testStreamManager: PerpsStreamManager;
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
-    resetPerpsLifecycleContextForTests();
-
-    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
-    mockSelectHip3ConfigVersion.mockReturnValue(0);
-    mockSelectPerpsNetwork.mockReturnValue('mainnet');
-    mockSelectPerpsProvider.mockReturnValue('aggregated');
-    mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
-
-    testStreamManager = new PerpsStreamManager();
-
-    mockSubscribeToPrices = jest.fn().mockReturnValue(jest.fn());
-    mockSubscribeToAccount = jest.fn().mockReturnValue(jest.fn());
-
-    mockEngine.context.PerpsController = {
-      subscribeToPrices: mockSubscribeToPrices,
-      subscribeToAccount: mockSubscribeToAccount,
-      subscribeToOrders: jest.fn().mockReturnValue(jest.fn()),
-      subscribeToPositions: jest.fn().mockReturnValue(jest.fn()),
-      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
-      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
-      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
-      state: {
-        activeProvider: 'aggregated',
-        cachedMarketDataByProvider: {},
-        cachedUserDataByProvider: {},
-      },
-    } as unknown as typeof mockEngine.context.PerpsController;
-
-    mockEngine.context.AccountTreeController = {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x123456789',
-          id: 'account-1',
-          type: 'eip155:eoa',
-          metadata: {
-            name: 'Test Account',
-            importTime: 0,
-            keyring: { type: 'HD Key Tree' },
-          },
-          methods: [],
-          options: {},
-          scopes: [],
-        },
-      ]),
-    } as unknown as typeof mockEngine.context.AccountTreeController;
-
-    mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
-      isInitialized: true,
-      isConnected: true,
-      isConnecting: false,
-      error: null,
-    });
-    mockPerpsConnectionManager.isCurrentlyConnecting = jest
-      .fn()
-      .mockReturnValue(false);
+    setupStreamManagerMocks({ provider: 'aggregated' });
+    // The channels read the routing mode from the controller state as
+    // well as the selector, so aggregated mode must be set on both.
+    mockEngine.context.PerpsController.state.activeProvider = 'aggregated';
   });
 
   afterEach(() => {
@@ -7215,7 +7186,7 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
   describe('optimistic updates scoped to the edited venue', () => {
     it('applies a TP/SL optimistic edit only to that venue position', () => {
       const positionsCallback = jest.fn();
-      const mockSubscribeToPositions = jest.fn(({ callback }) => {
+      const venuePositionsSubscriber = jest.fn(({ callback }) => {
         positionsCallback.mockImplementation((...args: unknown[]) =>
           callback(...(args as [])),
         );
@@ -7223,7 +7194,7 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
       });
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).subscribeToPositions = mockSubscribeToPositions;
+      ).subscribeToPositions = venuePositionsSubscriber;
 
       testStreamManager.positions.subscribe({
         callback: jest.fn(),
@@ -7272,7 +7243,7 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
 
     it('applies an optimistic order edit only to that venue order', () => {
       const ordersCallback = jest.fn();
-      const mockSubscribeToOrders = jest.fn(({ callback }) => {
+      const venueOrdersSubscriber = jest.fn(({ callback }) => {
         ordersCallback.mockImplementation((...args: unknown[]) =>
           callback(...(args as [])),
         );
@@ -7280,7 +7251,7 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
       });
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).subscribeToOrders = mockSubscribeToOrders;
+      ).subscribeToOrders = venueOrdersSubscriber;
 
       testStreamManager.orders.subscribe({
         callback: jest.fn(),

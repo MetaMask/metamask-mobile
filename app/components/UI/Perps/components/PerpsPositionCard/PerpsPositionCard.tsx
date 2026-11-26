@@ -47,7 +47,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { parsePositionRoePercentage } from '../../utils/positionDisplay';
+import {
+  getDisplayedPositionMargin,
+  parsePositionRoePercentage,
+} from '../../utils/positionDisplay';
 import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
 import PerpsLiquidationPriceValue from '../PerpsLiquidationPriceValue';
 
@@ -458,7 +461,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {formatPerpsFiat(position.marginUsed, {
+                  {formatPerpsFiat(getDisplayedPositionMargin(position), {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })}
                 </SensitiveText>
