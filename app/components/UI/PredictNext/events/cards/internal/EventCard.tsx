@@ -28,7 +28,7 @@ import type {
   PredictOutcome,
 } from '../../../types';
 import {
-  formatAskPrice,
+  formatAskPricePercent,
   formatVolume,
   getAskPricePercent,
 } from '../../shared/formatting';
@@ -45,7 +45,7 @@ interface RootProps {
 
 const Root = ({ children, testID, twClassName }: RootProps) => (
   <Box
-    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-section p-4 pt-3'}
+    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-elevated1 p-4 pt-3'}
     testID={testID}
   >
     {children}
@@ -74,7 +74,9 @@ const Title = ({
   twClassName?: string;
 }) => (
   <Text
-    variant={TextVariant.HeadingSm}
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Regular}
+    color={TextColor.TextDefault}
     numberOfLines={numberOfLines}
     twClassName={twClassName}
   >
@@ -90,8 +92,8 @@ const Subtitle = ({
   testID?: string;
 }) => (
   <Text
-    variant={TextVariant.BodySm}
-    fontWeight={FontWeight.Medium}
+    variant={TextVariant.BodyXs}
+    fontWeight={FontWeight.Regular}
     color={TextColor.TextAlternative}
     numberOfLines={1}
     testID={testID}
@@ -304,7 +306,7 @@ const OutcomeRow = ({
 }: OutcomeRowProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const price = formatAskPrice(outcome.askPrice);
+  const price = formatAskPricePercent(outcome.askPrice);
 
   return (
     <SharedOutcomeRow.Root>
@@ -328,6 +330,7 @@ const OutcomeRow = ({
           percent={getAskPricePercent(outcome.askPrice)}
           color={colors.icon.alternative}
           lineTestID={testID ? `${testID}-bar` : undefined}
+          variant={TextVariant.BodySm}
         />
       </Box>
       <SharedOutcomeRow.Price

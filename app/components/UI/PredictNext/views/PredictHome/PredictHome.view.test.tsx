@@ -1697,12 +1697,12 @@ describe('PredictHome', () => {
         within(card).getByTestId(
           PredictHomeTestIds.outcome('politics-1', 'yes'),
         ),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('42%');
       expect(
         within(card).getByTestId(
           PredictHomeTestIds.outcome('politics-1', 'no'),
         ),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('58%');
       expect(
         within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
       ).not.toBeOnTheScreen();

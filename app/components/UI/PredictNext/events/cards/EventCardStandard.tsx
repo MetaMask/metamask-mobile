@@ -9,7 +9,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
-import { formatAskPrice } from '../shared/formatting';
+import { formatAskPricePercent } from '../shared/formatting';
 import { isOutcomeTradeable } from '../shared/tradeable';
 import { OutcomeRow as SharedOutcomeRow } from '../shared/ui';
 import {
@@ -176,7 +176,7 @@ const TrendingMarketRow = ({
   onOrder,
 }: TrendingMarketRowProps) => {
   const { colors } = useTheme();
-  const price = formatAskPrice(outcome.askPrice);
+  const price = formatAskPricePercent(outcome.askPrice);
 
   return (
     <SharedOutcomeRow.Root
@@ -184,15 +184,15 @@ const TrendingMarketRow = ({
     >
       <Box twClassName="min-w-0 flex-1">
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
           numberOfLines={1}
         >
           {outcome.label}
         </Text>
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
           numberOfLines={1}
         >
@@ -235,7 +235,7 @@ const TrendingStandardCard = ({
 
   return (
     <EventCard.Root
-      twClassName="gap-3 rounded-2xl bg-section py-4"
+      twClassName="gap-3 rounded-2xl bg-elevated1 py-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <EventCard.HeaderRow testID={`predict-next-event-header-${event.id}`}>
