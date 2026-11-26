@@ -48,12 +48,12 @@ const AccountCard = ({
       <Card
         accessible
         testID="account-card"
-        twClassName="bg-default"
+        className="bg-default"
         style={styles.cardGroupTop}
       >
         {selectedAccount && (
           <KeyValueRow
-            twClassName={KEY_VALUE_ROW_CLASSNAME}
+            className={KEY_VALUE_ROW_CLASSNAME}
             keyLabel={primaryLabel}
             keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
             value={
@@ -63,10 +63,16 @@ const AccountCard = ({
                 avatarAccountType={avatarAccountType}
               />
             }
+          /><AccountTag
+                accountAddress={selectedAccount?.address}
+                accountName={selectedAccount.metadata.name}
+                avatarAccountType={avatarAccountType}
+              />
+            }
           />
         )}
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={secondaryLabel}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
@@ -76,15 +82,34 @@ const AccountCard = ({
               avatarAccountType={avatarAccountType}
             />
           }
+        /><ContractTag
+              contractAddress={vaultMetadata?.vaultAddress ?? contractName}
+              contractName={contractName}
+              avatarAccountType={avatarAccountType}
+            />
+          }
         />
       </Card>
-      <Card accessible twClassName="bg-default" style={styles.cardGroupBottom}>
+      <Card accessible className="bg-default" style={styles.cardGroupBottom}>
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('asset_details.network')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
             <View style={styles.networkKeyValueRow}>
+              <AvatarNetwork
+                className="rounded bg-default"
+                src={
+                  images.ETHEREUM as React.ComponentProps<
+                    typeof AvatarNetwork
+                  >['src']
+                }
+                size={AvatarNetworkSize.Xs}
+              />
+              <Text>{networkName}</Text>
+            </View>
+          }
+        /><View style={styles.networkKeyValueRow}>
               <AvatarNetwork
                 twClassName="rounded bg-default"
                 src={

@@ -37,10 +37,10 @@ const TronClaimableRewardsRow = ({
     paddingTop={3}
     paddingBottom={3}
   >
-    <Box twClassName="h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center">
+    <Box className="h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center">
       <DSIcon name={DSIconName.MoneyBag} size={IconSize.Lg} />
     </Box>
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}

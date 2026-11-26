@@ -32,10 +32,30 @@ const ContractTag = ({
 
   return (
     <Tag
-      twClassName="rounded-full px-2 py-0.5 bg-alternative"
+      className="rounded-full px-2 py-0.5 bg-alternative"
       startAccessory={
         aaveAddresses.has(contractAddress.toLowerCase()) ? (
           <AvatarNetwork
+            className="rounded bg-default"
+            size={AvatarNetworkSize.Xs}
+            name={contractName}
+            src={
+              imageIcons.AAVE as React.ComponentProps<
+                typeof AvatarNetwork
+              >['src']
+            }
+          />
+        ) : (
+          <AvatarAccount
+            className="rounded bg-default"
+            size={AvatarAccountSize.Xs}
+            address={contractAddress}
+            variant={getAvatarAccountVariant(avatarAccountType)}
+          />
+        )
+      }
+      severity={TagSeverity.Neutral}
+    ><AvatarNetwork
             twClassName="rounded bg-default"
             size={AvatarNetworkSize.Xs}
             name={contractName}
