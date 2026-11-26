@@ -8,7 +8,6 @@ import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   ProtectYourWallet,
   DeviceSecurityToggle,
@@ -21,11 +20,7 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import {
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
@@ -35,7 +30,6 @@ import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagCont
 
 const Settings: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { isEnabled } = useAnalytics();
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<AppNavigationProp>();
   const [showHint, setShowHint] = useState(false);
@@ -68,7 +62,7 @@ const Settings: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    handleHintText();
+    void handleHintText();
   }, [handleHintText]);
 
   const toggleHint = () => {
