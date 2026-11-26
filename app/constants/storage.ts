@@ -96,6 +96,9 @@ export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;
 
 export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;
 
+/** Whether the Money home Details discovery dot has been dismissed. */
+export const VBA_DETAILS_NEW_DOT_SEEN = `${prefix}vbaDetailsNewDotSeen`;
+
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;

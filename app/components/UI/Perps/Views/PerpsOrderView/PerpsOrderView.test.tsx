@@ -809,6 +809,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       subscribeToPrices: jest.fn(() => jest.fn()),
+      subscribeToAvailableToTrade: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
         spendableBalance: '1000',
@@ -1247,6 +1248,8 @@ const defaultMockHooks = {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
   },
 };
 
@@ -1566,6 +1569,8 @@ describe('PerpsOrderView', () => {
       maxPossibleAmount: 1000,
       setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
+      perpsAvailableToTrade: 1000,
+      isAvailableToTradeLoading: false,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -3531,6 +3536,8 @@ describe('PerpsOrderView', () => {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
     ...overrides,
   });
 
@@ -6423,16 +6430,6 @@ describe('PerpsOrderView', () => {
 
       expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
         disable: true,
-      });
-    });
-
-    it('allows money account selection once the Perps balance is known to be empty', () => {
-      mockEmptyPerpsBalance(false);
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
-        disable: false,
       });
     });
   });
