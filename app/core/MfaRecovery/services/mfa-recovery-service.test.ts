@@ -332,6 +332,107 @@ describe('MfaRecoveryService', () => {
     });
   });
 
+  describe('prepareRun', () => {
+    it('verifies the user before reading the identifiers', async () => {
+      const { service, verifyMfa, controller } = createService();
+
+      await service.prepareRun();
+
+      expect(verifyMfa).toHaveBeenCalledTimes(1);
+      expect(verifyMfa.mock.invocationCallOrder[0]).toBeLessThan(
+        controller.getIdentifiers.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('resumes a pending operation before resolving the identifiers', async () => {
+      const controller = createController({ phase: 'pending' });
+      const { service } = createService({ controller });
+
+      await service.prepareRun();
+
+      expect(controller.resume).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the SRP signing key identifier when Auth approves no SIWE identifier', async () => {
+      const { service } = createService();
+
+      const { siweIdentifier } = await service.prepareRun();
+
+      expect(siweIdentifier).toStrictEqual(SIWE);
+    });
+
+    it("uses Auth's SIWE identifier when it approves one", async () => {
+      const { service } = createService({
+        controller: createController({ authIdentifiers: [AUTH_SIWE] }),
+      });
+
+      const { siweIdentifier } = await service.prepareRun();
+
+      expect(siweIdentifier).toStrictEqual(AUTH_SIWE);
+    });
+
+    it('returns the trusted passkey with the verifier the platform sheet needs', async () => {
+      const { service } = createService({
+        controller: createController({
+          authIdentifiers: [AUTH_PASSKEY, AUTH_SOCIAL],
+        }),
+      });
+
+      const { passkeyIdentifier } = await service.prepareRun();
+
+      expect(passkeyIdentifier).toStrictEqual(PROVABLE_PASSKEY);
+    });
+
+    it('skips untrusted passkeys', async () => {
+      const untrusted: Identifier = { ...AUTH_PASSKEY, value: 'rogue' };
+      const { service } = createService({
+        controller: createController({
+          authIdentifiers: [untrusted, AUTH_PASSKEY],
+          isTrusted: async (identifier) => identifier.value !== 'rogue',
+        }),
+      });
+
+      const { passkeyIdentifier } = await service.prepareRun();
+
+      expect(passkeyIdentifier).toStrictEqual(PROVABLE_PASSKEY);
+    });
+
+    it('throws IdentifierNotApprovedError only when the passkey is read and none is approved', async () => {
+      const { service } = createService({
+        controller: createController({ authIdentifiers: [AUTH_SOCIAL] }),
+      });
+
+      const run = await service.prepareRun();
+
+      expect(run.siweIdentifier).toStrictEqual(SIWE);
+      expect(() => run.passkeyIdentifier).toThrow(IdentifierNotApprovedError);
+    });
+
+    it('does not resolve a passkey that Auth approved but is not trusted', async () => {
+      const { service } = createService({
+        controller: createController({
+          authIdentifiers: [AUTH_PASSKEY],
+          isTrusted: async () => false,
+        }),
+      });
+
+      const run = await service.prepareRun();
+
+      expect(() => run.passkeyIdentifier).toThrow(IdentifierNotApprovedError);
+    });
+
+    it('does not read the identifiers when the user is not verified', async () => {
+      const { service, verifyMfa, controller } = createService();
+      verifyMfa.mockRejectedValueOnce(new Error('verification cancelled'));
+
+      await expect(service.prepareRun()).rejects.toThrow(
+        'verification cancelled',
+      );
+
+      expect(controller.getIdentifiers).not.toHaveBeenCalled();
+    });
+  });
+
   describe('vault password methods', () => {
     it('forwards recovery and password calls to the seedless controller', async () => {
       const seedless = Object.assign(createSeedless(), {

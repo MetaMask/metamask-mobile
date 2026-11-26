@@ -14,6 +14,8 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import MfaRecoveryDeveloperOptionsSection from './MfaRecoveryDeveloperOptionsSection/MfaRecoveryDeveloperOptionsSection';
+import { isMfaDevRecoveryBuild } from '../../../../core/MfaRecovery/isMfaDevRecoveryBuild';
 import SubscriptionDeveloperOptionsSection from './SubscriptionDeveloperOptionsSection';
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
@@ -107,6 +109,7 @@ const DeveloperOptions = () => {
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
+        {isMfaDevRecoveryBuild() && <MfaRecoveryDeveloperOptionsSection />}
         <SubscriptionDeveloperOptionsSection />
         <NotificationsDeveloperOptionsSection />
         {isSocialLeaderboardEnabled && (

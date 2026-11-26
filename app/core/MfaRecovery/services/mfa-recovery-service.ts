@@ -128,6 +128,18 @@ export interface FindRecoveryIdentifierOptions {
   canProveSocialIdentifier: boolean;
 }
 
+/** The identifiers a developer recovery run reads with. */
+export interface MfaRecoveryRunIdentifiers {
+  siweIdentifier: Identifier;
+  /**
+   * The trusted passkey Auth approved, with the verifier the platform sheet
+   * needs. Resolved lazily so a SIWE run does not fail when none is approved.
+   *
+   * @throws {IdentifierNotApprovedError} When Auth approved no provable passkey.
+   */
+  readonly passkeyIdentifier: Identifier;
+}
+
 /** Auth approved no identifier of the requested type for this profile. */
 export class IdentifierNotApprovedError extends MfaRecoveryControllerError {
   readonly identifierType: Identifier['type'];
@@ -200,6 +212,37 @@ export class MfaRecoveryService {
         !identifiers.some((enrolled) => isSameIdentifier(enrolled, candidate)),
     );
     return await this.#filterTrusted(unenrolled);
+  }
+
+  /**
+   * Verifies the user, resumes any pending escrow operation, and resolves the
+   * identifiers a developer recovery run reads the Recovery Secret with.
+   */
+  async prepareRun(): Promise<MfaRecoveryRunIdentifiers> {
+    const address = await this.getSiweAddress();
+    await this.verifyMfa();
+    await this.#resumePendingOperation();
+    const { authIdentifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    const trustedAuth = await this.#filterTrusted(authIdentifiers);
+    return {
+      // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
+      // signature, so fall back to the SRP signing key's identifier.
+      siweIdentifier:
+        trustedAuth.find((identifier) => identifier.type === 'siwe') ??
+        createSiweIdentifier(address),
+      get passkeyIdentifier(): Identifier {
+        const passkey = trustedAuth
+          .filter((identifier) => identifier.type === 'passkey')
+          .map(withPasskeyVerifier)
+          .find(isProvablePasskeyIdentifier);
+        if (passkey === undefined) {
+          throw new IdentifierNotApprovedError('passkey');
+        }
+        return passkey;
+      },
+    };
   }
 
   /**
