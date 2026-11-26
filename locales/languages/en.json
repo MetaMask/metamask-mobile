@@ -139,6 +139,9 @@
     "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
+    "lighter_withdraw_minimum": {
+      "message": "Minimum withdrawal is {{amount}}"
+    },
     "lighter_account_lookup_pending": {
       "message": "Verifying Lighter account..."
     },
@@ -2337,8 +2340,8 @@
       "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Switch size denomination",
       "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
-      "available_balance": "{{amount}} available",
-      "available_balance_unavailable": "-- available",
+      "available_balance": "Available to trade {{amount}}",
+      "available_balance_unavailable": "Available to trade --",
       "est_liquidation": "Est Liquidation",
       "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
@@ -3664,8 +3667,8 @@
     },
     "exchange_filter": {
       "title": "Filter by exchange",
-      "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage",
+      "tagline_lighter": "Lower fee, higher leverage",
+      "tagline_hyperliquid": "Higher volume, lower slippage",
       "trigger": "{{count}} exchange",
       "trigger_plural": "{{count}} exchanges"
     },
@@ -3898,6 +3901,14 @@
     },
     "price_alerts": {
       "open": "Open price alerts"
+    },
+    "trade_on": {
+      "title": "Trade on",
+      "label": "Trade on",
+      "subtitle": "Select an exchange for this order. To set a default for all orders, go to settings.",
+      "accessibility_label": "Trade on {{venue}}",
+      "max_leverage": "max",
+      "default_tag": "Default"
     }
   },
   "market_insights": {
@@ -4044,7 +4055,17 @@
       "game_quote_price": "· {{price}}",
       "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
       "game_quote_price_accessibility_label": "{{team}}, {{price}}",
-      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable",
+      "card_volume_label": "${{volume}} vol.",
+      "game_draw_label": "Draw",
+      "game_status": {
+        "scheduled": "Scheduled",
+        "delayed": "Delayed",
+        "suspended": "Suspended",
+        "postponed": "Postponed",
+        "final": "Final",
+        "canceled": "Canceled"
+      }
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -8832,6 +8853,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
+    "tron_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again."
+    },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",
@@ -10090,7 +10114,8 @@
       "add": "Add",
       "move": "Move",
       "card": "Card",
-      "details": "Details"
+      "details": "Details",
+      "details_new_badge": "New"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -12284,6 +12309,10 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
+      "more_button_label": "More options",
+      "more_sheet": {
+        "title": "More"
+      },
       "enable_card_error": "Failed to enable card. Try again later.",
       "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
@@ -12372,6 +12401,7 @@
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
@@ -13665,6 +13695,14 @@
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
+    "crypto_tokens_section": "Tokens",
+    "crypto_token_count": "{{count}} token",
+    "crypto_token_count_plural": "{{count}} tokens",
+    "crypto_pills": {
+      "trending": "Trending",
+      "most_traded": "Most traded",
+      "robinhood": "Robinhood"
+    },
     "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",

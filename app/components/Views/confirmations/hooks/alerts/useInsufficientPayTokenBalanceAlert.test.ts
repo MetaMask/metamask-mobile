@@ -797,6 +797,34 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
+    it('blocks a Lighter withdraw amount above the Lighter balance', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        chainId: SOURCE_CHAIN_ID,
+        type: TransactionType.perpsLighterWithdraw,
+      } as unknown as TransactionMeta);
+      jest.mocked(useTransactionPayBalance).mockReturnValue({
+        balanceRaw: '5570887',
+        balanceUsd: 5.570887,
+      });
+
+      const { result } = runHook(
+        { pendingAmountUsd: '10' },
+        polygonNetworkState,
+      );
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
     it('fires the fees check generically in post-quote flows', () => {
       // The fees check is no longer special-cased for post-quote flows: it runs
       // against the resolved spendable balance (balanceRaw) like every other
