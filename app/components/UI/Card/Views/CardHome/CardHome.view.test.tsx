@@ -701,8 +701,8 @@ describe('CardHome', () => {
         ),
         extraRoutes: [
           {
-            name: Routes.HOME_TABS,
-            Component: createRouteParamsProbe(Routes.HOME_TABS),
+            name: Routes.MONEY.ROOT,
+            Component: createRouteParamsProbe(Routes.MONEY.ROOT),
           },
         ],
       });
@@ -713,11 +713,10 @@ describe('CardHome', () => {
 
       expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
       const paramsEl = await view.findByTestId(
-        getRouteParamsProbeTestId(Routes.HOME_TABS),
+        getRouteParamsProbeTestId(Routes.MONEY.ROOT),
       );
       expect(JSON.parse(paramsEl.props.children as string)).toEqual({
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.ACTIVITY },
+        screen: Routes.MONEY.ACTIVITY,
       });
     });
 
