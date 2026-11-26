@@ -3,7 +3,10 @@ import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
-import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
+import {
+  TokenDetailsIdentity,
+  TokenDetailsInlineHeader,
+} from './TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
 import { TokenDetailsIds } from '../testIds';
@@ -718,6 +721,35 @@ describe('TokenDetailsInlineHeader', () => {
       fireEvent(getByTestId('back-arrow-button'), 'layout', event);
 
       expect(onLayout).toHaveBeenCalledWith(event);
+    });
+  });
+
+  describe('identity above the price', () => {
+    it('leaves the name out of the header when the page renders it above the price', () => {
+      const { queryByTestId, getByTestId } = renderHeader({
+        showIdentityInHeader: false,
+      });
+
+      expect(queryByTestId('token-details-title')).toBeNull();
+      expect(queryByTestId(TokenDetailsIds.header.subtitle)).toBeNull();
+      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
+    });
+
+    it('renders the name, ticker, and address as its own block', () => {
+      const { getByTestId, getByText } = render(
+        <TokenDetailsIdentity
+          token={{ ...mockToken, isETH: false, isNative: false }}
+          securityData={undefined}
+          inContent
+        />,
+      );
+
+      expect(getByTestId('token-details-identity')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByTestId(TokenDetailsIds.header.ticker)).toHaveTextContent(
+        'ETH',
+      );
+      expect(getByTestId(TokenDetailsIds.header.address)).toBeOnTheScreen();
     });
   });
 });

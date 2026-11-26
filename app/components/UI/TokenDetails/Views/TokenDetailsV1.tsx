@@ -93,7 +93,10 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
-import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import {
+  TokenDetailsIdentity,
+  TokenDetailsInlineHeader,
+} from '../components/TokenDetailsInlineHeader';
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TokenDetailsSource,
@@ -106,7 +109,6 @@ import {
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
-import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useElapsedTime } from '../hooks/useElapsedTime';
@@ -433,9 +435,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
-  const { description: headerDescription, onScrollOffset } =
-    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
-
   // The paginated tabs (Feed, Holders) have no scroll of their own, so they
   // read this page's instead of measuring their own footer on a timer.
   const pageScroll = useTokenDetailsScroll();
@@ -458,10 +457,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       const scrollOffset = event.nativeEvent.contentOffset.y;
       headerScrollY.set(scrollOffset);
       onPinnedTabBarScroll(scrollOffset);
-      onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [headerScrollY, onPageScroll, onPinnedTabBarScroll, onScrollOffset],
+    [headerScrollY, onPageScroll, onPinnedTabBarScroll],
   );
 
   const {
@@ -855,15 +853,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             onPriceAlertPress={
               isPriceAlertsSupported ? handlePriceAlertPress : undefined
             }
-            description={headerDescription}
-            titleEndAccessory={
-              formatTokenAge(launchedAt) != null ? (
-                <TokenAgeChip
-                  launchedAtSeconds={launchedAt}
-                  onPress={handleAgePress}
-                />
-              ) : undefined
-            }
+            showIdentityInHeader={false}
             isGlass={isGlassHeader}
             onLayout={handleHeaderLayout}
             scrollY={headerScrollY}
@@ -886,6 +876,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   onContentSizeChange={pageScroll.onContentSizeChange}
                   testID={TokenDetailsIds.scrollView}
                 >
+                  <TokenDetailsIdentity
+                    token={token}
+                    securityData={securityData}
+                    tdpVersion="v3"
+                    hideContractAddress
+                    inContent
+                    titleEndAccessory={
+                      formatTokenAge(launchedAt) != null ? (
+                        <TokenAgeChip
+                          launchedAtSeconds={launchedAt}
+                          onPress={handleAgePress}
+                        />
+                      ) : undefined
+                    }
+                  />
                   <Price.Provider
                     asset={token}
                     prices={prices}

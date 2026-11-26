@@ -64,58 +64,16 @@ const formatCompactContractAddress = (address: string): string => {
   return `${formatted.slice(0, COMPACT_ADDRESS_EDGE_LENGTH)}..${tail}`;
 };
 
-export const TokenDetailsInlineHeader = ({
+const useTokenDetailsIdentity = ({
   token,
   securityData,
-  onBackPress,
-  onPriceAlertPress,
-  onSharePress,
-  starButton,
   onCopyAddress,
   titleEndAccessory,
   description,
   tdpVersion,
   hideContractAddress = false,
-  isGlass = false,
-  onLayout,
-  scrollY,
-}: {
-  token: TokenDetailsRouteParams;
-  securityData: TokenSecurityData | null | undefined;
-  onBackPress: () => void;
-  onPriceAlertPress?: () => void;
-  onSharePress?: () => void;
-  /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
-  starButton?: ReactNode;
-  onCopyAddress?: () => void;
-  titleEndAccessory?: ReactNode;
-  /**
-   * Replaces the contract-address row. The meme token page passes the live
-   * price here once the page has scrolled.
-   */
-  description?: ReactNode;
-  /**
-   * Token Details page analytics version (`'v3'` for the new V1/memecoin page,
-   * `'v2'` for legacy). Forwarded to the security badge bottom sheet so its
-   * events report the correct `tdp_version`.
-   */
-  tdpVersion?: TdpVersion;
-  /**
-   * When `true`, omits the contract address (and copy button) from the header
-   * subtitle. The memecoin TDP V1 sets this because the address lives in the
-   * security-social row instead; the legacy TDP leaves it `false`.
-   */
-  hideContractAddress?: boolean;
-  /**
-   * Floats the header over the page on its glass backdrop, with the buttons in
-   * capsules, as on the brand refresh.
-   */
-  isGlass?: boolean;
-  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
-  onLayout?: (event: LayoutChangeEvent) => void;
-  /** The page's scroll offset, which fades the glass backdrop in. */
-  scrollY?: SharedValue<number>;
-}) => {
+  inContent = false,
+}: TokenDetailsIdentityProps) => {
   const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
@@ -151,6 +109,7 @@ export const TokenDetailsInlineHeader = ({
         onPress={handleSecurityBadgePress}
         iconProps={{ color: verifiedBadgeConfig.iconColor }}
         testID="security-badge-verified"
+        twClassName="ml-0.5"
         accessibilityLabel={securityConfig.label}
       />
     ) : null;
@@ -185,58 +144,12 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
-  // Left → right: watchlist star, price alert, share.
-  const endAccessory = useMemo(() => {
-    const buttons: ReactNode[] = [];
-
-    if (starButton) {
-      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
-    }
-    if (onPriceAlertPress) {
-      buttons.push(
-        <ButtonIcon
-          key="alert"
-          iconName={IconName.Notification}
-          size={ButtonIconSize.Md}
-          onPress={onPriceAlertPress}
-          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
-          accessibilityLabel="Create price alert"
-        />,
-      );
-    }
-    if (onSharePress) {
-      buttons.push(
-        <ButtonIcon
-          key="share"
-          iconName={IconName.Share}
-          size={ButtonIconSize.Md}
-          onPress={onSharePress}
-          testID="share-button"
-          accessibilityLabel="Share token"
-        />,
-      );
-    }
-
-    if (buttons.length === 0) return undefined;
-    // On glass the actions share one capsule, as on the home header.
-    if (isGlass) {
-      return <CapsuleGlass twClassName="gap-1 px-1">{buttons}</CapsuleGlass>;
-    }
-    return (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
-        {buttons}
-      </Box>
-    );
-  }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
-
   const tokenName = token.name?.trim() || token.ticker || token.symbol;
   const tokenTicker = token.ticker || token.symbol;
   const showTickerBelowName = Boolean(
     tokenTicker && tokenName && tokenTicker !== tokenName,
   );
 
-  // The trailing detail that sits next to the ticker: contract address at rest,
-  // live price once the user scrolls past the hero.
   const trailingDetail = useMemo(() => {
     if (description) {
       return (
@@ -292,8 +205,6 @@ export const TokenDetailsInlineHeader = ({
 
   const hasSubtitle = showTickerBelowName || trailingDetail;
 
-  // Reserve the description row so HeaderSubpageGlass lays out the subtitle
-  // accessory; the actual content lives in `subtitleAccessory`.
   const headerDescription = useMemo(
     () => (hasSubtitle ? <Box /> : undefined),
     [hasSubtitle],
@@ -309,7 +220,7 @@ export const TokenDetailsInlineHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="w-full min-w-0 gap-1"
-        style={tw.style('min-w-0 flex-1 -ml-1')}
+        style={inContent ? undefined : tw.style('min-w-0 flex-1 -ml-1')}
         testID={TokenDetailsIds.header.subtitle}
       >
         {showTickerBelowName ? (
@@ -328,7 +239,205 @@ export const TokenDetailsInlineHeader = ({
         {trailingDetail}
       </Box>
     );
-  }, [hasSubtitle, showTickerBelowName, tokenTicker, trailingDetail, tw]);
+  }, [
+    hasSubtitle,
+    showTickerBelowName,
+    tokenTicker,
+    trailingDetail,
+    tw,
+    inContent,
+  ]);
+
+  const avatar = (
+    <BadgeWrapper
+      twClassName="self-center"
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        networkBadgeSource ? (
+          <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
+        ) : undefined
+      }
+    >
+      <AssetLogo asset={token} />
+    </BadgeWrapper>
+  );
+
+  return {
+    avatar,
+    tokenName,
+    headerDescription,
+    subtitleAccessory,
+    resolvedTitleEndAccessory: titleEndAccessory ?? defaultTitleEndAccessory,
+  };
+};
+
+interface TokenDetailsIdentityProps {
+  token: TokenDetailsRouteParams;
+  securityData: TokenSecurityData | null | undefined;
+  onCopyAddress?: () => void;
+  titleEndAccessory?: ReactNode;
+  /** Replaces the contract-address row, for example with the scrolled live price. */
+  description?: ReactNode;
+  tdpVersion?: TdpVersion;
+  hideContractAddress?: boolean;
+  /** Drops the header subtitle's negative margin when the block sits in content. */
+  inContent?: boolean;
+}
+
+export const TokenDetailsIdentity = ({
+  token,
+  securityData,
+  onCopyAddress,
+  titleEndAccessory,
+  description,
+  tdpVersion,
+  hideContractAddress = false,
+  inContent = false,
+}: TokenDetailsIdentityProps) => {
+  const identity = useTokenDetailsIdentity({
+    token,
+    securityData,
+    onCopyAddress,
+    titleEndAccessory,
+    description,
+    tdpVersion,
+    hideContractAddress,
+    inContent,
+  });
+
+  if (!identity.tokenName) {
+    return null;
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-4 px-4 pt-2"
+      testID="token-details-identity"
+    >
+      {identity.avatar}
+      <Box twClassName="min-w-0 flex-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="min-w-0"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
+            testID="token-details-title"
+          >
+            {identity.tokenName}
+          </Text>
+          {identity.resolvedTitleEndAccessory}
+        </Box>
+        {identity.subtitleAccessory}
+      </Box>
+    </Box>
+  );
+};
+
+export const TokenDetailsInlineHeader = ({
+  token,
+  securityData,
+  onBackPress,
+  onPriceAlertPress,
+  onSharePress,
+  starButton,
+  onCopyAddress,
+  titleEndAccessory,
+  description,
+  tdpVersion,
+  hideContractAddress = false,
+  isGlass = false,
+  onLayout,
+  scrollY,
+  showIdentityInHeader = true,
+}: {
+  token: TokenDetailsRouteParams;
+  securityData: TokenSecurityData | null | undefined;
+  onBackPress: () => void;
+  onPriceAlertPress?: () => void;
+  onSharePress?: () => void;
+  /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
+  starButton?: ReactNode;
+  onCopyAddress?: () => void;
+  titleEndAccessory?: ReactNode;
+  description?: ReactNode;
+  tdpVersion?: TdpVersion;
+  hideContractAddress?: boolean;
+  /**
+   * Floats the header over the page on its glass backdrop, with the buttons in
+   * capsules, as on the brand refresh.
+   */
+  isGlass?: boolean;
+  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
+  onLayout?: (event: LayoutChangeEvent) => void;
+  /** The page's scroll offset, which fades the glass backdrop in. */
+  scrollY?: SharedValue<number>;
+  /**
+   * When `false`, the name, ticker, and address render in the page content
+   * above the price instead of inside this header.
+   */
+  showIdentityInHeader?: boolean;
+}) => {
+  const identity = useTokenDetailsIdentity({
+    token,
+    securityData,
+    onCopyAddress,
+    titleEndAccessory,
+    description,
+    tdpVersion,
+    hideContractAddress,
+  });
+
+  // Left → right: watchlist star, price alert, share.
+  const endAccessory = useMemo(() => {
+    const buttons: ReactNode[] = [];
+
+    if (starButton) {
+      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
+    }
+    if (onPriceAlertPress) {
+      buttons.push(
+        <ButtonIcon
+          key="alert"
+          iconName={IconName.Notification}
+          size={ButtonIconSize.Md}
+          onPress={onPriceAlertPress}
+          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+          accessibilityLabel="Create price alert"
+        />,
+      );
+    }
+    if (onSharePress) {
+      buttons.push(
+        <ButtonIcon
+          key="share"
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onSharePress}
+          testID="share-button"
+          accessibilityLabel="Share token"
+        />,
+      );
+    }
+
+    if (buttons.length === 0) return undefined;
+    // On glass the actions share one capsule, as on the home header.
+    if (isGlass) {
+      return <CapsuleGlass twClassName="gap-1 px-1.5">{buttons}</CapsuleGlass>;
+    }
+    return (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        {buttons}
+      </Box>
+    );
+  }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
 
   return (
     <HeaderSubpageGlass
@@ -345,26 +454,20 @@ export const TokenDetailsInlineHeader = ({
       onBack={onBackPress}
       backButtonProps={{ testID: 'back-arrow-button' }}
       endAccessory={endAccessory}
-      avatar={
-        <BadgeWrapper
-          twClassName="self-center"
-          position={BadgeWrapperPosition.BottomRight}
-          badge={
-            networkBadgeSource ? (
-              <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
-            ) : undefined
-          }
-        >
-          <AssetLogo asset={token} />
-        </BadgeWrapper>
-      }
-      title={tokenName}
+      avatar={showIdentityInHeader ? identity.avatar : undefined}
+      title={showIdentityInHeader ? identity.tokenName : undefined}
       // Long names (e.g. Robinhood stock tokens) would otherwise keep their full
       // width and push the title badges under the watchlist star.
-      titleProps={TITLE_PROPS}
-      titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
-      description={headerDescription}
-      descriptionEndAccessory={subtitleAccessory}
+      titleProps={showIdentityInHeader ? TITLE_PROPS : undefined}
+      titleEndAccessory={
+        showIdentityInHeader ? identity.resolvedTitleEndAccessory : undefined
+      }
+      description={
+        showIdentityInHeader ? identity.headerDescription : undefined
+      }
+      descriptionEndAccessory={
+        showIdentityInHeader ? identity.subtitleAccessory : undefined
+      }
     />
   );
 };

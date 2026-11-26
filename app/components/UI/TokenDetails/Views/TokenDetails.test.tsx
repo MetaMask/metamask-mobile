@@ -272,6 +272,7 @@ const mockTokenDetailsInlineHeader = jest.fn(
 jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: (props: Record<string, unknown>) =>
     mockTokenDetailsInlineHeader(props),
+  TokenDetailsIdentity: () => null,
 }));
 
 const mockShareTokenBottomSheet = jest.fn(
@@ -1541,6 +1542,14 @@ describe('TokenDetails', () => {
   });
 
   describe('header back button', () => {
+    it('keeps the token identity out of the header so it can sit above the price', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ showIdentityInHeader: false }),
+      );
+    });
+
     it('calls navigation.goBack when onBackPress is invoked', () => {
       render(<TokenDetails />);
 

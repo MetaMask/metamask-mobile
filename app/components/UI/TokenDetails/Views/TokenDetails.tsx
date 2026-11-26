@@ -54,7 +54,10 @@ import {
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
 } from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
-import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import {
+  TokenDetailsIdentity,
+  TokenDetailsInlineHeader,
+} from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
@@ -707,6 +710,15 @@ const TokenDetails: React.FC<{
         }
         mainBalance={fiatBalance ?? ''}
         secondaryBalance={tokenFormattedBalance}
+        leadingContent={
+          <TokenDetailsIdentity
+            token={token}
+            securityData={securityData}
+            tdpVersion="v2"
+            onCopyAddress={handleCopyAddress}
+            inContent
+          />
+        }
         currentPrice={currentPrice}
         priceDiff={priceDiff}
         comparePrice={comparePrice}
@@ -763,6 +775,7 @@ const TokenDetails: React.FC<{
           }
           onCopyAddress={handleCopyAddress}
           description={headerDescription}
+          showIdentityInHeader={false}
           isGlass={isGlassHeader}
           onLayout={handleHeaderLayout}
           scrollY={headerScrollY}
