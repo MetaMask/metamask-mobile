@@ -57,7 +57,7 @@ export function dismissWebviewAuthSession(sessionId: string): void {
  * and resolves with the intercepted `redirectUri` URL (carrying `code` and
  * `state`), or `undefined` if the user dismisses the screen or `signal` aborts.
  */
-export function openWebviewAuthSession(options: {
+export async function openWebviewAuthSession(options: {
   url: string;
   redirectUri: string;
   signal?: AbortSignal;
@@ -65,12 +65,12 @@ export function openWebviewAuthSession(options: {
   const { url, redirectUri, signal } = options;
 
   if (signal?.aborted) {
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
   const sessionId = `webview-auth-${++nextSessionId}`;
 
-  return new Promise<string | undefined>((resolve, reject) => {
+  return await new Promise<string | undefined>((resolve, reject) => {
     let settled = false;
     let onAbort: (() => void) | undefined;
 

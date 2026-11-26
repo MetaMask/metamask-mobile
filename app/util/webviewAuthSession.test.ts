@@ -1,4 +1,3 @@
-import NavigationService from '../core/NavigationService';
 import Routes from '../constants/navigation/Routes';
 import {
   attachWebviewAuthSessionClose,

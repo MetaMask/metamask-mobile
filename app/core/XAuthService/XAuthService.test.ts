@@ -87,7 +87,7 @@ const NO_BROWSER_ACTIVITY_ERROR = new Error(
   "Call to function 'ExpoWebBrowser.openBrowserAsync' has been rejected.\n→ Caused by: No matching browser activity found",
 );
 
-const flushPromises = () => new Promise(setImmediate);
+const flushPromises = async () => await new Promise(setImmediate);
 
 describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
@@ -128,8 +128,8 @@ describe('XAuthService (app-relay flow)', () => {
       const getHandler = getLinkingHandler();
       let resolveOpenAuth!: (result: unknown) => void;
       (openAuthSessionAsync as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveOpenAuth = resolve;
           }),
       );
@@ -326,8 +326,8 @@ describe('XAuthService (app-relay flow)', () => {
         state: string;
       }) => void = () => undefined;
       jest.mocked(ProfileController.getXAuthorizationUrl).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveUrl = resolve;
           }),
       );
@@ -352,8 +352,8 @@ describe('XAuthService (app-relay flow)', () => {
       let resolveOpen: (result: { type: string; url: string }) => void = () =>
         undefined;
       (openAuthSessionAsync as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveOpen = resolve;
           }),
       );
@@ -466,8 +466,8 @@ describe('XAuthService (app-relay flow)', () => {
     it('does not open the in-app WebView fallback when aborted before openAuthSessionAsync rejects', async () => {
       let rejectOpen!: (error: Error) => void;
       (openAuthSessionAsync as jest.Mock).mockImplementation(
-        () =>
-          new Promise((_resolve, reject) => {
+        async () =>
+          await new Promise((_resolve, reject) => {
             rejectOpen = reject;
           }),
       );
@@ -492,8 +492,8 @@ describe('XAuthService (app-relay flow)', () => {
         NO_BROWSER_ACTIVITY_ERROR,
       );
       jest.mocked(openWebviewAuthSession).mockImplementation(
-        ({ signal }) =>
-          new Promise((resolve) => {
+        async ({ signal }) =>
+          await new Promise((resolve) => {
             resolveWebview = resolve;
             signal?.addEventListener('abort', () => resolve(undefined), {
               once: true,
