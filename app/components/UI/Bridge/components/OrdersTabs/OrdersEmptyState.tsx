@@ -50,19 +50,6 @@ export function OrdersEmptyState({
         actionButtonProps={
           actionButtonTestID ? { testID: actionButtonTestID } : undefined
         }
-      /><Image
-            source={emptyStateIcon}
-            resizeMode="contain"
-            style={tw.style('h-[72px] w-[72px]')}
-            accessible={false}
-          />
-        }
-        description={description}
-        actionButtonText={actionButtonText}
-        onAction={onAction}
-        actionButtonProps={
-          actionButtonTestID ? { testID: actionButtonTestID } : undefined
-        }
       />
     </Box>
   );

@@ -46,22 +46,6 @@ export const HardwareWalletUnsupportedBanner = () => {
           {strings('bridge.hardware_wallet_not_supported')}
         </Text>
       }
-    /><Icon
-          name={IconName.Error}
-          color={IconColor.ErrorDefault}
-          size={IconSize.Lg}
-        />
-      }
-      description={
-        <Text
-          testID={
-            SwapsBannersSelectorsIDs.HARDWARE_WALLET_ORDER_TYPE_UNSUPPORTED
-          }
-          variant={TextVariant.BodySm}
-        >
-          {strings('bridge.hardware_wallet_not_supported')}
-        </Text>
-      }
     />
   );
 };

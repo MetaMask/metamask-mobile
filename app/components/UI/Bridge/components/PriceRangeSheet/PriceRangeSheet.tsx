@@ -89,7 +89,7 @@ function PricePercentRow({
           isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          className="min-w-0 flex-1 px-0"
+          twClassName="min-w-0 flex-1 px-0"
           textProps={{ fontWeight: FontWeight.Medium }}
         >
           {formatPercentLabel(percent)}
@@ -130,19 +130,6 @@ function PriceRangeAmountField({
         onPressIn: onPress,
       }}
       className="w-full bg-default border-default"
-    /><Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {currencySymbol}
-        </Text>
-      }
-      onFocus={onPress}
-      inputProps={{
-        showSoftInputOnFocus: false,
-        caretHidden: false,
-        testID,
-        accessibilityLabel: placeholder,
-        onPressIn: onPress,
-      }}
-      twClassName="w-full bg-default border-default"
     />
   );
 }

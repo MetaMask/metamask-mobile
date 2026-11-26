@@ -55,20 +55,6 @@ export const QuoteErrorBanner = () => {
           {getQuoteStreamReasonString(quoteStreamComplete?.reason)}
         </Text>
       }
-    /><Icon
-          name={IconName.Error}
-          color={IconColor.ErrorDefault}
-          size={IconSize.Lg}
-        />
-      }
-      description={
-        <Text
-          testID={SwapsBannersSelectorsIDs.QUOTE_ERROR}
-          variant={TextVariant.BodySm}
-        >
-          {getQuoteStreamReasonString(quoteStreamComplete?.reason)}
-        </Text>
-      }
     />
   );
 };

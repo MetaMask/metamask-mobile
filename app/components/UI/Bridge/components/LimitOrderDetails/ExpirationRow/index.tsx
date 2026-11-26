@@ -61,34 +61,6 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
       </TouchableOpacity>
     }
     className="h-auto"
-  /><TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={strings('bridge.limit.expires')}
-        onPress={onPress}
-        activeOpacity={0.6}
-        testID={testID}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            testID={ExpirationRowSelectorsIDs.VALUE}
-          >
-            {value}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
-      </TouchableOpacity>
-    }
-    twClassName="h-auto"
   />
 );
 

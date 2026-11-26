@@ -98,22 +98,6 @@ export const TokenWarningBanner = () => {
               })
         }
         onClose={dismiss}
-      /><Icon
-            name={securityConfig.iconName}
-            color={securityConfig.iconColor}
-            size={IconSize.Lg}
-          />
-        }
-        description={
-          isMalicious
-            ? strings('bridge.token_warning_malicious_banner', {
-                token: destToken?.symbol,
-              })
-            : strings('bridge.token_warning_suspicious_banner', {
-                token: destToken?.symbol,
-              })
-        }
-        onClose={dismiss}
       />
     </Pressable>
   );
