@@ -37,6 +37,7 @@ export const STATE_LOG_OMITTED_FIELDS = {
     'otp',
     'pendingSecretImports',
     'provisioningMetadata',
+    'importSummary',
     'provisioningStatus',
   ],
 } as const;

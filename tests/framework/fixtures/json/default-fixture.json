@@ -612,6 +612,7 @@
         "QrSyncController": {
           "connectionStatus": "disconnected",
           "error": null,
+          "importSummary": null,
           "otp": null,
           "pendingSecretImports": null,
           "phase": "idle",

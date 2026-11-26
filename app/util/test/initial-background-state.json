@@ -960,6 +960,7 @@
     "syncFlow": null,
     "pendingSecretImports": null,
     "provisioningMetadata": null,
+    "importSummary": null,
     "provisioningStatus": null,
     "otp": null,
     "error": null
