@@ -87,7 +87,8 @@ async function request<Data, Schema>(
         op: 'http.request',
         attributes: { feature: options.feature, operation: options.operation },
       },
-      () => Promise.race([stopped, send(method, url, options, controller)]),
+      async () =>
+        Promise.race([stopped, send(method, url, options, controller)]),
     );
   } finally {
     clearTimeout(timer);
@@ -147,7 +148,7 @@ function withMethod(method: Method) {
     options: RequestOptions & { responseStruct: Struct<Data, Schema> },
   ): Promise<Data>;
   function call(url: string | URL, options?: RequestOptions): Promise<unknown>;
-  function call<Data, Schema>(
+  async function call<Data, Schema>(
     url: string | URL,
     options?: Options<Data, Schema>,
   ): Promise<unknown> {
