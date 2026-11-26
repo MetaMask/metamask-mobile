@@ -152,10 +152,27 @@ describe('useValidateMoneyReferralCode', () => {
     expect(result.current.isValid).toBe(true);
   });
 
+  it('sends a hyphenated code to the backend without its hyphens', async () => {
+    mockEngineCall.mockResolvedValueOnce({ success: true });
+    const { result } = renderHook(() => useValidateMoneyReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('data-nerd');
+    });
+
+    await advanceDebounce();
+
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsMoneyController:validateReferralCode',
+      'DATANERD',
+    );
+    expect(result.current.isValid).toBe(true);
+  });
+
   it.each([
     ['too short', 'AB'],
     ['longer than 24 characters', 'A'.repeat(25)],
-    ['hyphenated', 'KOL-1'],
+    ['too short once hyphens are dropped', 'A-B'],
     ['underscored', 'KOL_1'],
   ])('does not call the backend for a %s code', async (_label, code) => {
     const { result } = renderHook(() => useValidateMoneyReferralCode());
@@ -179,7 +196,7 @@ describe('useValidateMoneyReferralCode', () => {
       expect(await result.current.validateCode('AB')).toBe(
         'Invalid referral code. Check and try again.',
       );
-      expect(await result.current.validateCode('KOL-1')).toBe(
+      expect(await result.current.validateCode('A-B')).toBe(
         'Invalid referral code. Check and try again.',
       );
       expect(await result.current.validateCode('A'.repeat(25))).toBe(

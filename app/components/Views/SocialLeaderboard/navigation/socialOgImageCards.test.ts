@@ -184,9 +184,18 @@ describe('buildSocialTradeOgImageRequest', () => {
     expect(trade?.promoCode).toBe('8F3A21');
   });
 
+  it('sends a hyphenated promo code without its hyphens', () => {
+    const request = buildSocialTradeOgImageRequest(
+      tradeInput({ promoCode: 'DATA-NERD' }),
+    );
+
+    const trade = request?.kind === 'trade' ? request.trade : undefined;
+    expect(trade?.promoCode).toBe('DATANERD');
+  });
+
   it('leaves out a malformed promo code', () => {
     const request = buildSocialTradeOgImageRequest(
-      tradeInput({ promoCode: 'NOT-A-CODE' }),
+      tradeInput({ promoCode: 'NOT_A_CODE' }),
     );
 
     const trade = request?.kind === 'trade' ? request.trade : undefined;

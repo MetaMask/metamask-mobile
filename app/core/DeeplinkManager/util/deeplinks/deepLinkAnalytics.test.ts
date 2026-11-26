@@ -769,6 +769,23 @@ describe('deepLinkAnalytics', () => {
       expect(result.properties).not.toHaveProperty('referral');
     });
 
+    it('reports a hyphenated money referral code without its hyphens', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/home?ref=data-nerd',
+        route: DeepLinkRoute.HOME,
+        urlParams: { ref: 'data-nerd' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral_code).toBe('DATANERD');
+    });
+
     it('omits the money referral code when ref is malformed', async () => {
       mockDetectAppInstallation.mockResolvedValue(true);
 

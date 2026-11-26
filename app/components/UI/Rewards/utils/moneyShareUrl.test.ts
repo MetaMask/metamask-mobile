@@ -34,13 +34,19 @@ describe('resolveMoneyShareUrl', () => {
     },
   );
 
+  it('drops hyphens from the code, matching the server share_url', () => {
+    expect(resolveMoneyShareUrl('DATA-NERD', null)).toBe(
+      'https://link.metamask.io/home?ref=DATANERD',
+    );
+  });
+
   it('percent-encodes a code that is not URL safe', () => {
     expect(resolveMoneyShareUrl('a b&c=1', null)).toBe(
       `${MONEY_SHARE_HOME_REF_BASE}a%20b%26c%3D1`,
     );
   });
 
-  it.each([null, undefined, '', '   '])(
+  it.each([null, undefined, '', '   ', '-'])(
     'returns null when there is no code and no usable share_url (%p)',
     (code) => {
       expect(resolveMoneyShareUrl(code, null)).toBeNull();
