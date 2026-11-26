@@ -342,7 +342,7 @@ const FollowConnectionsView: React.FC = () => {
     if (isFollowingLoading && following.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_LOADING}
@@ -354,7 +354,7 @@ const FollowConnectionsView: React.FC = () => {
     if (followingError && following.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingHorizontal={4}
           paddingTop={12}
@@ -365,7 +365,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.my_profile.load_error')}
           </Text>
@@ -373,7 +373,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={refreshFollowing}
-            twClassName="self-center"
+            className="self-center"
             testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_RETRY}
           >
             {strings('social_leaderboard.my_profile.retry')}
@@ -384,7 +384,7 @@ const FollowConnectionsView: React.FC = () => {
     if (following.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           paddingHorizontal={4}
@@ -414,7 +414,7 @@ const FollowConnectionsView: React.FC = () => {
     if (isFollowersLoading && followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_LOADING}
@@ -426,7 +426,7 @@ const FollowConnectionsView: React.FC = () => {
     if (followersError && followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingHorizontal={4}
           paddingTop={12}
@@ -437,7 +437,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.my_profile.load_error')}
           </Text>
@@ -445,7 +445,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={refreshFollowers}
-            twClassName="self-center"
+            className="self-center"
             testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_RETRY}
           >
             {strings('social_leaderboard.my_profile.retry')}
@@ -456,7 +456,7 @@ const FollowConnectionsView: React.FC = () => {
     if (followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           paddingHorizontal={4}
@@ -482,7 +482,7 @@ const FollowConnectionsView: React.FC = () => {
     if (mutualFollowers.isLoading && mutualFollowers.followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           testID={FollowConnectionsViewSelectorsIDs.MUTUALS_LOADING}
@@ -494,7 +494,7 @@ const FollowConnectionsView: React.FC = () => {
     if (mutualFollowers.error && mutualFollowers.followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingHorizontal={4}
           paddingTop={12}
@@ -505,7 +505,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.my_profile.load_error')}
           </Text>
@@ -513,7 +513,7 @@ const FollowConnectionsView: React.FC = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={mutualFollowers.refresh}
-            twClassName="self-center"
+            className="self-center"
             testID={FollowConnectionsViewSelectorsIDs.MUTUALS_RETRY}
           >
             {strings('social_leaderboard.my_profile.retry')}
@@ -524,7 +524,7 @@ const FollowConnectionsView: React.FC = () => {
     if (mutualFollowers.followers.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           paddingHorizontal={4}
@@ -569,7 +569,7 @@ const FollowConnectionsView: React.FC = () => {
         }}
         testID={FollowConnectionsViewSelectorsIDs.HEADER}
       />
-      <Box twClassName="border-b border-muted">
+      <Box className="border-b border-muted">
         <TabsBar
           tabs={connectionTabs}
           activeIndex={activeIndex}
@@ -577,7 +577,7 @@ const FollowConnectionsView: React.FC = () => {
           testID={FollowConnectionsViewSelectorsIDs.TABS}
         />
       </Box>
-      <Box twClassName="flex-1">{activeContent}</Box>
+      <Box className="flex-1">{activeContent}</Box>
     </SafeAreaView>
   );
 };

@@ -64,7 +64,7 @@ const EarningsHero = ({
     totalEarnedUsd > 0 ? TextColor.SuccessDefault : TextColor.TextDefault;
 
   return (
-    <Box testID={MoneyEarningsViewTestIds.HERO} twClassName="gap-1">
+    <Box testID={MoneyEarningsViewTestIds.HERO} className="gap-1">
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('money.earnings.total_earned')}
       </Text>

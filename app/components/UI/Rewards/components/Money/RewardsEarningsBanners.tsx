@@ -33,7 +33,7 @@ const RewardsEarningsBanners: React.FC<{
   }
 
   return (
-    <Box twClassName={twClassName ? `gap-2 ${twClassName}` : 'gap-2'}>
+    <Box className={twClassName ? `gap-2 ${twClassName}` : 'gap-2'}>
       {pausedBaseUnits ? (
         <RewardsPausedBanner
           baseUnits={pausedBaseUnits}

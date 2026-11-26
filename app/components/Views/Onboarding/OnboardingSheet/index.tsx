@@ -139,7 +139,7 @@ const OnboardingSheet = ({
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="p-4 gap-y-4"
+        className="p-4 gap-y-4"
         testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
       >
         <Button
@@ -148,6 +148,25 @@ const OnboardingSheet = ({
           testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
           startAccessory={
             <GoogleIcon
+              fill="currentColor"
+              width={24}
+              height={24}
+              name={'google'}
+            />
+          }
+          isFullWidth
+          size={ButtonSize.Lg}
+          isLoading={loadingProvider === AuthConnection.Google}
+          spinnerProps={socialButtonSpinnerProps}
+          isDisabled={
+            isSocialLoading && loadingProvider !== AuthConnection.Google
+          }
+          contentWrapperProps={{ twClassName: 'gap-3' }}
+          style={tw.style('border border-muted', {
+            backgroundColor: colors.text.default,
+          })}
+          textProps={{ style: { color: colors.background.default } }}
+        ><GoogleIcon
               fill="currentColor"
               width={24}
               height={24}
@@ -204,6 +223,33 @@ const OnboardingSheet = ({
             backgroundColor: colors.text.default,
           })}
           textProps={{ style: { color: colors.background.default } }}
+        ><AppleIcon
+                fill="currentColor"
+                width={24}
+                height={24}
+                name={'apple'}
+              />
+            ) : (
+              <AppleWhiteIcon
+                fill="currentColor"
+                width={24}
+                height={24}
+                name={'apple-white'}
+              />
+            )
+          }
+          isFullWidth
+          size={ButtonSize.Lg}
+          isLoading={loadingProvider === AuthConnection.Apple}
+          spinnerProps={socialButtonSpinnerProps}
+          isDisabled={
+            isSocialLoading && loadingProvider !== AuthConnection.Apple
+          }
+          contentWrapperProps={{ twClassName: 'gap-3' }}
+          style={tw.style('border border-muted', {
+            backgroundColor: colors.text.default,
+          })}
+          textProps={{ style: { color: colors.background.default } }}
         >
           {createWallet
             ? strings('onboarding.continue_with_apple')
@@ -233,6 +279,24 @@ const OnboardingSheet = ({
               backgroundColor: colors.text.default,
             })}
             textProps={{ style: { color: colors.background.default } }}
+          ><Icon
+                name={IconName.Telegram}
+                size={IconSize.Lg}
+                style={tw.style({ color: commonColors.telegramBlue })}
+              />
+            }
+            isFullWidth
+            size={ButtonSize.Lg}
+            isLoading={loadingProvider === AuthConnection.Telegram}
+            spinnerProps={socialButtonSpinnerProps}
+            isDisabled={
+              isSocialLoading && loadingProvider !== AuthConnection.Telegram
+            }
+            contentWrapperProps={{ twClassName: 'gap-3' }}
+            style={tw.style('border border-muted', {
+              backgroundColor: colors.text.default,
+            })}
+            textProps={{ style: { color: colors.background.default } }}
           >
             {createWallet
               ? strings('onboarding.continue_with_telegram')
@@ -243,9 +307,9 @@ const OnboardingSheet = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-2.5"
+          className="gap-2.5"
         >
-          <Box twClassName="flex-1 h-px bg-border-muted" />
+          <Box className="flex-1 h-px bg-border-muted" />
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Medium}
@@ -254,7 +318,7 @@ const OnboardingSheet = ({
           >
             {strings('onboarding.or')}
           </Text>
-          <Box twClassName="flex-1 h-px bg-border-muted" />
+          <Box className="flex-1 h-px bg-border-muted" />
         </Box>
         {!createWallet &&
         isAddDeviceSyncEnabled &&
@@ -290,7 +354,7 @@ const OnboardingSheet = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="mt-6 text-center"
+          className="mt-6 text-center"
         >
           {strings('onboarding.by_continuing')}{' '}
           <TextButton

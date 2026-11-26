@@ -141,7 +141,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
       <PredictEntryPointProvider
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
-        <Box twClassName="px-4">
+        <Box className="px-4">
           {slots.map((slot, index) => {
             if (!isHomepagePredictEventSlot(slot)) {
               return (

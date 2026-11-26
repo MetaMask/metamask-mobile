@@ -25,9 +25,9 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-row justify-between items-center gap-2"
+      className="flex-row justify-between items-center gap-2"
     >
-      <Text numberOfLines={1} twClassName="flex-shrink">
+      <Text numberOfLines={1} className="flex-shrink">
         {strings('predict.position_pick_info', {
           initialValue: formatPrice(position.initialValue, {
             maximumDecimals: 2,
@@ -35,7 +35,7 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
           outcome: position.outcome,
         })}
       </Text>
-      <Box twClassName="flex-row gap-2">
+      <Box className="flex-row gap-2">
         {isOptimistic ? (
           <>
             <Skeleton width={50} height={16} />

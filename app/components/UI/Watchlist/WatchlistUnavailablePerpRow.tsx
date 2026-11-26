@@ -50,7 +50,31 @@ const WatchlistUnavailablePerpRow = ({
     }}
     titleEndAccessory={
       showTypeTag ? (
-        <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+        <Tag severity={TagSeverity.Neutral} className="self-center">
+          {strings('token_watchlist.perp_tag')}
+        </Tag>
+      ) : undefined
+    }
+    description={strings('token_watchlist.market_data_unavailable')}
+    onLongPress={onLongPress}
+    accessibilityActions={accessibilityActions}
+    onAccessibilityAction={onAccessibilityAction}
+    testID={getUnavailablePerpRowTestId(item.symbol)}
+    endAccessory={
+      showRemoveAction ? (
+        <ButtonIcon
+          iconName={IconName.StarFilled}
+          size={ButtonIconSize.Md}
+          onPress={onRemove}
+          testID={getUnavailablePerpRemoveButtonTestId(item.symbol)}
+          accessibilityLabel={strings(
+            'perps.market_details.remove_from_watchlist',
+          )}
+        />
+      ) : undefined
+    }
+    className={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
+  /><Tag severity={TagSeverity.Neutral} className="self-center">
           {strings('token_watchlist.perp_tag')}
         </Tag>
       ) : undefined

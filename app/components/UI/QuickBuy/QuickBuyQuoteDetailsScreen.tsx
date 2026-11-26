@@ -90,13 +90,13 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
       />
 
       {isBlockingQuoteLoad ? (
-        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+        <Box className="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('social_leaderboard.quick_buy.loading')}
           </Text>
         </Box>
       ) : !hasQuoteDetails ? (
-        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+        <Box className="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings(
               hasValidAmount
@@ -106,7 +106,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
           </Text>
         </Box>
       ) : (
-        <Box twClassName="px-4 pt-3" gap={2}>
+        <Box className="px-4 pt-3" gap={2}>
           <QuickBuyQuoteDetailRow
             label={strings('social_leaderboard.quick_buy.rate')}
             labelAccessory={
@@ -141,7 +141,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             }
           />
 
-          <Box twClassName="h-px w-full bg-border-muted" />
+          <Box className="h-px w-full bg-border-muted" />
 
           <QuickBuyQuoteDetailRow
             label={strings('social_leaderboard.quick_buy.network_fee')}
@@ -164,7 +164,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
                     gap={1}
-                    twClassName="rounded-md bg-muted px-1.5"
+                    className="rounded-md bg-muted px-1.5"
                     testID={QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN}
                   >
                     <AvatarToken
@@ -215,7 +215,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
-                    twClassName="line-through"
+                    className="line-through"
                   >
                     {baseFeePercentage}
                   </Text>
@@ -230,7 +230,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             }
           />
 
-          <Box twClassName="h-px w-full bg-border-muted" />
+          <Box className="h-px w-full bg-border-muted" />
 
           {isPriceImpactError && (
             <QuickBuyQuoteDetailRow

@@ -30,7 +30,7 @@ const Amount = ({ amount, onPress, isBuy, disabled }: AmountProps) => {
       onPress={handlePress}
       isDisabled={disabled}
       isFullWidth
-      twClassName="px-0 flex-1"
+      className="px-0 flex-1"
       startIconName={showSparkleIcon ? IconName.Sparkle : undefined}
     >
       {label}
@@ -46,7 +46,7 @@ interface Props {
 }
 
 const QuickAmounts = ({ amounts, onAmountPress, isBuy, disabled }: Props) => (
-  <Box twClassName="flex-row gap-4">
+  <Box className="flex-row gap-4">
     {amounts.map((amount, index) => (
       <Amount
         isBuy={isBuy}

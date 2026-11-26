@@ -202,7 +202,7 @@ const OnboardingNavigator: React.FC = () => {
   // effect overwrite the KYC webview push.
   if (onboardingId && !user && (isLoading || isFetchingUserData)) {
     return (
-      <Box twClassName="flex-1 items-center justify-center">
+      <Box className="flex-1 items-center justify-center">
         <Spinner
           testID="activity-indicator"
           spinnerIconProps={{ size: IconSize.Xl }}

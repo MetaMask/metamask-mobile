@@ -54,9 +54,31 @@ export const InsufficientNativeReserveBanner = () => {
   return (
     <BannerBase
       testID={SwapsBannersSelectorsIDs.INSUFFICIENT_NATIVE_RESERVE}
-      twClassName={WARNING_BANNER_TW_CLASSNAME}
+      className={WARNING_BANNER_TW_CLASSNAME}
       startAccessory={
         <Icon
+          name={IconName.Warning}
+          color={IconColor.WarningDefault}
+          size={IconSize.Lg}
+        />
+      }
+      title={strings('bridge.insufficient_native_reserve_title', {
+        ticker: sourceToken?.symbol,
+      })}
+      description={strings('bridge.insufficient_native_reserve_message', {
+        ticker: sourceToken?.symbol,
+        minimumReserve: minimumNativeBalanceToBeKeptInAccount,
+        maxSwappable: maxSwappableNativeBalance,
+      })}
+      actionButtonLabel={strings('bridge.insufficient_native_reserve_cta')}
+      actionButtonOnPress={() =>
+        onAdjustSourceAmount(maxSwappableNativeBalance)
+      }
+      actionButtonProps={{
+        size: ButtonSize.Sm,
+        twClassName: 'mt-1.5',
+      }}
+    /><Icon
           name={IconName.Warning}
           color={IconColor.WarningDefault}
           size={IconSize.Lg}

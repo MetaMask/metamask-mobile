@@ -92,13 +92,13 @@ const AnnualTrialBanner = ({
 
   return (
     <Box
-      twClassName={`items-center py-0.5 ${bannerBgClass}`}
+      className={`items-center py-0.5 ${bannerBgClass}`}
       testID={BenefitsTestIds.PLAN_CARD_TRIAL(planId)}
     >
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
-        twClassName={`text-center ${bannerTextClass}`}
+        className={`text-center ${bannerTextClass}`}
       >
         {trialLabel}
       </Text>
@@ -111,8 +111,8 @@ const PlanSelectorDetails = ({ plan, copy }: PlanSelectorDetailsProps) => {
     plan.id === PLAN_IDS.monthly && Boolean(copy.trialLabel);
 
   return (
-    <Box twClassName="flex flex-1 min-w-0 flex-col gap-y-1 pr-2">
-      <Box twClassName="flex flex-row flex-wrap gap-x-2 gap-y-1 items-center">
+    <Box className="flex flex-1 min-w-0 flex-col gap-y-1 pr-2">
+      <Box className="flex flex-row flex-wrap gap-x-2 gap-y-1 items-center">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
           {strings(plan.label)}
         </Text>
@@ -121,7 +121,7 @@ const PlanSelectorDetails = ({ plan, copy }: PlanSelectorDetailsProps) => {
           <Tag
             severity={TagSeverity.Info}
             startIconName={IconName.Tag}
-            twClassName="self-center"
+            className="self-center"
             testID={BenefitsTestIds.PLAN_CARD_SAVINGS_BADGE(plan.id)}
           >
             {copy.savingsBadge}
@@ -139,11 +139,11 @@ const PlanSelectorDetails = ({ plan, copy }: PlanSelectorDetailsProps) => {
         ) : null}
       </Box>
 
-      <Box twClassName="flex flex-row flex-wrap gap-x-1 gap-y-1 items-center">
+      <Box className="flex flex-row flex-wrap gap-x-1 gap-y-1 items-center">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
-          twClassName="shrink"
+          className="shrink"
           testID={BenefitsTestIds.PLAN_CARD_PRICE(plan.id)}
         >
           {copy.price}
@@ -152,7 +152,7 @@ const PlanSelectorDetails = ({ plan, copy }: PlanSelectorDetailsProps) => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="shrink"
+            className="shrink"
             testID={BenefitsTestIds.PLAN_CARD_SUB_PRICE(plan.id)}
           >
             {copy.subPrice}
@@ -174,7 +174,7 @@ const PlanSelectorRadio = ({ planId, isSelected }: PlanSelectorRadioProps) => {
 
   return (
     <Box
-      twClassName={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${radioIndicatorBgClass} border-border-muted`}
+      className={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${radioIndicatorBgClass} border-border-muted`}
       testID={BenefitsTestIds.PLAN_CARD_RADIO(planId)}
     >
       {isSelected && (
@@ -209,7 +209,7 @@ const PlanSelectorCard = ({
       activeOpacity={1}
     >
       <Box
-        twClassName={`rounded-2xl overflow-hidden bg-background-section border ${isSelected ? 'border-border-default' : 'border-transparent'}`}
+        className={`rounded-2xl overflow-hidden bg-background-section border ${isSelected ? 'border-border-default' : 'border-transparent'}`}
       >
         <AnnualTrialBanner
           planId={plan.id}
@@ -219,7 +219,7 @@ const PlanSelectorCard = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="p-4 flex flex-row items-center justify-between"
+          className="p-4 flex flex-row items-center justify-between"
         >
           <PlanSelectorDetails plan={plan} copy={copy} />
           <PlanSelectorRadio planId={plan.id} isSelected={isSelected} />

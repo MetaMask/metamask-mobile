@@ -180,13 +180,13 @@ const ReviewOrder = () => {
 
     const content = (
       <Box
-        twClassName="flex-row justify-between items-center py-3"
+        className="flex-row justify-between items-center py-3"
         testID={`${ReviewOrderSelectors.ORDER_ITEM}-${index}`}
       >
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName={
+          className={
             isRenews
               ? 'text-alternative underline decoration-dotted'
               : 'text-alternative'
@@ -197,7 +197,7 @@ const ReviewOrder = () => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName={
+          className={
             isTotal
               ? 'text-default'
               : isFees
@@ -238,18 +238,18 @@ const ReviewOrder = () => {
         twClassName="bg-background-default"
         {...headerHandlers}
       />
-      <Box twClassName="flex-1 px-4">
-        <Box twClassName="py-4">
+      <Box className="flex-1 px-4">
+        <Box className="py-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-default"
+            className="text-default"
             testID={ReviewOrderSelectors.TITLE}
           >
             {strings('card.review_order.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-alternative mt-2"
+            className="text-alternative mt-2"
             fontWeight={FontWeight.Regular}
             testID={ReviewOrderSelectors.SUBTITLE}
           >
@@ -258,20 +258,20 @@ const ReviewOrder = () => {
         </Box>
 
         <Box
-          twClassName="bg-background-muted rounded-xl p-4 mt-4"
+          className="bg-background-muted rounded-xl p-4 mt-4"
           testID={ReviewOrderSelectors.SHIPPING_ADDRESS_CARD}
         >
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
-            twClassName="text-default mb-1"
+            className="text-default mb-1"
           >
             {strings('card.review_order.shipping_address')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
-            twClassName="text-alternative"
+            className="text-alternative"
             testID={ReviewOrderSelectors.ADDRESS_LINE_1}
           >
             {shippingAddress.line1}
@@ -280,7 +280,7 @@ const ReviewOrder = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Regular}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID={ReviewOrderSelectors.ADDRESS_LINE_2}
             >
               {shippingAddress.line2}
@@ -289,24 +289,24 @@ const ReviewOrder = () => {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
-            twClassName="text-alternative"
+            className="text-alternative"
             testID={ReviewOrderSelectors.ADDRESS_CITY_STATE_ZIP}
           >
             {`${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}`}
           </Text>
         </Box>
 
-        <Box twClassName="mt-6" testID={ReviewOrderSelectors.ORDER_SUMMARY}>
+        <Box className="mt-6" testID={ReviewOrderSelectors.ORDER_SUMMARY}>
           {orderItems.map((item, index) => renderOrderItem(item, index))}
         </Box>
 
-        <Box twClassName="flex-1" />
+        <Box className="flex-1" />
 
-        <Box twClassName="pb-4 gap-3">
+        <Box className="pb-4 gap-3">
           {paymentError && (
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-error-default text-center mb-2"
+              className="text-error-default text-center mb-2"
               testID={ReviewOrderSelectors.PAYMENT_ERROR}
             >
               {paymentError}

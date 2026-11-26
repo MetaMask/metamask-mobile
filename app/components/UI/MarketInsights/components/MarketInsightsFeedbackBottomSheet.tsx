@@ -160,7 +160,7 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextDefault}
-          twClassName="mb-4"
+          className="mb-4"
         >
           {strings('market_insights.feedback.description')}
         </Text>
@@ -180,17 +180,17 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={3}
-                  twClassName="py-1"
+                  className="py-1"
                 >
                   <Box
-                    twClassName={`h-6 w-6 rounded-full border ${
+                    className={`h-6 w-6 rounded-full border ${
                       isSelected ? 'border-primary-default' : 'border-muted'
                     }`}
                     alignItems={BoxAlignItems.Center}
                     justifyContent={BoxJustifyContent.Center}
                   >
                     {isSelected ? (
-                      <Box twClassName="h-3 w-3 rounded-full bg-primary-default" />
+                      <Box className="h-3 w-3 rounded-full bg-primary-default" />
                     ) : null}
                   </Box>
                   <Text
@@ -206,11 +206,11 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
         </Box>
 
         {isSomethingElse ? (
-          <Box twClassName="mt-5">
+          <Box className="mt-5">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              twClassName="mb-2"
+              className="mb-2"
             >
               {strings('market_insights.feedback.additional_feedback_label')}
             </Text>
@@ -232,7 +232,7 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="mt-2"
+              className="mt-2"
             >
               {strings('market_insights.feedback.characters_remaining', {
                 count: String(remainingChars),
@@ -241,7 +241,7 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
           </Box>
         ) : null}
 
-        <Box twClassName="mt-6">
+        <Box className="mt-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

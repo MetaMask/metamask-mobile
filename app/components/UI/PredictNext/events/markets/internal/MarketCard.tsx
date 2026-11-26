@@ -25,22 +25,22 @@ interface RootProps extends ChildrenProps {
 const Root = ({ children, testID }: RootProps) => (
   <Box
     testID={testID}
-    twClassName="gap-[14px] overflow-hidden rounded-2xl bg-section p-4"
+    className="gap-[14px] overflow-hidden rounded-2xl bg-section p-4"
   >
     {children}
   </Box>
 );
 
 const Footer = ({ children }: ChildrenProps) => (
-  <Box twClassName="-mx-4 -mb-4">{children}</Box>
+  <Box className="-mx-4 -mb-4">{children}</Box>
 );
 
 const Header = ({ children }: ChildrenProps) => (
-  <Box twClassName="flex-row items-center gap-3">{children}</Box>
+  <Box className="flex-row items-center gap-3">{children}</Box>
 );
 
 const Summary = ({ children }: ChildrenProps) => (
-  <Box twClassName="min-w-0 flex-1 gap-1">{children}</Box>
+  <Box className="min-w-0 flex-1 gap-1">{children}</Box>
 );
 
 interface TitleProps extends ChildrenProps {
@@ -106,7 +106,7 @@ const Volume = ({ value, testID }: { value: string; testID?: string }) => (
     testID={testID}
     variant={TextVariant.BodySm}
     color={TextColor.TextAlternative}
-    twClassName="text-[13px] leading-[18px]"
+    className="text-[13px] leading-[18px]"
   >
     {strings('predict.market.volume', { value: `$${value}` })}
   </Text>
@@ -117,7 +117,7 @@ const Percentage = ({ value, testID }: { value: number; testID?: string }) => (
     testID={testID}
     variant={TextVariant.HeadingLg}
     fontWeight={FontWeight.Medium}
-    twClassName="leading-[30px]"
+    className="leading-[30px]"
   >
     {Math.round(value)}%
   </Text>
@@ -134,22 +134,22 @@ const SplitBar = ({
   yesTestID?: string;
   noTestID?: string;
 }) => (
-  <Box testID={testID} twClassName="h-0.5 flex-row gap-1">
+  <Box testID={testID} className="h-0.5 flex-row gap-1">
     <Box
       testID={yesTestID}
-      twClassName="rounded-full bg-success-default"
+      className="rounded-full bg-success-default"
       style={{ flex: yesPercent }}
     />
     <Box
       testID={noTestID}
-      twClassName="rounded-full bg-error-default"
+      className="rounded-full bg-error-default"
       style={{ flex: 100 - yesPercent }}
     />
   </Box>
 );
 
 const Actions = ({ children }: ChildrenProps) => (
-  <Box twClassName="flex-row gap-2">{children}</Box>
+  <Box className="flex-row gap-2">{children}</Box>
 );
 
 const OutcomeButton = ({
@@ -180,7 +180,7 @@ const OutcomeButton = ({
       size={ButtonSize.Lg}
       onPress={isDisabled ? undefined : onPress}
       isDisabled={isDisabled}
-      twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted px-2"
+      className="h-12 min-w-0 flex-1 rounded-xl bg-muted px-2"
     >
       <Text
         variant={TextVariant.BodyMd}

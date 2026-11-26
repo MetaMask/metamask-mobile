@@ -239,7 +239,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
-          <Box twClassName="absolute inset-0">
+          <Box className="absolute inset-0">
             <Pressable
               style={[
                 StyleSheet.absoluteFill,
@@ -265,7 +265,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               </BottomSheetHeaderGlass>
 
               <ScrollView>
-                <Box twClassName="px-4 pb-4 mb-4">
+                <Box className="px-4 pb-4 mb-4">
                   {showType ? (
                     <FilterChipSection<SocialFilterType>
                       titleKey="social_leaderboard.shell.filters.section.type"

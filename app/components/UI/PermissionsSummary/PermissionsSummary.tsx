@@ -696,7 +696,7 @@ const PermissionsSummary = ({
                 variant={ButtonVariant.Secondary}
                 onPress={cancel}
                 size={ButtonSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
@@ -715,7 +715,7 @@ const PermissionsSummary = ({
                   (accountAddresses.length === 0 || networkAvatars.length === 0)
                 }
                 size={ButtonSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}

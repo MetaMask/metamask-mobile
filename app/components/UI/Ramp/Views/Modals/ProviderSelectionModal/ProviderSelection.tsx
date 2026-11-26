@@ -72,12 +72,12 @@ const PaymentMethodBanner: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="mx-4 mt-1 mb-2 rounded-lg bg-background-muted px-3 py-3"
+      className="mx-4 mt-1 mb-2 rounded-lg bg-background-muted px-3 py-3"
     >
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="mr-3 rounded-full bg-background-muted"
+        className="mr-3 rounded-full bg-background-muted"
         style={{ width: ICON_CIRCLE_SIZE, height: ICON_CIRCLE_SIZE }}
       >
         <PaymentMethodIcon
@@ -120,7 +120,7 @@ const ProviderListSkeleton: React.FC = () => (
 );
 
 const SeparatorItem: React.FC = () => (
-  <Box twClassName="px-4 py-3">
+  <Box className="px-4 py-3">
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
@@ -366,12 +366,12 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   if (providers.length === 0) {
     return (
-      <Box twClassName="flex-1 min-h-0">
+      <Box className="flex-1 min-h-0">
         <HeaderStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={showBackButton ? onBack : undefined}
         />
-        <Box twClassName="flex-1 px-4">
+        <Box className="flex-1 px-4">
           <PaymentSelectionAlert
             message={
               showQuotes
@@ -386,7 +386,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   }
 
   return (
-    <Box twClassName="flex-1 min-h-0">
+    <Box className="flex-1 min-h-0">
       <HeaderStandard
         title={strings('fiat_on_ramp.providers')}
         onBack={showBackButton ? onBack : undefined}
@@ -398,7 +398,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         />
       ) : null}
       {quotesError ? (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PaymentSelectionAlert
             message={quotesError}
             severity={BannerAlertSeverity.Error}

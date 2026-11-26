@@ -560,7 +560,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
         testID={PerpsAdjustMarginBottomSheetSelectorsIDs.CONTAINER}
       >
         <HeaderSubpage
-          twClassName="h-16 min-h-[64px] px-4"
+          className="h-16 min-h-[64px] px-4"
           accessoryGap={2}
           title={strings('perps.adjust_margin.edit_title')}
           titleProps={{
@@ -622,10 +622,61 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               </FilterButton>
             </SegmentedControl>
           }
+        /><Skeleton
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON
+                }
+                width={112}
+                height={HEADER_PRICE_SKELETON_HEIGHT}
+              />
+            ) : (
+              <LivePriceHeader
+                symbol={routePosition.symbol}
+                currentPrice={currentPrice}
+                percentChange24h={percentChange24h}
+                testIDPrice={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE
+                }
+                testIDChange={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE
+                }
+              />
+            )
+          }
+          endAccessory={
+            <SegmentedControl
+              accessible={false}
+              value={mode}
+              onChange={handleModeChange}
+              size={ButtonBaseSize.Sm}
+              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.MODE_TOGGLE}
+            >
+              <FilterButton
+                value="add"
+                disabled={isAdjusting}
+                startIconName={IconName.Add}
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_MODE_BUTTON
+                }
+              >
+                {strings('perps.adjust_margin.add_toggle')}
+              </FilterButton>
+              <FilterButton
+                value="remove"
+                disabled={isAdjusting}
+                startIconName={IconName.Minus}
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON
+                }
+              >
+                {strings('perps.adjust_margin.remove_toggle')}
+              </FilterButton>
+            </SegmentedControl>
+          }
         />
 
-        <Box accessible={false} twClassName="gap-4 py-3">
-          <Box accessible={false} twClassName="gap-4 px-4">
+        <Box accessible={false} className="gap-4 py-3">
+          <Box accessible={false} className="gap-4 px-4">
             <PerpsAmountDisplay
               variant="tradeSheet"
               amount={marginAmountString}
@@ -671,7 +722,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
             {displayedError && (
               <HelpText
                 severity={HelpTextSeverity.Danger}
-                twClassName="justify-center text-center"
+                className="justify-center text-center"
                 testID={PerpsAdjustMarginBottomSheetSelectorsIDs.ERROR}
                 accessibilityRole="alert"
               >
@@ -681,7 +732,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
             {hasNoRemovableMargin && !displayedError && (
               <HelpText
-                twClassName="justify-center text-center"
+                className="justify-center text-center"
                 testID={
                   PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN
                 }
@@ -698,6 +749,23 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               keyEndAccessory={
                 isCrossMarginEnabled ? (
                   <PerpsMarginModeTag
+                    marginMode={marginMode}
+                    testID={
+                      PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG
+                    }
+                  />
+                ) : undefined
+              }
+              value={renderTransitionValue(
+                formatPerpsFiat(displayCurrentMargin, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                }),
+                formatPerpsFiat(displayNextMargin, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                }),
+                PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_VALUE,
+              )}
+            /><PerpsMarginModeTag
                     marginMode={marginMode}
                     testID={
                       PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG
@@ -808,7 +876,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   onPress={() => handlePercentagePress(percentage)}
-                  twClassName="flex-1"
+                  className="flex-1"
                 >
                   {label}
                 </Button>
@@ -817,7 +885,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
                 onPress={() => setIsInputFocused(false)}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={PerpsAdjustMarginBottomSheetSelectorsIDs.DONE_BUTTON}
               >
                 {strings('perps.deposit.done_button')}
@@ -834,7 +902,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
         {!isInputFocused && (
           <BottomSheetFooter
-            twClassName="border-t border-muted pt-4 pb-2"
+            className="border-t border-muted pt-4 pb-2"
             primaryButtonProps={{
               children: isAddMode
                 ? strings('perps.adjust_margin.add_margin_sheet')

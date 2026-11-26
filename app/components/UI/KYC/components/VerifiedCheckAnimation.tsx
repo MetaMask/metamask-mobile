@@ -70,7 +70,7 @@ const VerifiedCheckAnimation = ({
 
   return (
     <Box
-      twClassName="h-[107px] w-[140px] items-center justify-center"
+      className="h-[107px] w-[140px] items-center justify-center"
       pointerEvents="none"
     >
       {mode === 'animate' && riveFile ? (

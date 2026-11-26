@@ -44,7 +44,7 @@ const ManageProfileScreenChrome: React.FC<ManageProfileScreenChromeProps> = ({
         title={title}
         onBack={handleBack}
         backButtonProps={{ testID: backTestID }}
-        endAccessory={<Box twClassName="w-10" />}
+        endAccessory={<Box className="w-10" />}
         testID={headerTestID}
       />
       {children}

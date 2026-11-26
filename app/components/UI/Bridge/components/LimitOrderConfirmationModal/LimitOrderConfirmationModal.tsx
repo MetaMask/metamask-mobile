@@ -153,9 +153,9 @@ export const LimitOrderConfirmationModal = ({
         >
           <TokenAmountValue amount={estReceivingAmount} token={destToken} />
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+        <Box className="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>
-          <Box alignItems={BoxAlignItems.End} twClassName="shrink">
+          <Box alignItems={BoxAlignItems.End} className="shrink">
             <TokenAmountValue
               amount={triggerPrice}
               prefix={strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)}
@@ -165,7 +165,7 @@ export const LimitOrderConfirmationModal = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={triggerComparisonColor}
-                twClassName="text-right"
+                className="text-right"
                 testID={
                   LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON
                 }
@@ -180,7 +180,7 @@ export const LimitOrderConfirmationModal = ({
             {expiry}
           </Text>
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+        <Box className="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
           label={
             <PriceToleranceTooltip
@@ -204,7 +204,7 @@ export const LimitOrderConfirmationModal = ({
         {(delegationFee.status === 'ready' ||
           delegationFee.status === 'error') && (
           <>
-            <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+            <Box className="mx-4 my-2 h-px bg-border-muted" />
             <DetailRow
               label={strings('bridge.limit.est_network_fee')}
               labelAccessory={
@@ -241,7 +241,7 @@ export const LimitOrderConfirmationModal = ({
         )}
       </>
       <BottomSheetFooter
-        twClassName="mt-4"
+        className="mt-4"
         primaryButtonProps={{
           children: primaryButton.label,
           onPress: primaryButton.onPress,
@@ -254,7 +254,7 @@ export const LimitOrderConfirmationModal = ({
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
         paddingBottom={4}
-        twClassName="pt-3"
+        className="pt-3"
       >
         <Pressable
           onPress={handleMetaMaskFeeInfoPress}
@@ -267,7 +267,7 @@ export const LimitOrderConfirmationModal = ({
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('bridge.limit.includes_metamask_fee')}
             </Text>

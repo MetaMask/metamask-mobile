@@ -90,7 +90,7 @@ const PredictPreviewSheet = forwardRef<
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-3 flex-1 min-w-0"
+              className="gap-3 flex-1 min-w-0"
               testID="preview-sheet-header-content"
             >
               {image && (
@@ -99,16 +99,16 @@ const PredictPreviewSheet = forwardRef<
                   style={tw.style('w-12 h-12 rounded-xl')}
                 />
               )}
-              <Box twClassName="flex-1 min-w-0 shrink">
+              <Box className="flex-1 min-w-0 shrink">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1 min-w-0"
+                  className="gap-1 min-w-0"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-default shrink"
+                    className="text-default shrink"
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     testID="preview-sheet-title"

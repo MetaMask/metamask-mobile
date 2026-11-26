@@ -43,11 +43,11 @@ const VerificationCodeBottomSheet = () => {
       <HeaderStandardGlass isFloating={false}>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </HeaderStandardGlass>
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+      <Box alignItems={BoxAlignItems.Center} className="px-4 pb-6">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-left"
+          className="text-left"
         >
           {strings('app_settings.add_device.enter_code_on_extension_desc')}
         </Text>
@@ -55,7 +55,7 @@ const VerificationCodeBottomSheet = () => {
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="my-6"
+          className="my-6"
         >
           {otp}
         </Text>

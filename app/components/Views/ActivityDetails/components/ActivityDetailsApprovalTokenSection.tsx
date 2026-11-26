@@ -26,7 +26,7 @@ export function ActivityDetailsApprovalTokenSection({
     : strings('activity_details.unknown_token');
 
   return (
-    <Box twClassName="flex-row items-center gap-3">
+    <Box className="flex-row items-center gap-3">
       <ActivityDetailsAvatar
         tokens={[token ?? UNKNOWN_TOKEN_PLACEHOLDER]}
         size={AvatarTokenSize.Lg}

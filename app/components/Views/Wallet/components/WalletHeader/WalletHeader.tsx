@@ -133,7 +133,7 @@ const WalletHeader = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-12"
+      className="h-12"
     >
       <WalletHeaderMenuButton
         handleHamburgerPress={handleHamburgerPress}
@@ -200,7 +200,7 @@ const WalletHeader = ({
       accessibilityRole="button"
       accessibilityLabel={displayName}
       hitSlop={touchAreaSlop}
-      twClassName="h-10 w-10 rounded-full bg-transparent p-0"
+      className="h-10 w-10 rounded-full bg-transparent p-0"
     >
       <WalletHeaderProfileAvatar />
     </ButtonBase>
@@ -240,13 +240,13 @@ const WalletHeader = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 pl-4 pr-3"
+            className="gap-1 pl-4 pr-3"
           >
             <Text
               variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Regular}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
               testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
             >
               {displayName}
@@ -286,7 +286,7 @@ const WalletHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="h-14 px-4"
+        className="h-14 px-4"
       >
         {socialAccountPicker}
         {socialActions}
@@ -310,6 +310,15 @@ const WalletHeader = ({
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
           <CapsuleGlass
+            className="px-2"
+            nonGlassClassName="px-3"
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
+          >
+            {interimActions}
+          </CapsuleGlass>
+        }
+        className="px-4"
+      ><CapsuleGlass
             twClassName="px-2"
             nonGlassClassName="px-3"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
@@ -400,6 +409,60 @@ const WalletHeader = ({
             </BadgeWrapper>
           </View>
         }
+        className="pl-1 pr-3"
+      ><View style={headerActionButtonsContainerStyle} accessible={false}>
+            <ButtonIcon
+              iconProps={{ color: MMDSIconColor.IconDefault }}
+              onPress={() => handleSearchPress()}
+              iconName={MMDSIconName.Search}
+              size={ButtonIconSize.Md}
+              testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+              accessibilityLabel={strings('wallet.search_accessibility_label')}
+              hitSlop={touchAreaSlop}
+            />
+            {isMoneyAccountVisible && (
+              <ButtonIcon
+                iconProps={{ color: MMDSIconColor.IconDefault }}
+                onPress={handleActivityPress}
+                iconName={MMDSIconName.Clock}
+                size={ButtonIconSize.Md}
+                testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+                hitSlop={touchAreaSlop}
+              />
+            )}
+            <AddressCopy
+              testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+              hitSlop={touchAreaSlop}
+            />
+            {!isMoneyAccountVisible && (
+              <CardButton
+                onPress={handleCardPress}
+                touchAreaSlop={touchAreaSlop}
+              />
+            )}
+            <BadgeWrapper
+              position={BadgeWrapperPosition.TopRight}
+              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+              badge={
+                hasAccountsMenuAttention ? (
+                  <BadgeStatus
+                    status={BadgeStatusStatus.Attention}
+                    testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
+                  />
+                ) : null
+              }
+            >
+              <ButtonIcon
+                iconProps={{ color: MMDSIconColor.IconDefault }}
+                onPress={handleHamburgerPress}
+                iconName={MMDSIconName.Menu}
+                size={ButtonIconSize.Md}
+                testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+                hitSlop={touchAreaSlop}
+              />
+            </BadgeWrapper>
+          </View>
+        }
         twClassName="pl-1 pr-3"
       >
         {accountPicker}
@@ -414,7 +477,31 @@ const WalletHeader = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-12 gap-2"
+          className="h-12 gap-2"
+          accessible={false}
+        >
+          {isMoneyAccountVisible ? (
+            <ButtonIcon
+              iconProps={{ color: MMDSIconColor.IconDefault }}
+              onPress={handleActivityPress}
+              iconName={MMDSIconName.Clock}
+              size={ButtonIconSize.Md}
+              testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+              hitSlop={touchAreaSlop}
+            />
+          ) : (
+            <CardButton
+              onPress={handleCardPress}
+              touchAreaSlop={touchAreaSlop}
+            />
+          )}
+        </Box>
+      }
+      className="pl-3 pr-3 gap-2"
+    ><Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          className="h-12 gap-2"
           accessible={false}
         >
           {isMoneyAccountVisible ? (
@@ -439,7 +526,7 @@ const WalletHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-12 flex-1 gap-2"
+        className="h-12 flex-1 gap-2"
       >
         {menuButton}
         <View

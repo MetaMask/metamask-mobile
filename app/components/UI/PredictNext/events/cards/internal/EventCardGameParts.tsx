@@ -105,7 +105,7 @@ const Header = () => {
   const nonLiveLine = [statusText, competition].filter(Boolean).join(' • ');
 
   return (
-    <Box twClassName="gap-0.5" testID={`predict-next-game-header-${event.id}`}>
+    <Box className="gap-0.5" testID={`predict-next-game-header-${event.id}`}>
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Regular}
@@ -117,14 +117,14 @@ const Header = () => {
       </Text>
       {isLive || nonLiveLine ? (
         <Box
-          twClassName="flex-row items-center"
+          className="flex-row items-center"
           testID={`predict-next-game-status-${event.id}`}
         >
           {isLive ? (
             <>
               <Box
                 testID={`predict-next-game-live-dot-${event.id}`}
-                twClassName="mr-1.5 h-3 w-3 shrink-0 rounded-full bg-error-default"
+                className="mr-1.5 h-3 w-3 shrink-0 rounded-full bg-error-default"
               />
               {liveText ? (
                 <Text
@@ -142,7 +142,7 @@ const Header = () => {
                   fontWeight={FontWeight.Regular}
                   color={TextColor.TextAlternative}
                   numberOfLines={1}
-                  twClassName="min-w-0 shrink"
+                  className="min-w-0 shrink"
                 >
                   {liveText ? ` • ${competition}` : competition}
                 </Text>
@@ -193,7 +193,7 @@ const OutcomePill = ({
           'predict_next.event.game_quote_price_unavailable_accessibility_label',
           { team: name },
         )}
-        twClassName={OUTCOME_PILL_CLASS_NAME}
+        className={OUTCOME_PILL_CLASS_NAME}
         isDisabled
       >
         <Text
@@ -214,7 +214,7 @@ const OutcomePill = ({
     return (
       <Box
         testID={testID}
-        twClassName={`${OUTCOME_PILL_CLASS_NAME} items-center justify-center`}
+        className={`${OUTCOME_PILL_CLASS_NAME} items-center justify-center`}
         accessible
         accessibilityLabel={strings(
           'predict_next.event.game_quote_price_accessibility_label',
@@ -243,7 +243,7 @@ const OutcomePill = ({
         'predict_next.event.game_quote_buy_accessibility_label',
         { team: name, price: percentLabel },
       )}
-      twClassName={OUTCOME_PILL_CLASS_NAME}
+      className={OUTCOME_PILL_CLASS_NAME}
     >
       <Text
         variant={TextVariant.BodyMd}
@@ -284,7 +284,7 @@ const TeamOutcomeRow = ({
 
   return (
     <Box
-      twClassName="min-h-[40px] flex-row items-center gap-3"
+      className="min-h-[40px] flex-row items-center gap-3"
       testID={`predict-next-game-team-${event.id}-${selection}`}
     >
       <NativePressable
@@ -301,7 +301,7 @@ const TeamOutcomeRow = ({
           testID={`predict-next-game-logo-${event.id}-${selection}`}
           fallbackTestID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
         />
-        <Box twClassName="min-w-0 flex-1 gap-1.5">
+        <Box className="min-w-0 flex-1 gap-1.5">
           <Text
             variant={labelVariant}
             fontWeight={FontWeight.Regular}
@@ -315,7 +315,7 @@ const TeamOutcomeRow = ({
           {barPercent !== undefined ? (
             <Box
               testID={`predict-next-game-bar-${event.id}-${selection}`}
-              twClassName="h-[2px] rounded-full bg-success-default"
+              className="h-[2px] rounded-full bg-success-default"
               style={{ width: `${barPercent}%` }}
             />
           ) : null}
@@ -326,7 +326,7 @@ const TeamOutcomeRow = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="min-w-[24px] shrink-0 text-right"
+            className="min-w-[24px] shrink-0 text-right"
             testID={`predict-next-game-score-${event.id}-${selection}`}
           >
             {score}
@@ -368,7 +368,7 @@ const DrawOutcomeRow = ({
 
   return (
     <Box
-      twClassName="min-h-[40px] flex-row items-center gap-3"
+      className="min-h-[40px] flex-row items-center gap-3"
       testID={`predict-next-game-team-${event.id}-draw`}
     >
       <NativePressable
@@ -378,12 +378,12 @@ const DrawOutcomeRow = ({
         testID={`predict-next-game-team-content-${event.id}-draw`}
       >
         <Box
-          twClassName="h-7 w-7 shrink-0"
+          className="h-7 w-7 shrink-0"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           testID={`predict-next-game-logo-spacer-${event.id}-draw`}
         />
-        <Box twClassName="min-w-0 flex-1 gap-1.5">
+        <Box className="min-w-0 flex-1 gap-1.5">
           <Text
             variant={labelVariant}
             fontWeight={FontWeight.Regular}
@@ -397,14 +397,14 @@ const DrawOutcomeRow = ({
           {barPercent !== undefined ? (
             <Box
               testID={`predict-next-game-bar-${event.id}-draw`}
-              twClassName="h-[2px] rounded-full bg-success-default"
+              className="h-[2px] rounded-full bg-success-default"
               style={{ width: `${barPercent}%` }}
             />
           ) : null}
         </Box>
         {hasScore ? (
           <Box
-            twClassName="min-w-[24px] shrink-0"
+            className="min-w-[24px] shrink-0"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             testID={`predict-next-game-score-spacer-${event.id}-draw`}
@@ -431,7 +431,7 @@ const OutcomeRows = ({
   const [first, second] = projection.teamOrder;
 
   return (
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <TeamOutcomeRow selection={first} labelVariant={labelVariant} />
       {projection.draw ? <DrawOutcomeRow labelVariant={labelVariant} /> : null}
       <TeamOutcomeRow selection={second} labelVariant={labelVariant} />
@@ -486,7 +486,7 @@ const SmallQuote = ({ selection }: { selection: GameSelection }) => {
           'predict_next.event.game_quote_price_unavailable_accessibility_label',
           { team: team.name },
         )}
-        twClassName={SMALL_QUOTE_CLASS_NAME}
+        className={SMALL_QUOTE_CLASS_NAME}
         isDisabled
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -502,7 +502,7 @@ const SmallQuote = ({ selection }: { selection: GameSelection }) => {
     return (
       <Box
         testID={testID}
-        twClassName="h-8 w-[54px] items-center justify-center rounded-full bg-muted"
+        className="h-8 w-[54px] items-center justify-center rounded-full bg-muted"
         accessible
         accessibilityLabel={strings(
           'predict_next.event.game_quote_price_accessibility_label',
@@ -526,7 +526,7 @@ const SmallQuote = ({ selection }: { selection: GameSelection }) => {
         'predict_next.event.game_quote_buy_accessibility_label',
         { team: team.name, price: formattedPrice },
       )}
-      twClassName={SMALL_QUOTE_CLASS_NAME}
+      className={SMALL_QUOTE_CLASS_NAME}
     >
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {formattedPrice}
@@ -547,7 +547,7 @@ const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
 
   return (
     <Box
-      twClassName="flex-row items-center gap-2"
+      className="flex-row items-center gap-2"
       testID={`predict-next-game-team-${event.id}-${selection}`}
     >
       {/* The header row is the Event's accessible button; this repeats it for touch only. */}
@@ -569,7 +569,7 @@ const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
           accessibilityLabel={team.name}
           testID={`predict-next-game-team-label-${event.id}-${selection}`}
         >

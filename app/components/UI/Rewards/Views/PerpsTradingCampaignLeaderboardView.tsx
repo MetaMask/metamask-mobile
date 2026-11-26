@@ -101,19 +101,19 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
           {/* User position header */}
           {isOptedIn && hasPosition && (
             <>
-              <Box twClassName="p-4">
+              <Box className="p-4">
                 <PerpsTradingCampaignStatsHeader
                   position={position}
                   isLoading={isPositionLoading}
                   isCampaignComplete={isCampaignComplete}
                 />
               </Box>
-              <Box twClassName="my-1 border-b border-border-muted" />
+              <Box className="my-1 border-b border-border-muted" />
             </>
           )}
 
           {/* Full leaderboard */}
-          <Box twClassName="py-4">
+          <Box className="py-4">
             <PerpsTradingCampaignLeaderboard
               entries={leaderboard?.entries ?? []}
               isLoading={isLeaderboardLoading}

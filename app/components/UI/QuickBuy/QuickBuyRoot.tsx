@@ -218,7 +218,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         >
           <Box
             testID={QuickBuySheetSelectorsIDs.CONTENT_CONTAINER}
-            twClassName="flex-1"
+            className="flex-1"
             style={hasBottomCta ? undefined : { marginBottom: -bottomInset }}
           >
             <Animated.View

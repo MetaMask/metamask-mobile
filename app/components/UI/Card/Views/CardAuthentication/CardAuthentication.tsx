@@ -1099,7 +1099,7 @@ const CardAuthentication = () => {
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
-                  twClassName="text-default text-center p-4"
+                  className="text-default text-center p-4"
                 >
                   {strings('card.card_authentication.fork_email_title')}
                 </Text>

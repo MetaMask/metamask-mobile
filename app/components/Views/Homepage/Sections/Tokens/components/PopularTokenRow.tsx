@@ -203,7 +203,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       {/* Token Info - matches TokenListItem balances style: flex-1, justify-center, ml-5 */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 justify-center ml-5"
+        className="flex-1 justify-center ml-5"
       >
         <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
           {token.name}
@@ -231,7 +231,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       </Box>
 
       {/* Buy Button */}
-      <Box twClassName="self-center">
+      <Box className="self-center">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}

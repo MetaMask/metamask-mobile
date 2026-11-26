@@ -11,7 +11,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MarketListTestIds } from './MarketList.testIds';
 
 const MarketSeparator = () => (
-  <Box twClassName="h-3" testID={MarketListTestIds.SEPARATOR} />
+  <Box className="h-3" testID={MarketListTestIds.SEPARATOR} />
 );
 
 export interface MarketListProps<T>

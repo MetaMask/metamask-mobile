@@ -48,7 +48,7 @@ function CardList<T>({
     return (
       <Box
         testID="explore-card-list"
-        twClassName={horizontalInset ? 'px-4' : undefined}
+        className={horizontalInset ? 'px-4' : undefined}
       >
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <Skeleton key={`${idPrefix}-skeleton-${i}`} />

@@ -18,7 +18,7 @@ export function ActivityDetailsTransactionId({ hash }: { hash?: string }) {
   }
 
   return (
-    <Box twClassName="flex-row items-center gap-1 rounded-lg bg-muted pl-2 pr-1">
+    <Box className="flex-row items-center gap-1 rounded-lg bg-muted pl-2 pr-1">
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {renderShortAddress(hash)}
       </Text>

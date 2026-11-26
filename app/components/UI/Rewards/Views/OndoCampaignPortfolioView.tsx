@@ -85,7 +85,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const renderItem = useCallback(({ item }: { item: ActivityListItem }) => {
     if (item.kind === 'date-header') {
       return (
-        <Box twClassName="px-4 pt-4 pb-1">
+        <Box className="px-4 pt-4 pb-1">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {item.label}
           </Text>
@@ -93,7 +93,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
       );
     }
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <OndoActivityRow
           entry={item.entry}
           timeOnly
@@ -120,7 +120,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) return null;
     return (
-      <Box twClassName="py-4 items-center">
+      <Box className="py-4 items-center">
         <ActivityIndicator />
       </Box>
     );
@@ -131,7 +131,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
 
     if (activityError) {
       return (
-        <Box twClassName="px-4 pt-2">
+        <Box className="px-4 pt-2">
           <RewardsErrorBanner
             title={strings('rewards.ondo_campaign_activity.error_title')}
             description={strings(
@@ -147,7 +147,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
     }
 
     return (
-      <Box twClassName="px-4 pt-2">
+      <Box className="px-4 pt-2">
         <RewardsInfoBanner
           title={strings('rewards.ondo_campaign_activity.empty_title')}
           description={strings(
@@ -165,7 +165,7 @@ const OndoCampaignPortfolioView: React.FC = () => {
     if (!showActivitySkeletons) return null;
 
     return (
-      <Box twClassName="px-4 pb-2 gap-3">
+      <Box className="px-4 pb-2 gap-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
         ))}

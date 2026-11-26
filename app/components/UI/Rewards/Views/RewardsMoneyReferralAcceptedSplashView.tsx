@@ -192,7 +192,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.CONTAINER}
     >
-      <Box alignItems={BoxAlignItems.End} twClassName="px-4 pt-3">
+      <Box alignItems={BoxAlignItems.End} className="px-4 pt-3">
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Sm}
@@ -202,13 +202,13 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
         />
       </Box>
 
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-2">
+      <Box alignItems={BoxAlignItems.Center} className="px-6 pt-2">
         {Boolean(localizedText?.inviteAcceptedEyebrow) && (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
-            twClassName="uppercase text-center"
+            className="uppercase text-center"
             style={eyebrowTrackingStyle}
           >
             {localizedText?.inviteAcceptedEyebrow}
@@ -218,7 +218,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
           <Text
             variant={TextVariant.DisplayMd}
             fontWeight={FontWeight.Bold}
-            twClassName="mt-2 text-center"
+            className="mt-2 text-center"
             testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.TITLE}
           >
             {localizedText?.inviteAcceptedTitle}
@@ -228,7 +228,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-3 text-center"
+            className="mt-3 text-center"
             testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.BODY}
           >
             {body}
@@ -244,7 +244,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
        */}
       <Box
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 w-full px-6 py-8"
+        className="flex-1 w-full px-6 py-8"
         testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.HERO}
       >
         {inviteHero && (
@@ -256,7 +256,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
         )}
       </Box>
 
-      <Box twClassName="gap-3 px-4 pb-4">
+      <Box className="gap-3 px-4 pb-4">
         {Boolean(localizedText?.inviteAcceptedStartTrading) && (
           <Button
             variant={ButtonVariant.Primary}

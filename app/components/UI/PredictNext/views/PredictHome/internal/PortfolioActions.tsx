@@ -43,7 +43,7 @@ const PortfolioAction = ({
       }
       testID={testID}
     >
-      <Box twClassName="items-center gap-[2px]">
+      <Box className="items-center gap-[2px]">
         <ButtonIcon
           accessible={false}
           iconName={iconName}
@@ -57,7 +57,7 @@ const PortfolioAction = ({
         />
         <Text
           fontWeight={FontWeight.Medium}
-          twClassName="text-default"
+          className="text-default"
           variant={TextVariant.BodySm}
         >
           {label}
@@ -88,7 +88,7 @@ export const PortfolioActions = ({
   onAddFundsPress,
   onWithdrawPress,
 }: PortfolioActionsProps) => (
-  <Box twClassName="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
+  <Box className="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
     <PortfolioAction
       iconName={IconName.Book}
       label={strings('predict_next.portfolio.positions')}

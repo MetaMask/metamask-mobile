@@ -143,7 +143,7 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
         includesTopInset
       />
       <Box
-        twClassName="flex-1"
+        className="flex-1"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >

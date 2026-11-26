@@ -268,7 +268,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
         twClassName="pl-2"
         accessibilityState={{ selected: false }}
         leading={
-          <Box twClassName="mr-1">
+          <Box className="mr-1">
             <PositionTokenAvatar
               position={token.avatar}
               size={AvatarTokenSize.Sm}
@@ -293,7 +293,7 @@ const HotTokenTrack: React.FC<
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="pl-2 gap-2"
+    className="pl-2 gap-2"
     onLayout={onLayout}
     testID={testID}
   >
@@ -520,7 +520,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   return (
     <Box
       onLayout={handleViewportLayout}
-      twClassName="overflow-hidden min-h-10"
+      className="overflow-hidden min-h-10"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>

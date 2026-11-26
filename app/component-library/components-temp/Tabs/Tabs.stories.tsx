@@ -23,18 +23,18 @@ const ExampleTabContent: React.FC<{ title: string; height?: number }> = ({
   height = 200,
 }) => (
   <Box
-    twClassName="flex-1 justify-center items-center p-4 bg-background-alternative"
+    className="flex-1 justify-center items-center p-4 bg-background-alternative"
     style={{ minHeight: height }}
   >
     <Text variant={TextVariant.HeadingMd}>{title} Content</Text>
-    <Text variant={TextVariant.BodyMd} twClassName="mt-2 text-center">
+    <Text variant={TextVariant.BodyMd} className="mt-2 text-center">
       This is the content for the {title} tab. Each tab can have its own height.
     </Text>
   </Box>
 );
 
 export const Default = () => (
-  <Box twClassName="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 p-4 bg-background-default">
     <TabsList>
       <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" height={300} />
@@ -50,7 +50,7 @@ export const Default = () => (
 );
 
 export const ManyTabs = () => (
-  <Box twClassName="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 p-4 bg-background-default">
     <TabsList>
       <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" />
@@ -78,7 +78,7 @@ export const ManyTabs = () => (
 );
 
 export const IndividuallyDisabledTabs = () => (
-  <Box twClassName="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 p-4 bg-background-default">
     <TabsList initialActiveIndex={1}>
       <View
         key="disabled1"
@@ -103,7 +103,7 @@ export const IndividuallyDisabledTabs = () => (
 );
 
 export const AllTabsDisabled = () => (
-  <Box twClassName="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 p-4 bg-background-default">
     <TabsList initialActiveIndex={1}>
       <View
         key="disabled1"
@@ -128,7 +128,7 @@ export const AllTabsDisabled = () => (
 );
 
 export const DifferentHeights = () => (
-  <Box twClassName="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 p-4 bg-background-default">
     <TabsList>
       <View key="short" {...({ tabLabel: 'Short' } as TabViewProps)}>
         <ExampleTabContent title="Short Content" height={100} />
@@ -156,7 +156,7 @@ export const WithTabView = () => {
   const [index, setIndex] = useState(0);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box className="flex-1 bg-background-default">
       <TabView
         navigationState={{ index, routes: TAB_VIEW_ROUTES }}
         renderScene={({ route }) => <ExampleTabContent title={route.title} />}

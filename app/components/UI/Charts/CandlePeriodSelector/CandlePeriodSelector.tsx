@@ -130,7 +130,7 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           }
         : { value: period.value })}
       size={FilterButtonSize.Sm}
-      twClassName={
+      className={
         fillWidth
           ? `min-w-0 flex-1 ${periodButtonTwClassName ?? ''}`.trim()
           : periodButtonTwClassName
@@ -171,7 +171,7 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           : SelectButtonVariant.Tertiary
       }
       size={SelectButtonSize.Sm}
-      twClassName={
+      className={
         fillWidth
           ? `shrink-0 ${moreButtonTwClassName ?? ''}`.trim()
           : moreButtonTwClassName
@@ -185,12 +185,12 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
   );
 
   return (
-    <Box twClassName={twClassName} testID={testID}>
+    <Box className={twClassName} testID={testID}>
       {fillWidth ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName={groupTwClassName}
+          className={groupTwClassName}
           testID={
             testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
           }
@@ -198,7 +198,7 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="min-w-0 flex-1 gap-2"
+            className="min-w-0 flex-1 gap-2"
           >
             {periodButtons}
           </Box>
@@ -209,7 +209,7 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           value={groupValue}
           onChange={handleFilterChange}
           variant={filterVariant}
-          twClassName={groupTwClassName}
+          className={groupTwClassName}
           testID={
             testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
           }

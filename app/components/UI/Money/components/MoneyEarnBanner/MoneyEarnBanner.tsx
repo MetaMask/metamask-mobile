@@ -287,7 +287,7 @@ const MoneyEarnBannerContent = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="mx-4 mt-4 gap-4 rounded-xl bg-muted px-4 py-3"
+        className="mx-4 mt-4 gap-4 rounded-xl bg-muted px-4 py-3"
       >
         <Box
           style={styles.iconContainer}
@@ -310,7 +310,7 @@ const MoneyEarnBannerContent = ({
           <Image source={moneyEarnBannerArrow} style={styles.arrowImage} />
           <Image source={moneyEarnBannerCoin} style={styles.coinImage} />
         </Box>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -318,7 +318,7 @@ const MoneyEarnBannerContent = ({
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Bold}
-              twClassName="flex-1"
+              className="flex-1"
               testID={MoneyEarnBannerTestIds.TITLE}
             >
               {title}

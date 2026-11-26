@@ -340,7 +340,7 @@ function ConfirmInternal({
       isInteractable={Boolean(approvalRequest)}
       onClose={() => onReject()}
       testID={ConfirmationUIType.MODAL}
-      twClassName={
+      className={
         sheetMinHeight === undefined ? undefined : `min-h-[${sheetMinHeight}px]`
       }
     >
@@ -409,7 +409,7 @@ function Loader({
 
     return (
       <Box
-        twClassName="grow items-center justify-center"
+        className="grow items-center justify-center"
         testID="confirm-loader-bottom-sheet"
       >
         <Spinner />

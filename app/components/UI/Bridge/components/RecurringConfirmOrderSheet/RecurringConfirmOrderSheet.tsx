@@ -89,7 +89,7 @@ function TokenAvatar({
       position={BadgeWrapperPosition.BottomRight}
       badge={
         <Box
-          twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+          className="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
           style={{
             width: NETWORK_BADGE_SIZE,
             height: NETWORK_BADGE_SIZE,
@@ -146,7 +146,7 @@ function ConfirmOrderRow({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="shrink"
+        className="shrink"
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {label}
@@ -157,7 +157,7 @@ function ConfirmOrderRow({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="shrink"
+        className="shrink"
       >
         {isLoading ? (
           <Skeleton
@@ -169,7 +169,7 @@ function ConfirmOrderRow({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
-            twClassName="text-right"
+            className="text-right"
           >
             {value}
           </Text>
@@ -391,7 +391,7 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <Box className="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_receiving_per_order')}
           value={
@@ -444,7 +444,7 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <Box className="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
           label={strings('bridge.cost_tolerance')}
           value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
@@ -476,7 +476,7 @@ const RecurringConfirmOrderSheet = ({
         />
         {showDelegationFee ? (
           <>
-            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <Box className="mx-4 my-2 h-px bg-muted" />
             <ConfirmOrderRow
               label={strings('bridge.recurring.account_upgrade_fee')}
               value={
@@ -535,7 +535,7 @@ const RecurringConfirmOrderSheet = ({
           gap={2}
           paddingHorizontal={4}
           paddingBottom={4}
-          twClassName="flex-wrap"
+          className="flex-wrap"
           testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER}
         >
           {discountBadge ? (
@@ -553,7 +553,7 @@ const RecurringConfirmOrderSheet = ({
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {infoText}
             </Text>
@@ -562,7 +562,7 @@ const RecurringConfirmOrderSheet = ({
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
-              twClassName="line-through"
+              className="line-through"
             >
               {baseFeePercentage}
             </Text>

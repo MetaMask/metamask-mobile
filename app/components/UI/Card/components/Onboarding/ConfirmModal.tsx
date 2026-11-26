@@ -64,7 +64,7 @@ const ConfirmModal = () => {
   const renderTitle = () => (
     <Text
       variant={TextVariant.HeadingMd}
-      twClassName="text-center"
+      className="text-center"
       testID="confirm-modal-title"
     >
       {title}
@@ -74,7 +74,7 @@ const ConfirmModal = () => {
   const renderDescription = () => (
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="text-center text-alternative"
+      className="text-center text-alternative"
       testID="confirm-modal-description"
     >
       {description}
@@ -82,12 +82,12 @@ const ConfirmModal = () => {
   );
 
   const renderActions = () => (
-    <Box twClassName="w-full mt-2" testID="confirm-modal-actions">
+    <Box className="w-full mt-2" testID="confirm-modal-actions">
       <Button
         onPress={handleConfirm}
         variant={confirmAction.variant || ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        twClassName="w-full"
+        className="w-full"
       >
         {confirmAction.label || strings('card.card_onboarding.confirm_button')}
       </Button>
@@ -105,9 +105,9 @@ const ConfirmModal = () => {
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="py-2 px-4 flex flex-col gap-3"
+        className="py-2 px-4 flex flex-col gap-3"
       >
-        <Box twClassName="w-full flex-row justify-end -mt-2">
+        <Box className="w-full flex-row justify-end -mt-2">
           <ButtonIcon
             onPress={handleCancel}
             iconName={IconName.Close}

@@ -91,7 +91,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   scrollPassthrough = false,
 }) => (
   <PriceChartProvider>
-    <Box twClassName="mx-4 my-3">
+    <Box className="mx-4 my-3">
       {assetId || isPerp ? (
         <TraderAdvancedChart
           assetId={assetId}

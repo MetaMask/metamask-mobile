@@ -134,7 +134,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         // ListItem owns its own px-4 for the pressed state, so cancel the list
         // container's px-4 to avoid indenting perps rows an extra 16px.
         return (
-          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+          <Box className="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
             <PerpsRowItem
               market={item as PerpsMarketData}
               source={PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH}
@@ -149,7 +149,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         return <SiteRowItem site={item as SiteData} />;
       case 'earn':
         return (
-          <Box twClassName="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>
+          <Box className="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>
             <EarnSearchRow
               item={item as EarnSearchItem}
               position={index + 1}

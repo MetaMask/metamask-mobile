@@ -99,13 +99,13 @@ const PopularTradersCarousel: React.FC = () => {
   return (
     <Box
       testID={PopularTradersCarouselSelectorsIDs.SECTION}
-      twClassName="-mt-4"
+      className="-mt-4"
     >
       <SectionHeader
         title={title}
         isInteractive
         onPress={handleViewAll}
-        twClassName="py-0"
+        className="py-0"
         testID={PopularTradersCarouselSelectorsIDs.HEADER}
       />
       <Box paddingTop={3}>

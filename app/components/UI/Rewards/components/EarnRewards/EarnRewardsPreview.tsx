@@ -103,9 +103,9 @@ const EarnCard: React.FC<EarnCardProps> = ({
           resizeMode="cover"
         />
       </Box>
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {title}
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-alternative">
           {subtitle}
         </Text>
       </Box>
@@ -230,6 +230,9 @@ const EarnRewardsPreview: React.FC = () => {
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
+      /><ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
       />
       {/* paddingTop matches CampaignsPreview / BenefitsPreview, where
           sections pair SectionHeader with a pt-3 content box. */}
@@ -271,7 +274,7 @@ const EarnRewardsPreview: React.FC = () => {
                         testID={
                           REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
                         }
-                        twClassName="text-primary"
+                        className="text-primary"
                         onPress={handleMusdDisclaimerPress}
                       >
                         *

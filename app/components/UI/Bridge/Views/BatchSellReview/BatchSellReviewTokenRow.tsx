@@ -111,7 +111,7 @@ export function BatchSellReviewTokenRow({
   return (
     <Box
       testID={`${BatchSellReviewSelectorsIDs.TOKEN_ROW}-${tokenKey}`}
-      twClassName="gap-2 px-4 py-2"
+      className="gap-2 px-4 py-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -123,7 +123,7 @@ export function BatchSellReviewTokenRow({
           src={token.image ? { uri: token.image } : undefined}
           size={AvatarTokenSize.Lg}
         />
-        <Box twClassName="min-w-0 flex-1 gap-0.5">
+        <Box className="min-w-0 flex-1 gap-0.5">
           {isLoading ? (
             <Skeleton
               width={114}
@@ -145,14 +145,14 @@ export function BatchSellReviewTokenRow({
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={2}
-              twClassName="min-w-0"
+              className="min-w-0"
             >
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {receivedAmount}
               </Text>

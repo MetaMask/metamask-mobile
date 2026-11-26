@@ -204,7 +204,7 @@ const OrderTypeStartAccessory = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-10 w-10"
+      className="h-10 w-10"
       testID={`${testID}-icon`}
       accessibilityLabel={`${testID}-icon-${themeAppearance}`}
     >
@@ -322,6 +322,19 @@ const PerpsOrderTypeBottomSheetView = ({
       startAccessory={
         shouldShowOrderTypeIcon ? (
           <OrderTypeStartAccessory
+            LightIcon={orderType.LightIcon}
+            DarkIcon={orderType.DarkIcon}
+            type={orderType.type}
+            testID={orderType.testID}
+          />
+        ) : undefined
+      }
+      isSelected={currentOrderType === orderType.type}
+      showSelectedIcon={false}
+      onPress={() => handleSelect(orderType.type)}
+      testID={orderType.testID}
+      className="min-h-[78px] py-4"
+    /><OrderTypeStartAccessory
             LightIcon={orderType.LightIcon}
             DarkIcon={orderType.DarkIcon}
             type={orderType.type}

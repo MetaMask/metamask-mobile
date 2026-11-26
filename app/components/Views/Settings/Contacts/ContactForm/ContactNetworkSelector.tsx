@@ -30,7 +30,7 @@ export const ContactNetworkSelector = ({
     <SelectButton
       isFullWidth
       size={SelectButtonSize.Lg}
-      twClassName="px-4"
+      className="px-4"
       value={networkName}
       placeholder={networkName}
       contentWrapperProps={{ twClassName: 'w-full justify-between' }}
@@ -44,10 +44,18 @@ export const ContactNetworkSelector = ({
       }
       onPress={onOpen}
       testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+    /><AvatarNetwork
+          size={AvatarNetworkSize.Sm}
+          name={networkName}
+          src={getNetworkImageSource({ chainId })}
+        />
+      }
+      onPress={onOpen}
+      testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
     />
   ) : (
     <Box
-      twClassName="flex-row items-center gap-2"
+      className="flex-row items-center gap-2"
       testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
     >
       <AvatarNetwork

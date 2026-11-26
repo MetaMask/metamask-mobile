@@ -603,7 +603,7 @@ const DaimoPayModal: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
             testID={DaimoPayModalSelectors.ERROR_TEXT}
           >
             {error}

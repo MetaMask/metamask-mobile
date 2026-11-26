@@ -23,11 +23,11 @@ const CheckoutLimitErrorView = ({
   onContinuePress,
   isPending,
 }: CheckoutLimitErrorViewProps) => (
-  <Box twClassName="items-center px-4">
+  <Box className="items-center px-4">
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center mb-6"
+      className="text-center mb-6"
     >
       {strings(
         'fiat_on_ramp_aggregator.checkout_guest_limit_reached_description',

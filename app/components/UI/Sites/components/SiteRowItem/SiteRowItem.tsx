@@ -74,8 +74,8 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
       style={tw.style('flex-row items-center py-2')}
     >
       {/* Logo */}
-      <Box twClassName="flex-row items-center flex-1">
-        <Box twClassName="w-10 h-10 rounded-full border border-muted mr-4 overflow-hidden items-center justify-center">
+      <Box className="flex-row items-center flex-1">
+        <Box className="w-10 h-10 rounded-full border border-muted mr-4 overflow-hidden items-center justify-center">
           {site.logoSource ? (
             <Image
               testID="site-logo-image"
@@ -101,7 +101,7 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
           )}
         </Box>
         {/* Site Info */}
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Text
             variant={TextVariant.BodyMd}
             style={tw.style('font-medium')}
@@ -111,7 +111,7 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-alternative"
+            className="text-alternative"
             numberOfLines={1}
           >
             {site.displayUrl}
@@ -119,7 +119,7 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
         </Box>
       </Box>
       {/* Action Icons */}
-      <Box twClassName="ml-3 flex-row items-center gap-3">
+      <Box className="ml-3 flex-row items-center gap-3">
         {onRemoveFavorite && (
           <TouchableOpacity onPress={onRemoveFavorite} hitSlop={8}>
             <Icon

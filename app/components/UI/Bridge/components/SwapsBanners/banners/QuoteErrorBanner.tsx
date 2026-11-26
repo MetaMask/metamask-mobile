@@ -39,9 +39,23 @@ export const QuoteErrorBanner = () => {
 
   return (
     <BannerBase
-      twClassName={ERROR_BANNER_TW_CLASSNAME}
+      className={ERROR_BANNER_TW_CLASSNAME}
       startAccessory={
         <Icon
+          name={IconName.Error}
+          color={IconColor.ErrorDefault}
+          size={IconSize.Lg}
+        />
+      }
+      description={
+        <Text
+          testID={SwapsBannersSelectorsIDs.QUOTE_ERROR}
+          variant={TextVariant.BodySm}
+        >
+          {getQuoteStreamReasonString(quoteStreamComplete?.reason)}
+        </Text>
+      }
+    /><Icon
           name={IconName.Error}
           color={IconColor.ErrorDefault}
           size={IconSize.Lg}

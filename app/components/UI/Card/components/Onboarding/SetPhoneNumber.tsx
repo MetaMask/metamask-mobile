@@ -260,9 +260,9 @@ const SetPhoneNumber = () => {
             : 'set-phone-number-phone-number-error'
         }
       >
-        <Box twClassName="flex-row items-center gap-2">
+        <Box className="flex-row items-center gap-2">
           {/* Area code selector */}
-          <Box twClassName="w-28">
+          <Box className="w-28">
             <SelectField
               value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? ''}`}
               onPress={handleCountrySelect}
@@ -275,7 +275,7 @@ const SetPhoneNumber = () => {
           </Box>
 
           {/* Phone number input */}
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <TextField
               onChangeText={handlePhoneNumberChange}
               value={phoneNumber}
@@ -310,7 +310,7 @@ const SetPhoneNumber = () => {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID="set-phone-number-legal-terms"
         >
           {strings('card.card_onboarding.set_phone_number.legal_terms')}

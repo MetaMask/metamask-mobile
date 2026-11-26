@@ -88,6 +88,10 @@ const FeatureRow = ({
     }
     title={title}
     description={description}
+  /><AvatarIcon iconName={icon} severity={AvatarIconSeverity.Neutral} />
+    }
+    title={title}
+    description={description}
   />
 );
 
@@ -310,7 +314,7 @@ const CreateVirtualBankAccount = ({
         </Box>
       </ScrollView>
 
-      <Box twClassName="gap-4 px-4 pt-4 pb-2">
+      <Box className="gap-4 px-4 pt-4 pb-2">
         {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
@@ -335,7 +339,7 @@ const CreateVirtualBankAccount = ({
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={
               isLoading
                 ? CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING
@@ -412,7 +416,7 @@ const CreateVirtualBankAccount = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-10 justify-center gap-1 opacity-40"
+          className="h-10 justify-center gap-1 opacity-40"
         >
           <Text
             variant={TextVariant.BodyXs}

@@ -124,13 +124,13 @@ const EarningsChart = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-40 gap-3 px-4"
+          className="h-40 gap-3 px-4"
           testID={MoneyEarningsViewTestIds.ERROR}
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             accessibilityRole="alert"
           >
             {strings('money.earnings.error')}
@@ -151,13 +151,13 @@ const EarningsChart = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-40 px-4"
+          className="h-40 px-4"
           testID={MoneyEarningsViewTestIds.EMPTY}
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('money.earnings.empty')}
           </Text>

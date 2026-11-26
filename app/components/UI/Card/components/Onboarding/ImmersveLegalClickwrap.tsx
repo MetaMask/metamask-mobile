@@ -52,12 +52,12 @@ function getSeparator(index: number, total: number): string {
 
 function LegalDocsError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Box twClassName="items-center gap-2" testID="signup-immersve-legal-error">
+    <Box className="items-center gap-2" testID="signup-immersve-legal-error">
       <HelpText
         severity={HelpTextSeverity.Danger}
         accessibilityRole="alert"
         accessibilityLiveRegion="polite"
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('card.card_onboarding.sign_up.legal_docs_error')}
       </HelpText>
@@ -88,7 +88,7 @@ const ImmersveLegalClickwrap = ({
   if (isLoading) {
     return (
       <Box
-        twClassName="items-center py-2"
+        className="items-center py-2"
         testID="signup-immersve-legal-loading"
       >
         <Spinner />
@@ -108,7 +108,7 @@ const ImmersveLegalClickwrap = ({
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
       testID="signup-immersve-legal-clickwrap"
     >
       {strings('card.card_onboarding.sign_up.clickwrap_prefix')}

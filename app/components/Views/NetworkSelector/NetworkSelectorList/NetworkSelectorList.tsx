@@ -287,7 +287,7 @@ const NetworkSelectorList = ({
           isSendFlow ? (
             name
           ) : (
-            <Box twClassName="w-full flex-row gap-2 items-center self-stretch">
+            <Box className="w-full flex-row gap-2 items-center self-stretch">
               <Text
                 variant={TextVariant.BodyMd}
                 numberOfLines={1}

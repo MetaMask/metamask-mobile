@@ -22,7 +22,7 @@ function PredictQuickAmounts({
   const { playImpact } = useHaptics();
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
+    <Box flexDirection={BoxFlexDirection.Row} className="gap-2 py-1">
       {QUICK_AMOUNTS.map((amount) => (
         <Button
           key={amount}

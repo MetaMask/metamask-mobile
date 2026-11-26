@@ -8,7 +8,7 @@ const SignInSkeleton = () => {
   const tw = useTailwind();
   return (
     <Box
-      twClassName="gap-3"
+      className="gap-3"
       testID={CardAuthenticationSelectors.RESOLVING_SKELETON}
     >
       <Skeleton height={48} width="100%" style={tw.style('rounded-xl')} />

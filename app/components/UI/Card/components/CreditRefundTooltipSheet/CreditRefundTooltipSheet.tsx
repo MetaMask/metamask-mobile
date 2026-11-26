@@ -40,11 +40,11 @@ const CreditRefundTooltipSheet = () => {
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative"
+          className="text-alternative"
           testID={CreditRefundTooltipSheetSelectors.DESCRIPTION}
         >
           {strings(

@@ -161,7 +161,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   }
 
   return (
-    <Box twClassName="pl-4 py-2">
+    <Box className="pl-4 py-2">
       <ScrollView
         ref={scrollViewRef}
         horizontal

@@ -127,11 +127,11 @@ const CampaignTourStepView: React.FC = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: safeAreaInsets.top }}
     >
       {/* Progress Dots */}
-      <Box twClassName="flex-row justify-center items-center py-6 px-4">
+      <Box className="flex-row justify-center items-center py-6 px-4">
         <ProgressIndicator
           totalSteps={tour.length}
           currentStep={currentTab + 1}
@@ -140,7 +140,7 @@ const CampaignTourStepView: React.FC = () => {
       </Box>
 
       {/* Tutorial Content */}
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <ScrollableTabView
           ref={scrollableTabViewRef}
           renderTabBar={renderTabBar}
@@ -148,7 +148,7 @@ const CampaignTourStepView: React.FC = () => {
           initialPage={0}
         >
           {tour.map((step, index) => (
-            <Box key={index} twClassName="flex-1">
+            <Box key={index} className="flex-1">
               <CampaignTourStep step={step} />
             </Box>
           ))}
@@ -156,21 +156,21 @@ const CampaignTourStepView: React.FC = () => {
       </Box>
 
       {/* Footer */}
-      <Box twClassName="px-4" style={{ paddingBottom: safeAreaInsets.bottom }}>
-        <Box twClassName="mb-4 gap-4">
+      <Box className="px-4" style={{ paddingBottom: safeAreaInsets.bottom }}>
+        <Box className="mb-4 gap-4">
           {showNext && (
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={handleNext}
-              twClassName="w-full"
+              className="w-full"
               testID={CAMPAIGN_TOUR_STEP_TEST_IDS.NEXT_BUTTON}
             >
               {nextButtonLabel}
             </Button>
           )}
           <Box
-            twClassName="self-center px-4"
+            className="self-center px-4"
             style={tw.style(!showSkip && 'opacity-0')}
           >
             <TouchableOpacity

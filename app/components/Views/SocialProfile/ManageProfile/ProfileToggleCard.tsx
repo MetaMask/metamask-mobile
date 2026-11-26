@@ -72,8 +72,8 @@ const ProfileToggleCard = ({
   }, []);
 
   return (
-    <Box twClassName="px-4 pb-4 pt-2" gap={3}>
-      <Box twClassName="rounded-2xl bg-muted px-4 py-3">
+    <Box className="px-4 pb-4 pt-2" gap={3}>
+      <Box className="rounded-2xl bg-muted px-4 py-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -82,7 +82,7 @@ const ProfileToggleCard = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mr-3 flex-1"
+            className="mr-3 flex-1"
             gap={1}
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -108,7 +108,7 @@ const ProfileToggleCard = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mt-1"
+          className="mt-1"
           testID={ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION}
         >
           {description}
@@ -145,7 +145,7 @@ const ProfileToggleCard = ({
             >
               {strings('manage_profile.show_trading_activity')}
             </BottomSheetHeaderGlass>
-            <Box twClassName="px-4 pb-4" style={styles.sheetContent}>
+            <Box className="px-4 pb-4" style={styles.sheetContent}>
               <Text variant={TextVariant.BodyMd}>
                 {strings('manage_profile.trading_activity_info_description')}
               </Text>

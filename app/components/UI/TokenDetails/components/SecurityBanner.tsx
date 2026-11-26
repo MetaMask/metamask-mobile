@@ -59,10 +59,10 @@ export const SecurityBanner: React.FC<SecurityBannerProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={`self-stretch py-3 pl-6 pr-4 rounded-2xl ${backgroundClass} ${className || 'gap-4'}`}
+      className={`self-stretch py-3 pl-6 pr-4 rounded-2xl ${backgroundClass} ${className || 'gap-4'}`}
       testID={onPress ? undefined : testID}
     >
-      <Box twClassName="pt-[2px]">
+      <Box className="pt-[2px]">
         {securityConfig.iconAlertSeverity && (
           <IconAlert
             severity={securityConfig.iconAlertSeverity}
@@ -70,7 +70,7 @@ export const SecurityBanner: React.FC<SecurityBannerProps> = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {titleText && (
           <Text
             variant={TextVariant.BodyMd}

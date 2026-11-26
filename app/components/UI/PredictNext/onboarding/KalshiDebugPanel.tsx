@@ -51,7 +51,7 @@ const Row = ({
   onCopy?: () => void;
   copyTestID?: string;
 }) => (
-  <Box twClassName="gap-0.5">
+  <Box className="gap-0.5">
     <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
       {label}
     </Text>
@@ -60,7 +60,7 @@ const Row = ({
       alignItems={BoxAlignItems.Center}
       gap={1}
     >
-      <Text variant={TextVariant.BodySm} selectable twClassName="flex-1">
+      <Text variant={TextVariant.BodySm} selectable className="flex-1">
         {value ?? '—'}
       </Text>
       {onCopy && value ? (
@@ -208,7 +208,7 @@ export const KalshiDebugPanel = ({
             copyTestID={KalshiDebugTestIds.COPY_PROFILE_ID}
           />
 
-          <Box twClassName="flex-row gap-2">
+          <Box className="flex-row gap-2">
             <Button
               variant={ButtonVariant.Secondary}
               onPress={refresh}

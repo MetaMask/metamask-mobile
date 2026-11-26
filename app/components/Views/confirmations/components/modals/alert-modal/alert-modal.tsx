@@ -306,7 +306,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
         keyboardAvoidingViewEnabled={false}
         onClose={handleSheetClosed}
       >
-        <Box twClassName="flex flex-col px-4 pt-4">
+        <Box className="flex flex-col px-4 pt-4">
           <Header
             selectedAlert={selectedAlert}
             iconColor={severityStyle.icon}

@@ -76,7 +76,7 @@ export const TooltipModal = ({
             >
               {title}
             </ConfirmationSheetHeader>
-            <Box twClassName="flex flex-col">
+            <Box className="flex flex-col">
               <View style={styles.modalContent}>
                 {typeof content === 'string' ? (
                   <Text style={styles.modalContentValue}>{content}</Text>

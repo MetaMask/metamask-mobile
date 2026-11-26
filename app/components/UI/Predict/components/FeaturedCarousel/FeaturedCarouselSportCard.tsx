@@ -207,13 +207,13 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.9}
     >
-      <Box twClassName="bg-section rounded-xl p-4 h-full justify-between">
-        <Box twClassName="flex-1">
+      <Box className="bg-section rounded-xl p-4 h-full justify-between">
+        <Box className="flex-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="mb-3 gap-2"
+            className="mb-3 gap-2"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -259,12 +259,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mb-2"
+            className="mb-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              className="gap-2"
             >
               {renderTeamLogo(leftTeam)}
               <Text
@@ -278,7 +278,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              className="gap-2"
             >
               <Text
                 variant={TextVariant.DisplayMd}
@@ -293,9 +293,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mb-1"
+            className="mb-1"
           >
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -310,7 +310,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               )}
             </Box>
 
-            <Box twClassName="flex-1 items-end">
+            <Box className="flex-1 items-end">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -331,14 +331,14 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             </Box>
           </Box>
 
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-3 gap-2">
+          <Box flexDirection={BoxFlexDirection.Row} className="mt-3 gap-2">
             {leftToken && (
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Button
                   onPress={() =>
                     handleBuy(leftToken, leftButtonResolution?.outcome)
                   }
-                  twClassName="bg-success-muted"
+                  className="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                   testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(index, 0)}
@@ -356,7 +356,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               </Box>
             )}
             {drawToken && (
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Button
                   onPress={() =>
                     handleBuy(drawToken, buttonResolution.draw?.outcome)
@@ -379,12 +379,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               </Box>
             )}
             {rightToken && (
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Button
                   onPress={() =>
                     handleBuy(rightToken, rightButtonResolution?.outcome)
                   }
-                  twClassName="bg-success-muted"
+                  className="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                   testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(

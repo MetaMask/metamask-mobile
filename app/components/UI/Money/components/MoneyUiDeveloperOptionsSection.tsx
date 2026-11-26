@@ -74,7 +74,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   }, [dispatch]);
 
   return (
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <Box>
         <Text variant={TextVariant.HeadingLg} style={styles.heading}>
           {'Money UI'}

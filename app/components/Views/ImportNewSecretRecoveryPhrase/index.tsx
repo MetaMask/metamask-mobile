@@ -264,7 +264,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   ]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
@@ -288,7 +288,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-0.5"
+            className="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -321,7 +321,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         bottomOffset={180}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <SrpInputGrid
             ref={srpInputGridRef}
             seedPhrase={seedPhrase}

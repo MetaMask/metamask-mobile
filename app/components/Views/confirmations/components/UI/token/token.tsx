@@ -51,7 +51,7 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
       onPress={handlePress}
     >
       <Box
-        twClassName="flex-row items-center px-4 flex-1 min-w-0"
+        className="flex-row items-center px-4 flex-1 min-w-0"
         {...(asset.chainId
           ? {
               testID: getAssetTestId(`${asset.chainId}-${asset.symbol}`),
@@ -59,7 +59,7 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
             }
           : {})}
       >
-        <Box twClassName="h-12 justify-center">
+        <Box className="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
             badgeElement={
@@ -87,13 +87,13 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
           </BadgeWrapper>
         </Box>
 
-        <Box twClassName="ml-4 h-12 justify-center flex-1 min-w-0">
-          <Box twClassName="flex-row items-center gap-2">
+        <Box className="ml-4 h-12 justify-center flex-1 min-w-0">
+          <Box className="flex-row items-center gap-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
@@ -113,7 +113,7 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
           </Text>
         </Box>
       </Box>
-      <Box twClassName="px-4 h-12 justify-center items-end shrink-0">
+      <Box className="px-4 h-12 justify-center items-end shrink-0">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}

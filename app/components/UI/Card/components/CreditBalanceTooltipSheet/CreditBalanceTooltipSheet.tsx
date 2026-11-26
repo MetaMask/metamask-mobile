@@ -49,11 +49,11 @@ const CreditBalanceTooltipSheet = () => {
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative"
+          className="text-alternative"
           testID={CreditBalanceTooltipSheetSelectors.DESCRIPTION}
         >
           {strings(
@@ -63,12 +63,12 @@ const CreditBalanceTooltipSheet = () => {
           )}
         </Text>
 
-        <Box twClassName="mt-6">
+        <Box className="mt-6">
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             alignItems={BoxAlignItems.Center}
-            twClassName="py-3"
+            className="py-3"
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings(
@@ -80,7 +80,7 @@ const CreditBalanceTooltipSheet = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID={CreditBalanceTooltipSheetSelectors.MONEY_ACCOUNT_AMOUNT}
             >
               {moneyAccountAmount ?? ''}
@@ -90,7 +90,7 @@ const CreditBalanceTooltipSheet = () => {
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             alignItems={BoxAlignItems.Center}
-            twClassName="py-3"
+            className="py-3"
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('card.credit_balance_tooltip.refund_balance')}
@@ -98,7 +98,7 @@ const CreditBalanceTooltipSheet = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID={CreditBalanceTooltipSheetSelectors.REFUND_AMOUNT}
             >
               {refundAmount ?? ''}

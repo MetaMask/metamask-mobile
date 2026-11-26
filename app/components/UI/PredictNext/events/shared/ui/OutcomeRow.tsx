@@ -16,7 +16,7 @@ const Root = ({
   children: React.ReactNode;
   testID?: string;
 }) => (
-  <Box twClassName="flex-row items-center gap-3" testID={testID}>
+  <Box className="flex-row items-center gap-3" testID={testID}>
     {children}
   </Box>
 );
@@ -34,14 +34,14 @@ const Label = ({
   color: string;
   lineTestID?: string;
 }) => (
-  <Box twClassName="min-w-0 flex-1 gap-2">
+  <Box className="min-w-0 flex-1 gap-2">
     <Text variant={TextVariant.BodyMd} numberOfLines={1}>
       {label}
     </Text>
     {percent === undefined ? null : (
       <Box
         testID={lineTestID}
-        twClassName="h-0.5 rounded-full"
+        className="h-0.5 rounded-full"
         style={{ width: `${percent}%`, backgroundColor: color }}
       />
     )}
@@ -85,7 +85,7 @@ const Price = ({
     variant={ButtonVariant.Secondary}
     size={ButtonSize.Lg}
     onPress={onPress}
-    twClassName={twClassName}
+    className={twClassName}
   >
     <Text
       variant={TextVariant.BodyMd}

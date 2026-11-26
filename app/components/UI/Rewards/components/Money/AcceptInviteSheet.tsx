@@ -460,7 +460,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       >
         {copy.title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         {Boolean(copy.body) && (
           <Text
             variant={TextVariant.BodyMd}
@@ -481,7 +481,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           </Text>
         )}
         <Box
-          twClassName="mt-4 mb-6 flex flex-col gap-y-2"
+          className="mt-4 mb-6 flex flex-col gap-y-2"
           testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_FIELD}
         >
           <Label fontWeight={FontWeight.Medium}>{copy.codeLabel}</Label>
@@ -503,7 +503,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           {Boolean(errorMessage) && (
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-error-default mt-1"
+              className="text-error-default mt-1"
               testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_ERROR}
             >
               {errorMessage}
@@ -511,7 +511,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           )}
         </Box>
       </Box>
-      <Box twClassName="gap-3 px-4">
+      <Box className="gap-3 px-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

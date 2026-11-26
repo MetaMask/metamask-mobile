@@ -281,7 +281,7 @@ const ForgotPasswordModal: React.FC = () => {
         >
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
             testID="forgot-password-error-text"
           >
             {strings('card.card_forgot_password.load_error')}

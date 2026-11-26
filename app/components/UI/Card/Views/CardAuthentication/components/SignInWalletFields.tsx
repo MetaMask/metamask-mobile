@@ -54,7 +54,7 @@ const SignInWalletFields = ({
 }: SignInWalletFieldsProps) => {
   const tw = useTailwind();
   return (
-    <Box twClassName="gap-4">
+    <Box className="gap-4">
       {origin === 'manual' && onBack && (
         <TouchableOpacity
           onPress={onBack}
@@ -84,7 +84,7 @@ const SignInWalletFields = ({
       >
         {lockToMoneyAccount ? (
           <Box
-            twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+            className="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
             testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
           >
             <MoneyAccountIdentity />
@@ -114,7 +114,7 @@ const SignInWalletFields = ({
           size={ButtonSize.Md}
           onPress={onUseCurrentCard}
           testID={CardAuthenticationSelectors.RESUME_SOFT_LINK}
-          twClassName="self-start"
+          className="self-start"
         >
           {strings('card.card_authentication.resume_use_current_card')}
         </Button>

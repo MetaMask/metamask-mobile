@@ -124,7 +124,7 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="pt-4"
+          className="pt-4"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -190,7 +190,7 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
+          className={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
           gap={3}
         >
           {isMoneyAccountSelected ? (

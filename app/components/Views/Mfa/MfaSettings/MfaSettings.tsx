@@ -151,13 +151,13 @@ const MfaSettings = () => {
         includesTopInset
       />
       <ScrollView contentContainerStyle={tw.style('pb-4')}>
-        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pb-2">
+        <Text variant={TextVariant.HeadingLg} className="px-4 pb-2">
           {strings('mfa.settings.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="px-4 pb-2"
+          className="px-4 pb-2"
         >
           {strings(
             isSocialLogin
@@ -175,6 +175,15 @@ const MfaSettings = () => {
             valueProps={{ color: TextColor.TextAlternative }}
             endAccessory={
               <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
+            accessoryGap={2}
+            onPress={() => open(method, isSetUp)}
+            testID={ROW_TEST_IDS[method]}
+          /><Icon
                 name={IconName.ArrowRight}
                 size={IconSize.Sm}
                 color={IconColor.IconAlternative}

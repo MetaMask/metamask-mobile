@@ -91,7 +91,7 @@ export const VenueSelectorSheet = ({
               >
                 {strings('predict_next.venue_selector.title')}
               </BottomSheetHeaderGlass>
-              <Box twClassName="pb-4">
+              <Box className="pb-4">
                 {venues.map((venue) => {
                   const isSelected = venue === activeVenue;
                   return (

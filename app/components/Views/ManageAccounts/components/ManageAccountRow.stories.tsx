@@ -167,7 +167,7 @@ const ManageAccountRowMeta = {
   decorators: [
     (Story: React.ComponentType) => (
       <Provider store={mockStore}>
-        <Box twClassName="flex-1 bg-default py-2">
+        <Box className="flex-1 bg-default py-2">
           <Story />
         </Box>
       </Provider>

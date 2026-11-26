@@ -55,22 +55,22 @@ const RecurringFeeModal = () => {
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative"
+          className="text-alternative"
           testID={RecurringFeeModalSelectors.DESCRIPTION}
         >
           {strings('card.recurring_fee_modal.description')}
         </Text>
 
-        <Box twClassName="mt-4">
+        <Box className="mt-4">
           <Button
             onPress={handleGotIt}
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            twClassName="w-full"
+            className="w-full"
             testID={RecurringFeeModalSelectors.GOT_IT_BUTTON}
           >
             {strings('card.recurring_fee_modal.got_it')}

@@ -38,7 +38,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
     justifyContent={BoxJustifyContent.Center}
     backgroundColor={BoxBackgroundColor.BackgroundDefault}
     gap={3}
-    twClassName={`max-w-64 ${twClassName}`}
+    className={`max-w-64 ${twClassName}`}
     style={style}
     {...props}
   >
@@ -47,7 +47,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
         {...descriptionProps}
       >
         {description}
@@ -57,7 +57,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
       <Button
         variant={ButtonVariant.Secondary}
         onPress={onAction}
-        twClassName="self-center"
+        className="self-center"
         {...actionButtonProps}
       >
         {actionButtonText}

@@ -71,14 +71,14 @@ const BenefitsTab: React.FC = () => {
     }
 
     return (
-      <Box twClassName="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
+      <Box className="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
         {body}
       </Box>
     );
   }
 
   return (
-    <Box twClassName="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
+    <Box className="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
       {benefits.map((benefit) => (
         <BenefitCard key={benefit.id} benefit={benefit} />
       ))}

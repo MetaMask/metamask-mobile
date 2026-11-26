@@ -201,7 +201,7 @@ const CardMessageBox = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           gap={2}
-          twClassName="mt-4"
+          className="mt-4"
           testID="card-message-box-actions"
         >
           {onDismiss && (

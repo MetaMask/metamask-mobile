@@ -177,7 +177,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
                         ? TextColor.TextDefault
                         : TextColor.TextAlternative
                     }
-                    twClassName={isSelected ? 'font-bold' : ''}
+                    className={isSelected ? 'font-bold' : ''}
                   >
                     {line}
                   </Text>

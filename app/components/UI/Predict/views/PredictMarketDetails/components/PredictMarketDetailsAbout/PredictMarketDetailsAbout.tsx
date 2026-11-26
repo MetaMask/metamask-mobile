@@ -37,12 +37,12 @@ const AboutRow = ({ icon, label, value, children }: AboutRowProps) => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="gap-3"
+    className="gap-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      className="gap-3"
     >
       <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
       <Text
@@ -63,8 +63,8 @@ const AboutRow = ({ icon, label, value, children }: AboutRowProps) => (
 
 const PredictMarketDetailsAbout = memo(
   ({ market, onPolymarketResolution }: PredictMarketDetailsAboutProps) => (
-    <Box twClassName="gap-6">
-      <Box twClassName="gap-2">
+    <Box className="gap-6">
+      <Box className="gap-2">
         <AboutRow
           icon={IconName.Chart}
           label={strings('predict.market_details.volume')}
@@ -86,7 +86,7 @@ const PredictMarketDetailsAbout = memo(
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
             <Pressable onPress={onPolymarketResolution}>
               <Text
@@ -104,11 +104,11 @@ const PredictMarketDetailsAbout = memo(
           </Box>
         </AboutRow>
       </Box>
-      <Box twClassName="w-full border-t border-muted" />
+      <Box className="w-full border-t border-muted" />
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
-      <Box twClassName="w-full border-t border-muted" />
+      <Box className="w-full border-t border-muted" />
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
         {strings('predict.market_details.disclaimer')}
       </Text>

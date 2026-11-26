@@ -49,9 +49,9 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="gap-4"
+        className="gap-4"
       >
-        <Box twClassName="w-10 h-10 rounded-full bg-primary-muted items-center justify-center">
+        <Box className="w-10 h-10 rounded-full bg-primary-muted items-center justify-center">
           <Icon
             name={IconName.Add}
             size={IconSize.Md}
@@ -61,7 +61,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-primary"
+          className="text-primary"
         >
           {strings('predict.tab.new_prediction')}
         </Text>

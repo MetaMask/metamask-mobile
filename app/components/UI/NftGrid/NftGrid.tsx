@@ -282,13 +282,13 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             const padding = ['pr-2', 'px-1', 'pl-2'][index % 3];
             if ('skeleton' in item) {
               return (
-                <Box twClassName={padding}>
+                <Box className={padding}>
                   <NftSkeletonCell />
                 </Box>
               );
             }
             return (
-              <Box twClassName={padding}>
+              <Box className={padding}>
                 <NftGridItem
                   item={item}
                   onLongPress={handleLongPress}
@@ -368,7 +368,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
         {/* View all NFTs button - shown when there are more items than maxItems */}
         {maxItems && allFilteredCollectibles.length > maxItems && (
-          <Box twClassName="pt-3 pb-9">
+          <Box className="pt-3 pb-9">
             <Button
               variant={ButtonVariant.Secondary}
               onPress={handleViewAllNfts}

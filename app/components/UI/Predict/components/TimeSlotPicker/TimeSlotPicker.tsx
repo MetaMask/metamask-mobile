@@ -80,11 +80,11 @@ const PulseDot: React.FC = () => {
 
   return (
     <Box
-      twClassName={`w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] items-center justify-center`}
+      className={`w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] items-center justify-center`}
     >
       <Animated.View style={[ringBaseStyle, ringAnimatedStyle]} />
       <Box
-        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-success-default`}
+        className={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-success-default`}
       />
     </Box>
   );
@@ -149,14 +149,14 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
         alignItems={BoxAlignItems.Center}
         backgroundColor={bg}
         borderColor={border}
-        twClassName={`px-3 py-2 rounded-full gap-2 ${border ? 'border' : ''} ${bgClassName ?? ''}`}
+        className={`px-3 py-2 rounded-full gap-2 ${border ? 'border' : ''} ${bgClassName ?? ''}`}
       >
         {isLive && <PulseDot />}
         {isLive && countdown ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
             <Text
               testID={`time-slot-live-label-${market.id}`}
@@ -266,7 +266,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   if (markets.length === 0) return null;
 
   return (
-    <Box twClassName="h-11">
+    <Box className="h-11">
       <ScrollView
         testID="time-slot-picker"
         ref={scrollRef}

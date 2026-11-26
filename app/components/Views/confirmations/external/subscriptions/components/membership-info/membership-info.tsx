@@ -19,7 +19,7 @@ export function MembershipInfo({ amountFiat }: MembershipInfoProps) {
       description={strings('confirm.membership_top_up_info', {
         amount: moneyFormatUsd(new BigNumber(amountFiat || '0')),
       })}
-      twClassName="w-full"
+      className="w-full"
       testID="membership-info-banner"
     />
   );

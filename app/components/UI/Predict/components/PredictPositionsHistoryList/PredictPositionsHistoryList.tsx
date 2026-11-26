@@ -19,7 +19,7 @@ const PredictPositionsHistoryList = ({
   isVisible,
 }: PredictPositionsHistoryListProps) => (
   <Box
-    twClassName="flex-1"
+    className="flex-1"
     testID={PredictPositionsHistoryListSelectorsIDs.CONTAINER}
   >
     <PredictTransactionsView

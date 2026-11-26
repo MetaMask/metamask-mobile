@@ -31,7 +31,7 @@ const ExploreSectionList: React.FC<ExploreSectionListProps> = ({
         ) : null}
         <Box
           testID={`explore-section-${section.key}`}
-          twClassName={
+          className={
             index < sections.length - 1 && !section.isVerticalList
               ? 'pb-3'
               : undefined

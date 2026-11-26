@@ -124,7 +124,7 @@ const EventScreenChrome = ({
   children: React.ReactNode;
   header: React.ReactNode;
 }): React.ReactElement => (
-  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+  <Box testID={PredictEventScreenTestIds.VIEW} className="flex-1 bg-default">
     {header}
     {children}
   </Box>
@@ -146,7 +146,7 @@ const EventScreenLayout = ({
       header={<EventTitleHeader title={title} onBack={onBack} />}
     >
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
-        <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
+        <Box className="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
     </EventScreenChrome>
   );
@@ -212,7 +212,7 @@ const EventLoadedHeader = ({
     <Box>
       {game ? <GameEventHeader event={event} /> : null}
       {marketHistory ? (
-        <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
+        <Box className="mt-4 mb-6">{marketHistory}</Box>
       ) : null}
     </Box>
   );
@@ -451,10 +451,10 @@ export const PredictEventScreen = (): React.ReactElement => {
   if (query.isError || hasBlockingError) {
     return (
       <EventScreenLayout title={titleSnapshot} onBack={handleBack}>
-        <Box twClassName="gap-6">
+        <Box className="gap-6">
           <Box
             testID={PredictEventScreenTestIds.ERROR}
-            twClassName="items-start gap-3 py-4"
+            className="items-start gap-3 py-4"
           >
             <Text
               testID={PredictEventScreenTestIds.ERROR_MESSAGE}

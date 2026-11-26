@@ -79,7 +79,7 @@ function PricePercentRow({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName="w-full"
+      className="w-full"
     >
       {percents.map((percent) => (
         <Button
@@ -89,7 +89,7 @@ function PricePercentRow({
           isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          twClassName="min-w-0 flex-1 px-0"
+          className="min-w-0 flex-1 px-0"
           textProps={{ fontWeight: FontWeight.Medium }}
         >
           {formatPercentLabel(percent)}
@@ -118,6 +118,19 @@ function PriceRangeAmountField({
       placeholder={placeholder}
       startAccessory={
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {currencySymbol}
+        </Text>
+      }
+      onFocus={onPress}
+      inputProps={{
+        showSoftInputOnFocus: false,
+        caretHidden: false,
+        testID,
+        accessibilityLabel: placeholder,
+        onPressIn: onPress,
+      }}
+      className="w-full bg-default border-default"
+    /><Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {currencySymbol}
         </Text>
       }
@@ -337,7 +350,7 @@ const PriceRangeSheet = ({
       >
         {strings('bridge.recurring.price_range.label')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="relative">
+      <Box className="relative">
         <ScrollView
           ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
@@ -354,7 +367,7 @@ const PriceRangeSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="py-2"
+                className="py-2"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -386,7 +399,7 @@ const PriceRangeSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="py-2"
+                className="py-2"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -406,7 +419,7 @@ const PriceRangeSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="py-2"
+                className="py-2"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -429,7 +442,7 @@ const PriceRangeSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="-mr-3 min-h-8"
+                className="-mr-3 min-h-8"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -472,7 +485,7 @@ const PriceRangeSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="-mr-3 min-h-8"
+                className="-mr-3 min-h-8"
               >
                 <Text
                   variant={TextVariant.BodyMd}

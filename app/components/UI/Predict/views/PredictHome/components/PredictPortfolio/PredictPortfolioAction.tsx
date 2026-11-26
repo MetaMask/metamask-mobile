@@ -87,7 +87,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="mt-0.5 w-full text-center shrink"
+        className="mt-0.5 w-full text-center shrink"
         numberOfLines={1}
         ellipsizeMode="tail"
       >

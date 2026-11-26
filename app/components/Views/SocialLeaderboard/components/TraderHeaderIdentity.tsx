@@ -72,7 +72,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName="max-w-full"
+      className="max-w-full"
     >
       {avatar ?? (
         <TraderAvatar
@@ -87,7 +87,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
         fontWeight={fontWeight}
         color={TextColor.TextDefault}
         numberOfLines={1}
-        twClassName="shrink"
+        className="shrink"
       >
         {traderName}
       </Text>
@@ -101,7 +101,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
 
   if (!onPress) {
     return (
-      <Box testID={testID} twClassName="max-w-full">
+      <Box testID={testID} className="max-w-full">
         {content}
       </Box>
     );

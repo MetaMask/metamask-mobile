@@ -119,7 +119,7 @@ const ChecklistTags = ({
           ? EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CHECKLIST
           : undefined
       }
-      twClassName={wrap ? 'mt-4 w-full flex-wrap gap-1' : 'shrink-0 gap-1 pr-1'}
+      className={wrap ? 'mt-4 w-full flex-wrap gap-1' : 'shrink-0 gap-1 pr-1'}
       onLayout={onLayout}
       accessibilityElementsHidden={hideFromAccessibility}
       importantForAccessibility={
@@ -127,7 +127,7 @@ const ChecklistTags = ({
       }
     >
       {CHECKLIST_KEYS.map((key) => (
-        <Box key={`${key}${idSuffix}`} twClassName="shrink-0">
+        <Box key={`${key}${idSuffix}`} className="shrink-0">
           <TagBase
             shape={TagShape.Rectangle}
             severity={TagSeverity.Neutral}
@@ -220,14 +220,14 @@ const MusdEducationChecklistMarquee = () => {
       pointerEvents="none"
       style={tw.style('mt-4 w-full overflow-hidden')}
       maskElement={
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="h-full flex-1">
+        <Box flexDirection={BoxFlexDirection.Row} className="h-full flex-1">
           <LinearGradient
             colors={['transparent', 'black']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.fade}
           />
-          <Box twClassName="h-full flex-1 bg-black" />
+          <Box className="h-full flex-1 bg-black" />
           <LinearGradient
             colors={['black', 'transparent']}
             start={{ x: 0, y: 0 }}

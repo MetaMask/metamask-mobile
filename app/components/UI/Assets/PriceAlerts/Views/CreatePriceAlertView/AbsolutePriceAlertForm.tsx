@@ -208,14 +208,14 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       );
 
   const quickPercentagePills = (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
+    <Box flexDirection={BoxFlexDirection.Row} className="mb-3 gap-2">
       {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
         <Button
           key={percentage}
           variant={ButtonVariant.Secondary}
           onPress={() => handleQuickPercentagePress(percentage)}
           testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-          twClassName="flex-1 rounded-xl"
+          className="flex-1 rounded-xl"
         >
           {strings('price_alerts.quick_percentage', {
             percentage: percentage > 0 ? `+${percentage}` : percentage,
@@ -242,7 +242,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-3"
+          className="mb-3"
         >
           {strings('price_alerts.enter_target_price')}
         </Text>
@@ -257,7 +257,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
           testID={CreatePriceAlertTestIds.PERCENT_DIFF}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {percentDiff.direction === 'none' ? (
             strings('price_alerts.approx_percent', { percent: '0' })

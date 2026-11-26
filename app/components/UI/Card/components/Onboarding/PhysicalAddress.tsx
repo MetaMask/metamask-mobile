@@ -696,12 +696,68 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings(
                 'card.card_onboarding.physical_address.electronic_consent_1',
               )}
               <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openESignConsentDisclosureUS}
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_2',
+                )}
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_3',
+              )}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-electronic-consent-checkbox"
+        /><Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              className="ml-3 flex-1"
+            >
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_1',
+              )}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openESignConsentDisclosureUS}
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_2',
+                )}
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_3',
+              )}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
+      {/* Coinme Terms Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isSelected={coinmeConsent}
+          onChange={handleCoinmeConsentToggle}
+          label={
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              className="ml-3 flex-1"
+            ><TextButton
                 variant={TextVariant.BodySm}
                 onPress={openESignConsentDisclosureUS}
               >
@@ -730,12 +786,68 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings(
                 'card.card_onboarding.physical_address.coinme_terms_consent_1',
               )}
               <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCoinmeTerms}
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_2',
+                )}
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.coinme_terms_consent_3',
+              )}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-coinme-terms-checkbox"
+        /><Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              className="ml-3 flex-1"
+            >
+              {strings(
+                'card.card_onboarding.physical_address.coinme_terms_consent_1',
+              )}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCoinmeTerms}
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_2',
+                )}
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.coinme_terms_consent_3',
+              )}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-coinme-terms-checkbox"
+        />
+      )}
+      {/* CRB Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isSelected={crbConsent}
+          onChange={handleCrbConsentToggle}
+          label={
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              className="ml-3 flex-1"
+            ><TextButton
                 variant={TextVariant.BodySm}
                 onPress={openCoinmeTerms}
               >
@@ -764,10 +876,121 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings('card.card_onboarding.physical_address.crb_consent_1')}
               <TextButton variant={TextVariant.BodySm} onPress={openCrbTerms}>
+                {strings('card.card_onboarding.physical_address.crb_consent_2')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_3')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbAccountOpening}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_4')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_5')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyNotice}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_6')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_7')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyPolicy}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_8')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_9')}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-crb-consent-checkbox"
+        /><Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              className="ml-3 flex-1"
+            >
+              {strings('card.card_onboarding.physical_address.crb_consent_1')}
+              <TextButton variant={TextVariant.BodySm} onPress={openCrbTerms}>
+                {strings('card.card_onboarding.physical_address.crb_consent_2')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_3')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbAccountOpening}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_4')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_5')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyNotice}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_6')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_7')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyPolicy}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_8')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_9')}
+            </Text>
+          }
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          className="items-start"
+          testID="physical-address-crb-consent-checkbox"
+        />
+      )}
+      {registerIsError ? (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID="physical-address-register-error"
+        >
+          {registerError}
+        </HelpText>
+      ) : consentIsError ? (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID="physical-address-consent-error"
+        >
+          {consentError}
+        </HelpText>
+      ) : null}
+    </>
+  );
+
+  return (
+    <OnboardingStep
+      title={strings('card.card_onboarding.physical_address.title')}
+      description={strings('card.card_onboarding.physical_address.description')}
+      formFields={renderFormFields()}
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: registerLoading || isPollingVerification,
+        testID: 'physical-address-continue-button',
+      }}
+      headerMode="close-with-confirmation"
+    />
+  );
+};
+
+export default PhysicalAddress;
+<TextButton variant={TextVariant.BodySm} onPress={openCrbTerms}>
                 {strings('card.card_onboarding.physical_address.crb_consent_2')}
               </TextButton>
               {strings('card.card_onboarding.physical_address.crb_consent_3')}

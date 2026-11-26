@@ -17,8 +17,8 @@ const PredictDetailsButtonsSkeleton: React.FC<
   const tw = useTailwind();
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3 mt-4">
-      <Box twClassName="flex-1">
+    <Box flexDirection={BoxFlexDirection.Row} className="w-full gap-3 mt-4">
+      <Box className="flex-1">
         <Skeleton
           width="100%"
           height={48}
@@ -27,7 +27,7 @@ const PredictDetailsButtonsSkeleton: React.FC<
         />
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Skeleton
           width="100%"
           height={48}

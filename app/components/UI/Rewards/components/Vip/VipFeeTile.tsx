@@ -58,7 +58,7 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
 
   return (
     <Box
-      twClassName="bg-section rounded-2xl p-4"
+      className="bg-section rounded-2xl p-4"
       style={{
         width: VIP_FEE_TILE_WIDTH,
         borderColor: VIP_GOLD_BORDER_DEFAULT,
@@ -78,7 +78,7 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
         testID={VIP_FEE_TILE_TEST_IDS.CURRENT}
-        twClassName="gap-1"
+        className="gap-1"
       >
         <Text
           variant={TextVariant.DisplayMd}
@@ -91,7 +91,7 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
           style={{ color: VIP_GOLD_TEXT_DEFAULT }}
-          twClassName="pb-1"
+          className="pb-1"
         >
           {unit}
         </Text>

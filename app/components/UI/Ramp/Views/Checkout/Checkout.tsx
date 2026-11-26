@@ -983,7 +983,7 @@ const Checkout = ({
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        twClassName={providerBgTwClassName}
+        className={providerBgTwClassName}
       >
         {sharedHeader}
         <WebView

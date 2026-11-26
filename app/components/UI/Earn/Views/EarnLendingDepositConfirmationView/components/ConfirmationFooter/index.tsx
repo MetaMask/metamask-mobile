@@ -80,7 +80,7 @@ export const ConfirmationFooter = ({
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}
         primaryButtonProps={primaryButtonProps}
-        twClassName="py-3"
+        className="py-3"
         style={styles.footerButtonsContainer}
       />
       <View style={styles.bottomTextContainer}>

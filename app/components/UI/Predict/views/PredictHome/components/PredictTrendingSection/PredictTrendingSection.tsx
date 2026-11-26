@@ -67,7 +67,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
         endIconProps={{
           testID: PREDICT_TRENDING_SECTION_TEST_IDS.HEADER_CHEVRON,
         }}
-        twClassName="px-0 pt-0 mb-1"
+        className="px-0 pt-0 mb-1"
       />
 
       {isLoading ? (
@@ -83,12 +83,12 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
       ) : showEmptyState ? (
         <Box
           testID={PREDICT_TRENDING_SECTION_TEST_IDS.ERROR_STATE}
-          twClassName="items-center justify-center rounded-xl bg-muted py-8 px-4"
+          className="items-center justify-center rounded-xl bg-muted py-8 px-4"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('predict.home.trending_unable_to_load')}
           </Text>

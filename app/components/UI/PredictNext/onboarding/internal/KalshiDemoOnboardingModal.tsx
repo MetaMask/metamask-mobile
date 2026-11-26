@@ -239,7 +239,7 @@ export const KalshiDemoOnboardingModal = ({
         );
       case 'working':
         return (
-          <Box twClassName="items-center gap-3 py-6" testID={TestIds.WORKING}>
+          <Box className="items-center gap-3 py-6" testID={TestIds.WORKING}>
             <ActivityIndicator />
             <Text variant={TextVariant.BodyMd}>
               Setting up your Kalshi demo account…
@@ -336,7 +336,7 @@ export const KalshiDemoOnboardingModal = ({
     >
       <ModalSafeAreaProvider>
         <BottomSheet onClose={onboarding.dismiss} testID={TestIds.SHEET}>
-          <Box twClassName="gap-4 px-4 pb-4 pt-2">{renderStep()}</Box>
+          <Box className="gap-4 px-4 pb-4 pt-2">{renderStep()}</Box>
         </BottomSheet>
       </ModalSafeAreaProvider>
     </Modal>

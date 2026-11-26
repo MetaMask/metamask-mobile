@@ -143,7 +143,7 @@ function ActivityDetailsScreen() {
       style={tw.style('flex-1 bg-default')}
       testID={ActivityDetailsSelectorsIDs.SCREEN}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
@@ -176,7 +176,7 @@ function ActivityDetailsScreen() {
             <TemplateLoader item={item} />
           </ScrollView>
         ) : waiting ? null : (
-          <Box twClassName="flex-1 items-center justify-center p-4">
+          <Box className="flex-1 items-center justify-center p-4">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}

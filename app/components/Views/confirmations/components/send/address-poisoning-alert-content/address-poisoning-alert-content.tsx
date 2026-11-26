@@ -21,7 +21,7 @@ export const AddressPoisoningAlertContent = ({
     isExpanded={false}
     horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
   >
-    <Box twClassName="mt-2 gap-2">
+    <Box className="mt-2 gap-2">
       <DiffHighlightedAddress
         address={address}
         diffIndices={diffIndices}

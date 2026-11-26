@@ -948,7 +948,7 @@ const ChoosePassword = () => {
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 pt-3"
+            className="flex-1 pt-3"
             gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
@@ -971,7 +971,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -987,6 +987,36 @@ const ChoosePassword = () => {
                 isError={showPasswordError}
                 endAccessory={
                   <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(0)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    className="-mr-1"
+                    onPress={() => toggleShowPassword(0)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(0)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
+                }
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(0),
+                  testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  onSubmitEditing: jumpToConfirmPassword,
+                  autoComplete: 'password-new',
+                  returnKeyType: 'next',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                }}
+              /><ButtonIcon
                     testID={
                       ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
                     }
@@ -1031,7 +1061,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -1044,6 +1074,39 @@ const ChoosePassword = () => {
                 )}
                 endAccessory={
                   <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(1)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    className="-mr-1"
+                    isDisabled={password === ''}
+                    onPress={() => toggleShowPassword(1)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(1)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
+                }
+                isDisabled={password === ''}
+                isError={Boolean(confirmPasswordStatusMessage)}
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(1),
+                  testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  autoComplete: 'password-new',
+                  onSubmitEditing: submitConfirmPassword,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                }}
+              /><ButtonIcon
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
                     }
@@ -1097,7 +1160,7 @@ const ChoosePassword = () => {
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
+                className="mt-2 border border-muted rounded-xl"
                 titleProps={{
                   variant: TextVariant.BodySm,
                   testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,

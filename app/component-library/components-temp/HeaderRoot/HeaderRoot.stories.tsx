@@ -41,6 +41,12 @@ export const WithTitleAccessory = {
         <Icon
           name={IconName.Info}
           color={IconColor.IconAlternative}
+          className="ml-1"
+        />
+      }
+    /><Icon
+          name={IconName.Info}
+          color={IconColor.IconAlternative}
           twClassName="ml-1"
         />
       }
@@ -58,7 +64,7 @@ export const WithChildren = {
         },
       ]}
     >
-      <Box twClassName="items-start">
+      <Box className="items-start">
         <Text variant={TextVariant.HeadingSm}>Custom Title</Text>
         <Text variant={TextVariant.BodySm}>Subtitle text</Text>
       </Box>
@@ -71,6 +77,7 @@ export const WithEndAccessory = {
     <HeaderRoot
       title="Page title"
       endAccessory={<Text variant={TextVariant.BodyMd}>Custom end</Text>}
+    /><Text variant={TextVariant.BodyMd}>Custom end</Text>}
     />
   ),
 };

@@ -25,7 +25,7 @@ export const CarouselPaginationDots = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-row justify-center items-center gap-1 px-2 py-2"
+      className="flex-row justify-center items-center gap-1 px-2 py-2"
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
@@ -36,7 +36,7 @@ export const CarouselPaginationDots = ({
           <Box
             key={page}
             testID={isActive ? `${testID}-active` : `${testID}-dot-${page}`}
-            twClassName={`h-1 rounded-full ${
+            className={`h-1 rounded-full ${
               isActive ? 'w-6 bg-icon-default' : 'w-1 bg-icon-alternative'
             }`}
           />

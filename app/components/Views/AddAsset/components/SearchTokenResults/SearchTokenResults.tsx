@@ -126,6 +126,17 @@ const SearchTokenResultRow = React.memo(
           fontWeight: FontWeight.Medium,
           numberOfLines: 1,
         }}
+      /><TokenAvatar asset={item} />}
+        title={item.name}
+        titleProps={{
+          fontWeight: FontWeight.Medium,
+          numberOfLines: 1,
+        }}
+        description={item.symbol}
+        descriptionProps={{
+          fontWeight: FontWeight.Medium,
+          numberOfLines: 1,
+        }}
       />
     );
   },
@@ -136,9 +147,9 @@ const TokenSkeleton = () => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="w-full min-h-[72px] px-4 py-3"
+    className="w-full min-h-[72px] px-4 py-3"
   >
-    <Box twClassName="relative">
+    <Box className="relative">
       <Skeleton width={40} height={40} twClassName="rounded-full" />
       <Skeleton
         width={20}
@@ -146,7 +157,7 @@ const TokenSkeleton = () => (
         twClassName="absolute -bottom-1 -right-1 rounded-full"
       />
     </Box>
-    <Box twClassName="flex-1 ml-4 justify-center">
+    <Box className="flex-1 ml-4 justify-center">
       <Skeleton width={160} height={20} twClassName="rounded-md" />
       <Skeleton width={64} height={16} twClassName="mt-1 rounded-md" />
     </Box>
@@ -221,7 +232,7 @@ const SearchTokenResults = ({
 
   if (searchResults.length === 0) {
     return (
-      <Box twClassName="flex-1 justify-center items-center px-8">
+      <Box className="flex-1 justify-center items-center px-8">
         <Image
           source={tokensImage}
           resizeMode="contain"
@@ -230,7 +241,7 @@ const SearchTokenResults = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {searchQuery?.length === 0
             ? strings('token.tokens_empty_description')
@@ -239,7 +250,7 @@ const SearchTokenResults = ({
         {onAddCustomToken && searchQuery.trim().length > 0 ? (
           <TextButton
             onPress={onAddCustomToken}
-            twClassName="mt-2 text-center"
+            className="mt-2 text-center"
             testID={ImportTokenViewSelectorsIDs.EMPTY_STATE_CUSTOM_TOKEN_BUTTON}
           >
             {strings('add_asset.add_custom_token_cta')}

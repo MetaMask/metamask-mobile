@@ -172,7 +172,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      twClassName={pnlColorClass}
+      className={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
       {headlineValue}
@@ -230,7 +230,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   const bottomRight = (
     <Text
       variant={TextVariant.BodySm}
-      twClassName={pnlColorClass}
+      className={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
       {formatPercent(signedDisplayPnlPercent)}
@@ -242,7 +242,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={isExcluded ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
+      className={isExcluded ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
       testID={isPressable ? undefined : testID}
       accessible={!isPressable && accessibilityLabel != null}
       accessibilityLabel={isPressable ? undefined : accessibilityLabel}
@@ -251,11 +251,11 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={4}
-        twClassName="flex-1 min-w-0 mr-3"
+        className="flex-1 min-w-0 mr-3"
       >
         <PositionTokenAvatar position={position} showChainBadge />
 
-        <Box twClassName="flex-1 min-w-0">
+        <Box className="flex-1 min-w-0">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -266,7 +266,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
             >
               {displaySymbol}
             </Text>
@@ -277,7 +277,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
                     ? TagSeverity.Success
                     : TagSeverity.Danger
                 }
-                twClassName="shrink-0"
+                className="shrink-0"
                 testID={`position-row-perp-tag-${position.tokenSymbol}`}
               >
                 {[
@@ -297,13 +297,13 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="min-w-0"
+              className="min-w-0"
             >
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
                 testID={`position-row-subtitle-${position.tokenSymbol}`}
               >
                 {subtitle}
@@ -312,7 +312,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
                 numberOfLines={1}
-                twClassName="shrink-0"
+                className="shrink-0"
                 testID={`position-row-flag-suffix-${position.tokenSymbol}`}
               >
                 {` · ${flagLabel}`}

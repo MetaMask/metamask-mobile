@@ -253,7 +253,7 @@ function BankTransferActivitySteps({
   ).length;
 
   return (
-    <Box twClassName="gap-3" testID="money-bank-transfer-steps">
+    <Box className="gap-3" testID="money-bank-transfer-steps">
       <Text color={TextColor.TextAlternative}>
         {strings('transaction_details.label.steps_completed', {
           count: completedCount,
@@ -549,7 +549,7 @@ function MoneyApiActivityDetailsContent({
 
   return (
     <Box
-      twClassName="flex-1 bg-background-default"
+      className="flex-1 bg-background-default"
       testID={MoneyApiActivityDetailsViewTestIds.CONTAINER}
     >
       <HeaderStandardGlass
@@ -563,14 +563,14 @@ function MoneyApiActivityDetailsContent({
         includesTopInset
       />
       <ScrollView>
-        <Box twClassName="gap-3 px-4">
-          <Box twClassName="gap-1">
+        <Box className="gap-3 px-4">
+          <Box className="gap-1">
             {isBankTransfer ? null : (
               <Text color={TextColor.TextAlternative}>
                 {strings(HERO_COPY_KEY[activity.kind])}
               </Text>
             )}
-            <Box twClassName="flex-row items-center gap-3">
+            <Box className="flex-row items-center gap-3">
               <Image
                 source={MoneyIcon}
                 style={tw.style('w-8 h-8 rounded-full')}
@@ -617,7 +617,7 @@ function MoneyApiActivityDetailsContent({
             <TransactionDetailsRow
               label={strings('transaction_details.label.network')}
             >
-              <Box twClassName="flex-row items-center gap-1.5">
+              <Box className="flex-row items-center gap-1.5">
                 <AvatarNetwork
                   name={networkName}
                   src={networkImage}
@@ -740,7 +740,7 @@ function NeobankBankTransferDetailsContent({
 
   return (
     <Box
-      twClassName="flex-1 bg-background-default"
+      className="flex-1 bg-background-default"
       testID={MoneyApiActivityDetailsViewTestIds.CONTAINER}
     >
       <HeaderStandardGlass
@@ -754,14 +754,14 @@ function NeobankBankTransferDetailsContent({
         includesTopInset
       />
       <ScrollView>
-        <Box twClassName="gap-3 px-4">
-          <Box twClassName="gap-1">
+        <Box className="gap-3 px-4">
+          <Box className="gap-1">
             {failed ? null : (
               <Text color={TextColor.TextAlternative}>
                 {strings('money.transaction.depositing')}
               </Text>
             )}
-            <Box twClassName="flex-row items-center gap-3">
+            <Box className="flex-row items-center gap-3">
               <Image
                 source={MoneyIcon}
                 style={tw.style('w-8 h-8 rounded-full')}

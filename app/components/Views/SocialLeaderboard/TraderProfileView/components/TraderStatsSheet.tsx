@@ -63,7 +63,7 @@ interface GridMetricProps {
 }
 
 const GridMetric: React.FC<GridMetricProps> = ({ label, value, testID }) => (
-  <Box twClassName="flex-1" testID={testID}>
+  <Box className="flex-1" testID={testID}>
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
@@ -74,7 +74,7 @@ const GridMetric: React.FC<GridMetricProps> = ({ label, value, testID }) => (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      twClassName="mt-1"
+      className="mt-1"
       numberOfLines={1}
     >
       {value}
@@ -93,7 +93,7 @@ const ListRow: React.FC<ListRowProps> = ({ label, value, testID }) => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-3"
+    className="py-3"
     testID={testID}
   >
     <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
@@ -176,13 +176,13 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-2 pb-4"
+        className="px-4 pt-2 pb-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="flex-1 min-w-0"
+          className="flex-1 min-w-0"
         >
           {headerAvatar ?? (
             <TraderAvatar
@@ -212,7 +212,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
       </Box>
 
       <Box
-        twClassName="px-4 pb-6"
+        className="px-4 pb-6"
         testID={TraderStatsSheetSelectorsIDs.ROW_PNL}
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -221,7 +221,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
         <Text
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
-          twClassName={
+          className={
             hasPnl
               ? isPnlPositive
                 ? 'text-success-default mt-1'
@@ -235,7 +235,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
         </Text>
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Row} gap={6} twClassName="px-4 pb-6">
+      <Box flexDirection={BoxFlexDirection.Row} gap={6} className="px-4 pb-6">
         <GridMetric
           label={strings('social_leaderboard.trader_profile.win_rate')}
           value={winRate}
@@ -248,7 +248,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
         />
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Row} gap={6} twClassName="px-4 pb-6">
+      <Box flexDirection={BoxFlexDirection.Row} gap={6} className="px-4 pb-6">
         {includeHoldTime ? (
           <GridMetric
             label={strings(
@@ -266,7 +266,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
       </Box>
 
       <Box
-        twClassName="px-4 pb-2"
+        className="px-4 pb-2"
         testID={TraderStatsSheetSelectorsIDs.SECTION_BREAKDOWN}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -307,7 +307,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
       </Box>
 
       <Box
-        twClassName="px-4 pb-6"
+        className="px-4 pb-6"
         testID={TraderStatsSheetSelectorsIDs.SECTION_PERFORMANCE}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

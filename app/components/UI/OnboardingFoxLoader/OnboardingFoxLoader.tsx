@@ -73,7 +73,7 @@ const OnboardingFoxLoader = forwardRef<OnboardingFoxLoaderRef>(
         testID="fox-rive-loader-animation"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1"
+        className="flex-1"
         style={tw.style({ backgroundColor })}
       >
         {riveFile && (

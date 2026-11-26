@@ -15,8 +15,8 @@ const DefaultKeypadStory = () => {
   };
 
   return (
-    <Box twClassName="px-4">
-      <Text variant={TextVariant.DisplayMd} twClassName="mb-4">
+    <Box className="px-4">
+      <Text variant={TextVariant.DisplayMd} className="mb-4">
         Current Value: {value}
       </Text>
       <Keypad currency="native" value={value} onChange={handleChange} />

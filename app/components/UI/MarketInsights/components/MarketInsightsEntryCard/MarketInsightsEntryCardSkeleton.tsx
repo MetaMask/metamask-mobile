@@ -14,10 +14,10 @@ const MarketInsightsEntryCardSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="px-4 mt-2"
+      className="px-4 mt-2"
       testID={MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON}
     >
-      <Box twClassName="bg-background-muted rounded-xl" padding={4} gap={1}>
+      <Box className="bg-background-muted rounded-xl" padding={4} gap={1}>
         {/* Title row: mirrors "Market insights >" */}
         <Skeleton style={tw.style('h-[22px] w-[130px] rounded-md')} />
 

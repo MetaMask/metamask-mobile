@@ -137,7 +137,7 @@ const WaitlistFormModal: React.FC = () => {
         >
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
             testID="waitlist-form-error-text"
           >
             {strings('card.card_onboarding.waitlist_form.load_error')}

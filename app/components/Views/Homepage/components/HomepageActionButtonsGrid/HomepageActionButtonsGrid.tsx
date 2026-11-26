@@ -66,7 +66,7 @@ const HomepageActionButtonsGrid = ({
 
   return (
     <Box
-      twClassName="gap-4 px-4 pb-2 pt-1"
+      className="gap-4 px-4 pb-2 pt-1"
       testID={HomepageActionButtonsGridTestIds.CONTAINER}
     >
       {rows.map((rowIds, rowIndex) => (
@@ -74,7 +74,7 @@ const HomepageActionButtonsGrid = ({
           key={rowIds.join('-')}
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="w-full"
+          className="w-full"
         >
           {rowIds.map((id, colIndex) => {
             const actionPosition =

@@ -46,7 +46,7 @@ const MoneyActivityList = ({
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
-      <Box twClassName="px-4 pt-3 pb-3">
+      <Box className="px-4 pt-3 pb-3">
         <MoneySectionHeader
           testID={MoneyActivityListTestIds.HEADER}
           title={strings('money.activity.title')}

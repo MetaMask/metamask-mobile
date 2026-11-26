@@ -137,7 +137,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
       <Text
         key={key}
         variant={textVariant}
-        twClassName={`${bodyClassName}${isItalic ? ' italic' : ''}${isUnderline ? ' underline' : ''}`}
+        className={`${bodyClassName}${isItalic ? ' italic' : ''}${isUnderline ? ' underline' : ''}`}
         fontWeight={isBold ? FontWeight.Bold : undefined}
       >
         {sanitizeText(text)}
@@ -171,7 +171,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
           <Text
             key={childKey}
             variant={textVariant}
-            twClassName="text-primary-default"
+            className="text-primary-default"
             onPress={() => handleLinkPress(uri)}
           >
             {renderInlineChildren(child.content ?? [], childKey)}
@@ -189,7 +189,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
     switch (node.nodeType) {
       case BLOCK_TYPES.PARAGRAPH:
         return (
-          <Text key={key} variant={textVariant} twClassName={bodyClassName}>
+          <Text key={key} variant={textVariant} className={bodyClassName}>
             {renderInlineChildren(node.content ?? [], key)}
           </Text>
         );
@@ -217,14 +217,14 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
           <Fragment key={key}>
             {showDivider ? (
               <Box
-                twClassName="-mx-4 mt-8 mb-4 border-b border-border-muted"
+                className="-mx-4 mt-8 mb-4 border-b border-border-muted"
                 testID="contentful-rich-text-heading-divider"
               />
             ) : null}
             <Text
               variant={headingVariantMap[node.nodeType]}
               fontWeight={FontWeight.Bold}
-              twClassName={`my-3 ${headingClassName}`}
+              className={`my-3 ${headingClassName}`}
             >
               {renderInlineChildren(node.content ?? [], key)}
             </Text>
@@ -235,7 +235,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
       case BLOCK_TYPES.UL_LIST:
       case BLOCK_TYPES.OL_LIST:
         return (
-          <Box key={key} twClassName="gap-2 my-1">
+          <Box key={key} className="gap-2 my-1">
             {(node.content ?? []).map((item, i) => {
               const bullet =
                 node.nodeType === BLOCK_TYPES.OL_LIST ? `${i + 1}. ` : '• ';
@@ -245,14 +245,14 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
                   : [item];
 
               return (
-                <Box key={`${key}-li-${i}`} twClassName="flex-row gap-2">
+                <Box key={`${key}-li-${i}`} className="flex-row gap-2">
                   <Text
                     variant={textVariant}
-                    twClassName={`min-w-5 text-right ${bodyClassName}`}
+                    className={`min-w-5 text-right ${bodyClassName}`}
                   >
                     {bullet}
                   </Text>
-                  <Box twClassName="min-w-0 flex-1 gap-1">
+                  <Box className="min-w-0 flex-1 gap-1">
                     {itemBlocks.map((block, j) =>
                       renderBlock(block, `${key}-li-${i}-${j}`),
                     )}
@@ -265,7 +265,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
 
       case BLOCK_TYPES.LIST_ITEM:
         return (
-          <Box key={key} twClassName="gap-1">
+          <Box key={key} className="gap-1">
             {(node.content ?? []).map((block, i) =>
               renderBlock(block, `${key}-${i}`),
             )}
@@ -274,7 +274,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
 
       case BLOCK_TYPES.HR:
         return (
-          <Box key={key} twClassName="border-b border-border-muted my-2" />
+          <Box key={key} className="border-b border-border-muted my-2" />
         );
 
       default:

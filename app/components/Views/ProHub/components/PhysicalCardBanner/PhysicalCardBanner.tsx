@@ -37,15 +37,15 @@ const PhysicalCardBanner = ({
   const accessibilityLabel = `${title}. ${description}`;
 
   const content = (
-    <Card twClassName="w-full bg-background-subsection border-0 rounded-xl p-4">
+    <Card className="w-full bg-background-subsection border-0 rounded-xl p-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-x-3"
+        className="gap-x-3"
       >
-        <Box twClassName="w-14 h-10 rounded-md bg-background-muted shrink-0" />
+        <Box className="w-14 h-10 rounded-md bg-background-muted shrink-0" />
 
-        <Box twClassName="flex-1 gap-y-0.5">
+        <Box className="flex-1 gap-y-0.5">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}

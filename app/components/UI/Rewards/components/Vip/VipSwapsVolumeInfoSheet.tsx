@@ -33,13 +33,13 @@ const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
     onClose={onClose}
     testID={VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET}
   >
-    <Box twClassName="px-4 pb-4">
+    <Box className="px-4 pb-4">
       {/* Header row: spacer + close button */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
-        twClassName="mb-4"
+        className="mb-4"
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -50,7 +50,7 @@ const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
       </Box>
 
       {/* Info icon */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+      <Box alignItems={BoxAlignItems.Center} className="mb-4">
         <Icon
           name={IconName.Info}
           size={IconSize.Xl}
@@ -58,18 +58,18 @@ const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
         />
       </Box>
 
-      <Box twClassName="gap-2">
+      <Box className="gap-2">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('rewards.vip.swaps_volume_info_title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('rewards.vip.swaps_volume_info_description')}
         </Text>

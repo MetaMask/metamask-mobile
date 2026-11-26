@@ -44,7 +44,7 @@ const SocialAccountDisabledView: React.FC = () => {
           },
         })}
       />
-      <Box justifyContent={BoxJustifyContent.Center} twClassName="flex-1 px-4">
+      <Box justifyContent={BoxJustifyContent.Center} className="flex-1 px-4">
         <SocialAccountDisabledBanner />
       </Box>
     </SafeAreaView>

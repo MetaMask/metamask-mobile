@@ -301,7 +301,7 @@ const WhatsHappeningDetailView = () => {
       />
 
       <PerpsStreamProvider>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           {isLoading ? (
             <ScrollView
               horizontal

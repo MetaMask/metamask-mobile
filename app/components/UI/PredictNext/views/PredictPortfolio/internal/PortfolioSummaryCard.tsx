@@ -68,7 +68,7 @@ const SummaryRow = ({
       fontWeight={FontWeight.Medium}
       isHidden={isPrivacyMode}
       length={SensitiveTextLength.Short}
-      twClassName={valueClassName}
+      className={valueClassName}
       testID={testID}
     >
       {value}
@@ -194,7 +194,7 @@ export const PortfolioSummaryCard = ({
 
   return (
     <Box
-      twClassName="my-4 rounded-xl bg-muted px-4 py-3"
+      className="my-4 rounded-xl bg-muted px-4 py-3"
       gap={1}
       testID={PredictPortfolioScreenTestIds.SUMMARY_CARD}
     >
@@ -209,7 +209,7 @@ export const PortfolioSummaryCard = ({
           size={ButtonSize.Md}
           isFullWidth
           onPress={onWithdrawPress}
-          twClassName="mt-2"
+          className="mt-2"
           testID={PredictPortfolioScreenTestIds.WITHDRAW}
         >
           {strings('predict_next.withdraw.title')}

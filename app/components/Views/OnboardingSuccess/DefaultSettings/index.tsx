@@ -65,7 +65,7 @@ const DefaultSettings = () => {
         style={tw.style('flex-1')}
         contentContainerStyle={{ paddingTop: headerInset }}
       >
-        <Box twClassName="px-4 pt-2">
+        <Box className="px-4 pt-2">
           <Text variant={TextVariant.BodyMd}>
             {strings('default_settings.description')}{' '}
             <TextButton onPress={handleLink}>

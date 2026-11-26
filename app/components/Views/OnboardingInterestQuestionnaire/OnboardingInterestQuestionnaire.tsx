@@ -227,7 +227,7 @@ const OnboardingInterestQuestionnaire = () => {
         includesTopInset
       />
 
-      <Box twClassName="px-4 pb-6">
+      <Box className="px-4 pb-6">
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -264,6 +264,51 @@ const OnboardingInterestQuestionnaire = () => {
                 )
               }
               onPress={() => handleOptionPress(option.id)}
+              className={`rounded-full border pl-6 pr-6 py-4 ${
+                isSelected ? 'border-icon-default' : 'border-muted'
+              }`}
+              startAccessory={
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {option.emoji}
+                </Text>
+              }
+              title={strings(option.labelKey)}
+              titleEndAccessory={
+                isOtherOption && otherText?.length > 0 ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    className="flex-shrink"
+                  >
+                    {otherText}
+                  </Text>
+                ) : null
+              }
+              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected }}
+            /><Checkbox
+                    isSelected
+                    onChange={() => handleOptionPress(option.id)}
+                    pointerEvents="none"
+                    accessibilityLabel={strings(option.labelKey)}
+                  />
+                ) : (
+                  <Icon
+                    name={IconName.Add}
+                    size={IconSize.Lg}
+                    color={IconColor.IconDefault}
+                  />
+                )
+              }
+              onPress={() => handleOptionPress(option.id)}
               twClassName={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
@@ -285,7 +330,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink"
+                    className="flex-shrink"
                   >
                     {otherText}
                   </Text>

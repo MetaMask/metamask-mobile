@@ -49,11 +49,11 @@ export const TokenExplainerSheet: React.FC<TokenExplainerSheetProps> = ({
         the prototype's 36px of bottom padding needs nothing here. The
         prototype splits the title-to-body gap across the title's 8px padding
         and the body's 8px margin; one 16px gap is the same distance. */}
-    <Box twClassName="gap-4 px-5 pt-5">
+    <Box className="gap-4 px-5 pt-5">
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}
-        twClassName="text-center"
+        className="text-center"
         testID={TokenExplainerSheetSelectors.TITLE}
       >
         {title}
@@ -73,7 +73,7 @@ export const TokenExplainerSheet: React.FC<TokenExplainerSheetProps> = ({
         onPress: onClose,
         testID: TokenExplainerSheetSelectors.GOT_IT_BUTTON,
       }}
-      twClassName="px-5 pt-6"
+      className="px-5 pt-6"
     />
   </BottomSheet>
 );

@@ -93,7 +93,7 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       isFullWidth
       testID={testID}
       isDisabled={buttonDisabled}
-      twClassName={(pressed) =>
+      className={(pressed) =>
         `${bgClass}${pressed && !buttonDisabled && state === 'idle' ? ' opacity-90' : ''}`
       }
       textClassName={() => textClass}

@@ -432,7 +432,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     <Box
       testID={baseTestID}
       onLayout={handleLayout}
-      twClassName="relative self-stretch overflow-visible pb-2"
+      className="relative self-stretch overflow-visible pb-2"
       // The thumb is drawn 13px above the track. That top padding keeps the
       // thumb inside this box so the section's 8px margin stays visible.
       style={{
@@ -441,6 +441,73 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
       }}
     >
       <GestureDetector gesture={gesture}>
+        <Animated.View
+          style={[
+            tw.style('relative overflow-visible'),
+            { height: THUMB_BOTTOM_OFFSET },
+          ]}
+        >
+          <Animated.View
+            style={tw.style(
+              'absolute left-0 top-0 h-2 w-full rounded-full bg-border-muted',
+            )}
+          />
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 h-2 rounded-full bg-icon-alternative'),
+              trackFillStyle,
+            ]}
+          />
+          <Animated.View
+            style={[
+              tw.style('absolute rounded-full bg-icon-default'),
+              MIN_THUMB_LAYOUT,
+              minThumbStyle,
+            ]}
+            pointerEvents="none"
+            accessible
+            accessibilityLabel={minThumbAccessibilityLabel}
+            accessibilityRole="adjustable"
+            accessibilityValue={{
+              min: minimumValue,
+              max: maximumValue,
+              now: value.min,
+            }}
+            accessibilityActions={THUMB_ACCESSIBILITY_ACTIONS}
+            onAccessibilityAction={(event) => {
+              stepThumbFromAccessibility('min', event.nativeEvent.actionName);
+            }}
+            testID={`${baseTestID}-min-thumb`}
+          />
+          <Animated.View
+            style={[
+              tw.style('absolute rounded-full bg-icon-default'),
+              MAX_THUMB_LAYOUT,
+              maxThumbStyle,
+            ]}
+            pointerEvents="none"
+            accessible
+            accessibilityLabel={maxThumbAccessibilityLabel}
+            accessibilityRole="adjustable"
+            accessibilityValue={{
+              min: minimumValue,
+              max: maximumValue,
+              now: value.max,
+            }}
+            accessibilityActions={THUMB_ACCESSIBILITY_ACTIONS}
+            onAccessibilityAction={(event) => {
+              stepThumbFromAccessibility('max', event.nativeEvent.actionName);
+            }}
+            testID={`${baseTestID}-max-thumb`}
+          />
+        </Animated.View>
+      </GestureDetector>
+    </Box>
+  );
+};
+
+export default RangeSlider;
+<GestureDetector gesture={gesture}>
         <Animated.View
           style={[
             tw.style('relative overflow-visible'),

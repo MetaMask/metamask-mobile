@@ -60,7 +60,7 @@ const EarnSectionAssetCard = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="mt-1"
+        className="mt-1"
       >
         <Text
           variant={TextVariant.BodyMd}

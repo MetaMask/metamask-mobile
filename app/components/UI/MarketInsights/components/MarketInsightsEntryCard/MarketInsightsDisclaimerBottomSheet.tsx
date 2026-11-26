@@ -72,7 +72,7 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
             <BottomSheetFooter
               buttonsAlignment={ButtonsAlignment.Horizontal}
               primaryButtonProps={primaryButtonProps}
-              twClassName="pt-6"
+              className="pt-6"
             />
           </BottomSheet>
         </ModalSafeAreaProvider>

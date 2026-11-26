@@ -110,21 +110,21 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full px-4 py-16 gap-3"
+          className="w-full px-4 py-16 gap-3"
           testID={MyProfileViewSelectorsIDs.POSITIONS_ERROR}
         >
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.feed.error.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.feed.error.description')}
           </Text>
@@ -132,7 +132,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={onRetry}
-            twClassName="self-center"
+            className="self-center"
             testID={MyProfileViewSelectorsIDs.POSITIONS_RETRY_BUTTON}
           >
             {strings('social_leaderboard.feed.error.retry')}
@@ -142,7 +142,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         POSITION_SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
       ) : isEmpty ? (
         <Box
-          twClassName="px-4 py-8"
+          className="px-4 py-8"
           alignItems={BoxAlignItems.Center}
           testID={MyProfileViewSelectorsIDs.POSITIONS_EMPTY}
         >
@@ -179,7 +179,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
                     numberOfLines={1}
-                    twClassName="-mt-0.5 shrink-0"
+                    className="-mt-0.5 shrink-0"
                   >
                     {strings(
                       'social_leaderboard.my_profile.not_counted_in_pnl',

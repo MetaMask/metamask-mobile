@@ -33,13 +33,13 @@ const CardHomeLoadingSkeleton = (): React.JSX.Element => {
 
   return (
     <Box testID={CardHomeSelectors.LOADING_SKELETON}>
-      <Box twClassName="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
+      <Box className="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
         <Skeleton
           twClassName="h-14 w-40 rounded-xl"
           testID={CardHomeSelectors.BALANCE_SKELETON}
         />
       </Box>
-      <Box twClassName="px-4 mt-1 h-6 justify-center">
+      <Box className="px-4 mt-1 h-6 justify-center">
         <Skeleton
           twClassName="h-5 w-36 rounded-md"
           testID={CardHomeSelectors.BALANCE_SUBTITLE_SKELETON}
@@ -47,9 +47,9 @@ const CardHomeLoadingSkeleton = (): React.JSX.Element => {
       </Box>
 
       {/* Same gap as the loaded card art (CardHome mt-4), so it does not shift. */}
-      <Box twClassName="mx-4 mt-4">
+      <Box className="mx-4 mt-4">
         <Box
-          twClassName="w-full overflow-hidden rounded-xl"
+          className="w-full overflow-hidden rounded-xl"
           style={{ aspectRatio: CARD_ART_ASPECT_RATIO }}
           testID={CardHomeSelectors.CARD_ART_SKELETON}
         >
@@ -59,10 +59,10 @@ const CardHomeLoadingSkeleton = (): React.JSX.Element => {
 
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="px-4 pt-4 pb-2 gap-2"
+        className="px-4 pt-4 pb-2 gap-2"
       >
         {ACTION_TILE_INDEXES.map((index) => (
-          <Box key={index} twClassName="flex-1">
+          <Box key={index} className="flex-1">
             <Skeleton
               twClassName={`${ACTION_TILE_HEIGHT_CLASS} w-full rounded-2xl`}
               testID={`${CardHomeSelectors.ACTION_TILE_SKELETON}-${index}`}
@@ -77,15 +77,15 @@ const CardHomeLoadingSkeleton = (): React.JSX.Element => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Start}
-          twClassName="px-4 py-3 gap-4"
+          className="px-4 py-3 gap-4"
           testID={`${CardHomeSelectors.LIST_ROW_SKELETON}-${index}`}
         >
           <Skeleton twClassName="h-10 w-10 shrink-0 rounded-full" />
-          <Box twClassName="min-w-0 flex-1 gap-1">
+          <Box className="min-w-0 flex-1 gap-1">
             <Skeleton twClassName="h-4 w-32 rounded-md" />
             <Skeleton twClassName="h-3 w-24 rounded-md" />
           </Box>
-          <Box twClassName="items-end gap-1">
+          <Box className="items-end gap-1">
             <Skeleton twClassName="h-4 w-16 rounded-md" />
             <Skeleton twClassName="h-3 w-12 rounded-md" />
           </Box>

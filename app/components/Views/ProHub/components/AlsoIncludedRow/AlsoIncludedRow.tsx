@@ -26,10 +26,10 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
-    twClassName="gap-x-3"
+    className="gap-x-3"
     testID={testID ?? AlsoIncludedRowTestIds.ROW(item.id)}
   >
-    <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center shrink-0">
+    <Box className="w-8 h-8 rounded-full bg-background-section items-center justify-center shrink-0">
       <Icon
         name={item.iconName}
         size={IconSize.Sm}
@@ -37,17 +37,17 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
       />
     </Box>
 
-    <Box twClassName="flex-1 min-w-0">
+    <Box className="flex-1 min-w-0">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-x-2 flex-wrap"
+        className="gap-x-2 flex-wrap"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.titleKey)}
         </Text>
         {item.badgeKey ? (
-          <Tag twClassName="self-center" severity={TagSeverity.Neutral}>
+          <Tag className="self-center" severity={TagSeverity.Neutral}>
             {strings(item.badgeKey)}
           </Tag>
         ) : null}

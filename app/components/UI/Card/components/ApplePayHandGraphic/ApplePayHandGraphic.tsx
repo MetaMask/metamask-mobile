@@ -24,7 +24,7 @@ const ApplePayHandGraphic = ({
     backgroundColor={BoxBackgroundColor.BackgroundSection}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.End}
-    twClassName="h-[209px] w-full overflow-hidden rounded-[40px]"
+    className="h-[209px] w-full overflow-hidden rounded-[40px]"
     testID={testID}
   >
     <Image

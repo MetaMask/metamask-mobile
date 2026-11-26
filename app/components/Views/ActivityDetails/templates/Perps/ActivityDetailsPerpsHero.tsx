@@ -82,7 +82,7 @@ export function ActivityDetailsPerpsHero({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      className="flex-row items-center gap-3"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
       <PerpsHeroIcon symbol={symbol} />

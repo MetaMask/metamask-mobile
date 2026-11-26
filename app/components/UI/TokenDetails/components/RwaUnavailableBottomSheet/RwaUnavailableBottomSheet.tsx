@@ -116,13 +116,13 @@ const RwaUnavailableBottomSheet = forwardRef<
         <Box
           alignItems={BoxAlignItems.Start}
           justifyContent={BoxJustifyContent.Start}
-          twClassName="px-4 pb-4"
+          className="px-4 pb-4"
         >
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+          <Text variant={TextVariant.BodyMd} className="text-alternative">
             {strings('rwa.unavailable.description')}{' '}
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-primary text-primary-default"
+              className="text-primary text-primary-default"
             >
               {strings('rwa.unavailable.link')}
             </Text>

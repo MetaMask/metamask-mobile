@@ -215,7 +215,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     <>
       <Box
         testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}
-        twClassName={
+        className={
           showSectionRule ? 'mt-6 border-t border-muted pt-6' : undefined
         }
       >
@@ -263,7 +263,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
         })}
 
         {hasMore ? (
-          <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
+          <Box alignItems={BoxAlignItems.Center} className="pt-2 px-4">
             <Button
               variant={ButtonVariant.Tertiary}
               onPress={handleShowMore}

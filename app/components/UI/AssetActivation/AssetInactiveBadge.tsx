@@ -9,7 +9,7 @@ export const AssetInactiveBadgeTestIds = {
 export const AssetInactiveBadge = () => (
   <Tag
     severity={TagSeverity.Warning}
-    twClassName="rounded-full"
+    className="rounded-full"
     testID={AssetInactiveBadgeTestIds.BADGE}
   >
     {strings('asset_activation.inactive')}

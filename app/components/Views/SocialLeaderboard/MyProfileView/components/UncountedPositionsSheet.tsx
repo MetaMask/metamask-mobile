@@ -28,7 +28,7 @@ interface ExplanationProps {
 }
 
 const Explanation: React.FC<ExplanationProps> = ({ label, body }) => (
-  <Box twClassName="gap-1">
+  <Box className="gap-1">
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -82,7 +82,7 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
       >
         {strings('social_leaderboard.my_profile.not_counted_sheet_title')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 gap-4 pb-6">
+      <Box className="px-4 gap-4 pb-6">
         <Explanation
           label={strings(
             'social_leaderboard.my_profile.not_counted_sheet_insider_label',

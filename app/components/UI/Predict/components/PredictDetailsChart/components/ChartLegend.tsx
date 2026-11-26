@@ -28,7 +28,7 @@ const ChartLegend: React.FC<ChartLegendProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="px-4 mb-2 flex-wrap"
+      className="px-4 mb-2 flex-wrap"
     >
       {series.map((seriesItem, index) => {
         // Show value at active index if dragging, otherwise show last value
@@ -46,10 +46,10 @@ const ChartLegend: React.FC<ChartLegendProps> = ({
             key={`${seriesItem.label}-${index}`}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mr-4 mb-2 gap-2"
+            className="mr-4 mb-2 gap-2"
           >
             <Box
-              twClassName="rounded-full w-2 h-2"
+              className="rounded-full w-2 h-2"
               style={{
                 backgroundColor: seriesItem.color,
               }}

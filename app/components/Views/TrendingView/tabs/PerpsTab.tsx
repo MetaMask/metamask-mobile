@@ -65,7 +65,7 @@ const PerpsTabListHeader: React.FC<{
   <Box>
     {showTopTraders && (
       <>
-        <Box twClassName="pb-1">
+        <Box className="pb-1">
           <TopTradersSection
             source="explore_perps"
             chains={PERP_CHAINS}
@@ -298,7 +298,7 @@ export const PerpsTabContent: React.FC<
     () => (
       // The top padding gives the pinned bar the same gap below the Explore
       // tab bar as there is between the pills and the count/sort row.
-      <Box twClassName="bg-default pt-2">
+      <Box className="bg-default pt-2">
         <PerpsMarketFiltersBar
           selectedOptionId={selectedOptionId}
           onSortPress={() => setIsSortSheetVisible(true)}

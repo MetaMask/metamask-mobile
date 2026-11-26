@@ -125,9 +125,9 @@ const SurfaceCatalog = ({ variant }: { variant: PressableVariant }) => {
     { key: 'muted', color: colors.background.muted },
   ];
   return (
-    <Box twClassName="gap-3">
+    <Box className="gap-3">
       {surfaces.map((s) => (
-        <Box key={s.key} twClassName="gap-1">
+        <Box key={s.key} className="gap-1">
           <SurfaceLabel>background.{s.key}</SurfaceLabel>
           <PressableCard surfaceColor={s.color} variant={variant} />
         </Box>

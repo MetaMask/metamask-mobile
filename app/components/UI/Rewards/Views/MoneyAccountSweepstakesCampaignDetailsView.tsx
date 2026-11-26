@@ -57,27 +57,27 @@ const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
         MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.LOADING_SKELETON
       }
     >
-      <Box twClassName="px-4 pb-5 pt-4 gap-4">
+      <Box className="px-4 pb-5 pt-4 gap-4">
         <Skeleton style={tw.style('h-32 rounded-xl')} />
-        <Box twClassName="gap-2">
+        <Box className="gap-2">
           <Skeleton style={tw.style('h-7 w-56 rounded-md')} />
           <Skeleton style={tw.style('h-4 w-full rounded-md')} />
           <Skeleton style={tw.style('h-4 w-4/5 rounded-md')} />
         </Box>
       </Box>
 
-      <Box twClassName="border-b border-border-muted" />
+      <Box className="border-b border-border-muted" />
 
-      <Box twClassName="px-4 pt-4 gap-4">
+      <Box className="px-4 pt-4 gap-4">
         <Skeleton style={tw.style('h-6 w-40 rounded-md')} />
         {[0, 1, 2].map((index) => (
           <Box
             key={index}
             flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-3"
+            className="gap-3"
           >
             <Skeleton style={tw.style('h-8 w-8 rounded-full')} />
-            <Box twClassName="flex-1 gap-2">
+            <Box className="flex-1 gap-2">
               <Skeleton style={tw.style('h-5 w-44 rounded-md')} />
               <Skeleton style={tw.style('h-4 w-full rounded-md')} />
               <Skeleton style={tw.style('h-4 w-5/6 rounded-md')} />
@@ -86,10 +86,10 @@ const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
         ))}
       </Box>
 
-      <Box twClassName="border-b border-border-muted mt-4" />
+      <Box className="border-b border-border-muted mt-4" />
 
-      <Box twClassName="p-4">
-        <Box twClassName="gap-3 rounded-xl border border-border-muted p-4">
+      <Box className="p-4">
+        <Box className="gap-3 rounded-xl border border-border-muted p-4">
           <Skeleton style={tw.style('h-5 w-48 rounded-md')} />
           <Skeleton style={tw.style('h-9 w-32 rounded-md')} />
           <Skeleton style={tw.style('h-4 w-full rounded-md')} />
@@ -261,7 +261,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           )}
 
           {!isCampaignsLoading && hasCampaignsError && !displayCampaign && (
-            <Box twClassName="px-4 pt-4">
+            <Box className="px-4 pt-4">
               <RewardsErrorBanner
                 title={strings('rewards.campaign_details.error_title')}
                 description={strings(
@@ -297,8 +297,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
 
               {showCampaignEndedStats && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="p-4">
+                  <Box className="border-b border-border-muted" />
+                  <Box className="p-4">
                     <MoneyAccountSweepstakesCampaignEndedStats
                       volumeStats={volumeStats}
                       prizePool={prizePool}
@@ -316,8 +316,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               {showHowItWorksSection &&
                 displayCampaign?.details?.howItWorks && (
                   <>
-                    <Box twClassName="border-b border-border-muted" />
-                    <Box twClassName="p-4">
+                    <Box className="border-b border-border-muted" />
+                    <Box className="p-4">
                       <CampaignHowItWorks
                         howItWorks={
                           displayCampaign.details
@@ -342,8 +342,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
 
               {campaigns.length > 0 && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="p-4">
+                  <Box className="border-b border-border-muted" />
+                  <Box className="p-4">
                     <MoneyAccountSweepstakesDrawScheduleSection
                       campaigns={campaigns}
                       localizedText={localizedText}

@@ -72,7 +72,7 @@ export const FeedPreviewSection = ({
   return (
     <Box
       testID={PredictHomeTestIds.section(sectionId)}
-      twClassName="gap-3"
+      className="gap-3"
       onLayout={onLayout}
     >
       {onOpen ? (
@@ -84,7 +84,7 @@ export const FeedPreviewSection = ({
           })}
           onPress={onOpen}
         >
-          <Box twClassName="flex-row items-center gap-1">
+          <Box className="flex-row items-center gap-1">
             <Text variant={TextVariant.HeadingMd}>{title}</Text>
             <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
           </Box>
@@ -102,15 +102,15 @@ export const FeedPreviewSection = ({
       {isLoading ? (
         <Box
           testID={PredictHomeTestIds.sectionLoading(sectionId)}
-          twClassName="gap-3"
+          className="gap-3"
         >
-          <Box twClassName="h-32 rounded-xl bg-muted" />
-          <Box twClassName="h-32 rounded-xl bg-muted" />
+          <Box className="h-32 rounded-xl bg-muted" />
+          <Box className="h-32 rounded-xl bg-muted" />
         </Box>
       ) : isError && events.length === 0 ? (
         <Box
           testID={PredictHomeTestIds.sectionError(sectionId)}
-          twClassName="items-start gap-2 py-4"
+          className="items-start gap-2 py-4"
         >
           <Text>{strings('predict_next.home_feed.preview_error')}</Text>
           <Button
@@ -124,12 +124,12 @@ export const FeedPreviewSection = ({
       ) : events.length === 0 ? (
         <Box
           testID={PredictHomeTestIds.sectionEmpty(sectionId)}
-          twClassName="py-4"
+          className="py-4"
         >
           <Text>{strings('predict_next.home_feed.preview_empty')}</Text>
         </Box>
       ) : (
-        <Box twClassName="gap-3">{events.map(renderEvent)}</Box>
+        <Box className="gap-3">{events.map(renderEvent)}</Box>
       )}
     </Box>
   );

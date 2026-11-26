@@ -178,7 +178,7 @@ const AccountHub = () => {
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 pt-8 pb-6 gap-3"
+          className="px-4 pt-8 pb-6 gap-3"
         >
           {selectedInternalAccount ? (
             <AvatarAccount
@@ -199,10 +199,10 @@ const AccountHub = () => {
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 pb-4 gap-2 justify-between"
+          className="px-4 pb-4 gap-2 justify-between"
         >
           <MainActionButton
-            twClassName="flex-1"
+            className="flex-1"
             iconName={IconName.Info}
             label={strings('account_hub.info')}
             onPress={handleInfoPress}
@@ -210,14 +210,14 @@ const AccountHub = () => {
             testID={AccountHubSelectorsIDs.INFO_BUTTON}
           />
           <MainActionButton
-            twClassName="flex-1"
+            className="flex-1"
             iconName={IconName.QrCode}
             label={strings('account_hub.scan')}
             onPress={openQRScanner}
             testID={AccountHubSelectorsIDs.SCAN_BUTTON}
           />
           <MainActionButton
-            twClassName="flex-1"
+            className="flex-1"
             iconName={IconName.Clock}
             label={strings('account_hub.activity')}
             onPress={handleActivityPress}
@@ -248,7 +248,7 @@ const AccountHub = () => {
         onBack={handleBack}
         backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
         endAccessory={
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+          <Box flexDirection={BoxFlexDirection.Row} className="gap-2">
             {isNotificationsFeatureEnabled() && (
               <BadgeWrapper
                 position={BadgeWrapperPosition.TopRight}

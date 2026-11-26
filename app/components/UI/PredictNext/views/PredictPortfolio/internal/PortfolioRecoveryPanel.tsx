@@ -57,7 +57,7 @@ export const PortfolioRecoveryPanel = ({
   );
   return (
     <Box
-      twClassName="rounded-xl bg-alternative p-4 mb-3"
+      className="rounded-xl bg-alternative p-4 mb-3"
       testID="predict-recovery-panel"
     >
       <Text variant={TextVariant.BodyMd}>

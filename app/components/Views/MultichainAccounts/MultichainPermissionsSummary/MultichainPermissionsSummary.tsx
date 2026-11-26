@@ -419,7 +419,45 @@ const MultichainPermissionsSummary = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            twClassName="w-full"
+            className="w-full"
+          >
+            <Text
+              testID={
+                PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+              }
+              variant={TextVariant.BodySm}
+              numberOfLines={1}
+              style={styles.permissionLabel}
+            >
+              {strings('permissions.requesting_for')}
+            </Text>
+            {selectedAccountGroups.length > 0 && (
+              <AvatarGroup
+                testID="avatar-group-container"
+                variant={AvatarGroupVariant.Account}
+                size={AvatarGroupSize.Xs}
+                avatarPropsArr={selectedAccountGroups.map((accountGroup) => ({
+                  address:
+                    iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
+                  variant: AvatarAccountVariant.Maskicon,
+                }))}
+              />
+            )}
+          </Box>
+        }
+        endAccessory={renderEndAccessory()}
+      /><AvatarIcon
+            iconName={DesignSystemIconName.Wallet}
+            size={AvatarIconSize.Md}
+          />
+        }
+        title={strings('permissions.see_your_accounts')}
+        description={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            className="w-full"
           >
             <Text
               testID={
@@ -473,7 +511,71 @@ const MultichainPermissionsSummary = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            twClassName="w-full"
+            className="w-full"
+          >
+            {isSingleNetworkPermissionRequest ? (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  numberOfLines={1}
+                  style={styles.permissionLabel}
+                >
+                  {strings('permissions.requesting_for')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  numberOfLines={1}
+                  style={styles.permissionLabel}
+                >
+                  {singleNetworkName}
+                </Text>
+                <AvatarNetwork
+                  size={AvatarNetworkSize.Xs}
+                  name={singleNetworkName}
+                  src={getNetworkAvatarSrc(singleNetworkImage)}
+                />
+              </>
+            ) : (
+              <>
+                {networkPermissionLabel !== '' && (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    numberOfLines={1}
+                    style={styles.permissionLabel}
+                  >
+                    {networkPermissionLabel}
+                  </Text>
+                )}
+                {networkAvatars.length > 0 && (
+                  <AvatarGroup
+                    testID="avatar-group-container"
+                    variant={AvatarGroupVariant.Network}
+                    size={AvatarGroupSize.Xs}
+                    avatarPropsArr={networkAvatars.map((avatar) => ({
+                      name: avatar.name,
+                      src: getNetworkAvatarSrc(avatar.imageSource),
+                    }))}
+                  />
+                )}
+              </>
+            )}
+          </Box>
+        }
+        endAccessory={
+          isSingleNetworkPermissionRequest ? undefined : renderEndAccessory()
+        }
+      /><AvatarIcon
+            iconName={DesignSystemIconName.Data}
+            size={AvatarIconSize.Md}
+          />
+        }
+        title={strings('permissions.use_enabled_networks')}
+        description={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            className="w-full"
           >
             {isSingleNetworkPermissionRequest ? (
               <>
@@ -688,7 +790,7 @@ const MultichainPermissionsSummary = ({
                 variant={ButtonVariant.Secondary}
                 onPress={cancel}
                 size={ButtonBaseSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
@@ -708,7 +810,7 @@ const MultichainPermissionsSummary = ({
                     networkAvatars.length === 0)
                 }
                 size={ButtonBaseSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}

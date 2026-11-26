@@ -321,7 +321,7 @@ const TraderPriceChart = ({
   // ── Loading overlay ───────────────────────────────────────────────────────
 
   const LoadingOverlay = () => (
-    <Box twClassName="justify-center items-center" testID="price-chart-loading">
+    <Box className="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}

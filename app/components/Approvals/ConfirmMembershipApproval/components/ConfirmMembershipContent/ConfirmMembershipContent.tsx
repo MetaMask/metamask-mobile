@@ -53,7 +53,7 @@ export function ConfirmMembershipContent({
   return (
     <Box testID={ConfirmMembershipApprovalTestIds.CONTAINER}>
       <Header onClose={onClose} />
-      <Box twClassName="px-4 gap-4">
+      <Box className="px-4 gap-4">
         <AmountSection monthlyAmount={monthlyAmount} isAnnual={isAnnual} />
         <Box>
           <MoneyAccountFromRow />
@@ -115,7 +115,7 @@ function AmountSection({
   });
 
   return (
-    <Box twClassName="items-center gap-1 pt-10 pb-12">
+    <Box className="items-center gap-1 pt-10 pb-12">
       <View style={amountStyles.container}>
         <Text
           testID={ConfirmMembershipApprovalTestIds.AMOUNT}
@@ -152,7 +152,7 @@ function MoneyAccountFromRow() {
       rowVariant={InfoRowVariant.Small}
       testID={ConfirmMembershipApprovalTestIds.FROM_ROW}
     >
-      <Box twClassName="flex-row items-center gap-2">
+      <Box className="flex-row items-center gap-2">
         <Image source={MoneyIcon} style={styles.moneyIcon} />
         <Text
           variant={TextVariant.BodyMd}
@@ -266,7 +266,7 @@ function Disclaimer({
     <Text
       variant={TextVariant.BodyXs}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
       testID={ConfirmMembershipApprovalTestIds.DISCLAIMER}
     >
       {disclaimer}

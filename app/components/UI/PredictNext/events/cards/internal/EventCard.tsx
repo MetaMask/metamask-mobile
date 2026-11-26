@@ -45,7 +45,7 @@ interface RootProps {
 
 const Root = ({ children, testID, twClassName }: RootProps) => (
   <Box
-    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-section p-4 pt-3'}
+    className={twClassName ?? 'gap-3 rounded-2xl bg-section p-4 pt-3'}
     testID={testID}
   >
     {children}
@@ -62,7 +62,7 @@ const Header = ({
 }: {
   children: React.ReactNode;
   twClassName?: string;
-}) => <Box twClassName={twClassName}>{children}</Box>;
+}) => <Box className={twClassName}>{children}</Box>;
 
 const Title = ({
   children,
@@ -76,7 +76,7 @@ const Title = ({
   <Text
     variant={TextVariant.HeadingSm}
     numberOfLines={numberOfLines}
-    twClassName={twClassName}
+    className={twClassName}
   >
     {children}
   </Text>
@@ -106,24 +106,24 @@ const Body = ({
 }: {
   children: React.ReactNode;
   twClassName?: string;
-}) => <Box twClassName={twClassName}>{children}</Box>;
+}) => <Box className={twClassName}>{children}</Box>;
 
 const Actions = ({ children }: { children: React.ReactNode }) => (
-  <Box twClassName="flex-row gap-2 pt-2">{children}</Box>
+  <Box className="flex-row gap-2 pt-2">{children}</Box>
 );
 
 const Action = ({ children }: { children: React.ReactNode }) => (
-  <Box twClassName="min-w-0 flex-1">{children}</Box>
+  <Box className="min-w-0 flex-1">{children}</Box>
 );
 
 const Footer = ({ children, testID }: RootProps) => (
-  <Box twClassName="flex-row items-center justify-between" testID={testID}>
+  <Box className="flex-row items-center justify-between" testID={testID}>
     {children}
   </Box>
 );
 
 const FooterLeading = ({ children }: { children: React.ReactNode }) => (
-  <Box twClassName="flex-1 flex-row items-center gap-3">{children}</Box>
+  <Box className="flex-1 flex-row items-center gap-3">{children}</Box>
 );
 
 const MetadataTag = ({
@@ -175,7 +175,7 @@ const MoreMarkets = ({
       onPress={onPress}
       testID={testID}
     >
-      <Box twClassName="flex-row items-center">
+      <Box className="flex-row items-center">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
@@ -206,17 +206,17 @@ const HeaderRowRoot = ({
   children: React.ReactNode;
   testID?: string;
 }) => (
-  <Box twClassName="gap-3" testID={testID}>
+  <Box className="gap-3" testID={testID}>
     <Box
-      twClassName="flex-row items-center justify-between gap-3 px-4"
+      className="flex-row items-center justify-between gap-3 px-4"
       testID={testID ? `${testID}-row` : undefined}
     >
       {children}
     </Box>
     {/* iOS draws a one-sided dashed border solid, so clip a dashed box to its top edge. */}
-    <Box twClassName="h-px overflow-hidden">
+    <Box className="h-px overflow-hidden">
       <Box
-        twClassName="h-1 border border-dashed border-muted"
+        className="h-1 border border-dashed border-muted"
         testID={testID ? `${testID}-divider` : undefined}
       />
     </Box>
@@ -239,7 +239,7 @@ const HeaderRowTitle = ({
     variant={TextVariant.BodySm}
     fontWeight={FontWeight.Bold}
     numberOfLines={1}
-    twClassName="min-w-[60%] flex-1"
+    className="min-w-[60%] flex-1"
     testID={testID}
   >
     {children}
@@ -262,7 +262,7 @@ const HeaderRowMeta = ({
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
     numberOfLines={1}
-    twClassName="shrink"
+    className="shrink"
     testID={testID}
   >
     {children}
@@ -308,7 +308,7 @@ const OutcomeRow = ({
 
   return (
     <SharedOutcomeRow.Root>
-      <Box twClassName="min-w-0 flex-1 flex-row items-center gap-2">
+      <Box className="min-w-0 flex-1 flex-row items-center gap-2">
         <AvatarBase
           size={AvatarBaseSize.Lg}
           testID={testID ? `${testID}-avatar` : undefined}

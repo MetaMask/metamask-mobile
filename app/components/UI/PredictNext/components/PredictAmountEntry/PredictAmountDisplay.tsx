@@ -56,11 +56,11 @@ export const PredictAmountDisplay = ({
   const fontSize = fontSizeFor(label.length);
 
   const figure = (
-    <Box twClassName="flex-row items-center justify-center px-6">
+    <Box className="flex-row items-center justify-center px-6">
       <Text
         variant={TextVariant.DisplayMd}
         color={amount ? TextColor.TextDefault : TextColor.TextAlternative}
-        twClassName={`text-[${fontSize}px] leading-[${fontSize + 10}px] tracking-tight px-1`}
+        className={`text-[${fontSize}px] leading-[${fontSize + 10}px] tracking-tight px-1`}
       >
         {label}
       </Text>

@@ -989,7 +989,7 @@ const SocialV1ViewContent: React.FC = () => {
 
         {showNotificationsBanner && (
           <Box style={{ paddingTop: headerInset }}>
-            <Box twClassName="px-4 pt-2">
+            <Box className="px-4 pt-2">
               <BannerAlert
                 severity={BannerAlertSeverity.Info}
                 description={strings(
@@ -1006,7 +1006,7 @@ const SocialV1ViewContent: React.FC = () => {
           </Box>
         )}
 
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <TabView
             navigationState={navigationState}
             renderScene={renderScene}

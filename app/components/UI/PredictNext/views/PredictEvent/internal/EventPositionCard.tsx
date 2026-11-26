@@ -170,14 +170,14 @@ export const EventPositionCard = ({
   }
 
   return (
-    <Box testID={testIds.root} twClassName="gap-4 rounded-2xl bg-section p-4">
-      <Box twClassName="flex-row items-center gap-3">
+    <Box testID={testIds.root} className="gap-4 rounded-2xl bg-section p-4">
+      <Box className="flex-row items-center gap-3">
         <PositionImage
           team={getMarketTeam(market, game)}
           imageUrl={position.context?.imageUrl}
         />
         <Box
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
           accessible
           accessibilityLabel={[title, chanceText, holding]
             .filter(Boolean)
@@ -193,14 +193,14 @@ export const EventPositionCard = ({
           {chanceText === undefined ? null : (
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID={testIds.chance}
             >
               {chanceText}
             </Text>
           )}
         </Box>
-        <Box twClassName="items-end">
+        <Box className="items-end">
           <SensitiveText
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -215,7 +215,7 @@ export const EventPositionCard = ({
           {unrealizedPnl === undefined ? null : (
             <SensitiveText
               variant={TextVariant.BodySm}
-              twClassName={pnlToneClassName(unrealizedPnl)}
+              className={pnlToneClassName(unrealizedPnl)}
               isHidden={isPrivacyMode}
               length={SensitiveTextLength.Short}
               testID={testIds.pnl}
@@ -225,11 +225,11 @@ export const EventPositionCard = ({
           )}
         </Box>
       </Box>
-      <Box twClassName="flex-row gap-2">
+      <Box className="flex-row gap-2">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="h-12 min-w-0 flex-1 rounded-full bg-muted"
+          className="h-12 min-w-0 flex-1 rounded-full bg-muted"
           isDisabled={!canBuy}
           accessibilityLabel={
             price === undefined
@@ -251,7 +251,7 @@ export const EventPositionCard = ({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="h-12 min-w-0 flex-1 rounded-full bg-muted"
+          className="h-12 min-w-0 flex-1 rounded-full bg-muted"
           onPress={() => onCashOut(position)}
           testID={testIds.cashOut}
         >

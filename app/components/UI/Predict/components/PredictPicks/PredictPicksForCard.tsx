@@ -43,11 +43,11 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="flex-col gap-2">
+    <Box testID={testID} className="flex-col gap-2">
       {showSeparator && (
         <Box
           testID={`${testID}${PREDICT_PICKS_FOR_CARD_TEST_IDS.SEPARATOR}`}
-          twClassName="h-px bg-border-muted my-2"
+          className="h-px bg-border-muted my-2"
         />
       )}
       {basePositions.map((position) => (

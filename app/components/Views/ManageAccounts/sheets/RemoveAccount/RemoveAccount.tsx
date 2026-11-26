@@ -99,7 +99,7 @@ const RemoveAccount = () => {
       onClose={handleClose}
       testID={RemoveAccountSelectors.CONTAINER}
     >
-      <Box twClassName="px-4 pt-2 pb-4 gap-4">
+      <Box className="px-4 pt-2 pb-4 gap-4">
         <TitleAlert
           severity="danger"
           title={strings('accounts.remove_account_title_with_account_name', {
@@ -111,7 +111,7 @@ const RemoveAccount = () => {
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('accounts.remove_account_warning')}
         </Text>

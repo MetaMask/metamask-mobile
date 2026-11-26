@@ -40,7 +40,7 @@ export const HomeCategoriesSection = ({
   }
 
   return (
-    <Box testID={PredictHomeTestIds.CATEGORIES} twClassName="gap-3">
+    <Box testID={PredictHomeTestIds.CATEGORIES} className="gap-3">
       <Text
         variant={TextVariant.HeadingMd}
         testID={PredictHomeTestIds.CATEGORIES_HEADER}
@@ -50,14 +50,14 @@ export const HomeCategoriesSection = ({
       </Text>
       <Box
         testID={PredictHomeTestIds.CATEGORIES_LIST}
-        twClassName="flex-row flex-wrap gap-2"
+        className="flex-row flex-wrap gap-2"
       >
         {categories.map(({ id, label }) => (
           <FilterButton
             key={id}
             testID={PredictHomeTestIds.categoryChip(id)}
             size={FilterButtonSize.Md}
-            twClassName={chipBackground}
+            className={chipBackground}
             onPress={() => onSelect(id)}
           >
             {label}

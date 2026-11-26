@@ -211,7 +211,7 @@ const AddDeviceToWallet = () => {
         includesTopInset
         onBack={handleBack}
       />
-      <Box twClassName="flex-1 pt-3">
+      <Box className="flex-1 pt-3">
         <TitleStandard
           twClassName="mb-2 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
@@ -236,13 +236,27 @@ const AddDeviceToWallet = () => {
                 <SettingsPathDescription />
               )
             }
+          /><AvatarIcon
+                iconName={instruction.iconName}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={strings(instruction.titleKey)}
+            description={
+              instruction.descriptionKey ? (
+                strings(instruction.descriptionKey)
+              ) : (
+                <SettingsPathDescription />
+              )
+            }
           />
         ))}
 
         {__DEV__ ? (
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundSection}
-            twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
+            className="mx-4 mt-4 rounded-xl p-4 gap-3"
           >
             <Box gap={1}>
               <Text
@@ -272,7 +286,7 @@ const AddDeviceToWallet = () => {
               }}
             />
             <Button
-              twClassName="w-full"
+              className="w-full"
               onPress={triggerManualQrSubmit}
               isDisabled={!manualQrPayload.trim() || isBusy}
               isLoading={isBusy}

@@ -94,12 +94,12 @@ const PotentialEarningsTokenRow = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 gap-4"
+        className="flex-1 gap-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 gap-4"
+          className="flex-1 gap-4"
         >
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
@@ -124,19 +124,19 @@ const PotentialEarningsTokenRow = ({
             />
           </BadgeWrapper>
 
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               flexWrap={BoxFlexWrap.Wrap}
-              twClassName="gap-1"
+              className="gap-1"
               testID={PotentialEarningsTokenRowTestIds.NAME_ROW}
             >
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {token.name || token.symbol}
               </Text>
               {hasSubsidizedFee && (
-                <Box twClassName="rounded bg-primary-muted px-1.5">
+                <Box className="rounded bg-primary-muted px-1.5">
                   <Text
                     variant={TextVariant.BodyXs}
                     fontWeight={FontWeight.Medium}
@@ -150,7 +150,7 @@ const PotentialEarningsTokenRow = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
+              className="gap-1"
             >
               <SensitiveText
                 variant={TextVariant.BodySm}

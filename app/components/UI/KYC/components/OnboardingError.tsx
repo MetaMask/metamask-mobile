@@ -84,6 +84,11 @@ const KycOnboardingErrorItemRow = ({
     title={item.title}
     description={item.description}
     testID={`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
+  /><AvatarIcon iconName={item.icon} severity={AvatarIconSeverity.Neutral} />
+    }
+    title={item.title}
+    description={item.description}
+    testID={`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
   />
 );
 
@@ -184,7 +189,7 @@ const KycOnboardingError = ({
           </Box>
         ) : null}
       </ScrollView>
-      <Box twClassName="gap-2 px-4 pb-2 pt-4">
+      <Box className="gap-2 px-4 pb-2 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

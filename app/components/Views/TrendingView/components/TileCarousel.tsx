@@ -43,7 +43,7 @@ function TileCarousel<T>({
   return (
     <>
       {isLoading ? (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Skeleton />
         </Box>
       ) : (

@@ -47,13 +47,13 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
 
   return (
     <BottomSheet onClose={onClose} testID={testID}>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         {/* Header row: spacer + close button */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.End}
-          twClassName="mb-4"
+          className="mb-4"
         >
           <ButtonIcon
             iconName={IconName.Close}
@@ -64,12 +64,12 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
         </Box>
 
         {/* Clock icon */}
-        <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+        <Box alignItems={BoxAlignItems.Center} className="mb-4">
           <Icon name={IconName.AfterHours} size={IconSize.Xl} />
         </Box>
 
         {/* Title */}
-        <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+        <Box alignItems={BoxAlignItems.Center} className="mb-4">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
@@ -81,12 +81,12 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
 
         {/* Countdown pill */}
         {countdownText && (
-          <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+          <Box alignItems={BoxAlignItems.Center} className="mb-4">
             <Box
               backgroundColor={BoxBackgroundColor.BackgroundMuted}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="rounded-full px-4 py-2 gap-1"
+              className="rounded-full px-4 py-2 gap-1"
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -102,11 +102,11 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
         )}
 
         {/* Description */}
-        <Box twClassName="mb-6">
+        <Box className="mb-6">
           <Text
             variant={TextVariant.BodyMd}
             testID={`${testID}-description`}
-            twClassName="text-center"
+            className="text-center"
           >
             {content}
           </Text>
@@ -117,7 +117,7 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onConfirm ?? onClose}
-          twClassName="w-full"
+          className="w-full"
           testID={`${testID}-got-it`}
         >
           {confirmLabel}

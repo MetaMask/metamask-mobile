@@ -47,7 +47,7 @@ export function ActivityDetailsAmountHeader({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      className="flex-row items-center gap-3"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
       <ActivityDetailsAvatar
@@ -56,7 +56,7 @@ export function ActivityDetailsAmountHeader({
         showNetworkBadge
         iconUrl={content.avatarIconUrl ?? nftImageUrl}
       />
-      <Box twClassName="shrink">
+      <Box className="shrink">
         {content.primaryAmount ? (
           <Text
             variant={TextVariant.DisplayMd}
@@ -92,7 +92,7 @@ function AssetLine({
   });
 
   return (
-    <Box twClassName="gap-1">
+    <Box className="gap-1">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -100,7 +100,7 @@ function AssetLine({
       >
         {label}
       </Text>
-      <Box twClassName="flex-row items-center gap-3">
+      <Box className="flex-row items-center gap-3">
         <ActivityDetailsAvatar tokens={[token]} size={AvatarTokenSize.Lg} />
         {amount ? (
           <Text
@@ -146,7 +146,7 @@ export function ActivityDetailsDualAmountHeader({
   }
 
   return (
-    <Box twClassName="gap-4" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
+    <Box className="gap-4" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
       {sentToken ? (
         <AssetLine
           label={sentLabel}

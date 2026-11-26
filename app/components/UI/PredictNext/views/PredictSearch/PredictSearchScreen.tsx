@@ -36,7 +36,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 const NO_EVENTS: readonly PredictEvent[] = [];
 
 const getEventKey = (event: PredictEvent) => `${event.venueId}-${event.id}`;
-const EventSeparator = () => <Box twClassName="h-3" />;
+const EventSeparator = () => <Box className="h-3" />;
 
 interface SearchEventRowProps {
   event: PredictEvent;
@@ -71,7 +71,7 @@ const SearchEventRow = React.memo(
 );
 
 const Message = ({ testID, text }: { testID: string; text: string }) => (
-  <Box testID={testID} twClassName="items-center px-4 py-8">
+  <Box testID={testID} className="items-center px-4 py-8">
     <Text color={TextColor.TextAlternative}>{text}</Text>
   </Box>
 );
@@ -79,17 +79,17 @@ const Message = ({ testID, text }: { testID: string; text: string }) => (
 const SearchLoading = () => (
   <Box
     testID={PredictSearchScreenTestIds.LOADING}
-    twClassName="gap-3 px-3 pt-2"
+    className="gap-3 px-3 pt-2"
   >
-    <Box twClassName="h-40 rounded-2xl bg-muted" />
-    <Box twClassName="h-40 rounded-2xl bg-muted" />
+    <Box className="h-40 rounded-2xl bg-muted" />
+    <Box className="h-40 rounded-2xl bg-muted" />
   </Box>
 );
 
 const SearchError = ({ onRetry }: { onRetry: () => void }) => (
   <Box
     testID={PredictSearchScreenTestIds.ERROR}
-    twClassName="items-start gap-2 px-4 py-6"
+    className="items-start gap-2 px-4 py-6"
   >
     <Text>{strings('predict_next.search.error')}</Text>
     <Button
@@ -205,12 +205,12 @@ export const PredictSearchScreen = () => {
   return (
     <Box
       testID={PredictSearchScreenTestIds.VIEW}
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: insets.top }}
     >
       <HeaderSearch
         variant={HeaderSearchVariant.Inline}
-        twClassName="px-4"
+        className="px-4"
         onPressCancelButton={handleClose}
         cancelButtonProps={{ testID: PredictSearchScreenTestIds.CANCEL }}
         textFieldSearchProps={{
@@ -229,7 +229,7 @@ export const PredictSearchScreen = () => {
           clearButtonProps: { testID: PredictSearchScreenTestIds.CLEAR },
         }}
       />
-      <Box twClassName="flex-1 pt-2">{content}</Box>
+      <Box className="flex-1 pt-2">{content}</Box>
     </Box>
   );
 };

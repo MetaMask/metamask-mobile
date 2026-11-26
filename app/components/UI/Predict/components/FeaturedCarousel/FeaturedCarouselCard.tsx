@@ -137,11 +137,11 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.9}
     >
-      <Box twClassName="bg-section rounded-xl p-4 h-full justify-between">
-        <Box twClassName="flex-1">
+      <Box className="bg-section rounded-xl p-4 h-full justify-between">
+        <Box className="flex-1">
           {market.image && (
-            <Box alignItems={BoxAlignItems.Center} twClassName="mb-3">
-              <Box twClassName="w-6 h-6 rounded-lg bg-muted overflow-hidden">
+            <Box alignItems={BoxAlignItems.Center} className="mb-3">
+              <Box className="w-6 h-6 rounded-lg bg-muted overflow-hidden">
                 <Image
                   source={{ uri: market.image }}
                   style={tw.style('w-full h-full')}
@@ -157,7 +157,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
             variant={TextVariant.HeadingMd}
             color={TextColor.TextDefault}
             numberOfLines={2}
-            twClassName="text-center mb-4"
+            className="text-center mb-4"
           >
             {market.title}
           </Text>
@@ -165,7 +165,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="gap-6"
+            className="gap-6"
           >
             {displayItems.map((item, itemIdx) => {
               const percentage = Math.round(item.token.price * 100);
@@ -178,7 +178,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                     itemIdx,
                   )}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="flex-1"
+                  className="flex-1"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -191,14 +191,14 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
 
                   <FeaturedCarouselPayoutRow price={item.token.price} />
 
-                  <Box twClassName="w-full mt-2">
+                  <Box className="w-full mt-2">
                     <Button
                       testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(
                         index,
                         itemIdx,
                       )}
                       onPress={() => handleBuy(item.outcome, item.token)}
-                      twClassName="bg-success-muted"
+                      className="bg-success-muted"
                       isFullWidth
                       size={ButtonBaseSize.Lg}
                     >

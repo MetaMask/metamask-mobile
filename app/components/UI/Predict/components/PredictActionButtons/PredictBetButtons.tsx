@@ -29,8 +29,8 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   layout,
   gapClassName = 'w-full gap-3',
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName={gapClassName}>
-    <Box twClassName="flex-1">
+  <Box flexDirection={BoxFlexDirection.Row} className={gapClassName}>
+    <Box className="flex-1">
       <PredictBetButton
         label={yesLabel}
         price={yesPrice}
@@ -44,7 +44,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
       />
     </Box>
     {drawLabel !== undefined && drawPrice !== undefined && onDrawPress && (
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <PredictBetButton
           label={drawLabel}
           price={drawPrice}
@@ -57,7 +57,7 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         />
       </Box>
     )}
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <PredictBetButton
         label={noLabel}
         price={noPrice}

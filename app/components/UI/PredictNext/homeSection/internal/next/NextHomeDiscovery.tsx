@@ -236,14 +236,14 @@ const DiscoveryCarousel = ({
           SKELETON_KEYS.map((key) => (
             <Box
               key={key}
-              twClassName={`${CARD_WIDTH_CLASS} h-[180px] rounded-2xl bg-muted`}
+              className={`${CARD_WIDTH_CLASS} h-[180px] rounded-2xl bg-muted`}
               testID={PredictHomeSectionTestIds.DISCOVERY_CARD_SKELETON}
             />
           ))
         ) : (
           <>
             {liveEvents.map((event) => (
-              <Box key={event.id} twClassName={CARD_WIDTH_CLASS}>
+              <Box key={event.id} className={CARD_WIDTH_CLASS}>
                 <PredictEventCard
                   event={event}
                   onPress={() => openEvent(event)}

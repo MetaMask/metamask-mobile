@@ -133,11 +133,11 @@ function CrossmintTermsNotice() {
     // Mirrors the provider attribution it replaces (alternative color,
     // centered, 16px gap down to the button), but at 10px so the legal line
     // stays subordinate to the payment button.
-    <Box twClassName="pb-4">
+    <Box className="pb-4">
       <Text
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('fiat_on_ramp_aggregator.wallet_pay_terms')}{' '}
         <Text
@@ -145,7 +145,7 @@ function CrossmintTermsNotice() {
           color={TextColor.TextAlternative}
           // Underlined, not colored: an accent link would pull attention off
           // the payment button.
-          twClassName="underline"
+          className="underline"
           testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.TERMS_LINK}
           onPress={() => {
             Linking.openURL(CROSSMINT_TERMS_URL);

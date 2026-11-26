@@ -27,6 +27,9 @@ import { TitleSubpageProps } from './TitleSubpage.types';
  *   startAccessory={<AvatarToken />}
  *   title="Token Name"
  *   bottomLabel="$1,234.56"
+ * /><AvatarToken />}
+ *   title="Token Name"
+ *   bottomLabel="$1,234.56"
  * />
  * ```
  */
@@ -45,12 +48,12 @@ const TitleSubpage: React.FC<TitleSubpageProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     gap={3}
-    twClassName={twClassName}
+    className={twClassName}
     testID={testID}
   >
     {startAccessory}
 
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

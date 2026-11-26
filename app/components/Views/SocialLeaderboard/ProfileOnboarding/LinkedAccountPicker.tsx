@@ -93,9 +93,9 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box gap={3}>
-        <Box twClassName="bg-muted rounded-2xl overflow-hidden mb-3">
+        <Box className="bg-muted rounded-2xl overflow-hidden mb-3">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${linkedAccountLabel}, ${selectedAccountName}`}
@@ -106,19 +106,19 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
-              twClassName="pl-4 pr-3 h-14"
+              className="pl-4 pr-3 h-14"
             >
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                twClassName="flex-1 mr-2"
+                className="flex-1 mr-2"
               >
                 {linkedAccountLabel}
               </Text>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="flex-shrink min-w-0"
+                className="flex-shrink min-w-0"
                 gap={2}
               >
                 {selectedAccount ? (
@@ -132,7 +132,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   numberOfLines={1}
-                  twClassName="flex-shrink"
+                  className="flex-shrink"
                 >
                   {selectedAccountName}
                 </Text>
@@ -148,18 +148,18 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="border-t border-muted pl-4 pr-3 h-14"
+            className="border-t border-muted pl-4 pr-3 h-14"
           >
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="flex-1 mr-2"
+              className="flex-1 mr-2"
             >
               {tradingActivityLabel}
             </Text>
             {/* The native switch draws at the top of a stretched frame. A 32px
                 slot matches the control, and the row centers that slot on the label. */}
-            <Box twClassName="h-8 items-center justify-center">
+            <Box className="h-8 items-center justify-center">
               <Switch
                 value={shareTradingActivity}
                 onValueChange={onShareTradingActivityChange}
@@ -183,7 +183,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="mt-auto text-center"
+        className="mt-auto text-center"
         testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE}
       >
         {strings(
@@ -201,7 +201,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
         >
           <SafeAreaProvider>
             <GestureHandlerRootView style={styles.root}>
-              <Box twClassName="absolute inset-0">
+              <Box className="absolute inset-0">
                 <Pressable
                   style={[
                     StyleSheet.absoluteFill,

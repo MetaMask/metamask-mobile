@@ -143,12 +143,12 @@ export function getNavbar({
       }
 
       return (
-        <Box twClassName="bg-default">
+        <Box className="bg-default">
           <Box
-            twClassName="items-center p-1"
+            className="items-center p-1"
             testID={NAVBAR_SHEET_HANDLE_TEST_ID}
           >
-            <Box twClassName="w-10 h-1 rounded-full bg-border-muted" />
+            <Box className="w-10 h-1 rounded-full bg-border-muted" />
           </Box>
           {header}
         </Box>

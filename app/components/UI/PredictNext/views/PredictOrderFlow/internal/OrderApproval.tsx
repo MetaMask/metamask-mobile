@@ -74,7 +74,7 @@ export const OrderApproval = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.EXPIRED}
         >
           {strings('predict_next.order_preview.expired')}
@@ -119,7 +119,7 @@ export const OrderApproval = ({
   }
 
   return (
-    <Box twClassName="gap-3" testID={PredictOrderFlowTestIds.APPROVAL}>
+    <Box className="gap-3" testID={PredictOrderFlowTestIds.APPROVAL}>
       <Text variant={TextVariant.HeadingSm}>
         {strings('predict_next.order_approval.title')}
       </Text>

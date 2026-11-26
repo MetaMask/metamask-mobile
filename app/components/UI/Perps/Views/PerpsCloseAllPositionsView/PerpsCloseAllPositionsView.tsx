@@ -362,7 +362,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         {title}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="py-2">
+      <Box className="py-2">
         <Box paddingHorizontal={4}>
           <Text
             variant={TextVariant.BodyMd}

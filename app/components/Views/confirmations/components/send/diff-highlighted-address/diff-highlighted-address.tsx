@@ -51,9 +51,9 @@ export const DiffHighlightedAddress = ({
   }
 
   return (
-    <Box twClassName="rounded-lg bg-background-alternative p-3">
-      <Box twClassName="flex-row items-center mb-2">
-        <Box twClassName={`w-2 h-2 rounded-full mr-1.5 mt-0.5 ${dotTwColor}`} />
+    <Box className="rounded-lg bg-background-alternative p-3">
+      <Box className="flex-row items-center mb-2">
+        <Box className={`w-2 h-2 rounded-full mr-1.5 mt-0.5 ${dotTwColor}`} />
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -69,7 +69,7 @@ export const DiffHighlightedAddress = ({
             variant={TextVariant.BodySm}
             color={segment.isDiff ? diffTextColor : TextColor.TextAlternative}
             fontWeight={segment.isDiff ? FontWeight.Bold : undefined}
-            twClassName={segment.isDiff ? highlightTwColor : undefined}
+            className={segment.isDiff ? highlightTwColor : undefined}
           >
             {segment.text}
           </Text>

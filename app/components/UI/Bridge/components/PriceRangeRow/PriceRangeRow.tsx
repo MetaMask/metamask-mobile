@@ -50,7 +50,7 @@ function PriceRangeValue({
     return (
       <Box
         testID={PriceRangeRowSelectorsIDs.VALUE}
-        twClassName="min-w-0 shrink"
+        className="min-w-0 shrink"
         style={{ marginLeft: PRICE_RANGE_TOKEN_TO_RANGE_GAP }}
       >
         <Text
@@ -81,7 +81,7 @@ function PriceRangeValue({
       fontWeight={FontWeight.Regular}
       color={TextColor.TextDefault}
       numberOfLines={1}
-      twClassName="min-w-0 shrink"
+      className="min-w-0 shrink"
       style={{ marginLeft: PRICE_RANGE_TOKEN_TO_RANGE_GAP }}
       testID={PriceRangeRowSelectorsIDs.VALUE}
     >
@@ -133,11 +133,11 @@ const PriceRangeRow = ({
     oneLineWidth > availableOneLineWidth;
 
   return (
-    <Box twClassName="w-full px-4 pt-4 pb-4">
+    <Box className="w-full px-4 pt-4 pb-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full"
+        className="w-full"
         onLayout={(event) => {
           setRowWidth(event.nativeEvent.layout.width);
         }}
@@ -149,7 +149,7 @@ const PriceRangeRow = ({
             accessible={false}
             importantForAccessibility="no"
             numberOfLines={1}
-            twClassName="absolute opacity-0"
+            className="absolute opacity-0"
             onTextLayout={(event) => {
               const lineWidth = event.nativeEvent.lines[0]?.width;
               if (lineWidth) {
@@ -164,11 +164,11 @@ const PriceRangeRow = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
-          twClassName="flex-1"
+          className="flex-1"
         >
           {strings('bridge.recurring.price_range.input_label')}
         </Text>
-        <Box twClassName="max-w-[50%] shrink">
+        <Box className="max-w-[50%] shrink">
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={strings(
@@ -191,7 +191,7 @@ const PriceRangeRow = ({
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="min-w-0 shrink"
+                  className="min-w-0 shrink"
                 >
                   <BadgeWrapper
                     testID={PriceRangeRowSelectorsIDs.AVATAR}
@@ -199,7 +199,7 @@ const PriceRangeRow = ({
                     position={BadgeWrapperPosition.BottomRight}
                     badge={
                       <Box
-                        twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+                        className="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
                         style={{
                           width: PRICE_RANGE_NETWORK_BADGE_SIZE,
                           height: PRICE_RANGE_NETWORK_BADGE_SIZE,

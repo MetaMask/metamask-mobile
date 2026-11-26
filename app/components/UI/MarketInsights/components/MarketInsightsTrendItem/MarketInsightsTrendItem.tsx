@@ -58,7 +58,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       testID={testID}
       accessibilityRole={onPress ? 'button' : undefined}
     >
-      <Text variant={TextVariant.HeadingSm} twClassName="mb-2">
+      <Text variant={TextVariant.HeadingSm} className="mb-2">
         {trend.title}
       </Text>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -68,7 +68,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="pt-2 gap-2"
+          className="pt-2 gap-2"
         >
           <SourceLogoGroup sources={uniqueSources} />
           {sourceLabel ? (

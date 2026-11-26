@@ -118,7 +118,7 @@ export const AccountGroupSelectRow: React.FC<AccountGroupSelectRowProps> = ({
         type={AvatarAccountType.Blockies}
         size={AvatarSize.Md}
       />
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -344,7 +344,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   if (hasError && !portfolio) {
     return (
-      <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
+      <Box className="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_portfolio.error_loading')}
           description={strings(
@@ -359,7 +359,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   if (showSkeleton) {
     return (
-      <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.LOADING}>
+      <Box className="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.LOADING}>
         <Skeleton style={styles.skeletonLg} />
         <Skeleton style={styles.skeletonMd} />
         <Skeleton style={styles.skeletonMd} />
@@ -377,7 +377,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="py-6 gap-3"
+        className="py-6 gap-3"
       >
         <RewardsNoPositionsImage
           name="rewards-no-positions"
@@ -387,7 +387,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('rewards.ondo_campaign_portfolio.empty')}
         </Text>
@@ -395,7 +395,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Bold}
-            twClassName="text-center"
+            className="text-center"
             onPress={() => {
               navigation.navigate(
                 Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
@@ -415,9 +415,9 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   }
 
   return (
-    <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.CONTAINER}>
+    <Box className="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.CONTAINER}>
       {/* Positions */}
-      <Box twClassName="gap-3">
+      <Box className="gap-3">
         {grouped.map((row) => {
           const rowPnlColor = isPnlNonNegative(row.unrealizedPnlPercent)
             ? TextColor.SuccessDefault
@@ -435,7 +435,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-3"
+                className="gap-3"
               >
                 <BadgeWrapper
                   position={BadgeWrapperPosition.BottomRight}
@@ -456,13 +456,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                     size={36}
                   />
                 </BadgeWrapper>
-                <Box twClassName="flex-1">
+                <Box className="flex-1">
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     justifyContent={BoxJustifyContent.Between}
                     alignItems={BoxAlignItems.Center}
                   >
-                    <Box twClassName="flex-1 min-w-0 pr-2">
+                    <Box className="flex-1 min-w-0 pr-2">
                       <Text
                         variant={TextVariant.BodyMd}
                         fontWeight={FontWeight.Medium}

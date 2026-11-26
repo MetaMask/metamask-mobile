@@ -88,7 +88,7 @@ const MoneyEarningsView = (): React.ReactElement => {
   return (
     <Box
       testID={MoneyEarningsViewTestIds.CONTAINER}
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingBottom: bottom }}
     >
       <HeaderStandardGlass
@@ -99,7 +99,7 @@ const MoneyEarningsView = (): React.ReactElement => {
         onBack={navigation.goBack}
         backButtonProps={{ testID: MoneyEarningsViewTestIds.BACK_BUTTON }}
       />
-      <Box twClassName="py-4">
+      <Box className="py-4">
         <TabsBar
           tabs={tabs}
           activeIndex={activeTabIndex}
@@ -109,7 +109,7 @@ const MoneyEarningsView = (): React.ReactElement => {
       {activeTab === 'earnings' ? (
         <Box
           testID={MoneyEarningsViewTestIds.EARNINGS_PANEL}
-          twClassName="flex-1"
+          className="flex-1"
         >
           <EarningsTab />
         </Box>

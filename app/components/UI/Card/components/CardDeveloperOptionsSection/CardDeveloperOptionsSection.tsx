@@ -61,7 +61,7 @@ const CardDeveloperOptionsSection = () => {
   }, [dispatch]);
 
   return (
-    <Box twClassName="mt-2 gap-2">
+    <Box className="mt-2 gap-2">
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingLg}

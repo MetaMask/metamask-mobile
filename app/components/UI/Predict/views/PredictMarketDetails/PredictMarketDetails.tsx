@@ -564,7 +564,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         }
       >
         {/* Header content - scrollable */}
-        <Box twClassName="px-3 gap-4">
+        <Box className="px-3 gap-4">
           <PredictMarketDetailsStatus
             winningOutcomeToken={winningOutcomeToken}
             multipleOpenOutcomesPartiallyResolved={
@@ -587,18 +587,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
         {/* Show content skeleton while initial market data is fetching */}
         {isResolvedMarketLoading ? (
-          <Box twClassName="px-3">
+          <Box className="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
         ) : isMarketUnavailable ? (
           <Box
             testID={PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE}
-            twClassName="px-3 py-8 items-center justify-center gap-2"
+            className="px-3 py-8 items-center justify-center gap-2"
           >
             <Text
               variant={TextVariant.HeadingMd}
               color={TextColor.TextDefault}
-              twClassName="font-medium"
+              className="font-medium"
             >
               {strings('predict.market_details.market_unavailable')}
             </Text>
@@ -638,7 +638,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         )}
         {tabContentState === 'skeleton' && (
-          <Box twClassName="px-3">
+          <Box className="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
         )}
@@ -663,7 +663,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
+          className="gap-1 absolute inset-x-0 bottom-4 pb-3"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}

@@ -95,7 +95,7 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
   sheetRef,
   isGlassHeader,
 }) => (
-  <Box twClassName="gap-2">
+  <Box className="gap-2">
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
       {label}
     </Text>
@@ -133,11 +133,11 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
-              twClassName="flex-1"
+              className="flex-1"
             >
               <Text variant={TextVariant.BodyMd}>{env}</Text>
               {env === defaultEnv ? (
-                <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                <Box className="px-2 py-0.5 rounded bg-muted">
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
@@ -259,7 +259,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
       <SectionDivider marginVertical={8} />
       <Box
         testID="rewards-environment-toggle"
-        twClassName="gap-4 flex-col px-4"
+        className="gap-4 flex-col px-4"
       >
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.settings.environment_selector')}

@@ -264,7 +264,7 @@ const CardTransactionDetails = () => {
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 items-center justify-center px-8">
+        <Box className="flex-1 items-center justify-center px-8">
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('card.transactions.load_error')}
           </Text>

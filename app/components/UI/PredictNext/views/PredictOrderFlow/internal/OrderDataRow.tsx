@@ -24,8 +24,8 @@ export const OrderDataRow = ({
   valueColor,
   bold = false,
 }: OrderDataRowProps) => (
-  <Box twClassName="flex-row items-center justify-between gap-4">
-    <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+  <Box className="flex-row items-center justify-between gap-4">
+    <Text variant={TextVariant.BodyMd} className="text-alternative">
       {label}
     </Text>
     <Text

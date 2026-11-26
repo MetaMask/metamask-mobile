@@ -30,7 +30,7 @@ export function ActivityDetailsStandardTemplate({
   addressRows?: { from?: string; to?: string };
 }) {
   return (
-    <Box twClassName="flex-1 gap-2">
+    <Box className="flex-1 gap-2">
       {header}
       <SectionDivider marginVertical={0} />
       <ActivityDetailsMetadata item={item} addressRows={addressRows} />
@@ -48,7 +48,7 @@ export function ActivityDetailsStandardTemplate({
           )}
         </>
       ) : null}
-      <Box twClassName="mt-auto pt-4">
+      <Box className="mt-auto pt-4">
         <ActivityDetailsFooter>
           <ActivityDetailsBlockExplorerButton
             chainId={item.chainId}

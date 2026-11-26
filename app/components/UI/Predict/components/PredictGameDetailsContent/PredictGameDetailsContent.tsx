@@ -142,7 +142,7 @@ const PredictGameDetailsContentComponent: React.FC<
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         // Trimmed on glass so the 40px capsules keep the standard 56px header.
-        twClassName={isBrandRefresh ? 'px-4 py-2' : 'px-4 py-3'}
+        className={isBrandRefresh ? 'px-4 py-2' : 'px-4 py-3'}
         style={{ paddingTop: insets.top + (isBrandRefresh ? 8 : 12) }}
       >
         {isBrandRefresh ? (
@@ -169,7 +169,7 @@ const PredictGameDetailsContentComponent: React.FC<
           </Pressable>
         )}
 
-        <Box twClassName="flex-1 mx-4">
+        <Box className="flex-1 mx-4">
           <Text
             variant={TextVariant.HeadingMd}
             color={TextColor.TextDefault}
@@ -201,14 +201,14 @@ const PredictGameDetailsContentComponent: React.FC<
           />
         }
       >
-        <Box twClassName="px-4 py-2">
+        <Box className="px-4 py-2">
           <PredictSportScoreboard
             game={game}
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
           />
         </Box>
 
-        <Box twClassName="mt-4">
+        <Box className="mt-4">
           <PredictGameChart
             market={market}
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
@@ -216,7 +216,7 @@ const PredictGameDetailsContentComponent: React.FC<
         </Box>
 
         {showStickyHeader && (
-          <Box twClassName="bg-default">
+          <Box className="bg-default">
             {showTabBar && (
               <PredictMarketDetailsTabBar
                 tabs={tabs}

@@ -67,7 +67,7 @@ const RewardsEarningsHistoryView: React.FC = () => {
   const historyFirstLoad = list.isLoading || list.items === null;
   const bannerSummary = summaryLoading || historyFirstLoad ? null : summaryData;
   const header = (
-    <Box twClassName="pt-2">
+    <Box className="pt-2">
       {localizedText ? (
         <RewardsEarningsBanners
           summary={bannerSummary}

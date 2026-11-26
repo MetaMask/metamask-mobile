@@ -459,7 +459,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const fadeMask = (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="flex-1"
+      className="flex-1"
       accessible={false}
     >
       <LinearGradient
@@ -468,7 +468,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         end={{ x: 1, y: 0 }}
         style={tw.style(`w-[${LEVERAGE_PICKER_FADE_WIDTH}px]`)}
       />
-      <Box twClassName="flex-1 bg-black" />
+      <Box className="flex-1 bg-black" />
       <LinearGradient
         colors={['black', 'transparent']}
         start={{ x: 0, y: 0 }}
@@ -557,6 +557,65 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                             }
                             size={IconSize.Sm}
                             color={IconColor.IconAlternative}
+                            className="ml-1"
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
+                            }
+                          />
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                            }
+                          >
+                            {displayLiquidationPercentage}
+                          </Text>
+                        </>
+                      )}
+                  </Box>
+                )
+              }
+            /><Skeleton
+                    width={112}
+                    height={16}
+                    testID={
+                      PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON
+                    }
+                  />
+                ) : (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    accessible={false}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                      testID={
+                        PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                      }
+                    >
+                      {displayLiquidationPrice
+                        ? formatPerpsFiat(displayLiquidationPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
+                        : PERPS_CONSTANTS.FallbackDataDisplay}
+                    </Text>
+                    {marginMode !== 'cross' &&
+                      (tempLeverage === 1 ||
+                        displayLiquidationPrice !== null) &&
+                      displayLiquidationPercentage && (
+                        <>
+                          <Icon
+                            name={
+                              direction === 'long'
+                                ? IconName.TrendDown
+                                : IconName.TrendUp
+                            }
+                            size={IconSize.Sm}
+                            color={IconColor.IconAlternative}
                             twClassName="ml-1"
                             testID={
                               PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
@@ -582,7 +641,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center px-4 py-4"
+            className="text-center px-4 py-4"
           >
             {strings('perps.order.leverage_modal.price_unavailable')}
           </Text>
@@ -593,7 +652,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         <Box
           paddingTop={3}
           paddingBottom={6}
-          twClassName={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
+          className={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
           accessible={false}
         >
           <MaskedView
@@ -671,11 +730,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <>
             {/* SectionDivider defaults to 20px vertical margin; drop the bottom
                 one so the explainer sits 16px below the rule. */}
-            <SectionDivider twClassName="mb-0" />
+            <SectionDivider className="mb-0" />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="px-4 pt-4 pb-3"
+              className="px-4 pt-4 pb-3"
               testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
             >
               {strings('perps.order.leverage_modal.description')}

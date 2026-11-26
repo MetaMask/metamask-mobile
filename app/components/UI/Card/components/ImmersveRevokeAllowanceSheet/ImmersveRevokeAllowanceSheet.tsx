@@ -198,16 +198,16 @@ const ImmersveRevokeAllowanceSheet = () => {
           {strings('card.revoke_allowance_sheet.title')}
         </Text>
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative pb-4"
+          className="text-alternative pb-4"
           testID={ImmersveRevokeAllowanceSheetTestIds.DESCRIPTION}
         >
           {strings('card.revoke_allowance_sheet.description')}
         </Text>
-        <Box twClassName="gap-4 pt-4">
+        <Box className="gap-4 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

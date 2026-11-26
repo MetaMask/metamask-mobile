@@ -70,7 +70,7 @@ const FooterGlass = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       gap={4}
-      twClassName={['px-4', twClassName].filter(Boolean).join(' ')}
+      className={['px-4', twClassName].filter(Boolean).join(' ')}
       testID={testID}
     >
       {primaryButtonProps &&

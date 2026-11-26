@@ -44,7 +44,7 @@ const DeFiFullView = () => {
       style={tw.style('flex-1 bg-default pb-4', { paddingTop: insets.top })}
       edges={['left', 'right', 'bottom']}
     >
-      <Box twClassName="flex-row items-center h-14 px-2">
+      <Box className="flex-row items-center h-14 px-2">
         <ButtonIcon
           size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
@@ -52,7 +52,7 @@ const DeFiFullView = () => {
           testID="back-button"
         />
         <Box
-          twClassName="absolute inset-0 items-center justify-center"
+          className="absolute inset-0 items-center justify-center"
           pointerEvents="none"
         >
           <Text variant={TextVariant.HeadingSm}>
@@ -60,7 +60,7 @@ const DeFiFullView = () => {
           </Text>
         </Box>
       </Box>
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         <DeFiPositionsList
           tabLabel={strings('homepage.sections.defi')}
           isFullView

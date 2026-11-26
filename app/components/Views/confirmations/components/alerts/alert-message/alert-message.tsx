@@ -20,7 +20,7 @@ export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
   return (
     <Text
       color={TextColor.ErrorDefault}
-      twClassName="text-center"
+      className="text-center"
       testID="alert-message-banner"
     >
       {alertMessage}

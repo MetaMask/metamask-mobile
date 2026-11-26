@@ -69,10 +69,10 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
   );
 
   const copy = (
-    <Box twClassName="gap-1">
+    <Box className="gap-1">
       <Text
         variant={TextVariant.HeadingSm}
-        twClassName="text-default"
+        className="text-default"
         numberOfLines={1}
       >
         {benefit.longTitle}
@@ -101,7 +101,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
             gap={1}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="flex-1"
+            className="flex-1"
           >
             <Icon
               name={IconName.Clock}
@@ -117,14 +117,14 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
             </Text>
           </Box>
         ) : (
-          <Box twClassName="flex-1" />
+          <Box className="flex-1" />
         )}
         {companyName ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="max-w-[40%]"
+            className="max-w-[40%]"
             numberOfLines={1}
           >
             {companyName}
@@ -153,18 +153,18 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
     >
       {isPreview ? (
         <>
-          <Box twClassName="w-full h-24 bg-muted overflow-hidden">{image}</Box>
-          <Box twClassName="flex-1 justify-between gap-2 p-4">
+          <Box className="w-full h-24 bg-muted overflow-hidden">{image}</Box>
+          <Box className="flex-1 justify-between gap-2 p-4">
             {copy}
             {footer}
           </Box>
         </>
       ) : (
-        <Box gap={4} twClassName="flex-row items-start">
-          <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
+        <Box gap={4} className="flex-row items-start">
+          <Box className="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
             {image}
           </Box>
-          <Box twClassName="flex-1 gap-1">
+          <Box className="flex-1 gap-1">
             {copy}
             {footer}
           </Box>

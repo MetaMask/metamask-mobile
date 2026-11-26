@@ -22,7 +22,7 @@ export const MoneyAccountIdentity = ({
 }: {
   testID?: string;
 }) => (
-  <Box twClassName="flex-row items-center gap-2 shrink min-w-0" testID={testID}>
+  <Box className="flex-row items-center gap-2 shrink min-w-0" testID={testID}>
     <MoneyBalanceIcon
       width={24}
       height={24}
@@ -32,7 +32,7 @@ export const MoneyAccountIdentity = ({
     />
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="text-text-default font-medium self-center shrink"
+      className="text-text-default font-medium self-center shrink"
       numberOfLines={1}
     >
       {strings('card.card_spending_limit.money_account_label')}
@@ -46,10 +46,10 @@ export const MoneyAccountRow = ({
 }: {
   testID?: string;
 }) => (
-  <Box twClassName="flex-row items-center p-4" testID={testID}>
+  <Box className="flex-row items-center p-4" testID={testID}>
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="flex-1 text-text-alternative"
+      className="flex-1 text-text-alternative"
     >
       {strings('card.card_spending_limit.account_label')}
     </Text>
@@ -79,11 +79,11 @@ export const MoneyAccountRequired = ({
   }, [navigation, returnTo]);
 
   return (
-    <Box twClassName="gap-3" testID={testID}>
-      <Text variant={TextVariant.BodyMd} twClassName="text-text-default">
+    <Box className="gap-3" testID={testID}>
+      <Text variant={TextVariant.BodyMd} className="text-text-default">
         {strings('card.card_authentication.money_account_required.title')}
       </Text>
-      <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+      <Text variant={TextVariant.BodySm} className="text-text-alternative">
         {strings('card.card_authentication.money_account_required.description')}
       </Text>
       <Button

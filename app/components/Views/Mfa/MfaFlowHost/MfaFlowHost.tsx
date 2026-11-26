@@ -128,7 +128,7 @@ const MfaFlowHost = () => {
         return <FailureStep key={stepKey} {...shared} step={step} />;
       default:
         return (
-          <Box twClassName="flex-1 items-center justify-center">
+          <Box className="flex-1 items-center justify-center">
             <ActivityIndicator />
           </Box>
         );

@@ -43,7 +43,7 @@ const LimitOrderCostToleranceInfoSheet = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY}
         >
           {strings('bridge.cost_tolerance_tooltip_content')}

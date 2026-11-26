@@ -54,7 +54,7 @@ const SRPTabView = ({
           tabLabel={strings(`reveal_credential.text`)}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <Box marginTop={4} twClassName="flex-1 w-full h-full min-h-[232px]">
+          <Box marginTop={4} className="flex-1 w-full h-full min-h-[232px]">
             {showSeedPhrase ? (
               <SecureContentView style={tw.style('w-full h-full')}>
                 <SeedPhraseDisplay
@@ -85,7 +85,7 @@ const SRPTabView = ({
             {hasCredential ? (
               <SecureContentView>
                 <Box
-                  twClassName="rounded-2xl overflow-hidden p-3"
+                  className="rounded-2xl overflow-hidden p-3"
                   style={{ backgroundColor: colors.text.default }}
                 >
                   <QRCode

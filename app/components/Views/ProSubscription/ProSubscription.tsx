@@ -228,7 +228,7 @@ const ProSubscription = () => {
       edges={SAFE_AREA_EDGES}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
-      <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
+      <Box className="px-4 pt-4 pb-8 flex-row items-center justify-end">
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Md}

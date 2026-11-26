@@ -326,7 +326,7 @@ const PredictFeedView: React.FC = () => {
       return null;
     }
     return (
-      <Box twClassName="py-2">
+      <Box className="py-2">
         <PredictMarketSkeleton
           testID={getPredictFeedViewSelector.skeletonFooter(1)}
         />
@@ -337,7 +337,7 @@ const PredictFeedView: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <Box twClassName={`flex-1 px-4 ${showFilterBar ? 'pt-1' : ''}`}>
+        <Box className={`flex-1 px-4 ${showFilterBar ? 'pt-1' : ''}`}>
           {Array.from({ length: INITIAL_SKELETON_COUNT }).map((_, index) => (
             <PredictMarketSkeleton
               key={`skeleton-${index}`}
@@ -355,7 +355,7 @@ const PredictFeedView: React.FC = () => {
     if (error && markets.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           testID={PredictFeedViewSelectorsIDs.ERROR_STATE}
         >
           <PredictOffline onRetry={refetch} />
@@ -366,7 +366,7 @@ const PredictFeedView: React.FC = () => {
     if (markets.length === 0) {
       return (
         <Box
-          twClassName="flex-1 justify-center items-center p-8"
+          className="flex-1 justify-center items-center p-8"
           testID={PredictFeedViewSelectorsIDs.EMPTY_STATE}
         >
           <Text
@@ -384,7 +384,7 @@ const PredictFeedView: React.FC = () => {
     return (
       // flex-1 wrapper so FlashList gets a bounded height in this column layout;
       // without it the list can collapse to zero height and break scroll/pagination.
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <FlashList
           testID={PredictFeedViewSelectorsIDs.MARKET_LIST}
           data={markets}
@@ -436,7 +436,7 @@ const PredictFeedView: React.FC = () => {
         testID={PredictFeedViewSelectorsIDs.HEADER}
       />
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {showTabBar && (
           <TabsBar
             tabs={tabItems}

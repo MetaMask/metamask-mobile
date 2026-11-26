@@ -978,7 +978,7 @@ const VbaDetails = () => {
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             marginTop={6}
-            twClassName="overflow-hidden rounded-xl"
+            className="overflow-hidden rounded-xl"
           >
             {rows.map((row) => (
               <ListItem
@@ -1009,6 +1009,18 @@ const VbaDetails = () => {
                   />
                 }
                 accessoryGap={3}
+              /><ButtonIcon
+                    iconName={IconName.Copy}
+                    size={ButtonIconSize.Md}
+                    onPress={handleCopy(row.copyValue ?? row.value, row.label)}
+                    accessibilityLabel={strings(
+                      'virtual_bank_account.vba_details.copy_label',
+                      { field: row.label },
+                    )}
+                    testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                  />
+                }
+                accessoryGap={3}
               />
             ))}
           </Box>
@@ -1016,7 +1028,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
-            twClassName="mt-6 text-center"
+            className="mt-6 text-center"
             testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
@@ -1027,7 +1039,7 @@ const VbaDetails = () => {
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             marginTop={6}
-            twClassName="overflow-hidden rounded-xl"
+            className="overflow-hidden rounded-xl"
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
@@ -1045,7 +1057,32 @@ const VbaDetails = () => {
                 key={id}
                 testID={`${VbaDetailsSelectorsIDs.LOADING_ROW}-${id}`}
                 title={
-                  <Box gap={2} twClassName="flex-1">
+                  <Box gap={2} className="flex-1">
+                    <Skeleton
+                      width={96}
+                      height={14}
+                      className="rounded"
+                      {...skeletonMotion}
+                    />
+                    <Skeleton
+                      width="85%"
+                      height={18}
+                      className="rounded"
+                      {...skeletonMotion}
+                    />
+                  </Box>
+                }
+                endAccessory={
+                  // Matches the copy ButtonIcon at ButtonIconSize.Md (32px).
+                  <Skeleton
+                    width={32}
+                    height={32}
+                    className="rounded"
+                    {...skeletonMotion}
+                  />
+                }
+                accessoryGap={3}
+              /><Box gap={2} className="flex-1">
                     <Skeleton
                       width={96}
                       height={14}
@@ -1080,7 +1117,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE}
           >
             {strings('virtual_bank_account.vba_details.provider_disclosure')}{' '}
@@ -1099,7 +1136,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE}
           >
             {strings('virtual_bank_account.vba_details.risk_disclosure')}{' '}

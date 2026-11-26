@@ -36,7 +36,7 @@ export const PortfolioTabs = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-row" testID={PredictPortfolioScreenTestIds.TABS}>
+    <Box className="flex-row" testID={PredictPortfolioScreenTestIds.TABS}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key;
         return (
@@ -48,16 +48,16 @@ export const PortfolioTabs = ({
             style={tw.style('flex-1')}
             testID={tab.testID}
           >
-            <Box twClassName="items-center gap-3">
+            <Box className="items-center gap-3">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={isActive ? FontWeight.Bold : FontWeight.Regular}
-                twClassName={isActive ? 'text-default' : 'text-alternative'}
+                className={isActive ? 'text-default' : 'text-alternative'}
               >
                 {strings(tab.label)}
               </Text>
               <Box
-                twClassName={`h-0.5 w-full ${
+                className={`h-0.5 w-full ${
                   isActive ? 'bg-icon-default' : 'bg-transparent'
                 }`}
               />

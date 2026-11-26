@@ -111,7 +111,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={onDonePress}
-        twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+        className={QUICK_AMOUNT_PILL_TW_CLASS}
         textProps={QUICK_AMOUNT_PILL_TEXT_PROPS}
         testID="quick-buy-keypad-done"
       >
@@ -120,14 +120,14 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     ) : null;
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+    <Box flexDirection={BoxFlexDirection.Row} className="gap-2">
       {percentAmounts.map((option) => (
         <Button
           key={option.percent}
           {...QUICK_AMOUNT_PILL_PROPS}
           onPress={() => handlePercentPress(option.percent)}
           isDisabled={isSliderDisabled}
-          twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+          className={QUICK_AMOUNT_PILL_TW_CLASS}
           testID={getQuickBuyPercentPillTestId(option.percent)}
         >
           {option.label}

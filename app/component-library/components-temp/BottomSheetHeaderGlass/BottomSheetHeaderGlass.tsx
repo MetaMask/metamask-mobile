@@ -43,7 +43,7 @@ const BottomSheetHeaderGlass = ({
         onClose={onClose}
         closeButtonProps={closeButtonProps}
         style={style}
-        twClassName={twClassName}
+        className={twClassName}
       />
     );
   }

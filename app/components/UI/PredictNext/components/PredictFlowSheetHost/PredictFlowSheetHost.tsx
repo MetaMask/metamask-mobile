@@ -18,7 +18,7 @@ export const PredictFlowSheetHost = ({
   onClose,
   children,
 }: PredictFlowSheetHostProps) => (
-  <Box pointerEvents="box-none" twClassName="absolute inset-0">
+  <Box pointerEvents="box-none" className="absolute inset-0">
     <Modal
       visible
       transparent

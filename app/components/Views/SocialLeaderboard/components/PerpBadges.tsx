@@ -50,11 +50,11 @@ const PerpBadges: React.FC<PerpBadgesProps> = ({
           testID={testID ? `${testID}-leverage` : undefined}
         />
       ) : null}
-      <Box twClassName="bg-muted rounded-md px-1.5 self-center">
+      <Box className="bg-muted rounded-md px-1.5 self-center">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
-          twClassName={isLong ? 'text-success-default' : 'text-error-default'}
+          className={isLong ? 'text-success-default' : 'text-error-default'}
         >
           {directionLabel}
         </Text>

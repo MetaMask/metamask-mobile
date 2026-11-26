@@ -56,7 +56,7 @@ const TabLabel: React.FC<{
     setWidth(e.nativeEvent.lines[0]?.width ?? 0);
 
   return (
-    <Box twClassName="items-center justify-center">
+    <Box className="items-center justify-center">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Bold}
@@ -78,7 +78,7 @@ const TabLabel: React.FC<{
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={focused ? FontWeight.Bold : FontWeight.Regular}
-        twClassName={focused ? 'text-default' : 'text-alternative'}
+        className={focused ? 'text-default' : 'text-alternative'}
         numberOfLines={1}
         ellipsizeMode="clip"
         testID={focused ? undefined : testID}
@@ -131,7 +131,7 @@ const TabViewBar: React.FC<TabViewBarProps> = ({
   );
 
   return (
-    <Box twClassName={twClassName} testID={testID}>
+    <Box className={twClassName} testID={testID}>
       <TabBar
         {...sceneProps}
         options={options}

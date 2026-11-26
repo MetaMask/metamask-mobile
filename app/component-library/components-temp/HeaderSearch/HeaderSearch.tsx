@@ -83,7 +83,7 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
     return (
       <Box
         {...screenBoxProps}
-        twClassName={`${baseTwClassName} ml-1 mr-4 gap-2 ${twClassName}`.trim()}
+        className={`${baseTwClassName} ml-1 mr-4 gap-2 ${twClassName}`.trim()}
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -91,7 +91,7 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
           onPress={onPressBackButton}
           {...backButtonProps}
         />
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <TextFieldSearch
             {...(textFieldSearchProps as TextFieldSearchProps)}
           />
@@ -117,9 +117,9 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
   return (
     <Box
       {...inlineBoxProps}
-      twClassName={`${baseTwClassName} ml-4 ${twClassName}`.trim()}
+      className={`${baseTwClassName} ml-4 ${twClassName}`.trim()}
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <TextFieldSearch {...(textFieldSearchProps as TextFieldSearchProps)} />
       </Box>
       <Button

@@ -168,7 +168,7 @@ export const ButtonPricePresetsSection = forwardRef<
           onPress={onMarketPress}
           hitSlop={PRESET_HIT_SLOP}
           testID={LimitOrderPriceAdjustPresetsSelectorsIDs.MARKET}
-          twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
+          className={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
         >
           {strings('bridge.limit.market')}
         </Button>
@@ -180,20 +180,20 @@ export const ButtonPricePresetsSection = forwardRef<
             onPress={() => onPercentPress(percent)}
             hitSlop={PRESET_HIT_SLOP}
             testID={getLimitOrderPercentPresetTestId(percent)}
-            twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
+            className={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
           >
             {formatSignedPercent(percent)}
           </Button>
         ))}
         <Box
           testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_SLOT}
-          twClassName={PRESET_SLOT_TW_CLASS_NAME}
+          className={PRESET_SLOT_TW_CLASS_NAME}
         >
           {isCustomActive ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="h-8 w-full overflow-hidden rounded-2xl bg-muted px-1"
+              className="h-8 w-full overflow-hidden rounded-2xl bg-muted px-1"
             >
               <Input
                 ref={inputRef}
@@ -221,7 +221,7 @@ export const ButtonPricePresetsSection = forwardRef<
               onPress={onCustomPress}
               hitSlop={PRESET_HIT_SLOP}
               testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM}
-              twClassName={PRESET_CONTROL_TW_CLASS_NAME}
+              className={PRESET_CONTROL_TW_CLASS_NAME}
             >
               {strings('bridge.limit.custom')}
             </Button>

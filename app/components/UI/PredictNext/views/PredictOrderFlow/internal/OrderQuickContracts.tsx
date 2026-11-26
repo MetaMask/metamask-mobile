@@ -40,7 +40,7 @@ export const OrderQuickContracts = ({
   onSetContracts,
   isDisabled = false,
 }: OrderQuickContractsProps) => (
-  <Box twClassName="flex-row gap-2">
+  <Box className="flex-row gap-2">
     {QUICK_CONTRACT_FRACTIONS.map(({ key, label, fraction }) => (
       <Button
         key={key}
@@ -49,7 +49,7 @@ export const OrderQuickContracts = ({
         size={ButtonSize.Lg}
         isDisabled={isDisabled || Math.floor(maxContracts * fraction) < 1}
         onPress={() => onSetContracts(Math.floor(maxContracts * fraction))}
-        twClassName="h-11 flex-1 min-w-0 rounded-xl"
+        className="h-11 flex-1 min-w-0 rounded-xl"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {label}
@@ -62,7 +62,7 @@ export const OrderQuickContracts = ({
       size={ButtonSize.Lg}
       isDisabled={isDisabled}
       onPress={() => onSetContracts(maxContracts)}
-      twClassName="h-11 flex-1 min-w-0 rounded-xl"
+      className="h-11 flex-1 min-w-0 rounded-xl"
     >
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('predict_next.order_preview.max')}

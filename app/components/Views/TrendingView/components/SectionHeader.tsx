@@ -57,13 +57,13 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         title={title}
         isInteractive={Boolean(onViewAll)}
         onPress={onViewAll ? handleViewAll : undefined}
-        twClassName={resolvedTitleTwClassName}
+        className={resolvedTitleTwClassName}
       />
       {subtitle ? (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName={resolvedSubtitleTwClassName}
+          className={resolvedSubtitleTwClassName}
         >
           {subtitle}
         </Text>

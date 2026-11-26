@@ -49,12 +49,12 @@ const CampaignsList: React.FC = () => {
     // read starts after mount, so `isLoading` alone misses the first frame.
     if (isLoading || !hasLoaded) {
       return (
-        <Box twClassName="gap-6">
-          <Box twClassName="gap-3">
+        <Box className="gap-6">
+          <Box className="gap-3">
             <Skeleton style={tw.style('h-6 w-24 rounded bg-muted')} />
             <Skeleton style={tw.style('h-50 rounded-xl bg-muted')} />
           </Box>
-          <Box twClassName="gap-3">
+          <Box className="gap-3">
             <Skeleton style={tw.style('h-6 w-24 rounded bg-muted')} />
             <Skeleton style={tw.style('h-50 rounded-xl bg-muted')} />
           </Box>
@@ -76,8 +76,8 @@ const CampaignsList: React.FC = () => {
     }
 
     return (
-      <Box twClassName="items-center justify-center py-12">
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+      <Box className="items-center justify-center py-12">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {strings('rewards.campaigns_view.empty_state')}
         </Text>
       </Box>
@@ -90,15 +90,15 @@ const CampaignsList: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 gap-2"
+          className="mb-4 gap-2"
         >
           <ActivityIndicator size="small" />
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text variant={TextVariant.BodySm} className="text-alternative">
             {strings('rewards.campaigns_view.refreshing')}
           </Text>
         </Box>
       ) : null}
-      <Box twClassName="gap-6">
+      <Box className="gap-6">
         <CampaignsGroup
           title={strings('rewards.campaigns_view.active_title')}
           campaigns={active}

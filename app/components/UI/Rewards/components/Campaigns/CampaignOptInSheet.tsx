@@ -125,17 +125,17 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
 
   return (
     <BottomSheet onClose={onClose}>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="mb-6"
+          className="mb-6"
         >
           {/* Left spacer to balance the close button */}
-          <Box twClassName="w-10" />
+          <Box className="w-10" />
           <Box
-            twClassName="flex-1 items-center"
+            className="flex-1 items-center"
             justifyContent={BoxJustifyContent.Center}
           >
             <Text
@@ -156,7 +156,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
 
         {/* Legal disclaimer – rich text from Contentful */}
         {isDocument(campaign.termsAndConditions) && (
-          <Box twClassName="mb-6">
+          <Box className="mb-6">
             <ContentfulRichText
               document={campaign.termsAndConditions}
               textVariant={legalTextVariant}
@@ -167,7 +167,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
         )}
 
         {displayedOptInError && (
-          <Box twClassName="mb-4">
+          <Box className="mb-4">
             <RewardsErrorBanner
               title={strings('rewards.campaign_details.opt_in_error')}
               description={displayedOptInError}
@@ -183,7 +183,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           onPress={handleOptIn}
           isLoading={isLoading}
           isDisabled={isLoading}
-          twClassName="w-full"
+          className="w-full"
           testID="campaign-opt-in-cta"
         >
           {strings('rewards.campaign.opt_in_cta')}

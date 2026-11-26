@@ -212,7 +212,7 @@ const MoneyNextBestActionParallax = ({
   return (
     <Box
       style={[style, isRivePending ? styles.hidden : undefined]}
-      twClassName={
+      className={
         animate
           ? 'w-full aspect-video overflow-hidden rounded-2xl'
           : 'w-full aspect-video'

@@ -25,7 +25,7 @@ const WalletRecoveryLoading = ({
   message = null,
 }: WalletRecoveryLoadingProps) => (
   <Box
-    twClassName="flex-1 bg-default items-center justify-center px-6"
+    className="flex-1 bg-default items-center justify-center px-6"
     testID={WalletRecoverySelectorsIDs.LOADING_SCREEN}
   >
     <ActivityIndicator size="large" />
@@ -33,7 +33,7 @@ const WalletRecoveryLoading = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="mt-4 text-center"
+        className="mt-4 text-center"
         testID={WalletRecoverySelectorsIDs.LOADING_MESSAGE}
       >
         {message}

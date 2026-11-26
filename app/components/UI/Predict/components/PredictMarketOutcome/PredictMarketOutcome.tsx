@@ -118,9 +118,9 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full gap-3"
+        className="w-full gap-3"
       >
-        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
+        <Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
           {getImageUrl() ? (
             <Image
               source={{ uri: getImageUrl() }}
@@ -128,10 +128,10 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
               contentFit="cover"
             />
           ) : (
-            <Box twClassName="w-full h-full bg-muted" />
+            <Box className="w-full h-full bg-muted" />
           )}
         </Box>
-        <Box twClassName="flex-1 -mt-1">
+        <Box className="flex-1 -mt-1">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
@@ -147,11 +147,11 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="font-medium"
+              className="font-medium"
               color={
                 outcomeToken.price === 1
                   ? TextColor.TextDefault
@@ -201,6 +201,17 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
             }
             onPress={() => handleBuy(outcome.tokens[0])}
             style={[styles.buttonYes, isBiggerLabel && tw.style('h-full py-2')]}
+          /><Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.SuccessDefault}
+              >
+                {outcome.tokens[0].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(getTokenBuyPrice(outcome.tokens[0]))}
+              </Text>
+            }
+            onPress={() => handleBuy(outcome.tokens[0])}
+            style={[styles.buttonYes, isBiggerLabel && tw.style('h-full py-2')]}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -208,6 +219,17 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.ErrorDefault}
+              >
+                {outcome.tokens[1].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(getTokenBuyPrice(outcome.tokens[1]))}
+              </Text>
+            }
+            onPress={() => handleBuy(outcome.tokens[1])}
+            style={[styles.buttonNo, isBiggerLabel && tw.style('h-full py-2')]}
+          /><Text
                 style={tw.style('font-medium text-center')}
                 color={TextColor.ErrorDefault}
               >

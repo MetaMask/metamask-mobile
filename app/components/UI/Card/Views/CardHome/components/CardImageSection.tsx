@@ -41,7 +41,7 @@ const CardImageSection = ({
   if (isLoading || isCardDetailsLoading) {
     return (
       <Box
-        twClassName="w-full rounded-xl overflow-hidden"
+        className="w-full rounded-xl overflow-hidden"
         style={{ aspectRatio: 851 / 540 }}
       >
         <Skeleton

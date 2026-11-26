@@ -47,7 +47,7 @@ const QuickBuyDisabledSection: React.FC<QuickBuyDisabledSectionProps> = ({
   // it also neutralises the keypad's own `CollapsibleReveal` inner
   // `pointerEvents="auto"` while the keypad stays visually expanded.
   return (
-    <Box twClassName="opacity-50" pointerEvents="none" testID={testID}>
+    <Box className="opacity-50" pointerEvents="none" testID={testID}>
       {children}
     </Box>
   );

@@ -83,14 +83,14 @@ const SupportConsentSheet = () => {
       >
         {strings('support_consent.title')}
       </BottomSheetHeaderGlass>
-      <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-4">
+      <Text variant={TextVariant.BodyMd} className="px-4 pb-4">
         {strings('support_consent.description')}
       </Text>
       <Checkbox
         isSelected={savePreference}
         onChange={setSavePreference}
         label={strings('support_consent.save_preference')}
-        twClassName="px-4 pb-4"
+        className="px-4 pb-4"
         testID={SUPPORT_CONSENT_SHEET_TEST_IDS.SAVE_PREFERENCE}
       />
       <BottomSheetFooter

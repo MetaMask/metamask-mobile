@@ -93,7 +93,7 @@ const CrossfadeButton = ({ label, ...buttonProps }: CrossfadeButtonProps) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.PrimaryInverse}
           numberOfLines={1}
-          twClassName="text-center"
+          className="text-center"
         >
           {visibleLabel}
         </Text>

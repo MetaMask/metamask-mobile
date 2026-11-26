@@ -110,7 +110,7 @@ const RulesBottomSheet = ({
                 contentContainerStyle={tw.style('pb-8')}
                 testID={RulesBottomSheetTestIds.CONTENT}
               >
-                <Box twClassName="gap-4">
+                <Box className="gap-4">
                   {sources.length > 0 ? (
                     <Text
                       testID={RulesBottomSheetTestIds.SOURCES}
@@ -158,7 +158,7 @@ const RulesBottomSheet = ({
                   {eventRules ? (
                     <Box
                       testID={RulesBottomSheetTestIds.EVENT_RULES}
-                      twClassName="gap-2"
+                      className="gap-2"
                     >
                       <Text
                         variant={TextVariant.HeadingSm}
@@ -177,7 +177,7 @@ const RulesBottomSheet = ({
                   {shouldShowMarketRules && market ? (
                     <Box
                       testID={RulesBottomSheetTestIds.MARKET_RULES}
-                      twClassName="gap-2"
+                      className="gap-2"
                     >
                       <Text
                         variant={TextVariant.HeadingSm}

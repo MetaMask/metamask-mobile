@@ -26,10 +26,10 @@ export const HomeSectionsStatus = ({
 }: HomeSectionsStatusProps) => {
   if (capabilities.status === 'loading') {
     return (
-      <Box testID={PredictHomeTestIds.SECTIONS_LOADING} twClassName="gap-3">
-        <Box twClassName="h-6 w-24 rounded bg-muted" />
-        <Box twClassName="h-32 rounded-xl bg-muted" />
-        <Box twClassName="h-32 rounded-xl bg-muted" />
+      <Box testID={PredictHomeTestIds.SECTIONS_LOADING} className="gap-3">
+        <Box className="h-6 w-24 rounded bg-muted" />
+        <Box className="h-32 rounded-xl bg-muted" />
+        <Box className="h-32 rounded-xl bg-muted" />
       </Box>
     );
   }
@@ -40,7 +40,7 @@ export const HomeSectionsStatus = ({
     return (
       <Box
         testID={PredictHomeTestIds.SECTIONS_ERROR}
-        twClassName="items-start gap-2 py-4"
+        className="items-start gap-2 py-4"
       >
         <Text>{strings('predict_next.home_sections.error')}</Text>
         <Button
@@ -57,7 +57,7 @@ export const HomeSectionsStatus = ({
     return null;
   }
   return (
-    <Box testID={PredictHomeTestIds.SECTIONS_UNAVAILABLE} twClassName="py-4">
+    <Box testID={PredictHomeTestIds.SECTIONS_UNAVAILABLE} className="py-4">
       <Text>{strings('predict_next.home_sections.unavailable')}</Text>
     </Box>
   );

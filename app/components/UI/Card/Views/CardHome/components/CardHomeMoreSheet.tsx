@@ -138,7 +138,7 @@ const CardHomeMoreSheet = ({
       </BottomSheetHeaderGlass>
       {showLegalDocumentsError ? (
         <Box
-          twClassName="px-4 pb-2 gap-1"
+          className="px-4 pb-2 gap-1"
           testID={`${CardHomeSelectors.CARD_TOS_ITEM}-error`}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
@@ -154,7 +154,7 @@ const CardHomeMoreSheet = ({
           ) : null}
         </Box>
       ) : null}
-      <Box twClassName="pb-4">
+      <Box className="pb-4">
         <MoneySheetOptionsList options={options} />
       </Box>
     </BottomSheet>

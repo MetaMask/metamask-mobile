@@ -69,15 +69,15 @@ const RewardsAmountBanner: React.FC<RewardsAmountBannerProps> = ({
     >
       <BannerAlert
         severity={BannerAlertSeverity.Neutral}
-        twClassName="gap-2 items-center"
+        className="gap-2 items-center"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="flex-1 gap-2"
+          className="flex-1 gap-2"
         >
-          <Text variant={TextVariant.BodySm} twClassName="flex-1">
+          <Text variant={TextVariant.BodySm} className="flex-1">
             {bannerText.split(placeholder).join(amount)}
           </Text>
           <Text

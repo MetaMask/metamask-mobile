@@ -238,7 +238,7 @@ const PerpsModeSwitchPill = ({
   const button = (
     <ButtonBase
       size={ButtonBaseSize.Sm}
-      twClassName={(pressed) =>
+      className={(pressed) =>
         isCapsule
           ? 'h-10 rounded-full bg-transparent px-3'
           : `h-8 rounded-full border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
@@ -269,7 +269,7 @@ const PerpsModeSwitchPill = ({
   return (
     <Box
       accessible={false}
-      twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
+      className={isCapsule ? 'relative h-10' : 'relative h-8'}
       onLayout={(event) =>
         setFrame({
           width: event.nativeEvent.layout.width,
@@ -346,7 +346,7 @@ const PerpsModeSwitchPill = ({
           {!isCapsule && (
             <Box
               accessible={false}
-              twClassName="absolute bg-default"
+              className="absolute bg-default"
               style={{
                 top: borderWidth,
                 right: borderWidth,
@@ -358,7 +358,7 @@ const PerpsModeSwitchPill = ({
           )}
 
           <Box
-            twClassName="absolute inset-0 items-center justify-center"
+            className="absolute inset-0 items-center justify-center"
             accessible={false}
           >
             <ModeLabel isPro={isPro}>{currentModeLabel}</ModeLabel>
@@ -370,7 +370,7 @@ const PerpsModeSwitchPill = ({
             maskElement={
               <Box
                 accessible={false}
-                twClassName="flex-1 items-center justify-center"
+                className="flex-1 items-center justify-center"
               >
                 <ModeLabel isPro={isPro} isMask>
                   {currentModeLabel}

@@ -206,7 +206,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       </BottomSheetHeaderGlass>
       {isBalanceBreakdown ? null : (
         <Box
-          twClassName="px-4"
+          className="px-4"
           testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -220,7 +220,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
             marginVertical={4}
             testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DIVIDER}
           />
-          <Box twClassName="px-4 mb-2">
+          <Box className="px-4 mb-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -243,7 +243,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
             marginVertical={4}
             testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TERMS_DIVIDER}
           />
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -273,7 +273,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
                 testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.GOT_IT,
               }
         }
-        twClassName="px-4 pt-4"
+        className="px-4 pt-4"
       />
     </BottomSheet>
   );

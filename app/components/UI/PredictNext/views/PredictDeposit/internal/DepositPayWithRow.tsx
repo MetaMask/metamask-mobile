@@ -26,13 +26,13 @@ export const DepositPayWithRow = ({
   network: PredictDepositNetwork;
 }) => (
   <Box
-    twClassName="min-h-[34px] flex-row items-center justify-between px-2 pb-2.5"
+    className="min-h-[34px] flex-row items-center justify-between px-2 pb-2.5"
     testID={PredictDepositScreenTestIds.PAY_WITH}
   >
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {strings('predict_next.deposit.pay_with')}
     </Text>
-    <Box twClassName="flex-row items-center gap-2">
+    <Box className="flex-row items-center gap-2">
       <AvatarToken
         name={network.usdc.symbol}
         src={{ uri: tokenIconUrl(network) }}

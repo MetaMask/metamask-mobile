@@ -94,6 +94,14 @@ const SignalRow = ({
         <LoadingValue />
       )
     }
+  /><StatusTag
+          severity={SIGNAL_SEVERITY[status]}
+          label={strings(`money.account_status.signal.${status}`)}
+        />
+      ) : (
+        <LoadingValue />
+      )
+    }
   />
 );
 
@@ -150,7 +158,7 @@ const CopyableValueRow = ({
           testID={testID}
           variant={TextVariant.BodyMd}
           color={value ? TextColor.TextDefault : TextColor.TextAlternative}
-          twClassName="flex-1"
+          className="flex-1"
           selectable
         >
           {value ?? placeholder}
@@ -227,7 +235,7 @@ const MoneyAccountStatusContent = () => {
   return (
     <Box
       testID={MoneyAccountStatusViewTestIds.CONTAINER}
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: insets.top }}
     >
       <HeaderStandard
@@ -279,6 +287,14 @@ const MoneyAccountStatusContent = () => {
                 value={
                   summary ? (
                     <StatusTag
+                      severity={SUMMARY_SEVERITY[summary]}
+                      label={strings(`money.account_status.summary.${summary}`)}
+                    />
+                  ) : (
+                    <LoadingValue />
+                  )
+                }
+              /><StatusTag
                       severity={SUMMARY_SEVERITY[summary]}
                       label={strings(`money.account_status.summary.${summary}`)}
                     />
@@ -356,6 +372,15 @@ const MoneyAccountStatusContent = () => {
                           label={upgrade.status}
                         />
                       }
+                    /><StatusTag
+                          severity={
+                            upgrade.status === 'upgraded'
+                              ? TagSeverity.Success
+                              : TagSeverity.Warning
+                          }
+                          label={upgrade.status}
+                        />
+                      }
                     />
                   ))}
                 </Box>
@@ -374,6 +399,15 @@ const MoneyAccountStatusContent = () => {
                       keyLabel={`${intent.metadata.tokenSymbol} · ${intent.metadata.type}`}
                       value={
                         <StatusTag
+                          severity={
+                            intent.status === 'active'
+                              ? TagSeverity.Success
+                              : TagSeverity.Neutral
+                          }
+                          label={intent.status}
+                        />
+                      }
+                    /><StatusTag
                           severity={
                             intent.status === 'active'
                               ? TagSeverity.Success

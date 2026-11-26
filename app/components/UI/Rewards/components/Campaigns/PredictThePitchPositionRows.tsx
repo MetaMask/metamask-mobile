@@ -111,7 +111,7 @@ const PredictThePitchPositionIcon: React.FC<{
   return (
     <View style={styles.positionImageContainer}>
       <Box
-        twClassName="h-10 w-10 rounded-full bg-muted"
+        className="h-10 w-10 rounded-full bg-muted"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         style={tw.style('self-start')}

@@ -186,18 +186,18 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
         />
       ) : (
         <Box
-          twClassName="flex-1 items-center justify-center gap-4 px-6"
+          className="flex-1 items-center justify-center gap-4 px-6"
           testID={ContactsViewSelectorIDs.EMPTY_STATE}
         >
           <Icon name={IconName.Bookmark} size={IconSize.Xl} />
-          <Box twClassName="items-center gap-2">
+          <Box className="items-center gap-2">
             <Text variant={TextVariant.HeadingSm}>
               {strings('address_book.no_contacts')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('address_book.no_contacts_desc')}
             </Text>

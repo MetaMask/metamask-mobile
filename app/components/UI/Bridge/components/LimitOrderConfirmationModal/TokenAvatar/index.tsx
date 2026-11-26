@@ -40,7 +40,7 @@ export const TokenAvatar = ({ token, withNetworkBadge }: TokenAvatarProps) => {
       twClassName="mt-1"
       testID={TokenAvatarSelectorsIDs.NETWORK_BADGE}
       badge={
-        <Box twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px] w-[8px] h-[8px]">
+        <Box className="overflow-hidden border-2 border-background-default bg-default rounded-[2px] w-[8px] h-[8px]">
           {networkImageSource ? (
             <Image
               source={networkImageSource}

@@ -54,22 +54,22 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="pb-5 pt-0">
-        <Box twClassName="mb-1 items-end pr-2">
+      <Box className="pb-5 pt-0">
+        <Box className="mb-1 items-end pr-2">
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             onPress={closeFromIcon}
           />
         </Box>
-        <Box twClassName="mb-2 px-6">
+        <Box className="mb-2 px-6">
           <NotifCard />
         </Box>
 
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="mb-2 text-center"
+            className="mb-2 text-center"
             testID={ExistingUserSheetSelectorsIDs.TITLE}
           >
             {strings('notifications.push_onboarding.existing_user.title')}
@@ -77,19 +77,19 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
 
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mb-7 text-center text-alternative"
+            className="mb-7 text-center text-alternative"
             testID={ExistingUserSheetSelectorsIDs.BODY}
           >
             {strings('notifications.push_onboarding.existing_user.body')}
           </Text>
 
-          <Box twClassName="gap-3">
+          <Box className="gap-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleConfirm}
-              twClassName="rounded-xl"
+              className="rounded-xl"
               testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
             >
               {strings(
@@ -101,7 +101,7 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleNotNow}
-              twClassName="rounded-xl"
+              className="rounded-xl"
               testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
             >
               {strings(

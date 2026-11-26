@@ -142,6 +142,15 @@ const ReadOnlyAccountRow = ({
         />
       ) : undefined
     }
+    className="p-4 h-auto"
+    testID="immersve-funding-approval-account-row"
+  /><AvatarAccount
+          address={selectedAccount.address}
+          variant={getAvatarAccountVariant(avatarAccountType)}
+          size={AvatarBaseSize.Sm}
+        />
+      ) : undefined
+    }
     twClassName="p-4 h-auto"
     testID="immersve-funding-approval-account-row"
   />
@@ -215,6 +224,21 @@ const ReadOnlyTokenRow = () => (
     )}
     valueStartAccessory={
       <BadgeWrapper
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          BASE_NETWORK_IMAGE ? <BadgeNetwork src={BASE_NETWORK_IMAGE} /> : null
+        }
+      >
+        <AvatarToken
+          name="USDC"
+          src={{ uri: TOKEN_ICON_URL }}
+          size={AvatarBaseSize.Sm}
+        />
+      </BadgeWrapper>
+    }
+    className="p-4 h-auto"
+    testID="immersve-funding-approval-token-row"
+  /><BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
         badge={
           BASE_NETWORK_IMAGE ? <BadgeNetwork src={BASE_NETWORK_IMAGE} /> : null
@@ -526,7 +550,7 @@ const ImmersveFundingApproval = () => {
         headerMode={headerMode}
         formFields={
           <Box
-            twClassName="flex-1 justify-center items-center gap-4"
+            className="flex-1 justify-center items-center gap-4"
             testID="immersve-funding-approval-loading"
           >
             <Spinner
@@ -536,7 +560,7 @@ const ImmersveFundingApproval = () => {
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings(
                 'card.card_onboarding.immersve_funding_approval.helper_text',
@@ -592,7 +616,7 @@ const ImmersveFundingApproval = () => {
         <>
           <Card
             testID="immersve-funding-approval-summary"
-            twClassName="p-0 overflow-hidden"
+            className="p-0 overflow-hidden"
           >
             {isMoneyAccountMode ? (
               <MoneyAccountRow testID="immersve-funding-approval-account-row" />
