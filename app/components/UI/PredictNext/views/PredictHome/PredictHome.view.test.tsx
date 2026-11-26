@@ -632,6 +632,70 @@ describe('PredictHome', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders a 3-way Draw game alongside 2-way games in Trending and opens Order from Draw', async () => {
+      const baseDrawSource = nflEvents[0];
+      const [drawYes, drawNo] = baseDrawSource.markets[0].outcomes;
+      const threeWayGame: PredictEvent = {
+        ...baseDrawSource,
+        markets: [
+          ...baseDrawSource.markets,
+          {
+            ...baseDrawSource.markets[0],
+            id: `${baseDrawSource.id}-draw-market` as PredictEntityId,
+            outcomes: [
+              {
+                ...drawYes,
+                id: `${baseDrawSource.id}-draw-yes` as PredictEntityId,
+                label: 'Draw',
+                askPrice: '0.25' as typeof drawYes.askPrice,
+                gameSelection: 'draw',
+              },
+              {
+                ...drawNo,
+                id: `${baseDrawSource.id}-draw-no` as PredictEntityId,
+              },
+            ],
+          },
+        ],
+      };
+      configurePredictNextFeeds({
+        nfl: [threeWayGame, ...nflEvents.slice(1), ...MORE_NFL_EVENTS],
+        ncaa: [...ncaaEvents, ...MORE_NCAA_EVENTS],
+      });
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      const drawQuote = await within(trending).findByTestId(
+        PredictHomeTestIds.gameQuote(threeWayGame.id, 'draw'),
+      );
+      expect(drawQuote).toHaveTextContent('25%');
+      expect(
+        within(trending).getByTestId(
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'away'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(trending).getByTestId(
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'draw'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(trending).getByTestId(
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'home'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN)
+          .children,
+      ).toHaveLength(TRENDING_EVENT_IDS.length);
+
+      fireEvent.press(drawQuote);
+
+      expect(view.getByTestId(PredictOrderFlowTestIds.SHEET)).toBeOnTheScreen();
+    });
+
     it('shows the other NFL Games as small cards in the Sports row', async () => {
       const view = renderPredictNext();
 
