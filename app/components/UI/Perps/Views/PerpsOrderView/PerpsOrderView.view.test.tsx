@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { createRouteParamsProbe } from '../../../../../../tests/component-view/render';
 
+import type { ComponentType } from 'react';
 import { Text } from 'react-native';
 import {
   act,
@@ -1153,7 +1154,9 @@ describe('PerpsOrderView', () => {
           marketDetailsRoute,
           {
             name: Routes.RAMP.TOKEN_SELECTION,
-            Component: createRouteParamsProbe(Routes.RAMP.TOKEN_SELECTION),
+            Component: createRouteParamsProbe(
+              Routes.RAMP.TOKEN_SELECTION,
+            ) as ComponentType<unknown>,
             mount: 'root',
           },
         ],
