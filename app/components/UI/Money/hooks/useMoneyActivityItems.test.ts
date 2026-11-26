@@ -24,6 +24,7 @@ import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
 import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectIsImmersveCardHistoryInMoney } from '../../Card/hooks/useCardTransactionHistoryDestination';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
@@ -43,6 +44,7 @@ jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
 jest.mock('../../Card/hooks/useCardCapabilities', () => ({
   useCardCapabilities: jest.fn(),
 }));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -73,12 +75,14 @@ function mockEnrichmentFlags({
   moneyAccount = false,
   geoEligible = false,
   pendingActivity = true,
+  immersveCardHistoryInMoney = false,
 }: {
   master?: boolean;
   enrichment?: boolean;
   moneyAccount?: boolean;
   geoEligible?: boolean;
   pendingActivity?: boolean;
+  immersveCardHistoryInMoney?: boolean;
 } = {}) {
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectCardTransactionHistoryEnabled) {
@@ -98,6 +102,9 @@ function mockEnrichmentFlags({
     }
     if (selector === selectMoneyVbaCompletedActivityEnabled) {
       return false;
+    }
+    if (selector === selectIsImmersveCardHistoryInMoney) {
+      return immersveCardHistoryInMoney;
     }
     return false;
   });
@@ -1210,6 +1217,54 @@ describe('useMoneyActivityItems', () => {
     expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+  });
+
+  describe('when an Immersve card moves its history to Money', () => {
+    const immersveDecline: CardTransaction = {
+      id: 'declined-immersve',
+      providerId: 'immersve',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+
+    beforeEach(() => {
+      mockEnrichmentFlags({ immersveCardHistoryInMoney: true });
+      mockUseCardTransactionIndex.mockReturnValue({
+        ...defaultIndexResult,
+        declined: [immersveDecline],
+      });
+    });
+
+    it('turns on the Card index without the enrichment flag', () => {
+      renderHook(() => useMoneyActivityItems());
+
+      expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('shows Immersve declines in All and Purchases', () => {
+      const { result } = renderHook(() => useMoneyActivityItems());
+
+      const ids = (filter: MoneyActivityFilter) =>
+        result.current.buckets[filter].map((i) => i.id);
+      expect(ids(MoneyActivityFilter.All)).toContain('declined-immersve');
+      expect(ids(MoneyActivityFilter.Purchases)).toContain('declined-immersve');
+    });
+
+    it('keeps the Card index off while history stays on Card Home', () => {
+      mockEnrichmentFlags({ immersveCardHistoryInMoney: false });
+
+      renderHook(() => useMoneyActivityItems());
+
+      expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
   });
 
   it('drops declined rows and enrichment when the Card index errors', () => {

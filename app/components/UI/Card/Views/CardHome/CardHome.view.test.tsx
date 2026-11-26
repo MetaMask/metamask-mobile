@@ -27,6 +27,7 @@ import { CashbackSelectors } from '../Cashback/Cashback.testIds';
 import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testIds';
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
+import { deepMerge } from '../../../../../../tests/component-view/stateFixture';
 
 const mockGetCapabilities = jest.mocked(
   Engine.context.CardController.getCapabilities,
@@ -667,6 +668,59 @@ describe('CardHome', () => {
       expect(
         view.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeNull();
+    });
+
+    it('moves history to Money for an Immersve card funded only by the Money Account', async () => {
+      const moneyAccountFunding = {
+        symbol: 'mUSD',
+        name: 'Money account',
+        address: LINKABLE_VEDA_ADDRESS,
+        walletAddress: LINKABLE_MONEY_ACCOUNT_ADDRESS,
+        decimals: 6,
+        chainId: 'eip155:143',
+        spendableBalance: '100.000000',
+        spendingCap: '100.000000',
+        priority: 1,
+        status: 'active',
+        fundingSourceType: 'moneyAccount',
+      } as const;
+      const view = renderCardHomeView({
+        overrides: deepMerge(
+          deepMerge(linkableCardHomeOverrides, historyOverrides),
+          {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'immersve' as const,
+                  cardHomeData: {
+                    primaryFundingAsset: moneyAccountFunding,
+                    fundingAssets: [moneyAccountFunding],
+                  },
+                },
+              },
+            },
+          },
+        ),
+        extraRoutes: [
+          {
+            name: Routes.HOME_TABS,
+            Component: createRouteParamsProbe(Routes.HOME_TABS),
+          },
+        ],
+      });
+
+      fireEvent.press(
+        await view.findByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      );
+
+      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+      const paramsEl = await view.findByTestId(
+        getRouteParamsProbeTestId(Routes.HOME_TABS),
+      );
+      expect(JSON.parse(paramsEl.props.children as string)).toEqual({
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.ACTIVITY },
+      });
     });
 
     it('opens Transaction history from See all', async () => {
