@@ -19,6 +19,7 @@ import { connectLedgerHardware } from '../../Ledger/Ledger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { BluetoothStateMonitor } from './shared/bluetooth-state-monitor';
 import { withLedgerTimeout } from './shared/with-timeout';
+import { withTransientRetry } from './shared/with-retry';
 import { handleWrongLedgerApp } from './shared/ledger-app-handlers';
 import {
   REQUIRED_APP_NAME,
@@ -26,7 +27,6 @@ import {
   LEDGER_OPERATION_TIMEOUT_MS,
   DEFAULT_SCAN_TIMEOUT_MS,
   MAX_DISCONNECT_RETRIES,
-  RETRY_DELAY_MS,
 } from './shared/ledger-constants';
 import { ensureLedgerPermissions } from './shared/ledger-permissions';
 import {
@@ -367,28 +367,18 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     );
 
     // Retry on transient BLE errors (e.g., device switching apps)
-    for (let attempt = 1; attempt <= MAX_DISCONNECT_RETRIES; attempt++) {
-      try {
-        return await this.#doEnsureDeviceReady(deviceId, options);
-      } catch (error) {
-        if (
-          this.#isTransientBleError(error) &&
-          attempt < MAX_DISCONNECT_RETRIES
-        ) {
+    return withTransientRetry(
+      () => this.#doEnsureDeviceReady(deviceId, options),
+      {
+        isTransient: (error) => this.#isTransientBleError(error),
+        onRetry: async (_error, attempt) => {
           DevLogger.log(
             `[LedgerBluetoothAdapter] Transient BLE error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
           await this.#closeTransport();
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-          continue;
-        }
-
-        // Non-transient error or max retries reached
-        throw error;
-      }
-    }
-
-    return false;
+        },
+      },
+    );
   }
 
   /** Internal readiness check, called by ensureDeviceReady's retry loop. */
