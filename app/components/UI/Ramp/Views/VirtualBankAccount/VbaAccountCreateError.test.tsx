@@ -68,18 +68,30 @@ describe('VbaAccountCreateError', () => {
       primaryActionType: 'done',
     });
 
-    expect(getByText('Your region isn’t supported yet')).toBeOnTheScreen();
     expect(
       getByText(
-        'Bank transfers to your Money account aren’t available yet for residents of your region.',
+        strings('virtual_bank_account.account_create_error.unavailable.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.unavailable.description',
+        ),
       ),
     ).toBeOnTheScreen();
     expect(
       getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
-    ).toHaveTextContent('Done');
+    ).toHaveTextContent(
+      strings('virtual_bank_account.account_create_error.unavailable.primary'),
+    );
     expect(
       getByTestId(VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON),
-    ).toHaveTextContent('Contact support');
+    ).toHaveTextContent(
+      strings(
+        'virtual_bank_account.account_create_error.unavailable.secondary',
+      ),
+    );
   });
 
   it('hides the failure illustration when unavailable', () => {

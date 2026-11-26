@@ -37,6 +37,7 @@ export const VBA_CUF_END_REASON = {
   ERROR: 'error',
   KYC_PENDING: 'kyc_pending',
   KYC_REJECTED: 'kyc_rejected',
+  REGION_UNAVAILABLE: 'region_unavailable',
   SUPERSEDED: 'superseded',
   TIMEOUT: 'timeout',
 } as const;

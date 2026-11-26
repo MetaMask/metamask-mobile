@@ -11,6 +11,8 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from '../vbaScreenPerformance';
+import { endVbaCufJourney } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 const mockNavigation = { navigate: jest.fn() };
 const mockOpenCompletedVbaAccount = jest.fn();
@@ -59,6 +61,9 @@ jest.mock('../VbaAccountCreateError', () => ({
 jest.mock('../../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
+jest.mock('../vbaCufTrace', () => ({ endVbaCufJourney: jest.fn() }));
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
+
 describe('VbaAccountCreateErrorAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -68,6 +73,16 @@ describe('VbaAccountCreateErrorAdapter', () => {
       failure: { httpStatus: 500 },
       sourceCurrency: 'USD',
     };
+  });
+
+  it('ends the VBA journey as an error', () => {
+    renderAdapter();
+
+    expect(mockEndVbaCufJourney).toHaveBeenCalledTimes(1);
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
   });
 
   it('reopens account creation in the failed source currency', () => {
@@ -184,6 +199,16 @@ describe('VbaAccountCreateErrorAdapter', () => {
         expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
       },
     );
+
+    it('ends the VBA journey as region unavailable, not as an error', () => {
+      renderAdapter();
+
+      expect(mockEndVbaCufJourney).toHaveBeenCalledTimes(1);
+      expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+        false,
+        VBA_CUF_END_REASON.REGION_UNAVAILABLE,
+      );
+    });
 
     it('opens support from the secondary action', async () => {
       const props = renderAdapter();

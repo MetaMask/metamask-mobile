@@ -202,6 +202,7 @@ const MoneyVbaHomeCard = ({
       // unmounted (resolving can change the state that picks it), or the user
       // may have switched tabs while it stayed mounted.
       if (!navigation.isFocused()) {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
         return;
       }
       if (resolved.status === 'error') {
@@ -242,6 +243,8 @@ const MoneyVbaHomeCard = ({
       if (navigation.isFocused()) {
         endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
         navigateToVbaOnboardingDestination(navigation, 'error');
+      } else {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
       }
     } finally {
       hasPendingCtaOpenRef.current = false;

@@ -51,8 +51,14 @@ const VbaAccountCreateErrorAdapter = () => {
     contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
   });
   useEffect(() => {
-    endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
-  }, []);
+    // An unsupported region is an expected outcome, not a funnel error.
+    endVbaCufJourney(
+      false,
+      variant === 'unavailable'
+        ? VBA_CUF_END_REASON.REGION_UNAVAILABLE
+        : VBA_CUF_END_REASON.ERROR,
+    );
+  }, [variant]);
   const primaryActionType = retryable
     ? 'retry'
     : getAccountCreateErrorPrimaryAction(failure);
