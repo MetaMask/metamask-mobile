@@ -11,6 +11,8 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
+import Routes from '../../../../constants/navigation/Routes';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
@@ -231,6 +233,20 @@ jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
   };
 });
 
+const mockAvatarMarkerLookup: Record<string, unknown> = {};
+jest.mock('../../Charts/socialMarkers', () => ({
+  useFollowingTokenCandleAvatarMarkers: () => ({
+    markers: [],
+    avatars: {},
+    byId: mockAvatarMarkerLookup,
+  }),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
+  playImpact: jest.fn(async () => undefined),
+}));
+
 jest.mock('../PriceChart/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -366,6 +382,51 @@ describe('PriceAdvanced', () => {
     expect(
       queryByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('social markers', () => {
+    const entryA = { trade: { timestamp: 2 } };
+    const entryB = { trade: { timestamp: 1 } };
+
+    beforeEach(() => {
+      Object.assign(mockAvatarMarkerLookup, { a: entryA, b: entryB });
+    });
+
+    afterEach(() => {
+      delete mockAvatarMarkerLookup.a;
+      delete mockAvatarMarkerLookup.b;
+    });
+
+    it('opens the markers sheet with the tapped group, with a haptic', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onAvatarMarkerPress([
+          'a',
+          'missing',
+          'b',
+        ]);
+      });
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.CHART_MARKERS_SHEET,
+        { entries: [entryA, entryB] },
+      );
+    });
+
+    it('does nothing when no tapped id resolves to a trade', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onAvatarMarkerPress([
+          'missing',
+        ]);
+      });
+
+      expect(playImpact).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   it('renders the AdvancedChart when data is available', () => {

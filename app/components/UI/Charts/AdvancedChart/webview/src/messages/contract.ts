@@ -33,6 +33,7 @@ export type InboundMessage =
   | SetSubPaneLayoutMessage
   | SetPositionLinesMessage
   | SetTradeMarkersMessage
+  | SetAvatarMarkersMessage
   | PulseTradeMarkerMessage
   | FocusTimeMessage
   | FetchOlderBarsResponseMessage;
@@ -160,6 +161,38 @@ export interface SetTradeMarkersPayload {
   markers: TradeMarker[] | null;
 }
 
+/**
+ * A follower avatar marker (ASSETS-4102). Like {@link TradeMarker} but carries
+ * the trader's avatar + name so the overlay can render a DOM `<img>` on top of
+ * the candle at `time` (unix ms). `intent` selects the buy/sell badge color.
+ */
+export interface AvatarMarker {
+  id: string | number;
+  time: number;
+  intent: 'enter' | 'exit';
+  price?: number;
+  /** Follower avatar URL. Non-http values fall back to initials. */
+  avatarUrl?: string;
+  /** Display name — used for the initials fallback. */
+  traderName?: string;
+}
+
+export interface SetAvatarMarkersMessage {
+  type: 'SET_AVATAR_MARKERS';
+  payload: SetAvatarMarkersPayload;
+}
+
+export interface SetAvatarMarkersPayload {
+  /** Full marker set; null or empty clears. */
+  markers: AvatarMarker[] | null;
+  /**
+   * Avatar image table: marker `avatarUrl` (used as a key) -> resolved `data:`
+   * URI. Sent once per update so markers sharing a trader don't each repeat the
+   * image. Markers whose key is missing render the initials fallback.
+   */
+  avatars?: Record<string, string> | null;
+}
+
 export interface PulseTradeMarkerMessage {
   type: 'PULSE_TRADE_MARKER';
   payload: { id: string | number };
@@ -252,6 +285,7 @@ export type OutboundMessageType =
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
   | 'TRADE_MARKER_PRESSED'
+  | 'AVATAR_MARKER_PRESSED'
   | 'FETCH_OLDER_BARS_REQUEST'
   | 'ERROR'
   | 'DEBUG';
@@ -323,6 +357,15 @@ export interface TradeMarkerPressedPayload {
   id: string;
 }
 
+/**
+ * Fired when the user taps a follower avatar marker or cluster (ASSETS-4102).
+ * `ids` are the member marker ids in the tapped group — one for a lone avatar,
+ * several for a cluster — so RN can open a bottom sheet scoped to those trades.
+ */
+export interface AvatarMarkersPressedPayload {
+  ids: string[];
+}
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
@@ -334,6 +377,7 @@ export interface OutboundPayloads {
   INDICATOR_REMOVED: IndicatorRemovedPayload;
   LEGEND_RENDERED: LegendRenderedPayload;
   TRADE_MARKER_PRESSED: TradeMarkerPressedPayload;
+  AVATAR_MARKER_PRESSED: AvatarMarkersPressedPayload;
   FETCH_OLDER_BARS_REQUEST: FetchOlderBarsRequestPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;

@@ -11,8 +11,13 @@
 // overlay's data.
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
+import {
+  getPlotWidth,
+  getVisibleTimeRangeSec,
+  priceToY,
+  type VisibleTimeRangeSec,
+} from '../../core/chartCoordinates';
 import { getOhlcvData, getWidget, isChartReady } from '../../core/state';
-import { normalizeChartUnixSec } from '../../core/timeUtils';
 import type {
   OHLCVBar,
   TVActiveChart,
@@ -35,126 +40,6 @@ interface LastTapPoint {
 }
 
 let lastTapPoint: LastTapPoint | null = null;
-
-interface VisibleTimeRangeSec {
-  lo: number;
-  hi: number;
-}
-
-/**
- * Extract a normalized time range from a TradingView bar/visible range result.
- * Returns the range or null if the values are missing or non-normalizable.
- */
-function normalizeRange(
-  raw: { from?: number; to?: number } | null | undefined,
-): VisibleTimeRangeSec | null {
-  if (raw?.from === undefined || raw?.to === undefined) return null;
-  const from = normalizeChartUnixSec(raw.from);
-  const to = normalizeChartUnixSec(raw.to);
-  if (from === null || to === null) return null;
-  return { lo: Math.min(from, to), hi: Math.max(from, to) };
-}
-
-function getVisibleTimeRangeSec(
-  chart: TVActiveChart,
-): VisibleTimeRangeSec | null {
-  try {
-    if (typeof chart.getVisibleBarsRange === 'function') {
-      const result = normalizeRange(chart.getVisibleBarsRange());
-      if (result) return result;
-    }
-  } catch {
-    // fall through to getVisibleRange
-  }
-  try {
-    if (typeof chart.getVisibleRange === 'function') {
-      return normalizeRange(chart.getVisibleRange());
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-/**
- * Compute the Y coordinate for a price given a linear price scale.
- * Returns null when the height is non-positive or the scale range is degenerate.
- */
-function linearPriceToY(
-  lo: number,
-  hi: number,
-  price: number,
-  h: number,
-  inverted: boolean,
-): number | null {
-  if (inverted) return ((price - lo) / (hi - lo)) * h;
-  return ((hi - price) / (hi - lo)) * h;
-}
-
-/**
- * Compute the Y coordinate for a price given a logarithmic price scale.
- * Returns null when any value is non-positive or the log range is degenerate.
- */
-function logPriceToY(
-  lo: number,
-  hi: number,
-  price: number,
-  h: number,
-  inverted: boolean,
-): number {
-  const logLo = Math.log(lo);
-  const logHi = Math.log(hi);
-  const logP = Math.log(price);
-  if (logHi === logLo) return inverted ? 0 : h / 2;
-  const t = (logP - logLo) / (logHi - logLo);
-  return inverted ? t * h : (1 - t) * h;
-}
-
-/**
- * Y coordinate (main-pane overlay pixels) for a price. Mirrors chartLogic.js
- * `getPriceYForLastCloseOverlay`. Returns null when the pane / scale /
- * range isn't available. Log-scale mode uses log mapping.
- */
-function priceToY(chart: TVActiveChart, price: number): number | null {
-  if (!Number.isFinite(price)) return null;
-  if (typeof chart.getPanes !== 'function') return null;
-  try {
-    const panes = chart.getPanes();
-    if (!panes?.length) return null;
-    const pane = panes[0];
-    const scale = pane.getMainSourcePriceScale();
-    if (!scale) return null;
-    const range = scale.getVisiblePriceRange();
-    if (range?.from === undefined || range?.to === undefined) {
-      return null;
-    }
-    const lo = Math.min(range.from, range.to);
-    const hi = Math.max(range.from, range.to);
-    const h = pane.getHeight();
-    if (!h || h <= 0) return null;
-    const clamped = Math.min(hi, Math.max(lo, price));
-    const inverted =
-      typeof scale.isInverted === 'function' && scale.isInverted();
-    const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
-    if (mode === 1 && lo > 0 && hi > 0 && clamped > 0) {
-      return logPriceToY(lo, hi, clamped, h, inverted);
-    }
-    return linearPriceToY(lo, hi, clamped, h, inverted);
-  } catch {
-    return null;
-  }
-}
-
-/** Resolve the plot width (in pixels) from the chart's time scale. */
-function getPlotWidth(chart: TVActiveChart): number {
-  try {
-    const ts = chart.getTimeScale();
-    if (ts && typeof ts.width === 'function') return ts.width();
-  } catch {
-    // ignore — caller treats 0 as unavailable
-  }
-  return 0;
-}
 
 /**
  * Resolve the price to use for Y-distance calculation for a marker.

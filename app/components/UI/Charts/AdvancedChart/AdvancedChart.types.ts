@@ -115,6 +115,27 @@ export interface TradeMarker {
 }
 
 /**
+ * A follower avatar marker (ASSETS-4102) rendered on the candlestick chart as a
+ * DOM `<img>` on top of the candle at `time`. Unlike {@link TradeMarker} (a
+ * Drawing-API glyph), avatars need a real image, which TradingView's Drawing
+ * API can't render — so these are drawn via a DOM overlay in the WebView.
+ */
+export interface AvatarMarker {
+  /** Stable id used as the React key and DOM element key. */
+  id: string;
+  /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
+  time: number;
+  /** `'enter'` = buy/open (green badge); `'exit'` = sell/close (red badge). */
+  intent: 'enter' | 'exit';
+  /** Optional Y anchor; falls back to the nearest bar's close when omitted. */
+  price?: number;
+  /** Follower avatar URL. Non-http values fall back to initials in the WebView. */
+  avatarUrl?: string;
+  /** Display name — used for the initials fallback when no image loads. */
+  traderName?: string;
+}
+
+/**
  * Colors for the position overlay lines, supplied by the consumer from its own
  * theme. Position lines are consumer-specific (currently Perps only), so the
  * colors are passed in rather than read from the shared chart `CONFIG.theme`.
@@ -186,6 +207,7 @@ export type RNToWebViewMessageType =
   | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
   | 'SET_TRADE_MARKERS'
+  | 'SET_AVATAR_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
   | 'SET_MA_VISIBILITY'
@@ -202,6 +224,7 @@ export type WebViewToRNMessageType =
   | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
   | 'TRADE_MARKER_PRESSED'
+  | 'AVATAR_MARKER_PRESSED'
   | 'ERROR'
   | 'DEBUG'
   | 'FETCH_OLDER_BARS_REQUEST';
@@ -296,6 +319,16 @@ export interface SetTradeMarkersPayload {
   markers: TradeMarker[] | null;
 }
 
+export interface SetAvatarMarkersPayload {
+  /** Avatar markers to render. Empty array (or null) clears all. */
+  markers: AvatarMarker[] | null;
+  /**
+   * Avatar image table: marker `avatarUrl` (used as a key) -> resolved `data:`
+   * URI. Each image is sent once, however many markers share it.
+   */
+  avatars?: Record<string, string> | null;
+}
+
 export interface RealtimeUpdatePayload {
   bar: OHLCVBar;
 }
@@ -371,6 +404,7 @@ export type RNToWebViewMessage =
   | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
+  | { type: 'SET_AVATAR_MARKERS'; payload: SetAvatarMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
   | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
@@ -409,6 +443,14 @@ export interface TradeMarkerPressedPayload {
   id: string;
 }
 
+export interface AvatarMarkersPressedPayload {
+  /**
+   * Member marker ids in the tapped avatar group (one for a lone avatar,
+   * several for a cluster). Each matches an {@link AvatarMarker.id}.
+   */
+  ids: string[];
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -422,6 +464,7 @@ export type WebViewToRNMessage =
   | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
+  | { type: 'AVATAR_MARKER_PRESSED'; payload: AvatarMarkersPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | {
       type: 'VISIBLE_CANDLE_COUNT_CHANGED';
@@ -514,6 +557,18 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         return { type, payload: { id: obj.id } };
       }
       return null;
+
+    case 'AVATAR_MARKER_PRESSED': {
+      const { ids } = obj;
+      if (
+        Array.isArray(ids) &&
+        ids.length > 0 &&
+        ids.every((id): id is string => typeof id === 'string' && id.length > 0)
+      ) {
+        return { type, payload: { ids } };
+      }
+      return null;
+    }
 
     case 'CHART_INTERACTED':
       if (
@@ -667,6 +722,18 @@ export interface AdvancedChartProps {
    * array to clear. Synced declaratively via useEffect.
    */
   tradeMarkers?: TradeMarker[];
+  /**
+   * Follower avatar markers (ASSETS-4102) overlaid on the candlestick chart as
+   * DOM images on top of the candle at each `time`. Set to undefined or an
+   * empty array to clear. Synced declaratively via useEffect.
+   */
+  avatarMarkers?: AvatarMarker[];
+  /**
+   * Avatar image table for `avatarMarkers`: each marker's `avatarUrl` (used as
+   * a key) -> resolved `data:` URI. Sent alongside the markers so a shared
+   * image is transferred once. Memoize alongside `avatarMarkers`.
+   */
+  avatarImages?: Record<string, string>;
   /** Colors for the position overlay lines, supplied by the consumer's theme. */
   positionLineColors?: PositionLineColors;
 
@@ -744,6 +811,12 @@ export interface AdvancedChartProps {
    * reverse interaction: tapping a circle scrolls the trades list to that trade.
    */
   onTradeMarkerPress?: (id: string) => void;
+  /**
+   * Fired when the user taps a follower avatar marker or cluster. Receives the
+   * member marker ids in the tapped group so the caller can open a bottom sheet
+   * scoped to those trades (ASSETS-4102).
+   */
+  onAvatarMarkerPress?: (ids: string[]) => void;
   /**
    * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.

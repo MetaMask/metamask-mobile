@@ -70,6 +70,7 @@ export enum FeatureFlagNames {
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
   slowNetworkBanner = 'slowNetworkBanner',
+  tokenDetailsChartSocialMarkers = 'tokenDetailsChartSocialMarkers',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -102,6 +103,10 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.tokenDetailsChartSocialMarkers]: {
     enabled: false,
     minimumVersion: null,
   },

@@ -6517,6 +6517,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsChartSocialMarkers: {
+    name: 'tokenDetailsChartSocialMarkers',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: null,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsOhlcvWsIntegration: {
     name: 'tokenDetailsOhlcvWsIntegration',
     type: FeatureFlagType.Remote,

@@ -1327,6 +1327,15 @@
     }
   },
   "social_leaderboard": {
+    "chart_markers_sheet": {
+      "title": "Trader activity",
+      "filter_all": "All",
+      "filter_buys": "Buys",
+      "filter_sells": "Sells",
+      "buy": "Buy",
+      "sell": "Sell",
+      "amount_at_price": "{{amount}} at {{price}}"
+    },
     "account_disabled": {
       "title": "Your account is temporarily disabled",
       "reason": "Reason: {{reason}}",

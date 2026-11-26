@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
@@ -7,6 +8,11 @@ import TimeRangeSelector from '../../Charts/AdvancedChart/TimeRangeSelector';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
+import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
+import type { CandleAvatarMarkerEntry } from '../../Charts/socialMarkers/mapFollowingPositionsToCandleAvatarMarkers';
+import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import type { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
 import {
@@ -185,6 +191,7 @@ export const PriceChartSection = ({
     activeIndicators,
     ambientErrorRed,
     ambientSuccessGreen,
+    assetId,
     chartHeight,
     chartLoading,
     chartPresets,
@@ -221,6 +228,30 @@ export const PriceChartSection = ({
     visibleFromMs,
     visibleToMs,
   } = usePriceChartContext();
+
+  // Follower avatar markers for the candlestick chart (ASSETS-4102).
+  // Flag-gated inside the hook; returns [] when disabled / logged out / empty.
+  const {
+    markers: candleAvatarMarkers,
+    avatars: candleAvatarImages,
+    byId: avatarMarkerLookup,
+  } = useFollowingTokenCandleAvatarMarkers(assetId);
+
+  // Tapping a lone avatar (one id) or a cluster (all member ids) opens the
+  // markers sheet route listing those trades. The hook only yields markers
+  // when that route is registered (see selectIsChartSocialMarkersAvailable).
+  const navigation = useNavigation<AppNavigationProp>();
+  const handleAvatarMarkerPress = useCallback(
+    (ids: string[]) => {
+      const entries = ids
+        .map((id) => avatarMarkerLookup[id])
+        .filter((entry): entry is CandleAvatarMarkerEntry => Boolean(entry));
+      if (!entries.length) return;
+      playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL.CHART_MARKERS_SHEET, { entries });
+    },
+    [avatarMarkerLookup, navigation],
+  );
 
   // The interval bar above the chart already adds 8px of bottom padding.
   let chartMarginTop = 'mt-3 ';
@@ -297,6 +328,9 @@ export const PriceChartSection = ({
             showVolume={showVolume}
             volumeOverlay
             chartType={chartType}
+            avatarMarkers={candleAvatarMarkers}
+            avatarImages={candleAvatarImages}
+            onAvatarMarkerPress={handleAvatarMarkerPress}
             indicators={showChartIndicators ? indicatorsArray : []}
             selectedMAs={showChartIndicators ? selectedMAs : []}
             subPaneHeightRatio={chartPresets.subPaneHeightRatio}

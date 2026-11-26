@@ -24,4 +24,10 @@ export interface PositionDetailsSheetParams {
   analyticsSource?: SocialEventSource;
   /** Shows the share button and attributes shares to this source. */
   shareSource?: SocialEventSource;
+  /**
+   * Shows a back button in the header, for a sheet stacked on another sheet
+   * (e.g. the chart's social markers sheet). Back dismisses this sheet, which
+   * pops its route and reveals the sheet underneath.
+   */
+  showBackButton?: boolean;
 }

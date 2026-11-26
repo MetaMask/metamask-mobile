@@ -130,6 +130,7 @@ const PositionDetailsSheet = () => {
     orderSource,
     analyticsSource,
     shareSource,
+    showBackButton = false,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -460,6 +461,12 @@ const PositionDetailsSheet = () => {
     navigation.goBack();
   }, [navigation]);
 
+  // Back: animate the sheet out; its goBack pops this route, revealing the
+  // sheet it was stacked on.
+  const handleBack = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const { openPerpsOrder, geoBlockSheet } = useOpenPerpsOrder({
     runNavigation: closeThen,
     source: orderSource,
@@ -665,6 +672,7 @@ const PositionDetailsSheet = () => {
             onPressTrader={handleOpenTraderProfile}
             onShare={shareSource ? handleSharePosition : undefined}
             isSharing={isSharing}
+            onBack={showBackButton ? handleBack : undefined}
           />
           {/* Always bounces so content that fits still stretches at both ends. */}
           <ScrollView

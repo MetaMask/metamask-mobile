@@ -41,6 +41,7 @@ import {
   getThemeLastPriceLineColor,
 } from './theme';
 import { installTradingViewExternalOpenBridge } from './externalLinkBridge';
+import { BASE_PANE_TOP_MARGIN } from './paneMargins';
 
 /**
  * Generates a 19-shade palette from a base hex color, light→base→dark.
@@ -135,7 +136,7 @@ function buildWidgetOverrides(
     // Pane margins keep candle (high/low fit) and line (close-only fit) charts
     // visually consistent. Without them, line auto-fits tighter and looks
     // zoomed in vs the candle chart for the same OHLCV.
-    'paneProperties.topMargin': 12,
+    'paneProperties.topMargin': BASE_PANE_TOP_MARGIN,
     'paneProperties.bottomMargin': 8,
     ...getCandleStyleOverrides(theme),
     ...getSeriesColorOverrides(

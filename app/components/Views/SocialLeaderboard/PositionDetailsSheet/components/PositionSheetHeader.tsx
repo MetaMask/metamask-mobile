@@ -39,6 +39,8 @@ export interface PositionSheetHeaderProps {
   onShare?: () => void;
   /** Shows a spinner in place of the share button while the link is made. */
   isSharing?: boolean;
+  /** Shows a leading back button. No back button when absent. */
+  onBack?: () => void;
 }
 
 const PositionSheetHeader = ({
@@ -47,6 +49,7 @@ const PositionSheetHeader = ({
   onPressTrader,
   onShare,
   isSharing = false,
+  onBack,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
@@ -75,6 +78,17 @@ const PositionSheetHeader = ({
       twClassName="justify-between px-4 py-2 border-b border-muted"
       testID={PositionDetailsSheetSelectorsIDs.HEADER}
     >
+      {onBack ? (
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          iconProps={{ color: IconColor.IconDefault }}
+          onPress={onBack}
+          accessibilityLabel={strings('navigation.back')}
+          testID={PositionDetailsSheetSelectorsIDs.BACK_BUTTON}
+          twClassName="mr-2 -ml-1"
+        />
+      ) : null}
       <Pressable
         onPress={onPressTrader}
         accessibilityRole="button"

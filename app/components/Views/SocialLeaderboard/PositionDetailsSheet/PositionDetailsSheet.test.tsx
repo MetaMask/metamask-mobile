@@ -875,6 +875,28 @@ describe('PositionDetailsSheet', () => {
     );
   });
 
+  describe('back button', () => {
+    it('is hidden unless showBackButton is set', () => {
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
+    });
+
+    it('pops this sheet without navigating anywhere else', () => {
+      mockParams = { ...mockParams, showBackButton: true };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('follow button', () => {
     it('follows the trader from the feed', () => {
       render(<PositionDetailsSheet />);

@@ -89,6 +89,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       selectedMAs = [],
       positionLines,
       tradeMarkers,
+      avatarMarkers,
+      avatarImages,
       positionLineColors,
       chartType,
       showVolume = false,
@@ -104,6 +106,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onInitFailed,
       onCrosshairMove,
       onTradeMarkerPress,
+      onAvatarMarkerPress,
       onChartInteracted,
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
@@ -158,6 +161,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
+    const prevAvatarMarkersRef = useRef(avatarMarkers);
+    const prevAvatarImagesRef = useRef(avatarImages);
     const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -566,6 +571,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onTradeMarkerPress?.(message.payload.id);
             break;
 
+          case 'AVATAR_MARKER_PRESSED':
+            onAvatarMarkerPress?.(message.payload.ids);
+            break;
+
           case 'CHART_INTERACTED':
             onChartInteracted?.(message.payload);
             break;
@@ -642,6 +651,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onInitFailed,
         onCrosshairMove,
         onTradeMarkerPress,
+        onAvatarMarkerPress,
         onChartInteracted,
         onVisibleCandleCountChange,
         handleTradingViewOpen,
@@ -983,6 +993,28 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: { markers: tradeMarkers ?? null },
       });
     }, [tradeMarkers, chartReadyCount, postMessage]);
+
+    // Sync avatarMarkers prop (follower avatars, ASSETS-4102). Reference-
+    // compared like tradeMarkers, so parents should memoize the array.
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      if (
+        avatarMarkers === prevAvatarMarkersRef.current &&
+        avatarImages === prevAvatarImagesRef.current
+      ) {
+        return;
+      }
+      prevAvatarMarkersRef.current = avatarMarkers;
+      prevAvatarImagesRef.current = avatarImages;
+
+      postMessage({
+        type: 'SET_AVATAR_MARKERS',
+        payload: {
+          markers: avatarMarkers ?? null,
+          avatars: avatarImages ?? null,
+        },
+      });
+    }, [avatarMarkers, avatarImages, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {
