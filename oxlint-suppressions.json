@@ -3260,9 +3260,6 @@
     }
   },
   "app/components/UI/Card/hooks/useImmersveKycOutcome.tsx": {
-    "typescript/promise-function-async": {
-      "count": 2
-    },
     "typescript/unbound-method": {
       "count": 2
     }

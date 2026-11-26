@@ -12152,20 +12152,40 @@
       "kyc_failed": {
         "title": "You're not eligible for MetaMask Card right now",
         "description": "Eligibility is determined by our partner's regulatory and verification checks.",
-        "close_button": "Back to home"
+        "close_button": "Back to home",
+        "ineligible_title": "We can't offer you a MetaMask Card",
+        "ineligible_description": "This decision is based on our card partner's checks. Contact support if you have questions.",
+        "support_title": "There's a problem with your application",
+        "support_description": "Contact support for help with your application."
       },
-      "kyc_rejected": {
-        "retry_title": "We couldn't verify your identity",
-        "reasons": {
-          "id_document": "Your ID document couldn't be verified. Try again with a different document.",
-          "document_photo": "The photo of your document wasn't clear enough. Try again in better light.",
-          "personal_details": "Your name, date of birth, or address couldn't be verified.",
-          "proof_of_address": "Your proof of address couldn't be verified.",
-          "biometrics": "The face scan didn't match. Try again.",
-          "ineligible": "You're not eligible for MetaMask Card right now.",
-          "generic": "Try verification again. Contact support if it keeps failing.",
-          "generic_permanent": "We can't complete verification for this account."
-        }
+      "kyc_reasons": {
+        "contact_details_required": "Add your email and phone number to continue.",
+        "expected_spend_required": "Add how much you expect to spend to continue.",
+        "residential_address_required": "Add your home address to continue.",
+        "proof_of_address_required": "Upload a recent proof of address to continue.",
+        "idv_not_completed": "Finish verifying your ID and selfie to continue.",
+        "id_document_required": "Upload an ID document to continue.",
+        "id_not_verified": "Check that the ID details you entered match your document exactly.",
+        "name_not_verified": "Check that your name matches your ID exactly.",
+        "address_not_verified": "Check that your home address is correct.",
+        "dob_not_verified": "Check that your date of birth matches your ID.",
+        "dob_or_address_not_verified": "Check that your date of birth and home address are correct.",
+        "details_not_verified": "Check that your details match your ID.",
+        "visa_not_found": "Check your visa details. If they're correct, contact support.",
+        "id_document_not_accepted": "This type of ID isn't accepted. Use a different ID.",
+        "id_document_expired": "Your ID has expired. Use a valid ID.",
+        "id_document_missing_dob": "Use an ID that shows your full date of birth.",
+        "id_document_side_missing": "Upload both sides, or all pages, of your ID.",
+        "id_document_other": "Try again with a clear photo of a valid ID. If it fails again, contact support.",
+        "document_photo_unclear": "Take a clear, well-lit photo where every detail is readable.",
+        "document_photo_not_original": "Take a photo of the original document, not a copy or a screen.",
+        "document_photo_other": "Retake the photo of your document. If it fails again, contact support.",
+        "proof_of_address_too_old": "Use a more recent proof of address.",
+        "proof_of_address_not_accepted": "Use an accepted proof of address, like a utility bill or bank statement.",
+        "proof_of_address_incomplete": "Use a proof of address that clearly shows your full name and address.",
+        "proof_of_address_other": "Try a different proof of address. If it fails again, contact support.",
+        "biometrics_failed": "Retake your selfie in good light, or use a device with a better camera.",
+        "generic_retry": "Try verifying again with your original ID."
       },
       "personal_details": {
         "title": "Add your info",
@@ -12369,12 +12389,13 @@
         },
         "setup_incomplete": {
           "title": "Finish setting up your card",
+          "rejected_title": "We couldn't complete your card application",
           "descriptions": {
             "contact": "Add your contact details to continue.",
             "kyc": "Verify your identity to continue.",
             "expected_spend": "Tell us how you plan to use your card to continue.",
             "funding": "Approve funding so you can start spending.",
-            "rejected": "We couldn't verify your identity. Try again to continue."
+            "rejected": "Continue to see details or contact support."
           },
           "confirm_button_label": "Continue"
         }
