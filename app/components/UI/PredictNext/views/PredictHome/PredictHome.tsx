@@ -72,7 +72,7 @@ import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { KalshiAccountBanner } from '../../../KYC/Kalshi/KalshiAccountBanner';
+import { GetStartedBanner } from './internal/GetStartedBanner';
 
 const NO_SECTIONS: readonly PredictHomeSection[] = [];
 
@@ -443,6 +443,7 @@ const PredictHomeView = ({
               />
             }
           />
+          <GetStartedBanner />
           <PortfolioActions
             onPositionsPress={openPortfolio}
             onAddFundsPress={canDeposit ? openDeposit : undefined}
@@ -488,23 +489,19 @@ export const PredictHome = () => {
   );
 
   return (
-    <>
-      <HomeFeedReads
-        venueId={venueId}
-        plan={plan}
-        isHeld={isConstrained === undefined}
-      >
-        {(reads) => (
-          <PredictHomeView
-            venueId={venueId}
-            capabilities={capabilities}
-            sections={sections}
-            reads={reads}
-          />
-        )}
-      </HomeFeedReads>
-      {/* Invites the user to Kalshi onboarding until kyc-api approves them. */}
-      <KalshiAccountBanner />
-    </>
+    <HomeFeedReads
+      venueId={venueId}
+      plan={plan}
+      isHeld={isConstrained === undefined}
+    >
+      {(reads) => (
+        <PredictHomeView
+          venueId={venueId}
+          capabilities={capabilities}
+          sections={sections}
+          reads={reads}
+        />
+      )}
+    </HomeFeedReads>
   );
 };
