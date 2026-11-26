@@ -414,7 +414,7 @@
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^3.0.0",
     "@metamask/metamask-eth-abis": "3.1.1",
-    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-b17282bb1",
+    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-7167300e0",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/money-account-api-data-service": "^2.4.0",
