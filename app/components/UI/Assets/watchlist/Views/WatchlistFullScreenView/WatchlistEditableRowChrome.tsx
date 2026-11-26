@@ -8,10 +8,9 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { useWatchlistRowReorder } from './useWatchlistRowReorder';
-import styleSheet from './WatchlistFullScreenView.styles';
 
 interface WatchlistEditableRowChromeProps {
   isEditMode: boolean;
@@ -36,14 +35,18 @@ const WatchlistEditableRowChrome = ({
   rowTestID,
   children,
 }: WatchlistEditableRowChromeProps): React.JSX.Element => {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { handleLongPress, accessibilityActions, handleAccessibilityAction } =
     useWatchlistRowReorder({ enabled: isEditMode, onMoveUp, onMoveDown });
 
   const rowBody = (
     <>
       <View
-        style={isEditMode ? styles.dragHandle : styles.editControlHidden}
+        style={tw.style(
+          isEditMode
+            ? 'h-10 mt-2 items-center justify-center pr-3'
+            : 'w-0 overflow-hidden',
+        )}
         pointerEvents="none"
       >
         <Icon
@@ -54,7 +57,7 @@ const WatchlistEditableRowChrome = ({
       </View>
 
       <View
-        style={styles.editableRowContent}
+        style={tw.style('flex-1 min-w-0')}
         pointerEvents={isEditMode ? 'none' : 'auto'}
       >
         {children}
@@ -63,10 +66,10 @@ const WatchlistEditableRowChrome = ({
   );
 
   return (
-    <View style={styles.editableRow} testID={rowTestID}>
+    <View style={tw.style('flex-row items-start')} testID={rowTestID}>
       {isEditMode ? (
         <Pressable
-          style={styles.dragArea}
+          style={tw.style('flex-1 flex-row items-start min-w-0')}
           onLongPress={handleLongPress}
           delayLongPress={300}
           testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
@@ -78,11 +81,15 @@ const WatchlistEditableRowChrome = ({
           {rowBody}
         </Pressable>
       ) : (
-        <View style={styles.dragArea}>{rowBody}</View>
+        <View style={tw.style('flex-1 flex-row items-start min-w-0')}>
+          {rowBody}
+        </View>
       )}
 
       {isEditMode ? (
-        <View style={styles.unwatchStar}>
+        <View
+          style={tw.style('h-10 mt-2 items-center justify-center pl-4 z-1')}
+        >
           <ButtonIcon
             iconName={IconName.Trash}
             size={ButtonIconSize.Md}

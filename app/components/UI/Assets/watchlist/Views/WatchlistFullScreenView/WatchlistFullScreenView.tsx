@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, type ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -33,7 +33,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
 import {
   useTokenWatchlistAddItemMutation,
@@ -57,7 +56,6 @@ import WatchlistReorderableRow from './WatchlistReorderableRow';
 import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import WatchlistSearchContent from './WatchlistSearchContent';
 import { useWatchlistEditDraft } from './useWatchlistEditDraft';
-import styleSheet from './WatchlistFullScreenView.styles';
 import { useSelector } from 'react-redux';
 import CapsuleGlass from '../../../../../../component-library/components-temp/CapsuleGlass';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -90,11 +88,6 @@ const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
 const SUGGESTED_ITEMS_LIMIT = 10;
 const MAX_WATCHED_ITEMS_FOR_SUGGESTIONS = 2;
-
-const FILTER_BAR_STYLE: ViewStyle = {
-  flexGrow: 0,
-  flexShrink: 0,
-};
 
 /** Header controls sit on the glass capsule; the default press fill would cover it. */
 const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
@@ -145,7 +138,7 @@ const WatchlistFullScreenShell = ({
   children,
 }: WatchlistFullScreenShellProps): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
@@ -247,7 +240,7 @@ const WatchlistFullScreenShell = ({
   const renderBody = (): React.ReactNode => {
     if (showInitialSkeletons) {
       return (
-        <View style={styles.listContainer}>
+        <View style={tw.style('flex-1 px-4')}>
           {Array.from({ length: SKELETON_COUNT }, (_, index) => (
             <TrendingTokensSkeleton
               key={`watchlist-fullscreen-skeleton-${index}`}
@@ -259,7 +252,7 @@ const WatchlistFullScreenShell = ({
 
     if (showEmptyCta) {
       return (
-        <View style={styles.emptyContentContainer}>
+        <View style={tw.style('flex-1')}>
           <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
         </View>
       );
@@ -269,8 +262,8 @@ const WatchlistFullScreenShell = ({
   };
 
   return (
-    <View
-      style={styles.container}
+    <Box
+      twClassName="flex-1 bg-default"
       testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
     >
       {!isSearchMode ? (
@@ -300,7 +293,7 @@ const WatchlistFullScreenShell = ({
         />
       ) : (
         <>
-          <View style={styles.titleContainer}>
+          <Box twClassName="px-4 pt-3 pb-2">
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
@@ -308,17 +301,17 @@ const WatchlistFullScreenShell = ({
             >
               {strings('token_watchlist.fullscreen_title')}
             </Text>
-          </View>
+          </Box>
           {filterBar}
           {renderBody()}
         </>
       )}
-    </View>
+    </Box>
   );
 };
 
 const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { data, isLoading } = useTokenWatchlistQuery();
   const updateListMutation = useTokenWatchlistUpdateListMutation();
 
@@ -390,10 +383,7 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
         onReorder={handleReorder}
         dragEnabled={isEditMode}
         itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
-        style={[
-          styles.listContainer,
-          isEditMode && styles.listContainerEditMode,
-        ]}
+        style={tw.style('flex-1 px-4', isEditMode && 'pr-2')}
         showsVerticalScrollIndicator={false}
         testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
       />
@@ -713,7 +703,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
         value={activeFilter}
         onChange={handleFilterChange}
         variant={FilterButtonVariant.Primary}
-        style={FILTER_BAR_STYLE}
+        style={tw.style('grow-0 shrink-0')}
         twClassName="gap-2 px-4 py-2"
         testID={WatchlistFullScreenViewSelectorsIDs.FILTERS}
       >
@@ -737,7 +727,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
         </FilterButton>
       </FilterButtonGroup>
     ),
-    [activeFilter, handleFilterChange],
+    [activeFilter, handleFilterChange, tw],
   );
 
   const renderContent = (): React.ReactNode => {

@@ -432,7 +432,7 @@ const WatchlistSearchContentWithPerps: React.FC<
       !props.canFetchRemoteSearch,
   });
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
-    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+    PERPS_EVENT_VALUE.SOURCE.PERP_MARKET_SEARCH,
     { showToasts: false },
   );
   const { navigateToMarketDetails } = usePerpsNavigation();
@@ -441,7 +441,7 @@ const WatchlistSearchContentWithPerps: React.FC<
     (market: PerpsMarketData) => {
       navigateToMarketDetails(
         market,
-        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+        PERPS_EVENT_VALUE.SOURCE.PERP_MARKET_SEARCH,
       );
     },
     [navigateToMarketDetails],

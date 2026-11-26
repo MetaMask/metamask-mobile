@@ -7,6 +7,12 @@ import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags'
 import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
 import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
 import type { PerpsMarketData } from '@metamask/perps-controller';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
 
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
@@ -98,16 +104,7 @@ jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
   }),
 }));
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: () => ({
-        build: () => ({}),
-      }),
-    }),
-  }),
-}));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useTrackWatchlistPageViewed', () => ({
   __esModule: true,
@@ -276,6 +273,12 @@ const makeWatchlistToken = (name: string) => ({
 describe('WatchlistFullScreenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockCanGoBack.mockReturnValue(true);
     mockUseSelector.mockReturnValue(false);
     mockUseTokenWatchlistQuery.mockReturnValue({
@@ -1154,6 +1157,47 @@ describe('WatchlistFullScreenView', () => {
           'perp:btc',
         ]);
       });
+    });
+
+    it('tracks UNIFIED_WATCHLIST_FILTER_SELECTED when switching filter tabs', () => {
+      const items = [createPerpItem('BTC')];
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items,
+        tokens: { items: [], error: null },
+        perps: { items, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC'],
+        tokenCount: 0,
+        perpsCount: 1,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_PERPS),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.UNIFIED_WATCHLIST_FILTER_SELECTED.category,
+          properties: {
+            filter: 'perps',
+            token_count: 0,
+            perps_count: 1,
+          },
+        }),
+      );
     });
   });
 });
