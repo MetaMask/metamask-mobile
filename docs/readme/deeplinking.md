@@ -387,10 +387,11 @@ opens its own destination; the code never changes routing.
      answered, or when the parse rejects the link, fails, or is cancelled.
   2. Once the flag is off, `PendingMoneyReferralInvite` reads referral me and
      opens the Money invite sheet (`RewardsMoneyInviteSheet`) over the
-     destination, prefilled with the code. Users who are already a referrer
-     or referee, users in an excluded region, failed reads, and reads slower
-     than 5 seconds drop the code without a prompt. With basic functionality
-     or Rewards Money off, the code is dropped.
+     destination, prefilled with the code. A confirmed referrer/referee role
+     or excluded region drops the code. If the read fails or takes longer than
+     5 seconds, the sheet still opens with local fallback copy; a later
+     eligibility result can close it for a known ineligible user. With basic
+     functionality or Rewards Money off, the code is dropped.
   3. The push notification pre-prompt waits while the flag is on or a code is
      pending. Closing the sheet without accepting clears the code; after an
      accept, the accepted splash clears it when it closes.

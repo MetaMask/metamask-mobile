@@ -35,7 +35,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -989,7 +989,13 @@ const OutcomeButtons = React.memo(
       }));
     }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
-    const shouldFetchPrices = isMarketOpen && priceQueries.length > 0;
+    // Pause the socket and REST polling while another screen covers this one
+    // (PRED-1535). The last live quote stays on the card meanwhile, since it is
+    // newer than the market snapshot. Re-focusing runs one REST refresh and
+    // subscribes only the tokens that are current at that moment.
+    const isScreenFocused = useIsFocused();
+    const shouldFetchPrices =
+      isScreenFocused && isMarketOpen && priceQueries.length > 0;
     const { getPrice, isConnected } = useLiveMarketPrices(tokenIds, {
       enabled: shouldFetchPrices,
     });

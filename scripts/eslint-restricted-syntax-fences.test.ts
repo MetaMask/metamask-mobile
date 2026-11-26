@@ -20,12 +20,25 @@ const componentViewPlugin = require('./eslint/component-view-plugin') as {
   rules: Record<string, Rule.RuleModule>;
 };
 
+const designSystemPlugin = require('./eslint/design-system-plugin') as {
+  meta: { name: string; version: string };
+  rules: Record<string, Rule.RuleModule>;
+};
+
 const RULE = 'no-restricted-syntax';
 const PLUGIN_RULES = [
   'component-view/no-restricted-syntax',
   'component-view/no-bare-query-timeout',
   'component-view/no-clear-all-mocks-without-reset',
 ] as const;
+const SPACING_RULE = 'design-system/spacing-grid';
+const SPACING_RULES = [
+  SPACING_RULE,
+  'design-system/spacing-grid-disable-reason',
+] as const;
+const SPACING_FILE = 'app/components/UI/ReviewModal/styles.ts';
+const SPACING_COMPONENT_FILE =
+  'app/components/UI/Bridge/components/TokenWarningModal/index.tsx';
 const REPO_ROOT = path.join(__dirname, '..');
 const VIEW_TEST_FILE =
   'app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx';
@@ -172,7 +185,7 @@ const { ESLint } = require('eslint');
 const fs = require('node:fs');
 const path = require('node:path');
 const files = ${JSON.stringify(unique)};
-const pluginRules = ${JSON.stringify(PLUGIN_RULES)};
+const pluginRules = ${JSON.stringify([...PLUGIN_RULES, ...SPACING_RULES])};
 const cwd = ${JSON.stringify(REPO_ROOT)};
 const outPath = ${JSON.stringify(outPath)};
 const eslint = new ESLint({ cwd });
@@ -212,6 +225,11 @@ const { syntax: resolvedRules, plugin: resolvedPluginRules } = loadResolvedRules
   [
     ...FENCE_CASES.map((item) => item.file),
     'app/core/Engine/Engine.ts',
+    SPACING_FILE,
+    SPACING_COMPONENT_FILE,
+    'app/components/UI/ReviewModal/index.test.tsx',
+    'app/component-library/components/Texts/Text/Text.stories.tsx',
+    'tests/component-view/platform.ts',
   ],
 );
 const linter = new Linter({ cwd: REPO_ROOT });
@@ -425,5 +443,215 @@ describe('component-view flake fences', () => {
       return;
     }
     expect(messages.some((item) => item.includes(message))).toBe(true);
+  });
+});
+
+const OFF_GRID = 'Spacing is off the 4px grid';
+const ARBITRARY = 'Arbitrary spacing values';
+const MISSING_REASON =
+  'An eslint-disable for design-system/spacing-grid needs a reason';
+
+interface SpacingCase {
+  name: string;
+  file: string;
+  code: string;
+  messages: string[];
+}
+
+const SPACING_CASES: SpacingCase[] = [
+  {
+    name: 'flags off-grid spacing numbers',
+    file: SPACING_FILE,
+    code: 'const s = { padding: 15, marginTop: 6, gap: 1.5, columnGap: 98 };\n',
+    messages: [OFF_GRID, OFF_GRID, OFF_GRID, OFF_GRID],
+  },
+  {
+    name: 'flags a negative off-grid margin',
+    file: SPACING_FILE,
+    code: 'const s = { marginLeft: -10 };\n',
+    messages: [OFF_GRID],
+  },
+  {
+    name: 'flags logical spacing keys',
+    file: SPACING_FILE,
+    code: 'const s = { paddingInline: 10, marginBlockEnd: 3 };\n',
+    messages: [OFF_GRID, OFF_GRID],
+  },
+  {
+    name: 'allows spacing on the 4px grid',
+    file: SPACING_FILE,
+    code: 'const s = { padding: 16, marginTop: 0, rowGap: 104, marginLeft: -8, paddingBottom: 100 };\n',
+    messages: [],
+  },
+  {
+    name: 'ignores keys that are not spacing',
+    file: SPACING_FILE,
+    code: 'const s = { width: 15, borderRadius: 6, top: 3, paddingSize: 5 };\n',
+    messages: [],
+  },
+  {
+    name: 'flags arbitrary spacing in twClassName and className',
+    file: SPACING_COMPONENT_FILE,
+    code: 'const a = <Box twClassName="pt-[22px] mx-4" />;\nconst b = <View className={`mb-[10px] ${extra}`} />;\n',
+    messages: [ARBITRARY, ARBITRARY],
+  },
+  {
+    name: 'flags arbitrary spacing in tw.style and tw templates',
+    file: SPACING_COMPONENT_FILE,
+    code: "const a = tw.style('mt-[3px] p-2');\nconst b = tw`gap-x-[14px]`;\n",
+    messages: [ARBITRARY, ARBITRARY],
+  },
+  {
+    name: 'flags arbitrary spacing in a tw.style template literal',
+    file: SPACING_COMPONENT_FILE,
+    code: 'const a = tw.style(`pt-[22px]`);\nconst b = tw.style(`px-4 ${active ? "mb-2" : ""} mt-[3px]`);\n',
+    messages: [ARBITRARY, ARBITRARY],
+  },
+  {
+    name: 'flags arbitrary spacing behind a variant or important modifier',
+    file: SPACING_COMPONENT_FILE,
+    code: 'const a = <Box twClassName="dark:p-[3px]" />;\nconst b = <Box twClassName="!-mt-[2px]" />;\n',
+    messages: [ARBITRARY, ARBITRARY],
+  },
+  {
+    name: 'allows scale classes, calc() and interpolated values',
+    file: SPACING_COMPONENT_FILE,
+    code: 'const a = <Box twClassName="p-4 mt-0.5 h-[15px]" />;\nconst b = <Box className="pb-[calc(16px+env(safe-area-inset-bottom))]" />;\nconst c = <Box twClassName={`mb-[${inset}px]`} />;\n',
+    messages: [],
+  },
+  {
+    name: 'flags an off-grid literal in a ternary branch',
+    file: SPACING_FILE,
+    code: 'const s = { paddingTop: traderPositionPnl?.isExpanded ? 22 : 0 };\n',
+    messages: [OFF_GRID],
+  },
+  {
+    name: 'flags a negative off-grid literal in a ternary branch',
+    file: SPACING_FILE,
+    code: 'const s = { marginTop: isExpanded ? -10 : 0 };\n',
+    messages: [OFF_GRID],
+  },
+  {
+    name: 'allows an on-grid ternary',
+    file: SPACING_FILE,
+    code: 'const s = { paddingTop: isExpanded ? 24 : 8, paddingBottom: collapsed ? -4 : 0 };\n',
+    messages: [],
+  },
+];
+
+// All three eslint-disable forms must name a reason, and the reason must keep
+// suppressing the value the comment covers.
+const SPACING_DISABLE_CASES: SpacingCase[] = [
+  {
+    name: 'fails a spacing-grid disable without a reason',
+    file: SPACING_FILE,
+    code: `/* eslint-disable design-system/spacing-grid */
+const a = { padding: 15 };
+/* eslint-enable design-system/spacing-grid */
+const b = { padding: 15 }; // eslint-disable-line design-system/spacing-grid
+// eslint-disable-next-line design-system/spacing-grid
+const c = { padding: 15 };
+`,
+    messages: [MISSING_REASON, MISSING_REASON, MISSING_REASON],
+  },
+  {
+    name: 'allows a spacing-grid disable with a reason',
+    file: SPACING_FILE,
+    code: `/* eslint-disable design-system/spacing-grid -- legacy optical offsets in this file */
+const a = { padding: 15 };
+/* eslint-enable design-system/spacing-grid */
+const b = { padding: 15 }; // eslint-disable-line design-system/spacing-grid -- 1px border compensation
+// eslint-disable-next-line design-system/spacing-grid -- 2px half-step per design
+const c = { padding: 2 };
+`,
+    messages: [],
+  },
+  {
+    name: 'fails a block disable that names spacing-grid on a later line without a reason',
+    file: SPACING_FILE,
+    code: `/* eslint-disable
+   design-system/spacing-grid */
+const a = { padding: 15 };
+`,
+    messages: [MISSING_REASON],
+  },
+  {
+    name: 'allows a block disable whose reason continues on a later line',
+    file: SPACING_FILE,
+    code: `/* eslint-disable design-system/spacing-grid --
+   legacy optical offsets kept until the redesign */
+const a = { padding: 15 };
+`,
+    messages: [],
+  },
+];
+
+const classifySpacingMessage = (item: string): string =>
+  [OFF_GRID, ARBITRARY, MISSING_REASON].find((prefix) =>
+    item.startsWith(prefix),
+  ) ?? item;
+
+const lintSpacing = (file: string, code: string): string[] => {
+  const rules = Object.fromEntries(
+    SPACING_RULES.map((ruleId) => {
+      const rule = resolvedPluginRules[file]?.[ruleId];
+      if (rule == null) {
+        throw new Error(`No ${ruleId} config was resolved for ${file}`);
+      }
+      return [ruleId, rule];
+    }),
+  );
+  return linter
+    .verify(
+      code,
+      {
+        files: ['**/*.{js,jsx,ts,tsx}'],
+        languageOptions: {
+          ecmaVersion: 2022,
+          sourceType: 'module',
+          parserOptions: { ecmaFeatures: { jsx: true } },
+        },
+        plugins: { 'design-system': designSystemPlugin },
+        rules,
+      },
+      { filename: path.join(REPO_ROOT, file) },
+    )
+    .filter((message) => (SPACING_RULES as readonly string[]).includes(message.ruleId ?? ''))
+    .map((message) => message.message);
+};
+
+describe('design-system spacing grid', () => {
+  it('applies to app source as an error', () => {
+    const rule = resolvedPluginRules[SPACING_FILE]?.[SPACING_RULE];
+
+    expect(Array.isArray(rule) ? rule[0] : rule).toBe(2);
+  });
+
+  it.each([
+    'app/components/UI/ReviewModal/index.test.tsx',
+    'app/component-library/components/Texts/Text/Text.stories.tsx',
+    'tests/component-view/platform.ts',
+  ])('does not apply to %s', (file) => {
+    const rule = resolvedPluginRules[file]?.[SPACING_RULE] ?? null;
+
+    expect(rule).toBeNull();
+  });
+
+  it('keeps the base no-restricted-syntax bans on app source', () => {
+    const selectors = selectorsOf(resolvedRules[SPACING_FILE]);
+
+    expect(selectors).toStrictEqual(['WithStatement', 'SequenceExpression']);
+  });
+
+  it.each(SPACING_CASES)('$name', ({ file, code, messages }) => {
+    const result = lintSpacing(file, code);
+
+    expect(result.map(classifySpacingMessage)).toStrictEqual(messages);
+  });
+
+  it.each(SPACING_DISABLE_CASES)('$name', ({ file, code, messages }) => {
+    const result = lintSpacing(file, code);
+
+    expect(result.map(classifySpacingMessage)).toStrictEqual(messages);
   });
 });

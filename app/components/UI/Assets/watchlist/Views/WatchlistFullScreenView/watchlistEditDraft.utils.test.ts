@@ -110,6 +110,16 @@ describe('watchlistEditDraft.utils', () => {
       ]);
     });
 
+    it('preserves storage order for unified watchlist edits', () => {
+      const draft = {
+        order: ['eip155:1/erc20:0xbtc', 'eip155:1/erc20:0xsol'],
+      };
+
+      expect(getStorageOrderFromDraft(draft, new Set(), false)).toEqual(
+        draft.order,
+      );
+    });
+
     it('returns empty array for intentional unwatch-all with empty query', () => {
       expect(getStorageOrderFromDraft({ order: [] }, new Set())).toEqual([]);
     });

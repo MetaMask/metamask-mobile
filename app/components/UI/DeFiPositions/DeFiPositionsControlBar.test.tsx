@@ -19,6 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: () => ({}),
   selectIsAllNetworks: () => false,
   selectIsPopularNetwork: () => true,
   selectChainId: () => '0x1',

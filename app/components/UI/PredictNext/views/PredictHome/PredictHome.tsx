@@ -10,6 +10,7 @@ import {
   BoxFlexDirection,
   ButtonIconSize,
   IconName,
+  SectionDivider,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
@@ -332,10 +333,11 @@ const PredictHomeView = ({
         return null;
     }
   };
-  // Whether any section renders something. Trending, a games row and
-  // Categories render nothing when empty, so a layout of only those, out of
-  // season, would otherwise leave Home blank below the actions.
-  const hasVisibleSection = liveSections.some((section) => {
+  // Whether a section renders content. Trending, games rows and Categories
+  // return null when empty; feed-preview returns null when its read is missing.
+  const isSectionVisible = (
+    section: HomeSectionView<HomeFeedRead>,
+  ): boolean => {
     switch (section.kind) {
       case 'feed-preview':
         return section.read !== undefined;
@@ -344,7 +346,11 @@ const PredictHomeView = ({
       default:
         return section.isLoading || section.events.length > 0;
     }
-  });
+  };
+  // Trending, a games row and Categories render nothing when empty, so a
+  // layout of only those, out of season, would otherwise leave Home blank below
+  // the actions.
+  const hasVisibleSection = liveSections.some(isSectionVisible);
   // The games error sits under the last section that reads Games, where the
   // Trending and Sports rows it stands for would be.
   const gamesErrorAfter = liveSections.reduce(
@@ -354,6 +360,24 @@ const PredictHomeView = ({
         : last,
     -1,
   );
+  // Collect only the blocks that actually render so SectionDivider sits
+  // between PortfolioActions and the first visible block, and strictly
+  // between adjacent visible blocks — never doubled or trailing.
+  const visibleItems: { key: string; node: React.ReactNode }[] = [];
+  liveSections.forEach((section, index) => {
+    if (isSectionVisible(section)) {
+      const node = renderSection(section);
+      if (node !== null) {
+        visibleItems.push({ key: section.key, node });
+      }
+    }
+    if (index === gamesErrorAfter && failedGamesReads.length > 0) {
+      visibleItems.push({
+        key: '__games-error__',
+        node: <HomeGamesError onRetry={retryFailedGamesReads} />,
+      });
+    }
+  });
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
@@ -449,16 +473,27 @@ const PredictHomeView = ({
               withdrawResolution.status === 'ready' ? openWithdraw : undefined
             }
           />
+          {visibleItems.length > 0 ? (
+            <SectionDivider
+              marginVertical={0}
+              twClassName="-mx-4"
+              testID={PredictHomeTestIds.DIVIDER}
+            />
+          ) : null}
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={hasVisibleSection}
           />
-          {liveSections.map((section, index) => (
-            <React.Fragment key={section.key}>
-              {renderSection(section)}
-              {index === gamesErrorAfter && failedGamesReads.length > 0 ? (
-                <HomeGamesError onRetry={retryFailedGamesReads} />
+          {visibleItems.map((item, index) => (
+            <React.Fragment key={item.key}>
+              {index > 0 ? (
+                <SectionDivider
+                  marginVertical={0}
+                  twClassName="-mx-4"
+                  testID={PredictHomeTestIds.DIVIDER}
+                />
               ) : null}
+              {item.node}
             </React.Fragment>
           ))}
         </Box>

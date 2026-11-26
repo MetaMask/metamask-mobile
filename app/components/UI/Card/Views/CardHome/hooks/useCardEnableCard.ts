@@ -24,6 +24,12 @@ export interface CardEnableCardState {
    */
   isProvisioningPollActive: boolean;
   /**
+   * Re-runs the provider's provisioning status check so a waiting view (or a
+   * pull to refresh) can re-check the step it is waiting on. A no-op for
+   * providers that do not reconcile a left-off step.
+   */
+  recheck: () => void;
+  /**
    * Call before leaving for a Card screen so the next focus rechecks setup.
    * A no-op for providers that do not reconcile a left-off step.
    */
@@ -39,6 +45,7 @@ const DEFAULT_STATE: CardEnableCardState = {
   setupStep: null,
   isEnableCardPending: false,
   isProvisioningPollActive: false,
+  recheck: noop,
   markCardFlowOpened: noop,
 };
 
@@ -68,6 +75,7 @@ export function useCardEnableCard(
       setupStep: immersve.setupStep,
       isEnableCardPending: immersve.isEnableCardPending,
       isProvisioningPollActive: immersve.isProvisioningPollActive,
+      recheck: immersve.recheck,
       markCardFlowOpened: immersve.markCardFlowOpened,
     };
   }, [
@@ -78,6 +86,7 @@ export function useCardEnableCard(
     immersve.setupStep,
     immersve.isEnableCardPending,
     immersve.isProvisioningPollActive,
+    immersve.recheck,
     immersve.markCardFlowOpened,
   ]);
 }

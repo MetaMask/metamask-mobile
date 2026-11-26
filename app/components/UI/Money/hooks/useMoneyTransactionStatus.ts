@@ -26,6 +26,7 @@ import {
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
+  isMembershipTopUpTx,
   isMoneyAccountTx,
   isMoneyDepositTx,
   isMusdRescueSendTx,
@@ -44,6 +45,7 @@ import {
 } from '../utils/hardwareDepositSigning';
 import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
 import { subscribeMusdRescueSetupFailures } from '../utils/musdRescueInFlight';
+import { isFiatOrderDeclineError } from '../../../../util/errorHandling/isFiatOrderDeclineError';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -236,7 +238,14 @@ export const useMoneyTransactionStatus = () => {
     const showFailedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isRescue = isMusdRescueSendTx(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
+      const isMembershipTopUp = isMembershipTopUpTx(transactionMeta);
+      if (
+        !isMoneyAccountTx(transactionMeta) &&
+        !isSend &&
+        !isRescue &&
+        !isMembershipTopUp
+      )
+        return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       const onPress = () =>
@@ -245,9 +254,26 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.rescue.failed());
       } else if (isSend) {
         showToast(MoneyToastOptions.send.failed({ onPress }));
-      } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = resolveDepositIntent(transactionMeta);
-        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
+      } else if (isMoneyDepositTx(transactionMeta) || isMembershipTopUp) {
+        // A Pro top-up has no Money activity row, so its toast has no link.
+        const depositOnPress = isMembershipTopUp ? undefined : onPress;
+        if (isFiatOrderDeclineError(transactionMeta.error?.message)) {
+          showToast(
+            MoneyToastOptions.deposit.declined({ onPress: depositOnPress }),
+          );
+        } else {
+          // A Pro top-up adds mUSD to the Money Account, so it keeps the
+          // add-funds copy even though its type is not a Money deposit.
+          const intent = isMembershipTopUp
+            ? 'addMusd'
+            : resolveDepositIntent(transactionMeta);
+          showToast(
+            MoneyToastOptions.deposit.failed({
+              intent,
+              onPress: depositOnPress,
+            }),
+          );
+        }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());

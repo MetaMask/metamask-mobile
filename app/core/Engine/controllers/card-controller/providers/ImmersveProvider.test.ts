@@ -1264,6 +1264,83 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
+    it('createCard sends one POST when called concurrently', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
+      const [first, second] = await Promise.all([
+        provider.createCard('fs-1', TOKENS),
+        provider.createCard('fs-1', TOKENS),
+      ]);
+
+      expect(service.post).toHaveBeenCalledTimes(1);
+      expect(first.cardId).toBe('card-1');
+      expect(second.cardId).toBe('card-1');
+    });
+
+    it('createCard returns the card it just created while the card list lags', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
+      await provider.createCard('fs-1', TOKENS);
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(1);
+      expect(result.cardId).toBe('card-1');
+    });
+
+    it('createCard posts a replacement when the just-created card was cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValueOnce({ items: [] }).mockResolvedValueOnce({
+        items: [{ ...activeCard, id: 'card-1', status: 'cancelled' }],
+      });
+      service.post
+        .mockResolvedValueOnce({ cardId: 'card-1' })
+        .mockResolvedValueOnce({ cardId: 'card-2' });
+
+      await provider.createCard('fs-1', TOKENS);
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-2');
+    });
+
+    it('createCard posts again once the created card window has passed', async () => {
+      jest.useFakeTimers();
+      try {
+        const { provider, service } = createProvider();
+        service.get.mockResolvedValue({ items: [] });
+        service.post
+          .mockResolvedValueOnce({ cardId: 'card-1' })
+          .mockResolvedValueOnce({ cardId: 'card-2' });
+
+        await provider.createCard('fs-1', TOKENS);
+        jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+        const result = await provider.createCard('fs-1', TOKENS);
+
+        expect(service.post).toHaveBeenCalledTimes(2);
+        expect(result.cardId).toBe('card-2');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('createCard posts again after a failed create', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce({ cardId: 'card-1' });
+
+      await expect(provider.createCard('fs-1', TOKENS)).rejects.toThrow();
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-1');
+    });
+
     it('createCard reuses the existing card instead of issuing a duplicate', async () => {
       const { provider, service } = createProvider();
       service.get.mockResolvedValue({ items: [activeCard] });

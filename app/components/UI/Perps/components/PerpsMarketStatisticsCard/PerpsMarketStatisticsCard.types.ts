@@ -1,3 +1,4 @@
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import type { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 
@@ -6,6 +7,7 @@ export interface PerpsMarketStatisticsCardProps {
    * Symbol to subscribe to for live funding updates
    */
   symbol: string;
+  providerId?: PerpsProviderType;
   marketStats: ReturnType<typeof usePerpsMarketStats>;
   onTooltipPress: (contentKey: PerpsTooltipContentKey) => void;
   /**

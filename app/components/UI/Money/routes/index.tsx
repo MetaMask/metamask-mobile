@@ -97,16 +97,14 @@ const MoneyConfirmationScreenStack = () => {
 
   return (
     <ConfirmationStack.Navigator
-      initialRouteName={
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
-      }
+      initialRouteName={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <ConfirmationStack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
       />
