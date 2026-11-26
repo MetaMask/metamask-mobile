@@ -15319,6 +15319,11 @@
       "count": 2
     }
   },
+  "app/components/Views/Homepage/Sections/NFTs/NFTsSection.tsx": {
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
   "app/components/Views/Homepage/Sections/Perpetuals/PerpsSection.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
