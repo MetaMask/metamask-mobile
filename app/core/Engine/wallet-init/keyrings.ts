@@ -36,14 +36,10 @@ import {
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
-  buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
   buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import {
-  isMpcMoneyKeyringBuildEnabled,
-  isRealMpcMoneyKeyringBuildEnabled,
-} from '../../../constants/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -146,12 +142,10 @@ export function getKeyringBuilders(
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     keyrings.push(
-      isRealMpcMoneyKeyringBuildEnabled()
-        ? buildRealMpcMoneyKeyringBuilder({
-            getBearerToken: async () =>
-              messenger.call('AuthenticationController:getBearerToken'),
-          })
-        : buildMpcMoneyKeyringBuilder(),
+      buildRealMpcMoneyKeyringBuilder({
+        getBearerToken: async () =>
+          messenger.call('AuthenticationController:getBearerToken'),
+      }),
     );
   }
 
