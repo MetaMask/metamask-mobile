@@ -3936,7 +3936,6 @@
       "unavailable": "Walang market na available sa ngayon."
     },
     "home_categories": {
-      "title": "Mga Kategorya",
       "politics": "Pulitika",
       "sports": "Palakasan"
     },
@@ -10628,8 +10627,7 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_deposit_header": "Idagdag sa MetaMask Money",
-      "money_account_send": "Ipadala"
+      "money_account_deposit_header": "Idagdag sa MetaMask Money"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -10786,7 +10784,6 @@
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_convert_token": "I-convert sa {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
-    "deposit_edit_amount_money_account_send": "Ipadala",
     "deposit_edit_amount_musd_conversion": "I-convert sa mUSD",
     "preparing_order": "Inihahanda ang order"
   },

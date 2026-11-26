@@ -3936,7 +3936,6 @@
       "unavailable": "Derzeit sind keine Märkte verfügbar."
     },
     "home_categories": {
-      "title": "Kategorien",
       "politics": "Politik",
       "sports": "Sport"
     },
@@ -10628,8 +10627,7 @@
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
       "predict_withdraw": "Auszahlen",
-      "money_account_deposit_header": "Zu MetaMask Money hinzufügen",
-      "money_account_send": "Senden"
+      "money_account_deposit_header": "Zu MetaMask Money hinzufügen"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -10786,7 +10784,6 @@
     "deposit_edit_amount_done": "Gelder hinzufügen",
     "deposit_edit_amount_convert_token": "{{symbol}} umtauschen",
     "deposit_edit_amount_predict_withdraw": "Auszahlen",
-    "deposit_edit_amount_money_account_send": "Senden",
     "deposit_edit_amount_musd_conversion": "Zu mUSD konvertieren",
     "preparing_order": "Order wird vorbereitet"
   },

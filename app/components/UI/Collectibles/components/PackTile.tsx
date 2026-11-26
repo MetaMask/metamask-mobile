@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { useLinkProps } from '@react-navigation/native';
 import {
   Text,
@@ -19,9 +19,16 @@ export const packTileWidth = 192;
 interface Props {
   pack: HomePack;
   width?: number;
+  badge?: ReactNode;
+  caption?: string;
 }
 
-export function PackTile({ pack, width = packTileWidth }: Props) {
+export function PackTile({
+  pack,
+  width = packTileWidth,
+  badge,
+  caption,
+}: Props) {
   const { formatCurrency } = useFormatters();
 
   const buySheetLink = useLinkProps<CollectiblesParamList>({
@@ -40,6 +47,7 @@ export function PackTile({ pack, width = packTileWidth }: Props) {
         openedCount={pack.openedCount}
         className="p-3"
         artClassName="h-[276px]"
+        badge={badge}
       />
       <View>
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
@@ -61,6 +69,15 @@ export function PackTile({ pack, width = packTileWidth }: Props) {
             {formatCurrency(pack.priceUsd, 'USD')}
           </Text>
         </Pressable>
+        {caption ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {caption}
+          </Text>
+        ) : null}
       </View>
     </View>
   );

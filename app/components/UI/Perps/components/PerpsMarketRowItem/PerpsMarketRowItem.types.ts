@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+import type { ListItem } from '@metamask/design-system-react-native';
 import {
   type PerpsMarketData,
   type SortField,
@@ -15,6 +17,8 @@ export interface PerpsMarketRowItemProps {
    * Callback when the row is pressed
    */
   onPress?: (market: PerpsMarketData) => void;
+  /** Callback when the row is long-pressed. */
+  onLongPress?: () => void;
   /**
    * Size of the token icon (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
    */
@@ -34,6 +38,8 @@ export interface PerpsMarketRowItemProps {
    * @default true
    */
   showBadge?: boolean;
+  /** Whether to show a "Perp" type tag next to the title. */
+  showTypeTag?: boolean;
   /**
    * When true, uses reduced vertical padding (8px instead of 16px).
    * Useful when embedded in feed cards alongside other row item types.
@@ -50,6 +56,18 @@ export interface PerpsMarketRowItemProps {
    * The callback receives the current displayMarket (with live price merged in).
    */
   onAddPress?: (market: PerpsMarketData) => void;
+  /**
+   * When provided, renders a trailing watchlist toggle star button.
+   */
+  onWatchlistPress?: (market: PerpsMarketData) => void;
+  /** Whether the market is currently watchlisted (renders a filled star). */
+  isWatchlisted?: boolean;
   /** Optional utility classes when embedding the row in another list. */
   twClassName?: string;
+  accessibilityActions?: ComponentProps<
+    typeof ListItem
+  >['accessibilityActions'];
+  onAccessibilityAction?: ComponentProps<
+    typeof ListItem
+  >['onAccessibilityAction'];
 }

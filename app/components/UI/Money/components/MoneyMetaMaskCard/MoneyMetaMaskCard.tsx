@@ -301,7 +301,11 @@ const getSetupCopy = (
         };
       }
       return {
-        title: strings('card.card_home.messages.setup_incomplete.title'),
+        title: strings(
+          setupView.step === 'rejected'
+            ? 'card.card_home.messages.setup_incomplete.rejected_title'
+            : 'card.card_home.messages.setup_incomplete.title',
+        ),
         description: strings(
           `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
         ),

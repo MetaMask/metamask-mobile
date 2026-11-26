@@ -15,6 +15,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { makePredictNextGameEvent } from '../../../../../../../tests/component-view/fixtures/predictNext';
+import type { PredictEntityId, PredictEvent } from '../../../types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 import { HomeTrendingSection } from './HomeTrendingSection';
 
@@ -23,6 +24,35 @@ const GAMES = [
   makePredictNextGameEvent('nfl-2', 'Panthers', 'Cardinals', 'NFL'),
   makePredictNextGameEvent('ncaa-1', 'Pittsburgh', 'Miami', 'NCAAF'),
 ];
+
+const makeThreeWayGameEvent = (): PredictEvent => {
+  const base = makePredictNextGameEvent('epl-1', 'Arsenal', 'Chelsea', 'EPL');
+  const drawBase = base.markets[0];
+  const [yesOutcome, noOutcome] = drawBase.outcomes;
+  return {
+    ...base,
+    markets: [
+      ...base.markets,
+      {
+        ...drawBase,
+        id: 'epl-1-draw-market' as PredictEntityId,
+        outcomes: [
+          {
+            ...yesOutcome,
+            id: 'epl-1-draw-yes' as PredictEntityId,
+            label: 'Draw',
+            askPrice: '0.25' as typeof yesOutcome.askPrice,
+            gameSelection: 'draw' as const,
+          },
+          {
+            ...noOutcome,
+            id: 'epl-1-draw-no' as PredictEntityId,
+          },
+        ] as const,
+      },
+    ],
+  };
+};
 
 // The pagination row is hidden from screen readers.
 const HIDDEN = { includeHiddenElements: true };
@@ -84,17 +114,44 @@ describe('HomeTrendingSection', () => {
     ).toEqual(GAMES.map(({ id }) => PredictHomeTestIds.event('kalshi', id)));
     // The featured composition: stacked Team rows with percentage pills.
     expect(
-      carousel().getByTestId('predict-next-game-team-nfl-1-away'),
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('nfl-1', 'away')),
     ).toBeOnTheScreen();
     expect(
       carousel().getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
     ).toHaveTextContent('42%');
+    const lastSlotStyle = StyleSheet.flatten(
+      screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-2`).props
+        .style,
+    );
+    expect(lastSlotStyle).toMatchObject({ width: 340 });
+    expect(lastSlotStyle.minHeight).toBeUndefined();
+    expect(lastSlotStyle.height).toBeUndefined();
+  });
+
+  it('renders a 3-way Draw game card in Trending without fixed slot height', () => {
+    const threeWayGame = makeThreeWayGameEvent();
+
+    renderSection({ events: [threeWayGame, ...GAMES] });
+
     expect(
-      StyleSheet.flatten(
-        screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-2`).props
-          .style,
-      ),
-    ).toMatchObject({ width: 340, minHeight: 268 });
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'away')),
+    ).toBeOnTheScreen();
+    expect(
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'draw')),
+    ).toBeOnTheScreen();
+    expect(
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'home')),
+    ).toBeOnTheScreen();
+    expect(
+      carousel().getByTestId(PredictHomeTestIds.gameQuote('epl-1', 'draw')),
+    ).toHaveTextContent('25%');
+    const slotStyle = StyleSheet.flatten(
+      screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-0`).props
+        .style,
+    );
+    expect(slotStyle).toMatchObject({ width: 340 + 12 });
+    expect(slotStyle.minHeight).toBeUndefined();
+    expect(slotStyle.height).toBeUndefined();
   });
 
   it('spans the screen edge to edge and keeps the header padded', () => {
@@ -185,5 +242,36 @@ describe('HomeTrendingSection', () => {
     expect(
       screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN),
     ).not.toBeOnTheScreen();
+  });
+
+  it('replaces skeletons with loaded cards and pagination once loading completes', () => {
+    const { rerender } = renderSection({ events: [], isLoading: true });
+
+    expect(
+      screen.getAllByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN),
+    ).not.toBeOnTheScreen();
+
+    rerender(
+      <HomeTrendingSection
+        events={GAMES}
+        isLoading={false}
+        onOpen={jest.fn()}
+        onOpenEvent={jest.fn()}
+        onOrder={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON),
+    ).not.toBeOnTheScreen();
+    expect(
+      carousel().getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN),
+    ).toBeOnTheScreen();
   });
 });
