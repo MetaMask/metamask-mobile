@@ -8,12 +8,14 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import {
   startRampsBuyCufTrace,
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
   isRampsNativeProviderId,
+  buildRampsBuyOrderDetailsCufEndData,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
   buildRampsBuyQuoteFetchStartTags,
@@ -29,6 +31,7 @@ import {
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
+  RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
@@ -515,6 +518,33 @@ describe('rampsBuyCufTrace', () => {
         expect.objectContaining({ id: nativeId }),
       );
     });
+  });
+
+  describe('Order Details parent end data (TRAM-4173)', () => {
+    it.each([
+      RampsOrderStatus.Created,
+      RampsOrderStatus.Pending,
+      RampsOrderStatus.Completed,
+      RampsOrderStatus.Cancelled,
+    ])('ends the parent as successful for a %s order', (status) => {
+      expect(buildRampsBuyOrderDetailsCufEndData(status, 'ord-1')).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: 'ord-1',
+      });
+    });
+
+    it.each([RampsOrderStatus.Failed, RampsOrderStatus.IdExpired])(
+      'ends the parent as an error for a %s order',
+      (status) => {
+        expect(buildRampsBuyOrderDetailsCufEndData(status, 'ord-1')).toEqual({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+          orderId: 'ord-1',
+        });
+      },
+    );
   });
 
   describe('Buy Quote Fetch CUF (TRAM-3780)', () => {

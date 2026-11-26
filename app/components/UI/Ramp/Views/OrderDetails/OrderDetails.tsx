@@ -44,13 +44,13 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import {
+  buildRampsBuyOrderDetailsCufEndData,
   isRampsNativeProviderId,
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufTrace,
 } from '../../utils/rampsBuyCufTrace';
 import { TraceName } from '../../../../../util/trace';
 import {
-  RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
@@ -286,11 +286,10 @@ const OrderDetails = () => {
       });
     }
     endRampsBuyCufTrace({
-      data: {
-        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
-        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
-        orderId: order.providerOrderId,
-      },
+      data: buildRampsBuyOrderDetailsCufEndData(
+        order.status,
+        order.providerOrderId,
+      ),
     });
   }, [order]);
 
