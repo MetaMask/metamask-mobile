@@ -4,7 +4,6 @@
  * with an hourglass indicator while keeping the normal address subtitle.
  */
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
 import {
   Icon,
   IconColor,
@@ -12,15 +11,14 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
 import { getNetworkImageSource } from '../../../util/networks';
 import PendingSpinner from '../Money/components/PendingSpinner/PendingSpinner';
-import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import { useSubtitleAccountParts } from './useSubtitleAccountParts';
+import { View } from '../primitives/View';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
 export function PendingActivityListItemRow({
@@ -30,13 +28,11 @@ export function PendingActivityListItemRow({
   onPress,
   title: titleOverride,
 }: ActivityListItemRowProps) {
-  const { colors, typography } = useTheme();
   const content = useActivityListItemRowContent(
     item,
     undefined,
     bridgeHistoryItem,
   );
-  const styles = createStyles(colors, typography);
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = getNetworkImageSource({
     chainId: item.chainId,
@@ -54,11 +50,7 @@ export function PendingActivityListItemRow({
       : content.subtitle
     : undefined;
 
-  const subtitleAccountParts = useSubtitleAccountParts(
-    content,
-    styles,
-    testIdSuffix,
-  );
+  const subtitleAccountParts = useSubtitleAccountParts(content, testIdSuffix);
   const subtitleParts =
     subtitleAccountParts && isQueued
       ? {
@@ -69,7 +61,7 @@ export function PendingActivityListItemRow({
 
   const titleAccessory = isQueued ? undefined : (
     <View
-      style={styles.titleSpinner}
+      className="ml-1.5 h-[18px] shrink-0 -translate-y-0.5 justify-center"
       testID={`activity-pending-spinner-container-${testIdSuffix}`}
     >
       <PendingSpinner testID={`activity-pending-spinner-${testIdSuffix}`} />
@@ -77,7 +69,7 @@ export function PendingActivityListItemRow({
   );
 
   const subtitleLeadingAccessory = isQueued ? (
-    <View style={styles.subtitleLeadingIcon}>
+    <View className="mr-1 h-4 -translate-y-px justify-center">
       <Icon
         name={IconName.Clock}
         size={IconSize.Xs}
@@ -92,7 +84,6 @@ export function PendingActivityListItemRow({
         <ActivityListItemRowIcon
           fallbackIconName={fallbackIconName}
           networkImageSource={networkImageSource}
-          styles={styles}
           testIdSuffix={testIdSuffix}
           tokens={content.avatarTokens}
         />
@@ -104,7 +95,6 @@ export function PendingActivityListItemRow({
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
       secondaryAmount={content.secondaryAmount}
-      styles={styles}
       subtitle={subtitle}
       subtitleLeadingAccessory={subtitleLeadingAccessory}
       subtitleParts={subtitleParts}

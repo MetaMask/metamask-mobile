@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   AvatarAccount,
@@ -8,7 +7,7 @@ import {
 import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
-import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
+import { View } from '../primitives/View';
 
 /**
  * Builds the structured "To: <avatar> Name" subtitle for rows whose
@@ -17,7 +16,6 @@ import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
  */
 export function useSubtitleAccountParts(
   content: ActivityListItemRowContent,
-  styles: ActivityListItemRowStyles,
   testIdSuffix: string | number | undefined,
 ): { pre: string; avatar: React.ReactNode; name: string } | undefined {
   const avatarVariant = getAvatarAccountVariant(
@@ -32,7 +30,7 @@ export function useSubtitleAccountParts(
     pre: `${account.prefix}: `,
     avatar: (
       <View
-        style={styles.subtitleAccountAvatar}
+        className="mr-1"
         testID={`activity-subtitle-account-avatar-${testIdSuffix}`}
       >
         <AvatarAccount

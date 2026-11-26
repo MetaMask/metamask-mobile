@@ -3,9 +3,7 @@
  * All styling and localization are Mobile-specific; data comes from the shared adapters.
  */
 import React, { useCallback } from 'react';
-import { useTheme } from '../../../util/theme';
 import { getNetworkImageSource } from '../../../util/networks';
-import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { PendingActivityListItemRow } from './PendingActivityListItemRow';
@@ -60,7 +58,6 @@ function ResolvedActivityListItemRow({
   onPress,
   title: titleOverride,
 }: ActivityListItemRowProps) {
-  const { colors, typography } = useTheme();
   const content = useActivityListItemRowContent(
     item,
     undefined,
@@ -68,12 +65,7 @@ function ResolvedActivityListItemRow({
   );
 
   const nftImageUrl = useNftActivityImage(item);
-  const styles = createStyles(colors, typography);
-  const subtitleParts = useSubtitleAccountParts(
-    content,
-    styles,
-    item.hash ?? index,
-  );
+  const subtitleParts = useSubtitleAccountParts(content, item.hash ?? index);
   const isFailed = item.status === 'failed';
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)
@@ -95,7 +87,6 @@ function ResolvedActivityListItemRow({
           networkImageSource={networkImageSource}
           iconUrl={content.avatarIconUrl ?? nftImageUrl}
           perpsMarketSymbol={content.perpsMarketSymbol}
-          styles={styles}
           testIdSuffix={item.hash ?? index ?? 0}
           tokens={content.avatarTokens}
         />
@@ -110,7 +101,6 @@ function ResolvedActivityListItemRow({
       amountIsPnl={content.isPnlAmount}
       amountIsMuted={content.isMutedAmount}
       secondaryAmount={content.secondaryAmount}
-      styles={styles}
       subtitle={content.subtitle}
       subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}

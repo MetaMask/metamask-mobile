@@ -285,6 +285,9 @@ jest.mock('../../../component-library/components/Texts/Text', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { Pressable, View } = jest.requireActual('react-native');
+  const { FontWeight, Text, TextColor, TextVariant } = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
 
   const ListItem = ({
     avatar,
@@ -350,6 +353,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   }) => ReactActual.createElement(View, null, children, badge);
 
   return {
+    FontWeight,
+    Text,
+    TextColor,
+    TextVariant,
     Icon,
     IconColor: { IconAlternative: 'icon-alternative' },
     IconName: {
@@ -2898,13 +2905,6 @@ type PendingActionsProps = React.ComponentProps<
   typeof ActivityListItemRowPendingActions
 >;
 
-const pendingActionStyles = {
-  pendingActions: {},
-  actionContainerStyle: {},
-  speedupActionContainerStyle: {},
-  actionStyle: {},
-} as PendingActionsProps['styles'];
-
 const makePendingActionTx = (
   overrides: Partial<TransactionMeta & { isSmartTransaction?: boolean }> = {},
 ) =>
@@ -2919,7 +2919,6 @@ const makePendingActionProps = (
   overrides: Partial<PendingActionsProps> = {},
 ): PendingActionsProps => ({
   tx: makePendingActionTx(),
-  styles: pendingActionStyles,
   isQRHardwareAccount: false,
   isLedgerAccount: false,
   onSpeedUpAction: jest.fn(),

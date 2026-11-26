@@ -1,11 +1,50 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import { ListItem } from '@metamask/design-system-react-native';
+import {
+  FontWeight,
+  ListItem,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import type {
   ActivityListItem,
   TokenAmount,
 } from '../../../util/activity-adapters';
-import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
+import { View } from '../primitives/View';
+
+function resolveTitleColor(
+  isFailed: boolean,
+  titleSeverity?: 'error' | 'warning',
+) {
+  if (isFailed || titleSeverity === 'error') {
+    return TextColor.ErrorDefault;
+  }
+  if (titleSeverity === 'warning') {
+    return TextColor.WarningDefault;
+  }
+  return TextColor.TextDefault;
+}
+
+function resolvePrimaryAmountColor({
+  primaryToken,
+  amountIsPnl,
+  amountIsMuted,
+}: {
+  primaryToken?: TokenAmount;
+  amountIsPnl?: boolean;
+  amountIsMuted?: boolean;
+}) {
+  if (amountIsMuted) {
+    return TextColor.TextMuted;
+  }
+  if (amountIsPnl && primaryToken?.direction === 'out') {
+    return TextColor.ErrorDefault;
+  }
+  if (primaryToken?.direction === 'in') {
+    return TextColor.SuccessDefault;
+  }
+  return TextColor.TextDefault;
+}
 
 export function ActivityListItemRowLayout({
   avatar,
@@ -20,7 +59,6 @@ export function ActivityListItemRowLayout({
   amountIsPnl,
   amountIsMuted,
   secondaryAmount,
-  styles,
   subtitle,
   subtitleLeadingAccessory,
   subtitleParts,
@@ -39,7 +77,6 @@ export function ActivityListItemRowLayout({
   amountIsPnl?: boolean;
   amountIsMuted?: boolean;
   secondaryAmount?: string;
-  styles: ActivityListItemRowStyles;
   subtitle?: string;
   subtitleLeadingAccessory?: React.ReactNode;
   subtitleParts?: { pre: string; avatar: React.ReactNode; name: string };
@@ -47,86 +84,78 @@ export function ActivityListItemRowLayout({
   titleAccessory?: React.ReactNode;
 }) {
   const testIdSuffix = item.hash ?? index;
-  const titleSeverityStyle =
-    isFailed || titleSeverity === 'error'
-      ? styles.listItemTitleFailed
-      : titleSeverity === 'warning'
-        ? styles.listItemTitleWarning
-        : undefined;
   const titleText = (
     <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={resolveTitleColor(isFailed, titleSeverity)}
       numberOfLines={1}
-      style={[styles.listItemTitle, titleSeverityStyle]}
+      className="min-w-0 shrink"
       testID={`activity-title-${testIdSuffix}`}
     >
       {title}
     </Text>
   );
   const titleNode = titleAccessory ? (
-    <View style={styles.titleRow}>
+    <View className="min-w-0 shrink flex-row items-center">
       {titleText}
       {titleAccessory}
     </View>
   ) : (
     titleText
   );
+  const subtitleText = subtitle ? (
+    <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
+      testID={`activity-subtitle-${testIdSuffix}`}
+    >
+      {subtitle}
+    </Text>
+  ) : undefined;
   const subtitleNode = subtitleParts ? (
-    <View style={[styles.subtitleRow, styles.subtitleRowSpaced]}>
+    <View className="flex-row items-center">
       {subtitleLeadingAccessory}
       <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         numberOfLines={1}
-        style={[styles.subtitleText, styles.statusText]}
         testID={`activity-subtitle-${testIdSuffix}`}
       >
         {subtitleParts.pre}
       </Text>
       {subtitleParts.avatar}
       <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         numberOfLines={1}
-        style={[
-          styles.subtitleText,
-          styles.statusText,
-          styles.subtitleAccountName,
-        ]}
+        className="shrink"
         testID={`activity-subtitle-account-name-${testIdSuffix}`}
       >
         {subtitleParts.name}
       </Text>
     </View>
-  ) : subtitle ? (
-    subtitleLeadingAccessory ? (
-      <View style={styles.subtitleRow}>
-        {subtitleLeadingAccessory}
-        <Text
-          numberOfLines={1}
-          style={styles.subtitleText}
-          testID={`activity-subtitle-${testIdSuffix}`}
-        >
-          {subtitle}
-        </Text>
-      </View>
-    ) : (
-      <Text
-        numberOfLines={1}
-        style={styles.subtitleText}
-        testID={`activity-subtitle-${testIdSuffix}`}
-      >
-        {subtitle}
-      </Text>
-    )
-  ) : undefined;
+  ) : subtitleText && subtitleLeadingAccessory ? (
+    <View className="flex-row items-center">
+      {subtitleLeadingAccessory}
+      {subtitleText}
+    </View>
+  ) : (
+    subtitleText
+  );
   const primaryAmountNode = primaryAmount ? (
     <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={resolvePrimaryAmountColor({
+        primaryToken,
+        amountIsPnl,
+        amountIsMuted,
+      })}
       numberOfLines={1}
       ellipsizeMode="tail"
-      style={[
-        styles.listItemAmount,
-        primaryToken?.direction === 'in' && styles.listItemAmountIncoming,
-        amountIsPnl &&
-          primaryToken?.direction === 'out' &&
-          styles.listItemAmountLoss,
-        amountIsMuted && styles.listItemAmountMuted,
-      ]}
+      className="text-right"
       testID={`activity-primary-amount-${testIdSuffix}`}
     >
       {primaryAmount}
@@ -134,9 +163,11 @@ export function ActivityListItemRowLayout({
   ) : undefined;
   const secondaryAmountNode = secondaryAmount ? (
     <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
       numberOfLines={1}
       ellipsizeMode="tail"
-      style={styles.listItemSecondaryAmount}
+      className="text-right"
       testID={`activity-secondary-amount-${testIdSuffix}`}
     >
       {secondaryAmount}
@@ -145,7 +176,7 @@ export function ActivityListItemRowLayout({
   const amountColumn =
     primaryAmountNode || secondaryAmountNode ? (
       <View
-        style={styles.listItemAmounts}
+        className="min-w-0 max-w-[45%] shrink-0 items-end"
         testID={`activity-amount-column-${testIdSuffix}`}
       >
         {primaryAmountNode}
@@ -154,14 +185,14 @@ export function ActivityListItemRowLayout({
     ) : undefined;
 
   return (
-    <View style={styles.row}>
+    <View className="w-full flex-1 self-stretch bg-default">
       <ListItem
         isInteractive
         avatar={avatar}
         description={subtitleNode}
         endAccessory={amountColumn}
         onPress={onPress}
-        style={styles.listItem}
+        className="min-h-16 py-2"
         testID={`transaction-item-${index ?? 0}`}
         title={titleNode}
         accessoryGap={4}

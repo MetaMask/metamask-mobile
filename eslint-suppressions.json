@@ -84,16 +84,6 @@
       "count": 2
     }
   },
-  "app/components/UI/ActivityListItemRow/ActivityListAccountImportTimeRow.styles.ts": {
-    "design-system/spacing-grid": {
-      "count": 1
-    }
-  },
-  "app/components/UI/ActivityListItemRow/ActivityListItemRow.styles.ts": {
-    "design-system/spacing-grid": {
-      "count": 3
-    }
-  },
   "app/components/UI/AddToAddressBookWrapper/styles.ts": {
     "design-system/spacing-grid": {
       "count": 1

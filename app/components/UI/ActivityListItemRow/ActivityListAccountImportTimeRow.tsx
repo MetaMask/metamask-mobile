@@ -1,16 +1,19 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
 import {
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
 import { toDateFormat } from '../../../util/date';
-import { useTheme } from '../../../util/theme';
-import { createStyles } from './ActivityListAccountImportTimeRow.styles';
+import { Pressable } from '../primitives/Pressable';
+import { View } from '../primitives/View';
 
 interface ActivityListAccountImportTimeRowProps {
   importTime: number;
@@ -20,31 +23,31 @@ interface ActivityListAccountImportTimeRowProps {
 export const ActivityListAccountImportTimeRow = ({
   importTime,
   onPress,
-}: ActivityListAccountImportTimeRowProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  return (
-    <View style={styles.row}>
-      <TouchableOpacity
-        onPress={onPress}
-        style={styles.rowBody}
-        testID="activity-list-account-import-time-row"
-      >
-        <View style={styles.importTextContainer}>
-          <Text style={styles.importText}>
-            {strings('transactions.import_wallet_row')}
-          </Text>
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </View>
-        <ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
-      </TouchableOpacity>
-    </View>
-  );
-};
+}: ActivityListAccountImportTimeRowProps) => (
+  <View className="flex-1 bg-default">
+    <Pressable
+      onPress={onPress}
+      className="items-center pt-2.5"
+      pressedClassName="opacity-20"
+      testID="activity-list-account-import-time-row"
+    >
+      <View className="flex-row items-center gap-1">
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextAlternative}
+        >
+          {strings('transactions.import_wallet_row')}
+        </Text>
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </View>
+      <ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
+    </Pressable>
+  </View>
+);
 
 export default ActivityListAccountImportTimeRow;

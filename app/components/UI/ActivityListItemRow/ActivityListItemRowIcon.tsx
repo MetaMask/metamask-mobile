@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -12,16 +12,15 @@ import {
   type IconName,
 } from '@metamask/design-system-react-native';
 import type { TokenAmount } from '../../../util/activity-adapters';
-import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
+import { View } from '../primitives/View';
 
 function TokenAvatar({
   fallbackIconName,
   isFailed,
   iconUrl,
   perpsMarketSymbol,
-  styles,
   testIdSuffix,
   tokens,
 }: {
@@ -29,7 +28,6 @@ function TokenAvatar({
   isFailed: boolean;
   iconUrl?: string;
   perpsMarketSymbol?: string;
-  styles: ActivityListItemRowStyles;
   testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
@@ -91,25 +89,25 @@ function TokenAvatar({
 
   return (
     <View
-      style={styles.tokenIconStack}
+      className="size-8 flex-row overflow-hidden rounded-full"
       testID={`activity-row-avatar-stack-${testIdSuffix}`}
     >
-      <View style={styles.tokenIconStackBack}>
+      <View className="h-8 w-4 overflow-hidden">
         <AvatarToken
           name={sourceToken.symbol}
           src={tokenImageSources[0]}
           size={AvatarTokenSize.Md}
         />
       </View>
-      <View style={styles.tokenIconStackFront}>
+      <View className="h-8 w-4 overflow-hidden">
         <AvatarToken
           name={destinationToken.symbol}
           src={tokenImageSources[1]}
           size={AvatarTokenSize.Md}
-          style={styles.tokenIconStackFrontImage}
+          twClassName="absolute -left-4 top-0"
         />
       </View>
-      <View style={styles.tokenIconStackDivider} />
+      <View className="absolute left-[15px] top-0 h-8 w-px bg-text-default" />
     </View>
   );
 }
@@ -120,7 +118,6 @@ export function ActivityListItemRowIcon({
   iconUrl,
   networkImageSource,
   perpsMarketSymbol,
-  styles,
   testIdSuffix,
   tokens,
 }: {
@@ -137,7 +134,6 @@ export function ActivityListItemRowIcon({
    */
   networkImageSource?: ImageSourcePropType;
   perpsMarketSymbol?: string;
-  styles: ActivityListItemRowStyles;
   testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
@@ -147,7 +143,6 @@ export function ActivityListItemRowIcon({
       isFailed={isFailed}
       iconUrl={iconUrl}
       perpsMarketSymbol={perpsMarketSymbol}
-      styles={styles}
       testIdSuffix={testIdSuffix}
       tokens={tokens}
     />

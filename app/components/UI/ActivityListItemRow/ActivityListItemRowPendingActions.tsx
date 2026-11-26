@@ -6,19 +6,18 @@
  * flows that only exist on Mobile (ported from the legacy `TransactionElement`).
  */
 import React from 'react';
-import { View } from 'react-native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import {
   showSpeedUp,
   getPendingTxActionVisibility,
 } from '../Transactions/pendingTxActions';
-import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
+import { View } from '../primitives/View';
 
 export interface ActivityListItemRowPendingActionsProps {
   tx: TransactionMeta;
-  styles: ActivityListItemRowStyles;
   isQRHardwareAccount: boolean;
   isLedgerAccount: boolean;
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
@@ -30,7 +29,6 @@ export interface ActivityListItemRowPendingActionsProps {
 
 export function ActivityListItemRowPendingActions({
   tx,
-  styles,
   isQRHardwareAccount,
   isLedgerAccount,
   onSpeedUpAction,
@@ -39,6 +37,7 @@ export function ActivityListItemRowPendingActions({
   signLedgerTransaction,
   cancelUnsignedQRTransaction,
 }: ActivityListItemRowPendingActionsProps) {
+  const tw = useTailwind();
   const {
     showSpeedUpCancel: renderNormalActions,
     showQRSign: renderUnsignedQRActions,
@@ -56,18 +55,19 @@ export function ActivityListItemRowPendingActions({
     return null;
   }
 
+  const actionContainerStyle = tw.style('h-[25px] p-0');
+  const speedupActionContainerStyle = tw.style('h-[25px] p-0 mr-2.5');
+  const actionStyle = tw.style('p-0 px-2.5', { fontSize: 10 });
+
   return (
-    <View style={styles.pendingActions}>
+    <View className="flex-row items-center justify-end pb-2 pt-1">
       {renderNormalActions && (
         <>
           {showSpeedUp(tx.type) && (
             <StyledButton
               type="normal"
-              containerStyle={[
-                styles.actionContainerStyle,
-                styles.speedupActionContainerStyle,
-              ]}
-              style={styles.actionStyle}
+              containerStyle={speedupActionContainerStyle}
+              style={actionStyle}
               onPress={() => onSpeedUpAction(true, tx)}
             >
               {strings('transaction.speedup')}
@@ -75,8 +75,8 @@ export function ActivityListItemRowPendingActions({
           )}
           <StyledButton
             type="cancel"
-            containerStyle={styles.actionContainerStyle}
-            style={styles.actionStyle}
+            containerStyle={actionContainerStyle}
+            style={actionStyle}
             onPress={() => onCancelAction(true, tx)}
           >
             {strings('transaction.cancel')}
@@ -87,22 +87,16 @@ export function ActivityListItemRowPendingActions({
         <>
           <StyledButton
             type="normal"
-            containerStyle={[
-              styles.actionContainerStyle,
-              styles.speedupActionContainerStyle,
-            ]}
-            style={styles.actionStyle}
+            containerStyle={speedupActionContainerStyle}
+            style={actionStyle}
             onPress={() => signQRTransaction(tx)}
           >
             {strings('transaction.sign_with_keystone')}
           </StyledButton>
           <StyledButton
             type="cancel"
-            containerStyle={[
-              styles.actionContainerStyle,
-              styles.speedupActionContainerStyle,
-            ]}
-            style={styles.actionStyle}
+            containerStyle={speedupActionContainerStyle}
+            style={actionStyle}
             onPress={() => cancelUnsignedQRTransaction(tx)}
           >
             {strings('transaction.cancel')}
@@ -112,11 +106,8 @@ export function ActivityListItemRowPendingActions({
       {renderLedgerActions && (
         <StyledButton
           type="normal"
-          containerStyle={[
-            styles.actionContainerStyle,
-            styles.speedupActionContainerStyle,
-          ]}
-          style={styles.actionStyle}
+          containerStyle={speedupActionContainerStyle}
+          style={actionStyle}
           onPress={() => signLedgerTransaction({ id: tx.id })}
         >
           {strings('transaction.sign_with_ledger')}
