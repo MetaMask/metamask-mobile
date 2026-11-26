@@ -10628,8 +10628,7 @@
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
       "predict_withdraw": "提取",
-      "money_account_deposit_header": "添加到 MetaMask Money",
-      "money_account_send": "发送"
+      "money_account_deposit_header": "添加到 MetaMask Money"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -10786,7 +10785,6 @@
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_convert_token": "兑换 {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "提取",
-    "deposit_edit_amount_money_account_send": "发送",
     "deposit_edit_amount_musd_conversion": "兑换为 mUSD",
     "preparing_order": "正在准备订单"
   },

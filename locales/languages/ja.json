@@ -10628,8 +10628,7 @@
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
       "predict_withdraw": "出金",
-      "money_account_deposit_header": "MetaMask Moneyに追加",
-      "money_account_send": "送金"
+      "money_account_deposit_header": "MetaMask Moneyに追加"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -10786,7 +10785,6 @@
     "deposit_edit_amount_done": "資金を追加",
     "deposit_edit_amount_convert_token": "{{symbol}}を交換",
     "deposit_edit_amount_predict_withdraw": "出金",
-    "deposit_edit_amount_money_account_send": "送金",
     "deposit_edit_amount_musd_conversion": "mUSDに変換",
     "preparing_order": "注文を準備しています"
   },

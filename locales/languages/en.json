@@ -10859,7 +10859,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_deposit_header": "Add to MetaMask Money",
-      "money_account_send": "Send"
+      "money_account_move": "Move"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -11044,7 +11044,7 @@
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_convert_token": "Convert {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_money_account_send": "Send",
+    "deposit_edit_amount_money_account_move": "Move",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
