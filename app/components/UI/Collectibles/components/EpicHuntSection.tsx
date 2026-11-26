@@ -44,6 +44,7 @@ export function EpicHuntSection() {
         <ButtonIcon
           iconName={IconName.Info}
           size={ButtonIconSize.Sm}
+          hitSlop={12}
           accessibilityLabel={strings('collectibles.epic_hunt.info')}
           onPress={openInfo}
           testID={collectiblesTestIds.epicHuntInfoButton}
