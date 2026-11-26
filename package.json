@@ -291,7 +291,7 @@
     "ajv@npm:^7.0.0": "8.20.0",
     "basic-ftp": "6.2.6",
     "defu": "6.1.7",
-    "fast-xml-parser@npm:^4.4.1": "4.5.7",
+    "fast-xml-parser@npm:^4.4.1": "5.8.0",
     "handlebars": "4.7.9",
     "immutable": "4.3.9",
     "lodash-es": "4.18.1",
