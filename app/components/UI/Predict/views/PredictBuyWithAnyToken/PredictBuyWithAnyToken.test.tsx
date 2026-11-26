@@ -276,11 +276,15 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
   }),
 }));
 
+let mockRetryOrderState: 'unknown' | 'pending' | 'filled' | 'canceled' =
+  'unknown';
+
 const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
   errorMessage: mockErrorMessage,
   errorMessageSource: mockErrorMessageSource,
   buyErrorBanner: mockBuyErrorBanner,
   isOrderNotFilled: mockIsOrderNotFilled,
+  retryOrderState: mockRetryOrderState,
   resetOrderNotFilled: mockResetOrderNotFilled,
   clearBuyErrorBanner: mockClearBuyErrorBanner,
 }));
@@ -550,6 +554,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockHasBlockingPayAlerts = false;
     mockCurrentValue = 20;
     mockIsOrderNotFilled = false;
+    mockRetryOrderState = 'unknown';
     mockRetryableAttempt = undefined;
     mockActiveOrder = null;
     mockPredictBalance = 10;
@@ -1300,7 +1305,7 @@ describe('PredictBuyWithAnyToken', () => {
       });
     });
 
-    it('does not re-enter PAY_WITH_ANY_TOKEN while an activeOrder error is shown in PREVIEW, and re-enters once cleared', () => {
+    it('re-enters PAY_WITH_ANY_TOKEN with clearError false when activeOrder returns to PREVIEW with an error while Money Account is selected', () => {
       mockIsMoneyAccountSelected = true;
       mockActiveOrder = { state: 'pay_with_any_token' };
 
@@ -1309,17 +1314,29 @@ describe('PredictBuyWithAnyToken', () => {
       );
       mockEnterPayWithAnyToken.mockClear();
 
-      mockActiveOrder = { state: 'preview', error: 'Order not filled' };
-      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
-
-      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
-
-      mockActiveOrder = { state: 'preview' };
+      mockActiveOrder = { state: 'preview', error: 'Order failed' };
       rerender(<PredictBuyWithAnyToken {...sheetProps} />);
 
       expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
         clearError: false,
       });
+    });
+
+    it('clears a price_changed banner instead of calling handleRetry when retryOrderState is pending', () => {
+      mockIsOrderNotFilled = true;
+      mockRetryOrderState = 'pending';
+      mockBuyErrorBanner = {
+        variant: 'price_changed',
+        title: 'Price changed',
+        description: 'Retry at market price?',
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetry).not.toHaveBeenCalled();
     });
 
     it('closes the keypad once when an error banner appears in sheet mode, but allows re-opening the keypad while the banner is visible', () => {

@@ -297,13 +297,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
     if (
       didSelectMoneyAccount ||
-      (activeOrder?.state === ActiveOrderState.PREVIEW && !activeOrder.error)
+      activeOrder?.state === ActiveOrderState.PREVIEW
     ) {
       Engine.context.PredictController.enterPayWithAnyToken({
         clearError: didSelectMoneyAccount,
       });
     }
-  }, [isMoneyAccountSelected, activeOrder?.state, activeOrder?.error]);
+  }, [isMoneyAccountSelected, activeOrder?.state]);
   const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
     preview,
     side: Side.BUY,
@@ -516,13 +516,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      if (isOrderNotFilled) {
+      if (isOrderNotFilled && (retryOrderState ?? 'unknown') === 'unknown') {
         void handleRetry();
       } else {
-        // Non-fill banners (order_failed, payment_failed) have no retry
-        // episode — the fresh-quote confirm flow is scoped to not-filled
-        // errors. Clear the banner so the action button returns to the
-        // normal confirm path instead of silently doing nothing.
+        // Non-fill banners (order_failed, payment_failed) or blocked retry
+        // states (e.g. PAY_WITH_ANY_TOKEN where a blind CLOB retry without
+        // deposit is unsafe) clear the banner so the action button returns to
+        // the normal confirm path instead of silently doing nothing.
         clearBuyErrorBanner();
       }
       return;
@@ -542,6 +542,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isChangePaymentMode,
     isAddFundsMode,
     isOrderNotFilled,
+    retryOrderState,
     handleRetry,
     clearBuyErrorBanner,
     handleChangePaymentMethod,
