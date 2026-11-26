@@ -20,13 +20,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockEndHeadlessCallbackCuf = jest.fn();
-jest.mock('../utils/rampsBuyCufTrace', () => ({
-  ...jest.requireActual('../utils/rampsBuyCufTrace'),
-  endRampsBuyHeadlessCallbackCuf: (...args: unknown[]) =>
-    mockEndHeadlessCallbackCuf(...args),
-}));
-
 jest.mock('../headless/sessionRegistry', () => ({
   getSession: jest.fn(),
   closeSession: jest.fn(),
@@ -1818,7 +1811,6 @@ describe('useTransakRouting', () => {
       mockCloseSession.mockReset();
       mockFailSession.mockReset();
       mockParentPop.mockReset();
-      mockEndHeadlessCallbackCuf.mockReset();
       mockGetOrder.mockResolvedValue(depositOrder);
       mockRefreshOrder.mockResolvedValue(refreshedOrder);
     });
@@ -1846,13 +1838,6 @@ describe('useTransakRouting', () => {
       });
 
       expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
-      // TRAM-4173: headless never shows Order Details, so the Buy journey is
-      // closed here.
-      expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledTimes(1);
-      expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
-        orderId: 'order-hs',
-        outcome: 'completed',
-      });
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });
@@ -2057,11 +2042,6 @@ describe('useTransakRouting', () => {
       expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
         expect.objectContaining({ status: RampsOrderStatus.Failed }),
       );
-      // TRAM-4173: the Buy journey parent ends as an error, not headless.
-      expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
-        orderId: 'order-hs',
-        outcome: 'order_failed',
-      });
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -2199,12 +2179,6 @@ describe('useTransakRouting', () => {
           provider_order_id: 'order-hs',
         }),
       );
-      // TRAM-4173: the Buy journey ends as an error for a failed headless
-      // callback.
-      expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
-        orderId: 'order-hs',
-        outcome: 'error',
-      });
     });
 
     it('treats a Transak redirect without orderId as user dismissal when headless', async () => {

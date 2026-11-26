@@ -16,7 +16,6 @@ import {
   endOpenRampsBuyCufChildrenByName,
   isRampsNativeProviderId,
   buildRampsBuyOrderDetailsCufEndData,
-  endRampsBuyHeadlessCallbackCuf,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
   buildRampsBuyQuoteFetchStartTags,
@@ -546,95 +545,6 @@ describe('rampsBuyCufTrace', () => {
         });
       },
     );
-  });
-
-  describe('Headless callback completion (TRAM-4173)', () => {
-    const startWithNativeChild = () => {
-      startRampsBuyCufTrace();
-      const nativeId = startRampsBuyCufChildTrace({
-        name: TraceName.RampBuyNativeToOrderCreated,
-      });
-      mockEndTrace.mockClear();
-      return nativeId;
-    };
-
-    it('closes the native child as successful, then ends the parent as headless', () => {
-      const nativeId = startWithNativeChild();
-
-      endRampsBuyHeadlessCallbackCuf({
-        orderId: 'ord-1',
-        outcome: 'completed',
-      });
-
-      const calls = mockEndTrace.mock.calls.map(([args]) => args);
-      const childEnds = calls.filter((args) => args.id === nativeId);
-      expect(childEnds).toHaveLength(1);
-      expect(childEnds[0].data).toEqual({
-        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
-        orderId: 'ord-1',
-      });
-      const parentEnd = calls.find((args) => args.id !== nativeId);
-      expect(parentEnd?.data).toEqual(
-        expect.objectContaining({
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.HEADLESS,
-          orderId: 'ord-1',
-        }),
-      );
-      expect(calls.findIndex((args) => args.id === nativeId)).toBeLessThan(
-        calls.findIndex((args) => args.id !== nativeId),
-      );
-    });
-
-    it('ends both the native child and the parent as errors on failure', () => {
-      const nativeId = startWithNativeChild();
-
-      endRampsBuyHeadlessCallbackCuf({ orderId: 'ord-1', outcome: 'error' });
-
-      const calls = mockEndTrace.mock.calls.map(([args]) => args);
-      expect(calls.find((args) => args.id === nativeId)?.data).toEqual({
-        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-        orderId: 'ord-1',
-      });
-      expect(calls.find((args) => args.id !== nativeId)?.data).toEqual(
-        expect.objectContaining({
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-        }),
-      );
-    });
-
-    it('keeps the native child successful but ends the parent as an error for a failed order', () => {
-      const nativeId = startWithNativeChild();
-
-      endRampsBuyHeadlessCallbackCuf({
-        orderId: 'ord-1',
-        outcome: 'order_failed',
-      });
-
-      const calls = mockEndTrace.mock.calls.map(([args]) => args);
-      expect(calls.find((args) => args.id === nativeId)?.data).toEqual({
-        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
-        orderId: 'ord-1',
-      });
-      expect(calls.find((args) => args.id !== nativeId)?.data).toEqual(
-        expect.objectContaining({
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-        }),
-      );
-    });
-
-    it('is a no-op when no journey is active', () => {
-      expect(() =>
-        endRampsBuyHeadlessCallbackCuf({
-          orderId: 'ord-1',
-          outcome: 'completed',
-        }),
-      ).not.toThrow();
-      expect(mockEndTrace).not.toHaveBeenCalled();
-    });
   });
 
   describe('Buy Quote Fetch CUF (TRAM-3780)', () => {

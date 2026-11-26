@@ -54,7 +54,6 @@ import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/
 import {
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufTrace,
-  endRampsBuyHeadlessCallbackCuf,
 } from '../utils/rampsBuyCufTrace';
 import {
   RAMPS_BUY_CUF_END_REASON,
@@ -610,16 +609,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               'useTransakRouting: onOrderCreated callback threw',
             );
           }
-          // Headless never shows Order Details, so close the Buy journey here
-          // (TRAM-4173). Matches the headless Order Processing path.
-          endRampsBuyHeadlessCallbackCuf({
-            orderId: rampsOrder.providerOrderId,
-            outcome:
-              rampsOrder.status === RampsOrderStatus.Failed ||
-              rampsOrder.status === RampsOrderStatus.IdExpired
-                ? 'order_failed'
-                : 'completed',
-          });
           closeSession(headlessSessionId, { reason: 'completed' });
           // @ts-expect-error `pop` exists on the parent stack navigator at
           // runtime but is not surfaced on the generic `NavigationProp`
@@ -671,7 +660,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           // session down (TRAM-3623 §7) so the surface snapshot is available.
           // orderId (from the callback URL) is the provider order id (TRAM-3696).
           emitHeadlessOrderFailed(error, undefined, orderId);
-          endRampsBuyHeadlessCallbackCuf({ orderId, outcome: 'error' });
           if (failSession(headlessSessionId, error)) {
             // @ts-expect-error `pop` exists on the parent stack navigator at
             // runtime but is not surfaced on the generic `NavigationProp`
