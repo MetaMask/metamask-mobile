@@ -1011,7 +1011,7 @@ const getDefaultResolver = (): VenueProfileResolver => {
               baseUrl: getPredictApiUrl(),
               clientVersion: packageJSON.version,
               getBearerToken: async () => undefined,
-              fetch: (...args) => globalThis.fetch(...args),
+              fetch: globalThis.fetch.bind(globalThis),
             }).getSigningProfile('kalshi' as PredictVenueId, {
               signal: options?.signal,
             })
@@ -1020,7 +1020,7 @@ const getDefaultResolver = (): VenueProfileResolver => {
         ? new RemoteVenueProfileClient({
             baseUrl: registryUrl,
             clientVersion: packageJSON.version,
-            fetch: (...args) => globalThis.fetch(...args),
+            fetch: globalThis.fetch.bind(globalThis),
           })
         : undefined,
       store: storageEnvironment
