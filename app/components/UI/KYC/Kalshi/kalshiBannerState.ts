@@ -37,8 +37,6 @@ export const getKalshiBannerState = (
   status: KycStepStatus | null | undefined,
 ): KalshiBannerState | null => {
   switch (step) {
-    case 'terms':
-    case 'mfa':
     case 'kalshi_email_link':
     case 'kalshi_phone_link':
       return 'needMoreInfo';
@@ -54,6 +52,7 @@ export const getKalshiBannerState = (
         return null;
       }
       return status === 'rejected' ? 'cantVerify' : 'verifying';
+    case 'mfa':
     case 'terms':
     default:
       return 'getStarted';
