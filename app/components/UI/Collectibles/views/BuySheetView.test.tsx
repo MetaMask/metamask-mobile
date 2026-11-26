@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -18,15 +18,13 @@ jest.mock('#app/components/UI/Collectibles/hooks/useHomePacks', () => ({
 const [pack] = mockHomePacks;
 const { formatCurrency } = getFormatters();
 
-function renderView() {
-  return renderWithProvider(
-    <BuySheetView packCode={pack.code} onDismiss={jest.fn()} />,
-  );
+function render(ui: ReactElement) {
+  return renderWithProvider(ui);
 }
 
 describe('BuySheetView', () => {
   it('shows the price of one pack as the amount', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.buySheetAmount),
@@ -34,7 +32,7 @@ describe('BuySheetView', () => {
   });
 
   it('labels the button for one pack by default', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     expect(
       screen.getByText(
@@ -44,7 +42,7 @@ describe('BuySheetView', () => {
   });
 
   it('multiplies the amount and total by the chosen quantity', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.buySheetQuantity('5')),
@@ -60,7 +58,7 @@ describe('BuySheetView', () => {
   });
 
   it('updates the button label with the chosen quantity', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.buySheetQuantity('10')),
@@ -74,7 +72,7 @@ describe('BuySheetView', () => {
   });
 
   it('labels the max chip without a number', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.buySheetQuantity('max')),
@@ -82,7 +80,7 @@ describe('BuySheetView', () => {
   });
 
   it('selects the max quantity from the max chip', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.buySheetQuantity('max')),
@@ -98,7 +96,7 @@ describe('BuySheetView', () => {
   });
 
   it('shows the pay token balance', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.buySheetPayWith),
@@ -112,7 +110,7 @@ describe('BuySheetView', () => {
   });
 
   it('turns skip reveals on when switched', () => {
-    renderView();
+    render(<BuySheetView packCode={pack.code} onDismiss={jest.fn()} />);
 
     fireEvent(
       screen.getByRole('switch', {

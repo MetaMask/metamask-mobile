@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useRoute } from '@react-navigation/native';
@@ -8,7 +8,6 @@ import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectible
 import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
 import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
 import { PackTile } from '#app/components/UI/Collectibles/components/PackTile';
-import type { HomePack } from '#app/components/UI/Collectibles/types/packs';
 import { Text } from '@metamask/design-system-react-native';
 
 const Stack = createNativeStackNavigator();
@@ -19,10 +18,9 @@ function BuySheetStub() {
   return <Text>{`buy sheet: ${JSON.stringify(params)}`}</Text>;
 }
 
-// The price links to the buy sheet, so the tile needs a navigator.
-function renderTile(tilePack: HomePack = pack) {
+function render(ui: ReactElement) {
   function TileScreen() {
-    return <PackTile pack={tilePack} />;
+    return ui;
   }
 
   return renderWithProvider(
@@ -42,17 +40,17 @@ describe('PackTile', () => {
     [2, '2 opens'],
     [20_000, '20,000 opens, trending'],
   ])('labels a count of %d as "%s"', (openedCount, label) => {
-    renderTile({ ...pack, openedCount });
+    render(<PackTile pack={{ ...pack, openedCount }} />);
     expect(screen.getByLabelText(label)).toBeOnTheScreen();
   });
 
   it('shows the formatted count', () => {
-    renderTile({ ...pack, openedCount: 1234 });
+    render(<PackTile pack={{ ...pack, openedCount: 1234 }} />);
     expect(screen.getByText('1,234')).toBeOnTheScreen();
   });
 
   it('opens the buy sheet for its pack when the price is pressed', async () => {
-    renderTile();
+    render(<PackTile pack={pack} />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.buyButton(pack.code)),
@@ -66,7 +64,7 @@ describe('PackTile', () => {
   });
 
   it('tells screen readers which pack the price opens', () => {
-    renderTile();
+    render(<PackTile pack={pack} />);
 
     expect(
       screen.getByHintText(

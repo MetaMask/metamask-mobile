@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -21,9 +21,8 @@ jest.mock('#app/components/UI/Collectibles/hooks/useHomePacks', () => ({
 
 const [pack] = mockHomePacks;
 
-function renderSheet(packCode: string) {
-  mockPackCode = packCode;
-  return renderWithProvider(<BuySheet />);
+function render(ui: ReactElement) {
+  return renderWithProvider(ui);
 }
 
 describe('BuySheet', () => {
@@ -32,19 +31,22 @@ describe('BuySheet', () => {
   });
 
   it('shows the name of the pack it was opened for', () => {
-    renderSheet(pack.code);
+    mockPackCode = pack.code;
+    render(<BuySheet />);
 
     expect(screen.getByText(pack.name)).toBeOnTheScreen();
   });
 
   it('falls back to the Collectibles title for an unknown pack', () => {
-    renderSheet('unknown-pack');
+    mockPackCode = 'unknown-pack';
+    render(<BuySheet />);
 
     expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
   });
 
   it('goes back when the close button is pressed', async () => {
-    renderSheet(pack.code);
+    mockPackCode = pack.code;
+    render(<BuySheet />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.buySheetClose));
 

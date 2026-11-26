@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -21,6 +21,10 @@ const pack: EpicHuntPack = {
   pullsOverAverage: -68,
 };
 
+function render(ui: ReactElement) {
+  return renderWithProvider(ui);
+}
+
 describe('EpicHuntSection', () => {
   beforeEach(() => {
     mockResult = { data: [pack], isPending: false };
@@ -28,14 +32,14 @@ describe('EpicHuntSection', () => {
 
   it('shows skeleton tiles while loading', () => {
     mockResult = { data: [], isPending: true };
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(screen.getByTestId(collectiblesTestIds.skeleton)).toBeOnTheScreen();
   });
 
   it('shows the empty state when no pack qualifies', () => {
     mockResult = { data: [], isPending: false };
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByText(strings('collectibles.home.empty')),
@@ -46,7 +50,7 @@ describe('EpicHuntSection', () => {
   });
 
   it('shows the Epic line in place of the social cue', () => {
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByText('Epic 1% · 32 pulls since last Epic'),
@@ -54,7 +58,7 @@ describe('EpicHuntSection', () => {
   });
 
   it('shows the gauge in place of the pack counter', () => {
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.epicHuntGauge(pack.code)),
@@ -68,20 +72,20 @@ describe('EpicHuntSection', () => {
       data: [{ ...pack, pullsOverAverage: 12 }],
       isPending: false,
     };
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(screen.getByText('+12')).toBeOnTheScreen();
   });
 
   it('shows an unsigned zero at the average', () => {
     mockResult = { data: [{ ...pack, pullsOverAverage: 0 }], isPending: false };
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     expect(screen.getByText('0')).toBeOnTheScreen();
   });
 
   it('opens the info sheet from the info icon', () => {
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.epicHuntInfoButton));
 
@@ -91,7 +95,7 @@ describe('EpicHuntSection', () => {
   });
 
   it('closes the info sheet from its close button', async () => {
-    renderWithProvider(<EpicHuntSection />);
+    render(<EpicHuntSection />);
     fireEvent.press(screen.getByTestId(collectiblesTestIds.epicHuntInfoButton));
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.epicHuntInfoClose));
