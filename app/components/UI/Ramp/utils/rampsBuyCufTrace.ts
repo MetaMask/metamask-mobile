@@ -509,6 +509,22 @@ export function endOpenRampsBuyCufChildrenByName(
   return ended;
 }
 
+/**
+ * Whether a provider id is the native (in-app) Transak provider, including its
+ * staging variant. Accepts the `/providers/<code>` form and the bare code.
+ *
+ * Order Details uses this to close `Ramp Buy Native To Order Created` only for
+ * native orders: the span is only open on the native path, and a leftover one
+ * from an abandoned native attempt must not be marked successful by a widget or
+ * aggregator order (TRAM-4173).
+ */
+export function isRampsNativeProviderId(providerId?: string | null): boolean {
+  if (!providerId) {
+    return false;
+  }
+  return providerId.replace(/^\/providers\//, '').startsWith('transak-native');
+}
+
 function abandonOpenChildTraces(reason: string): void {
   for (const [opId] of Array.from(pendingChildMeta.entries())) {
     endRampsBuyCufChildTrace({

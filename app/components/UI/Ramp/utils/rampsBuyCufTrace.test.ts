@@ -13,6 +13,7 @@ import {
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
+  isRampsNativeProviderId,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
   buildRampsBuyQuoteFetchStartTags,
@@ -423,6 +424,97 @@ describe('rampsBuyCufTrace', () => {
         },
       }),
     );
+  });
+
+  describe('Native To Order Created completion (TRAM-4173)', () => {
+    it.each([
+      ['transak-native', true],
+      ['transak-native-staging', true],
+      ['/providers/transak-native', true],
+      ['/providers/transak-native-staging', true],
+      ['moonpay', false],
+      ['/providers/transak', false],
+      ['', false],
+      [undefined, false],
+      [null, false],
+    ])('isRampsNativeProviderId(%p) is %p', (providerId, expected) => {
+      expect(isRampsNativeProviderId(providerId)).toBe(expected);
+    });
+
+    it('closes the native child as successful before the parent ends, so it is not abandoned', () => {
+      startRampsBuyCufTrace();
+      const nativeId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+      });
+      mockEndTrace.mockClear();
+
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: 'ord-1',
+      });
+      endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
+
+      const childEnds = mockEndTrace.mock.calls.filter(
+        ([args]) => args.id === nativeId,
+      );
+      expect(childEnds).toHaveLength(1);
+      expect(childEnds[0][0]).toEqual(
+        expect.objectContaining({
+          name: TraceName.RampBuyNativeToOrderCreated,
+          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true, orderId: 'ord-1' },
+        }),
+      );
+    });
+
+    it('abandons a native child that is still open when the parent ends', () => {
+      startRampsBuyCufTrace();
+      const nativeId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+      });
+      mockEndTrace.mockClear();
+
+      endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: nativeId,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ABANDONED,
+          },
+        }),
+      );
+    });
+
+    it('does not end the native child a second time', () => {
+      startRampsBuyCufTrace();
+      const nativeId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+      });
+      const completion = {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: 'ord-1',
+      };
+      expect(
+        endOpenRampsBuyCufChildrenByName(
+          TraceName.RampBuyNativeToOrderCreated,
+          completion,
+        ),
+      ).toBe(1);
+      mockEndTrace.mockClear();
+
+      expect(
+        endOpenRampsBuyCufChildrenByName(
+          TraceName.RampBuyNativeToOrderCreated,
+          completion,
+        ),
+      ).toBe(0);
+      endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ id: nativeId }),
+      );
+    });
   });
 
   describe('Buy Quote Fetch CUF (TRAM-3780)', () => {

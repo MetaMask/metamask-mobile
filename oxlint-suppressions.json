@@ -10862,9 +10862,6 @@
     }
   },
   "app/components/UI/Ramp/Views/OrderDetails/OrderDetails.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-misused-promises": {
       "count": 2
     },
