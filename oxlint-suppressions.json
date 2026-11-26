@@ -9291,9 +9291,6 @@
   "app/components/UI/PredictNext/adapters/remote/KalshiOnboardingClient.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
-    },
-    "typescript/promise-function-async": {
-      "count": 4
     }
   },
   "app/components/UI/PredictNext/adapters/remote/KalshiOnboardingClient.ts": {
@@ -9554,11 +9551,6 @@
     }
   },
   "app/components/UI/PredictNext/onboarding/internal/createKalshiOnboardingClient.ts": {
-    "typescript/promise-function-async": {
-      "count": 4
-    }
-  },
-  "app/components/UI/PredictNext/onboarding/internal/useKalshiDemoOnboarding.ts": {
     "typescript/promise-function-async": {
       "count": 4
     }

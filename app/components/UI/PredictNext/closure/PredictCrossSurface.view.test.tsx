@@ -22,6 +22,7 @@ import '../../../../../tests/component-view/mocks';
 // below), so a surface that kept reading the old Venue, or never switched,
 // shows the wrong title and fails here.
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import {
@@ -34,6 +35,7 @@ import {
   setupTrendingApiFetchMock,
 } from '../../../../../tests/component-view/api-mocking/trending';
 import { stubFetchPath } from '../../../../../tests/component-view/api-mocking/fetchStub';
+import { KalshiOnboardingClient } from '../adapters/remote/KalshiOnboardingClient';
 import {
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
   buildPredictBuyActivity,
@@ -229,6 +231,8 @@ const polymarketReads = () =>
 type View = ReturnType<typeof renderPredictCrossSurface>;
 const engine = Engine as unknown as { state: Record<string, unknown> };
 const originalEngineState = engine.state;
+const originalAppState = AppState.currentState;
+let onboardingStatusSpy: jest.SpyInstance;
 
 /** Answers the picker as PredictVenueController does: store, then publish. */
 const persistPickerChoices = (getView: () => View | undefined) => {
@@ -403,6 +407,14 @@ const polymarketSnapshot = (
 
 describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
   beforeEach(() => {
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    // Readiness gates Home's account actions; this journey is about Venues.
+    onboardingStatusSpy = jest
+      .spyOn(KalshiOnboardingClient.prototype, 'getStatus')
+      .mockResolvedValue({ state: 'active' });
     setupTrendingApiFetchMock();
     stubFetchPath(
       'https://accounts.api.cx.metamask.io',
@@ -417,7 +429,12 @@ describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
 
   afterEach(() => {
     engine.state = originalEngineState;
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: originalAppState,
+    });
     clearTrendingApiMocks();
+    onboardingStatusSpy.mockRestore();
     netInfoMock.__resetMockNetInfo();
     messengerCall.mockImplementation(baseMessengerCall);
     resetPredictNextCatalog();
@@ -495,7 +512,9 @@ describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
     ).toBeNull();
     // Funding entry points follow the Venue: Kalshi's Home offers Withdraw,
     // and the legacy lane's does not, because it runs its own.
-    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.WITHDRAW),
+    ).toBeOnTheScreen();
 
     // ── Back to Polymarket: parity with where the journey started.
     await switchVenueInPredict(view, 'polymarket');

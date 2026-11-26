@@ -4314,6 +4314,46 @@
         "venue_unavailable": "The venue is unavailable right now. Try again in a moment.",
         "generic": "Something went wrong. Try again."
       }
+    },
+    "account_readiness": {
+      "finish_verifying": {
+        "title": "Finish verifying",
+        "body": "Pick up where you left off.",
+        "action": "Resume verification"
+      },
+      "verifying": {
+        "title": "Verifying your identity",
+        "body": "Your information is under review. You can leave this page and check back later."
+      },
+      "verified": {
+        "title": "Identity verified",
+        "body": "You're ready to keep trading on Kalshi.",
+        "dismiss": "Dismiss identity verified message"
+      },
+      "activation_required": {
+        "title": "Action needed",
+        "body": "Your identity is verified. Confirm your withdrawal wallet to finish.",
+        "action": "Continue"
+      },
+      "verification_failed": {
+        "title": "Verification needs your attention",
+        "body": "We couldn't complete verification. Start again to continue setting up your account.",
+        "action": "Start again"
+      },
+      "cancelled": {
+        "title": "Complete your account setup",
+        "body": "Your previous setup was cancelled. Start again when you're ready.",
+        "action": "Start again"
+      },
+      "status_unavailable": {
+        "title": "We couldn't confirm your account status",
+        "body": "Try again to check your status and available next steps.",
+        "action": "Try again"
+      },
+      "offline": "You're offline. Connect to the internet to check your account status.",
+      "read_failed": "Account status couldn't be refreshed. Your verification status hasn't been changed.",
+      "slow_connection": "Your connection is slow. Updating your account status may take longer.",
+      "refresh": "Check account status"
     }
   },
   "predict": {

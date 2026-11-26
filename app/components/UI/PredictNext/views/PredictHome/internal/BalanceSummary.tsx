@@ -22,29 +22,50 @@ import { PredictHomeTestIds } from '../PredictHome.testIds';
 const formatUsd = (value: string): string =>
   `$${new BigNumber(value).toFixed(2, BigNumber.ROUND_HALF_UP)}`;
 
+const BalanceAmount = ({
+  available,
+  depositStatus,
+  privacyMode,
+}: {
+  available: string;
+  depositStatus?: React.ReactNode;
+  privacyMode: boolean;
+}): React.ReactElement => (
+  <Box gap={1} testID={PredictHomeTestIds.BALANCE}>
+    <SensitiveText
+      variant={TextVariant.AmountDisplayLg}
+      fontFamily={FontFamily.Hero}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+      testID={PredictHomeTestIds.BALANCE_AMOUNT}
+    >
+      {formatUsd(available)}
+    </SensitiveText>
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {strings('predict_next.available_balance')}
+    </Text>
+    {depositStatus}
+  </Box>
+);
+
 export const BalanceSummary = ({
   balance,
   isLoading,
   error,
   onRetry,
   depositStatus,
+  showZeroBalance = false,
 }: {
   balance?: PredictBalance;
   isLoading: boolean;
   error: Error | null;
   onRetry: () => void;
   depositStatus?: React.ReactNode;
-}) => {
+  /** A known inactive account has no readable Balance, so show `$0.00`
+   * instead of the read's loading or failure state. */
+  showZeroBalance?: boolean;
+}): React.ReactElement | null => {
   const privacyMode = useSelector(selectPrivacyMode);
-
-  if (isLoading) {
-    return (
-      <Box gap={2} testID={PredictHomeTestIds.BALANCE_LOADING}>
-        <Skeleton height={40} width={160} />
-        <Skeleton height={20} width={120} />
-      </Box>
-    );
-  }
 
   // Retrying cannot lift a regional block, so it gets no retry button.
   if (
@@ -59,6 +80,27 @@ export const BalanceSummary = ({
       >
         {strings('predict_next.unavailable_in_region')}
       </Text>
+    );
+  }
+
+  // Before activation the Balance read has nothing to show, and its failure
+  // is not actionable. A known inactive account reads as `$0.00`.
+  if (showZeroBalance) {
+    return (
+      <BalanceAmount
+        available="0"
+        depositStatus={depositStatus}
+        privacyMode={privacyMode}
+      />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box gap={2} testID={PredictHomeTestIds.BALANCE_LOADING}>
+        <Skeleton height={40} width={160} />
+        <Skeleton height={20} width={120} />
+      </Box>
     );
   }
 
@@ -89,20 +131,10 @@ export const BalanceSummary = ({
   }
 
   return (
-    <Box gap={1} testID={PredictHomeTestIds.BALANCE}>
-      <SensitiveText
-        variant={TextVariant.AmountDisplayLg}
-        fontFamily={FontFamily.Hero}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Medium}
-        testID={PredictHomeTestIds.BALANCE_AMOUNT}
-      >
-        {formatUsd(balance.available)}
-      </SensitiveText>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('predict_next.available_balance')}
-      </Text>
-      {depositStatus}
-    </Box>
+    <BalanceAmount
+      available={balance.available}
+      depositStatus={depositStatus}
+      privacyMode={privacyMode}
+    />
   );
 };

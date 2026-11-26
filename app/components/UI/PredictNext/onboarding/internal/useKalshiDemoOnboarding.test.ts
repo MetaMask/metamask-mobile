@@ -6,7 +6,11 @@ import {
   KalshiOnboardingHttpError,
   KalshiOnboardingPolicyError,
 } from '../../adapters/remote/KalshiOnboardingClient';
-import type { KalshiLinkVerify } from '../../contracts/v1/onboarding';
+import type {
+  KalshiLinkVerify,
+  KalshiOnboardingStatus,
+} from '../../contracts/v1/onboarding';
+import type { AccountSetupIntent } from '../accountReadiness.types';
 import {
   createOnboardingController,
   useKalshiDemoOnboarding,
@@ -21,7 +25,7 @@ const flush = async () => {
 const WALLET = '0x1234567890AbcdEF1234567890aBcdef12345678';
 
 const statusOf = (state: string) =>
-  ({ state }) as Awaited<ReturnType<KalshiOnboardingApi['getStatus']>>;
+  ({ state }) as unknown as KalshiOnboardingStatus;
 
 describe('createOnboardingController', () => {
   const events: OnboardingEvent[] = [];
@@ -35,6 +39,10 @@ describe('createOnboardingController', () => {
       omitWallet?: boolean;
       canPoll?: () => boolean;
       pollIntervalMs?: number;
+      intent?: AccountSetupIntent;
+      onStatus?: jest.Mock;
+      onFailure?: jest.Mock;
+      onClose?: jest.Mock;
     } = {},
   ) => {
     onActivated = jest.fn();
@@ -46,6 +54,10 @@ describe('createOnboardingController', () => {
         pollIntervalMs: overrides.pollIntervalMs ?? 0,
         canPoll: overrides.canPoll,
         onActivated,
+        initialIntent: overrides.intent ?? 'resume',
+        onStatus: overrides.onStatus,
+        onFailure: overrides.onFailure,
+        onClose: overrides.onClose,
         newKey: () => {
           const key = `key-${keys.length + 1}`;
           keys.push(key);
@@ -474,6 +486,111 @@ describe('createOnboardingController', () => {
 
     expect(events.at(-1)).toEqual({ type: 'dismissed' });
     expect(events.map((event) => event.type)).not.toContain('review_timed_out');
+  });
+
+  it('routes a restart of a pending KYC back to email without running demo KYC', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_pending'));
+    const controller = start({ intent: 'restart' });
+
+    controller.start();
+    await flush();
+
+    expect(client.runDemoKyc).not.toHaveBeenCalled();
+    expect(events).toContainEqual({
+      type: 'status',
+      state: 'none',
+      initial: true,
+    });
+  });
+
+  it('keeps authoritative routes on restart', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_review'));
+    const controller = start({ intent: 'restart' });
+
+    controller.start();
+    await flush();
+
+    expect(client.runDemoKyc).not.toHaveBeenCalled();
+    expect(events).toContainEqual({
+      type: 'status',
+      state: 'kyc_review',
+      initial: true,
+    });
+    expect(events).not.toContainEqual(
+      expect.objectContaining({ type: 'status', state: 'none' }),
+    );
+  });
+
+  it('only re-reads status for a retry intent', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_pending'));
+    const controller = start({ intent: 'retry' });
+
+    controller.start();
+    await flush();
+
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+    expect(client.runDemoKyc).not.toHaveBeenCalled();
+    expect(events).toContainEqual({
+      type: 'status',
+      state: 'kyc_pending',
+      initial: true,
+    });
+  });
+
+  it('publishes every status it reads', async () => {
+    client.getStatus.mockResolvedValue(statusOf('link_pending'));
+    const onStatus = jest.fn();
+    const controller = start({ onStatus });
+
+    controller.start();
+    await flush();
+
+    expect(onStatus).toHaveBeenCalledWith('link_pending');
+  });
+
+  it('publishes the classified failure without the raw error', async () => {
+    client.createIntent.mockRejectedValueOnce(
+      new KalshiOnboardingHttpError(409, 'onboarding_intent_missing'),
+    );
+    const onFailure = jest.fn();
+    const controller = start({ onFailure });
+
+    controller.submitEmail('a@example.com');
+    await flush();
+
+    expect(onFailure).toHaveBeenCalledWith(
+      expect.objectContaining({ next: 'email' }),
+    );
+    expect(onFailure.mock.calls[0][0]).not.toHaveProperty('cause');
+  });
+
+  it('calls onClose after dismissing', async () => {
+    const onClose = jest.fn();
+    const controller = start({ onClose });
+
+    controller.dismiss();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts in-flight reads on pause and only re-reads on resume', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_pending'));
+    client.runDemoKyc.mockResolvedValue(statusOf('kyc_review'));
+    const controller = start({ pollIntervalMs: 1_000 });
+
+    controller.start();
+    await jest.advanceTimersByTimeAsync(0);
+    expect(client.runDemoKyc).toHaveBeenCalledTimes(1);
+    expect(client.getStatus).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+    });
+
+    controller.pause();
+    controller.resume();
+    await flush();
+
+    expect(client.getStatus).toHaveBeenCalledTimes(2);
+    expect(client.runDemoKyc).toHaveBeenCalledTimes(1);
   });
 
   it('reads status on mount and stops on unmount', async () => {

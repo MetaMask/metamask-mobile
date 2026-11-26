@@ -115,6 +115,14 @@ const isRenewable = (attempt: SignedAttempt): boolean =>
   (attempt.status === 403 && attempt.code === 'venue_authorization_invalid') ||
   (attempt.status === 409 && attempt.code === 'venue_signature_expired');
 
+const throwIfAborted = (signal?: AbortSignal): void => {
+  if (signal?.aborted) {
+    const error = new Error('The operation was aborted');
+    error.name = 'AbortError';
+    throw error;
+  }
+};
+
 /**
  * predict-api Kalshi onboarding routes. Each route is one fixed upstream
  * request; the client builds its exact bytes, signs them directly with the
@@ -131,8 +139,11 @@ export class KalshiOnboardingClient {
     this.#fetch = options.fetch ?? global.fetch;
   }
 
-  async getStatus(): Promise<KalshiOnboardingStatus> {
+  async getStatus(options?: {
+    signal?: AbortSignal;
+  }): Promise<KalshiOnboardingStatus> {
     const value = await this.#signedCall({
+      signal: options?.signal,
       method: 'GET',
       route: ['onboarded'],
       // The temporary onboarded probe: the server verifies one envelope
@@ -153,6 +164,7 @@ export class KalshiOnboardingClient {
         },
       ],
     });
+    throwIfAborted(options?.signal);
     // `{onboarded: true}` means the balance probe ran; translate it, but
     // keep the optional balanceDollars the server sends alongside it.
     const status = parseKalshiOnboardingStatus(
@@ -254,11 +266,15 @@ export class KalshiOnboardingClient {
     return parseKalshiActivate(value);
   }
 
-  async #resolveContext(): Promise<OnboardingSigningContext> {
+  async #resolveContext(
+    signal?: AbortSignal,
+  ): Promise<OnboardingSigningContext> {
+    throwIfAborted(signal);
     const [a2t, key] = await Promise.all([
       this.#options.getA2t(),
       this.#options.getDeviceKey(),
     ]);
+    throwIfAborted(signal);
     if (!a2t?.trim() || !key) {
       throw new KalshiOnboardingPolicyError('signing_unavailable');
     }
@@ -271,6 +287,7 @@ export class KalshiOnboardingClient {
     request: OnboardingSignedRequest;
     /** Extra upstream requests the server relays under the same envelope. */
     alsoSign?: readonly OnboardingSignedRequest[];
+    signal?: AbortSignal;
     /**
      * DTO fields the server re-derives and matches against the envelope
      * `values`, byte for byte. The same JSON goes in the HTTP body.
@@ -278,7 +295,9 @@ export class KalshiOnboardingClient {
     body?: Record<string, string>;
   }): Promise<unknown> {
     const send = async (): Promise<RawResponse> => {
-      const context = await this.#resolveContext();
+      throwIfAborted(input.signal);
+      const context = await this.#resolveContext(input.signal);
+      throwIfAborted(input.signal);
       const signatures = await Promise.all(
         [input.request, ...(input.alsoSign ?? [])].map((request) =>
           signOnboardingRequest(request, context, {
@@ -288,6 +307,7 @@ export class KalshiOnboardingClient {
           }),
         ),
       );
+      throwIfAborted(input.signal);
       const header = {
         name: VENUE_AUTHORIZATION_HEADER,
         value: buildOnboardingVenueAuthorization({
@@ -302,9 +322,11 @@ export class KalshiOnboardingClient {
         input.route,
         input.body && { ...input.body },
         header,
+        input.signal,
       );
     };
-    const response = await this.#sendOnceThenRetry(send);
+    const response = await this.#sendOnceThenRetry(send, input.signal);
+    throwIfAborted(input.signal);
     return this.#accept(response);
   }
 
@@ -312,8 +334,10 @@ export class KalshiOnboardingClient {
   // the signature or the A2T is stale is signed again and sent once more.
   async #sendOnceThenRetry(
     send: () => Promise<RawResponse>,
+    signal?: AbortSignal,
   ): Promise<RawResponse> {
     const first = await send();
+    throwIfAborted(signal);
     const attempt: SignedAttempt = {
       status: first.status,
       code: bodyCode(first.body),
@@ -322,6 +346,7 @@ export class KalshiOnboardingClient {
       return first;
     }
     if (attempt.code === 'venue_authorization_invalid') {
+      throwIfAborted(signal);
       try {
         this.#options.invalidateA2t();
       } catch (error) {
@@ -346,8 +371,11 @@ export class KalshiOnboardingClient {
     route: readonly string[],
     body: Record<string, string> | undefined,
     deviceAuth?: { name: string; value: string },
+    signal?: AbortSignal,
   ): Promise<RawResponse> {
-    const bearerToken = await this.#resolveBearerToken();
+    throwIfAborted(signal);
+    const bearerToken = await this.#resolveBearerToken(signal);
+    throwIfAborted(signal);
     const headers: Record<string, string> = {
       Accept: 'application/json',
       'x-metamask-clientproduct': 'metamask-mobile',
@@ -365,8 +393,11 @@ export class KalshiOnboardingClient {
       method,
       headers,
       ...(method === 'POST' ? { body: JSON.stringify(body ?? {}) } : {}),
+      ...(signal ? { signal } : {}),
     });
+    throwIfAborted(signal);
     const text = await response.text();
+    throwIfAborted(signal);
     let parsed: unknown;
     if (text.length > 0) {
       try {
@@ -392,16 +423,19 @@ export class KalshiOnboardingClient {
     };
   }
 
-  async #resolveBearerToken(): Promise<string> {
+  async #resolveBearerToken(signal?: AbortSignal): Promise<string> {
+    throwIfAborted(signal);
     const token = await this.#options
       .getBearerToken()
       .catch((error: unknown) => {
+        throwIfAborted(signal);
         Logger.error(
           ensureError(error, 'KalshiOnboardingClient.resolveBearerToken'),
           'PredictNext: failed to get the Predict API bearer token',
         );
         return undefined;
       });
+    throwIfAborted(signal);
     if (!token?.trim()) {
       throw new KalshiOnboardingHttpError(401);
     }

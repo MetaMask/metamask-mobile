@@ -25,7 +25,9 @@ import { useBalance } from '../../hooks/useBalance';
 import {
   KalshiDebugPanel,
   KalshiDebugTestIds,
-} from '../../onboarding/KalshiDebugPanel';
+  useAccountReadiness,
+} from '../../onboarding';
+import { PredictError, PredictErrorCode } from '../../errors';
 import { getFeedScreen, type FeedScreenId } from '../../navigation/feedScreens';
 import {
   canPerformVenueAction,
@@ -51,6 +53,7 @@ import type {
 } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import { DepositStatusLine } from '../../components/DepositStatusLine';
+import { AccountReadinessCardHost } from './internal/AccountReadinessCardHost';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
@@ -119,6 +122,22 @@ const PredictHomeView = ({
     onScrollSettled,
   } = useVisibleSections({ keys: sectionKeys, scrollY });
   const balanceQuery = useBalance(venueId);
+  // A cached balance never hides a permanent geo block.
+  const isRegionBlocked =
+    balanceQuery.error instanceof PredictError &&
+    balanceQuery.error.code === PredictErrorCode.GEO_BLOCKED;
+  const readiness = useAccountReadiness({
+    venueId,
+    isFocused,
+    region: isRegionBlocked ? 'blocked' : 'allowed_or_unknown',
+  });
+  // A known inactive account cannot read its Balance or Portfolio yet.
+  const hasAccountAccess =
+    readiness.accountActions === 'unchanged' || readiness.readiness === 'ready';
+  const showZeroBalance =
+    readiness.accountActions === 'readiness_gated' &&
+    readiness.readiness !== 'unknown' &&
+    readiness.readiness !== 'ready';
   const canBuy = canPerformVenueAction(capabilities, 'buy');
   const { failedGamesReads } = home;
   const retryFailedGamesReads = useCallback(
@@ -435,6 +454,7 @@ const PredictHomeView = ({
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
+            showZeroBalance={showZeroBalance}
             depositStatus={
               <DepositStatusLine
                 venueId={venueId}
@@ -442,13 +462,20 @@ const PredictHomeView = ({
               />
             }
           />
-          <PortfolioActions
-            onPositionsPress={openPortfolio}
-            onAddFundsPress={canDeposit ? openDeposit : undefined}
-            onWithdrawPress={
-              withdrawResolution.status === 'ready' ? openWithdraw : undefined
-            }
-          />
+          <AccountReadinessCardHost value={readiness} />
+          {hasAccountAccess ? (
+            <PortfolioActions
+              onPositionsPress={openPortfolio}
+              onAddFundsPress={
+                !isRegionBlocked && canDeposit ? openDeposit : undefined
+              }
+              onWithdrawPress={
+                !isRegionBlocked && withdrawResolution.status === 'ready'
+                  ? openWithdraw
+                  : undefined
+              }
+            />
+          ) : null}
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={hasVisibleSection}

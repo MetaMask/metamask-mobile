@@ -47,6 +47,7 @@ import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/naviga
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
 import { PredictWithdrawScreen } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
+import { KalshiDemoOnboardingGate } from '../../../app/components/UI/PredictNext/onboarding';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
   PredictNextStackParamList,
@@ -134,15 +135,41 @@ export const renderPredictNext = (
     venueId = DEFAULT_VENUE_ID,
     remoteFeatureFlags = {},
     queryClient,
+    overrides,
+    onboardingGate = false,
   }: {
     venueId?: PredictVenueId;
     remoteFeatureFlags?: Record<string, unknown>;
+    /** Merge extra engine state, e.g. signed-out or locked variants. */
+    overrides?: DeepPartial<RootState>;
+    /** Mount Home inside the real readiness gate (real client and observation). */
+    onboardingGate?: boolean;
     /** A caller-owned client, for tests that warm or refetch the cache. */
     queryClient?: QueryClient;
   } = {},
-) =>
-  renderScreenWithRoutes(
-    venueId === DEFAULT_VENUE_ID ? HomeScreen : homeScreenFor(venueId),
+) => {
+  const state = initialStatePredictNext(privacyMode)
+    .withRemoteFeatureFlags(remoteFeatureFlags)
+    .withOverrides(overrides ?? {})
+    .build();
+  // Gate Home itself: the shared renderer already puts every screen inside
+  // the query client the readiness gate reads, and wrapping only the screen
+  // keeps the gate Predict-local instead of changing the shared harness.
+  const HomeComponent = onboardingGate
+    ? () => (
+        <NextVenueProvider venueId={venueId}>
+          <KalshiDemoOnboardingGate>
+            <PredictOrderFlowProvider>
+              <PredictHome />
+            </PredictOrderFlowProvider>
+          </KalshiDemoOnboardingGate>
+        </NextVenueProvider>
+      )
+    : venueId === DEFAULT_VENUE_ID
+      ? HomeScreen
+      : homeScreenFor(venueId);
+  return renderScreenWithRoutes(
+    HomeComponent,
     { name: PredictNextRoutes.HOME },
     [
       { name: PredictNextRoutes.FEED, Component: FeedScreen },
@@ -154,14 +181,11 @@ export const renderPredictNext = (
       // A probe: Home never leaves Predict for the app's Explore tab.
       { name: Routes.TRENDING_VIEW },
     ],
-    {
-      state: initialStatePredictNext(privacyMode)
-        .withRemoteFeatureFlags(remoteFeatureFlags)
-        .build(),
-    },
+    { state },
     undefined,
     queryClient,
   );
+};
 
 export const renderPredictSearchScreen = (
   initialParams: PredictNextSearchParams,

@@ -44,7 +44,16 @@ export const PredictHomeTestIds = {
   HOME_GAMES_RETRY: 'predict-next-home-games-retry',
   GET_STARTED_BANNER: 'predict-next-home-get-started-banner',
   GET_STARTED_BANNER_IMAGE: 'predict-next-home-get-started-banner-image',
-  GET_STARTED_BANNER_DISMISS: 'predict-next-home-get-started-banner-dismiss',
+  ACCOUNT_READINESS: 'predict-next-home-account-readiness',
+  FINISH_VERIFYING_BANNER: 'predict-next-home-finish-verifying-banner',
+  VERIFICATION_PENDING_BANNER: 'predict-next-home-verification-pending-banner',
+  IDENTITY_VERIFIED_BANNER: 'predict-next-home-identity-verified-banner',
+  IDENTITY_VERIFIED_DISMISS: 'predict-next-home-identity-verified-dismiss',
+  ACCOUNT_SETUP_ACTION_REQUIRED_BANNER:
+    'predict-next-home-account-setup-action-required-banner',
+  ACCOUNT_READINESS_READ_STATUS:
+    'predict-next-home-account-readiness-read-status',
+  ACCOUNT_READINESS_REFRESH: 'predict-next-home-account-readiness-refresh',
   SECTIONS_LOADING: 'predict-next-home-sections-loading',
   SECTIONS_ERROR: 'predict-next-home-sections-error',
   SECTIONS_RETRY: 'predict-next-home-sections-retry',

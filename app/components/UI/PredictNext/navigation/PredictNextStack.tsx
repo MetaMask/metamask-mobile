@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PredictDeviceAuthBootstrap } from '../auth/PredictDeviceAuthBootstrap';
-import { KalshiDemoOnboardingGate } from '../onboarding/KalshiDemoOnboardingGate';
+import { KalshiDemoOnboardingGate } from '../onboarding';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { PredictWithdrawScreen } from '../views/PredictWithdrawFlow';
