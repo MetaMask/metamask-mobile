@@ -85,7 +85,7 @@ describe('handleWebShare', () => {
     );
   });
 
-  it('shares text and url separately on iOS', async () => {
+  it('shares combined text and url on iOS', async () => {
     jest.replaceProperty(Platform, 'OS', 'ios');
 
     await handleWebShare({
@@ -98,14 +98,32 @@ describe('handleWebShare', () => {
     expect(RNShare.share).toHaveBeenCalledWith(
       {
         title: 'My Title',
-        message: 'Check this out',
-        url: 'https://example.com',
+        message: 'Check this out https://example.com',
       },
       {
         dialogTitle: 'My Title',
         subject: 'My Title',
       },
     );
+  });
+
+  it.each([
+    '~/Documents/example',
+    '%7E/Documents/example',
+    '/tmp/example',
+    'file:///tmp/example',
+    'data:text/plain;base64,aGVsbG8=',
+    'relative/example',
+  ])('shares url %s as message text on iOS', async (url) => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+
+    await handleWebShare({ url });
+
+    expect(RNShare.share).toHaveBeenCalledWith(
+      { message: url },
+      { dialogTitle: undefined, subject: undefined },
+    );
+    expect(Share.open).not.toHaveBeenCalled();
   });
 
   it('shares image files via the system share sheet on Android', async () => {
