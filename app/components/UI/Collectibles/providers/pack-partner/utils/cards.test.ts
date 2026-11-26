@@ -27,7 +27,7 @@ import {
 const NOW = 1_800_000_000_000;
 const MINT = 'MintA111111111111111111111111111111111111111';
 
-describe('inventoryCardFromNft set metadata', () => {
+describe('inventoryCardFromNft', () => {
   it('preserves the Set attribute separately from the original NFT name', () => {
     const nft = {
       nft_address: MINT,
@@ -54,6 +54,17 @@ describe('inventoryCardFromNft set metadata', () => {
       gradingId: 'certificate-123',
     });
     expect(card).not.toHaveProperty('buyback');
+  });
+
+  it.each([
+    ['  Pikachu  ', 'Pikachu'],
+    [' \t ', MINT],
+  ])('maps a metadata name of %j to %j', (name, expectedName) => {
+    const nft = { nft_address: MINT, content: { metadata: { name } } };
+
+    const card = inventoryCardFromNft(nft);
+
+    expect(card.name).toBe(expectedName);
   });
 });
 

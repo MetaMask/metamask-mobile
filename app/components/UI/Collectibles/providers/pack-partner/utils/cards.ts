@@ -256,7 +256,8 @@ export const inventoryCardFromNft = (
       toText(nft.description) ??
       toText(metadata.json_name) ??
       toText(nft.name) ??
-      metadata.name,
+      toText(metadata.name) ??
+      nft.nft_address,
     ...images,
     ...detailsFromAttributes(read),
     insuredValue:
