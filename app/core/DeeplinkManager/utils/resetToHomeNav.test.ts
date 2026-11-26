@@ -41,7 +41,7 @@ describe('buildHomeNavResetState', () => {
       index: 1,
       routes: [
         { name: Routes.HOME_TABS },
-        { name: Routes.BROWSER.VIEW, params: { newTabUrl: 'https://a.test' } },
+        { name: Routes.BROWSER.HOME, params: { newTabUrl: 'https://a.test' } },
       ],
     });
 
@@ -49,9 +49,18 @@ describe('buildHomeNavResetState', () => {
       index: 1,
       routes: [
         { name: Routes.HOME_TABS },
-        { name: Routes.BROWSER.VIEW, params: { newTabUrl: 'https://a.test' } },
+        { name: Routes.BROWSER.HOME, params: { newTabUrl: 'https://a.test' } },
       ],
     });
+  });
+
+  it('preserves nested Browser params by reference', () => {
+    const params = { screen: Routes.BROWSER.VIEW, params: { timestamp: 1 } };
+    const state = { routes: [{ name: Routes.BROWSER.HOME, params }] };
+
+    const result = buildHomeNavResetState(state);
+
+    expect(result.routes[0].state?.routes[0].params).toBe(params);
   });
 });
 

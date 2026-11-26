@@ -467,7 +467,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 - Signature requests
 - Smart transactions
 
-**Typical Test Coverage:** SmokeConfirmationsRedesigned, SmokeWalletPlatform
+**Typical Test Coverage:** SmokeConfirmations, SmokeWalletPlatform
 
 ### Account Domain (KeyringController, AccountsController changes)
 
@@ -580,7 +580,7 @@ export const transactionControllerInit = ({ getMessengerClient, ... }) => {
 - Account + Transaction + Network features
 - Conservative approach due to uncertainty
 
-**Example Tags:** SmokeAccounts, SmokeConfirmationsRedesigned, SmokeWalletPlatform, SmokeNetworkAbstractions
+**Example Tags:** SmokeAccounts, SmokeConfirmations, SmokeWalletPlatform, SmokeNetworkAbstractions
 
 ### Isolated Change Pattern
 

@@ -57,6 +57,68 @@ const cvFlakeSelectors = [
     message: CV_FIXED_SLEEP_MESSAGE,
   },
 ];
+const designSystem = require('./scripts/eslint/design-system-plugin.js');
+const designSystemPlugin = {
+  meta: designSystem.meta,
+  rules: designSystem.rules,
+};
+
+// Spacing sits on the 4px grid (Design Brain SP-S5). Selectors match on the
+// literal's source text: a number is a multiple of 4 when its last two digits
+// are, so OFF_GRID needs no arithmetic. Arbitrary values only count when they
+// start with a number, so calc() and var() layouts are not flagged. The
+// ConditionalExpression selectors cover the two result branches of a spacing
+// ternary, e.g. paddingTop: expanded ? 22 : 0.
+const SPACING_KEY =
+  '/^(margin|padding)(Top|Right|Bottom|Left|Horizontal|Vertical|Start|End|(Inline|Block)(Start|End)?)?$|^(row|column)?[Gg]ap$/';
+const OFF_GRID_NUMBER =
+  '/^(?!(\\d*[02468][048]|\\d*[13579][26]|[048])$)\\d+(\\.\\d+)?$/';
+const ARBITRARY_SPACING_CLASS =
+  '/(^|[\\s:!])-?((m|p)[trblxyse]?|gap(-[xy])?)-\\[-?\\d/';
+const CLASS_ATTRIBUTE = '/^(className|twClassName)$/';
+const OFF_GRID_MESSAGE =
+  'Spacing is off the 4px grid. Use a multiple of 4, or a Tailwind class or Box spacing prop (1 = 4px). A 2px half-step or optical offset needs an eslint-disable comment that says why.';
+const ARBITRARY_SPACING_MESSAGE =
+  'Arbitrary spacing values like p-[15px] skip the 4px grid. Use a spacing step (p-4 = 16px, p-0.5 = 2px). An optical offset needs an eslint-disable comment that says why.';
+const spacingGridSelectors = [
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > UnaryExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > ConditionalExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > ConditionalExpression > UnaryExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `JSXAttribute[name.name=${CLASS_ATTRIBUTE}] Literal[value=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `JSXAttribute[name.name=${CLASS_ATTRIBUTE}] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.object.name='tw'] Literal[value=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.object.name='tw'] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `TaggedTemplateExpression[tag.name='tw'] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+];
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({
   baseDirectory: here,
@@ -237,6 +299,123 @@ const overridesAfterTypescriptBlocks = withoutDuplicatePlugins(
   compat.config({ overrides: overridesAfterTypescript }),
 );
 
+// Oxlint runs these rules, with the same options, from .oxlintrc.json. They
+// are turned off here so each file is checked once. Rules that ESLint can
+// auto-fix are not in this list: lint-staged and lint:fix rely on eslint --fix.
+const rulesOwnedByOxlint = [
+  '@typescript-eslint/ban-ts-comment',
+  '@typescript-eslint/default-param-last',
+  '@typescript-eslint/no-dupe-class-members',
+  '@typescript-eslint/no-explicit-any',
+  '@typescript-eslint/no-misused-new',
+  '@typescript-eslint/no-namespace',
+  '@typescript-eslint/no-non-null-asserted-optional-chain',
+  '@typescript-eslint/no-non-null-assertion',
+  '@typescript-eslint/no-this-alias',
+  '@typescript-eslint/no-unnecessary-type-constraint',
+  '@typescript-eslint/no-unsafe-declaration-merging',
+  '@typescript-eslint/no-unsafe-function-type',
+  '@typescript-eslint/no-unused-expressions',
+  '@typescript-eslint/no-use-before-define',
+  '@typescript-eslint/no-useless-constructor',
+  '@typescript-eslint/parameter-properties',
+  '@typescript-eslint/prefer-for-of',
+  '@typescript-eslint/triple-slash-reference',
+  '@typescript-eslint/unified-signatures',
+  'array-callback-return',
+  'constructor-super',
+  'for-direction',
+  'getter-return',
+  'import-x/no-amd',
+  'import-x/no-mutable-exports',
+  'no-async-promise-executor',
+  'no-caller',
+  'no-case-declarations',
+  'no-class-assign',
+  'no-compare-neg-zero',
+  'no-cond-assign',
+  'no-const-assign',
+  'no-constant-condition',
+  'no-control-regex',
+  'no-debugger',
+  'no-delete-var',
+  'no-dupe-class-members',
+  'no-dupe-else-if',
+  'no-dupe-keys',
+  'no-duplicate-case',
+  'no-duplicate-imports',
+  'no-empty',
+  'no-empty-character-class',
+  'no-empty-function',
+  'no-empty-pattern',
+  'no-ex-assign',
+  'no-extend-native',
+  'no-fallthrough',
+  'no-func-assign',
+  'no-import-assign',
+  'no-invalid-regexp',
+  'no-irregular-whitespace',
+  'no-iterator',
+  'no-label-var',
+  'no-labels',
+  'no-lone-blocks',
+  'no-loop-func',
+  'no-misleading-character-class',
+  'no-new-func',
+  'no-new-wrappers',
+  'no-nonoctal-decimal-escape',
+  'no-proto',
+  'no-prototype-builtins',
+  'no-return-assign',
+  'no-script-url',
+  'no-self-assign',
+  'no-self-compare',
+  'no-sequences',
+  'no-setter-return',
+  'no-shadow-restricted-names',
+  'no-sparse-arrays',
+  'no-this-before-super',
+  'no-throw-literal',
+  'no-unexpected-multiline',
+  'no-unmodified-loop-condition',
+  'no-unreachable',
+  'no-unsafe-finally',
+  'no-unsafe-negation',
+  'no-use-before-define',
+  'no-useless-backreference',
+  'no-useless-call',
+  'no-useless-catch',
+  'no-useless-concat',
+  'no-useless-constructor',
+  'no-useless-escape',
+  'no-void',
+  'no-warning-comments',
+  'no-with',
+  'prefer-rest-params',
+  'prefer-spread',
+  'react/jsx-key',
+  'react/jsx-no-comment-textnodes',
+  'react/jsx-no-duplicate-props',
+  'react/jsx-no-undef',
+  'react/jsx-pascal-case',
+  'react/no-children-prop',
+  'react/no-danger-with-children',
+  'react/no-direct-mutation-state',
+  'react/no-find-dom-node',
+  'react/no-is-mounted',
+  'react/no-multi-comp',
+  'react/no-render-return-value',
+  'react/no-string-refs',
+  'react/no-unescaped-entities',
+  'react/no-unstable-nested-components',
+  'react/prefer-es6-class',
+  'react/react-in-jsx-scope',
+  'react/require-render-return',
+  'require-yield',
+  'use-isnan',
+  'valid-typeof',
+];
+
 export default [
   ...flatConfig,
   {
@@ -247,6 +426,12 @@ export default [
   { files: ['**/*.{js,jsx}'], rules: pinJavascriptToToday },
   { files: ['**/*.{ts,tsx}'], rules: pinTypescriptToToday },
   ...overridesAfterTypescriptBlocks,
+  // After every block that sets these rules, so 'off' wins. Oxlint cannot
+  // parse app/declarations, so ESLint keeps the rules there.
+  {
+    ignores: ['app/declarations/**'],
+    rules: Object.fromEntries(rulesOwnedByOxlint.map((rule) => [rule, 'off'])),
+  },
   // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
   { linterOptions: { reportUnusedDisableDirectives: 'off' } },
   // Counts on this tree: nested findBy 13, fixed sleep 18, bare timeout 446,
@@ -262,6 +447,23 @@ export default [
       'component-view/no-restricted-syntax': ['warn', ...cvFlakeSelectors],
       'component-view/no-bare-query-timeout': 'warn',
       'component-view/no-clear-all-mocks-without-reset': 'warn',
+    },
+  },
+  // Existing violations are baselined in eslint-suppressions.json. After
+  // fixing one, run `yarn eslint <file> --prune-suppressions`. The
+  // disable-reason rule keeps every exception to spacing-grid documented in
+  // the disable comment itself.
+  {
+    files: ['app/**/*.{js,jsx,ts,tsx}'],
+    ignores: [
+      '**/*.test.{js,jsx,ts,tsx}',
+      '**/*.stories.{js,jsx,ts,tsx}',
+      '**/__mocks__/**',
+    ],
+    plugins: { 'design-system': designSystemPlugin },
+    rules: {
+      'design-system/spacing-grid': ['error', ...spacingGridSelectors],
+      'design-system/spacing-grid-disable-reason': 'error',
     },
   },
 ];

@@ -1,14 +1,16 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 import RewardsOptInSection, {
   REWARDS_OPT_IN_SECTION_TEST_IDS,
 } from './RewardsOptInSection';
 
 let mockAccountGroupAccounts = [{ address: '0xsoftware', type: 'eip155:eoa' }];
-let mockOptinAllowedForGeo: boolean | null = true;
-let mockOptinAllowedForGeoLoading = false;
-let mockOptinAllowedForGeoError = false;
+let mockGeoLocation: string | undefined = 'US';
+let mockGeoStatus: 'idle' | 'loading' | 'complete' | 'error' | undefined =
+  'complete';
 let mockOptinError: string | null = null;
 let mockOptinLoading = false;
 const mockOptin = jest.fn();
@@ -20,14 +22,21 @@ const mockErrorToast = jest.fn((title: string, description?: string) => ({
 }));
 const mockIsOptInSupported = jest.fn(() => true);
 
-jest.mock('react-redux', () => ({
-  useSelector: (selector: () => unknown) => selector(),
-}));
+const mockGeoState = () =>
+  ({
+    engine: {
+      backgroundState: {
+        GeolocationController: {
+          location: mockGeoLocation,
+          status: mockGeoStatus,
+        },
+      },
+    },
+  }) as RootState;
 
-jest.mock('../../../../../reducers/rewards/selectors', () => ({
-  selectOptinAllowedForGeo: () => mockOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading: () => mockOptinAllowedForGeoLoading,
-  selectOptinAllowedForGeoError: () => mockOptinAllowedForGeoError,
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: RootState) => unknown) =>
+    selector(mockGeoState()),
 }));
 
 jest.mock(
@@ -45,10 +54,6 @@ jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: () => mockIsOptInSupported(),
   },
-}));
-
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 jest.mock('../../hooks/useOptIn', () => ({
@@ -79,9 +84,8 @@ describe('RewardsOptInSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAccountGroupAccounts = [{ address: '0xsoftware', type: 'eip155:eoa' }];
-    mockOptinAllowedForGeo = true;
-    mockOptinAllowedForGeoLoading = false;
-    mockOptinAllowedForGeoError = false;
+    mockGeoLocation = 'US';
+    mockGeoStatus = 'complete';
     mockOptinError = null;
     mockOptinLoading = false;
     mockIsOptInSupported.mockReturnValue(true);
@@ -103,7 +107,8 @@ describe('RewardsOptInSection', () => {
   });
 
   it('keeps the CTA disabled until geo eligibility is known', () => {
-    mockOptinAllowedForGeo = null;
+    mockGeoLocation = undefined;
+    mockGeoStatus = 'loading';
 
     const { getByTestId, getByText } = render(
       <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
@@ -119,8 +124,60 @@ describe('RewardsOptInSection', () => {
     ).toBe(true);
   });
 
+  it('shows the campaign legal line when no legal copy is served', () => {
+    const { getByText } = render(
+      <RewardsOptInSection
+        localizedText={{ ...LOCALIZED_TEXT, invitedOptInLegal: undefined }}
+      />,
+    );
+
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_legal')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the served title when there is one', () => {
+    const { getByText, queryByText } = render(
+      <RewardsOptInSection
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          invitedOptInTitle: 'Served opt-in title',
+        }}
+      />,
+    );
+
+    expect(getByText('Served opt-in title')).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaign.opt_in_section_title')),
+    ).toBeNull();
+  });
+
+  it('falls back to the campaign copy when the served title, description and action are missing', () => {
+    const { getByTestId, getByText } = render(
+      <RewardsOptInSection
+        localizedText={{
+          invitedOptInTitle: undefined,
+          invitedOptInDescription: undefined,
+          invitedOptInAction: undefined,
+        }}
+      />,
+    );
+
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_description')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityLabel,
+    ).toBe(strings('rewards.campaign.opt_in_cta'));
+  });
+
   it('disables the CTA and explains when the region is unsupported', () => {
-    mockOptinAllowedForGeo = false;
+    mockGeoLocation = 'GB';
+    mockGeoStatus = 'complete';
 
     const { getByTestId, getByText, queryByText } = render(
       <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
@@ -142,9 +199,32 @@ describe('RewardsOptInSection', () => {
     ).toBe(true);
   });
 
-  it('still allows opt-in when the geo check fails', () => {
-    mockOptinAllowedForGeo = null;
-    mockOptinAllowedForGeoError = true;
+  it('keeps the region block when a refresh fails on a blocked location', () => {
+    mockGeoLocation = 'GB';
+    mockGeoStatus = 'error';
+
+    const { getByTestId, getByText, queryByText } = render(
+      <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
+    );
+
+    fireEvent.press(getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(mockOptin).not.toHaveBeenCalled();
+    expect(
+      getByText(
+        'Rewards are not supported in your region yet. We are working on expanding access, so check back later.',
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('allows opt-in when the lookup fails with no known location', () => {
+    mockGeoLocation = undefined;
+    mockGeoStatus = 'error';
 
     const { getByTestId, getByText } = render(
       <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,

@@ -290,7 +290,7 @@ export default class Utilities {
 
     if (checkVisibility) {
       const visibilityTimeout = timeout || 100;
-      await AppiumAssertions.expectElementToBeVisible(playwrightElem, {
+      await AppiumAssertions.probeElementToBeVisible(playwrightElem, {
         timeout: visibilityTimeout,
       });
     }
@@ -369,7 +369,7 @@ export default class Utilities {
     timeout: number = 2000,
   ): Promise<boolean> {
     try {
-      await this.waitForElementToBeVisible(elem, timeout);
+      await AppiumAssertions.probeElementToBeVisible(elem, { timeout });
       return true;
     } catch {
       return false;

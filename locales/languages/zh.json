@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "复制 {{field}}",
       "copied_label": "已复制 {{field}}",
-      "copy_all_button": "复制所有信息",
-      "copied_all_label": "银行账户信息已复制",
       "button": "完成",
       "waiting_for_details": "您的账户详情将很快显示在这里。",
       "loading_details": "正在加载账户详情",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "于",
-        "market_cap_suffix": "市值",
-        "size_at_price": "{{size}}，价格为 {{price}}",
-        "size_at_market_cap": "{{size}}，市值 {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "市值"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} 盈亏（30 天）",
@@ -1995,22 +1991,6 @@
         "4": "周四",
         "5": "周五",
         "6": "周六"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "已买入",
-        "sold": "已卖出",
-        "perps_closed": "已平仓",
-        "perps_long_opened": "已开设多头仓位",
-        "perps_long_added": "已添加到多头仓位",
-        "perps_long_reduced": "已减持多头仓位",
-        "perps_short_opened": "已开空",
-        "perps_short_added": "已添加到空头仓位",
-        "perps_short_reduced": "回补",
-        "spot_opened": "已买入",
-        "spot_added": "已继续买入",
-        "spot_reduced": "卖出一部分",
-        "spot_closed": "全部卖出"
       }
     },
     "trader_position": {
@@ -3956,7 +3936,6 @@
       "unavailable": "目前没有可用市场。"
     },
     "home_categories": {
-      "title": "类别",
       "politics": "政治",
       "sports": "体育"
     },
@@ -5482,19 +5461,6 @@
     "accounts": "账户",
     "show_accounts": "显示",
     "hide_accounts": "隐藏",
-    "labels": {
-      "bitcoin_testnet_account_name": "比特币测试网账户",
-      "bitcoin_account_name": "比特币账户",
-      "bitcoin_signet_account_name": "比特币 Signet 账户",
-      "bitcoin_regtest_account_name": "比特币 Regtest 账户",
-      "solana_devnet_account_name": "Solana 开发网账户",
-      "solana_testnet_account_name": "Solana 测试网账户",
-      "solana_account_name": "Solana 账户",
-      "tron_account_name": "Tron 账户",
-      "tron_nile_account_name": "Tron Nile 账户",
-      "tron_shasta_account_name": "Tron Shasta 账户",
-      "stellar_account_name": "Stellar 账户"
-    },
     "error_messages": {
       "failed_to_create_account": "创建 {{clientType}} 账户失败"
     },
@@ -7181,7 +7147,6 @@
     "gas_education_3": "MetaMask 不从燃料费中获利。",
     "gas_education_4": "燃料费会根据网络流量和交易复杂程度而波动。",
     "gas_education_learn_more": "了解更多关于燃料费的信息",
-    "confusable_title": "检查收件人地址",
     "confusable_msg": "我们在 ENS 名称中检测到一个可令人混淆的字符。检查 ENS 名称以避免潜在的欺诈。",
     "similar_to": "类似于",
     "contains_zero_width": "包含零宽度字符",
@@ -7199,8 +7164,7 @@
     "hex_data_copied": "十六进制数据已复制到剪贴板",
     "invalid_recipient": "收件人无效",
     "invalid_recipient_description": "请检查地址，确保其为有效地址",
-    "swap_tokens": "兑换代币",
-    "fromWithColon": "自："
+    "swap_tokens": "兑换代币"
   },
   "custom_gas": {
     "total": "总计",
@@ -7478,8 +7442,6 @@
     "hash_copied_to_clipboard": "交易哈希已复制到剪贴板",
     "address_copied_to_clipboard": "地址已复制到剪贴板",
     "transaction_error": "交易出错",
-    "address_to_placeholder": "搜索、公钥 (0x) 或 ENS",
-    "address_from_balance": "余额：",
     "status": "状态",
     "date": "日期",
     "nonce": "nonce",
@@ -7560,11 +7522,8 @@
     "delete_contact": "删除联系信息",
     "delete": "删除",
     "cancel": "取消",
-    "add_to_address_book": "添加至通讯簿",
-    "enter_an_alias": "输入别名",
     "add_this_address": "将此地址添加至您的通讯簿。",
     "next": "下一步",
-    "enter_an_alias_placeholder": "例如，Vitalik B。",
     "add_contact_title": "添加联系信息",
     "add_contact": "添加联系信息",
     "edit_contact_title": "编辑联系信息",
@@ -8991,19 +8950,7 @@
     "contact_support": "联系支持团队"
   },
   "whats_new": {
-    "title": "最新动态",
-    "remove_gns_new_ui_update": {
-      "title": "全新 UI 更新",
-      "introduction": "我们进行了更新以优化应用体验。",
-      "descriptions": {
-        "description_1": "网络下拉菜单已移至您的资产",
-        "description_2": "一站式完成兑换与桥接",
-        "description_3": "更简化的发送体验",
-        "description_4": "全新账户视图"
-      },
-      "more_information": "现在您可以专注于您的代币和活动，而无需担心其背后的网络。",
-      "got_it": "知道了"
-    }
+    "title": "最新动态"
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n {{network}} \n的链 ID。",
@@ -9314,28 +9261,13 @@
     "nickname": "昵称"
   },
   "network_information": {
-    "things_to_keep_in_mind": "注意事项",
     "testnet_network": "{{type}} testnet",
-    "first_description": "此网络的原生代币为 {{ticker}}。该代币用于支付网络费用。",
-    "second_description": "如果您试图将资产从一个网络直接发送到另一个网络，这可能会导致永久的资产损失。请务必使用跨链桥进行操作。",
-    "third_description": "您的代币可能不会在您的钱包中自动出现。",
-    "private_network": "此网络未知，可能使用特殊代币支付网络费用。",
     "unknown_network": "未知网络",
-    "switched_network": "您已切换到",
-    "learn_more": "了解更多",
     "add_token": "请点击此处以手动添加代币",
-    "add_token_manually": "请手动添加。",
     "got_it": "明白了",
     "error_title": "出错了......",
     "error_message": "加载网络信息时出错，请稍后重试。",
-    "private_network_third_description": "请输入此网络的名称，以便识别。",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "启用自动代币检测",
-    "token_detection_mainnet_title": "已启用代币检测，因此代币将会自动显示在您的钱包中。",
-    "token_detection_mainnet_link": "您也可以手动添加代币。",
-    "or": "或",
-    "non_evm_first_description": "该网络上的原生资产是 {{ticker}}。它用于交易费用。",
-    "non_evm_second_description": "如果您尝试从另一个网络发送资产或向另一个网络发送资产，您将会损失资产。"
+    "private_network_third_description": "请输入此网络的名称，以便识别。"
   },
   "download_files": {
     "error": "未能下载附件。",
@@ -9986,7 +9918,6 @@
     },
     "action": {
       "add": "添加",
-      "transfer": "发送",
       "card": "卡",
       "details": "详情"
     },
@@ -10108,8 +10039,6 @@
       "contact_support": "联系支持团队"
     },
     "transfer_sheet": {
-      "title": "发送资金到",
-      "between_accounts": "其他账户",
       "perps_account": "永续合约（Perps）账户",
       "predictions_account": "预测（Predictions）账户",
       "send_external": "外部地址",
@@ -10698,8 +10627,7 @@
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
       "predict_withdraw": "提取",
-      "money_account_deposit_header": "添加到 MetaMask Money",
-      "money_account_send": "发送"
+      "money_account_deposit_header": "添加到 MetaMask Money"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -10856,7 +10784,6 @@
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_convert_token": "兑换 {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "提取",
-    "deposit_edit_amount_money_account_send": "发送",
     "deposit_edit_amount_musd_conversion": "兑换为 mUSD",
     "preparing_order": "正在准备订单"
   },

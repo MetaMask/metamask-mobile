@@ -12,6 +12,9 @@ import {
 } from '../../constants/limitOrders';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { useSwapsLimitOrderPriceAdjust } from './index';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -146,6 +149,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
     expect(result.current.limitPrice).toBe('1');
     expect(result.current.quotedSymbol).toBe('UNI');
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('does not reseed market price after the user edits the limit price', () => {
@@ -174,6 +178,22 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     expect(result.current.limitPrice).toBe('1');
     expect(result.current.isCustomActive).toBe(false);
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
+  it('plays selection feedback when returning to the market preset', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handlePercentPress(5);
+    });
+    jest.mocked(playSelection).mockClear();
+
+    act(() => {
+      result.current.handleMarketPress();
+    });
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('keeps four significant digits of the market price for a sub-dollar dest token', () => {
@@ -200,6 +220,20 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     });
 
     expect(result.current.limitPrice).toBe('0.95');
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps an already-applied percent preset silent', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handlePercentPress(5);
+    });
+    act(() => {
+      result.current.handlePercentPress(5);
+    });
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('applies positive percent preset in sell mode', () => {
@@ -232,6 +266,22 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     expect(result.current.limitPrice).toBe('0.95');
     expect(result.current.isCustomActive).toBe(true);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the active custom preset silent', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handleCustomPress();
+    });
+    jest.mocked(playSelection).mockClear();
+
+    act(() => {
+      result.current.handleCustomPress();
+    });
+
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('does not cap a custom percent at 99% on commit in sell mode', () => {
@@ -331,6 +381,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isLimitFiatMode).toBe(false);
     expect(result.current.limitPrice).toBe('0.0005');
     expect(result.current.secondaryValue).toBe('$1.00');
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('converts the committed custom percent when toggling amount type in the same turn', () => {

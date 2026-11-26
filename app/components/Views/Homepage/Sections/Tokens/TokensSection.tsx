@@ -20,9 +20,11 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '../../../../../selectors/assets/assets-list';
+import {
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
+  selectAssetsBySelectedAccountGroup,
+} from '../../../../../selectors/assets/assets-list';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
@@ -49,6 +51,8 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
 import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
+import { useAssetsHaveLoaded } from '../../../../UI/Assets/hooks/useAssetsHaveLoaded';
+import { shouldShowAssetsLoadingSkeleton } from '../../../../UI/Assets/utils/shouldShowAssetsLoadingSkeleton';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -94,7 +98,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
   ) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation<AppNavigationProp>();
-    const isZeroBalanceAccount = useIsZeroBalanceAccount();
+    const assetsHaveLoaded = useAssetsHaveLoaded();
+    const hasZeroBalance = useIsZeroBalanceAccount();
+    const isZeroBalanceAccount = assetsHaveLoaded && hasZeroBalance;
     const { popularNetworks } = useNetworkEnablement();
     const popularChainIdsKey = (popularNetworks ?? []).join(',');
     const popularChainIds = useMemo(
@@ -109,9 +115,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       [popularChainIds],
     );
     const sortedTokenKeys = useSelector(selectSortedTokenKeys);
-    const accountGroupBalance = useSelector(
-      selectAccountGroupBalanceForEmptyState,
-    );
+    const assetsByChain = useSelector(selectAssetsBySelectedAccountGroup);
     const privacyMode = useSelector(selectPrivacyMode);
     const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
@@ -154,11 +158,16 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
 
     const showTokensError = hasTokensError;
+    // Soft-gate like extension: keep skeletons for unsettled loads only when
+    // the list is empty or still just zero native / mUSD placeholders. Real
+    // balances render during background Snap/RPC work.
     const isTokenListLoading =
       !showTokensError &&
-      displayTokenKeys.length === 0 &&
-      sortedTokenKeys.length === 0 &&
-      accountGroupBalance == null;
+      shouldShowAssetsLoadingSkeleton({
+        assetsHaveLoaded,
+        assetsByChain,
+        allowedChainIds: popularChainIds,
+      });
 
     const refresh = useCallback(async () => {
       if (isZeroBalanceAccount) {
@@ -199,11 +208,20 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       itemCount,
     });
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'warm';
+    if (isTokenListLoading) {
+      cacheState = 'cold';
+    } else if (isZeroBalanceAccount || showTokensError) {
+      cacheState = 'unknown';
+    }
+
     useSectionPerformance({
       sectionId: HomeSectionNames.TOKENS,
       contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
+      demandStarted: true,
+      cacheState,
       isLoading: isTokenListLoading,
     });
     useHomepageReady({

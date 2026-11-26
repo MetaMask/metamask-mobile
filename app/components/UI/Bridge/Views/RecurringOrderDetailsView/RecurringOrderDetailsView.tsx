@@ -41,6 +41,7 @@ import {
   setRecurringEveryValue,
   setRecurringPriceRange,
   setRecurringRepeatCount,
+  setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
@@ -67,6 +68,7 @@ import {
   formatRecurringOrderDate,
   formatRecurringPriceRange,
   formatRecurringTokenAmount,
+  getRecurringOrderDuplicateSourceAmount,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getUsdToCurrentCurrencyRate,
@@ -208,6 +210,7 @@ function RecurringOrderDetailsView() {
     dispatch(setSourceToken(sourceToken));
     dispatch(setDestToken(destinationToken));
     dispatch(setIsDestTokenManuallySet(true));
+    dispatch(setSourceAmount(getRecurringOrderDuplicateSourceAmount(order)));
     dispatch(setRecurringEveryUnit(order.schedule.unit));
     dispatch(setRecurringEveryValue(String(order.schedule.every)));
     dispatch(setRecurringRepeatCount(String(order.schedule.repeatCount)));
@@ -525,7 +528,7 @@ function RecurringOrderDetailsView() {
         </Box>
       ) : null}
 
-      {order.state === RecurringOrderState.Completed ? (
+      {order.state !== RecurringOrderState.Open ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

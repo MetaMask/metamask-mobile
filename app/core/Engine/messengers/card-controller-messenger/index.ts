@@ -45,6 +45,7 @@ export function getCardControllerMessenger(
       'AccountTreeController:stateChange',
       'RemoteFeatureFlagController:stateChange',
       'KeyringController:unlock',
+      'AuthenticationController:stateChange',
       'AuthenticationController:profileSignIn',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',

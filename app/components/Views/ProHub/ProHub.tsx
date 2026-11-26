@@ -33,13 +33,17 @@ import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { useResumeMembership } from './hooks/useResumeMembership';
+import { useOpenMembershipAddFunds } from './hooks/useOpenMembershipAddFunds';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusEntry,
   resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
-import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import {
+  selectIsMoneyAccountPlusAnnual,
+  selectIsMoneyAccountPlusTrialing,
+} from '../../../selectors/subscriptionController';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
@@ -117,7 +121,8 @@ const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { model: membershipBanner } = useMembershipBannerModel();
+  const { model: membershipBanner, subscription } = useMembershipBannerModel();
+  const { openAddFunds, isCheckingBalance } = useOpenMembershipAddFunds();
   const {
     resumeMembership,
     isResuming,
@@ -127,6 +132,7 @@ const ProHub = () => {
     useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
+  const isAnnual = useSelector(selectIsMoneyAccountPlusAnnual);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
     useMoneyPremiumAccountInterest();
   const baseSinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
@@ -213,9 +219,7 @@ const ProHub = () => {
     (action: MembershipAlertAction) => {
       switch (action) {
         case MembershipAlertAction.AddFunds:
-          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-          });
+          void openAddFunds(subscription);
           return;
         case MembershipAlertAction.Renew:
           navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
@@ -231,7 +235,7 @@ const ProHub = () => {
         }
       }
     },
-    [navigation, resumeMembership],
+    [navigation, openAddFunds, resumeMembership, subscription],
   );
 
   return (
@@ -273,7 +277,7 @@ const ProHub = () => {
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
               model={membershipBanner}
               onAction={handleMembershipAlertAction}
-              isActionBusy={isResuming}
+              isActionBusy={isResuming || isCheckingBalance}
               actionErrorMessage={resumeErrorMessage}
             />
 
@@ -320,13 +324,17 @@ const ProHub = () => {
             </Box>
           </Box>
 
-          <PhysicalCardBanner
-            onPress={isTrialing ? undefined : handleGetCard}
-            isSubscriptionTrialing={isTrialing}
-            cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
-          />
+          {isAnnual && (
+            <>
+              <PhysicalCardBanner
+                onPress={isTrialing ? undefined : handleGetCard}
+                isSubscriptionTrialing={isTrialing}
+                cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
+              />
 
-          <SectionDivider marginVertical={5} />
+              <SectionDivider marginVertical={5} />
+            </>
+          )}
 
           <MemberPricingOnTrades />
 

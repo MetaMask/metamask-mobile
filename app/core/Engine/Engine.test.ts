@@ -1331,7 +1331,8 @@ describe('Engine', () => {
             (!isEmpty(controller.state) ||
               controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'DelegationController'),
+              controllerName === 'DelegationController' ||
+              controllerName === 'CollectiblesController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1622,6 +1623,25 @@ describe('Engine', () => {
       expect(engine.context.PredictVenueController.state).toMatchObject({
         venueSelectionPreference: null,
         lastActiveVenue: null,
+      });
+    });
+
+    it('resets TransactionController state without a swapsTransactions key', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      await engine.resetState();
+
+      // swapsTransactions has no entry in the TransactionController state
+      // metadata, so leaving it in the reset state makes every later
+      // TransactionController update throw "No metadata found for
+      // 'swapsTransactions'" and report it to Sentry.
+      expect(engine.context.TransactionController.state).toEqual({
+        methodData: {},
+        transactions: [],
+        transactionBatches: [],
+        batchTransactionCounts: {},
+        lastFetchedBlockNumbers: {},
+        submitHistory: [],
       });
     });
 

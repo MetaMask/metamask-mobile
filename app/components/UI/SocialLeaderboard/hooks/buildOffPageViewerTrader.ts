@@ -7,6 +7,7 @@ import type {
 import { toFoxiconAvatarUrl } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import { getTraderMetricDisplay } from '../../../Views/SocialLeaderboard/TopTradersView/traderMetric';
 import { readXHandle } from '../../SocialFeed/utils/xHandle';
+import { isProfileVerified } from '../../SocialFeed/utils/profileVerified';
 import type { RankedTrader } from '../types';
 
 /**
@@ -152,6 +153,7 @@ export const buildOffPageViewerTrader = ({
     followerCount: live.followerCount,
     isFollowing: false,
     xHandle: readXHandle(live.socialHandles),
+    verified: isProfileVerified(live.profile),
   };
 
   return {

@@ -1,1 +1,1 @@
-export { default } from './PerpsMarginModeTag';
+export { default, getPerpsMarginModeLabel } from './PerpsMarginModeTag';

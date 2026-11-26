@@ -80,6 +80,7 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useVbaDetailsNewDot } from '../../hooks/useVbaDetailsNewDot';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyCardSetupPollIntervalMs,
@@ -108,6 +109,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -259,6 +261,8 @@ const MoneyHomeView = () => {
   // screen hydrates and forwards to the first incomplete module.
   const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
   const hasPendingDetailsOpenRef = useRef(false);
+  const { showNewDot: showDetailsNewDot, markSeen: markDetailsNewDotSeen } =
+    useVbaDetailsNewDot();
   const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
@@ -304,7 +308,13 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
+        ...(Engine.context.CardController.state.isAuthenticated
+          ? [
+              Engine.context.CardController.fetchCardHomeData({
+                force: true,
+              }),
+            ]
+          : []),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -320,6 +330,9 @@ const MoneyHomeView = () => {
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
+  );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
@@ -411,6 +424,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -422,7 +437,8 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -657,7 +673,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: 'money.action.transfer',
+      label_key: 'money.action.move',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -683,6 +699,20 @@ const MoneyHomeView = () => {
       },
     ]);
   }, [markCardFlowOpened, navigation, metamaskCardMode]);
+
+  const navigateToCardLogin = useCallback(() => {
+    markCardFlowOpened();
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      },
+    ]);
+  }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -722,6 +752,8 @@ const MoneyHomeView = () => {
       return;
     }
     startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW);
+    // The #39029 discovery dot clears on first engagement.
+    markDetailsNewDotSeen();
     hasPendingDetailsOpenRef.current = true;
     // Self-clears so the button recovers if no navigator presents the route.
     setTimeout(() => {
@@ -743,7 +775,12 @@ const MoneyHomeView = () => {
     openVbaEntry(navigation, {
       source: 'vba-action-row-details',
     });
-  }, [navigation, trackButtonClicked, actionButtonRowCount]);
+  }, [
+    navigation,
+    trackButtonClicked,
+    actionButtonRowCount,
+    markDetailsNewDotSeen,
+  ]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -751,7 +788,12 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
+      if (
+        mode === 'upsell' ||
+        mode === 'manage' ||
+        mode === 'setup' ||
+        mode === 'sign_in'
+      ) {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -839,6 +881,17 @@ const MoneyHomeView = () => {
       params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
+
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
 
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
@@ -1054,6 +1107,7 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            onSignInPress={navigateToCardLogin}
             setupView={cardSetupView ?? undefined}
             onSetupContinuePress={enableCard ?? navigateToCardHome}
             isSetupContinueLoading={isEnableCardPending}
@@ -1087,6 +1141,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
@@ -1289,6 +1346,7 @@ const MoneyHomeView = () => {
             showVbaDetailsButton
               ? {
                   onPress: handleActionButtonDetailsPress,
+                  showNewDot: showDetailsNewDot,
                 }
               : undefined
           }

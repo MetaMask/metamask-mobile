@@ -7,7 +7,6 @@ import { useActiveVenue } from '../implementation/activeVenue';
 import { NextVenueProvider } from '../implementation/NextVenueContext';
 import type { ActiveVenueResolution } from '../implementation/types';
 import type { PredictVenueAction, PredictVenueId } from '../types';
-import { selectPredictConfig } from '../selectors/predictConfig';
 import { usePredictWithdrawAvailable } from './usePredictWithdrawAvailable';
 
 jest.mock('react-redux', () => ({
@@ -24,9 +23,6 @@ jest.mock('../availability/selectPredictAvailability', () => ({
 jest.mock('../capabilities/useVenueCapabilities', () => ({
   useVenueCapabilities: jest.fn(),
 }));
-jest.mock('../selectors/predictConfig', () => ({
-  selectPredictConfig: jest.fn(),
-}));
 
 const KALSHI_ACTIVE: ActiveVenueResolution = {
   status: 'ready',
@@ -42,10 +38,12 @@ const descriptor = (
   status: 'ready',
   descriptor: {
     venueId,
+    environment: 'production',
     actions,
     feeds: {},
     categories: [],
     searchSupported: false,
+    screens: [],
     displayName: venueId,
   },
 });
@@ -55,21 +53,15 @@ const renderWithdrawAvailable = ({
   available = true,
   capabilities,
   venueId = KALSHI_ID,
-  kalshiWithdrawalsEnabled = true,
 }: {
   activeVenue: ActiveVenueResolution;
   available?: boolean;
   capabilities: PredictVenueCapabilities;
   venueId?: PredictVenueId;
-  kalshiWithdrawalsEnabled?: boolean;
 }) => {
   jest.mocked(useActiveVenue).mockReturnValue(activeVenue);
   jest.mocked(selectPredictAvailability).mockReturnValue(available);
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
-  jest.mocked(selectPredictConfig).mockReturnValue({
-    kalshiDepositsEnabled: false,
-    kalshiWithdrawalsEnabled,
-  } as never);
 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <NextVenueProvider venueId={venueId}>{children}</NextVenueProvider>
@@ -139,19 +131,6 @@ describe('usePredictWithdrawAvailable', () => {
     expect(result.current).toEqual({
       status: 'unavailable',
       reason: 'resolving',
-    });
-  });
-
-  it('hides the entry point while kalshiWithdrawalsEnabled is off', () => {
-    const { result } = renderWithdrawAvailable({
-      activeVenue: KALSHI_ACTIVE,
-      capabilities: descriptor(KALSHI_ID, ['withdraw']),
-      kalshiWithdrawalsEnabled: false,
-    });
-
-    expect(result.current).toEqual({
-      status: 'unavailable',
-      reason: 'notImplemented',
     });
   });
 });

@@ -84,8 +84,6 @@ export interface SDKConnectState {
   socketServerUrl: string; // Allow to customize different socket server url
 }
 
-export type SDKEventListener = (event: string) => void;
-
 export class SDKConnect {
   private static instance: SDKConnect;
 
@@ -279,7 +277,7 @@ export class SDKConnect {
   public async removeAll() {
     const removeAllPromise = removeAll(this);
     // Force close loading status
-    removeAllPromise.finally(() => this.hideLoadingState());
+    void removeAllPromise.finally(() => this.hideLoadingState());
     return removeAllPromise;
   }
 

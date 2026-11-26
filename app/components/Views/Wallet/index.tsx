@@ -1,4 +1,3 @@
-import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -91,6 +90,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { WalletTabHomeParams } from '../../Nav/Main/types/navigation';
+import { replaceWalletHomeParentParams } from '../../Nav/Main/homeTabFlatParamsBridge';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
@@ -165,6 +166,7 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import { useAssetsHaveLoaded } from '../../UI/Assets/hooks/useAssetsHaveLoaded';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -201,10 +203,9 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { navigateToReceiveAddressList } from '../../Views/MultichainAccounts/AddressList/navigateToReceiveAddressList';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
-import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -275,12 +276,6 @@ interface WalletProps {
   storePrivacyPolicyClickedOrClosed: () => void;
 }
 
-interface WalletRouteParams {
-  openNetworkSelector?: boolean | null;
-  shouldSelectPerpsTab?: boolean | null;
-  initialTab?: string | null;
-}
-
 export const useHomeDeepLinkEffects = (opts: {
   isPerpsEnabled: boolean;
   onPerpsTabSelected: () => void;
@@ -294,7 +289,8 @@ export const useHomeDeepLinkEffects = (opts: {
     navigation,
   } = opts;
 
-  const route = useRoute<RouteProp<{ params: WalletRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: WalletTabHomeParams }, 'params'>>();
 
   // Handle tab selection from navigation params (e.g., from deeplinks)
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
@@ -303,7 +299,7 @@ export const useHomeDeepLinkEffects = (opts: {
       const params = route.params;
 
       const clearParams = () => {
-        if (navigation?.setParams) {
+        if (navigation?.setParams && params) {
           // React-Navigation shallow merges params, so we need to set each param to null to clear them
           const nullParams: Record<string, null> = {};
           Object.keys(params).forEach((key) => {
@@ -311,6 +307,8 @@ export const useHomeDeepLinkEffects = (opts: {
           });
           navigation.setParams(nullParams);
         }
+
+        replaceWalletHomeParentParams(navigation);
       };
 
       const handleDelayedDeeplinkAction = (action: () => void) => {
@@ -370,7 +368,14 @@ const Wallet = ({
 
   const walletHomeOnboardingStepIndex =
     useSelector(selectWalletHomeOnboardingSteps).stepIndex ?? 0;
-  const isAccountGroupFunded = useSelector(selectIsAccountGroupFunded);
+  const assetsHaveLoaded = useAssetsHaveLoaded();
+  const hasPositiveAccountGroupBalance = useSelector(
+    selectIsAccountGroupFunded,
+  );
+  // Gate with the latched load signal so background refreshes do not drop
+  // funded and hide/show the growth banner incorrectly.
+  const isAccountGroupFunded =
+    assetsHaveLoaded && hasPositiveAccountGroupBalance;
 
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
@@ -484,22 +489,12 @@ const Wallet = ({
 
   /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
   const onReceiveWithoutTracking = useCallback(() => {
-    if (selectedAccountGroupId) {
-      navigateWithDetails(
-        appNavigation,
-        createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-          source: AddressListViewedSource.RECEIVE_BUTTON,
-        }),
-      );
-    } else {
-      Logger.error(
-        new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
-      );
-    }
+    navigateToReceiveAddressList({
+      navigation: appNavigation,
+      groupId: selectedAccountGroupId,
+      source: AddressListViewedSource.RECEIVE_BUTTON,
+      caller: 'Wallet::onReceive',
+    });
   }, [appNavigation, selectedAccountGroupId]);
 
   const onReceive = useCallback(() => {
@@ -611,7 +606,7 @@ const Wallet = ({
       isPerpsFlagEnabled &&
       isPerpsGTMModalEnabled
     ) {
-      checkAndNavigateToPerpsGTM();
+      void checkAndNavigateToPerpsGTM();
     }
   }, [
     basicFunctionalityEnabled,
@@ -655,7 +650,7 @@ const Wallet = ({
       actionButtonOnPress: () => {
         storePrivacyPolicyClickedOrClosed();
         toast.dismiss();
-        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
       },
     });
   }, [

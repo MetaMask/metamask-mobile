@@ -76,6 +76,10 @@ const styles = StyleSheet.create({
   sizer: {
     opacity: 0,
   },
+  walletRiskBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
+  },
 });
 
 const PerpsMarketIdentitySubtitle = ({
@@ -108,14 +112,14 @@ const PerpsMarketHeaderCompactPrice = ({
 }: {
   symbol: string;
   currentPrice: number;
-  percentChange24h?: number;
+  percentChange24h?: number | null;
   testIDPrice?: string;
   testIDChange?: string;
 }) => (
   <LivePriceHeader
     symbol={symbol}
     currentPrice={currentPrice}
-    percentChange24h={percentChange24h}
+    percentChange24h={percentChange24h ?? null}
     testIDPrice={testIDPrice}
     testIDChange={testIDChange}
   />
@@ -143,6 +147,7 @@ const PerpsMarketHeader = ({
   onModeChange,
   enableHaptics = false,
   enableModeHaptics = false,
+  providerId,
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
@@ -221,6 +226,7 @@ const PerpsMarketHeader = ({
   }));
 
   const livePrices = usePerpsLivePrices({
+    providerId: market.providerId,
     symbols: [market.symbol],
     throttleMs: 1000,
   });
@@ -246,7 +252,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice=""
           testIDChange=""
         />
@@ -261,7 +267,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice={testIDs.headerPrice}
           testIDChange={testIDs.headerPriceChange}
         />
@@ -278,8 +284,17 @@ const PerpsMarketHeader = ({
     onWalletPress ? (
       <BadgeWrapper
         key="wallet"
+        // The wrapper pins itself to the top of the row. Center it with the star.
+        twClassName="self-center"
+        testID={
+          testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
+        }
         position={BadgeWrapperPosition.TopRight}
         positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        // Pull the badge in so it hugs the wallet glyph's top-right corner and
+        // stays inside the capsule instead of straddling its top edge.
+        positionXOffset={-6}
+        positionYOffset={8}
         badge={
           walletRiskBadge ? (
             <Box
@@ -287,7 +302,7 @@ const PerpsMarketHeader = ({
               importantForAccessibility="no-hide-descendants"
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName={`h-4 w-4 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              twClassName={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
               testID={
                 testIDs.walletButton
                   ? `${testIDs.walletButton}-risk-badge`
@@ -298,6 +313,7 @@ const PerpsMarketHeader = ({
                 variant={TextVariant.BodyXs}
                 fontWeight={FontWeight.Bold}
                 color={TextColor.PrimaryInverse}
+                style={styles.walletRiskBadgeText}
               >
                 !
               </Text>
@@ -347,7 +363,7 @@ const PerpsMarketHeader = ({
         {/* On glass the icons share one capsule, as on the home header. */}
         {isBrandRefresh && iconButtons.length > 0 ? (
           <CapsuleGlass
-            twClassName="gap-1 px-1"
+            twClassName="gap-1 px-1.5"
             testID={`${testIDs.container}-actions-capsule`}
           >
             {iconButtons}
@@ -394,6 +410,7 @@ const PerpsMarketHeader = ({
             symbol={market.symbol}
             name={market.name}
             maxLeverage={market.maxLeverage}
+            providerId={providerId}
             size={32}
             gap={2}
             onPress={onIdentityPress ? handleIdentityPress : undefined}

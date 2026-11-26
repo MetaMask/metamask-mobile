@@ -11,7 +11,6 @@ import {
   type SeasonTierState,
   type SeasonTierDto,
   type SubscriptionReferralDetailState,
-  type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
@@ -119,8 +118,6 @@ import { sortAccounts } from './utils/sortAccounts';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
-
-export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
@@ -577,7 +574,6 @@ export async function wrapWithCache<T>({
 
 const MESSENGER_EXPOSED_METHODS = [
   'addPointsEstimateToHistory',
-  'applyBonusCode',
   'calculateTierStatus',
   'canChangeRewardsEnvUrl',
   'checkOptInStatusAgainstCache',
@@ -596,7 +592,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClientVersionRequirements',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
-  'getGeoRewardsMetadata',
   'getHasAccountOptedIn',
   'getOffDeviceSubscriptionAccounts',
   'getOndoCampaignDeposits',
@@ -666,7 +661,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'setRewardsEnvUrl',
   'shouldSkipSilentAuth',
   'signRewardsMessage',
-  'validateBonusCode',
 ] as const;
 
 /**
@@ -678,7 +672,6 @@ export class RewardsController extends BaseController<
   RewardsControllerState,
   RewardsControllerMessenger
 > {
-  #geoLocation: GeoRewardsMetadata | null = null;
   #participantOutcomeCache: Map<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
@@ -3320,106 +3313,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get geo rewards metadata including location and support status
-   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
-   */
-  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      };
-    }
-
-    if (this.#geoLocation) {
-      return this.#geoLocation;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-
-      const geoLocation = await this.messenger.call(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Check if the location is supported (not in blocked regions)
-      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
-        (blockedRegion) => geoLocation.startsWith(blockedRegion),
-      );
-
-      const result: GeoRewardsMetadata = {
-        geoLocation,
-        optinAllowedForGeo,
-      };
-
-      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
-      this.#geoLocation = result;
-      return result;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get geo rewards metadata:',
-        error instanceof Error ? error.message : String(error),
-      );
-
-      // Return fallback metadata on error
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      };
-    }
-  }
-
-  /**
-   * Validate a bonus code
-   * @param code - The bonus code to validate
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<boolean> - True if the code is valid, false otherwise
-   */
-  async validateBonusCode(
-    code: string,
-    subscriptionId: string,
-  ): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length < 4 || code.length > 16) {
-      return false;
-    }
-
-    if (!/^[A-Za-z0-9]+$/.test(code)) {
-      return false;
-    }
-
-    try {
-      const response = await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:validateBonusCode',
-            code,
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-      return response.valid;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate bonus code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Get candidate subscription ID with fallback logic
    * @returns Promise<string | null> - The subscription ID or null if none found
    */
@@ -5466,48 +5359,6 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to post benefit impression:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Apply a bonus code to a subscription.
-   * @param bonusCode - The bonus code to apply.
-   * @param subscriptionId - The subscription ID to apply the bonus code to.
-   * @returns Promise that resolves when the bonus code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyBonusCode(
-    bonusCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:applyBonusCode',
-            { bonusCode },
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-
-      this.#invalidatePointsEventsCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied bonus code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

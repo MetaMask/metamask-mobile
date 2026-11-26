@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Копировать {{field}}",
       "copied_label": "Скопировано: {{field}}",
-      "copy_all_button": "Скопировать все реквизиты",
-      "copied_all_label": "Банковские реквизиты скопированы",
       "button": "Выполнено",
       "waiting_for_details": "Реквизиты вашего счета скоро появятся здесь.",
       "loading_details": "Загрузка реквизитов счета",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "в",
-        "market_cap_suffix": "РК",
-        "size_at_price": "{{size}} по {{price}}",
-        "size_at_market_cap": "{{size}} при {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "РК"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} П/У (30 дн.)",
@@ -1995,22 +1991,6 @@
         "4": "Чт",
         "5": "Пт",
         "6": "Сб"
-      },
-      "tooltip": {
-        "label": "{{action}} по {{price}}",
-        "bought": "Куплено",
-        "sold": "Продано",
-        "perps_closed": "Закрыто",
-        "perps_long_opened": "Открыта длинная позиция",
-        "perps_long_added": "Длинная позиция увеличена",
-        "perps_long_reduced": "Длинная позиция уменьшена",
-        "perps_short_opened": "Короткая позиция открыта",
-        "perps_short_added": "Короткая позиция увеличена",
-        "perps_short_reduced": "Выкуплено",
-        "spot_opened": "Куплено",
-        "spot_added": "Куплено ещё",
-        "spot_reduced": "Частично продано",
-        "spot_closed": "Всё продано"
       }
     },
     "trader_position": {
@@ -3956,7 +3936,6 @@
       "unavailable": "Сейчас нет доступных рынков."
     },
     "home_categories": {
-      "title": "Категории",
       "politics": "Политика",
       "sports": "Спорт"
     },
@@ -5482,19 +5461,6 @@
     "accounts": "счета",
     "show_accounts": "Показать",
     "hide_accounts": "Скрыть",
-    "labels": {
-      "bitcoin_testnet_account_name": "Счет тестнета Биткойн",
-      "bitcoin_account_name": "Счет Биткойн",
-      "bitcoin_signet_account_name": "Счет Bitcoin Signet",
-      "bitcoin_regtest_account_name": "Счет Bitcoin Regtest",
-      "solana_devnet_account_name": "Счет девнета Solana",
-      "solana_testnet_account_name": "Счет тестнета Solana",
-      "solana_account_name": "Счет Solana",
-      "tron_account_name": "Счет Tron",
-      "tron_nile_account_name": "Счет Tron Nile",
-      "tron_shasta_account_name": "Счет Tron Shasta",
-      "stellar_account_name": "Счет Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Не удалось создать счет {{clientType}}"
     },
@@ -7181,7 +7147,6 @@
     "gas_education_3": "MetaMask не получает прибыли от платы за газ.",
     "gas_education_4": "Плата за газ колеблется в зависимости от сетевого трафика и сложности транзакции.",
     "gas_education_learn_more": "Подробнее о плате за газ",
-    "confusable_title": "Проверьте адрес получателя",
     "confusable_msg": "Мы обнаружили непонятный символ в имени ENS. Проверьте имя ENS, чтобы избежать возможного мошенничества.",
     "similar_to": "похоже на",
     "contains_zero_width": "содержит знак с нулевой шириной",
@@ -7199,8 +7164,7 @@
     "hex_data_copied": "Шестнадцатеричные данные скопированы в буфер обмена",
     "invalid_recipient": "Недействительный получатель",
     "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен",
-    "swap_tokens": "Обменять токены",
-    "fromWithColon": "От:"
+    "swap_tokens": "Обменять токены"
   },
   "custom_gas": {
     "total": "Итого",
@@ -7478,8 +7442,6 @@
     "hash_copied_to_clipboard": "Хэш транзакции скопирован в буфер обмена",
     "address_copied_to_clipboard": "Адрес скопирован в буфер обмена",
     "transaction_error": "Ошибка транзакции",
-    "address_to_placeholder": "Поиск, публичный адрес (0x) или ENS",
-    "address_from_balance": "Баланс:",
     "status": "Статус",
     "date": "Дата",
     "nonce": "Одноразовый код",
@@ -7560,11 +7522,8 @@
     "delete_contact": "Удалить контакт",
     "delete": "Удалить",
     "cancel": "Отмена",
-    "add_to_address_book": "Добавить в адресную книгу",
-    "enter_an_alias": "Ввести псевдоним",
     "add_this_address": "Добавьте этот адрес в свою адресную книгу",
     "next": "Далее",
-    "enter_an_alias_placeholder": "например, Виталик Б.",
     "add_contact_title": "Добавить контакт",
     "add_contact": "Добавить контакт",
     "edit_contact_title": "Изменить контакт",
@@ -8991,19 +8950,7 @@
     "contact_support": "Связаться со службой поддержки"
   },
   "whats_new": {
-    "title": "Что нового",
-    "remove_gns_new_ui_update": {
-      "title": "Обновление пользовательского интерфейса",
-      "introduction": "Мы внесли изменения для улучшения работы приложения.",
-      "descriptions": {
-        "description_1": "Раскрывающийся список «Сеть» перемещен в раздел «Активы»",
-        "description_2": "Своп и Мост в одном простом процессе",
-        "description_3": "Оптимизирован процесс отправки",
-        "description_4": "Свежий вид счета"
-      },
-      "more_information": "Теперь вы можете сосредоточиться на своих токенах и активности, а не на сетях, стоящих за ними.",
-      "got_it": "Понятно"
-    }
+    "title": "Что нового"
   },
   "invalid_network": {
     "title": "ID цепочки для пользовательской сети \n {{network}} \n необходимо ввести заново.",
@@ -9314,28 +9261,13 @@
     "nickname": "псевдоним"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Что нужно помнить",
     "testnet_network": "тестнет {{type}}",
-    "first_description": "Нативным токеном в этой сети является {{ticker}}. Этот токен используется для оплаты комиссий сети.",
-    "second_description": "Попытка отправки активов напрямую из одной сети в другую может привести к необратимой потере активов. Следует использовать мост.",
-    "third_description": "Ваши токены могут не отображаться автоматически в вашем кошельке.",
-    "private_network": "Эта сеть неизвестна и может использовать специальный токен для комиссий сети.",
     "unknown_network": "Неизвестная сеть",
-    "switched_network": "Вы переключились на",
-    "learn_more": "Подробнее",
     "add_token": "Нажмите для добавления токенов вручную",
-    "add_token_manually": "Добавьте их вручную.",
     "got_it": "Понятно",
     "error_title": "Что-то пошло не так",
     "error_message": "При загрузке информации сети произошла ошибка. Повторите попытку.",
-    "private_network_third_description": "Введите название для этой сети, чтобы ее было проще идентифицировать.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Включить автоопределение токенов",
-    "token_detection_mainnet_title": "Определение токенов включено, поэтому многие токены автоматически появятся в вашем кошельке.",
-    "token_detection_mainnet_link": "Вы также можете добавлять токены вручную.",
-    "or": "или",
-    "non_evm_first_description": "Собственный актив этой сети — {{ticker}}. Он используется для оплаты комиссий за транзакции.",
-    "non_evm_second_description": "Вы потеряете свои активы, если попытаетесь отправить их из другой сети или в другую сеть."
+    "private_network_third_description": "Введите название для этой сети, чтобы ее было проще идентифицировать."
   },
   "download_files": {
     "error": "Не удалось загрузить вложение.",
@@ -9914,7 +9846,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Зарабатывайте, торгуйте и оплачивайте покупки с одного баланса",
       "body_prefix": "MetaMask Money — это счет в стейблкоинах с доходностью до ",
-      "body_suffix": "— с возможностью торговать, переводить средства и оплачивать покупки.",
+      "body_suffix": "- с возможностью торговать, переводить средства и оплачивать покупки.",
       "body_no_apy": "MetaMask Money — это счет в стейблкоинах с возможностью торговать, переводить средства и оплачивать покупки.",
       "benefit_convert_title": "Конвертация в MetaMask USD по курсу 1:1",
       "benefit_convert_body": "Внесенные средства конвертируются в MetaMask USD по курсу 1:1 без комиссий.",
@@ -9986,7 +9918,6 @@
     },
     "action": {
       "add": "Добавить",
-      "transfer": "Отправить",
       "card": "Карта",
       "details": "Подробности"
     },
@@ -10108,8 +10039,6 @@
       "contact_support": "Связаться с поддержкой"
     },
     "transfer_sheet": {
-      "title": "Отправить средства на",
-      "between_accounts": "Другой счет",
       "perps_account": "Счет перпов",
       "predictions_account": "Счет прогнозов",
       "send_external": "Внешний адрес",
@@ -10698,8 +10627,7 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_deposit_header": "Пополнить MetaMask Money",
-      "money_account_send": "Отправить"
+      "money_account_deposit_header": "Пополнить MetaMask Money"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
@@ -10856,7 +10784,6 @@
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_convert_token": "Конвертировать {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",
-    "deposit_edit_amount_money_account_send": "Отправить",
     "deposit_edit_amount_musd_conversion": "Конвертировать в mUSD",
     "preparing_order": "Подготовка ордера"
   },

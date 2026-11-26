@@ -5,6 +5,17 @@ process.env.METAMASK_ENVIRONMENT ??= 'test';
 
 process.env.MM_INFURA_PROJECT_ID = 'fake-infura-project-id';
 
+// Tests must never inherit the developer's private partner endpoints.
+process.env.PACK_PARTNER_DEVNET_API_KEY = '';
+for (const network of ['MAINNET', 'DEVNET']) {
+  process.env[`MM_PACK_PARTNER_${network}_API_URL`] =
+    'https://gacha.pack-partner.invalid/api';
+  process.env[`MM_PACK_PARTNER_${network}_CARDS_API_URL`] =
+    'https://api.pack-partner.invalid';
+  process.env[`MM_PACK_PARTNER_${network}_WEBSITE_URL`] =
+    'https://pack-partner.invalid';
+}
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -56,6 +67,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'd3-transition',
   'internmap',
   'lodash-es',
+  // nock 15.x is ESM-only ("type": "module"), and so are its @mswjs/interceptors
+  // runtime dependencies; Jest must transpile all of them for require().
+  'nock',
+  '@mswjs/interceptors',
+  '@open-draft/until',
+  'rettime',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',

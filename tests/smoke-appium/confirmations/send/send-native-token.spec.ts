@@ -3,7 +3,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import SendView from '../../../page-objects/Send/RedesignedSendView.js';
+import SendView from '../../../page-objects/Send/SendView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import {
@@ -17,6 +17,7 @@ import { LocalNode, LocalNodeType } from '../../../framework/types.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
+import { accountsMultiaccountBalancesV4 } from '../../../api-mocking/api-mocks.js';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper.js';
 
@@ -123,27 +124,23 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
               responseCode: 200,
             });
 
-            await setupMockRequest(mockServer, {
-              url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-              response: {
-                balances: [
-                  {
-                    object: 'token',
-                    address: '0x0000000000000000000000000000000000000000',
-                    symbol: 'ETH',
-                    name: 'Ether',
-                    type: 'native',
-                    decimals: 18,
-                    chainId: 1337,
-                    balance: '100.000000000000000000',
-                    accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
-                  },
-                ],
-                unprocessedNetworks: [],
-              },
-              requestMethod: 'GET',
-              responseCode: 200,
-            });
+            await accountsMultiaccountBalancesV4.register(mockServer, () => ({
+              count: 1,
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  decimals: 18,
+                  chainId: 1337,
+                  balance: '100.000000000000000000',
+                  accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+                },
+              ],
+              unprocessedNetworks: [],
+            }));
           },
           currentDeviceDetails,
         },

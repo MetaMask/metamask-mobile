@@ -1,12 +1,18 @@
 import React, { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
 
+import Engine from '../../../../../../core/Engine';
+import { updateConfirmationMetric } from '../../../../../../core/redux/slices/confirmationMetrics';
+import type { RootState } from '../../../../../../reducers';
+import Logger from '../../../../../../util/Logger';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { updateTransaction } from '../../../../../../util/transaction-controller';
+import { addTransaction } from '../../../../../../util/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
 import { PerpsAccountPickerSelectorsIDs } from '../../../ConfirmationView.testIds';
@@ -25,23 +31,74 @@ const formatBalance = (account: SubAccountInfo): string =>
   formatPerpsBalance(account.totalBalance);
 
 const PerpsAccountPickerRowContent: React.FC = () => {
+  const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { subAccounts, selectedSubAccount } = usePerpsSubAccounts();
+  const storedRecipientSwitchCount = useSelector((state: RootState) => {
+    const count = transactionMeta?.id
+      ? state?.confirmationMetrics?.metricsById?.[transactionMeta.id]
+          ?.properties?.mm_pay_recipient_mm_account_switch_count
+      : undefined;
+    return typeof count === 'number' ? count : 0;
+  });
 
   const handleSelect = useCallback(
     (id: string) => {
       const transactionId = transactionMeta?.id;
-      if (!transactionId) return;
+      const networkClientId = transactionMeta?.networkClientId;
 
-      updateTransaction(
+      if (
+        !transactionId ||
+        !networkClientId ||
+        transactionMeta.txParams?.from?.toLowerCase() === id.toLowerCase()
+      ) {
+        return;
+      }
+
+      // A new approval replaces the open one, so the confirmation stays on
+      // this screen and follows the new transaction id.
+      void addTransaction(
         {
-          ...transactionMeta,
-          txParams: { ...transactionMeta?.txParams, from: id },
+          ...transactionMeta.txParams,
+          from: id,
         },
-        transactionId,
-      );
+        {
+          nestedTransactions: transactionMeta.nestedTransactions,
+          networkClientId,
+          origin: transactionMeta.origin,
+          requireApproval: true,
+          type: transactionMeta.type,
+        },
+      )
+        .then((result) => {
+          const nextTransactionId = result?.transactionMeta?.id;
+          if (nextTransactionId) {
+            dispatch(
+              updateConfirmationMetric({
+                id: nextTransactionId,
+                params: {
+                  properties: {
+                    mm_pay_recipient_mm_account_switch_count:
+                      storedRecipientSwitchCount + 1,
+                  },
+                },
+              }),
+            );
+          }
+
+          Engine.context.ApprovalController.rejectRequest(
+            transactionId,
+            providerErrors.userRejectedRequest(),
+          );
+        })
+        .catch((error: unknown) => {
+          Logger.error(
+            error as Error,
+            'Failed to recreate the Perps deposit for the selected account',
+          );
+        });
     },
-    [transactionMeta],
+    [dispatch, storedRecipientSwitchCount, transactionMeta],
   );
 
   return (
@@ -63,7 +120,10 @@ export const PerpsAccountPickerRow: React.FC = () => {
 
   const isPerpsDeposit =
     payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]);
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ]);
 
   if (!isPerpsDeposit) {
     return null;

@@ -26,6 +26,10 @@ import type {
   PredictVenueId,
 } from '../../types';
 import {
+  commitOutcomeFromBody,
+  type PredictCommitOutcome,
+} from '../../errors/commitOutcome';
+import {
   sendSigned,
   sendSignedRead,
   VenueReadBudgetExhaustedError,
@@ -230,18 +234,49 @@ const parseBaseUrl = (baseUrl?: string): URL | undefined => {
   }
 };
 
+/** The canonical error code in a response body, when it carries one. */
+const errorCodeFromBody = (body: unknown): string | undefined => {
+  if (typeof body !== 'object' || body === null) {
+    return undefined;
+  }
+  const code = (body as { code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
+};
+
+/** The deposit a funding refusal names, when the body carries one. */
+const depositFromBody = (body: unknown): unknown => {
+  if (typeof body !== 'object' || body === null) {
+    return undefined;
+  }
+  return (body as { deposit?: unknown }).deposit;
+};
+
 export class PredictHttpError extends Error {
   readonly status: number;
   /** Canonical error code from the response body, when the backend sends one. */
   readonly bodyCode?: string;
+  /** What this call did, from the body's `outcome`. `not_placed` is the
+   * API's guarantee that it changed nothing. Every other answer, including
+   * no body or no field, is `unknown`. */
+  readonly outcome: PredictCommitOutcome;
+  /** The deposit a funding refusal names, when the body carries one. Never
+   * the rest of the body. */
+  readonly deposit?: unknown;
   /** Dispatch evidence for local transport failures; absent for HTTP errors. */
   readonly requestSent?: boolean;
 
-  constructor(status: number, bodyCode?: string) {
+  constructor(
+    status: number,
+    bodyCode?: string,
+    deposit?: unknown,
+    outcome: PredictCommitOutcome = 'unknown',
+  ) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
     this.bodyCode = bodyCode;
+    this.deposit = deposit;
+    this.outcome = outcome;
   }
 }
 
@@ -949,8 +984,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    const send = (signed: SignedOperation): Promise<Response> =>
-      this.#fetch(url.toString(), {
+    const send = (signed: SignedOperation): Promise<Response> => {
+      if (options?.signal?.aborted) {
+        return Promise.reject(abortedError());
+      }
+      return this.#fetch(url.toString(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -965,6 +1003,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         body: buildBody(signed),
         signal: options?.signal,
       });
+    };
     try {
       const response = await sendSigned(
         {
@@ -1004,8 +1043,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   /** Errors to PredictHttpError; successes to the parsed JSON body. */
   async #parseBody(response: Response): Promise<unknown> {
     if (!response.ok) {
-      const bodyCode = await this.#extractErrorCode(response);
-      throw new PredictHttpError(response.status, bodyCode);
+      const body = await this.#readJson(response);
+      throw new PredictHttpError(
+        response.status,
+        errorCodeFromBody(body),
+        depositFromBody(body),
+        commitOutcomeFromBody(body),
+      );
     }
     try {
       return await response.json();
@@ -1017,14 +1061,18 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
   }
 
-  /** Reads the canonical error code from an error response body, if any. */
-  async #extractErrorCode(response: Response): Promise<string | undefined> {
+  /** Reads a response body as JSON, or nothing when it is not JSON. */
+  async #readJson(answer: Response): Promise<unknown> {
     try {
-      const body = (await response.json()) as { code?: unknown };
-      return typeof body.code === 'string' ? body.code : undefined;
+      return await answer.json();
     } catch {
       return undefined;
     }
+  }
+
+  /** Reads the canonical error code from an error response body, if any. */
+  async #extractErrorCode(response: Response): Promise<string | undefined> {
+    return errorCodeFromBody(await this.#readJson(response));
   }
 
   #baseUrlWithTrailingSlash(): URL {

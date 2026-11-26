@@ -353,7 +353,6 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
         selectedCountry: null,
         activeProviderId: 'baanx',
         isAuthenticated: false,
-        cardholderAccounts: [],
         providerData: {},
         cardHomeData: null,
         cardHomeDataStatus: 'idle',
@@ -404,6 +403,12 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
     },
   });
 };
+
+// Each case renders the full sign-up screen. On a loaded CI shard a first
+// render can pass Jest's 5s default (CI timed out one case at 81s for the
+// file; it runs in ~12s locally). waitFor keeps its own 1s limit, so a real
+// hang still fails.
+jest.setTimeout(15_000);
 
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;

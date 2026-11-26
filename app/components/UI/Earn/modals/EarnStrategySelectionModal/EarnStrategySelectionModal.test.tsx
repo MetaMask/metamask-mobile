@@ -42,11 +42,11 @@ import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDeci
 
 let mockMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
-  isOnboardingRedirectNeeded: false,
+  isSplashRedirectNeeded: false,
 };
 const mockEarnRedirectTargets = {
   TOKEN_DETAILS: 'token_details',
-  MONEY_ONBOARDING: 'money_onboarding',
+  MONEY_SPLASH: 'money_splash',
   MONEY_DEPOSIT: 'money_deposit',
   POOLED_STAKING_DEPOSIT: 'pooled_staking_deposit',
   STABLECOIN_LENDING_DEPOSIT: 'stablecoin_lending_deposit',
@@ -59,8 +59,8 @@ const mockGetEarnExperienceDepositRedirectTarget = jest.fn(
   ): string | undefined => {
     try {
       if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') {
-        return moneyEntryContext.isOnboardingRedirectNeeded
-          ? mockEarnRedirectTargets.MONEY_ONBOARDING
+        return moneyEntryContext.isSplashRedirectNeeded
+          ? mockEarnRedirectTargets.MONEY_SPLASH
           : mockEarnRedirectTargets.MONEY_DEPOSIT;
       }
 
@@ -235,7 +235,7 @@ describe('EarnStrategySelectionModal', () => {
     jest.clearAllMocks();
     mockMoneyEntryContext = {
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: false,
     };
     mockUseSelector.mockReturnValue(mockMoneyEntryContext);
     mockUseEarnAnalytics.mockReturnValue({
@@ -736,13 +736,13 @@ describe('EarnStrategySelectionModal', () => {
 
   it.each([
     [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
-    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH],
   ])(
-    'tracks final Money strategy and %s onboarding destination',
-    async (isOnboardingNeeded, expectedRedirectTarget) => {
+    'tracks final Money strategy and %s splash destination',
+    async (isSplashNeeded, expectedRedirectTarget) => {
       mockMoneyEntryContext = {
         accessBlockReason: undefined,
-        isOnboardingRedirectNeeded: isOnboardingNeeded,
+        isSplashRedirectNeeded: isSplashNeeded,
       };
       mockUseSelector.mockReturnValue(mockMoneyEntryContext);
       const earnAsset = createEarnAsset([

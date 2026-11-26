@@ -63,6 +63,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
     },
+    TransactionController: {
+      updateSelectedGasFeeToken: jest.fn(),
+    },
   },
 }));
 jest.mock('../../../../hooks/gas/useEstimationFailed');
@@ -185,7 +188,9 @@ describe('GasFeesDetailsRow', () => {
   const mockUseBalanceChanges = jest.mocked(useBalanceChanges);
 
   beforeEach(() => {
+    jest.clearAllMocks();
     useConfirmationMetricEventsMock.mockReturnValue({
+      setConfirmationMetric: jest.fn(),
       trackTooltipClickedEvent: mockTrackTooltipClickedEvent,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     mockUseSelectedGasFeeToken.mockReturnValue(undefined);
@@ -383,6 +388,86 @@ describe('GasFeesDetailsRow', () => {
 
     expect(getByText('Paid by MetaMask')).toBeDefined();
     expect(queryByText('ETH')).toBeNull();
+  });
+
+  it(`shows 'Paid by <sponsor>' and sponsor tooltip when gasFeeSponsor is set`, () => {
+    const state = createStateWithSimulationData();
+    const tx =
+      state.engine.backgroundState.TransactionController.transactions[0];
+    tx.isGasFeeSponsored = true;
+    tx.gasFeeSponsor = 'Uniswap';
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      { state },
+    );
+
+    expect(getByText('Paid by Uniswap')).toBeOnTheScreen();
+    expect(queryByText('Paid by MetaMask')).toBeNull();
+    expect(queryByText('ETH')).toBeNull();
+
+    fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+
+    expect(
+      getByText(
+        'This network fee is paid by Uniswap, so you can transact without ETH in your account.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it(`shows 'Paid by MetaMask' and MetaMask tooltip when gasFeeSponsor is MetaMask`, () => {
+    const state = createStateWithSimulationData();
+    const tx =
+      state.engine.backgroundState.TransactionController.transactions[0];
+    tx.isGasFeeSponsored = true;
+    tx.gasFeeSponsor = 'MetaMask';
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      { state },
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+
+    expect(
+      getByText(
+        'This network fee is paid by MetaMask, so you can transact without ETH in your account.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('ignores gasFeeTokens sponsor when transaction gasFeeSponsor is unset', () => {
+    const state = createStateWithSimulationData();
+    const tx =
+      state.engine.backgroundState.TransactionController.transactions[0];
+    tx.isGasFeeSponsored = true;
+    tx.gasFeeTokens = [{ ...GAS_FEE_TOKEN_MOCK, sponsor: 'Uniswap' }];
+
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      { state },
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+    expect(queryByText('Paid by Uniswap')).toBeNull();
+  });
+
+  it('does not show sponsor label when gas fee is not sponsored', () => {
+    const state = createStateWithSimulationData();
+    const tx =
+      state.engine.backgroundState.TransactionController.transactions[0];
+    tx.isGasFeeSponsored = false;
+    tx.gasFeeSponsor = 'Uniswap';
+
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      { state },
+    );
+
+    expect(queryByText('Paid by Uniswap')).toBeNull();
+    expect(getByText('$0.34')).toBeOnTheScreen();
   });
 
   it('shows network fee when sponsored transaction is revoke delegation', async () => {

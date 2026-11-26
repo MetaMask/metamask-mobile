@@ -3,6 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
@@ -621,6 +622,47 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+\$100/)).toBeDefined();
       expect(queryByText('You sent')).toBeNull();
       expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders the attempted amount without a prefix for a failed fiat deposit', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: {
+            strategy: 'fiat',
+            targetFiat: '4.96',
+            totalFiat: '6.14',
+            bridgeFeeFiat: '1.14',
+          },
+        },
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(/^\$5\.00$/)).toBeDefined();
+      expect(queryByText(/\+\$5/)).toBeNull();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('falls back to targetFiat for a failed fiat deposit without a quote total', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: {
+            strategy: 'fiat',
+            targetFiat: '4.96',
+          },
+        },
+      });
+
+      const { getByText } = render();
+
+      expect(getByText(/^\$4\.96$/)).toBeDefined();
     });
 
     it('keeps two decimals on a whole-dollar deposit', () => {

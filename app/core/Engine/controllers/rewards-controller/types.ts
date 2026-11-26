@@ -409,14 +409,6 @@ export interface MobileOptinDto {
   signature: `0x${string}`;
 }
 
-export interface ApplyBonusCodeDto {
-  /**
-   * The bonus code to apply
-   * @example 'BNS123'
-   */
-  bonusCode: string;
-}
-
 /**
  * Campaign type enum matching the backend CampaignType
  */
@@ -3030,20 +3022,6 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
-}
-
-/**
- * Geo rewards metadata containing location and support info
- */
-export interface GeoRewardsMetadata {
-  /**
-   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
-   */
-  geoLocation: string;
-  /**
-   * Whether the location is allowed for opt-in
-   */
-  optinAllowedForGeo: boolean;
 }
 
 /**

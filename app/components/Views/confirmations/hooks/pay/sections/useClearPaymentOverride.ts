@@ -4,6 +4,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -17,6 +18,9 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
  * Clears any active `paymentOverride` on the current transaction.
  * Call from every non-money-account section's press handler so that
  * switching away from money account correctly resets the override.
+ *
+ * The Lighter override is kept. It sets the destination of the deposit, not
+ * the pay-with method, so changing the pay token must not clear it.
  *
  * `atomic` is re-derived rather than blindly cleared: a max-amount Money
  * Account deposit sets `atomic: false` independently of the pay-with
@@ -37,7 +41,11 @@ export function useClearPaymentOverride() {
   ]);
 
   return useCallback(() => {
-    if (transactionId && paymentOverride) {
+    if (
+      transactionId &&
+      paymentOverride &&
+      paymentOverride !== PaymentOverride.PerpsLighter
+    ) {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {

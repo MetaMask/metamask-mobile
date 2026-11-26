@@ -24,11 +24,13 @@ import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 jest.mock('../../hooks/usePredictSeries', () => ({
@@ -290,6 +292,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
     jest.clearAllMocks();
+    mockIsFocused = true;
     __resetCardClockForTest();
     const liveMarket = createMarket();
 
@@ -392,6 +395,42 @@ describe('PredictCryptoUpDownMarketCard', () => {
       77123,
       expect.objectContaining({ liveUpdatesEnabled: false }),
     );
+  });
+
+  it('shows the price to beat in cents for a gold market', () => {
+    const goldMarket = createMarket({
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+      priceToBeat: 4031.35,
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [goldMarket],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    });
+
+    renderCard(goldMarket);
+
+    expect(screen.getByText('$4,031.35')).toBeOnTheScreen();
+  });
+
+  it('shows the price to beat in whole dollars for a crypto market', () => {
+    const btcMarket = createMarket({ priceToBeat: 77123.45 });
+    mockUsePredictSeries.mockReturnValue({
+      data: [btcMarket],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    });
+
+    renderCard(btcMarket);
+
+    expect(screen.getByText('$77,123')).toBeOnTheScreen();
   });
 
   it('fetches the target price using the market TWAP window', () => {
@@ -818,6 +857,58 @@ describe('PredictCryptoUpDownMarketCard', () => {
           enabled: true,
           pollingInterval: 2000,
         }),
+      );
+    });
+  });
+
+  describe('screen focus', () => {
+    it('pauses live quotes while the screen is blurred', () => {
+      mockIsFocused = false;
+
+      renderCard();
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['up-token', 'down-token'],
+        { enabled: false },
+      );
+    });
+
+    it('pauses REST prices and polling while the screen is blurred', () => {
+      mockUseLiveMarketPrices.mockReturnValue({
+        getPrice: () => undefined,
+        isConnected: false,
+      });
+      mockIsFocused = false;
+
+      renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false, pollingInterval: undefined }),
+      );
+    });
+
+    it('resumes live quotes when the screen regains focus', () => {
+      mockIsFocused = false;
+      const { rerender } = renderCard();
+
+      mockIsFocused = true;
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['up-token', 'down-token'],
+        { enabled: true },
+      );
+    });
+
+    it('re-enables REST prices when the screen regains focus', () => {
+      mockIsFocused = false;
+      const { rerender } = renderCard();
+
+      mockIsFocused = true;
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: true }),
       );
     });
   });

@@ -19,6 +19,7 @@ import {
   stubHomepageSectionMeasurement,
 } from '../../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
 import { getTopTraderCardTestId } from './components/TopTraderCard.testIds';
 import {
@@ -98,6 +99,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   let measurementSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    resetFollowToggleSharedStateForTests();
     measurementSpy = stubHomepageSectionMeasurement();
     setupLeaderboardApiMock();
   });
@@ -106,6 +108,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     restoreHomeTopTradersSectionStore();
     clearLeaderboardApiMock();
     measurementSpy.mockRestore();
+    resetFollowToggleSharedStateForTests();
   });
 
   // -------------------------------------------------------------------------
@@ -395,10 +398,15 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens profile onboarding from the header when Social terms are accepted and no profile exists', async () => {
-    await acceptSocialTerms();
+  it('opens the Social tab from the header without Social terms or a profile', async () => {
     renderHomeTopTradersSection(
-      [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }, { name: Routes.HOME_TABS }],
+      [
+        { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+        {
+          name: Routes.HOME_TABS,
+          Component: createRouteParamsProbe(Routes.HOME_TABS),
+        },
+      ],
       {
         overrides: abTestOverrides({
           [SOCIAL_V1_AB_KEY]: 'treatment',
@@ -409,14 +417,41 @@ describeForPlatforms('Homepage TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
 
+    expect(await readRouteParams(Routes.HOME_TABS)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { source: 'home_carousel' },
+    });
+    expect(
+      screen.queryByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens profile onboarding instead of following without a profile when the Social V1 treatment is assigned', async () => {
+    await acceptSocialTerms();
+    renderHomeTopTradersSection([{ name: Routes.SOCIAL.PROFILE_ONBOARDING }], {
+      overrides: abTestOverrides({
+        [SOCIAL_V1_AB_KEY]: 'treatment',
+      }),
+    });
+    await findAlphaCard();
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getAllByText(strings('social_leaderboard.follow'))[0],
+      );
+    });
+
     expect(
       await screen.findByTestId(
         getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
       ),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).not.toBeOnTheScreen();
+    expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      expect.anything(),
+    );
   });
 
   // -------------------------------------------------------------------------
