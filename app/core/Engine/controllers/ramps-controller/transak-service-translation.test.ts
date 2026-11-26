@@ -21,7 +21,7 @@ function createFetchReturning(
     ok: true,
     status: 200,
     json: async () => body,
-  } as unknown as Response);
+  });
 }
 
 describe('TransakService.getTranslation', () => {
