@@ -54,25 +54,25 @@ const PredictMarketOutcomeResolved: React.FC<
     : TextColor.TextAlternative;
 
   return (
-    <Box twClassName={noContainer ? 'pt-2' : ' bg-muted rounded-xl p-4 mb-4'}>
+    <Box className={noContainer ? 'pt-2' : ' bg-muted rounded-xl p-4 mb-4'}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
-            twClassName="font-medium"
+            className="font-medium"
           >
             {outcome.groupItemTitle ?? outcome.title}
           </Text>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="font-medium"
+            className="font-medium"
           >
             ${formatVolume(outcome.volume)}{' '}
             {strings('predict.volume_abbreviated')}
@@ -81,12 +81,12 @@ const PredictMarketOutcomeResolved: React.FC<
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1 shrink-0"
+          className="gap-1 shrink-0"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={textColor}
-            twClassName="font-medium"
+            className="font-medium"
           >
             {winnerTitle}
           </Text>

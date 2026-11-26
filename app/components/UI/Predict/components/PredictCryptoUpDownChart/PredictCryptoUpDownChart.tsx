@@ -184,7 +184,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
 
   return (
     <Box
-      twClassName={explicitHeight ? undefined : 'flex-1'}
+      className={explicitHeight ? undefined : 'flex-1'}
       onLayout={
         explicitHeight
           ? undefined
@@ -204,7 +204,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
            */
           <Box
             style={{ height: chartHeight }}
-            twClassName="px-8 gap-2"
+            className="px-8 gap-2"
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             testID="predict-crypto-up-down-chart-connection-error"
@@ -217,7 +217,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('predict.error.chart_connection_error')}
             </Text>

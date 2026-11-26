@@ -423,7 +423,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const renderGraph = () => {
     if (isLoading || !hasData) {
       return (
-        <Box twClassName="mb-6">
+        <Box className="mb-6">
           {isMultipleSeries && (
             <ChartLegend
               series={seriesWithLabels}
@@ -431,7 +431,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               activeIndex={-1}
             />
           )}
-          <Box twClassName="h-48 bg-default rounded-lg relative overflow-hidden">
+          <Box className="h-48 bg-default rounded-lg relative overflow-hidden">
             <LineChart
               style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
               data={[0, 0]}
@@ -444,7 +444,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
             >
               <ChartGrid colors={colors} range={range} />
             </LineChart>
-            <Box twClassName="absolute inset-0 items-center justify-center px-4">
+            <Box className="absolute inset-0 items-center justify-center px-4">
               {isLoading ? (
                 <ActivityIndicator color={colors.primary.alternative} />
               ) : (
@@ -491,7 +491,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
     });
 
     return (
-      <Box twClassName="mb-4">
+      <Box className="mb-4">
         {isMultipleSeries && (
           <ChartLegend
             series={nonEmptySeries}
@@ -564,7 +564,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4"
+          className="px-4"
         >
           {dedupedAxisLabels.map(({ label, key }) => (
             <Text

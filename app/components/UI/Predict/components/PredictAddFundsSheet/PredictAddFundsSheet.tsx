@@ -70,16 +70,16 @@ const PredictAddFundsSheet = forwardRef<
       onClose={handleSheetClosed}
     >
       <BottomSheetHeader onClose={handleClose} style={tw.style('px-6 py-4')}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        <Text variant={TextVariant.HeadingMd} className="text-default">
           {strings('predict.add_funds_sheet.title')}
         </Text>
       </BottomSheetHeader>
       <Box
         alignItems={BoxAlignItems.Start}
         justifyContent={BoxJustifyContent.Start}
-        twClassName="px-6 pb-8"
+        className="px-6 pb-8"
       >
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {strings('predict.add_funds_sheet.description')}{' '}
         </Text>
       </Box>

@@ -70,7 +70,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   return (
     <Box
       alignItems={BoxAlignItems.Center}
-      twClassName="px-6"
+      className="px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       <AnimatedAmountDisplay

@@ -39,7 +39,7 @@ const PredictGameAboutSheet = forwardRef<
   return (
     <BottomSheet ref={ref} onClose={handleClose} shouldNavigateBack={false}>
       <SheetHeader title={strings('predict.tabs.about')} />
-      <Box twClassName="px-4 pb-4 flex-col gap-2">
+      <Box className="px-4 pb-4 flex-col gap-2">
         <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
           {description}
         </Text>

@@ -23,7 +23,7 @@ const PredictFeeTotal = ({
   feePolicy,
   fontWeight,
 }: PredictFeeTotalProps) => (
-  <Box twClassName="flex-row items-center gap-2">
+  <Box className="flex-row items-center gap-2">
     {Boolean(feePolicy?.builderCode) && originalTotal !== undefined && (
       <>
         <MembershipVipBadge hasProEntitlement />
@@ -31,7 +31,7 @@ const PredictFeeTotal = ({
           variant={TextVariant.BodyMd}
           fontWeight={fontWeight}
           color={TextColor.TextAlternative}
-          twClassName="line-through"
+          className="line-through"
         >
           {formatPrice(originalTotal, { maximumDecimals: 2 })}
         </Text>

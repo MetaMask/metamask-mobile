@@ -34,7 +34,7 @@ const FeaturedCarouselCardFooter: React.FC<FeaturedCarouselCardFooterProps> = ({
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
     alignItems={BoxAlignItems.Center}
-    twClassName="mt-4"
+    className="mt-4"
   >
     <Text
       variant={TextVariant.BodyXs}
@@ -51,7 +51,7 @@ const FeaturedCarouselCardFooter: React.FC<FeaturedCarouselCardFooterProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
+      className="gap-1"
     >
       {timeText && (
         <>

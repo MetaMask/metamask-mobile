@@ -21,7 +21,7 @@ const FeaturedCarouselPayoutRow: React.FC<FeaturedCarouselPayoutRowProps> = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="mt-1 gap-1"
+    className="mt-1 gap-1"
   >
     <Text
       variant={TextVariant.BodyXs}

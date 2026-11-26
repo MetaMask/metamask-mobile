@@ -285,10 +285,10 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       activeOpacity={0.9}
     >
       <Box
-        twClassName={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
+        className={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
       >
         {onDismiss && (
-          <Box twClassName="absolute top-3 right-3 z-10">
+          <Box className="absolute top-3 right-3 z-10">
             <ButtonIcon
               iconName={IconName.Close}
               size={ButtonIconSize.Md}
@@ -300,18 +300,18 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box twClassName={isCompact ? 'flex-1 p-4' : 'p-4 gap-4'}>
+        <Box className={isCompact ? 'flex-1 p-4' : 'p-4 gap-4'}>
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Medium}
-            twClassName="text-center"
+            className="text-center"
             numberOfLines={isCompact ? 1 : 2}
           >
             {market.title}
           </Text>
 
-          <Box twClassName={isCompact ? 'flex-1 mt-3 justify-center' : ''}>
+          <Box className={isCompact ? 'flex-1 mt-3 justify-center' : ''}>
             <PredictSportScoreboard
               game={game}
               compact={isCompact}
@@ -322,14 +322,14 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           {showBuyButtons && (
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName={`w-full gap-2 ${isCompact ? 'mt-1' : ''}`}
+              className={`w-full gap-2 ${isCompact ? 'mt-1' : ''}`}
             >
               {buttonItems.map((item) => (
-                <Box key={item.key} twClassName="flex-1">
+                <Box key={item.key} className="flex-1">
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={isCompact ? 'p-0' : 'px-1'}
+                    className={isCompact ? 'p-0' : 'px-1'}
                     contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}

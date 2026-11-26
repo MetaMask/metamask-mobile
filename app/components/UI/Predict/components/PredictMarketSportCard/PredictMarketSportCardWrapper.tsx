@@ -37,7 +37,7 @@ const PredictMarketSportCardWrapper: React.FC<
   }
 
   return (
-    <Box twClassName="mx-4">
+    <Box className="mx-4">
       <PredictMarketSportCard
         market={market}
         testID={testID}

@@ -48,7 +48,7 @@ const OutcomeRow: React.FC<{
       gap={3}
     >
       {/* Outcome image */}
-      <Box twClassName="w-6 h-6 rounded-lg overflow-hidden bg-background-alternative">
+      <Box className="w-6 h-6 rounded-lg overflow-hidden bg-background-alternative">
         {outcome.image ? (
           <Image
             source={{ uri: outcome.image }}
@@ -63,7 +63,7 @@ const OutcomeRow: React.FC<{
         variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}
         numberOfLines={1}
-        twClassName="flex-1"
+        className="flex-1"
       >
         {outcome.groupItemTitle || outcome.title}
       </Text>

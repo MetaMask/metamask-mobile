@@ -24,7 +24,7 @@ const PredictCryptoTwapInfoSheet = forwardRef<
 >(({ windowSeconds, symbol, onClose }, ref) => (
   <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
     <SheetHeader title={strings('predict.crypto_up_down.twap_info.title')} />
-    <Box twClassName="px-4 pb-4 gap-3">
+    <Box className="px-4 pb-4 gap-3">
       <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {strings('predict.crypto_up_down.twap_info.description', {
           symbol,

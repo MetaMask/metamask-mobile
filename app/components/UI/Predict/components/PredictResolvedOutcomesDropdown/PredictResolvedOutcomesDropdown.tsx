@@ -64,16 +64,16 @@ const PredictResolvedOutcomesDropdown = memo(
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
+          className="gap-3"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="font-medium"
+              className="font-medium"
               color={TextColor.TextDefault}
             >
               {strings('predict.resolved_outcomes')}
@@ -82,13 +82,29 @@ const PredictResolvedOutcomesDropdown = memo(
               severity={TagSeverity.Neutral}
               // Tag defaults to `self-start`, which opts it out of the row's
               // centering and leaves it sitting above the label.
-              twClassName="self-center"
+              className="self-center"
               testID={countTestID}
             >
               {String(count)}
             </Tag>
           </Box>
           <Icon
+            name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+            testID={isExpanded ? expandedIconTestID : collapsedIconTestID}
+          />
+        </Box>
+        {isExpanded && <Box testID={contentTestID}>{children}</Box>}
+      </Pressable>
+    );
+  },
+);
+
+PredictResolvedOutcomesDropdown.displayName = 'PredictResolvedOutcomesDropdown';
+
+export default PredictResolvedOutcomesDropdown;
+<Icon
             name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
             size={IconSize.Md}
             color={IconColor.IconAlternative}

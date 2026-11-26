@@ -21,7 +21,7 @@ const PredictRegTimeInfoSheet = forwardRef<
 >(({ onClose }, ref) => (
   <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
     <SheetHeader title={strings('predict.reg_time_info.title')} />
-    <Box twClassName="px-4 pb-4">
+    <Box className="px-4 pb-4">
       <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {strings('predict.reg_time_info.description')}
       </Text>

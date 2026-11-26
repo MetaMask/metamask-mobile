@@ -170,12 +170,12 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   if (isLoading) {
     return (
       <Box
-        twClassName="w-full"
+        className="w-full"
         style={{ minHeight: loadingContainerMinHeight }}
         testID={testID}
       >
         <Box
-          twClassName={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
+          className={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
         >
           <ActivityIndicator color={colors.primary.default} />
         </Box>
@@ -192,8 +192,8 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (error) {
     return (
-      <Box twClassName="w-full justify-center items-center" testID={testID}>
-        <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
+      <Box className="w-full justify-center items-center" testID={testID}>
+        <Box className={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Icon
             name={IconName.Warning}
             size={IconSize.Lg}
@@ -202,7 +202,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-2 text-center px-4"
+            className="mt-2 text-center px-4"
           >
             Unable to load price history
           </Text>
@@ -210,7 +210,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
             <Button
               variant={ButtonVariant.Primary}
               onPress={onRetry}
-              twClassName="mt-3"
+              className="mt-3"
               testID={PREDICT_GAME_CHART_CONTENT_TEST_IDS.RETRY_BUTTON}
             >
               Retry
@@ -230,8 +230,8 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (!hasData) {
     return (
-      <Box twClassName="w-full justify-center items-center" testID={testID}>
-        <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
+      <Box className="w-full justify-center items-center" testID={testID}>
+        <Box className={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             No price history available
           </Text>
@@ -259,7 +259,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const isTooltipActive = activeIndex >= 0;
 
   return (
-    <Box twClassName="w-full" testID={testID}>
+    <Box className="w-full" testID={testID}>
       <View
         style={tw.style(`h-[${CHART_HEIGHT}px]`)}
         {...panResponder.panHandlers}

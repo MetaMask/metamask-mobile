@@ -751,7 +751,7 @@ const Sparkline = React.memo(
     return (
       <Box
         testID={PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE}
-        twClassName="h-[104px] w-full"
+        className="h-[104px] w-full"
       >
         <Svg
           style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
@@ -827,10 +827,10 @@ const ProgressLogo = React.memo(
 
     return (
       <Box
-        twClassName="items-center justify-center"
+        className="items-center justify-center"
         style={tw.style({ width: ringSize, height: ringSize })}
       >
-        <Box twClassName="absolute inset-0">
+        <Box className="absolute inset-0">
           <Svg
             width={ringSize}
             height={ringSize}
@@ -859,7 +859,7 @@ const ProgressLogo = React.memo(
             />
           </Svg>
         </Box>
-        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
+        <Box className="h-10 w-10 overflow-hidden rounded-full bg-default">
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -868,7 +868,7 @@ const ProgressLogo = React.memo(
               recyclingKey={imageUrl}
             />
           ) : (
-            <Box twClassName="h-full w-full bg-muted" />
+            <Box className="h-full w-full bg-muted" />
           )}
         </Box>
       </Box>
@@ -919,7 +919,7 @@ const LiveStatus = React.memo(
         justifyContent={BoxJustifyContent.Center}
       >
         <Box
-          twClassName="mr-1.5 h-2 w-2 rounded-full"
+          className="mr-1.5 h-2 w-2 rounded-full"
           style={tw.style({ backgroundColor: accentColor })}
         />
         <Text
@@ -934,7 +934,7 @@ const LiveStatus = React.memo(
 
     if (compact) {
       return (
-        <Box twClassName="items-center gap-2">
+        <Box className="items-center gap-2">
           {logo}
           {badge}
         </Box>
@@ -943,10 +943,10 @@ const LiveStatus = React.memo(
 
     return (
       <>
-        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
+        <Box className="absolute left-0 right-0 top-[112px] items-center px-4">
           {logo}
         </Box>
-        <Box twClassName="absolute left-0 right-0 top-[171px] items-center">
+        <Box className="absolute left-0 right-0 top-[171px] items-center">
           {badge}
         </Box>
       </>
@@ -1025,7 +1025,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 bg-success-muted"
+          className="h-10 flex-1 bg-success-muted"
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1039,7 +1039,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 bg-error-muted"
+          className="h-10 flex-1 bg-error-muted"
           disabled={!downToken || !isMarketOpen}
         >
           <Text
@@ -1055,7 +1055,7 @@ const OutcomeButtons = React.memo(
 
     if (compact) {
       return (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} className="w-full gap-2">
           {buttons}
         </Box>
       );
@@ -1064,7 +1064,7 @@ const OutcomeButtons = React.memo(
     return (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
+        className="absolute left-4 right-4 top-[235px] z-10 gap-2"
       >
         {buttons}
       </Box>
@@ -1085,7 +1085,7 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
   return (
     <Box
       testID={testID}
-      twClassName={
+      className={
         compact
           ? 'h-full rounded-xl bg-section p-4 justify-between'
           : 'mb-3 rounded-xl bg-section p-4'
@@ -1093,14 +1093,14 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
     >
       <Box
         testID={PredictCryptoUpDownMarketCardSelectorsIDs.SKELETON}
-        twClassName="items-center gap-3"
+        className="items-center gap-3"
       >
         <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
         <Skeleton width="70%" height={18} style={tw.style('rounded-md')} />
         {!compact && (
           <Skeleton width="100%" height={120} style={tw.style('rounded-xl')} />
         )}
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} className="w-full gap-2">
           <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
           <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
         </Box>
@@ -1343,8 +1343,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
         accessibilityRole="button"
         style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
       >
-        <Box twClassName="flex-1 p-4 items-center justify-between">
-          <Box twClassName="items-center">
+        <Box className="flex-1 p-4 items-center justify-between">
+          <Box className="items-center">
             <LiveStatus
               compact
               endDate={selectedMarket.endDate}
@@ -1358,7 +1358,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
-              twClassName="text-center"
+              className="text-center"
             >
               {cardTitle}
             </Text>
@@ -1370,7 +1370,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
             </Text>
           </Box>
 
-          <Box twClassName="w-full">
+          <Box className="w-full">
             <OutcomeButtons
               compact
               upToken={upToken}
@@ -1387,7 +1387,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box className="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}
@@ -1395,7 +1395,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         accessibilityRole="button"
         style={tw.style('absolute inset-0')}
       >
-        <Box twClassName="absolute left-[-2px] right-[-2px] top-0 opacity-100">
+        <Box className="absolute left-[-2px] right-[-2px] top-0 opacity-100">
           <Sparkline
             displayPoints={sparklineDisplayPoints}
             color={accentColor}
@@ -1408,7 +1408,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="absolute right-2 rounded-full border bg-section px-2 py-0"
+          className="absolute right-2 rounded-full border bg-section px-2 py-0"
           style={tw.style(
             { top: targetLabelTop },
             {
@@ -1424,7 +1424,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
           >
             Target
           </Text>
-          <Box twClassName="ml-1">
+          <Box className="ml-1">
             <TargetDirectionGlyph
               direction={targetDirection}
               color={accentColor}
@@ -1433,7 +1433,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         </Box>
         {displayTargetPrice ? (
           <Box
-            twClassName="absolute right-2 rounded-full border bg-section px-2 py-0.5"
+            className="absolute right-2 rounded-full border bg-section px-2 py-0.5"
             style={tw.style(
               { top: targetLabelTop + 30 },
               {
@@ -1465,7 +1465,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="absolute left-4 right-4 top-[197px] text-center"
+          className="absolute left-4 right-4 top-[197px] text-center"
         >
           {cardTitle}
         </Text>
@@ -1483,7 +1483,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="absolute bottom-4 left-0 right-0"
+        className="absolute bottom-4 left-0 right-0"
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Resets every {resetDuration}
