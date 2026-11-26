@@ -1006,6 +1006,7 @@ interface MockTradeScreenProps {
   liquidationDistance?: string;
   isLiquidationLoading: boolean;
   onSubmit: () => void | Promise<void>;
+  closesSheetOnSubmit?: boolean;
 }
 
 interface MockLeverageScreenProps {
@@ -2977,6 +2978,29 @@ describe('PerpsOrderView', () => {
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
     ).not.toContain('execution-Order execution failed');
     expect(getMockTradeScreenProps().errorMessages).toHaveLength(5);
+  });
+
+  it('does not turn the submit button into Add funds while an order is being placed', () => {
+    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+      isValid: false,
+      errors: ['Insufficient margin'],
+      warnings: [],
+      fieldIssues: [],
+      isValidating: false,
+      insufficientBalanceErrors: ['Insufficient margin'],
+      validateNow: jest.fn(),
+    });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: jest.fn(),
+      isPlacing: true,
+      error: null,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().closesSheetOnSubmit).toBe(false);
+    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
   });
 
   it('awaits pending validation before submitting from the Trade sheet', async () => {

@@ -2946,10 +2946,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderLiquidation.distancePrice,
           );
     // No funds to trade with: the submit button becomes an Add funds CTA.
-    // Wait for the live available-to-trade balance so it can't flash early.
+    // Wait for the live available-to-trade balance so it can't flash early,
+    // and never swap the button while an order is being placed.
     const isAddFundsMode =
       !isLoadingAccount &&
       !isAvailableToTradeLoading &&
+      !isPlacingOrder &&
       (spendableBalance === 0 || hasInsufficientFundsError);
     const submitDisabled =
       !isAddFundsMode &&
