@@ -102,7 +102,6 @@ const MoneyActionButtonRow = ({
             pointerEvents="none"
             twClassName="absolute top-2 right-2"
             testID={MoneyActionButtonRowTestIds.DETAILS_NEW_DOT}
-            accessibilityLabel={strings('money.action.details_new_badge')}
           />
         ) : null}
       </Box>
