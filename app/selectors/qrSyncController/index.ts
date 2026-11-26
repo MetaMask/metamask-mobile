@@ -10,26 +10,46 @@ import {
   QrSyncProvisioningStatuses,
 } from '../../core/QrSync/constants';
 import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
+import type {
+  QrSyncImportSummaryAccount as QrSyncImportSummaryAccountWire,
+  QrSyncImportSummaryWallet as QrSyncImportSummaryWalletWire,
+} from '../../core/QrSync/types';
 
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
   state.engine.backgroundState.QrSyncController;
 
-export interface QrSyncImportSummaryAccount {
-  id: string;
+/** Display account: wire `name` may be absent when falling back to tree metadata. */
+export type QrSyncImportSummaryAccount = Omit<
+  QrSyncImportSummaryAccountWire,
+  'name'
+> & {
   name: string | null;
-}
+};
 
-export interface QrSyncImportSummaryWallet {
-  id: string;
+export type QrSyncImportSummaryWallet = Omit<
+  QrSyncImportSummaryWalletWire,
+  'name' | 'accounts'
+> & {
   name: string | null;
   accounts: QrSyncImportSummaryAccount[];
-}
+};
 
 export interface QrSyncImportSummary {
   accountCount: number;
   walletCount: number;
   wallets: QrSyncImportSummaryWallet[];
 }
+
+const toImportSummary = (
+  wallets: QrSyncImportSummaryWallet[],
+): QrSyncImportSummary => ({
+  accountCount: wallets.reduce(
+    (total, wallet) => total + wallet.accounts.length,
+    0,
+  ),
+  walletCount: wallets.length,
+  wallets,
+});
 
 export const selectQrSyncPhase = createSelector(
   selectQrSyncControllerState,
@@ -73,15 +93,7 @@ export const selectQrSyncImportSummary = createSelector(
   selectQrSyncControllerState,
   (qrSyncState): QrSyncImportSummary => {
     if (qrSyncState.importSummary) {
-      const { wallets } = qrSyncState.importSummary;
-      return {
-        accountCount: wallets.reduce(
-          (total, wallet) => total + wallet.accounts.length,
-          0,
-        ),
-        walletCount: wallets.length,
-        wallets,
-      };
+      return toImportSummary(qrSyncState.importSummary.wallets);
     }
 
     const payload =
@@ -98,14 +110,7 @@ export const selectQrSyncImportSummary = createSelector(
         }))
         .filter((wallet) => wallet.accounts.length > 0) ?? [];
 
-    return {
-      accountCount: wallets.reduce(
-        (total, wallet) => total + wallet.accounts.length,
-        0,
-      ),
-      walletCount: wallets.length,
-      wallets,
-    };
+    return toImportSummary(wallets);
   },
 );
 

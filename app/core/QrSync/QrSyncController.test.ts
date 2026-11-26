@@ -21,6 +21,7 @@ import {
   QR_SYNC_CONTROLLER_NAME,
   type QrSyncControllerMessenger,
 } from './controller-types';
+import { qrSyncImportSummaryFixture } from './__fixtures__/importSummary';
 import {
   defaultQrSyncControllerState,
   QrSyncController,
@@ -175,23 +176,7 @@ const createSyncReadyWireMessage = (
       ],
       ...(options.includeImportSummary
         ? {
-            qrSyncImportSummary: {
-              wallets: [
-                {
-                  id: 'demo-wallet-1',
-                  name: 'Wallet 1',
-                  accounts: [
-                    { id: 'demo-wallet-1/0', name: 'Account 1' },
-                    { id: 'demo-wallet-1/1', name: 'Account 2' },
-                  ],
-                },
-                {
-                  id: 'demo-wallet-2',
-                  name: 'Wallet 2',
-                  accounts: [{ id: 'demo-wallet-2/0', name: 'Account 3' }],
-                },
-              ],
-            },
+            qrSyncImportSummary: qrSyncImportSummaryFixture,
           }
         : {}),
     },
@@ -592,18 +577,9 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
-      expect(controller.state.importSummary?.wallets).toEqual([
-        expect.objectContaining({
-          name: 'Wallet 1',
-          accounts: expect.arrayContaining([
-            expect.objectContaining({ name: 'Account 1' }),
-          ]),
-        }),
-        expect.objectContaining({
-          name: 'Wallet 2',
-          accounts: [expect.objectContaining({ name: 'Account 3' })],
-        }),
-      ]);
+      expect(controller.state.importSummary).toEqual(
+        qrSyncImportSummaryFixture,
+      );
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_COMPLETED,
         version: QrSyncMessageVersion.V1,
@@ -839,6 +815,39 @@ describe('QrSyncController', () => {
         code: 'SYNC_FAILED',
         message: 'Handshake failed',
       });
+    });
+
+    it('does not tear down a replacement session while peer notification hangs', async () => {
+      const controller = buildController();
+      const firstClient = buildMockWalletClient();
+      const secondClient = buildMockWalletClient();
+
+      mockCreateQrSyncWalletClient
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: firstClient.client,
+        })
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: secondClient.client,
+        });
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      firstClient.client.sendResponse.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+      firstClient.emit('error', new Error('Handshake failed'));
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      expect(secondClient.client.connect).toHaveBeenCalledTimes(1);
+      expect(secondClient.client.disconnect).not.toHaveBeenCalled();
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
     });
   });
 

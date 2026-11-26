@@ -697,6 +697,8 @@ export class QrSyncController extends BaseController<
       | typeof QrSyncActionTypes.SYNC_ERROR,
     error?: QrSyncError,
   ): Promise<void> {
+    const endingClient = this.client;
+
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
       const phaseFrom = this.state.phase;
       reportQrSyncFailure(new Error(error.message), {
@@ -715,16 +717,24 @@ export class QrSyncController extends BaseController<
       });
     }
 
-    if (this.client) {
+    // Detach before any await so a rescan can attach a new client, and so this
+    // teardown cannot disconnect a replacement session.
+    if (endingClient !== null && this.client === endingClient) {
+      this.unbindClientListeners();
+      this.client = null;
+      this.sessionId = null;
+    }
+
+    if (endingClient) {
       try {
         if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
-          await this.sendMessage({
+          await endingClient.sendResponse({
             type: QrSyncActionTypes.SYNC_ERROR,
             version: QrSyncMessageVersion.V1,
             data: error,
           });
         } else {
-          await this.sendMessage({
+          await endingClient.sendResponse({
             type: QrSyncActionTypes.SYNC_CANCEL,
             version: QrSyncMessageVersion.V1,
           });
@@ -732,15 +742,22 @@ export class QrSyncController extends BaseController<
       } catch {
         // Best-effort peer notification; still terminate locally.
       }
-    }
 
-    await this.destroySession();
+      try {
+        await endingClient.disconnect();
+      } catch {
+        // Best-effort teardown.
+      }
+    }
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
       return;
     }
 
-    this.clearControllerState();
+    // A rescan may have started while peer notification was in flight.
+    if (this.client === null) {
+      this.clearControllerState();
+    }
   }
 
   private async destroySession(): Promise<void> {
