@@ -1246,7 +1246,7 @@ const MyProfileView: React.FC = () => {
                       />
                       <Text
                         variant={TextVariant.HeadingSm}
-                        className="text-center"
+                        twClassName="text-center"
                       >
                         {strings(
                           'social_leaderboard.trader_profile.blocked_title',
@@ -1260,27 +1260,6 @@ const MyProfileView: React.FC = () => {
                   )}
                   className="max-w-80"
                   testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
-                /><Icon
-                        name={IconName.Ban}
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                      <Text
-                        variant={TextVariant.HeadingSm}
-                        className="text-center"
-                      >
-                        {strings(
-                          'social_leaderboard.trader_profile.blocked_title',
-                          { name: displayProfile.handle },
-                        )}
-                      </Text>
-                    </>
-                  }
-                  description={strings(
-                    'social_leaderboard.trader_profile.blocked_description',
-                  )}
-                  twClassName="max-w-80"
-                  testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
                 />
               </Box>
             ) : isPrivate ? (
@@ -1292,7 +1271,7 @@ const MyProfileView: React.FC = () => {
                       <Box
                         alignItems={BoxAlignItems.Center}
                         gap={4}
-                        className="w-full"
+                        twClassName="w-full"
                       >
                         <Box
                           accessibilityElementsHidden
@@ -1304,10 +1283,10 @@ const MyProfileView: React.FC = () => {
                             color={IconColor.IconDefault}
                           />
                         </Box>
-                        <Box gap={1} className="w-full">
+                        <Box gap={1} twClassName="w-full">
                           <Text
                             variant={TextVariant.HeadingSm}
-                            className="text-center"
+                            twClassName="text-center"
                           >
                             {strings(
                               isOwner
@@ -1320,7 +1299,7 @@ const MyProfileView: React.FC = () => {
                             color={TextColor.TextAlternative}
                             numberOfLines={3}
                             ellipsizeMode="tail"
-                            className="text-center"
+                            twClassName="text-center"
                           >
                             {isOwner
                               ? strings(
@@ -1347,65 +1326,6 @@ const MyProfileView: React.FC = () => {
                       testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
                     }}
                     className="w-full max-w-none"
-                    testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
-                  /><Box
-                        alignItems={BoxAlignItems.Center}
-                        gap={4}
-                        className="w-full"
-                      >
-                        <Box
-                          accessibilityElementsHidden
-                          importantForAccessibility="no-hide-descendants"
-                        >
-                          <Icon
-                            name={IconName.EyeSlash}
-                            size={IconSize.Xl}
-                            color={IconColor.IconDefault}
-                          />
-                        </Box>
-                        <Box gap={1} className="w-full">
-                          <Text
-                            variant={TextVariant.HeadingSm}
-                            className="text-center"
-                          >
-                            {strings(
-                              isOwner
-                                ? 'social_leaderboard.trader_profile.private_title_own'
-                                : 'social_leaderboard.trader_profile.private_title',
-                            )}
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
-                            numberOfLines={3}
-                            ellipsizeMode="tail"
-                            className="text-center"
-                          >
-                            {isOwner
-                              ? strings(
-                                  'social_leaderboard.trader_profile.private_description_own',
-                                )
-                              : strings(
-                                  'social_leaderboard.trader_profile.private_description',
-                                  { name: displayProfile.handle },
-                                )}
-                          </Text>
-                        </Box>
-                      </Box>
-                    }
-                    actionButtonText={
-                      isOwner
-                        ? strings(
-                            'social_leaderboard.trader_profile.privacy_settings',
-                          )
-                        : undefined
-                    }
-                    onAction={isOwner ? handleOpenPrivacySettings : undefined}
-                    actionButtonProps={{
-                      twClassName: 'self-center rounded-xl',
-                      testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
-                    }}
-                    twClassName="w-full max-w-none"
                     testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
                   />
                 </Box>

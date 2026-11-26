@@ -460,42 +460,6 @@ const TraderProfileView = () => {
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
         endAccessory={
-          <SocialHeaderGlassSurface className="px-1">
-            {isSharing ? (
-              <ShareButtonSpinner
-                testID={TraderProfileViewSelectorsIDs.SHARE_SPINNER}
-              />
-            ) : (
-              <ButtonIcon
-                iconName={IconName.Share}
-                iconProps={{ color: IconColor.IconDefault }}
-                size={ButtonIconSize.Md}
-                onPress={handleShareProfile}
-                accessibilityLabel={strings(
-                  'social_leaderboard.my_profile.share_profile',
-                )}
-                testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
-              />
-            )}
-          </SocialHeaderGlassSurface>
-        }
-        testID={TraderProfileViewSelectorsIDs.HEADER}
-      /><TraderHeaderIdentity
-              traderName={headerTitle}
-              traderImageUrl={profile.profile.imageUrl}
-              traderAddress={profile.profile.address}
-              traderProfileId={profile.profile.profileId}
-              isVerified={isProfileVerified(profile.profile)}
-              variant="compact"
-              testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
-            />
-          ) : undefined
-        }
-        onBack={handleBack}
-        backButtonProps={{
-          testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
-        }}
-        endAccessory={
           <SocialHeaderGlassSurface twClassName="px-1">
             {isSharing ? (
               <ShareButtonSpinner

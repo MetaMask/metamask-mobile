@@ -1747,31 +1747,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                         testID:
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
-                    /><Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.TextAlternative}
-                        >
-                          @
-                        </Text>
-                      }
-                      endAccessory={
-                        <UsernameShuffleDie
-                          onPress={handleShuffleUsername}
-                          accessibilityLabel={strings(
-                            'social_leaderboard.profile_onboarding.shuffle_username',
-                          )}
-                          testID={
-                            SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON
-                          }
-                        />
-                      }
-                      inputProps={{
-                        autoCapitalize: 'none',
-                        autoCorrect: false,
-                        maxLength: MAX_USERNAME_LENGTH,
-                        testID:
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
-                      }}
                     />
                     <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
@@ -1791,19 +1766,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                       endAccessory={
                         draft.displayName.trim() && !displayNameError ? (
                           <Icon
-                            name={IconName.Check}
-                            size={IconSize.Sm}
-                            color={IconColor.SuccessDefault}
-                          />
-                        ) : undefined
-                      }
-                      inputProps={{
-                        autoCapitalize: 'words',
-                        maxLength: MAX_DISPLAY_NAME_LENGTH,
-                        testID:
-                          SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-                      }}
-                    /><Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
                             color={IconColor.SuccessDefault}

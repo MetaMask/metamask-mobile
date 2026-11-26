@@ -334,30 +334,6 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                   maxLength: MAX_USERNAME_LENGTH,
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
-              /><Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    @
-                  </Text>
-                }
-                endAccessory={
-                  <UsernameShuffleDie
-                    onPress={onShuffleUsername}
-                    accessibilityLabel={strings(
-                      'social_leaderboard.profile_onboarding.shuffle_username',
-                    )}
-                    testID={
-                      SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON
-                    }
-                  />
-                }
-                inputProps={{
-                  autoCapitalize: 'none',
-                  autoCorrect: false,
-                  maxLength: MAX_USERNAME_LENGTH,
-                  testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
-                }}
               />
               <UsernameStatusLine feedback={usernameFeedback} />
             </Box>

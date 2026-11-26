@@ -93,7 +93,7 @@ const PrivateComposerContent: React.FC = () => {
       <Box alignItems={BoxAlignItems.Center} className="px-8 py-12">
         <TabEmptyState
           icon={
-            <Box alignItems={BoxAlignItems.Center} gap={4} className="w-full">
+            <Box alignItems={BoxAlignItems.Center} gap={4} twClassName="w-full">
               <Box
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
@@ -104,11 +104,11 @@ const PrivateComposerContent: React.FC = () => {
                   color={IconColor.IconDefault}
                 />
               </Box>
-              <Box gap={1} className="w-full">
+              <Box gap={1} twClassName="w-full">
                 <Text
                   variant={TextVariant.HeadingSm}
                   accessibilityRole="header"
-                  className="text-center"
+                  twClassName="text-center"
                 >
                   {strings(
                     'social_leaderboard.trader_profile.private_title_own',
@@ -117,7 +117,7 @@ const PrivateComposerContent: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
-                  className="text-center"
+                  twClassName="text-center"
                 >
                   {strings('social_leaderboard.composer.private_description')}
                 </Text>
@@ -133,47 +133,6 @@ const PrivateComposerContent: React.FC = () => {
             testID: SocialPostComposerViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
           }}
           className="w-full max-w-none"
-          testID={SocialPostComposerViewSelectorsIDs.PRIVATE_STATE}
-        /><Box alignItems={BoxAlignItems.Center} gap={4} className="w-full">
-              <Box
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-              >
-                <Icon
-                  name={IconName.EyeSlash}
-                  size={IconSize.Xl}
-                  color={IconColor.IconDefault}
-                />
-              </Box>
-              <Box gap={1} className="w-full">
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  accessibilityRole="header"
-                  className="text-center"
-                >
-                  {strings(
-                    'social_leaderboard.trader_profile.private_title_own',
-                  )}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  className="text-center"
-                >
-                  {strings('social_leaderboard.composer.private_description')}
-                </Text>
-              </Box>
-            </Box>
-          }
-          actionButtonText={strings(
-            'social_leaderboard.trader_profile.privacy_settings',
-          )}
-          onAction={handleOpenPrivacySettings}
-          actionButtonProps={{
-            twClassName: 'self-center rounded-xl',
-            testID: SocialPostComposerViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
-          }}
-          twClassName="w-full max-w-none"
           testID={SocialPostComposerViewSelectorsIDs.PRIVATE_STATE}
         />
       </Box>
