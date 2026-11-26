@@ -7,6 +7,11 @@ export {
 } from './usePerpsLivePositions';
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
+export { usePerpsVenueBalances } from './usePerpsVenueBalances';
+export type {
+  PerpsVenueBalance,
+  UsePerpsVenueBalancesReturn,
+} from './usePerpsVenueBalances';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 export { usePerpsLiveFocusedPrice } from './usePerpsLiveFocusedPrice';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';

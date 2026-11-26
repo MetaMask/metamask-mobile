@@ -10,7 +10,7 @@ import Engine from '../../../Engine';
 import { MAINNET } from '../../../../constants/network';
 import {
   addTransactionForDeeplink,
-  isDeeplinkRedesignedConfirmationCompatible,
+  isDeeplinkConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from '../legacy/handleApproveUrl';
@@ -105,8 +105,8 @@ describe('handleEthereumUrl', () => {
   const mockGetDecimalChainId = jest.mocked(getDecimalChainId);
   const mockSwitchNetwork = jest.mocked(switchNetwork);
   const mockHandleApproveUrl = jest.mocked(handleApproveUrl);
-  const mockIsDeeplinkRedesignedConfirmationCompatible = jest.mocked(
-    isDeeplinkRedesignedConfirmationCompatible,
+  const mockIsDeeplinkConfirmationCompatible = jest.mocked(
+    isDeeplinkConfirmationCompatible,
   );
   const mockAddTransactionForDeeplink = jest.mocked(addTransactionForDeeplink);
   const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
@@ -142,7 +142,7 @@ describe('handleEthereumUrl', () => {
       // do nothing
     });
 
-    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(false);
+    mockIsDeeplinkConfirmationCompatible.mockReturnValue(false);
     mockAddTransactionForDeeplink.mockResolvedValue(
       {} as ReturnType<typeof addTransactionForDeeplink>,
     );
@@ -268,8 +268,8 @@ describe('handleEthereumUrl', () => {
     });
   });
 
-  it('calls addTransactionForDeeplink if deeplink is compatible with redesigned confirmation', () => {
-    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+  it('calls addTransactionForDeeplink if deeplink is compatible with confirmation', () => {
+    mockIsDeeplinkConfirmationCompatible.mockReturnValue(true);
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
     mockParse.mockReturnValue(
@@ -282,13 +282,11 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ url, origin });
 
-    expect(mockIsDeeplinkRedesignedConfirmationCompatible).toHaveBeenCalledWith(
+    expect(mockIsDeeplinkConfirmationCompatible).toHaveBeenCalledWith(
       ETH_ACTIONS.TRANSFER,
     );
 
-    expect(
-      mockIsDeeplinkRedesignedConfirmationCompatible,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockIsDeeplinkConfirmationCompatible).toHaveBeenCalledTimes(1);
 
     expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith({
       function_name: ETH_ACTIONS.TRANSFER,
@@ -299,12 +297,12 @@ describe('handleEthereumUrl', () => {
     });
   });
 
-  it('shows network not found alert when redesigned send cannot resolve chain', async () => {
+  it('shows network not found alert when send cannot resolve chain', async () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
 
-    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockIsDeeplinkConfirmationCompatible.mockReturnValue(true);
     mockAddTransactionForDeeplink.mockRejectedValue(
       new Error('Unable to find network with chain id 0xa'),
     );
@@ -459,7 +457,7 @@ describe('handleEthereumUrl', () => {
 
   // Regression test for https://github.com/MetaMask/metamask-mobile/issues/23672
   it('sanitizes scientific notation uint256 before forwarding to addTransactionForDeeplink', () => {
-    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockIsDeeplinkConfirmationCompatible.mockReturnValue(true);
     mockParse.mockReturnValue(
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
@@ -483,7 +481,7 @@ describe('handleEthereumUrl', () => {
     const pageOrigin = 'https://dapp.example';
 
     beforeEach(() => {
-      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+      mockIsDeeplinkConfirmationCompatible.mockReturnValue(true);
     });
 
     it.each([
@@ -524,26 +522,26 @@ describe('handleEthereumUrl', () => {
       {
         name: 'the chain in the link',
         ethUrl: { function_name: ETH_ACTIONS.TRANSFER, chain_id: '137' },
-        isRedesigned: true,
+        isConfirmationCompatible: true,
         scope: 'eip155:137',
       },
       {
-        name: 'mainnet when a redesigned request has no chain',
+        name: 'mainnet when a confirmation-compatible request has no chain',
         ethUrl: { function_name: ETH_ACTIONS.TRANSFER },
-        isRedesigned: true,
+        isConfirmationCompatible: true,
         scope: 'eip155:1',
       },
       {
         name: 'the selected network when a legacy request has no chain',
         ethUrl: { function_name: ETH_ACTIONS.APPROVE },
-        isRedesigned: false,
+        isConfirmationCompatible: false,
         scope: 'eip155:59144',
       },
     ])(
       'checks permitted accounts on $name',
-      async ({ ethUrl, isRedesigned, scope }) => {
-        mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(
-          isRedesigned,
+      async ({ ethUrl, isConfirmationCompatible, scope }) => {
+        mockIsDeeplinkConfirmationCompatible.mockReturnValue(
+          isConfirmationCompatible,
         );
         mockParse.mockReturnValue(parsedUrl(ethUrl));
 
@@ -568,7 +566,7 @@ describe('handleEthereumUrl', () => {
     });
 
     it('rejects an approval from a page that is not connected', async () => {
-      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(false);
+      mockIsDeeplinkConfirmationCompatible.mockReturnValue(false);
       mockParse.mockReturnValue(
         parsedUrl({ function_name: ETH_ACTIONS.APPROVE, chain_id: 1 }),
       );
@@ -641,7 +639,7 @@ describe('handleEthereumUrl', () => {
     );
 
     beforeEach(() => {
-      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+      mockIsDeeplinkConfirmationCompatible.mockReturnValue(true);
       mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
       mockSelectAssets.mockReturnValue({
         '0x1': [nativeEthAsset, usdcAsset],

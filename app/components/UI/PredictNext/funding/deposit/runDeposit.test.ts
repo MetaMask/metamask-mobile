@@ -299,20 +299,47 @@ describe('startDeposit', () => {
 });
 
 describe('payDeposit', () => {
-  it('refuses a plan for another amount, cancels it and sends nothing', async () => {
-    const { deps, funding, executor } = setup();
+  it.each([
+    ['amount', awaitingTransfer({ amount: '30.00' }), 'amount'],
+    [
+      'chain',
+      {
+        ...awaitingTransfer(),
+        chainId: BASE_SEPOLIA_DEPOSIT_NETWORK.chainId,
+        next: {
+          ...awaitingTransfer().next,
+          kind: 'wallet_transfer' as const,
+          chainId: BASE_SEPOLIA_DEPOSIT_NETWORK.chainId,
+        },
+      } as PredictDepositOperation,
+      'chain',
+    ],
+    [
+      'token',
+      {
+        ...awaitingTransfer(),
+        tokenContract: BASE_SEPOLIA_DEPOSIT_NETWORK.usdc.address,
+        next: {
+          ...awaitingTransfer().next,
+          kind: 'wallet_transfer' as const,
+          tokenContract: BASE_SEPOLIA_DEPOSIT_NETWORK.usdc.address,
+        },
+      } as PredictDepositOperation,
+      'token',
+    ],
+  ])(
+    'refuses a plan whose %s does not match the request, cancels it, and signs nothing',
+    async (_label, mismatchedDeposit, reason) => {
+      const { deps, funding, executor } = setup();
 
-    const outcome = await payDeposit(
-      deps,
-      awaitingTransfer({ amount: '30.00' }),
-      AMOUNT,
-    );
+      const outcome = await payDeposit(deps, mismatchedDeposit, AMOUNT);
 
-    expect(outcome).toStrictEqual({ kind: 'plan_mismatch', reason: 'amount' });
-    expect(executor.send).not.toHaveBeenCalled();
-    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
-    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
-  });
+      expect(outcome).toStrictEqual({ kind: 'plan_mismatch', reason });
+      expect(executor.send).not.toHaveBeenCalled();
+      expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+      expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+    },
+  );
 
   it('refuses a plan with two minutes or less left', async () => {
     const { deps, funding, executor } = setup();

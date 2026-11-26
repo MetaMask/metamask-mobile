@@ -15,12 +15,6 @@ import type {
 import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
-/**
- * Who scrolls the feed. `content` renders inside the host's scroll view;
- * `virtualized` owns a list, which realtime needs to stay smooth.
- */
-export type SocialFeedScrollMode = 'content' | 'virtualized';
-
 /** What the feed knows about a tapped post's position. */
 export interface SocialFeedPositionPressContext {
   /** True when the feed was streaming socket revisions while showing the post. */
@@ -73,8 +67,6 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
     post: SocialV1FeedPost,
     context?: SocialFeedPositionPressContext,
   ) => void;
-  /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
-  requireSocialProfile?: boolean;
   testID?: string;
 }
 

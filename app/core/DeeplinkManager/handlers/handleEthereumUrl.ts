@@ -15,7 +15,7 @@ import ReduxService from '../../redux';
 import Routes from '../../../constants/navigation/Routes';
 import {
   addTransactionForDeeplink,
-  isDeeplinkRedesignedConfirmationCompatible,
+  isDeeplinkConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
 import { handleSendPageNavigation } from '../../../components/Views/confirmations/utils/send';
 import { derivePredefinedRecipientParams } from '../../../components/Views/confirmations/utils/address';
@@ -40,14 +40,14 @@ const isInAppBrowserOrigin = (origin: string) =>
 
 /**
  * Chain the request runs on: the chain in the link, otherwise mainnet for
- * redesigned confirmations or the selected network for the legacy flows.
+ * confirmation-compatible requests or the selected network for the legacy flows.
  */
 const getRequestChainId = (ethUrl: ParseOutput): Hex => {
   if (ethUrl.chain_id) {
     return toHex(ethUrl.chain_id);
   }
 
-  if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+  if (isDeeplinkConfirmationCompatible(ethUrl.function_name)) {
     return CHAIN_IDS.MAINNET;
   }
 
@@ -198,7 +198,7 @@ async function handleEthereumUrl({
       return;
     }
 
-    if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+    if (isDeeplinkConfirmationCompatible(ethUrl.function_name)) {
       await addTransactionForDeeplink({
         ...txMeta,
         origin,

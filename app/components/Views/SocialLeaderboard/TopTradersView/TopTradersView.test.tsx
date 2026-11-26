@@ -233,6 +233,7 @@ const buildResult = (
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
   ...overrides,
+  cacheState: overrides.cacheState ?? 'cold',
 });
 
 const mockResultsByTab: Record<TabKey, UseTopTradersResult> = {

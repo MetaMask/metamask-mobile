@@ -22,6 +22,8 @@ export enum MoneyPostOnboardingRedirectType {
 /** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
+export type MoneyEarningsTab = 'earnings' | 'apy' | 'allocation';
+
 export interface MoneyPreferredPaymentToken {
   address: Hex;
   chainId: Hex;
@@ -87,7 +89,7 @@ export type MoneyScreensStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyConfirmationsNavigationParamList = {
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  Confirmations: ConfirmationParams | undefined;
 };
 
 export interface MoneyAddMoneySheetParams {
@@ -127,6 +129,10 @@ interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
 }
 
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
+}
+
 /**
  * Selection returned by the rescue recipient screen. Only the account *id*
  * travels through navigation; the review screen resolves it against the
@@ -148,6 +154,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;

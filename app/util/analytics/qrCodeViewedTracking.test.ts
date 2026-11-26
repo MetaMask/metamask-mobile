@@ -111,6 +111,26 @@ describe('qrCodeViewedTracking', () => {
       });
     });
 
+    it('adds source when provided', () => {
+      trackQrCodeViewed(mockTrackEvent, mockCreateEventBuilder, {
+        ...mockProperties,
+        source: 'onboarding_checklist',
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        ...mockProperties,
+        source: 'onboarding_checklist',
+      });
+    });
+
+    it('omits source when not provided', () => {
+      trackQrCodeViewed(mockTrackEvent, mockCreateEventBuilder, mockProperties);
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({ source: expect.anything() }),
+      );
+    });
+
     it('builds and tracks the event', () => {
       trackQrCodeViewed(mockTrackEvent, mockCreateEventBuilder, mockProperties);
 

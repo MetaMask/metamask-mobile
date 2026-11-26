@@ -32,6 +32,14 @@ import {
   type TransactionControllerHookRequest,
 } from '.';
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    BridgeStatusController: {
+      state: { txHistory: {} },
+    },
+  },
+}));
+
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('../../../selectors/smartTransactionsController');
 jest.mock('../../../selectors/featureFlagController/confirmations');

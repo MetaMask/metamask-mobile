@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "पर",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{price}} पर {{size}}",
-        "size_at_market_cap": "{{marketCap}} {{abbreviation}} पर {{size}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 दिन)",
@@ -1993,22 +1991,6 @@
         "4": "गुरु",
         "5": "शुक्र",
         "6": "शनि"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "खरीदा गया",
-        "sold": "बेचा गया",
-        "perps_closed": "बंद किया गया",
-        "perps_long_opened": "खुला लॉन्ग",
-        "perps_long_added": "लॉन्ग में जोड़ा गया",
-        "perps_long_reduced": "लॉन्ग घटाई गई",
-        "perps_short_opened": "शॉर्ट ओपन किया गया",
-        "perps_short_added": "शॉर्ट में जोड़ा गया",
-        "perps_short_reduced": "वापस खरीदा",
-        "spot_opened": "खरीदा गया",
-        "spot_added": "और खरीदा",
-        "spot_reduced": "कुछ बेचा",
-        "spot_closed": "सब बेच दिया"
       }
     },
     "trader_position": {
@@ -5480,19 +5462,6 @@
     "accounts": "एकाउंट्स",
     "show_accounts": "दिखाएं",
     "hide_accounts": "छुपाएं",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin टैस्टनेट (testnet) अकाउंट",
-      "bitcoin_account_name": "Bitcoin अकाउंट",
-      "bitcoin_signet_account_name": "Bitcoin Signet अकाउंट",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest अकाउंट",
-      "solana_devnet_account_name": "Solana Devnet अकाउंट",
-      "solana_testnet_account_name": "Solana टैस्टनेट (testnet) अकाउंट",
-      "solana_account_name": "Solana अकाउंट",
-      "tron_account_name": "Tron अकाउंट",
-      "tron_nile_account_name": "Tron Nile अकाउंट",
-      "tron_shasta_account_name": "Tron Shasta अकाउंट",
-      "stellar_account_name": "स्टेलर अकाउंट"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
     },
@@ -7179,7 +7148,6 @@
     "gas_education_3": "MetaMask को गैस शुल्क से लाभ नहीं होता।",
     "gas_education_4": "गैस फीस का उतार-चढ़ाव नेटवर्क ट्रैफिक और ट्रांसेक्शन की जटिलता पर आधारित होता है।",
     "gas_education_learn_more": "गैस शुल्क के बारे में ज्यादा जानें",
-    "confusable_title": "प्राप्तकर्ता का पता जांचें",
     "confusable_msg": "ENS के नाम पर हमने एक भ्रमित करने वाले कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम को जांचे",
     "similar_to": "के समान है",
     "contains_zero_width": "शून्य चौड़ाई वाला वर्ण शामिल है",
@@ -7197,8 +7165,7 @@
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
     "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है",
-    "swap_tokens": "टोकन स्वैप करें",
-    "fromWithColon": "से:"
+    "swap_tokens": "टोकन स्वैप करें"
   },
   "custom_gas": {
     "total": "कुल",
@@ -7476,8 +7443,6 @@
     "hash_copied_to_clipboard": "लेन-देन हैश क्लिपबोर्ड पर कॉपी किया गया",
     "address_copied_to_clipboard": "पता क्लिपबोर्ड पर कॉपी किया गया",
     "transaction_error": "लेन-देन में त्रुटि",
-    "address_to_placeholder": "खोजें, पब्लिक एड्रेस (0x), या ENS",
-    "address_from_balance": "बैलेंस:",
     "status": "स्थिति",
     "date": "तिथि",
     "nonce": "नॉन्स (nonce)",
@@ -7558,11 +7523,8 @@
     "delete_contact": "संपर्क डिलीट करें",
     "delete": "डिलीट करें",
     "cancel": "रद्द करें",
-    "add_to_address_book": "पता किताब में जोड़ें",
-    "enter_an_alias": "एक दूसरा नाम दर्ज करें",
     "add_this_address": "इस पता को अपने पता किताब में जोड़ें",
     "next": "अगला",
-    "enter_an_alias_placeholder": "उदाहरण के लिए विटालिक B",
     "add_contact_title": "संपर्क जोड़ें",
     "add_contact": "संपर्क जोड़ें",
     "edit_contact_title": "कॉन्टेक्ट्स बदलें",
@@ -8989,19 +8951,7 @@
     "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
   },
   "whats_new": {
-    "title": "नया क्या है",
-    "remove_gns_new_ui_update": {
-      "title": "नया UI अपडेट",
-      "introduction": "हमने ऐप अनुभव को बेहतर बनाने के लिए अपडेट किए हैं।",
-      "descriptions": {
-        "description_1": "नेटवर्क ड्रॉपडाउन आपके एसेट्स में स्थानांतरित कर दिया गया",
-        "description_2": "एक सरल फ्लो में स्वैप और ब्रिज करें",
-        "description_3": "भेजने का आसान अनुभव",
-        "description_4": "फ्रेश अकाउंट व्यू"
-      },
-      "more_information": "अब आप नेटवर्क की बजाय अपने टोकन और गतिविधियों पर ध्यान केंद्रित कर सकते हैं।",
-      "got_it": "समझ गए"
-    }
+    "title": "नया क्या है"
   },
   "invalid_network": {
     "title": "कस्टम नेटवर्क के लिए चेन ID \n {{network}} \n को फिर से दर्ज करना होगा।",
@@ -9312,28 +9262,13 @@
     "nickname": "उपनाम"
   },
   "network_information": {
-    "things_to_keep_in_mind": "ध्यान रखने योग्य बातें",
     "testnet_network": "{{type}} टेस्टनेट",
-    "first_description": "{{ticker}} इस नेटवर्क पर मूल टोकन है। यह नेटवर्क शुल्क के लिए इस्तेमाल किया जाने वाला टोकन है।",
-    "second_description": "यदि आप ऐसेट्स को सीधे एक नेटवर्क से दूसरे नेटवर्क पर भेजने का प्रयास करते हैं, तो इसके परिणामस्वरूप स्थायी ऐसेट्स का नुकसान हो सकता है। अंतर को पाटना सुनिश्चित करें।",
-    "third_description": "हो सकता है आपके वॉलेट में आपके टोकन स्वतः दिखाई नहीं दें।",
-    "private_network": "यह नेटवर्क अज्ञात है और नेटवर्क शुल्क के लिए एक विशेष टोकन का उपयोग कर सकता है।",
     "unknown_network": "अज्ञात नेटवर्क",
-    "switched_network": "आपने स्विच कर लिया है",
-    "learn_more": "ज्यादा जानें",
     "add_token": "मैन्युअल रूप से टोकन जोड़ने के लिए यहां क्लिक करें",
-    "add_token_manually": "उन्हें मैन्युअल रूप से जोड़ें।",
     "got_it": "समझ लिया",
     "error_title": "कुछ गलत हो गया",
     "error_message": "नेटवर्क जानकारी लोड करने में त्रुटि हुई है। बाद में पुन: प्रयास करें।",
-    "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
-    "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
-    "token_detection_mainnet_link": "आप मैन्युअल रूप से टोकन भी जोड़ सकते हैं।",
-    "or": "या",
-    "non_evm_first_description": "इस नेटवर्क पर मूल एसेट {{ticker}} है। इसका उपयोग ट्रांसेक्शन ट्रांसेक्शन फीस के लिए किया जाता है।",
-    "non_evm_second_description": "यदि आप अपनी एसेट्स को किसी अन्य नेटवर्क से या किसी अन्य नेटवर्क पर भेजने का प्रयास करेंगे तो आप उन्हें खो देंगे।"
+    "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।"
   },
   "download_files": {
     "error": "अटैचमेंट डाउनलोड करने में विफल।",

@@ -80,6 +80,11 @@ describe('isOpenPositionChain', () => {
     expect(isOpenPositionChain(undefined)).toBe(false);
   });
 
+  it('checks the chains it is given instead of the built-in list', () => {
+    expect(isOpenPositionChain('eip155:137', ['eip155:137'])).toBe(true);
+    expect(isOpenPositionChain('eip155:1', ['eip155:137'])).toBe(false);
+  });
+
   it('does not serve native Bitcoin through its asset id', () => {
     const nativeBtc =
       'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetType;

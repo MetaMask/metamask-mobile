@@ -5,6 +5,7 @@ import {
   TimeDuration,
   PERPS_CONSTANTS,
   type CandleData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -30,6 +31,12 @@ export interface UsePerpsLiveCandlesOptions {
   resetKey?: string;
   /** Defers subscription until the requested market context is connected. */
   enabled?: boolean;
+  /**
+   * Venue to route the candle stream to (TAT-4407). An explicit route stays
+   * pinned to that venue even when the default venue changes; without one the
+   * stream follows the default provider.
+   */
+  providerId?: PerpsProviderType;
 }
 
 export interface UsePerpsLiveCandlesReturn {
@@ -81,6 +88,7 @@ export function usePerpsLiveCandles(
     throttleMs = 1000,
     resetKey,
     enabled = true,
+    providerId,
   } = options;
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
@@ -114,6 +122,7 @@ export function usePerpsLiveCandles(
         symbol,
         interval,
         duration,
+        providerId,
         callback: (newCandleData) => {
           acceptedDeliveryRef.current = false;
           if (!isActive) return;
@@ -210,7 +219,16 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, symbol, interval, duration, throttleMs, resetKey, enabled]);
+  }, [
+    stream,
+    symbol,
+    interval,
+    duration,
+    throttleMs,
+    resetKey,
+    enabled,
+    providerId,
+  ]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
@@ -232,7 +250,12 @@ export function usePerpsLiveCandles(
         duration,
       });
 
-      await stream.candles.fetchHistoricalCandles(symbol, interval, duration);
+      await stream.candles.fetchHistoricalCandles(
+        symbol,
+        interval,
+        duration,
+        providerId,
+      );
 
       DevLogger.log(
         'usePerpsLiveCandles: Successfully fetched more historical candles',

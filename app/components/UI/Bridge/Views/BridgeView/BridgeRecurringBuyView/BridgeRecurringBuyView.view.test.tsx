@@ -29,6 +29,9 @@ import { RecurringIntervalSheetSelectorsIDs } from '../../../components/Recurrin
 import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
+import { CostToleranceRowSelectorsIDs } from '../../../components/LimitOrderDetails/CostToleranceRow/testIds';
+import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from '../../../components/SwapsLimitOrderCostToleranceModal/testIds';
+import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from '../../../components/LimitOrderCostToleranceInfoSheet/LimitOrderCostToleranceInfoSheet.testIds';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
 import { OpenOrderRowSelectorsIDs } from '../../../components/OpenOrderRow';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -1241,7 +1244,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
         );
         expect(confirmButton).toHaveTextContent(
-          strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
+          strings('bridge.recurring.min_order_amount', { amount: '€90' }),
         );
         expect(confirmButton.props.accessibilityState.busy).not.toBe(true);
         expect(confirmButton.props.accessibilityState.disabled).toBe(true);
@@ -1747,7 +1750,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('duplicates a completed order into a cleared recurring form', async () => {
+  it('duplicates a completed order into the recurring form', async () => {
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
 
     await openRecurringTab(renderResult);
@@ -1846,11 +1849,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       renderResult.getByTestId(
         BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
       ),
-    ).toHaveDisplayValue('');
+    ).toHaveDisplayValue('0.0015');
     expect(
       renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
     ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
-    expect(renderResult.store.getState().bridge.sourceAmount).toBeUndefined();
+    expect(renderResult.store.getState().bridge.sourceAmount).toBe('0.0015');
     expect(
       renderResult.store.getState().bridge.recurring.priceRange,
     ).toBeUndefined();
@@ -1867,6 +1870,54 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('price tolerance', () => {
+    it('updates the recurring override and opens the shared info sheet', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      expect(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.VALUE),
+      ).toHaveTextContent('3%');
+      fireEvent.press(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.CONTAINER),
+      );
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            SwapsLimitOrderCostToleranceModalSelectorsIDs.DEFAULT_SHEET,
+          ),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(
+        renderResult.getByTestId(
+          SwapsLimitOrderCostToleranceModalSelectorsIDs.OPTION('2'),
+        ),
+      );
+      fireEvent.press(renderResult.getByText(strings('bridge.submit')));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(CostToleranceRowSelectorsIDs.VALUE),
+        ).toHaveTextContent('2%');
+      });
+      expect(renderResult.store.getState().bridge.recurringPriceTolerance).toBe(
+        '2',
+      );
+
+      fireEvent.press(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.TOOLTIP),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            LimitOrderCostToleranceInfoSheetSelectorsIDs.SHEET,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
   });
 
   describe('price range', () => {

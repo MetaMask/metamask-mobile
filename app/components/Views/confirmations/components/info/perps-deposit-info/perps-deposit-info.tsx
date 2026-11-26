@@ -11,9 +11,12 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../confirm/confirm-component';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { isLighterAccountCreationDeposit } from '../../../temp-lighter/lighter-usdc-deposit';
 
 export function PerpsDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const transactionMeta = useTransactionMetadataRequest();
   const title =
     payWithOption === PayWithOption.MoneyAccount
       ? strings('perps.send_to_perps')
@@ -30,5 +33,9 @@ export function PerpsDepositInfo() {
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  return <CustomAmountInfo currency={PERPS_CURRENCY} hasMax />;
+  // The first deposit into Lighter creates the account, so it offers 90%
+  // instead of Max for every token.
+  const hasMax = !isLighterAccountCreationDeposit(transactionMeta);
+
+  return <CustomAmountInfo currency={PERPS_CURRENCY} hasMax={hasMax} />;
 }

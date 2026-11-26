@@ -4,6 +4,7 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 interface Props {
   loading?: boolean;
@@ -19,16 +20,23 @@ export const SwapsLimitOrderConfirmButton = ({
   testID,
   disabled,
   label,
-}: Props) => (
-  <Button
-    variant={ButtonVariant.Primary}
-    size={ButtonBaseSize.Lg}
-    isLoading={Boolean(loading)}
-    onPress={onPress}
-    isFullWidth
-    testID={testID}
-    isDisabled={disabled}
-  >
-    {label}
-  </Button>
-);
+}: Props) => {
+  const handlePress = () => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    onPress();
+  };
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={Boolean(loading)}
+      onPress={handlePress}
+      isFullWidth
+      testID={testID}
+      isDisabled={disabled}
+    >
+      {label}
+    </Button>
+  );
+};

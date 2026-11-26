@@ -30,6 +30,7 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AccountTreeController:getState',
       'AccountsController:getState',
       'AccountTreeController:getAccountContext',
       'AccountTreeController:getAccountGroupObject',
@@ -38,12 +39,21 @@ export function getTransactionPayControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:getState',
+      // TODO: temporary cast. Remove it once this app depends on a
+      // `@metamask/transaction-pay-controller` release with MetaMask/core#11730,
+      // which adds this action to the controller types.
+      'PerpsController:submitLighterTransfer' as never,
       'RampsController:getOrder',
       'RampsController:getQuoteWithFees',
+      'RampsController:getState',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:failTransaction',
+      'TransactionController:finalizeResumedTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
@@ -52,6 +62,7 @@ export function getTransactionPayControllerMessenger(
     ],
     events: [
       'AssetsController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],

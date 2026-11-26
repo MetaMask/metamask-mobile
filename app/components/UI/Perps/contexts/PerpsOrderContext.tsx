@@ -11,7 +11,11 @@ import {
   UsePerpsOrderFormReturn,
   PerpsOrderPriceField,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType, Position } from '@metamask/perps-controller';
+import {
+  OrderType,
+  Position,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 
 /**
  * Exact base size an order-book row filled. The form keeps size as USD, which
@@ -43,6 +47,7 @@ const PerpsOrderContext = createContext<PerpsOrderContextType | null>(null);
 interface PerpsOrderProviderProps {
   children: ReactNode;
   initialAsset?: string;
+  providerId?: PerpsProviderType;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
   fallbackAmount?: string;
@@ -56,6 +61,7 @@ interface PerpsOrderProviderProps {
 
 export const PerpsOrderProvider = ({
   children,
+  providerId,
   initialAsset,
   initialDirection,
   initialAmount,
@@ -67,6 +73,7 @@ export const PerpsOrderProvider = ({
   effectiveAvailableBalance,
 }: PerpsOrderProviderProps) => {
   const orderFormState = usePerpsOrderForm({
+    providerId: providerId ?? existingPosition?.providerId,
     initialAsset,
     initialDirection,
     initialAmount,

@@ -25,13 +25,15 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+const mockUsePerpsLiveAccount = jest.fn();
+jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
+}));
 
 const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const ORIGINAL_CONFIRMATION_ENV =
-  process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
 function ControlledRow() {
@@ -67,6 +69,16 @@ function renderRow(
       engine: {
         backgroundState: {
           ...backgroundState,
+          PerpsController: {
+            ...backgroundState.PerpsController,
+            perpsBalances: {
+              lighter: {
+                totalBalance: '12.349',
+                unrealizedPnl: '0',
+                lastUpdated: 1,
+              },
+            },
+          },
           RemoteFeatureFlagController: {
             ...backgroundState.RemoteFeatureFlagController,
             remoteFeatureFlags,
@@ -79,13 +91,14 @@ function renderRow(
 
 describe('PerpsWithdrawFromRow', () => {
   beforeEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: { totalBalance: '50.389' },
+      isInitialLoading: false,
+    });
   });
 
   afterEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED =
-      ORIGINAL_CONFIRMATION_ENV;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = ORIGINAL_PROVIDER_ENV;
   });
 
@@ -98,7 +111,7 @@ describe('PerpsWithdrawFromRow', () => {
       getByLabelText(
         `${strings('confirm.label.from')}, ${strings(
           'confirm.perps_withdraw_from.hyperliquid',
-        )}, $4,892.06`,
+        )}, $50.38`,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -106,7 +119,7 @@ describe('PerpsWithdrawFromRow', () => {
     ).toBeOnTheScreen();
     // The visual balance line is accessibility-hidden so VoiceOver does not repeat it.
     expect(
-      getByText('($4,892.06)', { includeHiddenElements: true }),
+      getByText('($50.38)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsWithdrawFromSelectorsIDs.ROW));
@@ -121,14 +134,14 @@ describe('PerpsWithdrawFromRow', () => {
     expect(
       getByText(
         strings('confirm.perps_withdraw_from.available', {
-          amount: '$4,892.06',
+          amount: '$50.38',
         }),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
         strings('confirm.perps_withdraw_from.available', {
-          amount: '$4,718.18',
+          amount: '$12.34',
         }),
       ),
     ).toBeOnTheScreen();
@@ -142,23 +155,15 @@ describe('PerpsWithdrawFromRow', () => {
       getByText(strings('confirm.perps_withdraw_from.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('($4,718.18)', { includeHiddenElements: true }),
+      getByText('($12.34)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.from')}, ${strings(
           'confirm.perps_withdraw_from.lighter',
-        )}, $4,718.18`,
+        )}, $12.34`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders nothing when the confirmation env is off', () => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'false';
-
-    const { queryByTestId } = renderRow();
-
-    expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
   });
 
   it('renders nothing when the provider env is off', () => {
@@ -186,6 +191,20 @@ describe('PerpsWithdrawFromRow', () => {
 
   it('renders nothing when the transaction is not a perps withdraw', () => {
     const { queryByTestId } = renderRow(true, TransactionType.perpsDeposit);
+
+    expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
+  });
+
+  it('renders nothing on a money account withdraw without PerpsStreamProvider', () => {
+    const { usePerpsLiveAccount } = jest.requireActual(
+      '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount',
+    );
+    mockUsePerpsLiveAccount.mockImplementation(usePerpsLiveAccount);
+
+    const { queryByTestId } = renderRow(
+      true,
+      TransactionType.moneyAccountWithdraw,
+    );
 
     expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
   });

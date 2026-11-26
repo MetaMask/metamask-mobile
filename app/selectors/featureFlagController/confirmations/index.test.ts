@@ -28,6 +28,7 @@ import {
   selectPrefilledAmountConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  getPreferredTokenOverride,
   selectRelayFixedSpread,
   selectRelayAtomicMaxEnabled,
   selectPerpsMoneyAccountNoFeeRouteEnabled,
@@ -506,6 +507,33 @@ describe('getPreferredTokensForTransactionType', () => {
     expect(getPreferredTokensForTransactionType(config, undefined)).toEqual(
       defaultTokens,
     );
+  });
+});
+
+describe('getPreferredTokenOverride', () => {
+  const defaultTokens: PreferredToken[] = [
+    { address: '0xdefault', chainId: '0x1', successRate: 90 },
+  ];
+
+  const perpsTokens: PreferredToken[] = [
+    { address: '0xperps1', chainId: '0x1', successRate: 95 },
+  ];
+
+  const config = {
+    default: defaultTokens,
+    overrides: {
+      perpsDeposit: perpsTokens,
+    },
+  };
+
+  it('returns override tokens when transaction type has an override', () => {
+    expect(getPreferredTokenOverride(config, 'perpsDeposit')).toEqual(
+      perpsTokens,
+    );
+  });
+
+  it('returns an empty list when transaction type has no override', () => {
+    expect(getPreferredTokenOverride(config, 'predictDeposit')).toEqual([]);
   });
 });
 

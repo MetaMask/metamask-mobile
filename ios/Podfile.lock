@@ -2595,7 +2595,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview-mm (14.8.1):
+  - react-native-webview-mm (14.8.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4286,7 +4286,7 @@ SPEC CHECKSUMS:
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
-  QuickCrypto: f0d41b4933cfff875e87628e2fade6d98ccb99e1
+  QuickCrypto: cf3c568757f4a971dee8142af41c8e0b9559f401
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
@@ -4353,7 +4353,7 @@ SPEC CHECKSUMS:
   react-native-video: db3a70efc9fa0c00f5499d7798283bf0585cbd37
   react-native-view-shot: 2829bd78c1fef42db12553bf85833e05a1a73609
   react-native-wallet: 29d91d8cf99be725227242bddb7629db7f145c6d
-  react-native-webview-mm: ca99e49b7be2a93cb6c304da15c06cd0dc6ad68e
+  react-native-webview-mm: 8475bdcbae625450bbf8a2391a121d33281d5fd7
   React-NativeModulesApple: 2b658272ca69df0694cf5d54f9510aa7c33977bc
   React-networking: 6be0b80e18e710dd30e77b04838ec46666a7bb78
   React-oscompat: cea7c66df8076bd97e95885d7f584b86afffde41

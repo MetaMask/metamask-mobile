@@ -1,3 +1,4 @@
+import { notifyManager, type QueryClient } from '@tanstack/react-query';
 import { within } from '@testing-library/react-native';
 import { escapeRegExp } from 'lodash';
 import {
@@ -24,6 +25,7 @@ import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/mess
 import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { fullGameMoneylineMetadata } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
@@ -329,6 +331,7 @@ export const makePredictNextGameEvent = (
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
   const [awayOutcome, homeOutcome] = event.markets[0].outcomes;
+  const moneyline = fullGameMoneylineMetadata(`${id}:moneyline`);
 
   return {
     ...event,
@@ -356,11 +359,13 @@ export const makePredictNextGameEvent = (
     markets: [
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-away-market` as PredictEntityId,
         outcomes: [{ ...awayOutcome, gameSelection: 'away' }, homeOutcome],
       },
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-home-market` as PredictEntityId,
         outcomes: [
           {
@@ -379,6 +384,11 @@ export const makePredictNextGameEvent = (
   };
 };
 
+/**
+ * Flat Game fixture for rendering without layout. Keep the team Markets
+ * ungrouped: makePredictNextLaidOutGameEvent uses that to distinguish
+ * full-game moneylines from totals and spreads when it assigns layouts.
+ */
 export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   const game = makePredictNextGameEvent(
     'nfl-composite',
@@ -390,7 +400,7 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   return {
     ...game,
     markets: [
-      ...game.markets,
+      ...game.markets.map(({ group, layout, ...market }) => market),
       ...makePredictNextTotalsEvent().markets,
       ...makePredictNextSpreadsEvent().markets,
     ],
@@ -1390,7 +1400,9 @@ export const expectPredictNextGameCard = (
     scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
   ).toHaveTextContent(homeQuote);
   if (competition) {
-    expect(scoped.getByText(competition)).toBeOnTheScreen();
+    expect(
+      scoped.getByTestId(`predict-next-game-status-${eventId}`),
+    ).toHaveTextContent(new RegExp(escapeRegExp(competition)));
   }
   if (volume) {
     expect(scoped.getByText(volume)).toBeOnTheScreen();
@@ -1456,3 +1468,48 @@ export const feedScreenTabLabels = (
   within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
     .getAllByRole('button')
     .map((tab) => tab.props.accessibilityLabel);
+
+/**
+ * Resolves once every requested Predict Feed query in `queryClient` has
+ * settled (`status !== 'pending'` and `fetchStatus === 'idle'`) and React Query
+ * has notified its mounted observers. Await inside `act` to commit the
+ * rendered cards without racing a `findBy*` wall-clock timeout on a cold shard.
+ */
+export const waitForPredictFeedQueries = async (
+  queryClient: QueryClient,
+  feedIds: readonly PredictFeedId[],
+): Promise<void> => {
+  const queryCache = queryClient.getQueryCache();
+  const hasSettled = (): boolean => {
+    const queries = queryCache.findAll({
+      queryKey: ['PredictMarketDataService:getFeed'],
+    });
+    return feedIds.every((feedId) =>
+      queries.some(
+        ({ queryKey, state }) =>
+          queryKey[2] === feedId &&
+          state.status !== 'pending' &&
+          state.fetchStatus === 'idle',
+      ),
+    );
+  };
+
+  await new Promise<void>((resolve) => {
+    // `Query#dispatch` queues observer notifications before it notifies cache
+    // listeners, so scheduling on `notifyManager` runs after mounted observers
+    // receive the feed data.
+    const resolveAfterObservers = (): void => notifyManager.schedule(resolve);
+
+    if (hasSettled()) {
+      resolveAfterObservers();
+      return;
+    }
+
+    const unsubscribe = queryCache.subscribe(() => {
+      if (hasSettled()) {
+        unsubscribe();
+        resolveAfterObservers();
+      }
+    });
+  });
+};

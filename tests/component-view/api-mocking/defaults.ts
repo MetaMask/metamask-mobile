@@ -103,6 +103,8 @@ export function installDefaultApiMocks(): void {
 
   add('get', TOKEN_API_ORIGIN, '/assets', []);
   add('get', TOKEN_API_ORIGIN, '/v3/tokens/trending', []);
+  add('get', TOKEN_API_ORIGIN, '/v3/tokens/top-gainers', []);
+  add('get', TOKEN_API_ORIGIN, '/v3/tokens/popular', []);
   add('get', TOKEN_API_ORIGIN, '/tokens/search', { count: 0, data: [] });
   add('get', TOKEN_API_ORIGIN, '/v1/rwas', {
     data: [],

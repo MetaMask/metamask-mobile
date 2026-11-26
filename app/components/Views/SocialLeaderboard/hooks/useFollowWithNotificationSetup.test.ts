@@ -6,15 +6,25 @@ const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
   () => true,
 );
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+const mockTermsGateOptions = jest.fn();
+const mockProfileGateOptions = jest.fn();
 jest.mock('../terms/useSocialTermsGate', () => ({
-  useSocialTermsGate: () => ({
-    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
-  }),
+  useSocialTermsGate: (
+    options: unknown,
+  ): { ensureSocialTermsAccepted: typeof mockEnsureSocialTermsAccepted } => {
+    mockTermsGateOptions(options);
+    return { ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted };
+  },
 }));
 jest.mock('./useRequireSocialProfileOnboarding', () => ({
-  useRequireSocialProfileOnboarding: () => ({
-    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
-  }),
+  useRequireSocialProfileOnboarding: (
+    options: unknown,
+  ): {
+    ensureSocialProfileOnboarding: typeof mockEnsureSocialProfileOnboarding;
+  } => {
+    mockProfileGateOptions(options);
+    return { ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding };
+  },
 }));
 jest.mock('./useOpenTradingSignalsSetup');
 
@@ -35,6 +45,22 @@ describe('useFollowWithNotificationSetup', () => {
     jest.clearAllMocks();
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
+  });
+
+  it('passes runNavigation to both gates', () => {
+    setGate(false);
+    const runNavigation = jest.fn();
+
+    renderHook(() =>
+      useFollowWithNotificationSetup({
+        requireSocialTerms: true,
+        requireSocialProfile: true,
+        runNavigation,
+      }),
+    );
+
+    expect(mockTermsGateOptions).toHaveBeenLastCalledWith({ runNavigation });
+    expect(mockProfileGateOptions).toHaveBeenLastCalledWith({ runNavigation });
   });
 
   it('skips the follow and setup when the Social terms are not accepted', async () => {

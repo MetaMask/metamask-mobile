@@ -7,9 +7,11 @@ import { reportSocialServiceFailure } from '../../util/social/socialServiceTelem
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
+import { selectIsSocialV1Enabled } from '../../selectors/featureFlagController/socialV1';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
+  getSocialTraderFollowMilestone,
   useSocialLeaderboardAnalytics,
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
@@ -211,6 +213,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { track } = useSocialLeaderboardAnalytics();
   const sessionKey = getFollowToggleSessionKey(isUnlocked, selectedAddress);
 
@@ -326,6 +329,15 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             [SocialLeaderboardEventProperties.TRADER_HAS_PROFILE_PICTURE_SET]:
               hasRealAvatar(analyticsContext.traderAvatarUri),
           });
+          // TODO(TSA-1860): the legacy `Trader Follow Interaction` emit above
+          // stays for backward compatibility; remove it with the other legacy events.
+          if (isSocialV1Enabled) {
+            const milestone = getSocialTraderFollowMilestone(
+              nextValue ? 'follow' : 'unfollow',
+              analyticsContext.source,
+            );
+            track(milestone.event, milestone.properties);
+          }
         }
       } catch (err) {
         if (requestEpoch === followToggleSessionEpoch) {
@@ -356,7 +368,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         }
       }
     },
-    [followingProfileIds, track],
+    [followingProfileIds, isSocialV1Enabled, track],
   );
 
   useEffect(() => {

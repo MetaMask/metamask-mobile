@@ -29,6 +29,7 @@ const mockUseHomepagePerpsSurfaceMetrics = jest.fn((_config: unknown) => ({
 const mockFinishPerpsLoadingSession = jest.fn(
   (_data: unknown, _expectedSessionId?: string) => undefined,
 );
+const mockResolvePerpsMarketSource = jest.fn(() => 'provider');
 const mockGetActivePerpsLoadingSessionContext = jest.fn<
   PerpsLoadingSessionContext | null,
   []
@@ -58,7 +59,7 @@ jest.mock('./hooks/useHomepagePerpsSurfaceMetrics', () => ({
 jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
   finishPerpsLoadingSession: (data: unknown, expectedSessionId?: string) =>
     mockFinishPerpsLoadingSession(data, expectedSessionId),
-  resolvePerpsMarketSource: () => 'provider',
+  resolvePerpsMarketSource: () => mockResolvePerpsMarketSource(),
 }));
 
 const mockUsePerpsHomepageLoadingSession = jest.fn<
@@ -389,6 +390,7 @@ describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsCrossMarginSummary.mockReturnValue(noCrossMarginSummary);
+    mockResolvePerpsMarketSource.mockReturnValue('provider');
     mockGetActivePerpsLoadingSessionContext.mockReturnValue({
       id: 'session-id-1',
       marketSource: 'provider',
@@ -510,6 +512,7 @@ describe('PerpsSection', () => {
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({
         acceptReadyContentOnGenerationStart: true,
+        cacheState: 'cold',
         tags: expect.objectContaining({
           lifecycle: 'cold_no_cache',
           surface: 'homepage',
@@ -530,6 +533,128 @@ describe('PerpsSection', () => {
     );
     expect(jest.mocked(useSectionViewportVisible)).toHaveBeenCalledWith(
       expect.any(Object),
+    );
+  });
+
+  it('uses the market source cache state for trending content', () => {
+    mockResolvePerpsMarketSource.mockReturnValue('memory_cache');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'memory_cache',
+      accountSource: 'fresh_socket',
+      lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'warm' }),
+    );
+  });
+
+  it('classifies unresolved cold-start sources as cold', () => {
+    mockResolvePerpsMarketSource.mockReturnValue('unknown');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'unknown',
+      accountSource: 'unknown',
+      lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'cold' }),
+    );
+  });
+
+  it('classifies unresolved sources as unknown for a non-fresh lifecycle', () => {
+    mockResolvePerpsMarketSource.mockReturnValue('unknown');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'unknown',
+      accountSource: 'unknown',
+      lifecycle: 'navigate_return',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'unknown' }),
+    );
+  });
+
+  it('uses the account source cache state for account-backed content', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'warm' }),
+    );
+  });
+
+  it('treats provider_snapshot as warm for account-backed content', () => {
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'provider',
+      accountSource: 'provider_snapshot',
+      lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'warm' }),
+    );
+  });
+
+  it('keeps account-backed content cold when only markets are cached', () => {
+    mockResolvePerpsMarketSource.mockReturnValue('memory_cache');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'memory_cache',
+      accountSource: 'fresh_socket',
+      lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'cold' }),
     );
   });
 

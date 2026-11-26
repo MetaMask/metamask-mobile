@@ -3,7 +3,10 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
   routePredictApi,
@@ -16,14 +19,28 @@ import {
   KalshiRemoteAdapter,
 } from '../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../adapters/remote/PredictApiReadClient';
+import { BASE_SEPOLIA_DEPOSIT_NETWORK } from '../config/depositEnvironment';
 import awaitingTransfer from '../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
+import cancelled from '../contracts/v1/fixtures/funding-contract/cancelled.json';
 import credited from '../contracts/v1/fixtures/funding-contract/credited.json';
 import transferReported from '../contracts/v1/fixtures/funding-contract/transfer-reported.json';
+import { PredictErrorCode } from '../errors';
 import {
+  continueDeposit,
+  payDeposit,
+  type DepositWorkflowDeps,
+} from '../funding/deposit/runDeposit';
+import {
+  DEFAULT_DEPOSIT_SENDER,
   flushMicrotasks,
   makeDepositTransferTx,
 } from '../funding/deposit/testUtils';
-import type { PredictHex } from '../types';
+import { encodeUsdcTransfer } from '../funding/deposit/usdcTransfer';
+import type {
+  PredictAmount,
+  PredictDepositOperation,
+  PredictHex,
+} from '../types';
 import {
   PredictFundingService,
   type PredictFundingServiceActions,
@@ -34,6 +51,7 @@ const OPERATION_ID = awaitingTransfer.operationId;
 const DEPOSITS_PATH = '/v1/venues/kalshi/deposits';
 const DEPOSIT_PATH = `/v1/venues/kalshi/deposits/${OPERATION_ID}`;
 const TRANSFER_PATH = `/v1/venues/kalshi/deposits/${OPERATION_ID}/transfer`;
+const CANCEL_PATH = `/v1/venues/kalshi/deposits/${OPERATION_ID}/cancel`;
 const BALANCE_PATH = '/v1/venues/kalshi/balance';
 const SUMMARY_PATH = '/v1/venues/kalshi/portfolio/summary';
 const POSITIONS_PATH = '/v1/venues/kalshi/positions';
@@ -426,4 +444,378 @@ describe('PredictFundingService deposit resume across service restart', () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('keeps an awaiting_transfer deposit across a service kill/restart before broadcast and Continue reopens the same plan while more than 2 minutes remain', async () => {
+    let nowMs = Date.parse(awaitingTransfer.createdAt) + 5_000;
+    let depositState: unknown = awaitingTransfer;
+
+    const makeApiHandler = () =>
+      routePredictApi({
+        [DEPOSITS_PATH]: () => ({
+          body: {
+            deposits:
+              depositState === awaitingTransfer ||
+              depositState === transferReported
+                ? [depositState]
+                : [],
+          },
+        }),
+        [DEPOSIT_PATH]: () => ({ body: depositState }),
+        [TRANSFER_PATH]: () => {
+          depositState = transferReported;
+          return { body: transferReported };
+        },
+        [CANCEL_PATH]: () => {
+          depositState = cancelled;
+          return { body: cancelled };
+        },
+      });
+
+    const transactions: TransactionMeta[] = [];
+
+    const startAppSession = () => {
+      const harness = createPredictNextIntegrationHarness(makeApiHandler());
+      harnesses.push(harness);
+      const messenger = getPredictFundingServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictFundingServiceMessenger
+        >[0],
+      );
+      const service = new PredictFundingService({
+        messenger,
+        funding: harness.adapter.funding,
+        venueId: harness.adapter.venueId,
+        getTransactions: () => transactions,
+        now: () => nowMs,
+      });
+      services.push(service);
+      return { harness, service };
+    };
+
+    // 1. Session A sees the open awaiting_transfer deposit and dies BEFORE broadcast.
+    const sessionA = startAppSession();
+    await sessionA.service.listOpenDeposits(KALSHI_VENUE_ID);
+    expect(sessionA.service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+      'awaiting_transfer',
+    );
+    sessionA.service.destroy();
+    services.pop();
+    sessionA.harness.destroy();
+    harnesses.pop();
+    expect(callsTo(sessionA.harness, TRANSFER_PATH)).toHaveLength(0);
+    expect(callsTo(sessionA.harness, CANCEL_PATH)).toHaveLength(0);
+
+    // 2. Session B restarts: operation remains waiting for transfer with its original plan.
+    const sessionB = startAppSession();
+    await sessionB.service.resumeDeposits();
+
+    const resumed = sessionB.service.getDepositStatus(KALSHI_VENUE_ID);
+    expect(resumed).toMatchObject({
+      operationId: OPERATION_ID,
+      status: 'awaiting_transfer',
+      depositAddress: awaitingTransfer.depositAddress,
+      amount: awaitingTransfer.amount,
+    });
+    expect(callsTo(sessionB.harness, TRANSFER_PATH)).toHaveLength(0);
+    expect(callsTo(sessionB.harness, CANCEL_PATH)).toHaveLength(0);
+
+    // 3. Continue with more than 2 minutes remaining reopens the exact same plan and submits it.
+    nowMs = Date.parse(awaitingTransfer.planExpiresAt) - 121_000;
+    const send = jest.fn(async () => ({
+      txHash: TX_HASH,
+      chainId: awaitingTransfer.chainId,
+      to: awaitingTransfer.tokenContract as PredictHex,
+      data: encodeUsdcTransfer(
+        awaitingTransfer.depositAddress as PredictHex,
+        awaitingTransfer.amount as PredictAmount,
+      ),
+    }));
+    const deps: DepositWorkflowDeps = {
+      funding: {
+        prepareDeposit: async (params) =>
+          sessionB.service.prepareDeposit(KALSHI_VENUE_ID, params, {
+            kind: 'user-approved',
+          }),
+        getDeposit: async (id) =>
+          sessionB.service.getDeposit(KALSHI_VENUE_ID, id),
+        listOpenDeposits: async () =>
+          sessionB.service.listOpenDeposits(KALSHI_VENUE_ID),
+        reportDepositTransfer: async (id, params) =>
+          sessionB.service.reportDepositTransfer(KALSHI_VENUE_ID, id, params),
+        cancelDeposit: async (id) =>
+          sessionB.service.cancelDeposit(KALSHI_VENUE_ID, id),
+      },
+      executor: { mode: 'wallet', send },
+      network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+      from: DEFAULT_DEPOSIT_SENDER,
+      walletAddresses: [DEFAULT_DEPOSIT_SENDER],
+      now: () => nowMs,
+      wait: jest.fn(async () => undefined),
+      addressPoll: { intervalMs: 2_000, attempts: 3 },
+      isUserRejection: (error) => (error as { code?: number })?.code === 4001,
+      logError: jest.fn(),
+    };
+
+    const outcome = await continueDeposit(
+      deps,
+      resumed as PredictDepositOperation,
+    );
+
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledWith({
+      operationId: OPERATION_ID,
+      from: DEFAULT_DEPOSIT_SENDER,
+      chainId: awaitingTransfer.chainId,
+      tokenContract: awaitingTransfer.tokenContract,
+      recipient: awaitingTransfer.depositAddress,
+      amount: awaitingTransfer.amount,
+    });
+    expect(outcome).toMatchObject({
+      kind: 'submitted',
+      reported: true,
+      deposit: expect.objectContaining({
+        operationId: OPERATION_ID,
+        status: 'processing',
+      }),
+    });
+    expect(callsTo(sessionB.harness, TRANSFER_PATH)).toHaveLength(1);
+    expect(callsTo(sessionB.harness, CANCEL_PATH)).toHaveLength(0);
+    expect(sessionB.service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+      'processing',
+    );
+  });
+
+  it('cancels a restarted awaiting_transfer deposit on Cancel without reporting a transfer', async () => {
+    let depositState: unknown = awaitingTransfer;
+    const makeApiHandler = () =>
+      routePredictApi({
+        [DEPOSITS_PATH]: () => ({
+          body: {
+            deposits: depositState === awaitingTransfer ? [depositState] : [],
+          },
+        }),
+        [CANCEL_PATH]: () => {
+          depositState = cancelled;
+          return { body: cancelled };
+        },
+        [TRANSFER_PATH]: () => ({ body: transferReported }),
+      });
+
+    const startAppSession = () => {
+      const harness = createPredictNextIntegrationHarness(makeApiHandler());
+      harnesses.push(harness);
+      const messenger = getPredictFundingServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictFundingServiceMessenger
+        >[0],
+      );
+      const publishSpy = jest.spyOn(messenger, 'publish');
+      const service = new PredictFundingService({
+        messenger,
+        funding: harness.adapter.funding,
+        venueId: harness.adapter.venueId,
+        getTransactions: () => [],
+      });
+      services.push(service);
+      return { harness, service, publishSpy };
+    };
+
+    const sessionA = startAppSession();
+    await sessionA.service.listOpenDeposits(KALSHI_VENUE_ID);
+    sessionA.service.destroy();
+    services.pop();
+    sessionA.harness.destroy();
+    harnesses.pop();
+
+    const sessionB = startAppSession();
+    await sessionB.service.resumeDeposits();
+    expect(sessionB.service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+      'awaiting_transfer',
+    );
+
+    const cancelledDeposit = await sessionB.service.cancelDeposit(
+      KALSHI_VENUE_ID,
+      OPERATION_ID,
+    );
+
+    expect(cancelledDeposit.status).toBe('cancelled');
+    expect(callsTo(sessionB.harness, CANCEL_PATH)).toHaveLength(1);
+    expect(callsTo(sessionB.harness, TRANSFER_PATH)).toHaveLength(0);
+    expect(sessionB.service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+      'cancelled',
+    );
+    expect(
+      sessionB.publishSpy.mock.calls.filter(
+        ([event]) => event === 'PredictFundingService:depositResolved',
+      ),
+    ).toEqual([
+      [
+        'PredictFundingService:depositResolved',
+        {
+          venueId: KALSHI_VENUE_ID,
+          deposit: expect.objectContaining({
+            operationId: OPERATION_ID,
+            status: 'cancelled',
+          }),
+        },
+      ],
+    ]);
+  });
+
+  it.each([
+    [
+      'user rejection',
+      Object.assign(new Error('User rejected'), { code: 4001 }),
+    ],
+    ['transfer failure', new Error('nonce too low')],
+  ] as const)(
+    'cancels the deposit and reports no transfer when live payment ends in %s',
+    async (label, transferError) => {
+      let depositState: unknown = awaitingTransfer;
+      const harness = createPredictNextIntegrationHarness(
+        routePredictApi({
+          [DEPOSITS_PATH]: () => ({
+            body: {
+              deposits: depositState === awaitingTransfer ? [depositState] : [],
+            },
+          }),
+          [CANCEL_PATH]: () => {
+            depositState = cancelled;
+            return { body: cancelled };
+          },
+          [TRANSFER_PATH]: () => ({ body: transferReported }),
+        }),
+      );
+      harnesses.push(harness);
+      const messenger = getPredictFundingServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictFundingServiceMessenger
+        >[0],
+      );
+      const publishSpy = jest.spyOn(messenger, 'publish');
+      const service = new PredictFundingService({
+        messenger,
+        funding: harness.adapter.funding,
+        venueId: harness.adapter.venueId,
+        getTransactions: () => [],
+      });
+      services.push(service);
+
+      await service.listOpenDeposits(KALSHI_VENUE_ID);
+      const deps: DepositWorkflowDeps = {
+        funding: {
+          prepareDeposit: async (params) =>
+            service.prepareDeposit(KALSHI_VENUE_ID, params, {
+              kind: 'user-approved',
+            }),
+          getDeposit: async (id) => service.getDeposit(KALSHI_VENUE_ID, id),
+          listOpenDeposits: async () =>
+            service.listOpenDeposits(KALSHI_VENUE_ID),
+          reportDepositTransfer: async (id, params) =>
+            service.reportDepositTransfer(KALSHI_VENUE_ID, id, params),
+          cancelDeposit: async (id) =>
+            service.cancelDeposit(KALSHI_VENUE_ID, id),
+        },
+        executor: {
+          mode: 'wallet',
+          send: jest.fn(async () => {
+            throw transferError;
+          }),
+        },
+        network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+        from: DEFAULT_DEPOSIT_SENDER,
+        walletAddresses: [DEFAULT_DEPOSIT_SENDER],
+        now: () => Date.parse(awaitingTransfer.createdAt) + 5_000,
+        wait: jest.fn(async () => undefined),
+        addressPoll: { intervalMs: 2_000, attempts: 3 },
+        isUserRejection: (error) => (error as { code?: number })?.code === 4001,
+        logError: jest.fn(),
+      };
+
+      const outcome = await payDeposit(
+        deps,
+        awaitingTransfer as PredictDepositOperation,
+        awaitingTransfer.amount as PredictAmount,
+      );
+
+      if (label === 'user rejection') {
+        expect(outcome).toStrictEqual({ kind: 'rejected' });
+      } else {
+        expect(outcome).toMatchObject({
+          kind: 'failed',
+          stage: 'transfer',
+          error: expect.objectContaining({
+            code: PredictErrorCode.DEPOSIT_FAILED,
+          }),
+        });
+      }
+      expect(callsTo(harness, CANCEL_PATH)).toHaveLength(1);
+      expect(callsTo(harness, TRANSFER_PATH)).toHaveLength(0);
+      expect(service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+        'cancelled',
+      );
+      expect(
+        publishSpy.mock.calls.filter(
+          ([event]) => event === 'PredictFundingService:depositResolved',
+        ),
+      ).toHaveLength(1);
+    },
+  );
+
+  it.each([TransactionStatus.rejected, TransactionStatus.failed] as const)(
+    'cancels the deposit on restart without reporting a transfer when the wallet transaction is %s',
+    async (txStatus) => {
+      let depositState: unknown = awaitingTransfer;
+      const nowMs = Date.parse(awaitingTransfer.createdAt) + 5_000;
+      const harness = createPredictNextIntegrationHarness(
+        routePredictApi({
+          [DEPOSITS_PATH]: () => ({
+            body: {
+              deposits: depositState === awaitingTransfer ? [depositState] : [],
+            },
+          }),
+          [CANCEL_PATH]: () => {
+            depositState = cancelled;
+            return { body: cancelled };
+          },
+          [TRANSFER_PATH]: () => ({ body: transferReported }),
+        }),
+      );
+      harnesses.push(harness);
+      const messenger = getPredictFundingServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictFundingServiceMessenger
+        >[0],
+      );
+      const publishSpy = jest.spyOn(messenger, 'publish');
+      const service = new PredictFundingService({
+        messenger,
+        funding: harness.adapter.funding,
+        venueId: harness.adapter.venueId,
+        getTransactions: () => [
+          makeDepositTransferTx(awaitingTransfer, {
+            id: `tx-${txStatus}`,
+            status: txStatus,
+            time: nowMs,
+            hash: undefined,
+          }),
+        ],
+        now: () => nowMs,
+      });
+      services.push(service);
+
+      await service.resumeDeposits();
+
+      expect(callsTo(harness, CANCEL_PATH)).toHaveLength(1);
+      expect(callsTo(harness, TRANSFER_PATH)).toHaveLength(0);
+      expect(service.getDepositStatus(KALSHI_VENUE_ID)?.status).toBe(
+        'cancelled',
+      );
+      expect(
+        publishSpy.mock.calls.filter(
+          ([event]) => event === 'PredictFundingService:depositResolved',
+        ),
+      ).toHaveLength(1);
+    },
+  );
 });
