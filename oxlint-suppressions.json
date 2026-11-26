@@ -12492,11 +12492,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/hooks/useGetVipTransactions.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 10
-    }
-  },
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
     "typescript/promise-function-async": {
       "count": 5
@@ -12579,9 +12574,6 @@
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.test.ts": {
     "typescript/await-thenable": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
     }
   },
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.ts": {
@@ -23609,11 +23601,6 @@
   "app/store/sagas/marketingAttribution.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 2
-    }
-  },
-  "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.ts": {
