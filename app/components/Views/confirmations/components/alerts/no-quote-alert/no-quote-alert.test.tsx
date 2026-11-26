@@ -48,6 +48,19 @@ describe('NoQuoteAlert', () => {
     expect(queryByText(COLLAPSED_MESSAGE)).toBeNull();
   });
 
+  it('renders the amount too low collapsed message for that reason', () => {
+    const amountTooLowMessage = strings(
+      'alert_system.pay_amount_too_low.message',
+    );
+
+    const { getByText, queryByText } = render(
+      <NoQuoteAlert error={createError({ reason: 'amount-too-low' })} />,
+    );
+
+    expect(getByText(amountTooLowMessage)).toBeDefined();
+    expect(queryByText(COLLAPSED_MESSAGE)).toBeNull();
+  });
+
   it('does not expand after a single tap', () => {
     const { getByTestId, getByText, queryByText } = render(
       <NoQuoteAlert error={createError()} />,
