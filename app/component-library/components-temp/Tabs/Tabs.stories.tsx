@@ -23,7 +23,7 @@ const ExampleTabContent: React.FC<{ title: string; height?: number }> = ({
   height = 200,
 }) => (
   <Box
-    className="flex-1 justify-center items-center p-4 bg-background-alternative"
+    className="flex-1 items-center justify-center bg-background-alternative p-4"
     style={{ minHeight: height }}
   >
     <Text variant={TextVariant.HeadingMd}>{title} Content</Text>
@@ -34,7 +34,7 @@ const ExampleTabContent: React.FC<{ title: string; height?: number }> = ({
 );
 
 export const Default = () => (
-  <Box className="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 bg-background-default p-4">
     <TabsList>
       <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" height={300} />
@@ -50,7 +50,7 @@ export const Default = () => (
 );
 
 export const ManyTabs = () => (
-  <Box className="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 bg-background-default p-4">
     <TabsList>
       <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" />
@@ -78,7 +78,7 @@ export const ManyTabs = () => (
 );
 
 export const IndividuallyDisabledTabs = () => (
-  <Box className="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 bg-background-default p-4">
     <TabsList initialActiveIndex={1}>
       <View
         key="disabled1"
@@ -103,7 +103,7 @@ export const IndividuallyDisabledTabs = () => (
 );
 
 export const AllTabsDisabled = () => (
-  <Box className="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 bg-background-default p-4">
     <TabsList initialActiveIndex={1}>
       <View
         key="disabled1"
@@ -128,7 +128,7 @@ export const AllTabsDisabled = () => (
 );
 
 export const DifferentHeights = () => (
-  <Box className="flex-1 p-4 bg-background-default">
+  <Box className="flex-1 bg-background-default p-4">
     <TabsList>
       <View key="short" {...({ tabLabel: 'Short' } as TabViewProps)}>
         <ExampleTabContent title="Short Content" height={100} />

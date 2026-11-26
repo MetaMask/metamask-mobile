@@ -89,7 +89,7 @@ export const Default = {
               ]}
             />
             {/* TODO: This is a hack to make the bottom sheet visible */}
-            <Box className="h-35" />
+            <Box twClassName="h-35" />
           </BottomSheet>
         )}
       </>

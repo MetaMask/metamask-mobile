@@ -67,7 +67,7 @@ const StepperCard = ({
       </Box>
 
       {/* Content */}
-      <Box className="p-4 gap-4">
+      <Box className="gap-4 p-4">
         <Box className="gap-1">
           <Text
             variant={TextVariant.DisplayMd}

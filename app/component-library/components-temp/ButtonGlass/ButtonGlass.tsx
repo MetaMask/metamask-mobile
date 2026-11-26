@@ -66,7 +66,7 @@ const ButtonGlass = ({
       <Button
         {...props}
         variant={variant}
-        className="bg-transparent border-transparent"
+        className="border-transparent bg-transparent"
         // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
         isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
