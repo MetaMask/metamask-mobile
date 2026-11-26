@@ -28,4 +28,8 @@ export const collectiblesTestIds = {
   packsTileArt: (code: string) => `collectibles-packs-tile-art-${code}`,
   packsTileArtPlaceholder: (code: string) =>
     `collectibles-packs-tile-art-placeholder-${code}`,
+  epicOddsInfoButton: 'collectibles-epic-odds-info-button',
+  epicOddsInfoSheet: 'collectibles-epic-odds-info-sheet',
+  epicOddsInfoClose: 'collectibles-epic-odds-info-close',
+  epicOddsGauge: (code: string) => `collectibles-epic-odds-gauge-${code}`,
 } as const;

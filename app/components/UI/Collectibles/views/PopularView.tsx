@@ -4,6 +4,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
 import { LandingSection } from '../components/LandingSection';
+import { EpicOddsSection } from '../components/EpicOddsSection';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
 export function PopularView() {
@@ -22,10 +23,7 @@ export function PopularView() {
         name="just-opened"
         title={strings('collectibles.landing.just_opened')}
       />
-      <LandingSection
-        name="epic-vs-odds"
-        title={strings('collectibles.landing.epic_vs_odds')}
-      />
+      <EpicOddsSection />
       <LandingSection
         name="greatest-hits"
         title={strings('collectibles.landing.greatest_hits')}

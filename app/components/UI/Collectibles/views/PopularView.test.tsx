@@ -5,6 +5,10 @@ import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { PopularView } from './PopularView';
 
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicOddsPacks', () => ({
+  useEpicOddsPacks: () => ({ packs: [], isPending: true }),
+}));
+
 describe('PopularView', () => {
   it('shows the hero and the sections', () => {
     renderWithProvider(<PopularView />);
