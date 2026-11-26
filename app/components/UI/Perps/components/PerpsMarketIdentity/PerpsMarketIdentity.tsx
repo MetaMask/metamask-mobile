@@ -52,7 +52,7 @@ export interface PerpsMarketIdentityProps {
    */
   subtitleContent?: React.ReactNode;
   /**
-   * Venue whose mark overlays the token logo (TAT-4418). Callers gate this
+   * Venue whose mark overlays the token logo. Callers gate this
    * on the multi-provider flag.
    */
   providerId?: PerpsProviderType;

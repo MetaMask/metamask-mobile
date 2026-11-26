@@ -7,21 +7,14 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 
+import { useTheme } from '../../../../../util/theme';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import { PERPS_AVAILABLE_BALANCE_LOGO_SIZE } from '../../constants/perpsUIConfig';
 import type { PerpsProviderLogoId } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
 import type { PerpsProviderLogosProps } from './PerpsProviderLogos.types';
-import hyperliquidLogo from './assets/hyperliquid.png';
-import lighterLogo from './assets/lighter.png';
-
-const PROVIDER_LOGOS: Record<PerpsProviderLogoId, number> = {
-  // Bundled requires are numbers at runtime. The png declaration is the wider
-  // ImageSourcePropType, which plain Image accepts.
-  [PROVIDER_CONFIG.DefaultProvider]: hyperliquidLogo as number,
-  [PROVIDER_CONFIG.LighterProvider]: lighterLogo as number,
-};
+import { VENUE_DISPLAY } from './venueDisplay';
 
 const PROVIDER_LOGO_TEST_IDS: Record<PerpsProviderLogoId, string> = {
   [PROVIDER_CONFIG.DefaultProvider]: PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
@@ -31,7 +24,7 @@ const PROVIDER_LOGO_TEST_IDS: Record<PerpsProviderLogoId, string> = {
 function isDrawableLogoId(
   providerId: string,
 ): providerId is PerpsProviderLogoId {
-  return Object.prototype.hasOwnProperty.call(PROVIDER_LOGOS, providerId);
+  return Object.prototype.hasOwnProperty.call(VENUE_DISPLAY, providerId);
 }
 
 /**
@@ -42,7 +35,7 @@ const VENUE_MARK_RADIUS_RATIO = 0.2;
 
 /**
  * Overlap of a stacked pair as a share of the mark size. 6px at 16px matches
- * the home design (TAT-4510); scaled, it keeps the pair proportional at
+ * the home design; scaled, it keeps the pair proportional at
  * every size.
  */
 const VENUE_MARK_OVERLAP_RATIO = 0.4;
@@ -75,6 +68,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
   testID = PerpsProviderLogosSelectorsIDs.CONTAINER,
   twClassName,
 }) => {
+  const { colors } = useTheme();
   const drawableIds = providerIds.filter(isDrawableLogoId);
   if (drawableIds.length === 0) {
     return null;
@@ -115,6 +109,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
                 height: size,
                 borderRadius: markRadiusPx(size),
                 borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.border.muted,
                 ...(isCoveredByNextLogo
                   ? { marginRight: -stackedOverlapPx(size) }
                   : {}),
@@ -122,7 +117,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
             ]}
           >
             <Image
-              source={PROVIDER_LOGOS[providerId]}
+              source={VENUE_DISPLAY[providerId].logo}
               style={markStyle.fill}
               contentFit="cover"
               cachePolicy="memory-disk"

@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import type { PerpsProviderType } from '@metamask/perps-controller';
 
-import { usePerpsTradeVenue } from './usePerpsTradeVenue';
+import { usePerpsTradeVenue as useTradeVenueHook } from './usePerpsTradeVenue';
 import { usePerpsProvider } from './usePerpsProvider';
 
 jest.mock('./usePerpsProvider', () => ({
@@ -19,6 +19,10 @@ jest.mock('react-redux', () => ({
     selector({ engine: { backgroundState: { PerpsController: {} } } }),
   ),
 }));
+
+const usePerpsTradeVenue = (
+  params: Omit<Parameters<typeof useTradeVenueHook>[0], 'marketSymbol'>,
+) => useTradeVenueHook({ marketSymbol: 'ETH', ...params });
 
 describe('usePerpsTradeVenue', () => {
   const setMultiProvider = (enabled: boolean) => {
@@ -148,6 +152,82 @@ describe('usePerpsTradeVenue', () => {
       rerender({ venueIds: ['lighter', 'hyperliquid'] });
 
       expect(result.current.tradeVenueId).toBe('lighter');
+    });
+
+    it('discards the pick immediately when the market changes', () => {
+      setMultiProvider(true);
+      const { result, rerender } = renderHook(
+        ({
+          symbol,
+          venueIds,
+        }: {
+          symbol: string;
+          venueIds: readonly PerpsProviderType[];
+        }) =>
+          useTradeVenueHook({
+            marketSymbol: symbol,
+            marketVenueIds: venueIds,
+          }),
+        {
+          initialProps: {
+            symbol: 'ETH',
+            venueIds: [
+              'hyperliquid',
+              'lighter',
+            ] as readonly PerpsProviderType[],
+          },
+        },
+      );
+
+      act(() => result.current.selectVenue('lighter'));
+      expect(result.current.orderProviderId).toBe('lighter');
+
+      rerender({ symbol: 'BTC', venueIds: ['hyperliquid'] });
+      expect(result.current.tradeVenueId).toBe('hyperliquid');
+      expect(result.current.orderProviderId).toBe('hyperliquid');
+    });
+
+    it('discards a pick when the venue no longer lists that market', () => {
+      setMultiProvider(true);
+      const { result, rerender } = renderHook(
+        ({ venueIds }: { venueIds: readonly PerpsProviderType[] }) =>
+          usePerpsTradeVenue({ marketVenueIds: venueIds }),
+        {
+          initialProps: {
+            venueIds: [
+              'hyperliquid',
+              'lighter',
+            ] as readonly PerpsProviderType[],
+          },
+        },
+      );
+
+      act(() => result.current.selectVenue('lighter'));
+      rerender({ venueIds: ['hyperliquid'] });
+
+      expect(result.current.orderProviderId).toBe('hyperliquid');
+    });
+
+    it('resolves a new route provider rather than keeping the last pick', () => {
+      setMultiProvider(true);
+      const { result, rerender } = renderHook(
+        ({ routeProviderId }: { routeProviderId: PerpsProviderType }) =>
+          useTradeVenueHook({
+            marketSymbol: 'ETH',
+            routeProviderId,
+            marketVenueIds: ['hyperliquid', 'lighter'],
+          }),
+        {
+          initialProps: { routeProviderId: 'hyperliquid' as PerpsProviderType },
+        },
+      );
+
+      act(() => result.current.selectVenue('lighter'));
+      rerender({ routeProviderId: 'lighter' });
+      expect(result.current.orderProviderId).toBe('lighter');
+
+      rerender({ routeProviderId: 'hyperliquid' });
+      expect(result.current.orderProviderId).toBe('hyperliquid');
     });
   });
 });

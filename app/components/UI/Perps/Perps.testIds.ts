@@ -1617,7 +1617,7 @@ export const PerpsRecoveryPanelTestIds = {
 // ========================================
 
 export const PerpsTradeOnSelectorsIDs = {
-  /** "Provided by [venue]" trigger row on the Lite market page. */
+  /** "Trade on" trigger row on the Lite market page. */
   ROW: 'perps-trade-on-row',
   SHEET: 'perps-trade-on-sheet',
   SHEET_OPTION: 'perps-trade-on-sheet-option',

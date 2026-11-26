@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import PerpsProviderLogos from '../PerpsProviderLogos';
+import { VENUE_DISPLAY } from '../PerpsProviderLogos/venueDisplay';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import { PerpsTradeOnSelectorsIDs } from '../../Perps.testIds';
@@ -48,13 +49,8 @@ interface PerpsTradeOnSheetProps {
 /** Venue-mark size on each row, matching the exchange filter sheet. */
 const TRADE_ON_SHEET_LOGO_SIZE = 40;
 
-const VENUE_TAGLINE_KEY: Record<PerpsProviderType, string> = {
-  lighter: 'perps.exchange_filter.tagline_lighter',
-  hyperliquid: 'perps.exchange_filter.tagline_hyperliquid',
-};
-
 /**
- * "Trade on" sheet (TAT-4418): pick which exchange this order goes to.
+ * "Trade on" sheet: pick which exchange this order goes to.
  * One row per venue listing the market — venue mark, name with a
  * max-leverage tag (and a Default tag on the saved default), its
  * tagline, and a radio — plus a Save button. Saving applies to this
@@ -109,18 +105,38 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
         >
           {strings('perps.trade_on.subtitle')}
         </Text>
-        <Box twClassName="mt-4 gap-2">
+        <Box
+          twClassName="mt-4 gap-2"
+          accessibilityRole="radiogroup"
+          accessibilityLabel={strings('perps.trade_on.title')}
+        >
           {venues.map((venue) => {
             const providerId =
               venue.providerId ?? PROVIDER_CONFIG.DefaultProvider;
             const isSelected = providerId === draftProviderId;
+            const leverageLabel = venue.maxLeverage
+              ? `${venue.maxLeverage} ${strings('perps.trade_on.max_leverage')}`
+              : undefined;
+            const defaultLabel =
+              providerId === defaultProviderId
+                ? strings('perps.trade_on.default_tag')
+                : undefined;
+            const tagline = strings(VENUE_DISPLAY[providerId].taglineKey);
+            const accessibilityLabel = [
+              PROVIDER_DISPLAY_INFO[providerId].name,
+              leverageLabel,
+              defaultLabel,
+              tagline,
+            ]
+              .filter(Boolean)
+              .join(', ');
             const rowTestID = `${PerpsTradeOnSelectorsIDs.SHEET_OPTION}-${providerId}`;
             return (
               <Pressable
                 key={providerId}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                accessibilityLabel={PROVIDER_DISPLAY_INFO[providerId].name}
+                accessibilityState={{ checked: isSelected }}
+                accessibilityLabel={accessibilityLabel}
                 testID={rowTestID}
                 onPress={() => setDraftProviderId(providerId)}
                 style={({ pressed }) =>
@@ -146,16 +162,14 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
                     >
                       {PROVIDER_DISPLAY_INFO[providerId].name}
                     </Text>
-                    {venue.maxLeverage ? (
+                    {leverageLabel ? (
                       <Tag testID={`${rowTestID}-leverage-tag`}>
-                        {`${venue.maxLeverage} ${strings(
-                          'perps.trade_on.max_leverage',
-                        )}`}
+                        {leverageLabel}
                       </Tag>
                     ) : null}
-                    {providerId === defaultProviderId ? (
+                    {defaultLabel ? (
                       <Tag testID={`${rowTestID}-default-tag`}>
-                        {strings('perps.trade_on.default_tag')}
+                        {defaultLabel}
                       </Tag>
                     ) : null}
                   </Box>
@@ -164,7 +178,7 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
                     color={TextColor.TextAlternative}
                     numberOfLines={1}
                   >
-                    {strings(VENUE_TAGLINE_KEY[providerId])}
+                    {tagline}
                   </Text>
                 </Box>
                 <RadioButton

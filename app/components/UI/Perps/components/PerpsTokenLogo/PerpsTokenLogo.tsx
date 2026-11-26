@@ -8,13 +8,9 @@ import {
   BadgeNetwork,
   Box,
 } from '@metamask/design-system-react-native';
-import {
-  getPerpsDisplaySymbol,
-  type PerpsProviderType,
-} from '@metamask/perps-controller';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
-import hyperliquidLogo from '../PerpsProviderLogos/assets/hyperliquid.png';
-import lighterLogo from '../PerpsProviderLogos/assets/lighter.png';
+import { VENUE_DISPLAY } from '../PerpsProviderLogos/venueDisplay';
 import { useTheme } from '../../../../../util/theme';
 import { getAssetIconUrls } from '../../utils/marketUtils';
 import {
@@ -40,16 +36,6 @@ function mapToAvatarBaseSize(pixels: number): AvatarBaseSize {
   if (pixels <= 40) return AvatarBaseSize.Lg;
   return AvatarBaseSize.Xl;
 }
-
-/**
- * Venue marks for the token badge (TAT-4418). The design's header token
- * (32px AvatarToken) carries a BadgeNetwork venue mark with its own
- * background ring, overlapping the bottom-right corner.
- */
-const VENUE_BADGE_LOGOS: Record<PerpsProviderType, number> = {
-  hyperliquid: hyperliquidLogo as number,
-  lighter: lighterLogo as number,
-};
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
@@ -150,12 +136,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   if (!providerId) {
     return avatar;
   }
-  const venueBadge = VENUE_BADGE_LOGOS[providerId];
-  if (!venueBadge) {
-    return avatar;
-  }
-
-  // Venue mark on the token (TAT-4418): the design's BadgeNetwork with its
+  // Venue mark on the token: the design's BadgeNetwork with its
   // background ring, overlapping the bottom-right corner. It names the
   // exchange the trade goes to.
   return (
@@ -163,7 +144,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       {avatar}
       <Box twClassName="absolute -bottom-1 -right-1">
         <BadgeNetwork
-          src={venueBadge}
+          src={VENUE_DISPLAY[providerId].logo}
           name={PROVIDER_DISPLAY_INFO[providerId].name}
           accessible={false}
           testID={testID ? `${testID}-venue-badge` : undefined}

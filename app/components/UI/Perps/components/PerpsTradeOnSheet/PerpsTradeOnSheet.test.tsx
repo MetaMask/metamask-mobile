@@ -59,6 +59,11 @@ describe('PerpsTradeOnSheet', () => {
   const mockOnSelect = jest.fn();
   const mockOnClose = jest.fn();
 
+  beforeEach(() => {
+    mockOnSelect.mockClear();
+    mockOnClose.mockClear();
+  });
+
   const renderSheet = (
     overrides: Partial<React.ComponentProps<typeof PerpsTradeOnSheet>> = {},
   ): ReturnType<typeof render> =>
@@ -96,15 +101,28 @@ describe('PerpsTradeOnSheet', () => {
     expect(screen.getByText('Lower fee, higher leverage')).toBeOnTheScreen();
   });
 
-  it('marks the selected venue radio and not the others', () => {
+  it('announces the group, venue details, and checked radio state', () => {
     renderSheet();
 
+    // The group is a non-focusable container so each radio stays focusable.
+    expect(
+      screen.UNSAFE_getByProps({ accessibilityRole: 'radiogroup' }).props
+        .accessibilityLabel,
+    ).toBe('Trade on');
     expect(screen.getByTestId(HYPERLIQUID)).toHaveProp('accessibilityState', {
-      selected: true,
+      checked: true,
     });
     expect(screen.getByTestId(LIGHTER)).toHaveProp('accessibilityState', {
-      selected: false,
+      checked: false,
     });
+    expect(screen.getByTestId(HYPERLIQUID)).toHaveProp(
+      'accessibilityLabel',
+      'HyperLiquid, 50x max, Default, Higher volume, lower slippage',
+    );
+    expect(screen.getByTestId(LIGHTER)).toHaveProp(
+      'accessibilityLabel',
+      'Lighter, 50x max, Lower fee, higher leverage',
+    );
   });
 
   it('disables Save until the selection changes', () => {

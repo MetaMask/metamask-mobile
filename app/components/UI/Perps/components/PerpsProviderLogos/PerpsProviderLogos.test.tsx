@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
+import { mockTheme } from '../../../../../util/theme';
 import { PERPS_AVAILABLE_BALANCE_LOGO_SIZE } from '../../constants/perpsUIConfig';
 import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import PerpsProviderLogos from './PerpsProviderLogos';
@@ -48,7 +49,7 @@ describe('squared mark geometry (design: 2px radius on 12px, 8px on 40px)', () =
     ).not.toHaveStyle({ marginRight: expect.any(Number) });
   });
 
-  it('carries a hairline border', () => {
+  it('carries a hairline border using the themed border color', () => {
     render(
       <PerpsProviderLogos
         providerIds={['hyperliquid']}
@@ -57,7 +58,10 @@ describe('squared mark geometry (design: 2px radius on 12px, 8px on 40px)', () =
     );
 
     const mark = screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID);
-    expect(mark).toHaveStyle({ borderWidth: expect.any(Number) });
+    expect(mark).toHaveStyle({
+      borderWidth: expect.any(Number),
+      borderColor: mockTheme.colors.border.muted,
+    });
   });
 });
 

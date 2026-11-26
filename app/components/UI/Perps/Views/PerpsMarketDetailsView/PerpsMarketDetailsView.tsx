@@ -115,10 +115,7 @@ import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import { usePerpsTradeVenue } from '../../hooks/usePerpsTradeVenue';
 import PerpsTradeOnRow from '../../components/PerpsTradeOnSheet/PerpsTradeOnRow';
 import PerpsTradeOnSheet from '../../components/PerpsTradeOnSheet/PerpsTradeOnSheet';
-import {
-  PERPS_ANALYTICS_PROVIDER,
-  PERPS_TRADE_ON_INTERACTION,
-} from '../../constants/perpsAnalytics';
+import { PERPS_TRADE_ON_INTERACTION } from '../../constants/perpsAnalytics';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -251,11 +248,7 @@ interface MarketDetailsRouteParams extends NavigationAnalyticsRouteParams {
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
   source_section?: string;
-  /**
-   * Venue to preselect for per-order trading (TAT-4418). Absent on entries
-   * that do not express one; senders gain it as routes carry providers
-   * (TAT-4390).
-   */
+  /** Optional venue to preselect for this order, when the route provides one. */
   providerId?: PerpsProviderType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -397,8 +390,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   } = route.params || {};
   const { track } = usePerpsEventTracking();
   const activeProvider = useSelector(selectPerpsProvider);
-  // Saved default venue (TAT-4418): drives the sheet's Default tag and the
-  // per-order resolution inside usePerpsTradeVenue.
+  // The saved default drives the sheet's Default tag and per-order resolution.
   const defaultProvider =
     useSelector(selectPerpsDefaultProvider) ?? PROVIDER_CONFIG.DefaultProvider;
   const isRelatedMarketsEnabled = useSelector(
@@ -453,8 +445,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     return fullMarket ?? routeMarket;
   }, [activeProvider, markets, routeMarket, needsEnrichment]);
 
-  // Which exchange this order goes to (TAT-4418). Per-order state on this
-  // screen: it never switches the global provider or the saved default.
+  // Per-order venue state never switches the global provider or saved default.
   // Venue rows come from the venue-aware markets list — the route market
   // carries them when it arrived from the list, and the enrichment catalog
   // covers the rest.
@@ -480,7 +471,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     return single ? [single] : [];
   }, [tradeOnVenues, routeMarket]);
   const { tradeVenueId, isSelectorVisible, selectVenue, orderProviderId } =
-    usePerpsTradeVenue({ routeProviderId, marketVenueIds });
+    usePerpsTradeVenue({
+      marketSymbol: routeMarket?.symbol ?? '',
+      routeProviderId,
+      marketVenueIds,
+    });
 
   const [isTradeOnSheetVisible, setIsTradeOnSheetVisible] = useState(false);
   const handleTradeOnRowPress = useCallback(() => {
@@ -488,7 +483,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_TRADE_ON_INTERACTION.SHEET_OPENED,
-      [PERPS_ANALYTICS_PROVIDER]: tradeVenueId,
+      [PERPS_EVENT_PROPERTY.PROVIDER]: tradeVenueId,
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol,
     });
   }, [market?.symbol, track, tradeVenueId]);
@@ -498,7 +493,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_TRADE_ON_INTERACTION.VENUE_CHANGED,
-        [PERPS_ANALYTICS_PROVIDER]: providerId,
+        [PERPS_EVENT_PROPERTY.PROVIDER]: providerId,
         [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol,
       });
     },
@@ -1351,9 +1346,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         navigateToOrder({
           direction,
           asset: market.symbol,
-          // Per-order venue (TAT-4418): the selected exchange when
-          // multi-provider mode is on; otherwise fall back to the route
-          // market's venue exactly as before.
+          // Multi-provider mode routes to the selected venue; flag-off
+          // keeps the route market's original venue.
           providerId: orderProviderId ?? market.providerId,
           source: resolvePerpsSocialOrderSource(
             source,
@@ -2536,9 +2530,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </PerpsDirectionButton>
             </View>
           )}
-          {/* "Provided by [venue]" — which exchange this order goes to
-              (TAT-4418). Only while two or more venues list the market and
-              multi-provider mode is on; otherwise hidden. */}
+          {/* Show "Trade on" only when multiple venues list the market. */}
           {shouldShowLongShortButtonsOnly && isSelectorVisible ? (
             <PerpsTradeOnRow
               providerId={tradeVenueId}
@@ -2556,9 +2548,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       )}
 
       {/* More Candle Periods Bottom Sheet - Rendered at root level */}
-      {/* Trade on sheet — mounted only while open (TAT-4418). */}
-      {isTradeOnSheetVisible ? (
+      {/* Remount on market change so a draft cannot carry into another market. */}
+      {isTradeOnSheetVisible && isSelectorVisible ? (
         <PerpsTradeOnSheet
+          key={routeMarket?.symbol}
           selectedProviderId={tradeVenueId}
           defaultProviderId={defaultProvider}
           venues={tradeOnVenues}

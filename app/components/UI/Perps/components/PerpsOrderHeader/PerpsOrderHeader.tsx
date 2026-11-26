@@ -48,8 +48,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
-  // TAT-4418: the venue mark on the token shows only under the multi-provider
-  // flag, so flag-off headers render exactly as before.
+  // Only show the venue mark in multi-provider mode, preserving flag-off UI.
   const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,

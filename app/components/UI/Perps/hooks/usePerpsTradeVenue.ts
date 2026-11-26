@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsProviderType } from '@metamask/perps-controller';
 
@@ -8,10 +8,9 @@ import { usePerpsProvider } from './usePerpsProvider';
 
 /** Params for {@link usePerpsTradeVenue}. */
 export interface UsePerpsTradeVenueParams {
-  /**
-   * Venue named by the route, when the entry point already expressed one
-   * (TAT-4390 populates senders). Must list the market to win.
-   */
+  /** The market this selection belongs to, even when venue data is loading. */
+  marketSymbol: string;
+  /** Venue named by the route, when the entry point expresses one. */
   routeProviderId?: PerpsProviderType;
   /**
    * Venues that list the market, from the venue-aware markets list. Empty
@@ -20,7 +19,7 @@ export interface UsePerpsTradeVenueParams {
   marketVenueIds: readonly PerpsProviderType[];
 }
 
-/** Per-order venue state for the Lite market page (TAT-4418). */
+/** Per-order venue state for the Lite market page. */
 export interface UsePerpsTradeVenueResult {
   /** The venue this order will go to. */
   tradeVenueId: PerpsProviderType;
@@ -42,7 +41,7 @@ export interface UsePerpsTradeVenueResult {
 }
 
 /**
- * Which exchange the order on the Lite market page goes to (TAT-4418).
+ * Which exchange the order on the Lite market page goes to.
  *
  * The venue is per-order state on this screen — it never switches the
  * global active provider or the saved default. Resolution order: a route
@@ -50,6 +49,7 @@ export interface UsePerpsTradeVenueResult {
  * lists the market, then the market's own (only) venue.
  */
 export function usePerpsTradeVenue({
+  marketSymbol,
   routeProviderId,
   marketVenueIds,
 }: UsePerpsTradeVenueParams): UsePerpsTradeVenueResult {
@@ -72,23 +72,36 @@ export function usePerpsTradeVenue({
     return marketVenueIds[0] ?? defaultProvider;
   }, [routeProviderId, marketVenueIds, defaultProvider]);
 
-  const [tradeVenueId, setTradeVenueId] =
-    useState<PerpsProviderType>(initialVenueId);
-
-  // Market data can arrive after mount and change the resolution (an empty
-  // venue list resolves to the default). Follow it until the user picks, so
-  // a late load cannot clobber an explicit choice.
-  const hasUserSelectedRef = useRef(false);
+  // Key the explicit pick to the market and route. Never let a selection
+  // from the previous market reach order navigation during the render before
+  // an effect can reset state. Catalog refreshes may reorder venues without
+  // clobbering a valid pick; if the venue disappears, use the resolution order.
+  const [selection, setSelection] = useState<{
+    marketSymbol: string;
+    routeProviderId: PerpsProviderType | undefined;
+    providerId: PerpsProviderType;
+  } | null>(null);
+  // Clear the old choice after a route change so returning to the original
+  // market cannot revive it. The keyed check below already protects the
+  // first render, before this cleanup effect runs.
   useEffect(() => {
-    if (!hasUserSelectedRef.current) {
-      setTradeVenueId(initialVenueId);
-    }
-  }, [initialVenueId]);
+    setSelection(null);
+  }, [marketSymbol, routeProviderId]);
+  const hasValidSelection =
+    selection?.marketSymbol === marketSymbol &&
+    selection.routeProviderId === routeProviderId &&
+    (marketVenueIds.length === 0 ||
+      marketVenueIds.includes(selection.providerId));
+  const tradeVenueId = hasValidSelection
+    ? selection.providerId
+    : initialVenueId;
 
-  const selectVenue = useCallback((providerId: PerpsProviderType) => {
-    hasUserSelectedRef.current = true;
-    setTradeVenueId(providerId);
-  }, []);
+  const selectVenue = useCallback(
+    (providerId: PerpsProviderType) => {
+      setSelection({ marketSymbol, routeProviderId, providerId });
+    },
+    [marketSymbol, routeProviderId],
+  );
 
   return {
     tradeVenueId,

@@ -59,7 +59,7 @@ export interface PerpsMarketHeaderProps {
    */
   enableModeHaptics?: boolean;
   /**
-   * Venue whose mark overlays the header's token logo (TAT-4418). Callers
+   * Venue whose mark overlays the header's token logo. Callers
    * gate this on the multi-provider flag.
    */
   providerId?: PerpsProviderType;

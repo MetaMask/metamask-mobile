@@ -29,7 +29,7 @@ const TRADE_ON_ROW_LOGO_SIZE = 12;
 
 /**
  * The "Trade on [venue ⌄]" trigger under the Long/Short buttons
- * (TAT-4418). One centered control: the "Trade on" label and a pill tag
+ * One centered control: the "Trade on" label and a pill tag
  * carrying the venue's mark, its name, and a chevron. Hidden by the
  * caller unless two or more venues list the market.
  */
