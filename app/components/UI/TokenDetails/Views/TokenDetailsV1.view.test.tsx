@@ -10,6 +10,7 @@ import {
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
+  buildTokenDetailsV1RouteParams,
   clearTokenDetailsV1ApiMocks,
   setupTokenDetailsV1ApiMocks,
   TOKEN_DETAILS_V1_ADDRESS,
@@ -38,6 +39,16 @@ import {
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
 import { formatAddress, toChecksumAddress } from '../../../../util/address';
+import type { Hex } from '@metamask/utils';
+import { RpcEndpointType } from '@metamask/network-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import Routes from '../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../reducers';
+import type { DeepPartial } from '../../../../util/test/renderWithProvider';
+import { getRouteParamsProbeTestId } from '../../../../../tests/component-view/render';
 
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
@@ -548,5 +559,126 @@ describeForPlatforms('TokenDetailsV1', () => {
         FIND_TIMEOUT,
       ),
     ).toBeOnTheScreen();
+  });
+  describe('activity list', () => {
+    const SELECTED_ADDRESS = '0x0000000000000000000000000000000000000001';
+    const CUSTOM_CHAIN_ID = '0x539';
+
+    const buildTokenTransfer = (chainId: Hex, hash: string) => ({
+      id: hash,
+      chainId,
+      networkClientId: 'mainnet',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_790_000,
+      hash,
+      type: TransactionType.tokenMethodTransfer,
+      txParams: {
+        from: SELECTED_ADDRESS,
+        to: TOKEN_DETAILS_V1_ADDRESS,
+        value: '0x0',
+        data: `0xa9059cbb${'0'.repeat(24)}${'2'.repeat(40)}${'0'.repeat(63)}1`,
+      },
+    });
+
+    const withTransactions = (
+      transactions: ReturnType<typeof buildTokenTransfer>[],
+      networkConfigurationsByChainId: DeepPartial<
+        RootState['engine']['backgroundState']['NetworkController']['networkConfigurationsByChainId']
+      > = {},
+    ): DeepPartial<RootState> => ({
+      // The tx filter reads the network id from the non-React store.
+      inpageProvider: { networkId: '1' },
+      engine: {
+        backgroundState: {
+          TransactionController: { transactions },
+          NetworkController: { networkConfigurationsByChainId },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      setupTokenDetailsV1ApiMocks({ launchpad: false });
+    });
+
+    it('opens activity details from a token transfer row', async () => {
+      const hash = '0xtokendetailscvtransfer';
+      const { findByTestId } = renderTokenDetailsV1View({
+        overrides: withTransactions([buildTokenTransfer('0x1', hash)]),
+      });
+
+      await userEvent.press(
+        await findByTestId(
+          `activity-row-avatar-single-${hash}`,
+          {},
+          FIND_TIMEOUT,
+        ),
+      );
+
+      expect(
+        await findByTestId(getRouteParamsProbeTestId(Routes.ACTIVITY_DETAILS)),
+      ).toHaveTextContent(hash, { exact: false });
+    });
+
+    it('opens the token chain explorer from the list footer', async () => {
+      const { findByTestId } = renderTokenDetailsV1View({
+        overrides: withTransactions([
+          buildTokenTransfer('0x1', '0xtokendetailscvexplorer'),
+        ]),
+      });
+
+      await userEvent.press(
+        await findByTestId(
+          'transactions-footer-view-explorer',
+          {},
+          FIND_TIMEOUT,
+        ),
+      );
+
+      expect(
+        await findByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.MAIN)),
+      ).toHaveTextContent(`etherscan.io/address/${SELECTED_ADDRESS}`, {
+        exact: false,
+      });
+    });
+
+    it('hides the explorer link when the token chain has no explorer', async () => {
+      const hash = '0xtokendetailscvnoexplorer';
+      const { findByTestId, queryByTestId } = renderTokenDetailsV1View({
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          chainId: CUSTOM_CHAIN_ID,
+        },
+        overrides: withTransactions(
+          [buildTokenTransfer(CUSTOM_CHAIN_ID, hash)],
+          {
+            [CUSTOM_CHAIN_ID]: {
+              chainId: CUSTOM_CHAIN_ID,
+              name: 'Local',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'local',
+                  url: 'http://localhost:8545',
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              blockExplorerUrls: [],
+            },
+          },
+        ),
+      });
+
+      expect(
+        await findByTestId(
+          `activity-row-avatar-single-${hash}`,
+          {},
+          FIND_TIMEOUT,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId('transactions-footer-view-explorer'),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

@@ -262,9 +262,6 @@ export const isMainnetByChainId = (chainId) =>
 export const isLineaMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(59144);
 
-export const isMultiLayerFeeNetwork = (chainId) =>
-  chainId === NETWORKS_CHAIN_ID.OPTIMISM;
-
 /**
  * Gets the test network image icon.
  *
