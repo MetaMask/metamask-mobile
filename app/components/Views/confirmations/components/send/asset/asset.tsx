@@ -65,16 +65,16 @@ const ASSET_SECTION_LABEL_TW = 'mx-4 mb-2';
  */
 const TokenListSkeleton = () => (
   <Box
-    twClassName="px-4"
+    className="px-4"
     testID={TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST_SKELETON}
   >
     {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
       <Box
         key={`token-skeleton-${index}`}
-        twClassName="flex-row items-center gap-4 py-2"
+        className="flex-row items-center gap-4 py-2"
       >
         <Skeleton width={40} height={40} twClassName="rounded-full" />
-        <Box twClassName="flex-1 gap-1">
+        <Box className="flex-1 gap-1">
           <Skeleton width={120} height={16} />
           <Skeleton width={80} height={12} />
         </Box>
@@ -241,7 +241,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {!hideHeader && <AssetSendHeader />}
       {highlightedItemsOutsideAssetList.length > 0 && (
         <Box marginBottom={2}>
@@ -253,7 +253,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           ))}
         </Box>
       )}
-      <Box twClassName="w-full px-4 pt-1 pb-2">
+      <Box className="w-full px-4 pt-1 pb-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -283,8 +283,8 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         {hasNoResults && isLoadingTokens ? (
           <TokenListSkeleton />
         ) : hasNoResults && hasActiveFilters ? (
-          <Box twClassName="items-center py-8 px-4">
-            <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">
+          <Box className="items-center py-8 px-4">
+            <Text variant={TextVariant.BodyMd} className="text-center mb-4">
               {strings('send.no_tokens_match_filters')}
             </Text>
             <Button
@@ -295,8 +295,8 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
             </Button>
           </Box>
         ) : hasNoResults && !hasActiveFilters ? (
-          <Box twClassName="items-center py-8 px-4">
-            <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Box className="items-center py-8 px-4">
+            <Text variant={TextVariant.BodyMd} className="text-center">
               {strings('send.no_assets_available')}
             </Text>
           </Box>
@@ -306,7 +306,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               (filteredTokens.length > 0 ||
                 filteredHighlightedItemsInAssetList.length > 0) && (
                 <Text
-                  twClassName={`${ASSET_SECTION_LABEL_TW} mt-2`}
+                  className={`${ASSET_SECTION_LABEL_TW} mt-2`}
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
@@ -324,7 +324,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               <>
                 {filteredNfts.length > 0 && (
                   <Text
-                    twClassName={`${ASSET_SECTION_LABEL_TW} mt-4`}
+                    className={`${ASSET_SECTION_LABEL_TW} mt-4`}
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
                     fontWeight={FontWeight.Medium}

@@ -119,7 +119,7 @@ export const RecipientInput = ({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonBaseSize.Sm}
-          twClassName="-mr-2"
+          className="-mr-2"
           onPress={handleClearInput}
         >
           {strings('send.clear')}
@@ -127,12 +127,12 @@ export const RecipientInput = ({
       );
     }
     return (
-      <Box twClassName="flex-row items-center gap-2.5">
+      <Box className="flex-row items-center gap-2.5">
         <ScanRecipientButton onPress={openScanner} />
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonBaseSize.Sm}
-          twClassName="-mr-2"
+          className="-mr-2"
           onPress={handlePaste}
         >
           {strings('send.paste')}
@@ -148,7 +148,7 @@ export const RecipientInput = ({
   ]);
 
   return (
-    <Box twClassName="w-full px-4 py-2">
+    <Box className="w-full px-4 py-2">
       <TextField
         ref={inputRef}
         endAccessory={renderEndAccessory}

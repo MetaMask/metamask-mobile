@@ -80,7 +80,7 @@ const TextWithTooltip = ({
             >
               {label}
             </ConfirmationSheetHeader>
-            <Box twClassName="flex flex-col">
+            <Box className="flex flex-col">
               <View style={styles.tooltipContext}>
                 <Text style={styles.text}>{tooltip}</Text>
               </View>

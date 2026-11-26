@@ -42,9 +42,9 @@ function PageNavigation({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full px-4 pb-2"
+      className="w-full px-4 pb-2"
     >
-      <Box twClassName="w-10 items-start justify-center">
+      <Box className="w-10 items-start justify-center">
         {selectedIndex > 0 ? (
           <ButtonIcon
             accessibilityLabel={strings('send.alert_navigation_previous')}
@@ -53,10 +53,10 @@ function PageNavigation({
             testID="send-alert-modal-nav-back"
           />
         ) : (
-          <Box twClassName="w-10" />
+          <Box className="w-10" />
         )}
       </Box>
-      <Box twClassName="w-10 items-end justify-center">
+      <Box className="w-10 items-end justify-center">
         {selectedIndex < alerts.length - 1 ? (
           <ButtonIcon
             accessibilityLabel={strings('send.alert_navigation_next')}
@@ -65,7 +65,7 @@ function PageNavigation({
             testID="send-alert-modal-nav-forward"
           />
         ) : (
-          <Box twClassName="w-10" />
+          <Box className="w-10" />
         )}
       </Box>
     </Box>
@@ -132,7 +132,7 @@ export const SendAlertModal = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="px-4 pt-2 pb-2"
+          className="px-4 pt-2 pb-2"
         >
           <Icon
             name={IconName.Danger}
@@ -140,11 +140,11 @@ export const SendAlertModal = ({
             color={IconColor.WarningDefault}
           />
           <Text variant={TextVariant.HeadingMd}>{currentAlert.title}</Text>
-          <Box twClassName="w-full max-w-full">
+          <Box className="w-full max-w-full">
             {typeof currentAlert.message === 'string' ? (
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="text-center break-words"
+                className="text-center break-words"
               >
                 {currentAlert.message}
               </Text>

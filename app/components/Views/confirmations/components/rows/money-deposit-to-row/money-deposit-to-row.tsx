@@ -92,7 +92,7 @@ function MoneyDepositToRowComponent() {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <MoneyBalanceIcon
             width={24}

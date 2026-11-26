@@ -33,7 +33,7 @@ export function RecipientList({
 
   if (data.length === 0 && emptyMessage) {
     return (
-      <Box twClassName="flex-1 justify-center items-center p-4">
+      <Box className="flex-1 justify-center items-center p-4">
         <Text>{emptyMessage}</Text>
       </Box>
     );
@@ -41,9 +41,9 @@ export function RecipientList({
 
   if (isContactList) {
     return (
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text
-          twClassName="m-4"
+          className="m-4"
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           fontWeight={FontWeight.Medium}
@@ -62,7 +62,7 @@ export function RecipientList({
   }
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <BIP44RecipientList
         data={data}
         onRecipientSelected={onRecipientSelected}
@@ -88,7 +88,7 @@ function FlatRecipientList({
   disabled?: boolean;
 }) {
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {data.map((recipient) => (
         <Recipient
           key={recipient.address}
@@ -132,11 +132,11 @@ function BIP44RecipientList({
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {Object.keys(groupedData).map((walletName) => (
-        <Box key={walletName} twClassName="flex-1">
+        <Box key={walletName} className="flex-1">
           <Text
-            twClassName="m-4"
+            className="m-4"
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             fontWeight={FontWeight.Medium}

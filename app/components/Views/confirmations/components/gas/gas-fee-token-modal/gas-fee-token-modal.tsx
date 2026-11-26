@@ -78,7 +78,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
         >
           {strings('gas_fee_token_modal.title')}
         </BottomSheetHeaderGlass>
-        <Box twClassName="flex flex-col">
+        <Box className="flex flex-col">
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem
               key={tokenAddress}

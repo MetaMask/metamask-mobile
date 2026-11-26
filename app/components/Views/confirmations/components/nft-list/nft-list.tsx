@@ -66,7 +66,7 @@ export function NftList({ nfts }: NftListProps) {
   const hasMoreNfts = nfts.length > visibleNftCount;
 
   return (
-    <Box twClassName="mb-8">
+    <Box className="mb-8">
       <Box>
         {visibleNfts.map((nft) => (
           <NftComponent
@@ -80,7 +80,7 @@ export function NftList({ nfts }: NftListProps) {
         <Button
           variant={ButtonVariant.Tertiary}
           onPress={handleShowMore}
-          twClassName="mb-4"
+          className="mb-4"
         >
           Show more NFTs
         </Button>

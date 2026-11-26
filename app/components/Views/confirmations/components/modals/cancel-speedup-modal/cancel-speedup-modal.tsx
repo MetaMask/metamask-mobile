@@ -130,7 +130,7 @@ const Description = ({ text }: { text: string }) => (
   <Text
     variant={TextVariant.BodySm}
     color={TextColor.TextAlternative}
-    twClassName="mt-2 pb-3"
+    className="mt-2 pb-3"
   >
     {text}
   </Text>

@@ -51,7 +51,7 @@ export const EstimatesModal = ({
         >
           {strings('transactions.gas_modal.edit_network_fee')}
         </BottomSheetHeaderGlass>
-        <Box twClassName="flex flex-col">
+        <Box className="flex flex-col">
           {options.map((option) => (
             <GasOption key={option.key} option={option} />
           ))}

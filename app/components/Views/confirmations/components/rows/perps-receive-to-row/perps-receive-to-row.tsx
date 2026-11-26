@@ -118,7 +118,7 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
 
   return (
     <>
-      <Box twClassName="-mx-2">
+      <Box className="-mx-2">
         <KeyValueSelect
           accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
           keyLabel={rowLabel}
@@ -132,11 +132,16 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
               size={AvatarTokenSize.Sm}
             />
           }
+        /><DestinationAvatar
+              destination={destination}
+              size={AvatarTokenSize.Sm}
+            />
+          }
         />
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="self-end pr-4"
+          className="self-end pr-4"
           accessible={false}
           accessibilityElementsHidden
           importantForAccessibility="no"
@@ -152,7 +157,7 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
           presentationStyle="overFullScreen"
           onRequestClose={closeSheet}
         >
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <BottomSheet
               ref={sheetRef}
               testID={PerpsReceiveToSelectorsIDs.SHEET}
@@ -161,16 +166,16 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
               <BottomSheetHeader onClose={closeSheet}>
                 {rowLabel}
               </BottomSheetHeader>
-              <Box twClassName="px-4 pt-3 pb-2">
+              <Box className="px-4 pt-3 pb-2">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="uppercase"
+                  className="uppercase"
                 >
                   {strings('confirm.perps_receive_to.section')}
                 </Text>
               </Box>
-              <Box twClassName="px-4 pb-4" gap={2}>
+              <Box className="px-4 pb-4" gap={2}>
                 {DESTINATIONS.map((option) => {
                   const isSelected = option === destination;
                   return (
@@ -180,6 +185,40 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
                       titleEndAccessory={
                         option === DEFAULT_PERPS_RECEIVE_DESTINATION ? (
                           <Tag severity={TagSeverity.Neutral}>
+                            {strings('confirm.perps_receive_to.default')}
+                          </Tag>
+                        ) : undefined
+                      }
+                      description={strings(
+                        'confirm.perps_receive_to.available',
+                        { amount: providerBalance[option] },
+                      )}
+                      startAccessory={
+                        <DestinationAvatar destination={option} />
+                      }
+                      endAccessory={
+                        <RadioButton
+                          isChecked={isSelected}
+                          isReadOnly
+                          accessible={false}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no"
+                          touchableOpacityProps={{
+                            accessible: false,
+                            accessibilityElementsHidden: true,
+                            importantForAccessibility: 'no',
+                          }}
+                        />
+                      }
+                      isSelected={isSelected}
+                      onPress={() => handleSelect(option)}
+                      className={`rounded-xl border bg-muted ${
+                        isSelected ? 'border-default' : 'border-transparent'
+                      }`}
+                      testID={`${PerpsReceiveToSelectorsIDs.OPTION}-${option}`}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: isSelected }}
+                    /><Tag severity={TagSeverity.Neutral}>
                             {strings('confirm.perps_receive_to.default')}
                           </Tag>
                         ) : undefined

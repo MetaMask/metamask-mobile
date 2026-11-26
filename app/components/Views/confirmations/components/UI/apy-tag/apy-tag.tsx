@@ -9,7 +9,7 @@ interface ApyTagProps {
 
 export function ApyTag({ apyPercent, testID = 'apy-tag' }: ApyTagProps) {
   return (
-    <Box twClassName="shrink-0">
+    <Box className="shrink-0">
       <Tag severity={TagSeverity.Success} testID={testID}>
         {strings('earn_module.rate_apy', { percentage: apyPercent })}
       </Tag>

@@ -141,7 +141,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
                   variant={TextVariant.BodyMd}
                   numberOfLines={1}
                   ellipsizeMode="middle"
-                  twClassName="shrink"
+                  className="shrink"
                 >
                   {selectedSubAccount.name}
                 </Text>
