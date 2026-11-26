@@ -1,6 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
@@ -129,6 +133,9 @@ export function useMoneyAccountApiActivity({
     moneyAddress,
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
+  const queryClient = useQueryClient();
+  const queryKeyRef = useRef(queryOptions.queryKey);
+  queryKeyRef.current = queryOptions.queryKey;
 
   // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
   // still decides whether a background refetch runs — the freshness policy is
@@ -183,12 +190,44 @@ export function useMoneyAccountApiActivity({
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
-    refetchInterval: refetchIntervalMs,
     initialData: cachedFirstPage
       ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
       : undefined,
     initialDataUpdatedAt: cachedFirstPage?.cachedAt,
   });
+
+  useEffect(() => {
+    if (!enabled || !refetchIntervalMs) {
+      return undefined;
+    }
+    const pollFirstPage = async () => {
+      try {
+        const page = await apiClient.accounts.fetchV1AccountTransactions(
+          moneyAddress,
+          ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+        );
+        writeCachedFirstPage(moneyAddress, page);
+        queryClient.setQueryData<InfiniteData<V1AccountTransactionsResponse>>(
+          queryKeyRef.current,
+          (oldData) => {
+            if (!oldData || oldData.pages.length === 0) {
+              return oldData;
+            }
+            return {
+              ...oldData,
+              pages: [page, ...oldData.pages.slice(1)],
+            };
+          },
+        );
+      } catch {
+        // The main query owns the error surface; keep the last page on a miss.
+      }
+    };
+    const intervalId = setInterval(() => {
+      void pollFirstPage();
+    }, refetchIntervalMs);
+    return () => clearInterval(intervalId);
+  }, [enabled, moneyAddress, queryClient, refetchIntervalMs]);
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 

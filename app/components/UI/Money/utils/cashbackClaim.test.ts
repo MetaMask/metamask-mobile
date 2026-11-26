@@ -6,6 +6,7 @@ import {
   cashbackClaimDisplayInfo,
   isCashbackClaimExpired,
   isSettlingCashbackActivity,
+  resolveCashbackClaim,
 } from './cashbackClaim';
 
 const CLAIM_HASH: Hex =
@@ -134,5 +135,52 @@ describe('isCashbackClaimExpired', () => {
 
     expect(isCashbackClaimExpired(claim, 1_599_999)).toBe(false);
     expect(isCashbackClaimExpired(claim, 1_600_000)).toBe(true);
+  });
+});
+
+describe('resolveCashbackClaim', () => {
+  const moneyAddress = createClaim().moneyAddress;
+
+  it('shows a pending claim for the active Money account', () => {
+    const claim = createClaim();
+
+    const result = resolveCashbackClaim(claim, [], moneyAddress, 1_000_000);
+
+    expect(result).toEqual({ visibleClaim: claim, shouldClear: false });
+  });
+
+  it('hides a claim for another Money account', () => {
+    const claim = createClaim();
+
+    const result = resolveCashbackClaim(claim, [], '0xother', 1_000_000);
+
+    expect(result).toEqual({ visibleClaim: null, shouldClear: false });
+  });
+
+  it('clears a settled claim', () => {
+    const claim = createClaim();
+
+    const result = resolveCashbackClaim(
+      claim,
+      [createCashbackActivity({ hash: CLAIM_HASH })],
+      moneyAddress,
+      1_000_000,
+    );
+
+    expect(result).toEqual({ visibleClaim: null, shouldClear: true });
+  });
+
+  it('clears an expired claim', () => {
+    const claim = createClaim();
+
+    const result = resolveCashbackClaim(claim, [], moneyAddress, 1_600_000);
+
+    expect(result).toEqual({ visibleClaim: null, shouldClear: true });
+  });
+
+  it('returns no claim when none exists', () => {
+    const result = resolveCashbackClaim(null, [], moneyAddress, 1_000_000);
+
+    expect(result).toEqual({ visibleClaim: null, shouldClear: false });
   });
 });

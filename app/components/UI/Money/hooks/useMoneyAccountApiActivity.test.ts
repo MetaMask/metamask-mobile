@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
@@ -21,9 +21,12 @@ import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 
+const mockSetQueryData = jest.fn();
+
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
   useQueries: jest.fn(),
+  useQueryClient: jest.fn(() => ({ setQueryData: mockSetQueryData })),
 }));
 
 jest.mock('./useMoneyActivityValuations', () => ({
@@ -549,5 +552,34 @@ describe('useMoneyAccountApiActivity', () => {
     result.current.refetch();
 
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it('polls only the first page while a refetch interval is set', async () => {
+    jest.useFakeTimers();
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [undefined] },
+    });
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+
+    try {
+      renderHook(() =>
+        useMoneyAccountApiActivity({ refetchIntervalMs: 30_000 }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockFetchV1AccountTransactions).toHaveBeenCalledWith(ADDR_A, {
+        chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+        sortDirection: 'DESC',
+      });
+      expect(mockSetQueryData).toHaveBeenCalledWith(
+        QUERY_OPTIONS_MOCK.queryKey,
+        expect.any(Function),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

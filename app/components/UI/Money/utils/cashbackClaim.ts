@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 import { IconName } from '@metamask/design-system-react-native';
 import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
 import { strings } from '../../../../../locales/i18n';
+import { areAddressesEqual } from '../../../../util/address';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import { moneyFormatUsd } from './moneyFormatFiat';
@@ -63,4 +64,30 @@ export function isCashbackClaimExpired(
   ttlMs: number = CASHBACK_CLAIM_TTL_MS,
 ): boolean {
   return now - claim.submittedAt >= ttlMs;
+}
+
+export interface CashbackClaimResolution {
+  visibleClaim: CardCashbackClaim | null;
+  shouldClear: boolean;
+}
+
+export function resolveCashbackClaim(
+  claim: CardCashbackClaim | null,
+  activity: readonly AccountsApiActivity[],
+  moneyAddress: string | undefined,
+  now: number = Date.now(),
+): CashbackClaimResolution {
+  if (!claim) {
+    return { visibleClaim: null, shouldClear: false };
+  }
+  const shouldClear =
+    isSettlingCashbackActivity(claim, activity) ||
+    isCashbackClaimExpired(claim, now);
+  const visibleClaim =
+    !shouldClear &&
+    moneyAddress &&
+    areAddressesEqual(claim.moneyAddress, moneyAddress)
+      ? claim
+      : null;
+  return { visibleClaim, shouldClear };
 }

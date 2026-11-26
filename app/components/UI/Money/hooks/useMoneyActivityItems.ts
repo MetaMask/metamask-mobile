@@ -32,11 +32,7 @@ import type { CardTransaction } from '../../../../core/Engine/controllers/card-c
 import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
 import { selectCardCashbackClaim } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
-import { areAddressesEqual } from '../../../../util/address';
-import {
-  isCashbackClaimExpired,
-  isSettlingCashbackActivity,
-} from '../utils/cashbackClaim';
+import { resolveCashbackClaim } from '../utils/cashbackClaim';
 import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
@@ -337,26 +333,16 @@ export function useMoneyActivityItems({
     ],
   );
 
-  const claimSettled = cashbackClaim
-    ? isSettlingCashbackActivity(cashbackClaim, activity)
-    : false;
-  const claimExpired = cashbackClaim
-    ? isCashbackClaimExpired(cashbackClaim)
-    : false;
-  const visibleCashbackClaim =
-    cashbackClaim &&
-    moneyAddress &&
-    areAddressesEqual(cashbackClaim.moneyAddress, moneyAddress) &&
-    !claimSettled &&
-    !claimExpired
-      ? cashbackClaim
-      : null;
+  const {
+    visibleClaim: visibleCashbackClaim,
+    shouldClear: shouldClearCashbackClaim,
+  } = resolveCashbackClaim(cashbackClaim, activity, moneyAddress);
 
   useEffect(() => {
-    if (cashbackClaim && (claimSettled || claimExpired)) {
+    if (shouldClearCashbackClaim) {
       Engine.context.CardController.clearCashbackClaim();
     }
-  }, [cashbackClaim, claimSettled, claimExpired]);
+  }, [shouldClearCashbackClaim]);
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,

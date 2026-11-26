@@ -378,8 +378,7 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
-  private cashbackClaimAmount: string | null = null;
-  private cashbackClaimMoneyAddress: string | null = null;
+  private pendingCashbackClaim: CardCashbackClaim | null = null;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
   #migrationInProgress = false;
@@ -3526,9 +3525,16 @@ export class CardController extends BaseController<
     const submittedAt = Date.now();
     const generation = ++this.redeemGeneration;
     const amountBucket = bucketRedeemAmount(amount);
-    this.cashbackClaimAmount = mode === 'cashback' ? amount : null;
-    this.cashbackClaimMoneyAddress =
-      mode === 'cashback' ? (params.moneyAccountAddress ?? null) : null;
+    this.pendingCashbackClaim =
+      mode === 'cashback' && params.moneyAccountAddress
+        ? {
+            status: 'pending',
+            amount,
+            moneyAddress: params.moneyAccountAddress,
+            submittedAt,
+            txHash: null,
+          }
+        : null;
     this.#setRedeemWithdrawal(
       {
         mode,
@@ -3713,8 +3719,7 @@ export class CardController extends BaseController<
   }
 
   clearCashbackClaim(): void {
-    this.cashbackClaimAmount = null;
-    this.cashbackClaimMoneyAddress = null;
+    this.pendingCashbackClaim = null;
     this.update((state) => {
       state.cashbackClaim = null;
     });
@@ -3727,18 +3732,14 @@ export class CardController extends BaseController<
   /** No-ops when the withdrawal was cleared or superseded while awaiting. */
   #setRedeemWithdrawal(value: CardRedeemWithdrawal, generation: number): void {
     if (generation !== this.redeemGeneration) return;
-    const claim: CardCashbackClaim | null =
-      value.mode === 'cashback' &&
-      this.cashbackClaimAmount !== null &&
-      this.cashbackClaimMoneyAddress !== null
-        ? {
-            status: value.status === 'failed' ? 'failed' : 'pending',
-            amount: this.cashbackClaimAmount,
-            moneyAddress: this.cashbackClaimMoneyAddress,
-            submittedAt: value.submittedAt,
-            txHash: value.txHash,
-          }
-        : null;
+    if (value.mode === 'cashback' && this.pendingCashbackClaim) {
+      this.pendingCashbackClaim = {
+        ...this.pendingCashbackClaim,
+        status: value.status === 'failed' ? 'failed' : 'pending',
+        txHash: value.txHash,
+      };
+    }
+    const claim = this.pendingCashbackClaim;
     this.update((s) => {
       (s as unknown as CardControllerState).redeemWithdrawal =
         value as unknown as CardControllerState['redeemWithdrawal'];
