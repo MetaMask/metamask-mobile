@@ -4,12 +4,13 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Card,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import { strings } from '../../../../../../locales/i18n';
 import { useActiveMfaFlow } from '../../../../../util/identity/mfa/engine/useActiveMfaFlow';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
@@ -17,9 +18,14 @@ import MoneyMfaShieldAnimation from './MoneyMfaShieldAnimation';
 
 interface MoneyMfaSetupCardProps {
   onSetUp: () => void;
+  isGlass?: boolean;
 }
 
-const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
+const MoneyMfaSetupCard = ({
+  onSetUp,
+  isGlass = false,
+}: MoneyMfaSetupCardProps) => {
+  const tw = useTailwind();
   // The 2FA screen opens only once its first step is ready.
   const activeFlow = useActiveMfaFlow();
   const isStarting =
@@ -27,8 +33,12 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
     activeFlow.state.step.name === 'idle';
 
   return (
-    <Card
-      twClassName="mx-4 mt-2 mb-2 flex-row items-center gap-4 bg-muted"
+    <BoxGlass
+      isGlass={isGlass}
+      radiusClassName="rounded-2xl"
+      hasSheen
+      containerStyle={tw.style('mx-4 mt-2 mb-2')}
+      style={tw.style('flex-row items-center gap-4 p-4')}
       testID={MoneyMfaTestIds.SETUP_CARD}
     >
       <Box twClassName="flex-1 items-start gap-1">
@@ -51,7 +61,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
         </Button>
       </Box>
       <MoneyMfaShieldAnimation size={96} />
-    </Card>
+    </BoxGlass>
   );
 };
 

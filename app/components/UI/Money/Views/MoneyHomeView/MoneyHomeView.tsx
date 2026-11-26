@@ -1555,7 +1555,7 @@ const MoneyHomeView = () => {
           }
         />
         {mfaStatus === 'not_set_up' ? (
-          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
+          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} isGlass={isGlass} />
         ) : null}
         {moneyHomeCard.type === 'vba' && (
           <MoneyVbaHomeCard

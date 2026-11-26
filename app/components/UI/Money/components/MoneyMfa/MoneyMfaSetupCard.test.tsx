@@ -4,6 +4,20 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneyMfaSetupCard from './MoneyMfaSetupCard';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import { useActiveMfaFlow } from '../../../../../util/identity/mfa/engine/useActiveMfaFlow';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass/BoxGlass';
+
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('../../../../../util/identity/mfa/engine/useActiveMfaFlow', () => ({
   useActiveMfaFlow: jest.fn(),
@@ -32,6 +46,20 @@ describe('MoneyMfaSetupCard', () => {
     expect(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON)).toHaveTextContent(
       strings('money.mfa.card_cta'),
     );
+  });
+
+  it('draws the glass surface when isGlass is true', () => {
+    const { getByTestId } = render(
+      <MoneyMfaSetupCard onSetUp={jest.fn()} isGlass />,
+    );
+
+    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('draws the opaque surface when isGlass is false', () => {
+    const { queryByTestId } = render(<MoneyMfaSetupCard onSetUp={jest.fn()} />);
+
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('calls onSetUp when the call to action is pressed', () => {
