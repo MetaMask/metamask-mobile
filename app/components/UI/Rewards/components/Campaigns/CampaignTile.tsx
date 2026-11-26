@@ -186,7 +186,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   };
 
   return (
-    <Box twClassName="h-50 overflow-hidden rounded-xl bg-muted">
+    <Box className="h-50 overflow-hidden rounded-xl bg-muted">
       <Pressable
         onPress={handlePress}
         disabled={!isInteractive}
@@ -268,12 +268,12 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             justifyContent={BoxJustifyContent.End}
-            twClassName="p-4 flex-1"
+            className="p-4 flex-1"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
+              className="gap-1"
               testID="campaign-tile-status-label"
             >
               {participantStatus?.optedIn === true ? (
@@ -322,7 +322,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
             <Text
               variant={TextVariant.HeadingLg}
               color={TextColor.OverlayInverse}
-              twClassName={
+              className={
                 isMoneyAccountSweepstakes ? 'w-3/5 font-bold' : 'font-bold'
               }
               testID="campaign-tile-name"
@@ -332,7 +332,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
           </Box>
           <Box
             pointerEvents="none"
-            twClassName="absolute inset-0 rounded-xl border border-border-muted"
+            className="absolute inset-0 rounded-xl border border-border-muted"
           />
         </ImageBackground>
       </Pressable>

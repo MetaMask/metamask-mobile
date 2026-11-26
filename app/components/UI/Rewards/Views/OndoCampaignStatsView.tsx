@@ -204,7 +204,7 @@ const OndoCampaignStatsView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          <Box twClassName="p-4">
+          <Box className="p-4">
             <LeaderboardPositionHeader
               rank={rankValue}
               tier={tierValue}
@@ -216,8 +216,8 @@ const OndoCampaignStatsView: React.FC = () => {
           </Box>
 
           {/* ── Divider ── */}
-          <Box twClassName="my-1 border-b border-border-muted" />
-          <Box twClassName="p-4 gap-3">
+          <Box className="my-1 border-b border-border-muted" />
+          <Box className="p-4 gap-3">
             {/* ── Portfolio section ── */}
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.ondo_campaign_stats.label_portfolio')}
@@ -307,7 +307,7 @@ const OndoCampaignStatsView: React.FC = () => {
 
             {/* ── Qualify for rank card (static) ── */}
             {!isCampaignComplete && showQualifyCard && (
-              <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+              <Box className="bg-muted rounded-xl p-4 mt-2 gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -336,7 +336,7 @@ const OndoCampaignStatsView: React.FC = () => {
               !isIneligible &&
               isQualified &&
               tierMinDeposit != null && (
-                <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+                <Box className="bg-muted rounded-xl p-4 mt-2 gap-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
@@ -358,7 +358,7 @@ const OndoCampaignStatsView: React.FC = () => {
             {/* ── Not eligible banner ── */}
             {!isCampaignComplete && isIneligible && (
               <Box
-                twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+                className="bg-muted rounded-xl p-4 mt-2 gap-2"
                 testID={
                   ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER
                 }

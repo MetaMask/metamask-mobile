@@ -63,7 +63,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
             {`${strings('rewards.ondo_campaign_portfolio.switch_account_sheet_prefix')} `}
@@ -94,7 +94,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
           </Text>
         </Box>
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 pb-3">
+      <Box className="px-4 pb-3">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings(
             'rewards.ondo_campaign_portfolio.switch_account_sheet_description',

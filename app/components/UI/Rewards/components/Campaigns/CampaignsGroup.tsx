@@ -23,8 +23,8 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
   }
 
   return (
-    <Box twClassName="gap-3" testID={testID}>
-      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+    <Box className="gap-3" testID={testID}>
+      <Text variant={TextVariant.HeadingMd} className="text-default">
         {title}
       </Text>
       {campaigns.map((campaign) => (

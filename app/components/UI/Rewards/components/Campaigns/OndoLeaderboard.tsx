@@ -151,7 +151,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   if (hasError && entries.length === 0) {
     return (
-      <Box twClassName="px-4 py-2">
+      <Box className="px-4 py-2">
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_leaderboard.error_loading')}
           description={strings(
@@ -169,11 +169,11 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   if (isLeaderboardNotYetComputed && !isLoading && entries.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED}
         >
           {strings('rewards.ondo_campaign_leaderboard.not_yet_computed')}
@@ -184,11 +184,11 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   if (tierNames.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.EMPTY}
         >
           {strings('rewards.ondo_campaign_leaderboard.no_data')}
@@ -209,7 +209,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2 mb-2 px-4"
+              className="gap-2 mb-2 px-4"
             >
               {totalParticipants > 0 && (
                 <Text
@@ -272,11 +272,11 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           )}
         </Box>
       ) : (
-        <Box twClassName="p-4 items-center">
+        <Box className="p-4 items-center">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('rewards.ondo_campaign_leaderboard.no_entries_in_tier')}
           </Text>

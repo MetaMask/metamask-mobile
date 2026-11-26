@@ -194,7 +194,7 @@ export const WithdrawStatusStep = ({
       <Box
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="py-2"
+        className="py-2"
         testID={PredictWithdrawFlowTestIds.status(receipt.status)}
       >
         <Icon name={copy.icon} size={IconSize.Xl} color={copy.iconColor} />
@@ -219,7 +219,7 @@ export const WithdrawStatusStep = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('predict_next.withdraw.status.sweep_remainder')}
           </Text>

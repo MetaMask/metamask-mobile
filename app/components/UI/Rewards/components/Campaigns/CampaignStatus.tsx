@@ -49,7 +49,7 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
   );
 
   return (
-    <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
+    <Box className="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
       <Box>
         {howItWorksTitle ? (
           <Text
@@ -63,12 +63,12 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
             testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
           >
             <Text
@@ -83,16 +83,16 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
             testID={CAMPAIGN_STATUS_TEST_IDS.DATE_LABEL}
           >
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text variant={TextVariant.BodySm} className="text-alternative">
               {dateLabel}
             </Text>
           </Box>
         </Box>
       </Box>
-      <Box twClassName="rounded-xl overflow-hidden h-50 bg-muted">
+      <Box className="rounded-xl overflow-hidden h-50 bg-muted">
         <ImageBackground
           source={{ uri: backgroundImageUrl }}
           resizeMode="cover"

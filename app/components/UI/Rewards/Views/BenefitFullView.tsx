@@ -141,7 +141,7 @@ const BenefitFullView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 gap-6')}
         >
-          <Box twClassName="w-full rounded-lg overflow-hidden">
+          <Box className="w-full rounded-lg overflow-hidden">
             <Image
               source={{ uri: benefit.thumbnail }}
               style={tw.style('w-full h-[248px]')}
@@ -164,14 +164,14 @@ const BenefitFullView = () => {
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="gap-2"
+                className="gap-2"
               >
                 {remainingTime != null ? (
                   <Box
                     gap={1}
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    twClassName="flex-1"
+                    className="flex-1"
                   >
                     <Icon
                       name={IconName.Clock}
@@ -188,14 +188,14 @@ const BenefitFullView = () => {
                     </Text>
                   </Box>
                 ) : (
-                  <Box twClassName="flex-1" />
+                  <Box className="flex-1" />
                 )}
                 {companyName ? (
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
-                    twClassName="max-w-[55%]"
+                    className="max-w-[55%]"
                     numberOfLines={1}
                   >
                     {companyName}
@@ -217,7 +217,7 @@ const BenefitFullView = () => {
             size={ButtonSize.Lg}
             onPress={handleClaim}
             endIconName={IconName.ArrowSquareOut}
-            twClassName="w-full"
+            className="w-full"
             testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION}
           >
             {strings('rewards.benefits.action')}

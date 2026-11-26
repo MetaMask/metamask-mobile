@@ -87,10 +87,13 @@ const CampaignsPreview: React.FC = () => {
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
+      /><ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
       />
       {/* paddingTop matches the Home tab, where sections pair SectionHeader
           with a pt-3 content box. */}
-      <Box paddingTop={3} twClassName="gap-3 px-4">
+      <Box paddingTop={3} className="gap-3 px-4">
         {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
           <Skeleton style={tw.style('h-50 rounded-xl')} />
         )}

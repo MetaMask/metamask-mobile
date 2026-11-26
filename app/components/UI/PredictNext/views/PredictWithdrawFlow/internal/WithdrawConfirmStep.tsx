@@ -60,6 +60,14 @@ export const WithdrawConfirmStep = ({
             {withdrawAmountValue(preview)}
           </SensitiveText>
         }
+      /><SensitiveText
+            isHidden={isPrivacyMode}
+            length={SensitiveTextLength.Short}
+            testID={PredictWithdrawFlowTestIds.AMOUNT_VALUE}
+          >
+            {withdrawAmountValue(preview)}
+          </SensitiveText>
+        }
       />
       <KeyValueRow
         keyLabel={strings('predict_next.withdraw.network_row')}
@@ -69,11 +77,32 @@ export const WithdrawConfirmStep = ({
       <KeyValueRow
         keyLabel={strings('predict_next.withdraw.destination_row')}
         value={
-          <Box twClassName="flex-1 flex-row items-center gap-2">
+          <Box className="flex-1 flex-row items-center gap-2">
             <SensitiveText
               isHidden={isPrivacyMode}
               length={SensitiveTextLength.Medium}
-              twClassName="flex-1"
+              className="flex-1"
+              testID={PredictWithdrawFlowTestIds.DESTINATION}
+            >
+              {preview.destination.address}
+            </SensitiveText>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'predict_next.withdraw.copy_destination',
+              )}
+              onPress={() => Clipboard.setString(preview.destination.address)}
+              testID={PredictWithdrawFlowTestIds.COPY_DESTINATION}
+            >
+              <Icon name={IconName.Copy} size={IconSize.Sm} />
+            </TouchableOpacity>
+          </Box>
+        }
+      /><Box className="flex-1 flex-row items-center gap-2">
+            <SensitiveText
+              isHidden={isPrivacyMode}
+              length={SensitiveTextLength.Medium}
+              className="flex-1"
               testID={PredictWithdrawFlowTestIds.DESTINATION}
             >
               {preview.destination.address}

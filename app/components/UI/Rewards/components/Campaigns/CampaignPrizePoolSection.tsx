@@ -46,15 +46,15 @@ const CampaignPrizePoolSection: React.FC<CampaignPrizePoolSectionProps> = ({
 
   return (
     <>
-      <Box twClassName="my-1 border-b border-border-muted" />
+      <Box className="my-1 border-b border-border-muted" />
       <Box
-        twClassName="p-4"
+        className="p-4"
         testID={CAMPAIGN_PRIZE_POOL_SECTION_TEST_IDS.CONTAINER}
       >
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName="mb-1"
+          className="mb-1"
           testID={CAMPAIGN_PRIZE_POOL_SECTION_TEST_IDS.HEADING}
         >
           {strings('rewards.campaign_prize_pool.title')}
