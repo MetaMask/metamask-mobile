@@ -70,6 +70,10 @@ export const initialStateSeedlessSecuritySettings = (
           SeedlessOnboardingController: {
             vault: 'seedless-cv-vault',
           },
+          AnalyticsController: {
+            optedInToMarketing: options.dataCollectionForMarketing ?? true,
+            marketingConsentDecisionMade: true,
+          },
         },
       },
     } as DeepPartial<RootState>);
