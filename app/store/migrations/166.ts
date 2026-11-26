@@ -16,6 +16,8 @@ import { ensureValidState } from './util';
  * `MarketingConsentSyncService` reads, so the service uploads the choice the
  * user already made. Consent stays decided, so no consent prompt reappears.
  * `null` means nothing was waiting and Analytics already holds the decision.
+ * A pending value that disagrees with a decision already in Analytics is not
+ * carried: the decision made there is newer than the preview build.
  *
  * The legacy file is left in place: the migration result is only durable once
  * the controller files are written after this runs. Removing it here would
