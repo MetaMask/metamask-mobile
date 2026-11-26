@@ -65,22 +65,25 @@ describe('Carousel', () => {
   });
 
   describe('layout', () => {
-    it('sizes every card slot at cardWidth plus the 12pt gap, and the last card at cardWidth', () => {
+    it('sizes every card slot at cardWidth plus the 12pt gap, and the last card at cardWidth without fixed height', () => {
       renderCarousel();
 
       expect(cellStyle(0)).toMatchObject({
         width: CARD_WIDTH + 12,
-        minHeight: 220,
         paddingRight: 12,
         borderRadius: 16,
         overflow: 'hidden',
       });
+      expect(cellStyle(0).minHeight).toBeUndefined();
+      expect(cellStyle(0).height).toBeUndefined();
       expect(cellStyle(1)).toMatchObject({
         width: CARD_WIDTH + 12,
         paddingRight: 12,
       });
-      expect(cellStyle(2)).toMatchObject({ width: CARD_WIDTH, minHeight: 220 });
+      expect(cellStyle(2)).toMatchObject({ width: CARD_WIDTH });
       expect(cellStyle(2).paddingRight).toBeUndefined();
+      expect(cellStyle(2).minHeight).toBeUndefined();
+      expect(cellStyle(2).height).toBeUndefined();
     });
 
     it('snaps by the card slot in a horizontal list with fast deceleration', () => {
@@ -124,13 +127,6 @@ describe('Carousel', () => {
 
       expect(cellStyle(0)).toMatchObject({ width: 312, paddingRight: 12 });
       expect(lastFlashListProps().snapToInterval).toBe(312);
-    });
-
-    it('applies an explicit cardHeight when provided', () => {
-      renderCarousel({ cardWidth: 340, cardHeight: 250 });
-
-      expect(cellStyle(0)).toMatchObject({ minHeight: 250 });
-      expect(cellStyle(2)).toMatchObject({ minHeight: 250 });
     });
   });
 
@@ -251,5 +247,37 @@ describe('Carousel', () => {
     const list = screen.getByTestId('test-flash-list');
     expect(within(list).getAllByTestId('card-skeleton')).toHaveLength(3);
     expect(within(list).queryByTestId('card-a')).not.toBeOnTheScreen();
+  });
+
+  it('replaces skeletons with loaded cards without minHeight once loading finishes', () => {
+    const renderFooter = ({
+      activePage,
+      totalPages,
+    }: {
+      activePage: number;
+      totalPages: number;
+    }) => <Text testID="footer-page">{`${activePage}/${totalPages}`}</Text>;
+    const { rerender } = renderCarousel({ isLoading: true, renderFooter });
+
+    expect(screen.getAllByTestId('card-skeleton')).toHaveLength(3);
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('0/3');
+
+    rerender(
+      <Carousel<Card>
+        data={CARDS}
+        isLoading={false}
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="test"
+        cardWidth={CARD_WIDTH}
+        renderFooter={renderFooter}
+      />,
+    );
+
+    expect(screen.queryByTestId('card-skeleton')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('card-a')).toBeOnTheScreen();
+    expect(cellStyle(0).minHeight).toBeUndefined();
+    expect(cellStyle(0).height).toBeUndefined();
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('0/3');
   });
 });
