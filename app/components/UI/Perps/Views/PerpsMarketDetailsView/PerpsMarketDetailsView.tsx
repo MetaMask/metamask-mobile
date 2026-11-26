@@ -477,16 +477,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       marketVenueIds,
     });
 
-  const [isTradeOnSheetVisible, setIsTradeOnSheetVisible] = useState(false);
+  const [tradeOnSheetMarket, setTradeOnSheetMarket] = useState<string | null>(
+    null,
+  );
+  const isTradeOnSheetVisible =
+    isSelectorVisible && tradeOnSheetMarket === routeMarket?.symbol;
+  // Unmounting the sheet when a venue disappears does not invoke onClose.
+  // Clear the open request so a later catalog update cannot reopen it.
+  useEffect(() => {
+    setTradeOnSheetMarket(null);
+  }, [isSelectorVisible, routeMarket?.symbol]);
   const handleTradeOnRowPress = useCallback(() => {
-    setIsTradeOnSheetVisible(true);
+    setTradeOnSheetMarket(routeMarket?.symbol ?? null);
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_TRADE_ON_INTERACTION.SHEET_OPENED,
       [PERPS_EVENT_PROPERTY.PROVIDER]: tradeVenueId,
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol,
     });
-  }, [market?.symbol, track, tradeVenueId]);
+  }, [market?.symbol, routeMarket?.symbol, track, tradeVenueId]);
   const handleTradeOnSelect = useCallback(
     (providerId: PerpsProviderType) => {
       selectVenue(providerId);
@@ -2549,14 +2558,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
       {/* More Candle Periods Bottom Sheet - Rendered at root level */}
       {/* Remount on market change so a draft cannot carry into another market. */}
-      {isTradeOnSheetVisible && isSelectorVisible ? (
+      {isTradeOnSheetVisible ? (
         <PerpsTradeOnSheet
           key={routeMarket?.symbol}
           selectedProviderId={tradeVenueId}
           defaultProviderId={defaultProvider}
           venues={tradeOnVenues}
           onSelect={handleTradeOnSelect}
-          onClose={() => setIsTradeOnSheetVisible(false)}
+          onClose={() => setTradeOnSheetMarket(null)}
           testID={PerpsTradeOnSelectorsIDs.SHEET}
         />
       ) : null}

@@ -40,7 +40,9 @@ import {
 import {
   createPerpsControllerStateHarness,
   getModifyActionLabels,
+  withLighterBuildEnabled,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
@@ -80,6 +82,7 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
+  PerpsTradeOnSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 import {
@@ -147,6 +150,47 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       ),
     ).toBeOnTheScreen();
+  });
+
+  describe('Trade on sheet', () => {
+    withLighterBuildEnabled();
+
+    it('stays closed when a second venue returns after the selector disappears', async () => {
+      const hyperliquidMarket = createEthMarketForViews({
+        providerId: 'hyperliquid',
+      });
+      const lighterMarket = createEthMarketForViews({ providerId: 'lighter' });
+      const scenario = perpsTwoExchangeState('sameMarketOnBoth');
+      const { stream } = renderPerpsMarketDetailsView({
+        ...scenario,
+        initialParams: { market: hyperliquidMarket },
+        streamOverrides: {
+          ...scenario.streamOverrides,
+          positions: [],
+          marketData: [hyperliquidMarket, lighterMarket],
+        },
+      });
+
+      await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW);
+      fireEvent.press(screen.getByTestId(PerpsTradeOnSelectorsIDs.ROW));
+      expect(
+        screen.getByTestId(PerpsTradeOnSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket]);
+      });
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.ROW)).toBeNull();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket, lighterMarket]);
+      });
+      expect(
+        await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+    });
   });
 
   it('removes long and short when the market hits its open interest cap', async () => {
