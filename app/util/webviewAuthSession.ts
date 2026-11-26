@@ -5,6 +5,7 @@ interface ActiveWebviewAuthSession {
   redirectUri: string;
   finish: (redirectUrl?: string) => void;
   close?: () => void;
+  settled: boolean;
 }
 
 const activeSessions = new Map<string, ActiveWebviewAuthSession>();
@@ -20,7 +21,7 @@ export function attachWebviewAuthSessionClose(
   close: () => void,
 ): boolean {
   const session = activeSessions.get(sessionId);
-  if (!session) {
+  if (!session || session.settled) {
     return false;
   }
   session.close = close;
@@ -29,8 +30,13 @@ export function attachWebviewAuthSessionClose(
 
 /**
  * Checks whether a URL loaded by the WebView matches the session's expected
- * OAuth redirect URI. When matched, completes the session and returns `true`
- * so the WebView can cancel the navigation and close.
+ * OAuth redirect URI. When matched, completes the session (once) and returns
+ * `true` so the WebView cancels the navigation and closes.
+ *
+ * The session remains registered until `dismissWebviewAuthSession` runs on
+ * WebView unmount so subsequent `onShouldStartLoadWithRequest` calls for the
+ * same redirect URI while the modal is closing continue to return `true` and
+ * stay blocked.
  */
 export function handleWebviewAuthRedirect(
   sessionId: string,
@@ -46,10 +52,13 @@ export function handleWebviewAuthRedirect(
 
 /**
  * Marks an active WebView auth session as dismissed (e.g. user closed the
- * modal or navigated back before completing authorization).
+ * modal or navigated back before completing authorization) and removes the
+ * session once the WebView screen unmounts.
  */
 export function dismissWebviewAuthSession(sessionId: string): void {
-  activeSessions.get(sessionId)?.finish(undefined);
+  const session = activeSessions.get(sessionId);
+  activeSessions.delete(sessionId);
+  session?.finish();
 }
 
 /**
@@ -71,28 +80,31 @@ export async function openWebviewAuthSession(options: {
   const sessionId = `webview-auth-${++nextSessionId}`;
 
   return await new Promise<string | undefined>((resolve, reject) => {
-    let settled = false;
     let onAbort: (() => void) | undefined;
 
-    const finish = (redirectUrl?: string) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      activeSessions.delete(sessionId);
-      if (signal && onAbort) {
-        signal.removeEventListener('abort', onAbort);
-      }
-      resolve(redirectUrl);
+    const session: ActiveWebviewAuthSession = {
+      redirectUri,
+      settled: false,
+      finish: (redirectUrl?: string) => {
+        if (session.settled) {
+          return;
+        }
+        session.settled = true;
+        if (signal && onAbort) {
+          signal.removeEventListener('abort', onAbort);
+        }
+        resolve(redirectUrl);
+      },
     };
-
-    const session: ActiveWebviewAuthSession = { redirectUri, finish };
     activeSessions.set(sessionId, session);
 
     if (signal) {
       onAbort = () => {
         const closeScreen = session.close;
-        finish();
+        session.finish();
+        if (!closeScreen) {
+          activeSessions.delete(sessionId);
+        }
         closeScreen?.();
       };
       signal.addEventListener('abort', onAbort, { once: true });
@@ -113,7 +125,7 @@ export async function openWebviewAuthSession(options: {
       if (signal && onAbort) {
         signal.removeEventListener('abort', onAbort);
       }
-      settled = true;
+      session.settled = true;
       reject(error);
     }
   });

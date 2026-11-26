@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 import {
   WebView,
@@ -61,59 +61,74 @@ const SimpleWebView = () => {
   }, [url]);
 
   const close = useCallback(() => navigation.goBack(), [navigation]);
+  const closingAuthSessionIdRef = useRef<string | null>(null);
+
+  const closeAuthSession = useCallback(() => {
+    if (!authSessionId || closingAuthSessionIdRef.current === authSessionId) {
+      return;
+    }
+    closingAuthSessionIdRef.current = authSessionId;
+    close();
+  }, [authSessionId, close]);
 
   useEffect(() => {
     if (!authSessionId) {
       return undefined;
     }
 
-    const attached = attachWebviewAuthSessionClose(authSessionId, close);
+    const attached = attachWebviewAuthSessionClose(
+      authSessionId,
+      closeAuthSession,
+    );
     if (!attached) {
-      close();
-      return undefined;
+      closeAuthSession();
     }
 
     return () => {
       dismissWebviewAuthSession(authSessionId);
     };
-  }, [authSessionId, close]);
+  }, [authSessionId, closeAuthSession]);
 
   const handleShouldStartLoadWithRequest = useCallback(
     (request: { url: string }) => {
-      if (
-        authSessionId &&
-        handleWebviewAuthRedirect(authSessionId, request.url)
-      ) {
-        close();
+      if (!authSessionId) {
+        return true;
+      }
+      if (closingAuthSessionIdRef.current === authSessionId) {
+        return false;
+      }
+      if (handleWebviewAuthRedirect(authSessionId, request.url)) {
+        closeAuthSession();
         return false;
       }
       return true;
     },
-    [authSessionId, close],
+    [authSessionId, closeAuthSession],
   );
 
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
-      if (
-        authSessionId &&
-        handleWebviewAuthRedirect(authSessionId, navState.url)
-      ) {
-        close();
+      if (!authSessionId || closingAuthSessionIdRef.current === authSessionId) {
+        return;
+      }
+      if (handleWebviewAuthRedirect(authSessionId, navState.url)) {
+        closeAuthSession();
       }
     },
-    [authSessionId, close],
+    [authSessionId, closeAuthSession],
   );
 
+  const onDismiss = authSessionId ? closeAuthSession : close;
   const headerProps = {
     title,
     includesTopInset: useGlassHeader ? false : includesTopInset,
     ...(useGlassHeader
       ? {
-          onClose: close,
+          onClose: onDismiss,
           closeButtonProps: { testID: 'simple-webview-close-button' },
         }
       : {
-          onBack: close,
+          onBack: onDismiss,
           backButtonProps: { testID: 'simple-webview-back-button' },
         }),
     endButtonIconProps: hideShareButton

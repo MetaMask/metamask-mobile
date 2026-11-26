@@ -55,11 +55,55 @@ describe('webviewAuthSession', () => {
     );
 
     const redirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+    const duplicateRedirectUrl = `${REDIRECT_URI}?code=456&state=def`;
     expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
-    // Subsequent redirect attempts for the completed session are ignored.
+    // Repeated redirect attempts while the modal is closing remain blocked.
+    expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
+    expect(handleWebviewAuthRedirect(sessionId, duplicateRedirectUrl)).toBe(
+      true,
+    );
+
+    dismissWebviewAuthSession(sessionId);
     expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(false);
 
     await expect(promise).resolves.toBe(redirectUrl);
+  });
+
+  it('returns false from attachWebviewAuthSessionClose if a redirect already settled the session', async () => {
+    const promise = openWebviewAuthSession({
+      url: AUTH_URL,
+      redirectUri: REDIRECT_URI,
+    });
+    const sessionId = getLastAuthSessionId();
+    const redirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+
+    expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
+
+    expect(attachWebviewAuthSessionClose(sessionId, jest.fn())).toBe(false);
+    dismissWebviewAuthSession(sessionId);
+
+    await expect(promise).resolves.toBe(redirectUrl);
+  });
+
+  it('keeps blocking matching redirects after abort until the mounted WebView dismisses', async () => {
+    const controller = new AbortController();
+    const close = jest.fn();
+    const promise = openWebviewAuthSession({
+      url: AUTH_URL,
+      redirectUri: REDIRECT_URI,
+      signal: controller.signal,
+    });
+    const sessionId = getLastAuthSessionId();
+    const redirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+    attachWebviewAuthSessionClose(sessionId, close);
+
+    controller.abort();
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
+    dismissWebviewAuthSession(sessionId);
+    expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(false);
+    await expect(promise).resolves.toBeUndefined();
   });
 
   it('resolves with undefined when the WebView is dismissed before redirecting', async () => {
@@ -89,6 +133,7 @@ describe('webviewAuthSession', () => {
     controller.abort();
 
     expect(close).toHaveBeenCalledTimes(1);
+    dismissWebviewAuthSession(sessionId);
     await expect(promise).resolves.toBeUndefined();
   });
 
