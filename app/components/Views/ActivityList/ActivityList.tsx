@@ -25,7 +25,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   runOnJS,
@@ -33,7 +33,6 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
@@ -60,7 +59,6 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
-import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
@@ -75,7 +73,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
@@ -132,6 +129,7 @@ import {
 } from '../ActivityScreen/types';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
+import { View } from '../../UI/primitives/View';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -211,8 +209,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
-    const tw = useTailwind();
-    const { styles } = useStyles(styleSheet, {});
     const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
     const getBridgeHistoryItemByHash = useCallback(
@@ -719,7 +715,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       if (isFetchingMoreActivity) {
         return (
           <View
-            style={tw.style('items-center justify-center py-4')}
+            className="items-center justify-center py-4"
             testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
           >
             <ActivityIndicator />
@@ -766,7 +762,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       showNonEvmExplorerLink,
       showNonEvmFooter,
       configBlockExplorerUrl,
-      tw,
     ]);
 
     const [refreshing, setRefreshing] = useState(false);
@@ -1053,7 +1048,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perps.items.length > 0;
 
     const renderEmptyList = () => (
-      <View style={styles.emptyList}>
+      <View className="w-full items-center justify-center py-10">
         <ActivityEmptyState
           typeFilter={typeFilter ?? ActivityTypeFilter.All}
           perpsSubFilterActive={perpsSubFilterActive}
@@ -1063,7 +1058,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     );
 
     const renderInitialLoading = () => (
-      <View style={styles.emptyList}>
+      <View className="w-full items-center justify-center py-10">
         <ActivityIndicator
           color={colors.icon.default}
           testID={ActivityListSelectorsIDs.LOADING_INDICATOR}
@@ -1145,7 +1140,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     return (
       <PriceChartProvider>
-        <View style={styles.container}>
+        <View className="flex-1 bg-default">
           {isLimitOrdersFilter ? (
             <FilledLimitOrdersList
               ref={limitOrdersListRef}
@@ -1159,7 +1154,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               ListFooterComponent={
                 filledLimitOrders.isFetchingNextPage ? (
                   <View
-                    style={tw.style('items-center justify-center py-4')}
+                    className="items-center justify-center py-4"
                     testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
                   >
                     <ActivityIndicator />

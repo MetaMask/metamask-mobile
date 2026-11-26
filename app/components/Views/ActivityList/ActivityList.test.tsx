@@ -221,15 +221,6 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      emptyList: {},
-    },
-  }),
-}));
-
 jest.mock('../ActivityScreen/components/ActivityEmptyState', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
