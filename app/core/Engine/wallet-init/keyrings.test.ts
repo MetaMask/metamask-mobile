@@ -17,6 +17,7 @@ import { MoneyKeyring as LegacyMoneyKeyring } from '@metamask/eth-money-keyring'
 import { MoneyKeyring } from '@metamask/eth-money-keyring/v2';
 import type { Keyring } from '@metamask/keyring-api/v2';
 import type { KeyringControllerWithKeyringV2UnsafeAction } from '@metamask/keyring-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   getKeyringBuilders,
   getKeyringV2Builders,
@@ -61,7 +62,8 @@ jest.mock('../../SnapKeyring', () => ({
 function getRootMessenger() {
   return new Messenger<
     MockAnyNamespace,
-    KeyringControllerWithKeyringV2UnsafeAction,
+    | KeyringControllerWithKeyringV2UnsafeAction
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction,
     never
   >({ namespace: MOCK_ANY_NAMESPACE });
 }
@@ -333,6 +335,32 @@ describe('wallet-init/keyrings', () => {
         'https://mpc-service.dev-api.cx.metamask.io/v2',
       );
       expect(keyring.options.cl24Lib).toEqual({ name: 'cl24' });
+    });
+
+    it('gets the MPC profile token from the authentication controller', async () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+      const messenger = getRootMessenger();
+      const getBearerToken = jest.fn().mockResolvedValue('profile-token');
+      messenger.registerActionHandler(
+        'AuthenticationController:getBearerToken',
+        getBearerToken,
+      );
+      const builder = getKeyringBuilders(messenger, false)?.find(
+        (entry) => entry.type === MpcMoneyKeyring.type,
+      );
+      if (!builder) {
+        throw new Error('MPC keyring builder missing');
+      }
+      const { options } = builder() as unknown as {
+        options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+      };
+
+      const token = await options.getProfileToken();
+
+      expect(token).toBe('profile-token');
+      expect(getBearerToken).toHaveBeenCalledTimes(1);
+      expect(getBearerToken).toHaveBeenCalledWith();
     });
 
     it('provides the primary HD mnemonic as UTF-8 bytes for MPC backups', async () => {
