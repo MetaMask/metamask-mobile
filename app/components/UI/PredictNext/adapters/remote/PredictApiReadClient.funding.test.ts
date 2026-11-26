@@ -29,6 +29,7 @@ const SIGNED = {
   header: { name: 'Venue-Authorization', value: 'envelope' },
   body: SIGNED_BODY,
   idempotencyKey: DEPOSIT.clientOperationId,
+  profile: { version: 1, sha256: 'sha-v1' },
 };
 const SIGNING = {
   inputs: {

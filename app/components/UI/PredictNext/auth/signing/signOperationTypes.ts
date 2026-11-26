@@ -35,6 +35,8 @@ export interface SignedOperation {
    * component, and the body's `client_order_id` when the template renders
    * one. */
   idempotencyKey?: string;
+  /** The snapshot that rendered and signed these bytes. */
+  profile: VenueProfilePin;
 }
 
 /** What a signed intent is rendered from. */

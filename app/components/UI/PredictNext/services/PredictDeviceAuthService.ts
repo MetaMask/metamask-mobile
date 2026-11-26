@@ -439,6 +439,7 @@ export class PredictDeviceAuthService {
       header,
       body: mutation?.body ?? '',
       idempotencyKey: mutation?.idempotencyKey,
+      profile: { version: resolved.version, sha256: resolved.sha256 },
     };
   }
 

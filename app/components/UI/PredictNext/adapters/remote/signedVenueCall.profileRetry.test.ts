@@ -24,7 +24,12 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const HEADER = { name: 'Venue-Authorization', value: 'envelope' };
-const SIGNED = { header: HEADER, body: '', idempotencyKey: 'op-key' };
+const SIGNED = {
+  header: HEADER,
+  body: '',
+  idempotencyKey: 'op-key',
+  profile: { version: 1, sha256: 'sha-v1' },
+};
 const UPDATED_RAW = JSON.stringify({
   ...JSON.parse(TEST_VENUE_PROFILE_RAW),
   version: 2,
@@ -126,11 +131,53 @@ describe('profile refetch retry', () => {
     expect((await store.load())?.floor).toBe(0);
   });
 
+  it('returns the original refusal when the pinned profile is revoked without a replacement', async () => {
+    const { resolver, client, store } = build();
+    const profile = await resolver.ensure();
+    if (!profile) {
+      throw new Error('fixture profile missing');
+    }
+    client.fetchRevoked.mockResolvedValue({
+      status: 'modified' as const,
+      raw: JSON.stringify({
+        id: VENUE_PROFILE_ID,
+        revokedVersions: [profile.version],
+      }),
+    });
+    client.fetchProfile.mockRejectedValue(new Error('unpublished'));
+    const sign = jest.fn().mockResolvedValue({ ...SIGNED, profile });
+    const response = {
+      status: 409,
+      code: 'venue_profile_update_required',
+      outcome: 'not_placed',
+    };
+    const send = jest.fn().mockResolvedValue(response);
+
+    await expect(
+      sendSigned(
+        { signOperation: sign, invalidateSigningSession: jest.fn() },
+        'order.place',
+        { confirmed: true, profile },
+        send,
+        (reply: SignedAttempt) => reply,
+      ),
+    ).resolves.toBe(response);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(sign).toHaveBeenCalledTimes(1);
+    expect((await store.load())?.floor).toBe(0);
+  });
+
   it('retries an unpinned mutation only when its snapshot changes', async () => {
     const { resolver, getSigningProfile, store } = build();
     await resolver.ensure();
     getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 2 });
-    const sign = jest.fn().mockResolvedValue(SIGNED);
+    const sign = jest
+      .fn()
+      .mockResolvedValueOnce(SIGNED)
+      .mockResolvedValueOnce({
+        ...SIGNED,
+        profile: { version: 2, sha256: 'sha-v2' },
+      });
     const send = jest
       .fn()
       .mockResolvedValueOnce({
@@ -230,7 +277,7 @@ describe('profile refetch retry', () => {
     expect((await store.load())?.floor).toBe(0);
     await sendSigned(
       {
-        signOperation: jest.fn().mockResolvedValue(SIGNED),
+        signOperation: jest.fn().mockResolvedValue({ ...SIGNED, profile }),
         invalidateSigningSession: jest.fn(),
       },
       'order.place',
@@ -249,6 +296,29 @@ describe('profile refetch retry', () => {
     await reloaded.refresh();
     await expect(reloaded.resolve()).resolves.toMatchObject({ version: 2 });
     expect((await store.load())?.floor).toBe(2);
+  });
+
+  it('confirms the snapshot that signed when a refresh advances during signing', async () => {
+    const { resolver, getSigningProfile, store } = build();
+    await resolver.ensure();
+    const sign = jest.fn(async () => {
+      getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 2 });
+      await resolver.refresh();
+      return SIGNED;
+    });
+
+    await expect(
+      sendSigned(
+        { signOperation: sign, invalidateSigningSession: jest.fn() },
+        'order.place',
+        undefined,
+        async () => ({ status: 200 }),
+        (reply) => reply,
+      ),
+    ).resolves.toEqual({ status: 200 });
+
+    expect((await store.load())?.floor).toBe(1);
+    await expect(resolver.resolve()).resolves.toMatchObject({ version: 2 });
   });
 
   it('does not confirm a profile on an ordinary mutation failure', async () => {

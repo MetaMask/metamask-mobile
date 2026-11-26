@@ -798,10 +798,12 @@ export const installPredictNextPreviewOperation = (): void => {
 
 const signOperation: SignOperation = async (operation, input) => {
   const rendered = await renderIntent(operation, input);
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   return {
     header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
     body: rendered.body,
     idempotencyKey: rendered.idempotencyKey,
+    profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
   };
 };
 

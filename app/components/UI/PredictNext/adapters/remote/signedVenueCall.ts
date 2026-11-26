@@ -177,18 +177,13 @@ export const sendSigned = async <Response>(
   const renewed = input && { ...input, confirmed: false };
 
   const signed = await sign(input);
-  let profileVersion =
-    input?.profile?.version ?? (await resolveVenueProfile())?.version;
+  let profileVersion = signed.profile.version;
   requestSent = true;
   const response = await send(signed);
   const described = await readAttempt(response);
   const stale = isProfileStale(described);
   if (!stale && !isRenewable(described)) {
-    if (
-      described.status >= 200 &&
-      described.status < 300 &&
-      profileVersion !== undefined
-    ) {
+    if (described.status >= 200 && described.status < 300) {
       await confirmVenueProfileVersion(profileVersion);
     }
     return response;
@@ -207,8 +202,13 @@ export const sendSigned = async <Response>(
           return response;
         }
       } else if (input?.profile) {
+        if (!snapshot) {
+          // The reviewed version was revoked and no replacement is admitted.
+          // The order's 409 and its not_placed outcome remain authoritative.
+          return response;
+        }
         if (
-          snapshot?.version === input.profile.version &&
+          snapshot.version === input.profile.version &&
           snapshot.sha256 === input.profile.sha256
         ) {
           return response;
@@ -219,8 +219,7 @@ export const sendSigned = async <Response>(
       }
     }
     retrySigned = await sign(renewed);
-    profileVersion =
-      input?.profile?.version ?? (await resolveVenueProfile())?.version;
+    profileVersion = retrySigned.profile.version;
   } catch (error) {
     if (error instanceof VenueProfilePreviewExpiredError) {
       throw error;

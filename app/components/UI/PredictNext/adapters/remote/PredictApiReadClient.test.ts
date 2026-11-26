@@ -33,6 +33,7 @@ jest.mock('../../auth/venueSigningProfiles', () => ({
   VENUE_READ_HEADER: 'venue-read',
   resolveVenueProfile: jest.fn().mockResolvedValue({}),
   refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(false),
+  confirmVenueProfileVersion: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockLoggerError = jest.mocked(Logger.error);
@@ -106,6 +107,7 @@ const SIGNED_OPERATION = {
   header: SIGNED_READ_HEADER,
   body: '{"ticker":"MKT-1"}',
   idempotencyKey: 'op-key',
+  profile: { version: 1, sha256: 'sha-v1' },
 };
 
 describe('PredictApiReadClient', () => {

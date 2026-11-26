@@ -23,16 +23,70 @@ const INTENT_PATHS: Readonly<Record<VenueIntentName, string>> = {
   'account.activate': '/trade-api/v2/isv/wallet/register',
   'funding.deposit': '/trade-api/v2/isv/deposit/crypto-addresses',
 };
-const ORDER_FIELDS = [
-  'ticker',
-  'client_order_id',
-  'side',
-  'count',
-  'price',
-  'time_in_force',
-  'self_trade_prevention_type',
-  'reduce_only',
-];
+
+/** Exact body sources this build confirms and renders for each intent. A
+ * profile may not redirect a confirmed figure to another input or value. */
+const BODY_SOURCES: Readonly<Record<string, Readonly<Record<string, Source>>>> =
+  {
+    'order.place': {
+      ticker: {
+        input: 'marketId',
+        shape: { kind: 'opaque', maxLength: 256 },
+      },
+      client_order_id: {
+        input: 'idempotencyKey',
+        shape: { kind: 'uuid-v4' },
+      },
+      side: {
+        map: {
+          inputs: ['action', 'outcome'],
+          table: {
+            'buy:yes': 'bid',
+            'buy:no': 'ask',
+            'sell:yes': 'ask',
+            'sell:no': 'bid',
+          },
+        },
+      },
+      count: {
+        value: 'count',
+        shape: { kind: 'decimal', scale: 2, min: '1' },
+      },
+      price: {
+        value: 'price',
+        shape: { kind: 'decimal', scale: 4, min: '0.01', max: '0.99' },
+      },
+      time_in_force: { const: 'immediate_or_cancel' },
+      self_trade_prevention_type: { const: 'taker_at_cross' },
+      reduce_only: {
+        map: { inputs: ['action'], table: { buy: false, sell: true } },
+      },
+    },
+    'account.activate': {
+      wallet_address: {
+        input: 'walletAddress',
+        shape: { kind: 'opaque', maxLength: 128 },
+      },
+      network: {
+        input: 'network',
+        shape: { kind: 'opaque', maxLength: 32 },
+      },
+    },
+    'funding.deposit': {
+      amount_cents: {
+        input: 'amountCents',
+        shape: { kind: 'int', min: 100 },
+      },
+      networks: {
+        input: 'networks',
+        shape: {
+          kind: 'array',
+          of: { kind: 'oneOf', values: ['base'] },
+          maxItems: 1,
+        },
+      },
+    },
+  };
 const ORDER_PARAMS = {
   pricing: 'yes-leg',
   amountInput: 'amountCents',
@@ -101,77 +155,44 @@ const isSafeIntegerWithin = (
   max: number,
 ): boolean => Number.isSafeInteger(value) && value >= min && value <= max;
 
-const matchesMap = (
-  source: Source,
-  inputs: readonly string[],
-  table: Readonly<Record<string, string | boolean>>,
-): boolean => {
-  if (!hasExactKeys(source, ['map'])) {
-    return false;
+const matchesValue = (actual: unknown, expected: unknown): boolean => {
+  if (Array.isArray(expected)) {
+    return (
+      Array.isArray(actual) &&
+      actual.length === expected.length &&
+      expected.every((entry, index) => matchesValue(actual[index], entry))
+    );
   }
-  if (!('map' in source)) {
-    return false;
+  if (typeof expected === 'object' && expected !== null) {
+    return (
+      typeof actual === 'object' &&
+      actual !== null &&
+      !Array.isArray(actual) &&
+      hasExactKeys(actual, Object.keys(expected)) &&
+      Object.entries(expected).every(([key, entry]) =>
+        matchesValue((actual as Record<string, unknown>)[key], entry),
+      )
+    );
   }
-  const { map } = source;
-  return (
-    hasExactKeys(map, ['inputs', 'table']) &&
-    map.inputs.length === inputs.length &&
-    inputs.every((input, index) => map.inputs[index] === input) &&
-    matchesRecord(map.table, table)
-  );
+  return actual === expected;
 };
 
 const hasCanonicalBody = (
   payload: HttpRfc9421Payload,
   intent: string,
 ): boolean => {
+  const expected = BODY_SOURCES[intent];
   const fields = payload.body?.json;
-  const keys =
-    intent === 'order.place'
-      ? ORDER_FIELDS
-      : intent === 'account.activate'
-        ? ['wallet_address', 'network']
-        : ['amount_cents', 'networks'];
-  if (
-    !fields ||
-    fields.length !== keys.length ||
-    !keys.every((key) => fields.some((field) => field.key === key))
-  ) {
-    return false;
-  }
-  if (intent !== 'order.place') {
-    return fields.every((field) => !('const' in field.value));
-  }
-  return fields.every(({ key, value }) => {
-    if (key === 'time_in_force') {
-      return matchesRecord(value, { const: 'immediate_or_cancel' });
-    }
-    if (key === 'self_trade_prevention_type') {
-      return matchesRecord(value, { const: 'taker_at_cross' });
-    }
-    if ('const' in value) {
-      return false;
-    }
-    if (key === 'side') {
-      return matchesMap(value, ['action', 'outcome'], {
-        'buy:yes': 'bid',
-        'buy:no': 'ask',
-        'sell:yes': 'ask',
-        'sell:no': 'bid',
-      });
-    }
-    if (key === 'reduce_only') {
-      return matchesMap(value, ['action'], { buy: false, sell: true });
-    }
-    if (key === 'price' || key === 'count') {
-      return (
-        hasExactKeys(value, ['value', 'shape']) &&
-        'value' in value &&
-        value.value === key
-      );
-    }
-    return true;
-  });
+  return (
+    expected !== undefined &&
+    fields !== undefined &&
+    fields.length === Object.keys(expected).length &&
+    fields.every(
+      (field) =>
+        Object.hasOwn(expected, field.key) &&
+        matchesValue(field.value, expected[field.key]),
+    )
+  );
 };
 
 const hasCanonicalImplementation = (profile: SigningProfile): boolean => {

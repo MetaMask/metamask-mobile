@@ -305,6 +305,7 @@ export const buildPredictNextIntegrationHarness = (
           header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
           body: rendered.body,
           idempotencyKey: rendered.idempotencyKey,
+          profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
         };
       },
       invalidateSigningSession: () => undefined,

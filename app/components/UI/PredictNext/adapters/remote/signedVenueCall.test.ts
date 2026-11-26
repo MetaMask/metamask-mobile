@@ -21,7 +21,12 @@ jest.mock('../../auth/venueSigningProfiles', () => ({
 const HEADER = { name: 'Venue-Authorization', value: 'envelope' };
 /** What the Engine's signOperation now resolves to: the envelope header
  * plus the exact body bytes the signature covers. */
-const SIGNED = { header: HEADER, body: '', idempotencyKey: 'op-key' };
+const SIGNED = {
+  header: HEADER,
+  body: '',
+  idempotencyKey: 'op-key',
+  profile: { version: 1, sha256: 'sha-v1' },
+};
 
 interface Reply {
   status: number;

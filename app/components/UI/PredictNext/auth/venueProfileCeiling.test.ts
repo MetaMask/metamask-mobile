@@ -209,6 +209,62 @@ const hostileVariants: {
       field.value = { input: key };
     },
   })),
+  ...(
+    [
+      [
+        'ticker',
+        { input: 'amountCents', shape: { kind: 'opaque', maxLength: 256 } },
+      ],
+      ['client_order_id', { input: 'marketId', shape: { kind: 'uuid-v4' } }],
+    ] as [string, Record<string, unknown>][]
+  ).map(([key, value]) => ({
+    name: `a redirected ${key} input`,
+    reason: 'invalid_body_contract' as const,
+    mutate: (profile: HostileProfile) => {
+      const field = profile.payloads.create_order.body.json.find(
+        (entry) => entry.key === key,
+      );
+      if (!field) {
+        throw new Error(`fixture ${key} missing`);
+      }
+      field.value = value;
+    },
+  })),
+  ...['wallet_address', 'network'].map((key) => ({
+    name: `a redirected ${key} input`,
+    reason: 'invalid_body_contract' as const,
+    mutate: (profile: HostileProfile) => {
+      const field = profile.payloads.wallet_register.body.json.find(
+        (entry) => entry.key === key,
+      );
+      if (!field) {
+        throw new Error(`fixture ${key} missing`);
+      }
+      field.value = { input: key === 'network' ? 'walletAddress' : 'network' };
+    },
+  })),
+  {
+    name: 'a redirected deposit amount',
+    reason: 'invalid_body_contract',
+    mutate: (profile) => {
+      profile.payloads.crypto_deposit_address.body.json[0].value = {
+        input: 'contracts',
+      };
+    },
+  },
+  ...['price', 'count'].map((key) => ({
+    name: `a loosened ${key} shape`,
+    reason: 'invalid_body_contract' as const,
+    mutate: (profile: HostileProfile) => {
+      const field = profile.payloads.create_order.body.json.find(
+        (entry) => entry.key === key,
+      );
+      if (!field) {
+        throw new Error(`fixture ${key} missing`);
+      }
+      field.value = { value: key, shape: { kind: 'decimal', scale: 4 } };
+    },
+  })),
   ...['side', 'reduce_only'].map((key) => ({
     name: `a noncanonical ${key} map`,
     reason: 'invalid_body_contract' as const,
