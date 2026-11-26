@@ -472,7 +472,7 @@ describeForPlatforms('Wallet', () => {
         },
       },
     },
-  };
+  } satisfies NonNullable<Parameters<typeof renderWalletView>[0]>['overrides'];
 
   const renderWalletWithState = (
     configure: (
@@ -509,7 +509,7 @@ describeForPlatforms('Wallet', () => {
                 },
               },
             },
-          } as unknown as Record<string, unknown>),
+          }),
       );
 
       expect(
@@ -543,7 +543,7 @@ describeForPlatforms('Wallet', () => {
                 },
               },
             },
-          } as unknown as Record<string, unknown>),
+          }),
       );
 
       expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON)).toBeOnTheScreen();
@@ -602,7 +602,7 @@ describeForPlatforms('Wallet', () => {
               walletHomeOnboardingSkipInitialBalanceWait: true,
               ...onboarding,
             },
-          } as unknown as Record<string, unknown>),
+          }),
       );
 
     it('hides the Money balance card while the onboarding checklist is showing', () => {
