@@ -25,7 +25,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
-import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
@@ -229,7 +229,7 @@ const MfaSettings = () => {
           />
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}
-        {isMfaDevBuild() && isRealMpcMoneyKeyringBuildEnabled() ? (
+        {isMfaDevBuild() && isMpcMoneyKeyringBuildEnabled() ? (
           <MoneyMpcQaPresets />
         ) : null}
       </ScrollView>

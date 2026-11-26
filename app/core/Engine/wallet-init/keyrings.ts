@@ -37,15 +37,10 @@ import {
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
-  buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
   buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import {
-  isMpcMoneyKeyringBuildEnabled,
-  isMpcTwoFactorApprovalBuildEnabled,
-  isRealMpcMoneyKeyringBuildEnabled,
-} from '../../../constants/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
 import { createMpcTwoFactorApproval } from '../../MpcMoneyKeyring/mpc-two-factor-approval';
 import { MONEY_MPC_SIGN_OPERATION } from '../../MpcMoneyKeyring/constants';
 import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
@@ -193,30 +188,26 @@ export function getKeyringBuilders(
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     keyrings.push(
-      isRealMpcMoneyKeyringBuildEnabled()
-        ? buildRealMpcMoneyKeyringBuilder({
-            getBearerToken: async () =>
-              messenger.call('AuthenticationController:getBearerToken'),
-            getTwoFactorApproval: isMpcTwoFactorApprovalBuildEnabled()
-              ? createMpcTwoFactorApproval({
-                  requestMfaApproval: async (request) =>
-                    messenger.call(
-                      'AuthenticationController:requestMfaApproval',
-                      request,
-                    ),
-                  verify: async () => {
-                    // Every transfer needs its own verification.
-                    await verifyMoneyMpc(MONEY_MPC_SIGN_OPERATION, 0);
-                  },
-                })
-              : undefined,
-            getTwoFactorToken: async () =>
-              verifyMoneyMpc(
-                'money.mpcRestore',
-                MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS,
-              ),
-          })
-        : buildMpcMoneyKeyringBuilder(),
+      buildRealMpcMoneyKeyringBuilder({
+        getBearerToken: async () =>
+          messenger.call('AuthenticationController:getBearerToken'),
+        getTwoFactorApproval: createMpcTwoFactorApproval({
+          requestMfaApproval: async (request) =>
+            messenger.call(
+              'AuthenticationController:requestMfaApproval',
+              request,
+            ),
+          verify: async () => {
+            // Every transfer needs its own verification.
+            await verifyMoneyMpc(MONEY_MPC_SIGN_OPERATION, 0);
+          },
+        }),
+        getTwoFactorToken: async () =>
+          verifyMoneyMpc(
+            'money.mpcRestore',
+            MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS,
+          ),
+      }),
     );
   }
 

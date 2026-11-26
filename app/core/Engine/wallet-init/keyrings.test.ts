@@ -67,10 +67,7 @@ function getRootMessenger() {
   >({ namespace: MOCK_ANY_NAMESPACE });
 }
 
-const MPC_BUILD_FLAGS = [
-  'MM_MONEY_MPC_KEYRING_ENABLED',
-  'MM_MONEY_MPC_REAL_KEYRING',
-] as const;
+const MPC_BUILD_FLAGS = ['MM_MONEY_MPC_KEYRING_ENABLED'] as const;
 const originalMpcBuildFlags = MPC_BUILD_FLAGS.map((flag) => process.env[flag]);
 
 describe('wallet-init/keyrings', () => {
@@ -296,14 +293,8 @@ describe('wallet-init/keyrings', () => {
       expect(v2Types).not.toContain(MpcMoneyKeyring.type);
     });
 
-    it('registers the MPC money keyring builders when the build flag is on', () => {
+    it('registers the MPC money keyring V2 builder when the build flag is on', () => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
-
-      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
-      const byV1Type = Object.fromEntries(
-        v1Builders.map((builder) => [builder.type, builder]),
-      );
-      expect(byV1Type[MpcMoneyKeyring.type]()).toBeInstanceOf(MpcMoneyKeyring);
 
       const v2Builders = getKeyringV2Builders() ?? [];
       const byV2Type = Object.fromEntries(
@@ -316,9 +307,8 @@ describe('wallet-init/keyrings', () => {
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
 
-    it('registers the real MPC money keyring builder when both build flags are on', () => {
+    it('registers the real MPC money keyring builder when the build flag is on', () => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
-      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
       const realBuilder = Object.assign(jest.fn(), {
         type: MpcMoneyKeyring.type,
       });
@@ -337,7 +327,6 @@ describe('wallet-init/keyrings', () => {
   describe('Money MPC 2-step verification', () => {
     const flags = {
       MM_MONEY_MPC_KEYRING_ENABLED: process.env.MM_MONEY_MPC_KEYRING_ENABLED,
-      MM_MONEY_MPC_REAL_KEYRING: process.env.MM_MONEY_MPC_REAL_KEYRING,
     };
 
     const getTwoFactorToken = () => {
@@ -351,7 +340,6 @@ describe('wallet-init/keyrings', () => {
 
     beforeEach(() => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
-      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
     });
 
     afterEach(() => {

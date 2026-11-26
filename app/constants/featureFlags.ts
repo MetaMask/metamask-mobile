@@ -10,7 +10,7 @@ export function isBftcConsolidationBuildEnabled(): boolean {
 }
 
 /**
- * Build-time gate for the Money MPC keyring stub. When enabled, the Money MPC
+ * Build-time gate for the Money MPC keyring. When enabled, the Money MPC
  * keyring builders are registered with the `KeyringController`.
  *
  * The variable is inlined from `.js.env` at build time; restart Metro after
@@ -19,15 +19,6 @@ export function isBftcConsolidationBuildEnabled(): boolean {
  */
 export function isMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_KEYRING_ENABLED === 'true';
-}
-
-export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
-  return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
-}
-
-/** Build-time gate for 2FA approvals on Money MPC signatures. Needs `MM_MONEY_MPC_REAL_KEYRING`. */
-export function isMpcTwoFactorApprovalBuildEnabled(): boolean {
-  return process.env.MM_MONEY_MPC_2FA_APPROVAL === 'true';
 }
 
 /**
