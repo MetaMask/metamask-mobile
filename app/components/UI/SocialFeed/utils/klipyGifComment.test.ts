@@ -92,7 +92,7 @@ describe('klipyGifComment', () => {
 
     it('handles repeated klipy prefixes in linear time', () => {
       const repeated = 'https://static.klipy.com/'.repeat(12_000);
-      const started = Date.now();
+      const started = performance.now();
 
       expect(splitKlipyGifFromCommentText(repeated)).toStrictEqual({
         text: repeated,
@@ -105,7 +105,7 @@ describe('klipyGifComment', () => {
         text: repeated,
         gifUrl: KLIPY_STATIC_GIF_EXAMPLE,
       });
-      expect(Date.now() - started).toBeLessThan(500);
+      expect(performance.now() - started).toBeLessThan(500);
     });
   });
 
