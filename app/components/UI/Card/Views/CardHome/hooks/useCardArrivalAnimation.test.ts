@@ -284,6 +284,42 @@ describe('useCardArrivalAnimation', () => {
     });
   });
 
+  describe('when Rive is not allowed', () => {
+    it('skips without marking the reveal as seen', async () => {
+      const { result } = renderArrivalHook({
+        cardType: CardType.VIRTUAL,
+        isRiveAllowed: false,
+      });
+      await completeFade(true);
+
+      expect(result.current.usesRiveCard).toBe(false);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('plays the reveal once Rive becomes allowed', () => {
+      let isRiveAllowed = false;
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useCardArrivalAnimation({
+            fromCardOnboarding: true,
+            isRevealingCardDetails: false,
+            cardType: CardType.VIRTUAL,
+            isRiveAllowed,
+          }),
+        {
+          state: { card: { ...initialCardState } } as ProviderValues['state'],
+        },
+      );
+
+      isRiveAllowed = true;
+      act(() => rerender({} as never));
+
+      expect(result.current.usesRiveCard).toBe(true);
+      expect(result.current.playReveal).toBe(true);
+    });
+  });
+
   describe('once the reveal has been consumed', () => {
     it('does not replay when the user closes their card details', () => {
       let isRevealingCardDetails = false;
@@ -306,6 +342,7 @@ describe('useCardArrivalAnimation', () => {
       isRevealingCardDetails = true;
       act(() => rerender({} as never));
       expect(result.current.usesRiveCard).toBe(false);
+      expect(result.current.hasStartedReveal).toBe(true);
 
       isRevealingCardDetails = false;
       act(() => rerender({} as never));
