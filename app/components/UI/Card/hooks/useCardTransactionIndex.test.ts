@@ -30,6 +30,7 @@ import {
   selectIsCardAuthenticated,
 } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
+import { selectIsImmersveCardHistoryInMoney } from './useCardTransactionHistoryDestination';
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
@@ -57,12 +58,14 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 let mockIsAuthenticated = true;
 let mockProviderId: string | null = 'baanx';
 let mockProviderUserId: string | null = 'user-1';
+let mockImmersveCardHistoryInMoney = false;
 let activeQueryClient: QueryClient | null = null;
 
 beforeEach(() => {
   mockIsAuthenticated = true;
   mockProviderId = 'baanx';
   mockProviderUserId = 'user-1';
+  mockImmersveCardHistoryInMoney = false;
 });
 
 const createWrapper = () => {
@@ -320,6 +323,9 @@ describe('useCardTransactionIndex', () => {
       if (selector === selectCardProviderUserId) {
         return mockProviderUserId;
       }
+      if (selector === selectIsImmersveCardHistoryInMoney) {
+        return mockImmersveCardHistoryInMoney;
+      }
       return undefined;
     });
     mockListTransactions.mockResolvedValue(
@@ -381,6 +387,44 @@ describe('useCardTransactionIndex', () => {
     expect(result.current.bySettlementHash.get('0xabc')?.id).toBe('ma-settled');
     expect(result.current.bySettlementHash.has('0xother')).toBe(false);
     expect(result.current.isError).toBe(false);
+  });
+
+  describe('for Immersve, which sends no funding sources', () => {
+    const immersveDecline = createTx({
+      id: 'immersve-declined',
+      providerId: 'immersve',
+      status: CardTransactionStatus.Failed,
+    });
+
+    beforeEach(() => {
+      mockProviderId = 'immersve';
+      mockListTransactions.mockResolvedValue(buildPage([immersveDecline]));
+    });
+
+    it('lists declines once card history has moved to Money', async () => {
+      mockImmersveCardHistoryInMoney = true;
+      const { Wrapper } = createWrapper();
+
+      const { result } = renderHook(() => useCardTransactionIndex(), {
+        wrapper: Wrapper,
+      });
+      await waitFor(() => expect(result.current.isSettling).toBe(false));
+
+      expect(result.current.declined.map((tx) => tx.id)).toEqual([
+        'immersve-declined',
+      ]);
+    });
+
+    it('skips declines while another funding source can pay', async () => {
+      const { Wrapper } = createWrapper();
+
+      const { result } = renderHook(() => useCardTransactionIndex(), {
+        wrapper: Wrapper,
+      });
+      await waitFor(() => expect(result.current.isSettling).toBe(false));
+
+      expect(result.current.declined).toEqual([]);
+    });
   });
 
   it('auto-paginates while oldest fetched time is above the visible floor', async () => {

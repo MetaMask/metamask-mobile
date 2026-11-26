@@ -1,8 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
-import {
-  CardProviderIds,
-  type CardTransaction,
-} from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
@@ -50,11 +47,6 @@ export function isMoneyAccountDecline(tx: CardTransaction): boolean {
 }
 
 export function isMoneyAccountCardTransaction(tx: CardTransaction): boolean {
-  // Immersve sends no funding sources; its feed only reaches Money for
-  // users whose card is funded solely by the Money Account.
-  if (tx.providerId === CardProviderIds.Immersve) {
-    return true;
-  }
   if (tx.fundingSources.length === 0) {
     return isMoneyAccountDecline(tx);
   }
