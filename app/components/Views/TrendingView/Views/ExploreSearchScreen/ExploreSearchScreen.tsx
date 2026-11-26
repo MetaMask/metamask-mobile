@@ -78,7 +78,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { selectExploreBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/exploreBrandRefresh';
 import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
-import { shouldPromoteStocksSection } from '../../search/stocksPromotion';
+import { useStocksPromotion } from '../../search/stocksPromotion';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
@@ -334,15 +334,14 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const isStocksPromotionEnabled = useSelector(
     selectExploreSearchPromoteStocksExactTickerEnabled,
   );
-  const isStocksPromoted = useMemo(() => {
-    if (!isStocksPromotionEnabled) {
-      return false;
-    }
-    const stocksSection = sections.find((s) => s.feedId === 'stocks');
-    return shouldPromoteStocksSection(searchQuery, stocksSection);
-  }, [isStocksPromotionEnabled, searchQuery, sections]);
-  const stocksPromotedRef = useRef(isStocksPromoted);
-  stocksPromotedRef.current = isStocksPromoted;
+  const stocksPromotion = useStocksPromotion({
+    searchQuery,
+    sections,
+    isEnabled: isStocksPromotionEnabled,
+    maxItems: MAX_ITEMS_PER_SECTION,
+  });
+  const stocksPromotedRef = useRef(stocksPromotion.isStocksPromoted);
+  stocksPromotedRef.current = stocksPromotion.isStocksPromoted;
 
   const isLoading = sections.some((s) => s.isLoading);
 
@@ -459,6 +458,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           onViewMore={handleViewMoreSelect}
           emptyFeedTitle={emptyFeedTitle}
           activeTab={activePill}
+          stocksPromotion={stocksPromotion}
         />
       )}
     </Box>

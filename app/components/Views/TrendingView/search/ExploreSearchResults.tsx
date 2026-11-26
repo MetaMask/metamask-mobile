@@ -56,7 +56,8 @@ import { useExploreSearchFooterPress } from './useExploreSearchFooterPress';
 import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
 import {
   orderExploreSearchSections,
-  shouldPromoteStocksSection,
+  useStocksPromotion,
+  type StocksPromotionState,
 } from './stocksPromotion';
 
 const pressedStyle = StyleSheet.create({
@@ -81,6 +82,8 @@ interface ExploreSearchResultsProps {
    * reflect that, not 'all'.
    */
   activeTab?: SearchFeedPill;
+  /** Optional promotion state lifted from ExploreSearchScreen to share one grace timer. */
+  stocksPromotion?: StocksPromotionState;
 }
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
@@ -90,6 +93,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   onViewMore,
   emptyFeedTitle,
   activeTab = 'all',
+  stocksPromotion,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -101,13 +105,14 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectExploreSearchPromoteStocksExactTickerEnabled,
   );
 
-  const isStocksPromoted = useMemo(() => {
-    if (!isStocksPromotionEnabled) {
-      return false;
-    }
-    const stocksSection = sections.find((s) => s.feedId === 'stocks');
-    return shouldPromoteStocksSection(searchQuery, stocksSection);
-  }, [isStocksPromotionEnabled, searchQuery, sections]);
+  const localStocksPromotion = useStocksPromotion({
+    searchQuery,
+    sections,
+    isEnabled: isStocksPromotionEnabled && !stocksPromotion,
+    maxItems: MAX_ITEMS_PER_SECTION,
+  });
+  const { isStocksPromoted, shouldHoldForStocks } =
+    stocksPromotion ?? localStocksPromotion;
 
   const orderedSections = useMemo(
     () => orderExploreSearchSections(sections, isStocksPromoted),
@@ -167,14 +172,15 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const renderSectionHeader = useCallback(
     (item: ListItemHeader, section: SearchFeedSection) => {
-      const viewMoreLabel = section.isLoading
-        ? null
-        : getViewMoreLabel(
-            section.feedId,
-            section.items.length,
-            searchQuery,
-            section.total,
-          );
+      const viewMoreLabel =
+        section.isLoading || shouldHoldForStocks
+          ? null
+          : getViewMoreLabel(
+              section.feedId,
+              section.items.length,
+              searchQuery,
+              section.total,
+            );
       return (
         <Box>
           {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
@@ -217,7 +223,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         </Box>
       );
     },
-    [handleViewMore, searchQuery],
+    [handleViewMore, searchQuery, shouldHoldForStocks],
   );
 
   const sectionsMap = useMemo(
@@ -242,7 +248,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       });
       headerCount += 1;
 
-      if (isLoading) {
+      if (isLoading || shouldHoldForStocks) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
           result.push({ type: 'skeleton', feedId, index: i });
         }
@@ -255,20 +261,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [isBasicFunctionalityEnabled, orderedSections]);
-
-  const sectionOrderKey = useMemo(
-    () =>
-      orderedSections
-        .filter((s) => s.isLoading || s.items.length > 0)
-        .map((s) => s.feedId)
-        .join(','),
-    [orderedSections],
-  );
+  }, [isBasicFunctionalityEnabled, orderedSections, shouldHoldForStocks]);
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [searchQuery, flatData.length, emptyFeedTitle, sectionOrderKey]);
+  }, [searchQuery, flatData.length, emptyFeedTitle]);
 
   const tokensSection = sections.find((s) => s.feedId === 'tokens');
   useSearchTracking({

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import ExploreSearchResults from './ExploreSearchResults';
 import type { SearchFeedSection } from './useExploreSearch';
+import { STOCKS_PROMOTION_GRACE_MS } from './stocksPromotion';
 import { analytics } from '../../../../util/analytics/analytics';
 
 let mockIsStocksPromotionEnabled = true;
@@ -195,7 +196,12 @@ jest.mock('./SearchFeedRow', () => ({
   __esModule: true,
   default: (props: { feedId: string; stocksPromoted?: boolean }) =>
     MockSearchRow(props),
-  SearchFeedSkeleton: () => null,
+  SearchFeedSkeleton: ({ feedId }: { feedId: string }) => {
+    const ReactLib = jest.requireActual<typeof import('react')>('react');
+    const { View: RNView } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+    return ReactLib.createElement(RNView, { testID: `skeleton-${feedId}` });
+  },
   getItemId: (_feedId: string, item: { assetId?: string; symbol?: string }) =>
     item.assetId ?? item.symbol ?? 'id',
 }));
@@ -390,56 +396,57 @@ describe('ExploreSearchResults stocks promotion', () => {
     expect(getByTestId('row-stocks').props.accessibilityLabel).toBe('false');
   });
 
-  it('disables maintainVisibleContentPosition and resets scroll to 0 when section order changes with the same item count', () => {
-    const threeStocks = [
-      stockToken,
-      { ...stockToken, assetId: 'eip155:1/erc20:0x333' },
-      { ...stockToken, assetId: 'eip155:1/erc20:0x444' },
-    ];
+  it('holds skeletons during grace window and locks default order if Stocks resolves late', () => {
+    jest.useFakeTimers();
+    try {
+      const threeStocks = [
+        stockToken,
+        { ...stockToken, assetId: 'eip155:1/erc20:0x333' },
+        { ...stockToken, assetId: 'eip155:1/erc20:0x444' },
+      ];
 
-    const { rerender } = render(
-      <ExploreSearchResults
-        searchQuery="TSLA"
-        sections={baseSections({ isLoading: true, items: [] })}
-        onViewMore={jest.fn()}
-      />,
-    );
+      const { rerender, queryByTestId, getAllByTestId } = render(
+        <ExploreSearchResults
+          searchQuery="TSLA"
+          sections={baseSections({ isLoading: true, items: [] })}
+          onViewMore={jest.fn()}
+        />,
+      );
 
-    expect(lastFlashListProps?.maintainVisibleContentPosition).toEqual({
-      disabled: true,
-    });
-    mockScrollToOffset.mockClear();
+      expect(lastFlashListProps?.maintainVisibleContentPosition).toEqual({
+        disabled: true,
+      });
+      // Crypto rows are held as skeletons while Stocks is loading within grace window.
+      expect(queryByTestId('row-tokens')).toBeNull();
+      expect(getAllByTestId('skeleton-tokens').length).toBeGreaterThan(0);
 
-    // Stocks finishes loading with 3 items (same flatData.length as 3 skeletons)
-    // and gets promoted from index 2 -> index 0.
-    rerender(
-      <ExploreSearchResults
-        searchQuery="TSLA"
-        sections={baseSections({ isLoading: false, items: threeStocks })}
-        onViewMore={jest.fn()}
-      />,
-    );
+      // Grace window expires before Stocks resolves: Crypto reveals in default order.
+      act(() => {
+        jest.advanceTimersByTime(STOCKS_PROMOTION_GRACE_MS);
+      });
+      expect(queryByTestId('row-tokens')).not.toBeNull();
+      expect(
+        getAllByTestId('section-title').map((node) => node.props.children),
+      ).toEqual(['Crypto', 'Perps', 'Stocks']);
 
-    expect(mockScrollToOffset).toHaveBeenCalledWith({
-      offset: 0,
-      animated: false,
-    });
-    mockScrollToOffset.mockClear();
+      mockScrollToOffset.mockClear();
 
-    // Stocks is demoted back out of index 0 (e.g. flag toggled or loading starts)
-    // with the same item count.
-    rerender(
-      <ExploreSearchResults
-        searchQuery="TSLA"
-        sections={baseSections({ isLoading: true, items: [] })}
-        onViewMore={jest.fn()}
-      />,
-    );
+      // Late Stocks response arrives with exact match — must NOT jump above Crypto or reset scroll.
+      rerender(
+        <ExploreSearchResults
+          searchQuery="TSLA"
+          sections={baseSections({ isLoading: false, items: threeStocks })}
+          onViewMore={jest.fn()}
+        />,
+      );
 
-    expect(mockScrollToOffset).toHaveBeenCalledWith({
-      offset: 0,
-      animated: false,
-    });
+      expect(
+        getAllByTestId('section-title').map((node) => node.props.children),
+      ).toEqual(['Crypto', 'Perps', 'Stocks']);
+      expect(mockScrollToOffset).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('uses distinct FlashList item types for the first header vs subsequent headers', () => {

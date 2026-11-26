@@ -53,7 +53,7 @@ import {
   useExploreSearch,
   type SearchFeedId,
 } from '../../Views/TrendingView/search/useExploreSearch';
-import { shouldPromoteStocksSection } from '../../Views/TrendingView/search/stocksPromotion';
+import { useStocksPromotion } from '../../Views/TrendingView/search/stocksPromotion';
 import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -212,6 +212,11 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
   const exploreResult = useExploreSearch(searchQuery);
+  const { isStocksPromoted, shouldHoldForStocks } = useStocksPromotion({
+    searchQuery,
+    sections: exploreResult.sections,
+    isEnabled: isStocksPromotionEnabled,
+  });
   // Predictions come from Predict's own search source, not Explore's section
   const predictions = usePredictSearchResults(searchQuery);
   const {
@@ -229,14 +234,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
       if (sectionId === 'tokens') {
         const tokensSec = byFeedId.get('tokens');
         const stocksSec = byFeedId.get('stocks');
-        const isStocksPromoted =
-          isStocksPromotionEnabled &&
-          shouldPromoteStocksSection(searchQuery, stocksSec);
         const tokenItems = (tokensSec?.items as TrendingAsset[]) ?? [];
         const stockItems = (stocksSec?.items as TrendingAsset[]) ?? [];
-        data.tokens = isStocksPromoted
-          ? [...stockItems, ...tokenItems]
-          : [...tokenItems, ...stockItems];
+        if (shouldHoldForStocks) {
+          data.tokens = [];
+        } else {
+          data.tokens = isStocksPromoted
+            ? [...stockItems, ...tokenItems]
+            : [...tokenItems, ...stockItems];
+        }
         isLoading.tokens =
           Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
         continue;
@@ -256,7 +262,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
       isLoading: isLoading as Record<SearchFeedId, boolean>,
       sectionsOrder: order,
     };
-  }, [exploreResult, predictions, isStocksPromotionEnabled, searchQuery]);
+  }, [exploreResult, predictions, isStocksPromoted, shouldHoldForStocks]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {

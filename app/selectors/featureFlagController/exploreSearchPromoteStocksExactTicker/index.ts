@@ -19,5 +19,6 @@ export const selectExploreSearchPromoteStocksExactTickerEnabled =
       FeatureFlagNames.exploreSearchPromoteStocksExactTicker
     ] as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return true;
   });

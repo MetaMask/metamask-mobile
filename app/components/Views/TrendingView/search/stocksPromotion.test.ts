@@ -1,10 +1,14 @@
+import { act, renderHook } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { SearchFeedSection } from './useExploreSearch';
 import {
+  STOCKS_PROMOTION_GRACE_MS,
   normalizeStockTicker,
   orderExploreSearchSections,
+  rankStockSearchResults,
   shouldPromoteStocksSection,
   stripLeadingDollarQuery,
+  useStocksPromotion,
 } from './stocksPromotion';
 
 const makeStockAsset = (
@@ -192,6 +196,35 @@ describe('shouldPromoteStocksSection', () => {
 
     expect(shouldPromoteStocksSection('TSLA', multiStocks)).toBe(true);
   });
+
+  it('does not promote when the exact match is beyond maxItems', () => {
+    const items = [
+      makeStockAsset({
+        assetId: 'eip155:1/erc20:0x1',
+        name: 'MACOM',
+        rwaData: { ticker: 'MTSI' },
+      }),
+      makeStockAsset({
+        assetId: 'eip155:1/erc20:0x2',
+        name: 'Marvell',
+        rwaData: { ticker: 'MRVL' },
+      }),
+      makeStockAsset({
+        assetId: 'eip155:1/erc20:0x3',
+        name: 'MaxLinear',
+        rwaData: { ticker: 'MXL' },
+      }),
+      makeStockAsset({
+        assetId: 'eip155:1/erc20:0x4',
+        name: 'Mastercard',
+        rwaData: { ticker: 'MA' },
+      }),
+    ];
+    const section = makeSection('stocks', { items, isLoading: false });
+
+    expect(shouldPromoteStocksSection('MA', section, 3)).toBe(false);
+    expect(shouldPromoteStocksSection('MA', section, 4)).toBe(true);
+  });
 });
 
 describe('orderExploreSearchSections', () => {
@@ -227,5 +260,221 @@ describe('orderExploreSearchSections', () => {
 
     const stocksFirst = [sections[3], sections[0]];
     expect(orderExploreSearchSections(stocksFirst, true)).toBe(stocksFirst);
+  });
+});
+
+describe('rankStockSearchResults', () => {
+  it('ranks exact ticker match first, then prefix, then market cap, deprioritizing zero price', () => {
+    const macom = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x1',
+      symbol: 'MTSIon',
+      name: 'MACOM Technology',
+      price: '0.00',
+      marketCap: 0,
+      rwaData: { ticker: 'MTSI' },
+    });
+    const marvell = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x2',
+      symbol: 'MRVLon',
+      name: 'Marvell Technology',
+      price: '80.00',
+      marketCap: 70_000_000_000,
+      rwaData: { ticker: 'MRVL' },
+    });
+    const maxLinear = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x3',
+      symbol: 'MXLon',
+      name: 'MaxLinear',
+      price: '15.00',
+      marketCap: 1_200_000_000,
+      rwaData: { ticker: 'MXL' },
+    });
+    const mastercard = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x4',
+      symbol: 'MAon',
+      name: 'Mastercard (Ondo Tokenized)',
+      price: '500.00',
+      marketCap: 480_000_000_000,
+      rwaData: { ticker: 'MA' },
+    });
+    const marathon = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x5',
+      symbol: 'MARAon',
+      name: 'Marathon Digital',
+      price: '20.00',
+      marketCap: 5_000_000_000,
+      rwaData: { ticker: 'MARA' },
+    });
+
+    const ranked = rankStockSearchResults(
+      [macom, maxLinear, marvell, marathon, mastercard],
+      'MA',
+    );
+
+    expect(ranked.map((item) => item.rwaData?.ticker)).toEqual([
+      'MA',
+      'MARA',
+      'MRVL',
+      'MXL',
+      'MTSI',
+    ]);
+  });
+
+  it('ranks exact issuer-stripped name above partial name matches', () => {
+    const partial = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x1',
+      name: 'Tesla Supply Chain ETF',
+      marketCap: 999_000_000_000,
+      rwaData: { ticker: 'TSCE' },
+    });
+    const exactName = makeStockAsset({
+      assetId: 'eip155:1/erc20:0x2',
+      name: 'Tesla (Ondo Tokenized)',
+      marketCap: 800_000_000_000,
+      rwaData: { ticker: 'TSLA' },
+    });
+
+    const ranked = rankStockSearchResults([partial, exactName], 'Tesla');
+    expect(ranked.map((item) => item.rwaData?.ticker)).toEqual([
+      'TSLA',
+      'TSCE',
+    ]);
+  });
+});
+
+describe('useStocksPromotion', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('holds non-stocks sections while Stocks loads and promotes if Stocks resolves within grace window', () => {
+    const readyTokens = makeSection('tokens', {
+      items: [{ assetId: 'eip155:1/erc20:0x1' }],
+      isLoading: false,
+    });
+    const loadingStocks = makeSection('stocks', {
+      items: [],
+      isLoading: true,
+    });
+    const loadedStocks = makeSection('stocks', {
+      items: [makeStockAsset()],
+      isLoading: false,
+    });
+
+    const { result, rerender } = renderHook(
+      ({
+        searchQuery,
+        sections,
+      }: {
+        searchQuery: string;
+        sections: SearchFeedSection[];
+      }) =>
+        useStocksPromotion({
+          searchQuery,
+          sections,
+          isEnabled: true,
+        }),
+      {
+        initialProps: {
+          searchQuery: 'TSLA',
+          sections: [readyTokens, loadingStocks],
+        },
+      },
+    );
+
+    expect(result.current.shouldHoldForStocks).toBe(true);
+    expect(result.current.isStocksPromoted).toBe(false);
+
+    act(() => {
+      jest.advanceTimersByTime(STOCKS_PROMOTION_GRACE_MS - 50);
+    });
+    expect(result.current.shouldHoldForStocks).toBe(true);
+
+    rerender({ searchQuery: 'TSLA', sections: [readyTokens, loadedStocks] });
+    expect(result.current.shouldHoldForStocks).toBe(false);
+    expect(result.current.isStocksPromoted).toBe(true);
+  });
+
+  it('locks promotion off after grace window expires so late Stocks does not jump', () => {
+    const readyTokens = makeSection('tokens', {
+      items: [{ assetId: 'eip155:1/erc20:0x1' }],
+      isLoading: false,
+    });
+    const loadingStocks = makeSection('stocks', {
+      items: [],
+      isLoading: true,
+    });
+    const loadedStocks = makeSection('stocks', {
+      items: [makeStockAsset()],
+      isLoading: false,
+    });
+
+    const { result, rerender } = renderHook(
+      ({
+        searchQuery,
+        sections,
+      }: {
+        searchQuery: string;
+        sections: SearchFeedSection[];
+      }) =>
+        useStocksPromotion({
+          searchQuery,
+          sections,
+          isEnabled: true,
+        }),
+      {
+        initialProps: {
+          searchQuery: 'TSLA',
+          sections: [readyTokens, loadingStocks],
+        },
+      },
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(STOCKS_PROMOTION_GRACE_MS);
+    });
+
+    expect(result.current.shouldHoldForStocks).toBe(false);
+    expect(result.current.isStocksPromoted).toBe(false);
+
+    // Late Stocks response arrives 2s later — must remain locked off.
+    rerender({ searchQuery: 'TSLA', sections: [readyTokens, loadedStocks] });
+    expect(result.current.isStocksPromoted).toBe(false);
+
+    // Changing query resets the lock.
+    rerender({ searchQuery: 'TSL', sections: [readyTokens, loadingStocks] });
+    rerender({ searchQuery: 'TSLA', sections: [readyTokens, loadedStocks] });
+    expect(result.current.isStocksPromoted).toBe(true);
+  });
+
+  it('does not start the grace timer while all non-stocks sections are still loading', () => {
+    const loadingTokens = makeSection('tokens', { items: [], isLoading: true });
+    const loadingStocks = makeSection('stocks', { items: [], isLoading: true });
+    const loadedStocks = makeSection('stocks', {
+      items: [makeStockAsset()],
+      isLoading: false,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ sections }: { sections: SearchFeedSection[] }) =>
+        useStocksPromotion({
+          searchQuery: 'TSLA',
+          sections,
+          isEnabled: true,
+        }),
+      { initialProps: { sections: [loadingTokens, loadingStocks] } },
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(STOCKS_PROMOTION_GRACE_MS * 3);
+    });
+    expect(result.current.shouldHoldForStocks).toBe(true);
+
+    rerender({ sections: [loadingTokens, loadedStocks] });
+    expect(result.current.isStocksPromoted).toBe(true);
   });
 });

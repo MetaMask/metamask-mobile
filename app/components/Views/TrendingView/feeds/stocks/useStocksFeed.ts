@@ -3,13 +3,25 @@ import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import { NetworkToCaipChainId } from '../../../../UI/NetworkMultiSelector/NetworkMultiSelector.constants';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import { RWA_CHAIN_IDS } from '../../../../UI/Trending/utils/trendingNetworksList';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
-import { stripLeadingDollarQuery } from '../../search/stocksPromotion';
+import {
+  rankStockSearchResults,
+  stripLeadingDollarQuery,
+} from '../../search/stocksPromotion';
+
+const SEARCH_SORT_OPTIONS = {
+  option: PriceChangeOption.MarketCap,
+  direction: SortDirection.Descending,
+};
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
@@ -74,20 +86,21 @@ export const useStocksFeed = ({
     chainIds,
     pageSize,
     ...(hasQuery && performance ? { performance } : {}),
+    ...(hasQuery ? { sortTrendingTokensOptions: SEARCH_SORT_OPTIONS } : {}),
     includeTokenSecurityData: hasQuery && isBasicFunctionalityEnabled,
   });
 
   const filteredData = useMemo(() => {
-    // During search, surface tokens from all supported RWA chains so the user
-    // can find any matching stock regardless of chain.
-    if (hasQuery) return data;
+    // During search, surface tokens from all supported RWA chains ranked by
+    // match relevance and market cap so exact matches appear in the top rows.
+    if (hasQuery) return rankStockSearchResults(data, normalizedQuery);
     // Tab sections show Ethereum and Robinhood Chain tokens.
     return data.filter((asset) =>
       STOCKS_FEED_ASSET_ID_PREFIXES.some((prefix) =>
         asset.assetId.startsWith(prefix),
       ),
     );
-  }, [data, hasQuery]);
+  }, [data, hasQuery, normalizedQuery]);
 
   useFeedRefresh(refresh, refetch);
 
