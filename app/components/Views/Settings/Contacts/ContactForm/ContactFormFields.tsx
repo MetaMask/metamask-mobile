@@ -155,21 +155,6 @@ export const ContactFormFields = ({
             onSubmitEditing: () => memoInputRef.current?.focus(),
             testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
           }}
-        /><ButtonIcon
-              iconName={IconName.ScanBarcode}
-              size={ButtonIconSize.Sm}
-              onPress={onScan}
-              accessibilityLabel={strings('send.scan_qr_code')}
-            />
-          }
-          inputProps={{
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            spellCheck: false,
-            keyboardAppearance: themeAppearance,
-            onSubmitEditing: () => memoInputRef.current?.focus(),
-            testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
-          }}
         />
       ) : (
         <Box className="gap-2">

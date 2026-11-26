@@ -136,26 +136,7 @@ const CryptoTokensSortBottomSheet: React.FC<
             accessibilityState={{ selected: isSelected }}
             endAccessory={
               isSelected ? (
-                <Box className="flex-row items-center gap-2">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    testID={testID ? `${testID}-direction-text` : undefined}
-                  >
-                    {isAscending
-                      ? strings('perps.sort.low_to_high')
-                      : strings('perps.sort.high_to_low')}
-                  </Text>
-                  <Icon
-                    name={isAscending ? IconName.Arrow2Up : IconName.Arrow2Down}
-                    size={IconSize.Md}
-                    color={IconColor.IconAlternative}
-                  />
-                </Box>
-              ) : undefined
-            }
-            testID={testID ? `${testID}-option-${option}` : undefined}
-          /><Box className="flex-row items-center gap-2">
+                <Box twClassName="flex-row items-center gap-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}

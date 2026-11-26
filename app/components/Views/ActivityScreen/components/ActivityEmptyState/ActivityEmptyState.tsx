@@ -128,10 +128,6 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
         description={strings(emptyState.descriptionKey)}
         actionButtonText={strings(emptyState.actionLabelKey)}
         onAction={handleAction}
-      /><Icon name="activity-empty" width={72} height={78} />}
-        description={strings(emptyState.descriptionKey)}
-        actionButtonText={strings(emptyState.actionLabelKey)}
-        onAction={handleAction}
       />
     </Box>
   );

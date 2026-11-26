@@ -44,14 +44,6 @@ export const ContactNetworkSelector = ({
       }
       onPress={onOpen}
       testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
-    /><AvatarNetwork
-          size={AvatarNetworkSize.Sm}
-          name={networkName}
-          src={getNetworkImageSource({ chainId })}
-        />
-      }
-      onPress={onOpen}
-      testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
     />
   ) : (
     <Box

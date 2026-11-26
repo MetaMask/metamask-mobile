@@ -77,23 +77,6 @@ const EarnSearchAssetRow = ({
         fontWeight: FontWeight.Medium,
       }}
       className="py-2 min-h-0"
-    /><EarnAssetIcon asset={asset} />}
-      title={metadata.name}
-      titleProps={{
-        numberOfLines: 1,
-      }}
-      description={description}
-      descriptionProps={{
-        numberOfLines: 1,
-      }}
-      value={highestRateCopy}
-      valueProps={{
-        color: TextColor.SuccessDefault,
-        numberOfLines: 1,
-        variant: TextVariant.BodyMd,
-        fontWeight: FontWeight.Medium,
-      }}
-      twClassName="py-2 min-h-0"
     />
   );
 };

@@ -342,16 +342,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
                 color={IconColor.IconAlternative}
               />
             }
-          /><Icon
-                name={
-                  sort?.direction === SortDirection.Ascending
-                    ? IconName.Arrow2Up
-                    : IconName.Arrow2Down
-                }
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            }
           />
         </Box>
       )}

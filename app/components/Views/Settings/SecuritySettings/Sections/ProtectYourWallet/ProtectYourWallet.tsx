@@ -133,12 +133,6 @@ const ProtectYourWallet = ({
               ) : null
             }
             className="mt-4"
-          /><TextButton variant={TextVariant.BodySm} onPress={toggleHint}>
-                  {strings('app_settings.view_hint')}
-                </TextButton>
-              ) : null
-            }
-            twClassName="mt-4"
           />
         ) : (
           <BannerAlert
