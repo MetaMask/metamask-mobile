@@ -101,7 +101,7 @@ export function useConfirmNavigation() {
               screen: route,
               params,
             });
-            return state.routeNames.includes(stack)
+            return state.routeNames.some((name) => name === stack)
               ? { ...action, target: state.key }
               : action;
           });

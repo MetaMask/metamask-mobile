@@ -93,7 +93,7 @@ const MoneyDepositDeeplinkBridge = () => {
     const state = navigation.getState();
     // Once the confirmation has replaced this route, the deposit hook has
     // already rolled back and reported the failure.
-    if (!state.routes.some(({ key }) => key === route.key)) {
+    if (!state?.routes.some(({ key }) => key === route.key)) {
       return;
     }
 
