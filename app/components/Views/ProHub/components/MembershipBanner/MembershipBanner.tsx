@@ -43,7 +43,7 @@ const MembershipBanner = ({
 
   return (
     <Card
-      twClassName="w-full bg-background-section rounded-xl p-4 border-0"
+      className="w-full bg-background-section rounded-xl p-4 border-0"
       testID={testID}
     >
       <Box
@@ -97,7 +97,7 @@ const MembershipBanner = ({
               ? strings('pro_hub.membership.resume_in_progress')
               : undefined,
           }}
-          twClassName="mt-3"
+          className="mt-3"
           testID={ProHubTestIds.MEMBERSHIP_ALERT_BANNER(model.statusKind)}
         />
       ) : null}
@@ -108,7 +108,7 @@ const MembershipBanner = ({
           testID={ProHubTestIds.MEMBERSHIP_RESUME_ERROR}
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
-          twClassName="mt-2"
+          className="mt-2"
         >
           {actionErrorMessage}
         </Text>

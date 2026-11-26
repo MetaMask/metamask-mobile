@@ -78,7 +78,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
       gap={5}
       testID={testID}
       {...props}
-      twClassName={`rounded-2xl ${props?.twClassName ?? ''}`}
+      className={`rounded-2xl ${props?.twClassName ?? ''}`}
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
@@ -95,7 +95,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
           fontFamily={FontFamily.Hero}
-          twClassName="leading-[32px]"
+          className="leading-[32px]"
           testID={`${testID}-title`}
         >
           {strings('wallet.fund_your_wallet')}
@@ -104,7 +104,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           fontWeight={FontWeight.Medium}
-          twClassName="text-center"
+          className="text-center"
           testID={`${testID}-subtitle`}
         >
           {strings('wallet.get_ready_for_web3')}

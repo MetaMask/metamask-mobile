@@ -122,7 +122,7 @@ export const SecurityPill: React.FC<SecurityPillProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       backgroundColor={background}
-      twClassName="h-7 gap-1 rounded-full px-2.5"
+      className="h-7 gap-1 rounded-full px-2.5"
       testID={SecurityPillSelectors.VERDICT}
     >
       <Icon name={VERDICT_ICON} size={IconSize.Sm} color={iconColor} />

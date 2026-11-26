@@ -52,7 +52,7 @@ function NetworkListRowComponent({
   onPress,
 }: NetworkListRowProps) {
   return (
-    <Box twClassName="items-start">
+    <Box className="items-start">
       <Cell
         variant={CellVariant.Select}
         title={network.name}

@@ -791,7 +791,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const renderChecklistStepBody = () => (
     <>
       <Box
-        twClassName={heroContainerClassName}
+        className={heroContainerClassName}
         alignItems={BoxAlignItems.Stretch}
         justifyContent={BoxJustifyContent.Center}
         accessibilityRole="image"
@@ -815,7 +815,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
+          className="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
           {!isBalanceShellVisible && !hasTestOverrides && checklistRiveFile ? (
             <RiveView
@@ -842,12 +842,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         flexDirection={BoxFlexDirection.Column}
         gap={2}
         alignItems={BoxAlignItems.Start}
-        twClassName="w-full"
+        className="w-full"
       >
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
-          twClassName="w-full text-left"
+          className="w-full text-left"
         >
           {walletHomeOnboardingTitleForStep(currentStep.kind)}
         </Text>
@@ -855,13 +855,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           fontWeight={FontWeight.Medium}
-          twClassName="w-full text-left"
+          className="w-full text-left"
         >
           {walletHomeOnboardingSubtitleForStep(currentStep.kind)}
         </Text>
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
+      <Box flexDirection={BoxFlexDirection.Column} gap={3} className="w-full">
         {currentStep.buttonLayout === 'full_width_primary' &&
         !fundStepReceivePress ? (
           <Button
@@ -882,7 +882,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={3}
-            twClassName="w-full"
+            className="w-full"
           >
             {/*
               Equal slots own the 50/50 split. The glass wrapper and the plain button differ
@@ -948,12 +948,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         flexDirection={BoxFlexDirection.Column}
         gap={4}
         testID={testID}
-        twClassName="rounded-2xl"
+        className="rounded-2xl"
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
           gap={4}
-          twClassName="w-full"
+          className="w-full"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -987,7 +987,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           like it skipped outro).
           overflow-hidden clips horizontal slide transitions without clipping the top stepper.
         */}
-        <Box twClassName="w-full overflow-hidden rounded-2xl">
+        <Box className="w-full overflow-hidden rounded-2xl">
           <Animated.View
             style={[
               tw.style('w-full flex flex-col gap-4'),

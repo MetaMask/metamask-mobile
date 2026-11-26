@@ -225,7 +225,7 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
     ({ item }) => {
       if (item.kind === 'header') {
         return (
-          <Box twClassName="py-3">
+          <Box className="py-3">
             <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
               {item.domain === 'tokens'
                 ? strings('token_watchlist.tokens_tab')
@@ -333,7 +333,7 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
 
     return (
       <View testID={WatchlistSearchContentTestIds.EMPTY_STATE}>
-        <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center">
+        <Box className="rounded-xl bg-secondary py-6 px-4 items-center">
           <TabEmptyState
             description={strings('trending.no_results_for_query', {
               query: debouncedQuery.trim(),
@@ -350,7 +350,7 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 mt-2"
+            className="gap-2 mt-2"
           >
             {POPULAR_SEARCH_ASSETS.map((token, index) => (
               <CryptoMoversPillItem

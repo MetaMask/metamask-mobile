@@ -32,7 +32,7 @@ const LabelValue: React.FC<LabelValueRow> = ({ label, value, valueColor }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="gap-2"
+    className="gap-2"
   >
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
       {label}
@@ -52,7 +52,7 @@ const Column: React.FC<{ rows: LabelValueRow[] }> = ({ rows }) => (
   <Box
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Start}
-    twClassName="gap-2.5"
+    className="gap-2.5"
   >
     {rows.map((row) => (
       <LabelValue key={row.label} {...row} />
@@ -120,7 +120,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Start}
-      twClassName="px-4 pt-2.5 pb-2 w-[302px]"
+      className="px-4 pt-2.5 pb-2 w-[302px]"
       testID={testID}
     >
       <Column rows={leftRows} />

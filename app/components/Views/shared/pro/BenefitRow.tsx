@@ -43,7 +43,7 @@ const BenefitRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName="w-full py-2.5 gap-x-3"
+      className="w-full py-2.5 gap-x-3"
     >
       <Icon
         name={IconName.CheckBold}
@@ -52,7 +52,7 @@ const BenefitRow = ({
         twClassName="shrink-0 mt-0.5"
       />
 
-      <Box twClassName="flex-1 min-w-0 flex-col gap-y-0.5">
+      <Box className="flex-1 min-w-0 flex-col gap-y-0.5">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.title)}
         </Text>
@@ -62,7 +62,7 @@ const BenefitRow = ({
       </Box>
 
       {showArrow ? (
-        <Box twClassName="self-center ml-2 shrink-0">
+        <Box className="self-center ml-2 shrink-0">
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}
@@ -91,7 +91,7 @@ const BenefitRow = ({
     <Box
       accessibilityLabel={strings(item.title)}
       testID={BenefitRowTestIds.ROW(item.id)}
-      twClassName="w-full"
+      className="w-full"
     >
       {content}
     </Box>

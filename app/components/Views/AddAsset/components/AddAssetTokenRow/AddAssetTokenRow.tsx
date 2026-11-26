@@ -29,7 +29,7 @@ const AddAssetTokenRow = ({ asset }: AddAssetTokenRowProps) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 h-16"
+      className="flex-1 h-16"
     >
       <Box>
         <BadgeWrapper
@@ -51,7 +51,7 @@ const AddAssetTokenRow = ({ asset }: AddAssetTokenRowProps) => {
           )}
         </BadgeWrapper>
       </Box>
-      <Box twClassName="flex-1 ml-5 justify-center">
+      <Box className="flex-1 ml-5 justify-center">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {asset.name}
         </Text>

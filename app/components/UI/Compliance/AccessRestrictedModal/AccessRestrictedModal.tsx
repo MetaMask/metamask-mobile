@@ -37,7 +37,7 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
         {strings('access_restricted.title')}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-6">
+      <Box className="px-4 pb-6">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -52,7 +52,7 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
           onPress={onContactSupport}
           testID={AccessRestrictedModalSelectorsIDs.CONTACT_SUPPORT_BUTTON}
           size={ButtonBaseSize.Lg}
-          twClassName="w-full rounded-xl bg-muted mt-6"
+          className="w-full rounded-xl bg-muted mt-6"
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('access_restricted.contact_support')}

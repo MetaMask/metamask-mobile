@@ -77,10 +77,10 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
 
   return (
     <Box
-      twClassName="gap-y-3"
+      className="gap-y-3"
       testID={MemberPricingOnTradesTestIds.ROW(item.id)}
     >
-      <Box twClassName="gap-y-2">
+      <Box className="gap-y-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -112,7 +112,7 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
         </Box>
 
         <Box
-          twClassName="h-2 rounded-full bg-muted overflow-hidden"
+          className="h-2 rounded-full bg-muted overflow-hidden"
           testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
           accessible
           accessibilityRole="progressbar"
@@ -124,7 +124,7 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
           }}
         >
           <Box
-            twClassName="h-full rounded-full bg-icon-default"
+            className="h-full rounded-full bg-icon-default"
             style={{ width: `${progressPercent}%` }}
             testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
           />

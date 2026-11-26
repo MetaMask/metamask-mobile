@@ -159,7 +159,7 @@ const SitesFullView: React.FC = () => {
                 twClassName: 'text-default',
               },
             }}
-            twClassName="mr-0 mb-0"
+            className="mr-0 mb-0"
           />
         ) : (
           <HeaderStandardGlass

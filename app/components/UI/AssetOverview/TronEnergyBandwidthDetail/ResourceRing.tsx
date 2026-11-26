@@ -48,7 +48,7 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
   return (
     <Box
       testID="resource-ring-container"
-      twClassName="relative items-center justify-center"
+      className="relative items-center justify-center"
       style={{ width: size, height: size }}
     >
       <Svg width={size} height={size} style={tw.style('absolute')}>
@@ -80,7 +80,7 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
 
       <Box
         testID="resource-ring-icon-container"
-        twClassName="items-center justify-center rounded-full bg-muted"
+        className="items-center justify-center rounded-full bg-muted"
         style={{
           width: size - strokeWidth * 2,
           height: size - strokeWidth * 2,

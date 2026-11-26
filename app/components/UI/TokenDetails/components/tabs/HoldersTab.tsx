@@ -100,7 +100,7 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
 
   return (
     <Box
-      twClassName="pt-4"
+      className="pt-4"
       testID={TokenDetailsHoldersTabSelectorsIDs.CONTAINER}
     >
       {showSkeleton ? <SocialFeedSkeleton /> : null}
@@ -115,13 +115,13 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full px-4 py-8"
+          className="w-full px-4 py-8"
           testID={TokenDetailsHoldersTabSelectorsIDs.EMPTY}
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('token_details_v1.holders_tab.empty')}
           </Text>
@@ -131,14 +131,14 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full px-4 py-16 gap-3"
+          className="w-full px-4 py-16 gap-3"
           testID={TokenDetailsHoldersTabSelectorsIDs.ERROR}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('token_details_v1.holders_tab.error.title')}
           </Text>
@@ -146,7 +146,7 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={() => refresh()}
-            twClassName="self-center"
+            className="self-center"
             testID={TokenDetailsHoldersTabSelectorsIDs.RETRY}
           >
             {strings('token_details_v1.holders_tab.error.retry')}
@@ -156,7 +156,7 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
       {isFetchingNextPage ? (
         <Box
           alignItems={BoxAlignItems.Center}
-          twClassName="py-2"
+          className="py-2"
           testID={TokenDetailsHoldersTabSelectorsIDs.NEXT_PAGE}
         >
           <ActivityIndicator size="small" />

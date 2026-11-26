@@ -208,7 +208,7 @@ const AgenticCliApproval: React.FC = () => {
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
-            twClassName="text-default text-center"
+            className="text-default text-center"
             testID="agentic-cli-approval-error-title"
           >
             {error.title}
@@ -216,7 +216,7 @@ const AgenticCliApproval: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
-            twClassName="text-alternative text-center"
+            className="text-alternative text-center"
             testID="agentic-cli-approval-error-description"
           >
             {error.description}
@@ -225,7 +225,7 @@ const AgenticCliApproval: React.FC = () => {
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Regular}
-              twClassName="text-muted text-center"
+              className="text-muted text-center"
               testID="agentic-cli-approval-error-details"
             >
               {error.details}

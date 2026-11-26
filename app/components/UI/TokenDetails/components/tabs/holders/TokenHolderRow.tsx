@@ -53,7 +53,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
-      twClassName="px-4 py-2"
+      className="px-4 py-2"
       testID={TokenDetailsIds.holderRow.CONTAINER}
     >
       <TraderAvatar
@@ -63,7 +63,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
         size={AVATAR_SIZE}
         recyclingKey={item.id}
       />
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -74,7 +74,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={TokenDetailsIds.holderRow.NAME}
           >
             {item.username}
@@ -94,7 +94,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
           {formatFollowerCountLabel(core.actor.followerCount)}
         </Text>
       </Box>
-      <Box alignItems={BoxAlignItems.End} twClassName="shrink-0">
+      <Box alignItems={BoxAlignItems.End} className="shrink-0">
         {valueLabel ? (
           <Text
             variant={TextVariant.BodyMd}
@@ -108,7 +108,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
         {pnlLabel ? (
           <Text
             variant={TextVariant.BodySm}
-            twClassName={
+            className={
               item.isPnlPositive ? 'text-success-default' : 'text-error-default'
             }
             testID={TokenDetailsIds.holderRow.PNL_PERCENT}

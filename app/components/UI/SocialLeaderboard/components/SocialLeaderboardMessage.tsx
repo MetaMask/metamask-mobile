@@ -29,13 +29,13 @@ const SocialLeaderboardMessage: React.FC<SocialLeaderboardMessageProps> = ({
   <Box
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    twClassName="w-full px-4 py-8 gap-3"
+    className="w-full px-4 py-8 gap-3"
     testID={testID}
   >
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
     >
       {message}
     </Text>
@@ -44,7 +44,7 @@ const SocialLeaderboardMessage: React.FC<SocialLeaderboardMessageProps> = ({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Sm}
         onPress={onRetry}
-        twClassName="self-center"
+        className="self-center"
         testID={SocialLeaderboardSelectorsIDs.RETRY}
       >
         {strings('social_leaderboard.feed.error.retry')}

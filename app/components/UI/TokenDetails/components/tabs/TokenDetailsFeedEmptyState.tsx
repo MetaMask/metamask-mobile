@@ -68,7 +68,7 @@ const FeedEmptyMegaphone: React.FC = () => {
   }, []);
 
   return (
-    <Box twClassName="mb-4">
+    <Box className="mb-4">
       {showFallback || !riveFile ? (
         <Image
           source={megaphoneFallback}
@@ -125,7 +125,7 @@ const CreateBalancePostButton: React.FC<{ token: TokenDetailsRouteParams }> = ({
       variant={ButtonVariant.Secondary}
       isLoading={isPositionLoading}
       onPress={handlePress}
-      twClassName="mt-4 self-center"
+      className="mt-4 self-center"
       testID={CREATE_POST_TEST_ID}
     >
       {strings('token_details_v1.feed_tab.empty.create_post')}
@@ -141,7 +141,7 @@ const CreatePostButton: React.FC = () => {
     <Button
       variant={ButtonVariant.Secondary}
       onPress={() => openComposer({ composerEntry: 'token_details' })}
-      twClassName="mt-4 self-center"
+      className="mt-4 self-center"
       testID={CREATE_POST_TEST_ID}
     >
       {strings('token_details_v1.feed_tab.empty.create_post')}
@@ -164,14 +164,14 @@ const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
 }) => (
   <Box
     alignItems={BoxAlignItems.Center}
-    twClassName="w-full px-8 py-12"
+    className="w-full px-8 py-12"
     testID={FEED_EMPTY_TEST_ID}
   >
     <FeedEmptyMegaphone />
     <Text
       variant={TextVariant.HeadingLg}
       color={TextColor.TextDefault}
-      twClassName="text-center"
+      className="text-center"
     >
       {strings(
         hasBalance
@@ -183,7 +183,7 @@ const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextAlternative}
-      twClassName="mt-1 text-center"
+      className="mt-1 text-center"
     >
       {strings('token_details_v1.feed_tab.empty.description')}
     </Text>

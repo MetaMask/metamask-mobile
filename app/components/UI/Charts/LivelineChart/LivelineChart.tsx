@@ -218,11 +218,11 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
           style={tw.style('w-full bg-background-default', { height })}
-          twClassName="px-5"
+          className="px-5"
         >
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
           >
             Failed to load chart: {webViewError}
           </Text>
@@ -266,7 +266,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
             />
             <Text
               variant={TextVariant.BodySm}
-              twClassName="mt-3 text-text-muted"
+              className="mt-3 text-text-muted"
             >
               Loading chart...
             </Text>

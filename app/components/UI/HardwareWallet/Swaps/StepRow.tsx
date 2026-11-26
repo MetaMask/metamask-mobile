@@ -84,18 +84,18 @@ export const StepRow = memo(
         testID={`${HardwareWalletsSwapsSelectorsIDs.STEP_ROW}-${index}`}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
-        twClassName="w-full"
+        className="w-full"
       >
         <Box
           alignItems={BoxAlignItems.Center}
           flexDirection={BoxFlexDirection.Column}
-          twClassName="w-8 self-stretch"
+          className="w-8 self-stretch"
         >
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
-            twClassName="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full"
           >
             {icon.isSigning ? (
               <ActivityIndicator
@@ -117,7 +117,7 @@ export const StepRow = memo(
             />
           ) : null}
         </Box>
-        <Box gap={4} marginLeft={3} twClassName="flex-1 pt-1.5">
+        <Box gap={4} marginLeft={3} className="flex-1 pt-1.5">
           <Text
             variant={TextVariant.BodyMd}
             color={titleColor}

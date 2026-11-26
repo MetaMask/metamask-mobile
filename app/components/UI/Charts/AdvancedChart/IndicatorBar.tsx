@@ -63,7 +63,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          className="text-text-alternative"
         >
           {maLabel}
         </Text>
@@ -87,7 +87,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
               <Text
                 variant={TextVariant.BodyXs}
                 fontWeight={active ? FontWeight.Bold : FontWeight.Medium}
-                twClassName={
+                className={
                   active ? 'text-text-default' : 'text-text-alternative'
                 }
               >
@@ -95,7 +95,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
               </Text>
             </Pressable>
             {showDividerAfter ? (
-              <Box twClassName="h-4 w-px bg-border-muted" />
+              <Box className="h-4 w-px bg-border-muted" />
             ) : null}
           </React.Fragment>
         );
@@ -119,7 +119,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full border-t border-b border-border-muted px-4 py-2"
+      className="w-full border-t border-b border-border-muted px-4 py-2"
     >
       {items}
     </Box>

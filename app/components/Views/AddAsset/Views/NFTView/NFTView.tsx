@@ -49,7 +49,7 @@ const NFTView = ({
 
   return (
     <>
-      <Box twClassName="items-center pt-4 px-4" testID="add-asset-nft-banner">
+      <Box className="items-center pt-4 px-4" testID="add-asset-nft-banner">
         <Banner
           variant={BannerVariant.Alert}
           description={

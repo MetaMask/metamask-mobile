@@ -35,12 +35,12 @@ const SourceLogoGroup: React.FC<SourceLogoGroupProps> = ({ sources }) => {
       {visibleLogos.map((source, index) => (
         <Box
           key={`${source.name}-${source.url}`}
-          twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
+          className={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
             index > 0 ? '-ml-1' : ''
           }`}
         >
           {isXSourceUrl(source.url) ? (
-            <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
+            <Box className="h-4 w-4 items-center justify-center rounded-full">
               <Icon
                 name={IconName.X}
                 size={IconSize.Sm}

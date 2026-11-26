@@ -46,14 +46,14 @@ const RebateBanner: React.FC<RebateBannerProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName={`w-full rounded-lg bg-muted px-3 py-2 ${twClassName ?? ''}`}
+      className={`w-full rounded-lg bg-muted px-3 py-2 ${twClassName ?? ''}`}
       testID={testID}
     >
       <MoneyBalanceIcon width={16} height={16} name="money-balance" />
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextDefault}
-        twClassName={`flex-1 ${textTwClassName ?? ''}`}
+        className={`flex-1 ${textTwClassName ?? ''}`}
       >
         {strings('rewards.rebate.banner', { percent: rebatePercent })}
       </Text>

@@ -234,7 +234,7 @@ const Benefits = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-background-default"
+      className="flex-1 bg-background-default"
       testID={BenefitsTestIds.CONTAINER}
     >
       <ScrollView
@@ -243,10 +243,10 @@ const Benefits = ({
         contentContainerStyle={tw.style('w-full')}
       >
         {/* Header */}
-        <Box twClassName="w-full px-4 py-2">
+        <Box className="w-full px-4 py-2">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="mb-2 w-full"
+            className="mb-2 w-full"
             testID={BenefitsTestIds.TITLE}
           >
             {strings('pro_subscription.title')}
@@ -255,13 +255,13 @@ const Benefits = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="w-full gap-2 flex-wrap"
+              className="w-full gap-2 flex-wrap"
             >
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="w-full"
+                className="w-full"
                 testID={BenefitsTestIds.PRICE_LINE}
               >
                 {priceLine}
@@ -271,7 +271,7 @@ const Benefits = ({
         </Box>
 
         {/* Benefits list */}
-        <Box twClassName="w-full px-4 pb-2">
+        <Box className="w-full px-4 pb-2">
           {BENEFITS.map((item) => (
             <BenefitRow
               key={item.id}
@@ -283,10 +283,10 @@ const Benefits = ({
         </Box>
       </ScrollView>
 
-      <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
+      <Box className="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
         {isPlansLoading ? (
           <Box
-            twClassName="flex flex-col gap-y-4"
+            className="flex flex-col gap-y-4"
             testID={BenefitsTestIds.PRICING_LOADING}
             accessibilityLabel={strings('pro_subscription.pricing.loading')}
           >
@@ -298,7 +298,7 @@ const Benefits = ({
 
         {hasError ? (
           <Box
-            twClassName="flex flex-col gap-y-3"
+            className="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_ERROR}
           >
             <BannerAlert
@@ -321,7 +321,7 @@ const Benefits = ({
         !hasError &&
         plusPricing.status === PLUS_PRICING_STATUS.unavailable ? (
           <Box
-            twClassName="flex flex-col gap-y-3"
+            className="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_UNAVAILABLE}
           >
             <BannerAlert
@@ -344,7 +344,7 @@ const Benefits = ({
         !hasError &&
         plusPricing.status === PLUS_PRICING_STATUS.malformed ? (
           <Box
-            twClassName="flex flex-col gap-y-3"
+            className="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_MALFORMED}
           >
             <BannerAlert
@@ -383,7 +383,7 @@ const Benefits = ({
             isSelected={enableTestClocks}
             onChange={setEnableTestClocks}
             testID={BenefitsTestIds.TEST_CLOCKS_CHECKBOX}
-            twClassName="items-start"
+            className="items-start"
           />
         ) : null}
 
@@ -411,7 +411,7 @@ const Benefits = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={BenefitsTestIds.FREE_TRIAL_DESCRIPTION}
           >
             {strings('pro_subscription.free_trial_description')}

@@ -120,7 +120,7 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="shrink gap-1"
+        className="shrink gap-1"
       >
         {icon && !isMissing ? (
           <Icon
@@ -147,7 +147,7 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
                 : (valueColor ?? TextColor.TextDefault)
             }
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={SecurityTabSelectors.rowValue(rowKey)}
           >
             {value ?? STAT_EMPTY_VALUE}

@@ -73,8 +73,8 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="pb-5 pt-0">
-        <Box twClassName="mb-1 items-end pr-2">
+      <Box className="pb-5 pt-0">
+        <Box className="mb-1 items-end pr-2">
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
@@ -82,7 +82,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
           />
         </Box>
         {showPreview && (
-          <Box twClassName="mb-2 px-6">
+          <Box className="mb-2 px-6">
             <NotifCard
               title={previewTitle}
               message={previewMessage}
@@ -91,10 +91,10 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
           </Box>
         )}
 
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="mb-2 text-center"
+            className="mb-2 text-center"
             testID={NewUserSheetSelectorsIDs.TITLE}
           >
             {title}
@@ -102,19 +102,19 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
 
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mb-7 text-center text-alternative"
+            className="mb-7 text-center text-alternative"
             testID={NewUserSheetSelectorsIDs.BODY}
           >
             {body}
           </Text>
 
-          <Box twClassName="gap-3">
+          <Box className="gap-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleYes}
-              twClassName="rounded-xl"
+              className="rounded-xl"
               testID={NewUserSheetSelectorsIDs.BUTTON_YES}
             >
               {yesLabel}

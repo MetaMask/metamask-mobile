@@ -76,13 +76,13 @@ const BasicFunctionalityMigrationBottomSheet = () => {
       testID="basic-functionality-migration-bottom-sheet"
     >
       <ScrollView>
-        <Box twClassName="items-center gap-4 px-6 pt-11 pb-4">
+        <Box className="items-center gap-4 px-6 pt-11 pb-4">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('basic_functionality_migration.social_title')}
           </Text>
         </Box>
-        <Box twClassName="px-6 pb-8">
+        <Box className="px-6 pb-8">
           <Text variant={TextVariant.BodyMd}>
             {strings('basic_functionality_migration.social_body_1')}{' '}
             {strings('basic_functionality_migration.social_body_2_prefix')}{' '}
@@ -120,7 +120,7 @@ const BasicFunctionalityMigrationBottomSheet = () => {
           onPress: handleAccept,
           testID: 'basic-functionality-migration-accept',
         }}
-        twClassName="px-6"
+        className="px-6"
       />
     </BottomSheet>
   );

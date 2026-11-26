@@ -38,12 +38,12 @@ const BenefitDetails = ({
       onClose={onClose}
       testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
     >
-      <Box twClassName="px-4 pt-6 flex flex-col">
+      <Box className="px-4 pt-6 flex flex-col">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="mb-2"
+          className="mb-2"
           accessibilityRole="header"
         >
           {strings(details.title)}
@@ -53,14 +53,14 @@ const BenefitDetails = ({
             key={descriptionKey}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-3"
+            className="mb-3"
           >
             {strings(descriptionKey)}
           </Text>
         ))}
 
         {details.points && (
-          <Box twClassName="flex flex-col gap-y-1.5 mb-3">
+          <Box className="flex flex-col gap-y-1.5 mb-3">
             {details.points.map((pointKey) => (
               <Text
                 key={pointKey}
@@ -77,7 +77,7 @@ const BenefitDetails = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextDefault}
-            twClassName="mb-3 self-start border-b border-border-default"
+            className="mb-3 self-start border-b border-border-default"
             onPress={handleLinkPress}
             accessibilityRole="link"
           >

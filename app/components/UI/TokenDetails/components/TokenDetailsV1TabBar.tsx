@@ -407,14 +407,14 @@ const TokenDetailsV1TabBar = memo(
       // own container because both edges land in the same place, and this is
       // the element that already identifies the tab bar.
       <Box
-        twClassName="border-b border-muted bg-default"
+        className="border-b border-muted bg-default"
         style={insetStyle}
         testID={
           isPinnedCopy ? TokenDetailsIds.pinnedTabBar : TokenDetailsIds.tabBar
         }
         onLayout={onLayout}
       >
-        <Box twClassName="pt-3">
+        <Box className="pt-3">
           <TabsBar
             tabs={tabItems}
             activeIndex={activeIndex}
