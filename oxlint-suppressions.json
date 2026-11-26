@@ -15040,11 +15040,8 @@
     }
   },
   "app/components/Views/ChoosePassword/ChoosePassword.view.test.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
-      "count": 3
+      "count": 2
     }
   },
   "app/components/Views/ChoosePassword/index.test.tsx": {
@@ -16949,7 +16946,7 @@
       "count": 1
     },
     "typescript/unbound-method": {
-      "count": 4
+      "count": 5
     }
   },
   "app/components/Views/Settings/NotificationsSettings/PushNotificationToggle.hooks.test.tsx": {
@@ -16984,11 +16981,6 @@
   "app/components/Views/Settings/NotificationsSettings/hooks/useNotificationStoragePreferences.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
-    }
-  },
-  "app/components/Views/Settings/NotificationsSettings/hooks/useNotificationStoragePreferences.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
     }
   },
   "app/components/Views/Settings/NotificationsSettings/hooks/useOptimisticToggleValue.ts": {
@@ -17088,13 +17080,7 @@
     }
   },
   "app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection.view.test.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -19437,7 +19423,7 @@
   },
   "app/components/Views/confirmations/hooks/pay/usePayTokenAccountBalance.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
+      "count": 3
     }
   },
   "app/components/Views/confirmations/hooks/pay/usePayWithNoFeeToken.test.ts": {
@@ -20141,11 +20127,6 @@
   "app/components/hooks/useAnalytics/useAnalytics.ts": {
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/components/hooks/useAsyncResult.test.ts": {
@@ -21679,13 +21660,7 @@
     "typescript/no-floating-promises": {
       "count": 7
     },
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
-    "typescript/promise-function-async": {
       "count": 4
     },
     "typescript/unbound-method": {
@@ -22038,9 +22013,6 @@
   "app/core/OAuthService/OAuthService.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 4
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 2
     },
     "typescript/prefer-readonly": {
       "count": 7
@@ -24692,7 +24664,7 @@
       "count": 3
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 1
     }
   },
   "app/util/transactions/index.test.ts": {

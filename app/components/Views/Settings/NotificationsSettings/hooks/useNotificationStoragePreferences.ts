@@ -118,7 +118,7 @@ export const useNotificationStoragePreferences =
     const hadFailedWriteRef = useRef(false);
     const getCachedPreferences = useCallback(
       () =>
-        queryClient.getQueryData(QUERY_KEY) as NotificationPreferencesQueryData,
+        queryClient.getQueryData<NotificationPreferencesQueryData>(QUERY_KEY),
       [queryClient],
     );
 
@@ -161,10 +161,7 @@ export const useNotificationStoragePreferences =
         type: PreferenceType,
         sectionUpdate: NotificationPreferenceSectionUpdate<PreferenceType>,
       ) => {
-        const currentPreferences = (getCachedPreferences() ?? data) as
-          | NotificationPreferences
-          | null
-          | undefined;
+        const currentPreferences = getCachedPreferences() ?? data;
 
         if (!currentPreferences) {
           Logger.error(
@@ -214,12 +211,12 @@ export const useNotificationStoragePreferences =
         try {
           const saved = await updateNotificationPreferences({
             [type]: changedFields,
-          } as NotificationPreferencesUpdate);
+          });
           // Keep the result of the latest update, whatever order they settle
           // in.
           if (sequence > lastSavedSequenceRef.current) {
             lastSavedSequenceRef.current = sequence;
-            lastSavedPreferencesRef.current = saved as NotificationPreferences;
+            lastSavedPreferencesRef.current = saved;
           }
           // Best-effort: nudge the Social API to refresh its cached copy so
           // the change is honoured immediately rather than after its cache
@@ -291,7 +288,7 @@ export const useNotificationStoragePreferences =
     );
 
     return {
-      preferences: data as NotificationPreferencesResult,
+      preferences: data,
       hasNotificationPreferences: data !== null && data !== undefined,
       isLoading,
       isUpdatingPreferences: pendingWrites > 0,

@@ -190,9 +190,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       const preferences = await Engine.controllerMessenger.call(
         'AuthenticatedUserStorageService:getNotificationPreferences',
       );
-      return Boolean(
-        preferences?.marketing.pushNotificationsEnabled ||
-          preferences?.marketing.inAppNotificationsEnabled,
+      return (
+        preferences?.marketing.pushNotificationsEnabled === true ||
+        preferences?.marketing.inAppNotificationsEnabled === true
       );
     } catch {
       // Unknown: the opt-out turns the channels off in AUS anyway.

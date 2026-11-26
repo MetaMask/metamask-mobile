@@ -256,9 +256,11 @@ const PushNotificationOnboarding = ({
     // Consent is recorded first, since marketing notifications follow it.
     enableMarketingConsent()
       .catch(() => undefined)
-      .then(() =>
-        enableNotificationsInBackground(nativeOsPermissionEnabled === true),
-      );
+      .then(async () => {
+        await enableNotificationsInBackground(
+          nativeOsPermissionEnabled === true,
+        );
+      });
   }, [
     dismissPrePrompt,
     enableMarketingConsent,
