@@ -93,9 +93,9 @@ const HeaderRoot: React.FC<HeaderRootProps> = ({
       testID={testID}
       {...viewProps}
     >
-      <Box twClassName="flex-1 items-start">{renderLeftSection()}</Box>
+      <Box className="flex-1 items-start">{renderLeftSection()}</Box>
       {hasEndContent && (
-        <Box twClassName="flex-row gap-2">{renderEndContent()}</Box>
+        <Box className="flex-row gap-2">{renderEndContent()}</Box>
       )}
     </View>
   );

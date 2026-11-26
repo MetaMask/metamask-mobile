@@ -59,7 +59,7 @@ export const WithTitleAccessory = {
       topLabel="Balance"
       title="$4.42"
       titleAccessory={
-        <Box twClassName="ml-2">
+        <Box className="ml-2">
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
@@ -114,7 +114,7 @@ export const FullExample = {
       topLabel="Send"
       title="$4.42"
       titleAccessory={
-        <Box twClassName="ml-1">
+        <Box className="ml-1">
           <Icon name={IconName.Info} size={IconSize.Sm} />
         </Box>
       }

@@ -56,6 +56,10 @@ export const WithStartAccessory = {
       }
       title="Wrapped Ethereum"
       bottomLabel="$3,456.78"
+    /><AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} size={AvatarSize.Lg} />
+      }
+      title="Wrapped Ethereum"
+      bottomLabel="$3,456.78"
     />
   ),
 };
@@ -65,7 +69,16 @@ export const WithTitleAccessory = {
     <TitleSubpage
       title="Token name"
       titleAccessory={
-        <Box twClassName="ml-2">
+        <Box className="ml-2">
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+      }
+      bottomLabel="$1,234.56"
+    /><Box className="ml-2">
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
@@ -92,6 +105,15 @@ export const WithBottomAccessory = {
           <Text variant={TextVariant.BodySm}>~$0.50 fee</Text>
         </Box>
       }
+    /><Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <Icon name={IconName.Gas} size={IconSize.Xs} />
+          <Text variant={TextVariant.BodySm}>~$0.50 fee</Text>
+        </Box>
+      }
     />
   ),
 };
@@ -104,7 +126,16 @@ export const FullExample = {
       }
       title="Wrapped Ethereum"
       titleAccessory={
-        <Box twClassName="ml-1">
+        <Box className="ml-1">
+          <Icon name={IconName.Info} size={IconSize.Sm} />
+        </Box>
+      }
+      bottomLabel="$3,456.78"
+    /><AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} size={AvatarSize.Lg} />
+      }
+      title="Wrapped Ethereum"
+      titleAccessory={
+        <Box className="ml-1">
           <Icon name={IconName.Info} size={IconSize.Sm} />
         </Box>
       }

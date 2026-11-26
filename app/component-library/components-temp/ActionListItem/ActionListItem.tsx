@@ -85,7 +85,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-6"
+          className="h-6"
         >
           <Icon name={iconName} size={IconSize.Md} {...iconProps} />
         </Box>
@@ -117,14 +117,14 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
-          twClassName="flex-1"
+          className="flex-1"
           gap={4}
         >
           {/* Start accessory or icon */}
           {renderStartContent()}
 
           {/* Label and description container */}
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             {renderLabel()}
             {renderDescription()}
           </Box>

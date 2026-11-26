@@ -48,7 +48,7 @@ export const Default = {
         <Button
           variant={ButtonVariant.Primary}
           onPress={openBottomSheet}
-          twClassName="mb-4"
+          className="mb-4"
         >
           Open BottomSheet
         </Button>
@@ -67,7 +67,7 @@ export const Default = {
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName="h-20"
+              className="h-20"
             >
               <Text>
                 BottomSheetContent: Lorem ipsum dolor sit amet, consectetur
@@ -89,7 +89,7 @@ export const Default = {
               ]}
             />
             {/* TODO: This is a hack to make the bottom sheet visible */}
-            <Box twClassName="h-35" />
+            <Box className="h-35" />
           </BottomSheet>
         )}
       </>

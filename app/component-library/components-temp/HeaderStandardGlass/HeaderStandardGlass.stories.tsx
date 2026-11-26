@@ -105,7 +105,7 @@ export const PlainIcons = {
 export const Children = {
   render: () => (
     <HeaderStandardGlass onClose={() => console.log('Close pressed')}>
-      <Box twClassName="items-center">
+      <Box className="items-center">
         <Text variant={TextVariant.HeadingSm}>Custom title</Text>
         <Text variant={TextVariant.BodySm}>Subtitle text</Text>
       </Box>
