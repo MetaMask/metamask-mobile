@@ -1,4 +1,5 @@
 import Logger from '../../util/Logger';
+import AppConstants from '../AppConstants';
 import TransactionTypes from '../TransactionTypes';
 import Engine from '../Engine';
 import {
@@ -1054,6 +1055,30 @@ describe('Permission Utility Functions', () => {
 
       const result = getPermittedAccounts(TransactionTypes.MMM);
       expect(result).toEqual(['0x123']);
+    });
+
+    it('should return no accounts for the in-app browser placeholder origin even when a record exists', () => {
+      // An SDK dapp can pick this string as its channel id and get a CAIP-25
+      // record written under it. The placeholder must stay unusable.
+      mockGetCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': { accounts: ['eip155:1:0x123'] },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
+      mockIsUnlocked.mockReturnValue(true);
+
+      const result = getPermittedAccounts(
+        AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetCaveat).not.toHaveBeenCalled();
     });
 
     it('should return permitted accounts for external origins when wallet is unlocked', () => {

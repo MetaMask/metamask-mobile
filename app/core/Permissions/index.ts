@@ -1,4 +1,5 @@
 import ImportedEngine from '../Engine';
+import AppConstants from '../AppConstants';
 import TransactionTypes from '../TransactionTypes';
 import {
   CaipAccountId,
@@ -517,6 +518,14 @@ export const getPermittedAccounts = (
 ) => {
   const { AccountsController, PermissionController, KeyringController } =
     Engine.context;
+
+  // The in-app browser placeholder is not a site: it marks a request the
+  // browser could not attribute to a page. It must never resolve to accounts,
+  // even if a record exists under it, because an SDK dapp chooses its own
+  // channel id and can collide with this string.
+  if (origin === AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER) {
+    return [];
+  }
 
   let caveat;
   try {

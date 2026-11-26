@@ -29,7 +29,11 @@ export async function handleMetaMaskDeeplink({
   handled();
 
   const channelId = params?.channelId;
-  if (channelId && INTERNAL_ORIGINS.includes(channelId)) {
+  if (
+    channelId &&
+    (INTERNAL_ORIGINS.includes(channelId) ||
+      channelId === AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER)
+  ) {
     throw new Error('External transactions cannot use internal origins');
   }
 

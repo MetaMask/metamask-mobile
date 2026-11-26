@@ -123,6 +123,30 @@ describe('handleMetaMaskProtocol', () => {
       ).rejects.toThrow('DeepLinkManager failed to connect - Invalid scheme');
     });
 
+    it('rejects a channel id that collides with the in-app browser placeholder origin', async () => {
+      const mockHandleConnection = jest.fn();
+      mockSDKConnectGetInstance.mockImplementation(() => ({
+        state: {
+          deeplinkingService: {
+            handleConnection: mockHandleConnection,
+          },
+        },
+      }));
+      params.scheme = 'test-scheme';
+      params.channelId = AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
+
+      await expect(
+        handleMetaMaskDeeplink({
+          handled,
+          params,
+          url,
+          origin,
+          wcURL,
+        }),
+      ).rejects.toThrow('External transactions cannot use internal origins');
+      expect(mockHandleConnection).not.toHaveBeenCalled();
+    });
+
     it('calls handleConnection if params.scheme is defined', async () => {
       const mockHandleConnection = jest.fn();
       mockSDKConnectGetInstance.mockImplementation(() => ({

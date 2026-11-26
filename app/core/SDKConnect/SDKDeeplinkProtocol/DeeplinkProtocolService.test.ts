@@ -434,6 +434,27 @@ describe('DeeplinkProtocolService', () => {
       });
       expect(spy).toHaveBeenCalled();
     });
+
+    it('files the permission under the dapp-chosen channelId verbatim', async () => {
+      const spy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      await service.checkPermission({
+        channelId: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+        originatorInfo: {
+          url: 'https://evil.example',
+          title: 'Evil Dapp',
+          platform: 'ios',
+          dappId: 'dappId',
+        },
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        { origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER },
+        expect.anything(),
+      );
+    });
   });
 
   describe('handleConnection', () => {
