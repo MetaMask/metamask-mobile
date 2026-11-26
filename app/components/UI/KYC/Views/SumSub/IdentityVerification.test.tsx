@@ -2,15 +2,15 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
-import VbaIdentityVerificationModule, {
+import KycIdentityVerificationModule, {
   getVbaIdentityVerificationInitialRoute,
   openPartnerTerms,
   resetToProvider,
 } from './IdentityVerification';
-import { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
+import { KycSumSubSelectorsIDs } from './SumSubKyc';
 import {
-  VbaPartnerTermsSelectorsIDs,
-  VbaVerifyIdentitySelectorsIDs,
+  KycPartnerTermsSelectorsIDs,
+  KycVerifyIdentitySelectorsIDs,
 } from './VerifyIdentity.testIds';
 import { VbaIdentityVerificationRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import Engine from '../../../../../core/Engine';
@@ -63,7 +63,7 @@ const abandonedSnapshot = {
 const abandonedRoute = {
   key: 'VbaIdentityVerificationKey',
   params: { snapshot: abandonedSnapshot },
-} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
 
 // Terms were accepted earlier, on Verify Identity; re-entry lands on the
 // provider screen without an abandoned flow behind it.
@@ -75,15 +75,15 @@ const termsAcceptedSnapshot = {
 const termsAcceptedRoute = {
   key: 'VbaIdentityVerificationKey',
   params: { snapshot: termsAcceptedSnapshot },
-} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
 
 const newSessionRoute = {
   key: 'VbaIdentityVerificationKey',
   params: { snapshot: EMPTY_VBA_ONBOARDING_SNAPSHOT },
-} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
 
 const moduleNavigation = {} as React.ComponentProps<
-  typeof VbaIdentityVerificationModule
+  typeof KycIdentityVerificationModule
 >['navigation'];
 
 describe('getVbaIdentityVerificationInitialRoute', () => {
@@ -111,7 +111,7 @@ describe('getVbaIdentityVerificationInitialRoute', () => {
   });
 });
 
-describe('VbaIdentityVerificationModule', () => {
+describe('KycIdentityVerificationModule', () => {
   // Mounting the navigator pulls in the whole identity-verification module
   // graph, which takes several seconds on a cold worker — more than Jest's
   // 5s default for the first test to render it. Measured at 13s against a
@@ -153,9 +153,10 @@ describe('VbaIdentityVerificationModule', () => {
     'launches SumSub directly on re-entry with an abandoned provider flow',
     async () => {
       const { queryByTestId } = renderWithProvider(
-        <VbaIdentityVerificationModule
+        <KycIdentityVerificationModule
           route={abandonedRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 
@@ -164,9 +165,7 @@ describe('VbaIdentityVerificationModule', () => {
           locale: toSumSubLocale(I18n.locale),
         });
       });
-      expect(
-        queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(queryByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     },
     NAVIGATOR_RENDER_TIMEOUT_MS,
   );
@@ -175,9 +174,10 @@ describe('VbaIdentityVerificationModule', () => {
     'launches SumSub through the same provider screen when terms are accepted',
     async () => {
       const { getByTestId } = renderWithProvider(
-        <VbaIdentityVerificationModule
+        <KycIdentityVerificationModule
           route={termsAcceptedRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 
@@ -186,7 +186,7 @@ describe('VbaIdentityVerificationModule', () => {
           locale: toSumSubLocale(I18n.locale),
         });
       });
-      expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     },
     NAVIGATOR_RENDER_TIMEOUT_MS,
   );
@@ -195,25 +195,26 @@ describe('VbaIdentityVerificationModule', () => {
     'walks a new session from the introduction through the partners page to the provider',
     async () => {
       const { getByTestId, findByTestId } = renderWithProvider(
-        <VbaIdentityVerificationModule
+        <KycIdentityVerificationModule
           route={newSessionRoute}
           navigation={moduleNavigation}
+          onExit={jest.fn()}
         />,
       );
 
       // Page 1 enables its CTA once the catalog lands.
       await waitFor(() => {
         expect(
-          getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+          getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
         ).toBeEnabled();
       });
       fireEvent.press(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+        getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
       );
 
       // Page 2 renders the catalog it was handed, with no fetch of its own.
       const agreeButton = await findByTestId(
-        VbaPartnerTermsSelectorsIDs.AGREE_BUTTON,
+        KycPartnerTermsSelectorsIDs.AGREE_BUTTON,
       );
       expect(agreeButton).toBeDisabled();
       expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledTimes(
@@ -221,7 +222,7 @@ describe('VbaIdentityVerificationModule', () => {
       );
 
       fireEvent(
-        getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
+        getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
         'change',
         true,
       );

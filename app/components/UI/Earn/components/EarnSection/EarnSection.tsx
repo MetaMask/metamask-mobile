@@ -42,8 +42,10 @@ import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
@@ -55,10 +57,7 @@ import useExploreSectionVisibility from '../../../../Views/TrendingView/hooks/us
 import { EarnSectionTestIds } from './EarnSection.testIds';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
-import {
-  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
-  SCREEN_NAMES as MONEY_SCREEN_NAMES,
-} from '../../../Money/constants/moneyEvents';
+import { COMPONENT_NAMES as MONEY_COMPONENT_NAMES } from '../../../Money/constants/moneyEvents';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -178,14 +177,20 @@ const EarnSection = ({
     enabled: enabled && isMoneyAccountVisible,
   });
 
-  // Money and Earn analytics intentionally separate because Money events have additional properties injected that are not relevant to Earn.
-  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
-    useMoneyNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const { destination: moneyDepositDestination } = getMoneyEntryDecision(
+    'deposit',
+    moneyEntryContext,
+  );
+  const isMoneyFtueRedirectNeeded = moneyDepositDestination === 'splash';
   const {
     screen_name: earnScreenName,
     entry_point: earnEntryPoint,
     component_name: earnSectionComponentName,
   } = analyticsContext;
+
+  // Money and Earn analytics intentionally separate because Money events have additional properties injected that are not relevant to Earn.
   const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
     screen_name: earnScreenName,
   });
@@ -300,7 +305,7 @@ const EarnSection = ({
         ...getEarnModuleAssetProperties(asset, position, assetsInList),
         redirect_target: getEarnAssetSelectionRedirectTarget(
           asset,
-          isOnboardingRedirectNeeded,
+          moneyEntryContext,
         ),
       });
 
@@ -321,7 +326,7 @@ const EarnSection = ({
       assetSlots,
       earnEntryPoint,
       earnScreenName,
-      isOnboardingRedirectNeeded,
+      moneyEntryContext,
       navigateFromEarnAsset,
       tokenDetailsSource,
       trackEarnSurfaceClicked,
@@ -329,11 +334,11 @@ const EarnSection = ({
   );
 
   const moneyAccountCardSecondaryText = useMemo(() => {
-    if (isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('earn_module.get_started');
     }
 
-    if (!isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (!isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('money.asset_overview.cta.start_earning');
     }
 
@@ -352,25 +357,27 @@ const EarnSection = ({
       </SensitiveText>
     );
   }, [
-    isOnboardingRedirectNeeded,
+    isMoneyFtueRedirectNeeded,
     moneyAccountBalanceFiat,
     moneyAccountBalanceRaw,
     privacyMode,
   ]);
 
   const handleMoneyAccountCardPress = useCallback(() => {
-    trackMoneySurfaceClicked({
-      component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
-      redirect_target: isOnboardingRedirectNeeded
-        ? MONEY_SCREEN_NAMES.MONEY_ONBOARDING
-        : MONEY_SCREEN_NAMES.MONEY_HOME,
+    navigateToMoneyDeposit({
+      track: ({ redirect_target }) => {
+        trackMoneySurfaceClicked({
+          component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
+          redirect_target,
+        });
+      },
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        '[EarnSection] Failed to initiate Money deposit',
+      );
     });
-    navigateToMoneyHome();
-  }, [
-    isOnboardingRedirectNeeded,
-    navigateToMoneyHome,
-    trackMoneySurfaceClicked,
-  ]);
+  }, [navigateToMoneyDeposit, trackMoneySurfaceClicked]);
 
   const handleRetry = useCallback(async () => {
     if (isRetryingRef.current) {

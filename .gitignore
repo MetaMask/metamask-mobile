@@ -150,6 +150,7 @@ playwright-report/*
 appwright/test-reports/
 test-results/
 test-reports/
+tests/results/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk
@@ -281,3 +282,6 @@ sourcemaps/**/*.js.map
 # Local planning artifacts. Not team-shared storage.
 .specs/
 .briefs/
+
+# Never commit PR screenshots — host as GitHub user-attachments
+.github/pr-screenshots/

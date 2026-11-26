@@ -11,10 +11,18 @@ import type {
 } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositIntent';
+import type { MoneyVaultStatus } from '../utils/moneyVaultState';
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
+  /** Return to Card after the Money account exists. */
+  CARD = 'card',
 }
+
+/** Card screen to open after the Money splash when the redirect type is CARD. */
+export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
+
+export type MoneyEarningsTab = 'earnings' | 'apy' | 'allocation';
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -29,13 +37,22 @@ export interface MoneyDepositDeeplinkParams {
   tokenType?: string;
 }
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
-  postOnboardingRedirect?: {
-    type: MoneyPostOnboardingRedirectType;
-    preferredPaymentToken?: MoneyPreferredPaymentToken;
-    autoSelectFiatPayment?: boolean;
-    intent?: MoneyAccountDepositIntent;
-  };
+export type MoneyPostOnboardingRedirect =
+  | {
+      type: MoneyPostOnboardingRedirectType.DEPOSIT;
+      preferredPaymentToken?: MoneyPreferredPaymentToken;
+      autoSelectFiatPayment?: boolean;
+      intent?: MoneyAccountDepositIntent;
+    }
+  | {
+      type: MoneyPostOnboardingRedirectType.CARD;
+      cardScreen: MoneyCardReturnScreen;
+    };
+
+export interface MoneySplashParams extends NavigationAnalyticsRouteParams {
+  postOnboardingRedirect?: MoneyPostOnboardingRedirect;
+  /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
+  infoMode?: boolean;
 }
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
@@ -72,7 +89,7 @@ export type MoneyScreensStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyConfirmationsNavigationParamList = {
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  Confirmations: ConfirmationParams | undefined;
 };
 
 export interface MoneyAddMoneySheetParams {
@@ -92,18 +109,28 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: MoneyAddMoneySheetParams | undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
-  MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };
+  MoneyApyInfoSheet: {
+    apy?: number;
+    vaultStatus?: MoneyVaultStatus;
+  };
+  MoneyEstimatedBalanceSheet: {
+    depositAmountFiat: string;
+    projectedAmountFiat: string;
+    apy?: number;
+  };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
-  MoneyEarnCryptoInfoSheet:
-    | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
-    | undefined;
+  MoneyEarnCryptoInfoSheet: { showMoneyHomeCta?: boolean } | undefined;
   MoneyGeoBlockSheet: undefined;
 };
 
 interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
+}
+
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
 }
 
 /**
@@ -124,9 +151,10 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: MoneyOnboardingParams | undefined;
+    MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;
@@ -139,6 +167,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
           neobankActivity?: NeobankBankTransferActivity;
         }
       | undefined;
+    MoneyAccountStatus: undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
     MoneyModals:
       | NavigatorScreenParams<MoneyModalsNavigationParamList>

@@ -265,11 +265,12 @@ describe('ContractSecurityScreen', () => {
     ).toBeNull();
   });
 
-  // Passing checks stay green without a tick so they match `is_mintable`. Fail
-  // still draws the Close glyph. CBXRP_VERIFIED is both: mintable and
-  // blacklistable, so `no_blacklist` is the fail row and the rest pass.
+  // Passing checks stay green without a tick; `is_mintable` passes as "Yes",
+  // which draws the Close glyph. Fail still draws it. CBXRP_VERIFIED is both:
+  // mintable and blacklistable, so `no_blacklist` is the fail row and the rest
+  // pass.
   describe('check presentation', () => {
-    it('omits the tick on passing rows and keeps the fail glyph', () => {
+    it('omits the tick on passing rows except mintable, and keeps the fail glyph', () => {
       const { getByTestId, queryByTestId } = renderScreen(CBXRP_VERIFIED);
 
       for (const checkKey of [
@@ -288,10 +289,10 @@ describe('ContractSecurityScreen', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(
+        getByTestId(
           ContractSecuritySelectors.rowIcon(ContractCheckKey.IsMintable),
         ),
-      ).toBeNull();
+      ).toBeOnTheScreen();
     });
   });
 

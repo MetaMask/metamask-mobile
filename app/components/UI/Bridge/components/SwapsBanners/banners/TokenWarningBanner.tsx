@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -29,6 +29,8 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
 export const TokenWarningBanner = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { destToken, location } = useSwapsBannersContext();
+  const tokenKey = `${destToken?.chainId}:${destToken?.address}`;
+  const [dismissedTokenKey, setDismissedTokenKey] = useState<string>();
 
   const securityData = destToken?.securityData;
   const tokenWarning = useMemo(
@@ -40,7 +42,7 @@ export const TokenWarningBanner = () => {
     [securityData],
   );
 
-  if (!tokenWarning) {
+  if (!tokenWarning || dismissedTokenKey === tokenKey) {
     return null;
   }
 
@@ -58,9 +60,21 @@ export const TokenWarningBanner = () => {
       },
     });
 
+  const dismiss = () => setDismissedTokenKey(tokenKey);
+
   return (
+    // Screen readers treat this as one control, so the nested close button
+    // is also exposed as a custom accessibility action.
     <Pressable
       onPress={openWarningModal}
+      accessibilityRole="button"
+      accessibilityHint={strings('swaps.view_details')}
+      accessibilityActions={[
+        { name: 'dismiss', label: strings('bridge.close') },
+      ]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'dismiss') dismiss();
+      }}
       testID={SwapsBannersSelectorsIDs.TOKEN_WARNING}
     >
       <BannerBase
@@ -83,7 +97,7 @@ export const TokenWarningBanner = () => {
                 token: destToken?.symbol,
               })
         }
-        onClose={openWarningModal}
+        onClose={dismiss}
       />
     </Pressable>
   );

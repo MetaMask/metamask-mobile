@@ -1,10 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
-import { selectIsAssetsLoadingForSelectedAccountGroup } from '../../../../../selectors/assets/assets-controller';
+import { useAssetsHaveLoaded } from '../../hooks/useAssetsHaveLoaded';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+jest.mock('../../hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: jest.fn(),
 }));
 
 describe('useAccountGroupBalanceFetchState', () => {
@@ -12,13 +11,8 @@ describe('useAccountGroupBalanceFetchState', () => {
     jest.clearAllMocks();
   });
 
-  it('returns false while assets are loading for the selected account group', () => {
-    jest.mocked(useSelector).mockImplementation((selector) => {
-      if (selector === selectIsAssetsLoadingForSelectedAccountGroup) {
-        return true;
-      }
-      return undefined;
-    });
+  it('returns false while assets have not finished loading for the selected account group', () => {
+    jest.mocked(useAssetsHaveLoaded).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccountGroupBalanceFetchState());
 
@@ -26,12 +20,7 @@ describe('useAccountGroupBalanceFetchState', () => {
   });
 
   it('returns true after assets finish loading for the selected account group', () => {
-    jest.mocked(useSelector).mockImplementation((selector) => {
-      if (selector === selectIsAssetsLoadingForSelectedAccountGroup) {
-        return false;
-      }
-      return undefined;
-    });
+    jest.mocked(useAssetsHaveLoaded).mockReturnValue(true);
 
     const { result } = renderHook(() => useAccountGroupBalanceFetchState());
 

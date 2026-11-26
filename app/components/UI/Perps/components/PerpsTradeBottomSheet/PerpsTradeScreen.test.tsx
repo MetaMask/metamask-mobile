@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Provider } from 'react-redux';
 import {
   Text as DSText,
@@ -177,6 +178,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   autoCloseText: 'TP Off, SL Off',
   showAutoClose: true,
   margin: '$3.41',
+  marginMode: 'isolated',
   liquidationPrice: '$68.29',
   liquidationDistance: '30.05%',
   amount: '10',
@@ -305,6 +307,36 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Isolated');
+  });
+
+  it('names cross margin on the margin row', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode="cross" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Cross');
+    expect(
+      screen.getByLabelText('Margin, Cross, $3.41. About margin'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+  });
+
+  it('holds the margin label until the position stream resolves', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode={undefined} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByLabelText(
+        `Margin, ${PERPS_CONSTANTS.FallbackDataDisplay}, $3.41. About margin`,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
   });
 
   it('shows the payment asset icon beside the pay with value', () => {
@@ -648,6 +680,9 @@ describe('PerpsTradeScreen errors', () => {
         disabled: false,
         onValueChange: defaultProps.onSliderValueChange,
         onDragEnd: defaultProps.onSliderDragEnd,
+        ignoreUntilLayout: true,
+        layoutTestID: PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT,
+        testID: PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER,
       }),
     );
     // Both A/B bottom sheets share one slider control, so the Trade sheet

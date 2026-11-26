@@ -26,8 +26,8 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));

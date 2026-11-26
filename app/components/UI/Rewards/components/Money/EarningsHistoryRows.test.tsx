@@ -1,23 +1,23 @@
 import React from 'react';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import {
+  AvatarIcon,
+  IconName,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import type {
+  EarningOriginType,
   LedgerClaimEntryDto,
   LedgerEarningEntryDto,
-  ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { formatRewardsRelativeTime } from '../../utils/formatUtils';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../tests/component-view/presets/rewardsMoney';
+import {
+  formatRewardsRelativeDay,
+  formatRewardsRelativeTime,
+} from '../../utils/formatUtils';
 import { EarningsHistoryRow } from './EarningsHistoryRows';
 import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
-
-const LOCALIZED_TEXT = {
-  historyReferrals: 'Referrals',
-  historyCommission: 'Commission',
-  historyRebate: 'Rebate',
-  historyClaimed: 'Claimed',
-  historyClaimPending: 'Pending',
-  voided: 'Voided',
-} as unknown as ReferralLocalizedText;
 
 const amountColor = (
   getAllByType: (
@@ -66,6 +66,9 @@ describe('EarningsHistoryRow', () => {
 
     expect(getByText('Commission')).toBeOnTheScreen();
     expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(UNSAFE_getAllByType(AvatarIcon)[0].props.iconName).toBe(
+      IconName.People,
+    );
     expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.SuccessDefault,
     );
@@ -103,13 +106,67 @@ describe('EarningsHistoryRow', () => {
     expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.TextAlternative,
     );
-    expect(
-      getByText(
-        formatRewardsRelativeTime(new Date('2026-09-01T00:00:00.000Z')),
-      ),
-    ).toBeOnTheScreen();
+    expect(getByText(formatRewardsRelativeDay('2026-09-01'))).toBeOnTheScreen();
     expect(getByText('Voided')).toBeOnTheScreen();
     expect(queryByText('$0.00')).toBeNull();
+  });
+
+  it('shows a Predict cashback earning as Predictions with the chart icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'PREDICT_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Predictions')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
+  });
+
+  it('shows a swaps cashback earning as Swaps with the swap icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'SWAPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
+  });
+
+  it('shows a perps cashback earning as Perps with the candlestick icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'PERPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.Candlestick,
+    );
+  });
+
+  it('shows a type a newer server adds as a rebate with the swap icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{
+          ...earning,
+          earning_origin_type:
+            'CARD_FEE_CASHBACK' as unknown as EarningOriginType,
+        }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Rebate')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
   });
 
   it('shows a settled claim as a debit', () => {
@@ -134,7 +191,75 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Claimed')).toBeOnTheScreen();
-    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(getByText('Claim pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
+  });
+
+  describe('when the clock is 19:47 UTC', () => {
+    const now = new Date('2026-09-01T19:47:00.000Z');
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it.each(['SOCIAL_FOLLOW_TRADE', 'REFERRAL_REV_SHARE'] as const)(
+      'labels a %s day as today when its timestamp is that UTC midnight',
+      (origin) => {
+        const { getByText, queryByText } = renderWithProvider(
+          <EarningsHistoryRow
+            item={{ ...earning, earning_origin_type: origin }}
+            localizedText={LOCALIZED_TEXT}
+          />,
+        );
+
+        expect(getByText('Today')).toBeOnTheScreen();
+        expect(queryByText('19h ago')).toBeNull();
+      },
+    );
+
+    it.each([
+      'SWAPS_FEE_CASHBACK',
+      'PERPS_FEE_CASHBACK',
+      'PREDICT_FEE_CASHBACK',
+    ] as const)('labels a %s trade by the hours since it', (origin) => {
+      const { getByText, queryByText } = renderWithProvider(
+        <EarningsHistoryRow
+          item={{
+            ...earning,
+            earning_origin_type: origin,
+            ledger_timestamp: '2026-09-01T12:00:00.000Z',
+          }}
+          localizedText={LOCALIZED_TEXT}
+        />,
+      );
+
+      expect(
+        getByText(
+          formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByText('Today')).toBeNull();
+    });
+
+    it('labels a settled claim by the hours since it was created', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <EarningsHistoryRow
+          item={{ ...claim, ledger_timestamp: '2026-09-01T17:47:00.000Z' }}
+          localizedText={LOCALIZED_TEXT}
+        />,
+      );
+
+      expect(
+        getByText(
+          formatRewardsRelativeTime(new Date('2026-09-01T17:47:00.000Z')),
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByText('Today')).toBeNull();
+    });
   });
 });

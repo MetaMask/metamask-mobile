@@ -9,6 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AuthorComment } from '@metamask/social-controllers';
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import SocialFeedGif from '../../../../UI/SocialFeed/components/SocialFeedGif';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
@@ -16,7 +17,7 @@ import { formatFeedPostAge } from '../../../../UI/SocialFeed/utils/formatters';
 import { splitKlipyGifFromCommentText } from '../../../../UI/SocialFeed/utils/klipyGifComment';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
-const AVATAR_SIZE = 32;
+const AVATAR_SIZE = 40;
 
 interface PositionSheetPostRowProps {
   post: AuthorComment;
@@ -62,6 +63,11 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
           >
             {author.username}
           </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={`${PositionDetailsSheetSelectorsIDs.POST_VERIFIED_BADGE}-${post.uid}`}
+            />
+          ) : null}
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}

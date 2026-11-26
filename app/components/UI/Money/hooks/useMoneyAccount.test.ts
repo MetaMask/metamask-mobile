@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
-import { providerErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { TransactionType } from '@metamask/transaction-controller';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { useSelector } from 'react-redux';
@@ -28,6 +28,7 @@ import {
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -165,16 +166,16 @@ const mockUseMoneyAccountAvailability = jest.mocked(
 );
 const mockAssertMoneyAccountAccessible = jest.fn();
 const mockIsDepositPrefillEnabled = jest.fn(
-  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+  (intent?: MoneyAccountDepositIntent) => intent === 'addMusd',
 );
 
 function mockDepositPrefillEnabled(
-  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+  isEnabled: boolean | ((intent?: MoneyAccountDepositIntent) => boolean),
 ) {
   mockIsDepositPrefillEnabled.mockImplementation(
     typeof isEnabled === 'function'
       ? isEnabled
-      : (intent?: 'convert' | 'addMusd' | 'card') =>
+      : (intent?: MoneyAccountDepositIntent) =>
           intent === 'addMusd' ? true : isEnabled,
   );
   mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
@@ -197,6 +198,14 @@ const MOCK_MONEY_ACCOUNT = {
 const MOCK_RECIPIENT = '0xrecipient';
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
+// TransactionController rethrows it as an internal error, with no 4001 code.
+const createLedgerDeviceRejection = (): Error =>
+  rpcErrors.internal(
+    'MetaMask Pay: Relay: Ledger: User rejected action on device',
+  );
+const { isUserRejectedError: actualIsUserRejectedError } = jest.requireActual<
+  typeof import('../../../../util/errorHandling/isUserRejectedError')
+>('../../../../util/errorHandling/isUserRejectedError');
 const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockDepositFailed = jest.fn();
@@ -240,7 +249,7 @@ describe('useMoneyAccountDeposit', () => {
     mockIsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     } as never);
     mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
     mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
@@ -252,6 +261,7 @@ describe('useMoneyAccountDeposit', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),
@@ -551,6 +561,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'addMusd',
       loader: ConfirmationLoader.PrefillCustomAmount,
       preferredPaymentToken,
       replace: undefined,
@@ -663,6 +674,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'card',
       loader: ConfirmationLoader.AdvancedCustomAmount,
       preferredPaymentToken: undefined,
       replace: undefined,
@@ -782,6 +794,32 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
   });
 
+  it('skips the generic failure toast and dev alert for a declined card', async () => {
+    const declineError = new Error('MetaMask Pay: Fiat: Fiat order failed');
+    mockAddTransactionBatch.mockRejectedValue(declineError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ intent: 'card' });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(declineError);
+    expect(Logger.error).toHaveBeenCalledWith(
+      declineError,
+      '[Money Account] Deposit setup failed',
+    );
+    expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
     const buildError = new Error('deposit batch build failed');
     const onDepositSetupFailure = jest.fn();
@@ -833,6 +871,31 @@ describe('useMoneyAccountDeposit', () => {
     );
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+  });
+
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
+    const ledgerRejection = createLedgerDeviceRejection();
+    mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
+    mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(ledgerRejection);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
@@ -947,7 +1010,7 @@ describe('useMoneyAccountWithdrawal', () => {
     mockIsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     } as never);
     mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
     mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
@@ -959,6 +1022,7 @@ describe('useMoneyAccountWithdrawal', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),
@@ -1256,6 +1320,31 @@ describe('useMoneyAccountWithdrawal', () => {
     );
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockWithdrawFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+  });
+
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
+    const ledgerRejection = createLedgerDeviceRejection();
+    mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
+    mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(ledgerRejection);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 

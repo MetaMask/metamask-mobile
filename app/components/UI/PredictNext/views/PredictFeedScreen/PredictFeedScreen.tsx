@@ -27,7 +27,7 @@ import { usePredictOrderFlow } from '../PredictOrderFlow';
 import {
   getFeedScreen,
   getFeedScreenTab,
-  resolveFeedScreenTabs,
+  getKnownFeedScreenTitle,
   type FeedScreenDefinition,
   type FeedScreenTab,
 } from '../../navigation/feedScreens';
@@ -145,7 +145,8 @@ const FeedScreenFrame = ({
   onBack,
   children,
 }: {
-  definition: FeedScreenDefinition;
+  /** While the catalog loads or fails, only the title the app knows. */
+  definition: Pick<FeedScreenDefinition, 'title' | 'selectionLabel'>;
   onBack: () => void;
   children: React.ReactNode;
 }) => {
@@ -158,6 +159,7 @@ const FeedScreenFrame = ({
         title={definition.title}
         onBack={onBack}
         includesTopInset
+        testID={PredictFeedScreenTestIds.HEADER}
         backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
       />
       <Box twClassName="flex-1">
@@ -368,13 +370,17 @@ export const PredictFeedScreen = () => {
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, feedScreenId, selectedTabId } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextFeed'>>().params;
-  const definition = getFeedScreen(feedScreenId);
   const capabilities = useVenueCapabilities(venueId);
-  const tabs = useMemo(
-    () => resolveFeedScreenTabs(feedScreenId, capabilities),
+  // The screen, its tabs and their labels come from the Venue catalog, so a
+  // link or a stale route can name a screen the catalog no longer has.
+  const definition = useMemo(
+    () => getFeedScreen(feedScreenId, capabilities),
     [feedScreenId, capabilities],
   );
-  const initialTab = getFeedScreenTab(tabs, selectedTabId);
+  const pendingDefinition = useMemo(
+    () => ({ title: getKnownFeedScreenTitle(feedScreenId) }),
+    [feedScreenId],
+  );
 
   const handleBack = useCallback(
     () =>
@@ -394,12 +400,9 @@ export const PredictFeedScreen = () => {
     [navigation],
   );
 
-  if (!definition) {
-    return <FeedUnavailable onBack={handleBack} />;
-  }
   if (capabilities.status === 'loading') {
     return (
-      <FeedScreenFrame definition={definition} onBack={handleBack}>
+      <FeedScreenFrame definition={pendingDefinition} onBack={handleBack}>
         <FeedLoading />
       </FeedScreenFrame>
     );
@@ -409,24 +412,27 @@ export const PredictFeedScreen = () => {
     capabilities.reason === 'error'
   ) {
     return (
-      <FeedScreenFrame definition={definition} onBack={handleBack}>
+      <FeedScreenFrame definition={pendingDefinition} onBack={handleBack}>
         <FeedError onRetry={capabilities.retry} />
       </FeedScreenFrame>
     );
   }
-  // Unknown Venue, invalid catalog, or no supported tab: nothing to show, and
-  // never another Venue's Feed.
-  if (!initialTab) {
+  // Unknown Venue, invalid catalog, a screen the catalog lacks, or no
+  // supported tab: nothing to show, and never another Venue's Feed.
+  const initialTab = definition
+    ? getFeedScreenTab(definition.tabs, selectedTabId)
+    : undefined;
+  if (!definition || !initialTab) {
     return <FeedUnavailable onBack={handleBack} />;
   }
 
   return (
     <PredictFeedContent
       // A changed tab set restarts the tab selection.
-      key={tabs.map(({ id }) => id).join()}
+      key={definition.tabs.map(({ id }) => id).join()}
       venueId={venueId}
       definition={definition}
-      tabs={tabs}
+      tabs={definition.tabs}
       initialTab={initialTab}
       onBack={handleBack}
       onOpenEvent={handleOpenEvent}

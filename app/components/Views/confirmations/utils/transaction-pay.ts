@@ -8,9 +8,9 @@ import {
 import {
   PaymentOverride,
   TransactionFiatPayment,
+  TransactionPaymentToken,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { Hex } from '@metamask/utils';
@@ -28,6 +28,7 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
+import { isSameAssetId } from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -94,7 +95,12 @@ export function replaceAccountInNestedTransactions({
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
 ): number | undefined {
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
     return PERPS_MINIMUM_DEPOSIT;
   }
 
@@ -185,9 +191,7 @@ export function getAvailableTokens({
         return false;
       }
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       if (isSelected) {
         return true;
@@ -217,8 +221,7 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId;
+        : isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       return {
         ...token,
@@ -340,6 +343,7 @@ export function applyMoneyAccountOverride(
 ): void {
   const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
     TransactionType.predictWithdraw,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);

@@ -316,14 +316,15 @@ INCLUDE_SAMPLE_FEATURE=true yarn start:android
 
 #### How It Works
 
-1. **Runtime Gating**: The handful of integration points that pull in real Sample Feature code (`MainNavigator.js`, `DeveloperOptions/index.tsx`, `Engine.ts`, `reducers/index.ts`) check `process.env.INCLUDE_SAMPLE_FEATURE === 'true'` and `require(...)` the feature lazily inside that branch, e.g.:
+1. **Runtime Gating**: The handful of integration points that pull in real Sample Feature code (`MainNavigator.tsx`, `DeveloperOptions/index.tsx`, `Engine.ts`, `reducers/index.ts`) check `process.env.INCLUDE_SAMPLE_FEATURE === 'true'` and `require(...)` the feature lazily inside that branch, e.g.:
    ```typescript
    const SampleFeature =
      process.env.INCLUDE_SAMPLE_FEATURE === 'true'
-       ? require('../../../features/SampleFeature/components/views/SampleFeature').default
+       ? require('../../../features/SampleFeature/components/views/SampleFeature')
+           .default
        : null;
    ```
-2. **Babel Env Inlining**: `transform-inline-environment-variables` (see `babel.config.js`) inlines `process.env.INCLUDE_SAMPLE_FEATURE` to a literal at bundle time, so terser can fold the comparison and drop the unreachable `require(...)` call.
+2. **Babel Env Inlining**: `transform-inline-environment-variables` (see `babel.config.js`) inlines `process.env.INCLUDE_SAMPLE_FEATURE` to a literal at bundle time, so Metro's constant folding can drop the unreachable `require(...)` call in release bundles. Dev bundles skip constant folding, so they still include the module but never run it.
 3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, `@metamask/sample-controllers` and the `app/features/SampleFeature/` component tree are dead-code-eliminated from the bundle, and the `SamplePetnamesController` and `sampleCounter` reducer are never added to app state. Lightweight, always-safe integration points (route names, analytics enum entries, trace names, TypeScript types) are defined unconditionally since they carry no meaningful bundle weight.
 
 #### Default Behavior

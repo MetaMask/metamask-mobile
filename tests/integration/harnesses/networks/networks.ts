@@ -208,6 +208,13 @@ export function buildNetworksIntegrationHarness(
       }) as never,
   );
   rootMessenger.registerActionHandler(
+    'ConfigRegistryController:getState',
+    () =>
+      ({
+        configs: { networks: {} },
+      }) as never,
+  );
+  rootMessenger.registerActionHandler(
     'AccountsController:listMultichainAccounts',
     () => [] as never,
   );
@@ -279,7 +286,8 @@ export function buildNetworksIntegrationHarness(
   });
 
   // --- NetworkEnablementController ---------------------------------------
-  // Mirror production getNetworkEnablementControllerMessenger.
+  // Mirror the NetworkEnablementController messenger that @metamask/wallet
+  // builds.
   const networkEnablementMessenger = new Messenger({
     namespace: 'NetworkEnablementController',
     parent: rootMessenger,
@@ -288,6 +296,7 @@ export function buildNetworksIntegrationHarness(
   rootMessenger.delegate({
     messenger: networkEnablementMessenger,
     actions: [
+      'ConfigRegistryController:getState',
       'NetworkController:getState',
       'MultichainNetworkController:getState',
     ],

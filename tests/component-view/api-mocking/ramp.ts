@@ -2,6 +2,8 @@
 import nock from 'nock';
 import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
 import { disableNetConnect, teardownNock } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 
 /** Staging (UAT) and production hosts — mock both so tests stay offline regardless of getSdkEnvironment(). */
 const RAMP_REGIONS_ORIGINS = [
@@ -101,6 +103,22 @@ const mockRampCountryCacheData = {
         shortName: 'Ethereum',
       },
       logo: 'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000000.png',
+      excludedFiatAndPaymentMethods: [],
+    },
+    {
+      id: '/currencies/crypto/solana/slip44:501',
+      idv2: '/currencies/crypto/solana/slip44:501',
+      symbol: 'SOL',
+      name: 'Solana',
+      assetId: 'slip44:501',
+      decimals: 9,
+      network: {
+        active: true,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainName: 'Solana Mainnet',
+        shortName: 'Solana',
+      },
+      logo: '',
       excludedFiatAndPaymentMethods: [],
     },
     {
@@ -212,6 +230,12 @@ function registerRampSdkNockInterceptors(): void {
       .query(true)
       .reply(200, mockRampCountryCacheData)
       .persist();
+
+    // The SDK re-fetches the light cache when a deeplink intent settles and
+    // aborts in-flight requests around the same moment; answer it at the
+    // fetch layer too so the reply cannot race the abort (the same reason
+    // quickBuy stubs its popular-tokens endpoint there).
+    stubFetchPath(origin, '/regions/us/light', mockRampCountryCacheData);
   }
 
   for (const origin of RAMP_ORDERS_ORIGINS) {
@@ -228,6 +252,7 @@ export function setupRampSdkApiMock(): void {
   resetRampAggregatorSdkForTests();
   disableNetConnect();
   registerRampSdkNockInterceptors();
+  installDefaultApiMocks();
 }
 
 /**
@@ -238,4 +263,7 @@ export function clearRampSdkApiMocks(): void {
   jest.clearAllMocks();
   resetRampAggregatorSdkForTests();
   teardownNock();
+  for (const origin of RAMP_REGIONS_ORIGINS) {
+    restoreFetchPath(origin, '/regions/us/light');
+  }
 }

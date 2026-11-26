@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  type PerpsProviderType,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
@@ -54,7 +55,6 @@ import {
   BoxFlexDirection,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   ButtonSize,
   FontWeight,
@@ -70,6 +70,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -84,6 +87,7 @@ interface PerpsLeverageBottomSheetProps {
   currentPrice: number;
   direction: 'long' | 'short';
   asset?: string;
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   triggerPrice?: string;
   orderType?: OrderType;
@@ -118,12 +122,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice: initialCurrentPrice,
   direction,
   asset = '',
+  providerId,
   limitPrice,
   triggerPrice,
   orderType = 'market',
   marginMode = 'isolated',
   enableConfirmHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const pickerRef = useRef<ScrollView>(null);
@@ -160,6 +166,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const leverageChangeTime = useRef<number>(0);
 
   const currentLivePrice = usePerpsLivePrices({
+    providerId,
     symbols: [asset],
     throttleMs: 1000,
   });
@@ -197,7 +204,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
+  const dynamicLiquidationPrice =
+    apiLiquidationPrice === undefined
+      ? Number.NaN
+      : Number.parseFloat(apiLiquidationPrice);
 
   // Cache last valid liquidation price so the UI always shows a value
   // instead of blinking a skeleton loader during passive price updates.
@@ -477,12 +487,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const content = (
     <>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={isNestedScreen ? onBack : undefined}
         onClose={isNestedScreen ? undefined : onClose}
       >
         {strings('perps.order.leverage_modal.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box paddingTop={3} accessible={false}>
         {currentPrice ? (

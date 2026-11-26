@@ -5,20 +5,19 @@ import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
-import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyEntryContext } from '../../../../../components/UI/Money/selectors/entry';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import {
   isVbaGeoBypassEnabled,
   type MoneyMovementNeobankRollout,
   selectMoneyMovementNeobank,
-  selectMoneyOnboardingStepperAnimationEnabled,
   selectNeobankMarkets,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
+
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
@@ -43,12 +42,8 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 
-jest.mock('../../../../../reducers/user', () => ({
-  selectMoneyOnboardingSeen: jest.fn(),
-}));
-
-jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: jest.fn(),
+jest.mock('../../../../../components/UI/Money/selectors/entry', () => ({
+  selectMoneyEntryContext: jest.fn(),
 }));
 
 jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
@@ -58,7 +53,6 @@ jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/moneyAccount',
   () => ({
-    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
     selectMoneyMovementNeobank: jest.fn(),
     selectNeobankMarkets: jest.fn(),
     isVbaGeoBypassEnabled: jest.fn(),
@@ -169,12 +163,11 @@ describe('handleMoney', () => {
 
     jest.mocked(ReduxService.store.getState).mockReturnValue(mockState);
     setMoneyAccountFlags();
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: undefined,
+      isSplashRedirectNeeded: false,
+    });
     jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
-    jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(true);
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(true);
-    jest
-      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
-      .mockReturnValue(true);
     jest
       .mocked(selectMoneyMovementNeobank)
       .mockReturnValue(enabledNeobankRollout);
@@ -262,7 +255,10 @@ describe('handleMoney', () => {
   });
 
   it('navigates to geo block modal when user is not geo eligible', () => {
-    jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(false);
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: 'geo_blocked',
+      isSplashRedirectNeeded: false,
+    });
 
     handleMoney();
 
@@ -271,33 +267,18 @@ describe('handleMoney', () => {
     });
   });
 
-  it('navigates to MONEY.ONBOARDING when user has not seen onboarding', () => {
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+  it('navigates to MONEY.SPLASH when the user has not seen the splash', () => {
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: undefined,
+      isSplashRedirectNeeded: true,
+    });
 
     handleMoney();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
   });
 
-  it('navigates to MONEY.HOME when onboarding has not been seen and onboarding is disabled', () => {
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
-    jest
-      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
-      .mockReturnValue(false);
-
-    handleMoney();
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
-  });
-
-  it('navigates to MONEY.HOME when user has already seen onboarding', () => {
+  it('navigates to MONEY.HOME when the user has already seen the splash', () => {
     handleMoney();
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -387,12 +368,15 @@ describe('handleMoney', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the money onboarding first when the user has not seen it', () => {
-      jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+    it('shows the Money splash first when the user has not seen it', () => {
+      jest.mocked(selectMoneyEntryContext).mockReturnValue({
+        accessBlockReason: undefined,
+        isSplashRedirectNeeded: true,
+      });
 
       handleMoney({ moneyPath: '?screen=account' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 

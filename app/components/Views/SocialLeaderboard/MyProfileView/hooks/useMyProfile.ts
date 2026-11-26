@@ -30,6 +30,8 @@ export interface MySocialProfile {
   xHandle?: string | null;
   /** True when X is linked, even if the X account failed to load. */
   connectedToX?: boolean;
+  /** Server-owned status from the Profile API, also served by social-api. */
+  verified?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */

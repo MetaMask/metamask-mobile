@@ -115,101 +115,113 @@ const TestPriceComponent = ({
   return <Text testID="price-display">Test Component</Text>;
 };
 
-describe('PerpsStreamManager', () => {
-  let mockSubscribeToPrices: jest.Mock;
-  let mockUnsubscribeFromPrices: jest.Mock;
-  let mockSubscribeToOrders: jest.Mock;
-  let mockSubscribeToPositions: jest.Mock;
-  let mockSubscribeToAccount: jest.Mock;
-  let testStreamManager: PerpsStreamManager;
+// Shared mocks for both stream-manager suites; the setup helper below
+// keeps the copies from drifting (the first multi-venue copy had already
+// dropped waitForConnection, StorageWrapper and DevLogger).
+let mockSubscribeToPrices: jest.Mock;
+let mockUnsubscribeFromPrices: jest.Mock;
+let mockSubscribeToOrders: jest.Mock;
+let mockSubscribeToPositions: jest.Mock;
+let mockSubscribeToAccount: jest.Mock;
+let testStreamManager: PerpsStreamManager;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
-    resetPerpsLifecycleContextForTests();
+/**
+ * Per-test setup shared by the single-venue and multi-venue suites. The
+ * only difference between them is the routing provider handed to the
+ * selector.
+ */
+const setupStreamManagerMocks = ({ provider }: { provider: string }): void => {
+  jest.clearAllMocks();
+  jest.clearAllTimers();
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
+  resetPerpsLifecycleContextForTests();
 
-    // Restore the default Terminal flag state (enabled) after any per-test override.
-    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
-    mockSelectHip3ConfigVersion.mockReturnValue(0);
-    mockSelectPerpsNetwork.mockReturnValue('mainnet');
-    mockSelectPerpsProvider.mockReturnValue('hyperliquid');
-    mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
+  // Restore the default Terminal flag state (enabled) after any per-test override.
+  mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+  mockSelectHip3ConfigVersion.mockReturnValue(0);
+  mockSelectPerpsNetwork.mockReturnValue('mainnet');
+  mockSelectPerpsProvider.mockReturnValue(provider);
+  mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
 
-    // Create a fresh stream manager for each test
-    testStreamManager = new PerpsStreamManager();
+  // Create a fresh stream manager for each test
+  testStreamManager = new PerpsStreamManager();
 
-    // Setup default mocks
-    mockSubscribeToPrices = jest.fn();
-    mockUnsubscribeFromPrices = jest.fn();
-    mockSubscribeToOrders = jest.fn();
-    mockSubscribeToPositions = jest.fn();
-    mockSubscribeToAccount = jest.fn();
+  // Setup default mocks
+  mockSubscribeToPrices = jest.fn().mockReturnValue(jest.fn());
+  mockUnsubscribeFromPrices = jest.fn();
+  mockSubscribeToOrders = jest.fn();
+  mockSubscribeToPositions = jest.fn();
+  mockSubscribeToAccount = jest.fn();
 
-    // Setup mock return values for all subscription methods
-    mockSubscribeToOrders.mockReturnValue(jest.fn());
-    mockSubscribeToPositions.mockReturnValue(jest.fn());
-    mockSubscribeToAccount.mockReturnValue(jest.fn());
+  // Setup mock return values for all subscription methods
+  mockSubscribeToOrders.mockReturnValue(jest.fn());
+  mockSubscribeToPositions.mockReturnValue(jest.fn());
+  mockSubscribeToAccount.mockReturnValue(jest.fn());
 
-    mockEngine.context.PerpsController = {
-      subscribeToPrices: mockSubscribeToPrices,
-      unsubscribeFromPrices: mockUnsubscribeFromPrices,
-      subscribeToOrders: mockSubscribeToOrders,
-      subscribeToPositions: mockSubscribeToPositions,
-      subscribeToAccount: mockSubscribeToAccount,
-      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
-      getMarkets: jest
-        .fn()
-        .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
-      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
-      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
-      state: {
-        cachedMarketDataByProvider: {},
-        cachedUserDataByProvider: {},
-      },
-    } as unknown as typeof mockEngine.context.PerpsController;
-
-    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
-    mockEngine.context.AccountTreeController = {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x123456789',
-          id: 'account-1',
-          type: 'eip155:eoa',
-          metadata: {
-            name: 'Test Account',
-            importTime: 0,
-            keyring: { type: 'HD Key Tree' },
-          },
-          methods: [],
-          options: {},
-          scopes: [],
-        },
-      ]),
-    } as unknown as typeof mockEngine.context.AccountTreeController;
-
-    mockDevLogger.log = jest.fn();
-
-    // Mock PerpsConnectionManager.getConnectionState for channel connect guards
-    mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
-      isInitialized: true,
-      isConnected: true,
-      isConnecting: false,
-      error: null,
-    });
-    mockPerpsConnectionManager.isCurrentlyConnecting = jest
+  mockEngine.context.PerpsController = {
+    subscribeToPrices: mockSubscribeToPrices,
+    unsubscribeFromPrices: mockUnsubscribeFromPrices,
+    subscribeToOrders: mockSubscribeToOrders,
+    subscribeToPositions: mockSubscribeToPositions,
+    subscribeToAccount: mockSubscribeToAccount,
+    isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+    getMarkets: jest
       .fn()
-      .mockReturnValue(false);
-    mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
-      new Promise((_resolve) => {
-        /* never resolves */
-      }),
-    );
-    mockStorageWrapper.getItem.mockResolvedValue(null);
-    mockStorageWrapper.getItemSync.mockReturnValue(null);
-    mockStorageWrapper.setItem.mockResolvedValue(undefined);
-    mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+      .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+    getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
+    getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
+    state: {
+      cachedMarketDataByProvider: {},
+      cachedUserDataByProvider: {},
+    },
+  } as unknown as typeof mockEngine.context.PerpsController;
+
+  // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+  mockEngine.context.AccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x123456789',
+        id: 'account-1',
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Test Account',
+          importTime: 0,
+          keyring: { type: 'HD Key Tree' },
+        },
+        methods: [],
+        options: {},
+        scopes: [],
+      },
+    ]),
+  } as unknown as typeof mockEngine.context.AccountTreeController;
+
+  mockDevLogger.log = jest.fn();
+
+  // Mock PerpsConnectionManager.getConnectionState for channel connect guards
+  mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
+    isInitialized: true,
+    isConnected: true,
+    isConnecting: false,
+    error: null,
+  });
+  mockPerpsConnectionManager.isCurrentlyConnecting = jest
+    .fn()
+    .mockReturnValue(false);
+  mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+    new Promise((_resolve) => {
+      /* never resolves */
+    }),
+  );
+  mockStorageWrapper.getItem.mockResolvedValue(null);
+  mockStorageWrapper.getItemSync.mockReturnValue(null);
+  mockStorageWrapper.setItem.mockResolvedValue(undefined);
+  mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+};
+
+describe('PerpsStreamManager', () => {
+  beforeEach(() => {
+    setupStreamManagerMocks({ provider: 'hyperliquid' });
   });
 
   afterEach(() => {
@@ -402,6 +414,48 @@ describe('PerpsStreamManager', () => {
         },
       });
     });
+  });
+
+  it('forwards every controller price field, including oraclePrice', async () => {
+    const controllerUpdate: PriceUpdate = {
+      symbol: 'BTC-PERP',
+      price: '50000',
+      percentChange24h: '5',
+      timestamp: 1,
+      bestBid: '49900',
+      bestAsk: '50100',
+      spread: '200',
+      markPrice: '50050',
+      oraclePrice: '49980',
+      funding: 0.0001,
+      openInterest: 1_000_000,
+      volume24h: 5_000_000,
+      isTradable: false,
+    };
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        params.callback([controllerUpdate]);
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+    });
+    const received = onUpdate.mock.calls[0][0]['BTC-PERP'];
+    expect(received).toStrictEqual({
+      ...controllerUpdate,
+      timestamp: expect.any(Number),
+    });
+    expect(received.timestamp).not.toBe(controllerUpdate.timestamp);
   });
 
   it('throttles updates after first immediate update', async () => {
@@ -1959,6 +2013,41 @@ describe('PerpsStreamManager', () => {
       );
     });
 
+    it('routes prewarmed shared and Lighter-only symbols to the requested venue', async () => {
+      let deliver: ((updates: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        deliver = callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      const listener = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC', 'kPEPE'],
+        providerId: 'lighter',
+        throttleMs: 0,
+        callback: listener,
+      });
+      const tick = { timestamp: 123, isTradable: true };
+      act(() =>
+        deliver?.([
+          { ...tick, symbol: 'BTC', providerId: 'lighter', price: '101' },
+          { ...tick, symbol: 'BTC', providerId: 'hyperliquid', price: '100' },
+          { ...tick, symbol: 'kPEPE', providerId: 'lighter', price: '2' },
+        ]),
+      );
+      expect(listener).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '101' }),
+        kPEPE: expect.objectContaining({ price: '2' }),
+      });
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'hyperliquid')
+          ?.price,
+      ).toBe('100');
+    });
+
     it('keeps the first live price update immediate after cached prewarm data', async () => {
       let prewarmCallback: ((updates: PriceUpdate[]) => void) | undefined;
       const makePrice = (price: string): PriceUpdate => ({
@@ -2890,6 +2979,24 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('notifies subscribers when the initial market fetch fails', async () => {
+      const fetchError = new Error('Market fetch failed');
+      const onError = jest.fn();
+      mockGetMarketDataWithPrices.mockRejectedValue(fetchError);
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback: jest.fn(),
+        onError,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(fetchError);
+      });
+
+      unsubscribe();
+    });
+
     it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
       const callback = jest.fn();
 
@@ -3398,7 +3505,10 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('does not use the Hyperliquid snapshot path for Lighter', () => {
+    it('uses the Terminal snapshot for Lighter after TAT-4395/TAT-4407', () => {
+      // The snapshot gate is no longer tied to `activeProvider ===
+      // 'hyperliquid'`: with a snapshot URL configured, the standalone fetch
+      // runs for every venue core can read from the snapshot (TAT-4407).
       mockEngine.context.PerpsController.state = {
         activeProvider: 'lighter',
         isTestnet: false,
@@ -3406,6 +3516,7 @@ describe('PerpsStreamManager', () => {
       mockPerpsConnectionManager.getConnectionState.mockReturnValue({
         isInitialized: false,
       } as never);
+      mockPerpsConnectionManager.isCurrentlyConnecting.mockReturnValue(true);
       const streamManager = new PerpsStreamManager(
         'https://terminal.api.cx.metamask.io/v4/perpetuals',
       );
@@ -3414,7 +3525,10 @@ describe('PerpsStreamManager', () => {
         callback: jest.fn(),
       });
 
-      expect(mockGetMarketDataWithPrices).not.toHaveBeenCalled();
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+        standalone: true,
+        useTerminalApi: true,
+      });
       unsubscribe();
     });
 
@@ -3657,6 +3771,95 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).not.toHaveBeenCalledWith(['STALE']);
       expect(callback).toHaveBeenCalledWith(['BTC']);
+    });
+
+    it("never delivers one venue's caps to another venue's subscriber", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const lighterCallback = jest.fn();
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: lighterCallback,
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('default')?.(['BTC']));
+      act(() => venueCallbacks.get('lighter')?.(['ETH']));
+
+      expect(lighterCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['BTC']),
+      );
+      expect(lighterCallback).toHaveBeenLastCalledWith(['ETH']);
+      expect(defaultCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['ETH']),
+      );
+      expect(defaultCallback).toHaveBeenLastCalledWith(['BTC']);
+    });
+
+    it("does not hand another venue's tick to an untagged subscriber before the default venue reports", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('lighter')?.(['BTC']));
+
+      expect(defaultCallback).not.toHaveBeenCalled();
+
+      act(() => venueCallbacks.get('default')?.([]));
+
+      expect(defaultCallback).toHaveBeenCalledTimes(1);
+      expect(defaultCallback).toHaveBeenLastCalledWith([]);
+    });
+
+    it('restores every venue stream on reconnect', () => {
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      mockSubscribeToOICaps.mockClear();
+
+      testStreamManager.oiCaps.reconnect();
+
+      expect(mockSubscribeToOICaps).toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
     });
 
     it('notifies subscribers when markets reach OI cap', async () => {
@@ -6297,6 +6500,53 @@ describe('PerpsStreamManager', () => {
       expect(accountCallback).not.toHaveBeenCalled();
     });
 
+    it('does not report a context-changed user snapshot to Logger.error', async () => {
+      const getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('User data snapshot context changed'));
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = getUserDataSnapshot;
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(getUserDataSnapshot).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsStreamManager: User data snapshot aborted because the context changed',
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports other user snapshot rejections with Logger.error', async () => {
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('snapshot rejected'));
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'snapshot rejected' }),
+        { context: 'PerpsStreamManager.getUserDataSnapshot' },
+      );
+    });
+
     it('discards an in-flight snapshot after account caches are cleared', async () => {
       let resolveSnapshot!: (snapshot: typeof mockAcceptedUserSnapshot) => void;
       (
@@ -6614,6 +6864,435 @@ describe('PerpsStreamManager', () => {
 
       // Now it should have been called
       expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
+  beforeEach(() => {
+    setupStreamManagerMocks({ provider: 'aggregated' });
+    // The channels read the routing mode from the controller state as
+    // well as the selector, so aggregated mode must be set on both.
+    mockEngine.context.PerpsController.state.activeProvider = 'aggregated';
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  describe('PriceStreamChannel venue keying', () => {
+    it('keeps updates for the same symbol from two venues separate', () => {
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: (prices) => callback(prices),
+        throttleMs: 0,
+      });
+
+      // Both venues report BTC through the single controller subscription,
+      // each row stamped with its providerId.
+      const [priceCallback] = callbacks;
+      expect(priceCallback).toBeDefined();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+        ]);
+      });
+
+      // Cache holds both rows under their composite keys.
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'hyperliquid')
+          ?.price,
+      ).toBe('50000');
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'lighter')?.price,
+      ).toBe('50050');
+    });
+
+    it('delivers only the requested venue to a providerId subscriber', () => {
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        providerId: 'lighter',
+        callback: (prices) => callback(prices),
+        throttleMs: 0,
+      });
+
+      const [priceCallback] = callbacks;
+      expect(priceCallback).toBeDefined();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+        ]);
+      });
+      expect(callback).toHaveBeenCalledWith({
+        BTC: expect.objectContaining({ price: '50050' }),
+      });
+
+      // The other venue's tick must not reach the lighter subscriber: its
+      // dispatch key is `hyperliquid:BTC`, the subscriber is indexed under
+      // `lighter:BTC`.
+      const callback2 = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        providerId: 'lighter',
+        callback: (prices) => callback2(prices),
+        throttleMs: 0,
+      });
+      // Subscribe() delivers the cached lighter row once; clear it so the
+      // assertion below only covers the hyperliquid tick.
+      callback2.mockClear();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '99000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+      });
+      expect(callback2).not.toHaveBeenCalled();
+    });
+
+    it('routes untagged subscribers to the default venue in aggregated mode', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        callbacks[0]([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+      });
+
+      expect(callback).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '50000' }),
+      });
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC')?.price).toBe(
+        '50000',
+      );
+    });
+
+    it('keeps an untagged top-of-book subscriber on the default venue', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '1',
+          bestAsk: '2',
+          providerId: 'lighter',
+        },
+      ]);
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '1' }),
+      );
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '50000',
+          bestAsk: '50001',
+          providerId: 'hyperliquid',
+        },
+      ]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '50000', bestAsk: '50001' }),
+      );
+    });
+  });
+
+  describe('AccountStreamChannel per-venue view', () => {
+    it('captures the aggregate metadata second argument', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.account.subscribe({ callback, throttleMs: 0 });
+
+      const aggregate = {
+        status: 'partial' as const,
+        availableProviders: ['hyperliquid' as const],
+        unavailableProviders: ['lighter' as const],
+        pendingProviders: [],
+      };
+      const state = { totalBalance: '100', unrealizedPnl: '0' };
+      act(() => {
+        accountCallback(state, aggregate);
+      });
+
+      expect(testStreamManager.account.getAggregateMetadata()).toEqual(
+        aggregate,
+      );
+    });
+
+    it('exposes per-venue states from providerStates', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      testStreamManager.account.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const hyperState = { totalBalance: '100', unrealizedPnl: '0' };
+      const state = {
+        totalBalance: '100',
+        unrealizedPnl: '0',
+        providerStates: {
+          hyperliquid: {
+            status: 'available' as const,
+            providerId: 'hyperliquid' as const,
+            state: hyperState,
+          },
+          lighter: {
+            status: 'pending' as const,
+            providerId: 'lighter' as const,
+          },
+        },
+      };
+      act(() => {
+        accountCallback(state);
+      });
+
+      const venues = testStreamManager.account.getVenueAccountStates();
+      expect(venues).toHaveLength(2);
+      expect(venues[0]).toMatchObject({
+        providerId: 'hyperliquid',
+        status: 'available',
+      });
+      // A pending venue is never a zero balance — it has no state at all.
+      expect(venues[1]).toMatchObject({
+        providerId: 'lighter',
+        status: 'pending',
+      });
+      expect('state' in venues[1]).toBe(false);
+    });
+
+    it('reports the single direct-mode state as the active venue', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      testStreamManager.account.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const state = { totalBalance: '100', unrealizedPnl: '0' };
+      act(() => {
+        accountCallback(state);
+      });
+
+      const venues = testStreamManager.account.getVenueAccountStates();
+      expect(venues).toHaveLength(1);
+      expect(venues[0].status).toBe('available');
+      if (venues[0].status === 'available') {
+        expect(venues[0].state).toEqual(state);
+      }
+    });
+  });
+
+  describe('optimistic updates scoped to the edited venue', () => {
+    it('applies a TP/SL optimistic edit only to that venue position', () => {
+      const positionsCallback = jest.fn();
+      const venuePositionsSubscriber = jest.fn(({ callback }) => {
+        positionsCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).subscribeToPositions = venuePositionsSubscriber;
+
+      testStreamManager.positions.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const positions = [
+        {
+          symbol: 'BTC',
+          unrealizedPnl: '1',
+          takeProfitPrice: null,
+          stopLossPrice: null,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+          providerId: 'hyperliquid',
+        },
+        {
+          symbol: 'BTC',
+          unrealizedPnl: '2',
+          takeProfitPrice: null,
+          stopLossPrice: null,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+          providerId: 'lighter',
+        },
+      ];
+      act(() => {
+        positionsCallback(positions);
+      });
+
+      testStreamManager.positions.updatePositionTPSLOptimistic(
+        'BTC',
+        '55000',
+        '45000',
+        'lighter',
+      );
+
+      const updated = testStreamManager.positions.getSnapshot() ?? [];
+      const byVenue = Object.fromEntries(updated.map((p) => [p.providerId, p]));
+      // Only the edited venue's position shows the optimistic TP/SL.
+      expect(byVenue.lighter.takeProfitPrice).toBe('55000');
+      expect(byVenue.lighter.takeProfitCount).toBe(1);
+      expect(byVenue.hyperliquid.takeProfitPrice).toBeNull();
+      expect(byVenue.hyperliquid.takeProfitCount).toBe(0);
+    });
+
+    it('applies an optimistic order edit only to that venue order', () => {
+      const ordersCallback = jest.fn();
+      const venueOrdersSubscriber = jest.fn(({ callback }) => {
+        ordersCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).subscribeToOrders = venueOrdersSubscriber;
+
+      testStreamManager.orders.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      // Both venues can use the same order id.
+      const orders = [
+        {
+          orderId: 'order-1',
+          symbol: 'BTC',
+          price: '50000',
+          size: '1',
+          originalSize: '1',
+          remainingSize: '1',
+          providerId: 'hyperliquid',
+        },
+        {
+          orderId: 'order-1',
+          symbol: 'BTC',
+          price: '50000',
+          size: '1',
+          originalSize: '1',
+          remainingSize: '1',
+          providerId: 'lighter',
+        },
+      ];
+      act(() => {
+        ordersCallback(orders);
+      });
+
+      testStreamManager.orders.updateOrderOptimistic(
+        'order-1',
+        { limitPrice: '51000' },
+        'hyperliquid',
+      );
+
+      const updated = testStreamManager.orders.getSnapshot() ?? [];
+      const byVenue = Object.fromEntries(updated.map((o) => [o.providerId, o]));
+      expect(byVenue.hyperliquid.price).toBe('51000');
+      expect(byVenue.lighter.price).toBe('50000');
     });
   });
 });

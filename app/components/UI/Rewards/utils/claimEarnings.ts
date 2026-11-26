@@ -2,7 +2,14 @@ import { ethers } from 'ethers';
 import { base58 } from 'ethers/lib/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
-import { BtcScope, SolScope, XlmScope } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  SolScope,
+  XlmAccountType,
+  XlmScope,
+} from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
@@ -13,6 +20,7 @@ import type {
   ClaimDto,
   ClaimRouteSlug,
   ClaimVoucherDto,
+  EarningClaimFamily,
   EarningsSummaryDto,
   InitiateClaimBody,
   InitiateClaimResult,
@@ -22,6 +30,11 @@ import type {
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import Engine from '../../../../core/Engine';
+import {
+  getKeyringByAddress,
+  isHardwareAccount,
+  isSnapAccount,
+} from '../../../../util/address';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -137,6 +150,7 @@ export type ClaimToastKey = Extract<
   | 'claimFailureNoEligibleBalanceToast'
   | 'claimFailureUnavailableToast'
   | 'claimFailureContactSupportToast'
+  | 'claimFailurePayoutMigratedToast'
 >;
 
 export interface ClaimRouteOutcome {
@@ -202,6 +216,43 @@ export function claimRouteOptions(
 }
 
 /**
+ * True when cashback's own claimable balance meets the summary minimum.
+ * A closed cashback mechanism is not in `claimable`, so it fails this check.
+ * There is no cashback `claim_open` flag.
+ */
+export function cashbackMeetsClaimMinimum(
+  summary: EarningsSummaryDto | null | undefined,
+): boolean {
+  return meetsClaimMinimum(
+    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+      ?.claimable,
+    summary?.minimum_musd_base_units,
+  );
+}
+
+const INCOME_CLAIM_ROUTES = new Set<ClaimRouteSlug>([
+  'referral-rev-share',
+  'social-follow-trade',
+]);
+
+/**
+ * Applies a Claim press's tax decision to the open routes. Cashback-only
+ * drops income. An open tax sheet drops income and leaves cashback.
+ */
+export function selectClaimRoutes(
+  routes: ClaimRouteSlug[],
+  options?: { cashbackOnly?: boolean; omitIncome?: boolean },
+): ClaimRouteSlug[] {
+  if (options?.cashbackOnly) {
+    return routes.filter((route) => route === 'referral-trade-fee-cashback');
+  }
+  if (options?.omitIncome) {
+    return routes.filter((route) => !INCOME_CLAIM_ROUTES.has(route));
+  }
+  return routes;
+}
+
+/**
  * Cashback when that family meets the minimum, then revenue share and
  * follow-trade when those routes are included. Each family must reach
  * `minimum_musd_base_units` on its own. A closed route stays off no matter
@@ -213,10 +264,7 @@ export function claimRoutesForSummary(
 ): ClaimRouteSlug[] {
   const minimum = summary?.minimum_musd_base_units;
   const routes: ClaimRouteSlug[] = [];
-  const cashback =
-    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
-      ?.claimable;
-  if (meetsClaimMinimum(cashback, minimum)) {
+  if (cashbackMeetsClaimMinimum(summary)) {
     routes.push('referral-trade-fee-cashback');
   }
   const revShare =
@@ -250,6 +298,228 @@ export function canClaimEarnings(
 }
 
 /**
+ * Minutes still left in a Retry-After wait. Zero once the wait has elapsed.
+ * A wait that is still running reports at least 1, so the caption does not
+ * say 0 while Claim stays disabled.
+ */
+export function claimWaitMinutesRemaining(
+  untilMs: number,
+  nowMs: number,
+): number {
+  const remainingMs = untilMs - nowMs;
+  if (remainingMs <= 0) {
+    return 0;
+  }
+  return Math.max(1, Math.ceil(remainingMs / 60_000));
+}
+
+/**
+ * The sentence under Claim during a wait. `{minutes}` is the time still
+ * left. A template without that placeholder keeps the later sentence, the
+ * same way a toast does.
+ */
+export function claimWaitCaption(
+  localizedText: Pick<
+    ReferralLocalizedText,
+    'claimFailureWaitMinutesToast' | 'claimFailureWaitToast'
+  >,
+  untilMs: number,
+  nowMs: number,
+): string | null {
+  const minutes = claimWaitMinutesRemaining(untilMs, nowMs);
+  if (minutes <= 0) {
+    return null;
+  }
+  const template = localizedText.claimFailureWaitMinutesToast;
+  if (!template?.includes('{minutes}')) {
+    return localizedText.claimFailureWaitToast;
+  }
+  return template.replaceAll('{minutes}', String(minutes));
+}
+
+/**
+ * Claimable earning-address keys for a route that lists them. Revenue share
+ * has no list. An empty list means this phone has nothing to compare.
+ */
+function claimableAddressesForRoute(
+  summary: EarningsSummaryDto | null | undefined,
+  route: ClaimRouteSlug,
+): string[] {
+  const entries =
+    route === 'referral-trade-fee-cashback'
+      ? summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+          ?.by_address
+      : route === 'social-follow-trade'
+        ? summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE
+            ?.by_address
+        : undefined;
+  if (!entries?.length) {
+    return [];
+  }
+  return entries
+    .filter((entry) => isPositiveBaseUnits(entry.claimable))
+    .map((entry) => entry.address);
+}
+
+/**
+ * Drops a route whose claimable addresses are all ones this phone cannot
+ * sign. A route with no address list, including revenue share, stays. One
+ * signable address keeps the route, and the claim runner narrows to it.
+ */
+export function routesSignableOnDevice(
+  summary: EarningsSummaryDto | null | undefined,
+  routes: ClaimRouteSlug[],
+  canSign: (earningAddress: string) => boolean,
+): ClaimRouteSlug[] {
+  return routes.filter((route) => {
+    const addresses = claimableAddressesForRoute(summary, route);
+    if (addresses.length === 0) {
+      return true;
+    }
+    return addresses.some(canSign);
+  });
+}
+
+/**
+ * True when an open route lists a claimable address this phone cannot sign.
+ * One such address is enough. A route with no list, including revenue share,
+ * does not count.
+ */
+export function claimHasUnsignableAddress(
+  summary: EarningsSummaryDto | null | undefined,
+  options: ClaimRouteOptions | undefined,
+  canSign: (earningAddress: string) => boolean,
+): boolean {
+  return claimRoutesForSummary(summary, options).some((route) =>
+    claimableAddressesForRoute(summary, route).some(
+      (address) => !canSign(address),
+    ),
+  );
+}
+
+/**
+ * True when every open claim route needs an address this phone cannot sign.
+ * No open route is false, so a tax-only Claim is left alone.
+ */
+export function claimBlockedOnThisDevice(
+  summary: EarningsSummaryDto | null | undefined,
+  options: ClaimRouteOptions | undefined,
+  canSign: (earningAddress: string) => boolean,
+): boolean {
+  const routes = claimRoutesForSummary(summary, options);
+  if (routes.length === 0) {
+    return false;
+  }
+  return routesSignableOnDevice(summary, routes, canSign).length === 0;
+}
+
+export interface DisplayClaimTotals {
+  /** Claimable that meets the minimum, plus any amount with no family to place it. */
+  claimable: string;
+  /** Claim-delay pending plus family claimable under the minimum. */
+  pending: string;
+}
+
+/** Null when the value is missing or not an integer string. */
+function readBaseUnits(value: string | undefined): bigint | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Display totals for the earnings card and the balance sheet.
+ *
+ * Each family's claimable that is under a readable
+ * `minimum_musd_base_units` moves to pending. A missing or unreadable minimum
+ * leaves it in claimable. The server already reports a closed mechanism as
+ * `blocked` with a family claimable of 0, so no route check is needed here.
+ * Held and blocked are not rewritten.
+ */
+export function displayClaimTotals(
+  summary: EarningsSummaryDto | null | undefined,
+): DisplayClaimTotals {
+  const minimum = readBaseUnits(summary?.minimum_musd_base_units);
+  const familyAmounts = [
+    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+      ?.claimable,
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE?.claimable,
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable,
+  ];
+
+  let claimable = 0n;
+  let belowMinimum = 0n;
+  let accounted = 0n;
+  for (const value of familyAmounts) {
+    const amount = readBaseUnits(value) ?? 0n;
+    if (amount <= 0n) {
+      continue;
+    }
+    accounted += amount;
+    if (minimum === null || amount >= minimum) {
+      claimable += amount;
+    } else {
+      belowMinimum += amount;
+    }
+  }
+
+  const rootClaimable = readBaseUnits(summary?.claimable) ?? 0n;
+  if (rootClaimable > accounted) {
+    claimable += rootClaimable - accounted;
+  }
+
+  return {
+    claimable: claimable.toString(),
+    pending: (
+      (readBaseUnits(summary?.pending) ?? 0n) + belowMinimum
+    ).toString(),
+  };
+}
+
+/** One claim family's amounts, in mUSD base units, as the family page shows them. */
+export interface FamilyDisplayTotals {
+  claimable: string;
+  pending: string;
+  held: string;
+  blocked: string;
+  voided: string;
+  claimed: string;
+}
+
+/**
+ * Display totals for one claim family. Same rule as `displayClaimTotals`: a
+ * family claimable under the claim minimum is not offered as claimable, so it
+ * counts as pending. A missing family or field reads as zero.
+ */
+export function familyDisplayTotals(
+  summary: EarningsSummaryDto | null | undefined,
+  branch: 'self_earned' | 'earned_by_others',
+  family: EarningClaimFamily,
+): FamilyDisplayTotals {
+  const totals = summary?.[branch]?.by_claim_family?.[family];
+  const minimum = readBaseUnits(summary?.minimum_musd_base_units);
+  const claimable = readBaseUnits(totals?.claimable) ?? 0n;
+  const belowMinimum =
+    claimable > 0n && minimum !== null && claimable < minimum;
+
+  return {
+    claimable: (belowMinimum ? 0n : claimable).toString(),
+    pending: (
+      (readBaseUnits(totals?.pending) ?? 0n) + (belowMinimum ? claimable : 0n)
+    ).toString(),
+    held: (readBaseUnits(totals?.held) ?? 0n).toString(),
+    blocked: (readBaseUnits(totals?.blocked) ?? 0n).toString(),
+    voided: (readBaseUnits(totals?.voided) ?? 0n).toString(),
+    claimed: (readBaseUnits(totals?.claimed) ?? 0n).toString(),
+  };
+}
+
+/**
  * True when follow-trade or revenue share is held for tax and that claim
  * route is open. A closed route stays false even when its balance is held.
  */
@@ -265,8 +535,8 @@ export function incomeHeldOnOpenRoute(
 
 /**
  * True when the Earnings tab shows Claim: an open route meets the minimum,
- * or an open income route is held only for tax documentation. A blocked
- * balance stays off, because that card shows Paused.
+ * or an open income route is held for tax documentation. A blocked balance
+ * beside it does not turn this off.
  */
 export function showEarningsIndicator(
   summary: EarningsSummaryDto | null | undefined,
@@ -277,8 +547,7 @@ export function showEarningsIndicator(
   }
   return (
     incomeHeldOnOpenRoute(summary, options) &&
-    isPositiveBaseUnits(summary?.held) &&
-    !isPositiveBaseUnits(summary?.blocked)
+    isPositiveBaseUnits(summary?.held)
   );
 }
 
@@ -380,6 +649,79 @@ export function stellarAddressFromEarningAddress(
     return null;
   }
   return address;
+}
+
+/** A mainnet `bc1q` or `bc1p` account this phone can BIP-322 sign. */
+export function bitcoinAccountForEarningAddress(earningAddress: string) {
+  const bitcoin = bitcoinAddressFromEarningAddress(earningAddress);
+  if (!bitcoin) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(bitcoin);
+  if (!account || account.address.toLowerCase() !== bitcoin) {
+    return null;
+  }
+  const typeMatches =
+    (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
+    (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
+  return typeMatches ? { account, bitcoin } : null;
+}
+
+/** A Solana account on this phone. The address is compared with its case. */
+export function solanaAccountForEarningAddress(earningAddress: string) {
+  const address = solanaAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/** A Stellar account on this phone. A lowercase `G` address is not a match. */
+export function stellarAccountForEarningAddress(earningAddress: string) {
+  const address = stellarAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/**
+ * Whether this phone can sign a proof for the earning-address key. EVM
+ * software keys, mainnet Bitcoin, Solana, and Stellar accounts on this phone
+ * can. Tron, hardware accounts, and keys that live on another device cannot.
+ */
+export function canSignEarningAddress(earningAddress: string): boolean {
+  if (
+    bitcoinAccountForEarningAddress(earningAddress) ||
+    solanaAccountForEarningAddress(earningAddress) ||
+    stellarAccountForEarningAddress(earningAddress)
+  ) {
+    return true;
+  }
+  const from = evmAddressFromEarningAddress(earningAddress);
+  if (!from || !getKeyringByAddress(from)) {
+    return false;
+  }
+  return !isHardwareAccount(from) && !isSnapAccount(from);
 }
 
 /**
@@ -615,6 +957,9 @@ function toastKeyForReason(
   if (reason === 'EARNING_ADDRESS_MISSING') {
     return 'claimFailureContactSupportToast';
   }
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
+    return 'claimFailurePayoutMigratedToast';
+  }
   if (TERMINAL_REASONS.has(reason)) {
     return 'claimFailureToast';
   }
@@ -670,7 +1015,8 @@ export function claimToastText(
 ): string {
   const key = claimToastKey(outcomes);
   if (key !== 'claimFailureWaitMinutesToast') {
-    return localizedText[key];
+    // A server older than a key does not send it. The generic sentence stands in.
+    return localizedText[key] || localizedText.claimFailureToast;
   }
   const template = localizedText.claimFailureWaitMinutesToast;
   if (!template?.includes('{minutes}')) {
@@ -728,6 +1074,9 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'NO_ELIGIBLE_BALANCE') {
     return 'nothing_to_claim';
   }
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
+    return 'payout_migrated';
+  }
   if (WAIT_REASONS.has(reason)) {
     return 'wait';
   }
@@ -756,15 +1105,25 @@ export interface RunEarningsClaimDeps {
    */
   canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;
-  submitVoucher: (voucher: ClaimVoucherDto) => Promise<void>;
+  /**
+   * The primary Money Account address right now, read fresh from the store. A
+   * route refused with `PAYOUT_ADDRESS_MIGRATED` retries once with it, when it
+   * differs from the address the press started with.
+   */
+  getMoneyAccountAddress: () => string | undefined;
+  /** Redeems the voucher from the address it was issued for. */
+  submitVoucher: (
+    voucher: ClaimVoucherDto,
+    moneyAccountAddress: string,
+  ) => Promise<void>;
 }
 
 async function claimOneRoute(
   route: ClaimRouteSlug,
+  moneyAccountAddress: string,
   deps: RunEarningsClaimDeps,
 ): Promise<ClaimRouteOutcome> {
-  const { moneyAccountAddress, initiateClaim, signMessage, submitVoucher } =
-    deps;
+  const { initiateClaim, signMessage, submitVoucher } = deps;
   let result = await initiateClaim(route, {
     money_account_address: moneyAccountAddress,
   });
@@ -858,7 +1217,7 @@ async function claimOneRoute(
   }
 
   try {
-    await submitVoucher(voucher);
+    await submitVoucher(voucher, moneyAccountAddress);
   } catch (error) {
     return {
       route,
@@ -1196,32 +1555,66 @@ async function awaitClaimBatchConfirmed({
   return resultPromise;
 }
 
+/** One attempt at a route from one address. A throw becomes its refusal. */
+async function attemptClaimRoute(
+  route: ClaimRouteSlug,
+  moneyAccountAddress: string,
+  deps: RunEarningsClaimDeps,
+): Promise<ClaimRouteOutcome> {
+  try {
+    return await claimOneRoute(route, moneyAccountAddress, deps);
+  } catch (error) {
+    const reason =
+      error instanceof RewardsMoneyClaimRefusalError
+        ? error.reason
+        : error instanceof Error && error.message === 'SIGN_FAILED'
+          ? 'SIGN_FAILED'
+          : 'UNKNOWN';
+    return {
+      route,
+      submitted: false,
+      opened: false,
+      reason,
+      retryAfterSeconds:
+        error instanceof RewardsMoneyClaimRefusalError
+          ? error.retryAfterSeconds
+          : undefined,
+    };
+  }
+}
+
+/**
+ * Money Account addresses are compared without case: the store and the claim
+ * route can return the same EVM address in different casing.
+ */
+function isSameMoneyAccountAddress(left: string, right: string): boolean {
+  return left.toLowerCase() === right.toLowerCase();
+}
+
 export async function runEarningsClaim(
   deps: RunEarningsClaimDeps,
 ): Promise<ClaimRouteOutcome[]> {
   const outcomes: ClaimRouteOutcome[] = [];
 
   for (const route of deps.routes) {
-    try {
-      outcomes.push(await claimOneRoute(route, deps));
-    } catch (error) {
-      const reason =
-        error instanceof RewardsMoneyClaimRefusalError
-          ? error.reason
-          : error instanceof Error && error.message === 'SIGN_FAILED'
-            ? 'SIGN_FAILED'
-            : 'UNKNOWN';
-      outcomes.push({
-        route,
-        submitted: false,
-        opened: false,
-        reason,
-        retryAfterSeconds:
-          error instanceof RewardsMoneyClaimRefusalError
-            ? error.retryAfterSeconds
-            : undefined,
-      });
+    let outcome = await attemptClaimRoute(
+      route,
+      deps.moneyAccountAddress,
+      deps,
+    );
+    // The payee moved to a new Money Account since this press started. Retry
+    // this route once with the account the store now names. A second refusal,
+    // or the same address again, stays as it is.
+    if (outcome.reason === 'PAYOUT_ADDRESS_MIGRATED') {
+      const current = deps.getMoneyAccountAddress();
+      if (
+        current &&
+        !isSameMoneyAccountAddress(current, deps.moneyAccountAddress)
+      ) {
+        outcome = await attemptClaimRoute(route, current, deps);
+      }
     }
+    outcomes.push(outcome);
   }
 
   return outcomes;

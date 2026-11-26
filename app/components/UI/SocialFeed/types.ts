@@ -53,6 +53,8 @@ export interface SocialV1FeedAuthor {
    * Absent or null hides the trust mark.
    */
   xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 interface SocialV1FeedItemBase {
@@ -98,6 +100,8 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
   /**
@@ -128,6 +132,8 @@ export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
   entryMarketCapLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed spot price. */
   live?: SocialLivePriceSource;
 }
@@ -154,6 +160,8 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   markPriceLabel?: string;
   entryPriceLabel?: string;
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   showCopyTrade?: boolean;
   /** How the card's figures follow the streamed spot price, as on an open row. */
   live?: SocialLivePriceSource;

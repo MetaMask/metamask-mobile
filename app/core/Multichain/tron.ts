@@ -14,6 +14,39 @@ export interface SnapAmountValidationResult {
 }
 
 /**
+ * Asks the account's Tron Snap for the maximum amount that can be sent.
+ *
+ * The maximum leaves enough TRX for the network fees and, when the recipient
+ * is unknown or inactive, the account activation reserve. Passing the
+ * recipient when it is already known gives a tighter quote.
+ *
+ * @param fromAccount - The Snap-managed Tron account sending the funds.
+ * @param params - The transfer to quote.
+ * @param params.accountId - The internal account id of the sender.
+ * @param params.assetId - The CAIP-19 asset id being sent.
+ * @param params.toAddress - The destination address, when known.
+ * @returns The maximum amount to send, in display units.
+ */
+export async function getTronMaxSendableAmount(
+  fromAccount: InternalAccount,
+  params: {
+    accountId: string;
+    assetId: CaipAssetType;
+    toAddress?: string;
+  },
+): Promise<{ amount: string }> {
+  return (await handleSnapRequest(Engine.controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'getMaxSendableAmount',
+      params,
+    },
+  })) as { amount: string };
+}
+
+/**
  * Asks the account's Tron Snap to validate a transfer before it is sent.
  *
  * Tron fees depend on the destination (energy and bandwidth), so `toAddress`

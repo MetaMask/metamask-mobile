@@ -51,6 +51,10 @@ export const MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY =
 export const MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY =
   'moneyMovementNeobankUsd' as const;
 
+/** LaunchDarkly key: `money-movement-neobank-eur`. */
+export const MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY =
+  'moneyMovementNeobankEur' as const;
+
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   chooseCurrency?: unknown;
   regionOverride?: unknown;
@@ -229,6 +233,10 @@ export const selectNeobankMarkets = createSelector(
         remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY],
         'USD',
       ),
+      readNeobankMarket(
+        remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY],
+        'EUR',
+      ),
     ].filter((market): market is VbaMarket => market !== undefined),
 );
 
@@ -269,9 +277,6 @@ export const selectProSubscriptionEnabled = createSelector(
   },
 );
 
-export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
-  'moneyEnableOnboardingStepperAnimation' as const;
-
 export const MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY =
   'moneyAccountDepositQuotePipeline' as const;
 
@@ -286,15 +291,6 @@ export const selectMoneyAccountDepositQuotePipelineEnabled = createSelector(
       localOverrideEnabled ||
       (validatedVersionGatedFeatureFlag(remoteFlag) ?? false)
     );
-  },
-);
-
-export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag =
-      remoteFeatureFlags?.[MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY];
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

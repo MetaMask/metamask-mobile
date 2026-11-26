@@ -71,6 +71,8 @@ import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
+// ponytail: fixed window for the card list to show a new card; raise it if duplicates still appear.
+const CREATED_CARD_TTL_MS = 5 * 60 * 1000;
 
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
@@ -713,6 +715,21 @@ export class ImmersveProvider implements ICardProvider {
   private readonly hasFundingChannelLookup: boolean;
   private readonly getSelectedCountry: () => string | null;
   private readonly isMfaEnabled: () => boolean;
+  /** Card list requests in flight, by cardholder account. Concurrent callers share one. */
+  private readonly currentCardRequests = new Map<
+    string,
+    Promise<ImmersveCardListItem[]>
+  >();
+  /** Card creates in flight, by cardholder account. Concurrent callers share one POST. */
+  private readonly createCardRequests = new Map<
+    string,
+    Promise<CardCreateResult>
+  >();
+  /** Cards this app just created, by cardholder account, in case the card list has not caught up. */
+  private readonly createdCards = new Map<
+    string,
+    { cardId: string; expiresAt: number }
+  >();
 
   constructor({
     service,
@@ -1274,17 +1291,58 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Immersve allows several cards per cardholder, so two overlapping creates
+   * would both succeed. Overlapping callers share one request.
+   */
   async createCard(
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {
-    const existing = await this.resolveCurrentCard(tokens);
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'createCard: missing cardholder account id',
+      );
+    }
+
+    let request = this.createCardRequests.get(accountId);
+    if (!request) {
+      request = this.createCardOnce(accountId, fundingSourceId, tokens).finally(
+        () => {
+          this.createCardRequests.delete(accountId);
+        },
+      );
+      this.createCardRequests.set(accountId, request);
+    }
+    return request;
+  }
+
+  private async createCardOnce(
+    accountId: string,
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCreateResult> {
+    const cards = await this.listCards(tokens);
+    const existing = this.pickCurrentCard(cards);
     if (existing) {
       return { cardId: existing.id };
     }
 
+    // Only while the list has not caught up: once it shows the card (even
+    // cancelled), the list is the truth.
+    const created = this.createdCards.get(accountId);
+    if (
+      created &&
+      created.expiresAt > Date.now() &&
+      !cards.some((card) => card.id === created.cardId)
+    ) {
+      return { cardId: created.cardId };
+    }
+
     try {
-      return await this.service.post<CardCreateResult>(
+      const result = await this.service.post<CardCreateResult>(
         '/api/cards',
         {
           cardProgramId: this.requireCardProgramId(),
@@ -1292,6 +1350,11 @@ export class ImmersveProvider implements ICardProvider {
         },
         tokens,
       );
+      this.createdCards.set(accountId, {
+        cardId: result.cardId,
+        expiresAt: Date.now() + CREATED_CARD_TTL_MS,
+      });
+      return result;
     } catch (error) {
       reportAndMap(error, 'createCard', { fundingSourceId });
     }
@@ -1321,6 +1384,12 @@ export class ImmersveProvider implements ICardProvider {
   private async resolveCurrentCard(
     tokens: CardAuthTokens,
   ): Promise<ImmersveCardListItem | null> {
+    return this.pickCurrentCard(await this.listCards(tokens));
+  }
+
+  private async listCards(
+    tokens: CardAuthTokens,
+  ): Promise<ImmersveCardListItem[]> {
     const accountId = tokens.cardholderAccountId;
     if (!accountId) {
       throw new CardProviderError(
@@ -1329,12 +1398,20 @@ export class ImmersveProvider implements ICardProvider {
       );
     }
 
-    const { items } = await this.service.get<ImmersveCardListResponse>(
-      `/api/accounts/${accountId}/cards?excludeExpired=true`,
-      tokens,
-    );
-
-    return this.pickCurrentCard(items ?? []);
+    let request = this.currentCardRequests.get(accountId);
+    if (!request) {
+      request = this.service
+        .get<ImmersveCardListResponse>(
+          `/api/accounts/${accountId}/cards?excludeExpired=true`,
+          tokens,
+        )
+        .then(({ items }) => items ?? [])
+        .finally(() => {
+          this.currentCardRequests.delete(accountId);
+        });
+      this.currentCardRequests.set(accountId, request);
+    }
+    return request;
   }
 
   private pickCurrentCard(
@@ -1434,11 +1511,10 @@ export class ImmersveProvider implements ICardProvider {
         actions,
       };
     } catch (error) {
-      if (isCardAuthTokenError(error)) {
-        throw error;
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCardHomeData'));
       }
-      Logger.error(error as Error, getErrorContext('getCardHomeData'));
-      return emptyCardHomeData();
+      throw error;
     }
   }
 
@@ -1747,19 +1823,20 @@ export class ImmersveProvider implements ICardProvider {
         this.service
           .get<ImmersveFundingSourceDetail>(`/api/funding-source/${id}`, tokens)
           .catch((error) => {
-            if (isCardAuthTokenError(error)) throw error;
-            Logger.error(
-              error as Error,
-              getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
-            );
-            return null;
+            if (!isCardAuthTokenError(error)) {
+              Logger.error(
+                error as Error,
+                getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
+              );
+            }
+            throw error;
           }),
       ),
     );
 
     const assets = await Promise.all(
       details.map((detail) =>
-        detail ? this.mapFundingSource(detail, tokens) : Promise.resolve(null),
+        detail ? this.mapFundingSource(detail) : Promise.resolve(null),
       ),
     );
 
@@ -1768,7 +1845,6 @@ export class ImmersveProvider implements ICardProvider {
 
   private async mapFundingSource(
     fundingSource: ImmersveFundingSourceDetail,
-    tokens: CardAuthTokens,
   ): Promise<CardFundingAsset | null> {
     const channel = fundingSource.fundingChannelId
       ? this.findFundingChannelById(fundingSource.fundingChannelId)
@@ -1792,24 +1868,19 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     const symbol = channel?.symbol ?? fundingSource.balanceCurrency ?? 'USDC';
-    // Money account allowance lives on the funding address, not the SIWE wallet.
-    // Immersve returns that address as externalId.
-    let walletAddress: string;
-    if (isMoneyAccountFundingChannel(channel)) {
-      walletAddress =
-        fundingSource.fundingAddress ?? fundingSource.externalId ?? '';
-      if (!walletAddress) {
-        Logger.error(
-          new Error(
-            'mapFundingSource: Money account funding source has no funding address',
-          ),
-          getErrorContext('mapFundingSource', {
-            fundingSourceId: fundingSource.id,
-          }),
-        );
-      }
-    } else {
-      walletAddress = tokens.accountAddress ?? fundingSource.externalId ?? '';
+    // The allowance lives on the registered funding address. Immersve returns
+    // it as fundingAddress, or as externalId when the detail omits it.
+    const walletAddress =
+      fundingSource.fundingAddress ?? fundingSource.externalId ?? '';
+    if (isMoneyAccountFundingChannel(channel) && !walletAddress) {
+      Logger.error(
+        new Error(
+          'mapFundingSource: Money account funding source has no funding address',
+        ),
+        getErrorContext('mapFundingSource', {
+          fundingSourceId: fundingSource.id,
+        }),
+      );
     }
 
     const { spendableBalance, spendingCap } =
@@ -1832,6 +1903,7 @@ export class ImmersveProvider implements ICardProvider {
       priority: 0,
       status: FundingAssetStatus.Active,
       assumeUsdParity: isUsdStablecoin(symbol),
+      ...(channel ? { fundingSourceType: channel.source } : {}),
     };
   }
 
@@ -1844,7 +1916,18 @@ export class ImmersveProvider implements ICardProvider {
     const empty = { spendableBalance: '', spendingCap: '' };
     const spender =
       channel?.spenderAddress ?? this.programConfig.spenderAddress;
-    if (!spender || !walletAddress || !ethers.utils.isAddress(walletAddress)) {
+    if (!spender) {
+      Logger.error(
+        new Error(
+          'resolveOnChainSpendableBalance: funding channel is missing a spender',
+        ),
+        getErrorContext('resolveOnChainSpendableBalance', {
+          fundingChannelId: channel?.fundingChannelId,
+        }),
+      );
+      return empty;
+    }
+    if (!walletAddress || !ethers.utils.isAddress(walletAddress)) {
       return empty;
     }
 

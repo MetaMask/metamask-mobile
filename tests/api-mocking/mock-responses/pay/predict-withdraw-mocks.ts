@@ -22,6 +22,7 @@ import {
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../polymarket/polymarket-mocks';
 import { createTransactionSentinelResponse } from '../polymarket/polymarket-transaction-sentinel-response.ts';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PREDICT_PUSD_ADDRESS = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 const PREDICT_WITHDRAW_AMOUNT_BASE_UNITS = '5000000'; // $5 pUSD at 6 decimals
@@ -39,6 +40,14 @@ const MONAD_LENS_ADDRESS = '0xa816ecd922de94c6879ad23b9a884db257f20947';
 const MONAD_LENS_HEX = 'a816ecd922de94c6879ad23b9a884db257f20947';
 const MUSD_MONAD_HEX = 'aca92e438df0b2401ff60da7e4337b687a2435da';
 const MONAD_SPONSORED_DEPOSIT_UUID = 'predict-money-deposit-uuid-1234';
+
+/**
+ * Account that receives the bridged mUSD, taken from the Relay quote request
+ * `recipient` (the Money account resolved by the pay controller). The mocked
+ * settlement receipt must transfer to this account, because the second leg
+ * resolves the settled amount from Transfer logs to it.
+ */
+let settlementRecipient: string = DEFAULT_FIXTURE_ACCOUNT;
 const UINT256_ZERO =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
 const UINT256_MAX =
@@ -118,6 +127,8 @@ export async function PREDICT_WITHDRAW_MOCKS(mockServer: Mockttp) {
 export async function PREDICT_WITHDRAW_TO_MONEY_ACCOUNT_MOCKS(
   mockServer: Mockttp,
 ) {
+  settlementRecipient = DEFAULT_FIXTURE_ACCOUNT;
+
   await mockPredictWithdrawSupport(mockServer);
   await mockPredictWithdrawalActivity(mockServer);
   await mockAccountsApiTransactions(mockServer, true);
@@ -141,7 +152,11 @@ export async function PREDICT_WITHDRAW_TO_MONEY_ACCOUNT_MOCKS(
     recipient: MONEY_ACCOUNT_TELLER_ADDRESS,
   });
 
-  await mockRelayQuoteWith(mockServer, quote);
+  await mockRelayQuoteWith(mockServer, quote, (body) => {
+    if (body.recipient) {
+      settlementRecipient = body.recipient;
+    }
+  });
   await mockRelayStatusSuccess(mockServer);
 }
 
@@ -418,26 +433,7 @@ async function mockAccountsApiTransactions(
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(
@@ -535,7 +531,7 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
           topics: [
             '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
             '0x0000000000000000000000000000000000000000000000000000000000000000',
-            `0x000000000000000000000000${DEFAULT_FIXTURE_ACCOUNT.slice(2)}`,
+            `0x000000000000000000000000${settlementRecipient.slice(2).toLowerCase()}`,
           ],
           data: toLogData(PREDICT_WITHDRAW_AMOUNT_BASE_UNITS),
           blockNumber: '0x1234568',
@@ -740,7 +736,9 @@ async function mockSentinelNetworksForPredictAndMonad(mockServer: Mockttp) {
     },
   };
 
-  await mockTxSentinelNetworks(mockServer, withPredictAndMonadRelay, 1002);
+  // Above POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS (1010), which serves the
+  // same endpoints with Monad relay disabled, so the second leg can relay.
+  await mockTxSentinelNetworks(mockServer, withPredictAndMonadRelay, 1011);
 }
 
 async function mockPolygonSentinelSimulateProxy(mockServer: Mockttp) {

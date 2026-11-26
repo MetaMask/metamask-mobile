@@ -64,6 +64,7 @@ const loadedResult = (): UsePopularTradersResult => ({
   isLoading: false,
   isFetching: false,
   hasFetched: true,
+  cacheState: 'warm',
   error: null,
   refresh: mockRefresh,
   toggleFollow: mockToggleFollow,
@@ -83,7 +84,7 @@ describe('PopularTradersCarousel', () => {
     ).toHaveStyle({ paddingTop: 0, paddingBottom: 0 });
   });
 
-  it('renders a card for each trader plus View more', () => {
+  it('renders a card for each trader without a View more card', () => {
     renderWithProvider(<PopularTradersCarousel />);
 
     expect(
@@ -95,9 +96,7 @@ describe('PopularTradersCarousel', () => {
     expect(
       screen.getByTestId(getPopularTraderCardTestId('trader-1')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PopularTradersCarouselSelectorsIDs.VIEW_MORE),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('View more')).toBeNull();
   });
 
   it('navigates to Profiles to follow when the header is pressed', () => {
@@ -105,16 +104,6 @@ describe('PopularTradersCarousel', () => {
 
     fireEvent.press(
       screen.getByTestId(PopularTradersCarouselSelectorsIDs.HEADER),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILES_TO_FOLLOW);
-  });
-
-  it('navigates to Profiles to follow when View more is pressed', () => {
-    renderWithProvider(<PopularTradersCarousel />);
-
-    fireEvent.press(
-      screen.getByTestId(PopularTradersCarouselSelectorsIDs.VIEW_MORE),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILES_TO_FOLLOW);

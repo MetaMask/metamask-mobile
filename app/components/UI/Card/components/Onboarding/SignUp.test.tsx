@@ -169,8 +169,24 @@ jest.mock('../../hooks/useRegions', () => ({
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
 
+let mockIsMoneyAccountCountry = false;
+jest.mock('../../hooks/useImmersveFundingChannel', () => ({
+  useIsImmersveMoneyAccountCountry: () => mockIsMoneyAccountCountry,
+  useImmersveFundingChannel: () => null,
+}));
+
 // Mock only the version-gated Immersve flag selector (avoids the real device-info
 // version gate); keep the rest of the card selectors actual.
+jest.mock('../../../../../selectors/moneyAccountController', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/moneyAccountController',
+  );
+  return {
+    ...actual,
+    selectPrimaryMoneyAccount: jest.fn(() => null),
+  };
+});
+
 jest.mock('../../../../../selectors/featureFlagController/card', () => {
   const actual = jest.requireActual(
     '../../../../../selectors/featureFlagController/card',
@@ -260,21 +276,23 @@ jest.mock('../../hooks/useImmersveSiweAuth', () => ({
     error: null,
   }),
 }));
-jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
-  useAccountGroupName: () => 'Account 1',
-}));
 const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => {
-  const selectByScope = () => ({
-    address: '0x1234567890123456789012345678901234567890',
-  });
-  return {
-    selectSelectedInternalAccountByScope: () => selectByScope,
-  };
-});
+let mockAccountGroupName: string | null = 'Account 1';
+let mockSelectedImmersveAccount: { address: string } | null = {
+  address: IMMERSVE_TEST_ADDRESS,
+};
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: () => mockAccountGroupName,
+}));
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () => mockSelectedImmersveAccount,
+}));
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -282,7 +300,9 @@ jest.mock('./OnboardingStep', () => {
     title?: unknown;
     description?: unknown;
     formFields?: unknown;
-    actions?: unknown;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     ReactActual.createElement(
       View,
@@ -305,7 +325,7 @@ jest.mock('./OnboardingStep', () => {
       ReactActual.createElement(
         View,
         { testID: 'onboarding-step-actions' },
-        props.actions,
+        mockRenderFooterButtons(props),
       ),
     );
 });
@@ -333,7 +353,6 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
         selectedCountry: null,
         activeProviderId: 'baanx',
         isAuthenticated: false,
-        cardholderAccounts: [],
         providerData: {},
         cardHomeData: null,
         cardHomeDataStatus: 'idle',
@@ -385,6 +404,12 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
   });
 };
 
+// Each case renders the full sign-up screen. On a loaded CI shard a first
+// render can pass Jest's 5s default (CI timed out one case at 81s for the
+// file; it runs in ~12s locally). waitFor keeps its own 1s limit, so a real
+// hang still fails.
+jest.setTimeout(15_000);
+
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
   let mockSendEmailVerification: jest.Mock;
@@ -393,6 +418,14 @@ describe('SignUp Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMoneyAccountCountry = false;
+    mockAccountGroupName = 'Account 1';
+    mockSelectedImmersveAccount = { address: IMMERSVE_TEST_ADDRESS };
+    const { selectPrimaryMoneyAccount } = jest.requireMock(
+      '../../../../../selectors/moneyAccountController',
+    );
+    selectPrimaryMoneyAccount.mockReset();
+    selectPrimaryMoneyAccount.mockImplementation(() => null);
     mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
     mockRecordCardActivated.mockResolvedValue(undefined);
     capturedOnValueChange = null;
@@ -1197,6 +1230,68 @@ describe('SignUp Component', () => {
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
+    it('locks sign-up to the Money account when one exists', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      const moneySelectors = jest.requireMock(
+        '../../../../../selectors/moneyAccountController',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      moneySelectors.selectPrimaryMoneyAccount.mockReturnValue({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+      mockIsMoneyAccountCountry = true;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId('signup-immersve-money-account-row'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-account-select')).toBeNull();
+      expect(queryByTestId('signup-money-account-required')).toBeNull();
+    });
+
+    it('renders the account picker without an avatar when no account is selected', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      mockAccountGroupName = null;
+      mockSelectedImmersveAccount = null;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-account-avatar')).toBeNull();
+    });
+
+    it('asks for a Money account when the country requires one and none exists', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      mockIsMoneyAccountCountry = true;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-money-account-required')).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-money-account-row')).toBeNull();
+      expect(queryByTestId('signup-immersve-account-select')).toBeNull();
+    });
+
     // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
     // the screen with mocked hooks/selectors. Title and description stay on
     // the shared keys for Baanx and Immersve.
@@ -1461,7 +1556,7 @@ describe('SignUp Component', () => {
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
-        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
         expect.objectContaining({
           email: 'gb@example.com',
           countryKey: 'GB',

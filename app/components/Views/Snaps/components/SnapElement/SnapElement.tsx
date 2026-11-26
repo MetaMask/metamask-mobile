@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { View } from 'react-native';
 import Cell, {
@@ -47,4 +46,3 @@ const SnapElement = (snap: Snap) => {
 };
 
 export default SnapElement;
-///: END:ONLY_INCLUDE_IF

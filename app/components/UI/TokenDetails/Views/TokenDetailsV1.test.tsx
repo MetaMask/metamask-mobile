@@ -35,14 +35,21 @@ import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialS
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
+import type { QuickBuyTarget } from '../../QuickBuy';
 import { useSocialFeed } from '../../SocialFeed';
 import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  PostTradeShareOwner,
+  requestPostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -83,7 +90,7 @@ const mockSelectors = ({
   };
 
   useSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectSocialLeaderboardEnabled) {
+    if (selector === selectIsSocialV1Enabled) {
       return socialEnabled;
     }
     if (selector === selectMemecoinTdpV1TabConfigOrder) {
@@ -141,6 +148,10 @@ const withHolders = (overrides: Record<string, unknown> = {}) => {
 };
 
 jest.mock('../../SocialFeed', () => {
+  const { Pressable: FeedPressable } = jest.requireActual('react-native');
+  const { mockOpenSpotFeedItem } = jest.requireActual(
+    '../../SocialFeed/mocks/socialV1Feed.mock',
+  );
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
     posts: [],
     isLoading: false,
@@ -152,32 +163,18 @@ jest.mock('../../SocialFeed', () => {
   }));
   return {
     useSocialFeed: useSocialFeedMock,
-    SocialFeed: () => null,
-    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
-      children ?? null,
-    SocialV1FeedPostList: () => null,
-    SocialFeedPostShell: () => null,
-    SocialFeedSkeleton: () => null,
-    SocialFeedEmpty: () => null,
-    SocialFeedError: () => null,
-  };
-});
-
-jest.mock('../components/tabs/TokenDetailsFeed', () => {
-  const { Pressable: FeedPressable } = jest.requireActual('react-native');
-  const { useSocialFeed: useFeed } = jest.requireMock('../../SocialFeed');
-  const { mockOpenSpotFeedItem } = jest.requireActual(
-    '../../SocialFeed/mocks/socialV1Feed.mock',
-  );
-  return {
-    TokenDetailsFeed: ({
-      source,
+    SocialFeed: ({
+      scope,
+      chains,
+      assetIds,
       onCopyTrade,
     }: {
-      source: { kind: 'token'; assetId: string };
+      scope: string;
+      chains?: string[];
+      assetIds?: string[];
       onCopyTrade?: (item: unknown, commentId?: string) => void;
     }) => {
-      useFeed(source);
+      useSocialFeedMock({ scope, chains, assetIds });
       return (
         <FeedPressable
           testID="mock-feed-copy-trade"
@@ -202,8 +199,39 @@ jest.mock('../components/tabs/TokenDetailsFeed', () => {
         />
       );
     },
+    SocialEntryOptionsProvider: ({
+      children,
+    }: {
+      children?: React.ReactNode;
+    }) => children ?? null,
+    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    SocialV1FeedPostList: () => null,
+    SocialFeedPostShell: () => null,
+    SocialFeedSkeleton: () => null,
+    SocialFeedEmpty: () => null,
+    SocialFeedError: () => null,
   };
 });
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
+  () => ({
+    useSocialFeedPostNavigation: () => ({
+      onAuthorPress: jest.fn(),
+      onPositionPress: jest.fn(),
+    }),
+  }),
+);
+
+jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
+  useMyProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
 
 const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../QuickBuy', () => ({
@@ -459,7 +487,12 @@ jest.mock(
   }),
 );
 
-const mockStickyFooterProps: Record<string, unknown>[] = [];
+const mockStickyFooterProps: {
+  onFooterLayout?: (height: number) => void;
+  [key: string]: unknown;
+}[] = [];
+const getLastStickyFooterProps = () =>
+  mockStickyFooterProps[mockStickyFooterProps.length - 1];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
   const { View } = jest.requireActual('react-native');
@@ -557,6 +590,10 @@ describe('TokenDetailsV1', () => {
     mockActionsSectionProps.length = 0;
   });
 
+  afterEach(() => {
+    clearPostTradeShareSession();
+  });
+
   it('renders the meme-TDP body with the token symbol in the header', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
@@ -628,9 +665,7 @@ describe('TokenDetailsV1', () => {
       expect(
         getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
           .contentContainerStyle,
-      ).toEqual(
-        expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
-      );
+      ).toStrictEqual({ paddingBottom: 0, paddingTop: 120 });
       expect(getPinnedTabBarProps()?.topInset).toBe(120);
 
       fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
@@ -961,10 +996,7 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('keeps room at the end of the page for the sticky footer', () => {
-    // The footer is an absolutely positioned BottomSheetDialog, so it covers
-    // the end of the scroll. Without this padding a short tab -- a token with
-    // two holders -- has no scroll range to lift its rows clear of it.
+  it('reserves the measured sticky footer height at the end of the page', () => {
     const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -972,16 +1004,32 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    const { contentContainerStyle } = getByTestId(
-      TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-    ).props;
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(132);
+    });
 
-    expect(contentContainerStyle).toEqual(
-      expect.objectContaining({
-        paddingBottom: expect.any(Number) as unknown as number,
-      }),
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+        .contentContainerStyle,
+    ).toStrictEqual({ paddingBottom: 132 });
+  });
+
+  it('reserves no space at the end of the page when the footer renders in flow', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
-    expect(contentContainerStyle.paddingBottom).toBeGreaterThan(0);
+
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(0);
+    });
+
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+        .contentContainerStyle,
+    ).toStrictEqual({ paddingBottom: 0 });
   });
 
   it('renders a stacked tab content container where only the active page is laid out', () => {
@@ -1532,8 +1580,9 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith({
-      kind: 'token',
-      assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      scope: 'all',
+      chains: ['eip155:1'],
+      assetIds: ['eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933'],
     });
   });
 
@@ -1558,9 +1607,65 @@ describe('TokenDetailsV1', () => {
           tokenName: 'PEPE',
           chain: 'eip155:1',
         },
-        copyTradeOrigin: { commentId: 'comment-1' },
+        copyTradeOrigin: { commentId: 'comment-1', authorId: 'v1-trader-frog' },
         initialTradeMode: 'buy',
-        analyticsContext: { source: 'trader_feed' },
+        analyticsContext: {
+          source: 'trader_feed',
+          isCopyTrade: true,
+          traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        },
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
+      }),
+    );
+  });
+
+  it('reopens Quick Buy with the original copy-trade after a failed share', () => {
+    mockSelectors({ socialEnabled: true });
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    const target: QuickBuyTarget = {
+      tokenAddress: '0xretry',
+      tokenSymbol: 'RETRY',
+      tokenName: 'Retry',
+      chain: 'eip155:1',
+    };
+    const copyTradeOrigin = { commentId: 'comment-retry' };
+
+    act(() => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'sell',
+        copyTradeOrigin,
+        traderAddress: '0xretrytrader',
+        owner: PostTradeShareOwner.tokenDetails,
+        preview: {
+          tokenSymbol: 'RETRY',
+          tokenAddress: '0xretry',
+          chain: 'ethereum',
+          side: 'buy',
+        },
+      });
+      requestPostTradeShareReopen();
+    });
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        target,
+        copyTradeOrigin,
+        initialTradeMode: 'sell',
+        analyticsContext: expect.objectContaining({
+          isCopyTrade: true,
+          traderAddress: '0xretrytrader',
+        }),
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
     );
   });
@@ -1647,9 +1752,12 @@ describe('TokenDetailsV1', () => {
       nativeEvent: { layout: { y: 400, height: 48 } },
     });
 
-    // Viewport, less the tab bar and the room kept for the sticky footer.
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(132);
+    });
+
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID)).toHaveStyle({
-      minHeight: 900 - 48 - 190,
+      minHeight: 900 - 48 - 132,
     });
   });
 

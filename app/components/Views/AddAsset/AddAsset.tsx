@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import { IconName } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { ImportTokenViewSelectorsIDs } from './ImportAssetView.testIds';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -48,7 +51,7 @@ const AddAsset = () => {
   );
   const [selectedNetwork, setSelectedNetwork] = useState<
     SupportedCaipChainId | Hex | null
-  >(enabledChainId as Hex);
+  >(assetType === 'token' ? null : (enabledChainId as Hex));
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -66,13 +69,25 @@ const AddAsset = () => {
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}
         onBack={() => navigation.goBack()}
+        endButtonIconProps={
+          assetType === 'token'
+            ? [
+                {
+                  iconName: IconName.Add,
+                  onPress: () =>
+                    navigation.navigate(Routes.WALLET.ADD_CUSTOM_TOKEN),
+                  accessibilityLabel: strings('add_asset.custom_token'),
+                  testID: ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON,
+                },
+              ]
+            : undefined
+        }
       />
 
       {assetType === 'token' && (
         <TokenView
           openNetworkSelector={() => setOpenNetworkSelector(true)}
           selectedNetwork={selectedNetwork}
-          networkConfigurations={networkConfigurations}
         />
       )}
 
@@ -92,6 +107,11 @@ const AddAsset = () => {
           setOpenNetworkSelector={setOpenNetworkSelector}
           sheetRef={sheetRef}
           displayEvmNetworksOnly={assetType === 'collectible'}
+          hideTestnets={assetType === 'token'}
+          onSelectAll={
+            assetType === 'token' ? () => setSelectedNetwork(null) : undefined
+          }
+          allNetworksLabel={strings('trending.all_networks')}
         />
       ) : null}
     </SafeAreaView>

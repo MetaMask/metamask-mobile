@@ -29,50 +29,61 @@ const renderCapsule = (props: ButtonIconProps, key?: string) => (
   <ButtonIconGlass key={key} isCapsule size={ButtonIconSize.Md} {...props} />
 );
 
-/** The start slot as MMDS resolves it, with built-in icons in glass capsules. */
-export const resolveStartAccessoryGlass = ({
-  startAccessory,
+/** The start button as MMDS resolves it: a custom icon, else back. */
+export const resolveStartButtonIconProps = ({
   startButtonIconProps,
   onBack,
   backButtonProps,
-}: HeaderGlassStartInputs): ReactNode => {
-  if (startAccessory) {
-    return startAccessory;
-  }
+}: HeaderGlassStartInputs): ButtonIconProps | undefined => {
   if (startButtonIconProps) {
-    return renderCapsule(startButtonIconProps);
+    return startButtonIconProps;
   }
   if (onBack || backButtonProps) {
-    return renderCapsule({
+    return {
       iconName: IconName.ArrowLeft,
       ...backButtonProps,
       onPress: backButtonProps?.onPress ?? onBack,
-    });
+    };
   }
   return undefined;
 };
 
-/** The end slot as MMDS resolves it, with built-in icons in glass capsules. */
-export const resolveEndAccessoryGlass = ({
-  endAccessory,
+/** The start slot as MMDS resolves it, with built-in icons in glass capsules. */
+export const resolveStartAccessoryGlass = (
+  inputs: HeaderGlassStartInputs,
+): ReactNode => {
+  if (inputs.startAccessory) {
+    return inputs.startAccessory;
+  }
+  const props = resolveStartButtonIconProps(inputs);
+  return props ? renderCapsule(props) : undefined;
+};
+
+/** The end buttons as MMDS resolves them: close first, then the icons. */
+export const resolveEndButtonIconProps = ({
   endButtonIconProps = [],
   onClose,
   closeButtonProps,
-}: HeaderGlassEndInputs): ReactNode => {
-  if (endAccessory) {
-    return endAccessory;
+}: HeaderGlassEndInputs): ButtonIconProps[] =>
+  onClose || closeButtonProps
+    ? [
+        {
+          iconName: IconName.Close,
+          ...closeButtonProps,
+          onPress: closeButtonProps?.onPress ?? onClose,
+        },
+        ...endButtonIconProps,
+      ]
+    : endButtonIconProps;
+
+/** The end slot as MMDS resolves it, with built-in icons in glass capsules. */
+export const resolveEndAccessoryGlass = (
+  inputs: HeaderGlassEndInputs,
+): ReactNode => {
+  if (inputs.endAccessory) {
+    return inputs.endAccessory;
   }
-  const icons: ButtonIconProps[] =
-    onClose || closeButtonProps
-      ? [
-          {
-            iconName: IconName.Close,
-            ...closeButtonProps,
-            onPress: closeButtonProps?.onPress ?? onClose,
-          },
-          ...endButtonIconProps,
-        ]
-      : endButtonIconProps;
+  const icons = resolveEndButtonIconProps(inputs);
   if (icons.length === 0) {
     return undefined;
   }

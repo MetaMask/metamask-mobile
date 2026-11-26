@@ -21,9 +21,6 @@ export const TRADING_ACTIVITY_BENEFITS = [
   { id: 'follow', sharesTradingActivity: false },
 ] as const;
 
-export type TradingActivityBenefitId =
-  (typeof TRADING_ACTIVITY_BENEFITS)[number]['id'];
-
 /** Icon test ID suffixes, so tests can tell a shown row from a hidden one. */
 export const TRADING_ACTIVITY_BENEFIT_ICON_STATE = {
   shown: 'shown',

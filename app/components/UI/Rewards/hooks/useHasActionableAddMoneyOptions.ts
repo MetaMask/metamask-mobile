@@ -1,23 +1,23 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useMusdBalance } from '../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../Ramp/hooks/useRegionHasFiatProvider';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../Money/selectors/depositTokens';
 import { useMoneyAccountDepositAssetId } from '../../Money/hooks/useMoneyAccountDepositAssetId';
 
 /**
  * Whether `MoneyAddMoneySheet` would expose at least one pressable funding
  * option. Mirrors the sheet's own disable/hide gates:
- * - Convert crypto → non-zero token balance
+ * - Convert crypto → eligible Money deposit assets
  * - Deposit funds → fiat deposit enabled + region provider
- * - Move / add mUSD → mUSD balance, or fiat deposit fallback
+ * - Stablecoin quick deposit is covered by the eligible-assets check
  */
 export function useHasActionableAddMoneyOptions(): boolean {
-  const { fiatBalanceAggregated, hasMusdBalanceOnAnyChain } = useMusdBalance();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
-  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const hasEligibleCryptoBalance = useSelector(
+    selectHasMoneyDepositAssetsMeetingMinimumBalance,
+  );
   const depositAssetId = useMoneyAccountDepositAssetId();
   const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
 
@@ -26,17 +26,10 @@ export function useHasActionableAddMoneyOptions(): boolean {
       enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit) &&
       regionHasFiatProvider;
 
-    const parsedMusdFiat = Number(fiatBalanceAggregated);
-    const hasParsedFiatBalance =
-      Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-    const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
-
-    return hasAnyCryptoBalance || canDepositFiat || hasMusdBalance;
+    return hasEligibleCryptoBalance || canDepositFiat;
   }, [
     enabledTransactionTypes,
     regionHasFiatProvider,
-    fiatBalanceAggregated,
-    hasMusdBalanceOnAnyChain,
-    hasAnyCryptoBalance,
+    hasEligibleCryptoBalance,
   ]);
 }

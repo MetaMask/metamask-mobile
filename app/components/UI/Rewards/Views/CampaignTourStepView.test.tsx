@@ -64,7 +64,7 @@ jest.mock('../../../../util/device', () => ({
   isLargeDevice: () => false,
 }));
 
-jest.mock('../components/Onboarding/ProgressIndicator', () => {
+jest.mock('../components/ProgressIndicator', () => {
   const { View } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   return {

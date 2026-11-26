@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Button,
   ButtonVariant,
@@ -99,10 +98,13 @@ import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
 } from './PerpsOrderBookView.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const route =
@@ -126,7 +128,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   // Get market data for the header
-  const { markets } = usePerpsMarkets();
+  const { markets } = usePerpsMarkets({ fullCatalog: true });
   const market = useMemo(() => {
     if (!symbol) {
       return undefined;
@@ -222,16 +224,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
-  const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: symbol || '',
+    providerId: market?.providerId,
+  });
 
   // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
   const focusedPrice = usePerpsLiveFocusedPrice({
+    providerId: market?.providerId,
     symbol: symbol || '',
     enabled: Boolean(symbol),
   });
 
   // allMids baseline as first-render fallback (~2 s)
   const livePrices = usePerpsLivePrices({
+    providerId: market?.providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
   });
@@ -299,6 +306,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
+    providerId: market?.providerId,
     levels: FAST_ORDER_BOOK_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
@@ -808,7 +816,8 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={() =>
               depthBandSheetRef.current?.onCloseBottomSheet(
                 handleDepthBandSheetClose,
@@ -819,7 +828,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             }}
           >
             {strings('perps.order_book.depth_band.title')}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           {groupingOptions.map((value) => (
             <ListItemSelect
               key={value}

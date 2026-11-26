@@ -4,10 +4,12 @@ import {
   type SetTokenOverviewChartTypeAction,
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
-  type SetMoneyOnboardingSeenAction,
+  type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
+  type SetBridgeLimitTabSeenAction,
+  type SetBridgeRecurringTabSeenAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
@@ -18,8 +20,16 @@ describe('user reducer', () => {
       expect(userInitialState.tokenOverviewChartType).toBe(ChartType.Line);
     });
 
-    it('has moneyOnboardingSeen as false', () => {
-      expect(userInitialState.moneyOnboardingSeen).toBe(false);
+    it('has moneySplashSeen as false', () => {
+      expect(userInitialState.moneySplashSeen).toBe(false);
+    });
+
+    it('has bridgeLimitTabSeen as false', () => {
+      expect(userInitialState.bridgeLimitTabSeen).toBe(false);
+    });
+
+    it('has bridgeRecurringTabSeen as false', () => {
+      expect(userInitialState.bridgeRecurringTabSeen).toBe(false);
     });
 
     it('has onboardingStepperProgress as empty object', () => {
@@ -41,47 +51,55 @@ describe('user reducer', () => {
     });
   });
 
-  describe('SET_MONEY_ONBOARDING_SEEN', () => {
-    it('sets moneyOnboardingSeen to true', () => {
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+  describe('SET_MONEY_SPLASH_SEEN', () => {
+    it('sets moneySplashSeen to true', () => {
+      const action: SetMoneySplashSeenAction = {
+        type: UserActionType.SET_MONEY_SPLASH_SEEN,
         payload: { seen: true },
       };
 
       const newState = userReducer(userInitialState, action);
 
-      expect(newState.moneyOnboardingSeen).toBe(true);
+      expect(newState.moneySplashSeen).toBe(true);
     });
 
-    it('sets moneyOnboardingSeen back to false', () => {
+    it('sets moneySplashSeen back to false', () => {
       const currentState = {
         ...userInitialState,
-        moneyOnboardingSeen: true,
+        moneySplashSeen: true,
       };
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+      const action: SetMoneySplashSeenAction = {
+        type: UserActionType.SET_MONEY_SPLASH_SEEN,
         payload: { seen: false },
       };
 
       const newState = userReducer(currentState, action);
 
-      expect(newState.moneyOnboardingSeen).toBe(false);
+      expect(newState.moneySplashSeen).toBe(false);
     });
+  });
 
-    it('does not modify other state properties', () => {
-      const currentState = {
-        ...userInitialState,
-        userLoggedIn: true,
-      };
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
-        payload: { seen: true },
+  describe('SET_BRIDGE_LIMIT_TAB_SEEN', () => {
+    it('sets bridgeLimitTabSeen to true', () => {
+      const action: SetBridgeLimitTabSeenAction = {
+        type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
       };
 
-      const newState = userReducer(currentState, action);
+      const newState = userReducer(userInitialState, action);
 
-      expect(newState.moneyOnboardingSeen).toBe(true);
-      expect(newState.userLoggedIn).toBe(true);
+      expect(newState.bridgeLimitTabSeen).toBe(true);
+    });
+  });
+
+  describe('SET_BRIDGE_RECURRING_TAB_SEEN', () => {
+    it('sets bridgeRecurringTabSeen to true', () => {
+      const action: SetBridgeRecurringTabSeenAction = {
+        type: UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN,
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.bridgeRecurringTabSeen).toBe(true);
     });
   });
 

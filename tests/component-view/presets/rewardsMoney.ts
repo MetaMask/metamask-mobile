@@ -1,6 +1,5 @@
-import type { MoneyAccount } from '@metamask/money-account-controller';
-import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
 import type {
+  AddressTotalsDto,
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
@@ -19,20 +18,19 @@ import {
   SocialV1Variant,
 } from '../../../app/constants/socialV1';
 import { createStateFixture } from '../stateFixture';
+import {
+  MONAD_MAINNET_CHAIN_ID,
+  MONAD_VAULT,
+  MONEY_TEST_ACCOUNT_ADDRESS,
+  MONEY_TEST_KEYRING_ID,
+  moneyAccount,
+  withMoneyAccountOverrides,
+} from './moneyAccount';
 
 export const REWARDS_MONEY_PROFILE_ID = 'profile-a';
-export const REWARDS_MONEY_KEYRING_ID = 'entropy-source-1';
-export const REWARDS_MONEY_ACCOUNT_ADDRESS =
-  '0x1111111111111111111111111111111111111111';
-export const MONAD_MAINNET_CHAIN_ID = '0x8f';
-
-const MONAD_VAULT = {
-  chainId: MONAD_MAINNET_CHAIN_ID,
-  boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
-  tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999C8117',
-  accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
-  lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
-} as const;
+export const REWARDS_MONEY_KEYRING_ID = MONEY_TEST_KEYRING_ID;
+export const REWARDS_MONEY_ACCOUNT_ADDRESS = MONEY_TEST_ACCOUNT_ADDRESS;
+export { MONAD_MAINNET_CHAIN_ID };
 
 /**
  * Every Contentful key the tip serves. Asserted copy uses the renamed keys
@@ -40,21 +38,33 @@ const MONAD_VAULT = {
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
-  earningsTab: 'Earnings',
+  nextSteps: 'Next steps',
+  overviewTab: 'Overview',
+  earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  earnEligibleFeesDescription:
+    'When friends join with your code and trade, you earn a share of their trading fees.',
+  referFriends: 'Refer friends',
+  tradeAndEarn: 'Trade and earn',
+  postTrades: 'Post trades',
   yourReferralCode: 'Your referral code',
   share: 'Share',
   referrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   recordedEarnings: 'Recorded earnings',
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   claim: 'Claim',
   claimed: 'Claimed',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   blocked: 'Blocked',
   voided: 'Voided',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   claimSuccessToast: 'Claim sent',
   claimPartialSuccessToast: 'Part of your claim was sent',
   claimFailureToast: 'Claim failed',
@@ -67,10 +77,14 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
+  claimFailurePayoutMigratedToast: 'Set up 2-step verification to claim',
+  earnedOnOtherAccounts:
+    'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
+  yourEarnings: 'Your earnings',
   breakdownTrading: 'Trading',
   breakdownTradingDescription: 'Trading description',
   breakdownReferralsDescription: 'Referrals description',
@@ -100,15 +114,18 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   tradingCommissionsSection: 'Trading commissions',
   copyTradingEmptyDescription:
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
-  copyTradingEmptyAction: 'Start sharing',
+  copyTradingEmptyAction: 'Post a trade',
   copyTradingInfoDescription:
-    'Earn 15% from fees when someone copies your trade.',
+    'Earn 15% from fees when someone copies your trade',
+  copyTradingDescription:
+    'Post a trade with a take. When others copy it, you earn a share of their trading fees.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebatePerps: 'Perps',
   rebateSwapsVolume: 'Swaps volume',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
@@ -118,6 +135,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteReferralCode: 'Referral code',
   inviteDecline: 'Decline',
   inviteAccept: 'Accept',
+  inviteTermsLearnMore: 'Learn more',
+  inviteTermsUrl: 'https://example.com/terms',
   inviteAcceptedEyebrow: 'You are in',
   inviteAcceptedTitle: 'Invite accepted',
   inviteAcceptedBody: 'Invite accepted body',
@@ -125,12 +144,15 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteAcceptedViewRewards: 'View rewards',
   inviteAcceptedStartTrading: 'Start trading',
   invitedBenefitTitle: 'Invited benefit',
+  invitedBenefitDescription:
+    'Every eligible trade you make returns 10% of its trading fee to your rewards balance.',
   offerEndsIn: 'Offer ends in',
   offerDurationDay: 'day',
   offerDurationDays: 'days',
   offerDurationHour: 'hour',
   offerDurationHours: 'hours',
   invitedReferredBy: 'Referred by',
+  invitedOptInTitle: 'Opt in title',
   invitedOptInDescription: 'Opt in description',
   invitedOptInAction: 'Opt in',
   invitedOptInSuccessToast: 'Opted in',
@@ -140,6 +162,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   termsLearnMore: 'Learn more',
   termsUrl: 'https://example.com/terms',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   mUSD: 'mUSD',
   paused: 'Paused',
   claimsPausedTitle: 'Claims paused',
@@ -148,6 +171,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   rewardsPausedDescription: 'These rewards are paused while they are reviewed.',
   rewardsPausedBanner: '{amount} of rewards paused.',
   rewardsPausedLearnMore: 'Learn more',
+  rewardsHeldTitle: 'Rewards held',
+  rewardsHeldDescription:
+    'These rewards are held until your tax determination is cleared.',
+  rewardsHeldBanner: '{heldAmount} of rewards held.',
+  rewardsHeldLearnMore: 'Learn more',
   settingsReferralTitle: 'Referral Code',
   settingsReferralLinkedDescription:
     'You are all set. Start trading to earn rewards.',
@@ -224,6 +252,24 @@ function totals(
   };
 }
 
+/**
+ * One `by_address` row of a claim family. `address` is the full
+ * `namespace:address` form the backend returns, such as `eip155:0x…`.
+ */
+export function byAddressRowFixture(
+  address: string,
+  claimable = '1000000',
+): AddressTotalsDto {
+  return {
+    address,
+    lifetime: claimable,
+    claimable,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
+  };
+}
+
 export interface EarningsSummaryFixtureOptions {
   lifetimeTotal?: string;
   claimable?: string;
@@ -233,10 +279,14 @@ export interface EarningsSummaryFixtureOptions {
   pending?: string;
   cashbackClaimable?: string;
   cashbackBlocked?: string;
+  cashbackHeld?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
   /** Follow-trade claimable base units. Omitted leaves that family out. */
   followTradeClaimable?: string;
+  /** Follow-trade held base units, with the reason the family reports. */
+  followTradeHeld?: string;
+  followTradeBlockingReason?: SummaryTotalsDto['blocking_reason'];
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -268,6 +318,9 @@ export function earningsSummaryFixture(
             ...(options.cashbackBlocked === undefined
               ? {}
               : { blocked: options.cashbackBlocked }),
+            ...(options.cashbackHeld === undefined
+              ? {}
+              : { held: options.cashbackHeld }),
             ...(options.cashbackBlockingReason === undefined
               ? {}
               : { blocking_reason: options.cashbackBlockingReason }),
@@ -285,6 +338,12 @@ export function earningsSummaryFixture(
           : {
               SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
                 claimable: followTradeClaimable,
+                ...(options.followTradeHeld === undefined
+                  ? {}
+                  : { held: options.followTradeHeld }),
+                ...(options.followTradeBlockingReason === undefined
+                  ? {}
+                  : { blocking_reason: options.followTradeBlockingReason }),
               }),
             }),
       },
@@ -340,6 +399,20 @@ export const UNDER_REVIEW_EARNINGS_SUMMARY = earningsSummaryFixture({
   cashbackClaimable: '0',
   cashbackBlocked: '12000000',
   cashbackBlockingReason: 'UNDER_REVIEW',
+});
+
+/**
+ * $9.15 of follow-trade income held for tax, while cashback and revenue share
+ * hold nothing. Only the copy-trading family reads `TAX_DETERMINATION_REQUIRED`.
+ */
+export const TAX_HELD_EARNINGS_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '9150000',
+  claimable: '0',
+  held: '9150000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '0',
+  followTradeHeld: '9150000',
+  followTradeBlockingReason: 'TAX_DETERMINATION_REQUIRED',
 });
 
 /** Summary a refusal refresh returns, with the hold that opens the sheet. */
@@ -434,20 +507,71 @@ export const PENDING_CLAIM_FIXTURE: ClaimDto = {
   updated_at: '2026-09-01T00:00:00.000Z',
 };
 
-const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
+const EMPTY_REVSHARE_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['revshare_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_CASHBACK_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['cashback_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_COPY_TRADING_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['copy_trading_by_product']
+> = { perps: null, swaps: null };
+
+/**
+ * Earn rates with every field null, including the per-product maps.
+ * The next DTO field belongs here so unit tests do not each rewrite the shape.
+ */
+export const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
   cashback_rate_bps: null,
   cashback_earning_start: null,
   cashback_earning_end: null,
   revshare_rate_bps: null,
   revshare_earning_start: null,
   revshare_earning_end: null,
+  revshare_by_product: EMPTY_REVSHARE_BY_PRODUCT,
+  cashback_by_product: EMPTY_CASHBACK_BY_PRODUCT,
+  copy_trading_by_product: EMPTY_COPY_TRADING_BY_PRODUCT,
+};
+
+/**
+ * A fresh earn-rates object. Pass only the rates a test asserts; a product
+ * map replaces that map wholesale.
+ *
+ * @param overrides - Fields that replace the empty rates.
+ * @returns Earn rates, with the empty product maps copied.
+ */
+export function earnRatesFixture(
+  overrides: Partial<ReferralMeDto['earn_rates']> = {},
+): ReferralMeDto['earn_rates'] {
+  return {
+    ...EMPTY_EARN_RATES,
+    revshare_by_product: { ...EMPTY_REVSHARE_BY_PRODUCT },
+    cashback_by_product: { ...EMPTY_CASHBACK_BY_PRODUCT },
+    copy_trading_by_product: { ...EMPTY_COPY_TRADING_BY_PRODUCT },
+    ...overrides,
+  };
+}
+
+/**
+ * What a test changes on a persona's referral-me. Fields replace the persona's
+ * value. `localizedText` merges key by key into `localized_text`, and a key set to `undefined`
+ * stands for a payload cached before the server added it.
+ */
+export type ReferralMeOverrides = Partial<
+  Omit<ReferralMeDto, 'localized_text'>
+> & {
+  localizedText?: { [Key in keyof ReferralLocalizedText]?: string };
 };
 
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
+  overrides: ReferralMeOverrides = {},
 ): ReferralMeDto {
   const referrer = persona === 'referrer';
   const referee = persona === 'referee';
+  const { localizedText, ...fields } = overrides;
 
   return {
     roles: referrer ? ['REFERRER'] : referee ? ['REFEREE'] : [],
@@ -464,30 +588,22 @@ export function referralMeFixture(
       : null,
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
-    earn_rates: EMPTY_EARN_RATES,
-    localized_text: REFERRAL_LOCALIZED_TEXT,
+    earn_rates: earnRatesFixture(),
+    localized_text: { ...REFERRAL_LOCALIZED_TEXT, ...localizedText },
     invite_hero: null,
     excluded_regions: [],
+    ...fields,
   };
 }
 
-function moneyAccount(): MoneyAccount {
-  return {
-    id: 'money-1',
-    address: REWARDS_MONEY_ACCOUNT_ADDRESS,
-    type: 'eip155:eoa',
-    scopes: [],
-    methods: [],
-    options: {
-      entropy: {
-        type: 'mnemonic',
-        id: REWARDS_MONEY_KEYRING_ID,
-        derivationPath: "m/44'/60'/0'/0/0",
-        groupIndex: 0,
-      },
-      exportable: false,
-    },
-  };
+export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
+
+export function referralMeWithInvitedBenefit(
+  invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
+): ReferralMeDto {
+  return referralMeFixture('referee', {
+    localizedText: { invitedBenefitTitle },
+  });
 }
 
 /**
@@ -511,10 +627,19 @@ export interface RewardsMoneyViewStateOptions {
    * gear and referral field read this cache, the `REFERRER` role, and geo.
    */
   referralMe?: ReferralMeDto;
+  /** When false, referral me is loaded by the screen instead of the preset. */
+  seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
+  /** The subscription lookup has not settled, so `subscriptionId` reads as null. */
+  subscriptionLookupPending?: boolean;
   /** Device country. Null fails open for a Money referral. */
   geoLocation?: string | null;
+  /**
+   * GeolocationController status. Defaults to `complete` when a location is
+   * set. Set this without a location to seed an unresolved lookup.
+   */
+  geoStatus?: 'idle' | 'loading' | 'complete' | 'error';
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
   /** Session-only deeplink state for the invite-sheet lifecycle. */
@@ -544,6 +669,11 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
+  /**
+   * Epoch ms until Claim is enabled again. Set when a refusal's Retry-After
+   * is still running.
+   */
+  claimWaitUntil?: number;
 }
 
 /**
@@ -555,9 +685,13 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
+  claimWaitUntil,
   referralMe: referralMeOverride,
+  seedReferralMe = true,
   subscriptionId = null,
+  subscriptionLookupPending = false,
   geoLocation = null,
+  geoStatus,
   moneyControllerEnabled = false,
   pendingReferralCode = null,
   answeredReferralCode = null,
@@ -567,7 +701,9 @@ export function rewardsMoneyViewState({
   supportPreferenceSaved = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
-  const referralMe = referralMeOverride ?? referralMeFixture(persona);
+  const referralMe = seedReferralMe
+    ? (referralMeOverride ?? referralMeFixture(persona))
+    : undefined;
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -611,8 +747,9 @@ export function rewardsMoneyViewState({
     .withOverrides({
       rewards: {
         ...pointsRewardsInitialState,
-        candidateSubscriptionId: subscriptionId,
-        geoLocation,
+        candidateSubscriptionId: subscriptionLookupPending
+          ? 'pending'
+          : subscriptionId,
       },
       ...(supportPreferenceSaved
         ? {
@@ -624,9 +761,11 @@ export function rewardsMoneyViewState({
         : {}),
       rewardsMoney: {
         ...rewardsMoneyInitialState,
-        referralMe: {
-          [profileId]: { loading: false, error: false, data: referralMe },
-        },
+        referralMe: referralMe
+          ? {
+              [profileId]: { loading: false, error: false, data: referralMe },
+            }
+          : {},
         earningsSummary: {
           [profileId]: {
             loading: false,
@@ -637,18 +776,18 @@ export function rewardsMoneyViewState({
         pendingReferralCode,
         answeredReferralCode,
         isReferralLinkPending,
+        ...(claimWaitUntil === undefined
+          ? {}
+          : {
+              claimWaitingUntil: {
+                [profileId]: claimWaitUntil,
+              },
+            }),
       },
       engine: {
         backgroundState: {
-          KeyringController: {
-            keyrings: [
-              {
-                type: ExtendedKeyringTypes.hd,
-                accounts: ['0x0000000000000000000000000000000000000001'],
-                metadata: { id: REWARDS_MONEY_KEYRING_ID },
-              },
-            ],
-          },
+          ...withMoneyAccountOverrides(account, { includeMoneyAccount }).engine
+            .backgroundState,
           AuthenticationController: {
             srpSessionData: {
               [REWARDS_MONEY_KEYRING_ID]: {
@@ -656,9 +795,14 @@ export function rewardsMoneyViewState({
               },
             },
           },
-          MoneyAccountController: {
-            moneyAccounts: includeMoneyAccount ? { [account.id]: account } : {},
-          },
+          ...(geoLocation != null || geoStatus
+            ? {
+                GeolocationController: {
+                  ...(geoLocation != null ? { location: geoLocation } : {}),
+                  status: geoStatus ?? 'complete',
+                },
+              }
+            : {}),
           ...(subscriptionId
             ? {
                 RewardsController: {

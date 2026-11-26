@@ -4,8 +4,10 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   type OrderBookData,
   type OrderBookConnectionStatus,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 
 // Re-export types from controllers/types for backwards compatibility
 export {
@@ -17,6 +19,11 @@ export type { OrderBookConnectionStatus } from '@metamask/perps-controller';
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
+  /**
+   * Venue to route the order book to (TAT-4407): the book the user will trade
+   * against. Without one the stream follows the default provider.
+   */
+  providerId?: PerpsProviderType;
   /** Number of levels to display (default: 10) */
   levels?: number;
   /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
@@ -89,6 +96,7 @@ export function usePerpsLiveOrderBook(
 ): UsePerpsLiveOrderBookReturn {
   const {
     symbol,
+    providerId,
     levels = 10,
     nSigFigs = 5,
     mantissa,
@@ -99,7 +107,11 @@ export function usePerpsLiveOrderBook(
     channel = 'orderBook',
   } = options;
 
-  const isAggregated = channel === 'orderBookAggregated';
+  // The server-aggregated socket only speaks Hyperliquid. Another venue's
+  // ladder comes from its own routed book through the controller.
+  const usesAggregatedSocket =
+    channel === 'orderBookAggregated' &&
+    (!providerId || providerId === PROVIDER_CONFIG.AggregatedOrderBookProvider);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,7 +169,7 @@ export function usePerpsLiveOrderBook(
       setOrderBook(null);
       setDataSymbol(null);
       setIsLoading(false);
-      setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+      setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
       return;
     }
 
@@ -165,7 +177,7 @@ export function usePerpsLiveOrderBook(
     setDataSymbol(null);
     setIsLoading(true);
     setError(null);
-    setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+    setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
 
     DevLogger.log(
       `usePerpsLiveOrderBook: Subscribing to ${symbol} (${channel})`,
@@ -194,7 +206,7 @@ export function usePerpsLiveOrderBook(
     }
 
     try {
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         const connection = getAggregatedOrderBookConnection();
         unsubscribe = connection.subscribe({
           symbol,
@@ -218,6 +230,7 @@ export function usePerpsLiveOrderBook(
         unsubscribe = controller.subscribeToOrderBook({
           symbol,
           levels,
+          ...(providerId ? { providerId } : {}),
           nSigFigs,
           mantissa,
           fast,
@@ -244,7 +257,7 @@ export function usePerpsLiveOrderBook(
       setDataSymbol(symbol);
       setError(catchError);
       setIsLoading(false);
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         setConnectionStatus('error');
       }
     }
@@ -267,6 +280,7 @@ export function usePerpsLiveOrderBook(
     };
   }, [
     symbol,
+    providerId,
     levels,
     nSigFigs,
     mantissa,
@@ -276,7 +290,7 @@ export function usePerpsLiveOrderBook(
     throttleMs,
     fast,
     channel,
-    isAggregated,
+    usesAggregatedSocket,
     reconnectNonce,
   ]);
 
@@ -286,7 +300,7 @@ export function usePerpsLiveOrderBook(
       dataSymbol,
       isLoading,
       error,
-      connectionStatus: isAggregated ? connectionStatus : 'connected',
+      connectionStatus: usesAggregatedSocket ? connectionStatus : 'connected',
       reconnect,
     }),
     [
@@ -295,7 +309,7 @@ export function usePerpsLiveOrderBook(
       isLoading,
       error,
       connectionStatus,
-      isAggregated,
+      usesAggregatedSocket,
       reconnect,
     ],
   );

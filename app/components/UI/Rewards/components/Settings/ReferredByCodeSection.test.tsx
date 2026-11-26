@@ -7,7 +7,6 @@ import {
   createMockUseAnalyticsHook,
 } from '../../../../../util/test/analyticsMock';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import type { ReferralMeEntry } from '../../../../../reducers/rewardsMoney';
@@ -17,6 +16,13 @@ import {
   selectSettingsReferralAvailable,
 } from '../../../../../reducers/rewardsMoney/selectors';
 import ReferredByCodeSection from './ReferredByCodeSection';
+import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../../../reducers/rewardsMoney/selectors', () => ({
   selectReferralMeEntry: jest.fn(),
@@ -32,10 +38,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useReferralMe', () => ({
   useReferralMe: jest.fn(),
-}));
-
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 jest.mock('../../hooks/useValidateMoneyReferralCode', () => ({
@@ -72,6 +74,8 @@ const openEntry = {
         'Have a referral code? Enter it below and you will be linked.',
       settingsReferralPlaceholder: 'Enter referral code',
       settingsReferralApply: 'Apply',
+      inviteTermsLearnMore: 'Learn more',
+      inviteTermsUrl: 'https://link.metamask.io/rewards/terms',
     },
   },
 } as ReferralMeEntry;
@@ -92,9 +96,6 @@ describe('ReferredByCodeSection', () => {
     jest.mocked(useReferralMe).mockReturnValue({
       profileId: 'profile-1',
       fetchReferralMe: mockFetchReferralMe,
-    });
-    jest.mocked(useGeoRewardsMetadata).mockReturnValue({
-      fetchGeoRewardsMetadata: jest.fn(),
     });
     jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
       referralCode: '',
@@ -163,7 +164,10 @@ describe('ReferredByCodeSection', () => {
 
     expect(getByText('Referral Code')).toBeOnTheScreen();
     expect(
-      getByText('Have a referral code? Enter it below and you will be linked.'),
+      getByText(
+        'Have a referral code? Enter it below and you will be linked.',
+        { exact: false },
+      ),
     ).toBeOnTheScreen();
     expect(getByText('Apply')).toBeOnTheScreen();
 
@@ -259,6 +263,33 @@ describe('ReferredByCodeSection', () => {
     expect(getByTestId('referred-by-code-error')).toHaveTextContent(
       'rewards.error_messages.referrer_cannot_be_referred',
     );
+  });
+
+  it('shows the terms link after the not-linked description', () => {
+    const { getByTestId } = renderSection();
+
+    expect(
+      getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK),
+    ).toHaveTextContent('Learn more');
+  });
+
+  it('shows the terms link after the linked description too', () => {
+    jest.mocked(selectReferralMeEntry).mockReturnValue({
+      ...openEntry,
+      data: {
+        ...openEntry.data,
+        referred_by: { referral_code: 'KOL1' },
+      },
+    } as ReferralMeEntry);
+
+    const { getByTestId, getByText } = renderSection();
+
+    expect(
+      getByText('Earn rewards for both you and your friend.', { exact: false }),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK),
+    ).toHaveTextContent('Learn more');
   });
 
   describe('analytics', () => {

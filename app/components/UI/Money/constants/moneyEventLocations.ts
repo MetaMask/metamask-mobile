@@ -4,7 +4,7 @@ export enum SCREEN_NAMES {
   TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
-  MONEY_ONBOARDING = 'money_onboarding',
+  MONEY_SPLASH = 'money_splash',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
   // Used for Money account withdrawals
@@ -12,6 +12,7 @@ export enum SCREEN_NAMES {
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
+  MONEY_EARNINGS = 'money_earnings',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
   VBA_ONBOARDING = 'vba_onboarding',
@@ -27,6 +28,7 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
+  MONEY_ESTIMATED_BALANCE_SHEET = 'money_estimated_balance_sheet',
   MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
   MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
@@ -52,8 +54,7 @@ export enum COMPONENT_NAMES {
   // — Money Balance Summary —
   MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
-  // — Onboarding —
-  RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
+  // — Onboarding card —
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
@@ -68,11 +69,17 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
   /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
   MONEY_VBA_FINISH_VERIFICATION_CARD = 'money_vba_finish_verification_card',
-  /** KYC_DECISION (rejected / retry) VBA card on Money Home (Figma node 3841-39885, main file). */
+  /** KYC_DECISION VBA card on Money Home: terminal KYC rejection (Figma node 3841-39885, main file). */
   MONEY_VBA_KYC_DECISION_CARD = 'money_vba_kyc_decision_card',
+  /**
+   * KYC_RETRY VBA card on Money Home: non-terminal retry, the user can still
+   * resubmit. Visible copy reuses finish_verification.
+   */
+  MONEY_VBA_KYC_RETRY_CARD = 'money_vba_kyc_retry_card',
 
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
+  MONEY_EARNINGS_SECTION_HEADER = 'money_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
@@ -101,7 +108,7 @@ export enum COMPONENT_NAMES {
   // — Add Money Sheet —
   MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
   MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
-  MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
+  MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN = 'money_add_money_sheet_move_stablecoin',
   MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT = 'money_add_money_sheet_bank_account',
 
   // — Transfer Money Sheet —

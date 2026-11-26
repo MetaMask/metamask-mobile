@@ -18,6 +18,7 @@ import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import EditableProfileAvatar from './EditableProfileAvatar';
 
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 import type { MySocialProfile } from '../hooks/useMyProfile';
@@ -129,6 +130,11 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
+            {profile.verified === true ? (
+              <ProfileVerifiedBadge
+                testID={MyProfileViewSelectorsIDs.VERIFIED_BADGE}
+              />
+            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodyMd}

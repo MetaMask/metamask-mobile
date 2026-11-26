@@ -46,7 +46,9 @@ export interface CardPostAuthRedirect {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardScreensStackParamList = {
-  CardHome: { fromCardOnboarding?: boolean } | undefined;
+  CardHome:
+    | { fromCardOnboarding?: boolean; fromKycPending?: boolean }
+    | undefined;
   CardApplePaySplash: undefined;
   CardApplePayConfirmation: undefined;
   CardWelcome: undefined;
@@ -121,7 +123,7 @@ export type CardOnboardingStackParamList = {
   CardOnboardingPhysicalAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
+  CardOnboardingImmersveKYC: { url: string; redirectUrl: string };
 };
 
 /**
@@ -145,7 +147,6 @@ export type CardModalsNavigationParamList = {
     callerParams?: Record<string, unknown>;
   };
   CardWaitlistFormModal: { url: string };
-  CardImmersveKYCModal: { url: string; redirectUrl: string };
   CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
@@ -167,15 +168,6 @@ export type CardRootParamList = {
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
 };
 
-/**
- * Feature-level Card navigation params for nested `CardScreens` / `CardModals` entry.
- */
-// Intersection (`&`) requires `type`; `interface` cannot express this.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CardNavigationParamList = CardScreensStackParamList &
-  CardModalsNavigationParamList & {
-    CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
-    CardModals:
-      | NavigatorScreenParams<CardModalsNavigationParamList>
-      | undefined;
-  };
+export type CardRootEntryParams = NavigatorScreenParams<CardRootParamList> & {
+  returnToCaller?: boolean;
+};

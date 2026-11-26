@@ -75,6 +75,15 @@ jest.mock('../useInsufficientNativeReserveError', () => ({
   useInsufficientNativeReserveError: jest.fn(),
 }));
 
+jest.mock('../../../Money/hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isMoneyAccountFeatureEnabled: false,
+    hasMoneyAccount: false,
+    primaryMoneyAccount: undefined,
+  })),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {

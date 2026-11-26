@@ -11,6 +11,7 @@ const logger = createLogger({ name: 'AndroidGoldenSnapshot' });
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
+// 3 × 5120 MB = 15 GB guest RAM on the 16 vCPU / 32 GB android-e2e runner.
 const ANDROID_EMULATOR_CI_MEMORY_MB = '5120';
 
 /** Named quick-boot snapshot shared by Appium CI shards. */

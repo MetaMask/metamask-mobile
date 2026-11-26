@@ -28,6 +28,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -374,7 +375,8 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    key === 'money.splash.eyebrow' ? 'MetaMask Money' : key,
 }));
 
 const mockTrackEvent = jest.fn();
@@ -660,13 +662,30 @@ jest.mock(
   },
 );
 
+const mockUseMoneyToken = jest.fn(
+  (): ReturnType<typeof createMockToken> | undefined => undefined,
+);
+
+jest.mock('../../hooks/useBridgeMoneyToken', () => ({
+  useMoneyToken: () => mockUseMoneyToken(),
+}));
+
+jest.mock('../TokenSelectorMoneyItem', () => ({
+  TokenSelectorMoneyItem: () => {
+    const { createElement } = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+
+    return createElement(Text, { testID: 'money-token-row' }, 'Money');
+  },
+}));
+
 jest.mock('../TokenSelectorItem', () => ({
   TokenSelectorItem: ({
     token,
     onPress,
     children,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
   }: {
     token: {
       symbol: string;
@@ -681,7 +700,7 @@ jest.mock('../TokenSelectorItem', () => ({
     }) => void;
     children?: React.ReactNode;
     isNoFeeAsset?: boolean;
-    showStockBadge?: boolean;
+    badgeLabel?: string;
   }) => {
     const { createElement } = jest.requireActual('react');
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
@@ -700,8 +719,8 @@ jest.mock('../TokenSelectorItem', () => ({
       isNoFeeAsset
         ? createElement(Text, { testID: `no-fee-${token.symbol}` }, 'No fee')
         : null,
-      showStockBadge
-        ? createElement(Text, { testID: `stock-${token.symbol}` }, 'Stock')
+      badgeLabel
+        ? createElement(Text, { testID: `badge-${token.symbol}` }, badgeLabel)
         : null,
       createElement(View, null, children),
     );
@@ -769,6 +788,8 @@ const resetMocks = () => {
   mockIsNonEvmChainId.mockReturnValue(false);
   mockNavigationDispatch.mockReset();
   mockGoBack.mockReset();
+  mockUseMoneyToken.mockReset();
+  mockUseMoneyToken.mockReturnValue(undefined);
   mockUsePopularTokens.mockClear();
   mockUseSearchTokens.mockClear();
   mockUseBalancesByAssetId.mockClear();
@@ -1232,6 +1253,81 @@ describe('BridgeTokenSelector', () => {
       mockSelectedToken = createMockToken({ symbol: 'USDC', chainId: '0x1' });
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+    });
+  });
+
+  describe('token badges', () => {
+    const mockSelectRWAEnabledFlag = jest.mocked(selectRWAEnabledFlag);
+
+    beforeEach(() => {
+      mockSelectRWAEnabledFlag.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      mockSelectRWAEnabledFlag.mockReturnValue(false);
+    });
+
+    it('shows the API badgeLabel for tokens that are not stock-classified', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({
+              assetId: 'eip155:4663/erc20:0xamzn' as never,
+              symbol: 'AMZN',
+              name: 'Amazon (Robinhood)',
+            }),
+            rwaData: { instrumentType: 'unspecified' },
+            badgeLabel: 'Stock',
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      const badge = await findByTestId('badge-AMZN');
+      expect(badge).toHaveTextContent('Stock');
+    });
+
+    it('falls back to Stock for stock RWA tokens without badgeLabel', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({
+              assetId: 'eip155:56/erc20:0xamznon' as never,
+              symbol: 'AMZNON',
+              name: 'Amazon (Ondo Tokenized Stock)',
+            }),
+            rwaData: { instrumentType: 'stock' },
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      const badge = await findByTestId('badge-AMZNON');
+      expect(badge).toHaveTextContent('Stock');
+    });
+
+    it('hides badges when the RWA feature flag is disabled', async () => {
+      mockSelectRWAEnabledFlag.mockReturnValue(false);
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({ symbol: 'AMZN', name: 'Amazon' }),
+            badgeLabel: 'Stock',
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await findByTestId('token-AMZN');
+      expect(queryByTestId('badge-AMZN')).toBeNull();
     });
   });
 
@@ -2735,6 +2831,34 @@ describe('BridgeTokenSelectorContent', () => {
     };
   });
 
+  describe('initialSearchString', () => {
+    it('restores the query and searches it on mount', async () => {
+      const { getByTestId } = renderContent({ initialSearchString: 'ETH' });
+
+      expect(getByTestId('bridge-token-search-input').props.value).toBe('ETH');
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('does not search on mount when the query is too short', () => {
+      renderContent({ initialSearchString: 'ET' });
+
+      expect(mockSearchTokens).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onSearchStringChange', () => {
+    it('reports the query when the user types', () => {
+      const onSearchStringChange = jest.fn();
+      const { getByTestId } = renderContent({ onSearchStringChange });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'USD');
+
+      expect(onSearchStringChange).toHaveBeenLastCalledWith('USD');
+    });
+  });
+
   describe('balanceOnly', () => {
     it('disables the popular and search endpoints', () => {
       renderContent({ balanceOnly: true });
@@ -2924,6 +3048,84 @@ describe('BridgeTokenSelectorContent', () => {
       await waitFor(() => expect(getByTestId('token-PEPE2')).toBeOnTheScreen());
       expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
     });
+  });
+
+  describe('money token row', () => {
+    const moneyToken = createMockToken({
+      symbol: 'MUSD',
+      name: 'MetaMask Money',
+      address: '0xmoney',
+      chainId: MOCK_CHAIN_IDS.polygon,
+      isMoneyToken: true,
+    });
+
+    beforeEach(() => {
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+    });
+
+    it('shows the money token when All networks is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('shows the money token when a different network is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('select-eth-network'));
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('hides the money token when search query does not match', () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'zzz');
+
+      expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { query: 'money', field: 'name' },
+      { query: 'musd', field: 'symbol' },
+      { query: '0xmoney', field: 'address' },
+    ] as const)(
+      'shows the money token when search matches $field',
+      ({ query }) => {
+        const { getByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), query);
+
+        expect(getByTestId('money-token-row')).toBeOnTheScreen();
+      },
+    );
+
+    it('shows the money token for unified swap bridge', () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it.each([FeatureId.LIMIT_ORDER, FeatureId.RECURRING_ORDER] as const)(
+      'hides the money token for %s',
+      (featureId) => {
+        mockUseSwapsFeatureId.mockReturnValue(featureId);
+        mockUseMoneyToken.mockReturnValue(undefined);
+
+        const { queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
+      },
+    );
   });
 
   describe('hostManagesNetworkFilter', () => {

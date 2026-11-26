@@ -47,7 +47,7 @@ const buildEntry = (
   }),
   createdAtMs: 0,
   confirmedPost: null,
-  dismissedOn: { following: false, posts: false },
+  dismissedOn: { trending: false, following: false, posts: false },
   ...overrides,
 });
 
@@ -119,10 +119,70 @@ describe('overlayPendingPosts', () => {
     expect(result.posts).toEqual([otherRow, served]);
   });
 
+  it('pins a pending post on Trending without hiding other rows of its position', () => {
+    const tradeRow = serverRow('trade', 'older-comment', 'position-1');
+
+    const result = overlayPendingPosts('trending', [buildEntry()], OWNER, [
+      tradeRow,
+      otherRow,
+    ]);
+
+    expect(result.pinnedPosts).toEqual([buildEntry().post]);
+    expect(result.posts).toEqual([tradeRow, otherRow]);
+  });
+
+  it('replaces the pending card on Trending with the comment Trending returned', () => {
+    const served = serverRow('served', 'comment-1', 'position-1');
+
+    const result = overlayPendingPosts('trending', [buildEntry()], OWNER, [
+      otherRow,
+      served,
+    ]);
+
+    expect(result.pinnedPosts).toEqual([
+      { ...served, id: 'pending-comment-1' },
+    ]);
+    expect(result.pinnedPosts[0].isPending).toBeUndefined();
+    expect(result.posts).toEqual([otherRow]);
+  });
+
+  it('keeps the card pending on Trending when only another feed confirmed it', () => {
+    const confirmed = serverRow('confirmed', 'comment-1', 'position-1');
+
+    const result = overlayPendingPosts(
+      'trending',
+      [buildEntry({ confirmedPost: confirmed })],
+      OWNER,
+      [otherRow],
+    );
+
+    expect(result.pinnedPosts).toEqual([buildEntry().post]);
+    expect(result.posts).toEqual([otherRow]);
+  });
+
+  it('shows the copy another feed confirmed on the Posts tab', () => {
+    const confirmed = serverRow('confirmed', 'comment-1', 'position-1');
+
+    const result = overlayPendingPosts(
+      'posts',
+      [buildEntry({ confirmedPost: confirmed })],
+      OWNER,
+      [otherRow],
+    );
+
+    expect(result.pinnedPosts).toEqual([
+      { ...confirmed, id: 'pending-comment-1' },
+    ]);
+  });
+
   it('drops an entry dismissed on that surface', () => {
     const result = overlayPendingPosts(
-      'following',
-      [buildEntry({ dismissedOn: { following: true, posts: false } })],
+      'trending',
+      [
+        buildEntry({
+          dismissedOn: { trending: true, following: false, posts: false },
+        }),
+      ],
       OWNER,
       [otherRow],
     );
@@ -214,6 +274,31 @@ describe('usePendingPostsOverlay', () => {
     });
 
     expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(true);
+  });
+
+  it('does not refetch a feed that streams its posts in', () => {
+    jest.useFakeTimers();
+    addPendingPost({
+      ownerProfileId: OWNER,
+      post: { ...buildPost('pending-comment-1'), commentId: 'comment-1' },
+    });
+    const refetch = jest.fn(async () => undefined);
+    renderHook(() =>
+      usePendingPostsOverlay({
+        surface: 'trending',
+        ownerProfileId: OWNER,
+        serverPosts: [],
+        refetch,
+        refetchUntilServed: false,
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it('clears every pending post when the wallet locks', () => {

@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
@@ -8,7 +9,7 @@ import {
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,9 +18,9 @@ import {
   mergeInFlightClaims,
   type EarningsHistoryListItem,
 } from '../utils/claimEarnings';
-import { underReviewBlockedBaseUnits } from '../utils/earningsSummaryTotals';
 import { EarningsHistoryRow } from '../components/Money/EarningsHistoryRows';
-import RewardsPausedBanner from '../components/Money/RewardsPausedBanner';
+import RewardsEarningsBanners from '../components/Money/RewardsEarningsBanners';
+import RewardsMoneyListScreen from '../components/Money/RewardsMoneyListScreen';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
@@ -46,9 +47,10 @@ const RewardsEarningsHistoryView: React.FC = () => {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
   }, [navigation]);
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
   const inFlight = useInFlightClaims(profileId);
   const items = useMemo(
     () => mergeInFlightClaims(list.items, inFlight.claims),
@@ -63,17 +65,18 @@ const RewardsEarningsHistoryView: React.FC = () => {
     !summaryData &&
     (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
   const historyFirstLoad = list.isLoading || list.items === null;
-  const pausedBaseUnits =
-    summaryLoading || historyFirstLoad
-      ? null
-      : underReviewBlockedBaseUnits(summaryData);
-  const header =
-    pausedBaseUnits && localizedText ? (
-      <RewardsPausedBanner
-        baseUnits={pausedBaseUnits}
-        localizedText={localizedText}
-      />
-    ) : null;
+  const bannerSummary = summaryLoading || historyFirstLoad ? null : summaryData;
+  const header = (
+    <Box twClassName="pt-2">
+      {localizedText ? (
+        <RewardsEarningsBanners
+          summary={bannerSummary}
+          localizedText={localizedText}
+          twClassName="px-4 pb-4"
+        />
+      ) : null}
+    </Box>
+  );
 
   const renderItem = useCallback(
     (item: EarningsHistoryListItem) =>
@@ -84,30 +87,35 @@ const RewardsEarningsHistoryView: React.FC = () => {
   );
 
   return (
-    <TradingActivityListView
+    <RewardsMoneyListScreen
       view="RewardsEarningsHistoryView"
       title={localizedText?.history ?? ''}
-      testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
-      list={{ ...list, items }}
-      renderItem={renderItem}
-      keyExtractor={(item) =>
-        isPendingClaimRow(item)
-          ? `pending-${item.id}`
-          : `${item.type}-${item.id}`
-      }
-      emptyDescription={
-        (copyTradingOnly
-          ? localizedText?.copyTradingEmptyDescription
-          : localizedText?.tradingActivityEmptyDescription) ?? ''
-      }
-      emptyActionLabel={
-        copyTradingOnly
-          ? localizedText?.copyTradingEmptyAction
-          : localizedText?.tradingActivityEmptyAction
-      }
-      emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
-      header={header}
-    />
+      testID={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.CONTAINER}
+    >
+      <TradingActivityListView
+        testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
+        list={{ ...list, items }}
+        renderItem={renderItem}
+        keyExtractor={(item) =>
+          isPendingClaimRow(item)
+            ? `pending-${item.id}`
+            : `${item.type}-${item.id}`
+        }
+        emptyDescription={
+          (copyTradingOnly
+            ? localizedText?.copyTradingEmptyDescription
+            : localizedText?.tradingActivityEmptyDescription) ?? ''
+        }
+        emptyActionLabel={
+          copyTradingOnly
+            ? localizedText?.copyTradingEmptyAction
+            : localizedText?.tradingActivityEmptyAction
+        }
+        emptyIconName={copyTradingOnly ? IconName.People : IconName.Activity}
+        emptyOnAction={copyTradingOnly ? openComposerPress : openTradeActions}
+        header={header}
+      />
+    </RewardsMoneyListScreen>
   );
 };
 

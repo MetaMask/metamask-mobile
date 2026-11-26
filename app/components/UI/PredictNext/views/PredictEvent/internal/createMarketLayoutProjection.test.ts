@@ -6,9 +6,12 @@ import type {
   PredictMarket,
   PredictMarketGroup,
   PredictMarketLayout,
+  PredictMarketOption,
+  PredictOutcome,
 } from '../../../types';
 import {
   createMarketLayoutProjection,
+  refreshMarketLayoutProjection,
   type MarketLayoutCard,
   type MarketLayoutProjection,
 } from './createMarketLayoutProjection';
@@ -51,7 +54,7 @@ const createMarket = (
   outcomes: [
     { id: `${id}-yes` as PredictEntityId, side: 'yes', label: 'Yes' },
     { id: `${id}-no` as PredictEntityId, side: 'no', label: 'No' },
-  ],
+  ] as unknown as Readonly<[PredictOutcome, PredictOutcome]>,
 });
 
 const choice = (key: string, displayOrder?: number): PredictMarketGroup => ({
@@ -73,7 +76,13 @@ const line = (
   displayOrder,
 });
 
-const describeCard = (card: MarketLayoutCard) =>
+type DescribedCard = {
+  type: string;
+  key: string;
+  markets: string[];
+} & Partial<{ marketType: string }>;
+
+const describeCard = (card: MarketLayoutCard): DescribedCard =>
   card.type === 'standard'
     ? { type: card.type, key: card.key, markets: [card.market.id] }
     : {
@@ -86,10 +95,25 @@ const describeCard = (card: MarketLayoutCard) =>
       };
 
 /** The projection as keys and Market IDs, so trees read at a glance. */
+interface DescribedProjection {
+  tabs: {
+    key: string;
+    sections: {
+      key: string;
+      volume?: string;
+      periods: {
+        key: string | undefined;
+        cards: DescribedCard[];
+      }[];
+    }[];
+  }[];
+  remainingMarkets: string[];
+}
+
 const describeProjection = ({
   tabs,
   remainingMarkets,
-}: MarketLayoutProjection) => ({
+}: MarketLayoutProjection): DescribedProjection => ({
   tabs: tabs.map((tab) => ({
     key: tab.key,
     sections: tab.sections.map((section) => ({
@@ -104,7 +128,9 @@ const describeProjection = ({
   remainingMarkets: remainingMarkets.map(({ id }) => id),
 });
 
-const sectionsOf = (markets: readonly PredictMarket[]) =>
+const sectionsOf = (
+  markets: readonly PredictMarket[],
+): DescribedProjection['tabs'][number]['sections'] | undefined =>
   describeProjection(createMarketLayoutProjection(markets)).tabs[0]?.sections;
 
 describe('createMarketLayoutProjection', () => {
@@ -234,7 +260,7 @@ describe('createMarketLayoutProjection', () => {
       team: string,
       value: number,
       order: number,
-    ) =>
+    ): PredictMarket =>
       createMarket(id, {
         group: line(`game:team_total:${team}`, 'team_total', value, order),
         layout: layoutOf('team_total', 3, FULL_GAME),
@@ -351,6 +377,52 @@ describe('createMarketLayoutProjection', () => {
     ]);
   });
 
+  it('shows a line whose group the API dropped as malformed as a standard card', () => {
+    const layout = layoutOf('total_points', 2, FULL_GAME);
+    const outcomes: Readonly<[PredictOutcome, PredictOutcome]> = [
+      { id: 'yes' as PredictEntityId, side: 'yes', label: 'Over' },
+      { id: 'no' as PredictEntityId, side: 'no', label: 'Under' },
+    ];
+    const totalLine = (
+      id: string,
+      option: PredictMarketOption | undefined,
+      displayOrder: number,
+    ): PredictMarket => ({
+      id: id as PredictEntityId,
+      question: id,
+      status: 'active',
+      outcomes,
+      layout,
+      group: {
+        key: 'totals',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option,
+        displayOrder,
+      },
+    });
+    const event = parsePredictEvent({
+      venueId: 'kalshi',
+      id: 'event-1',
+      title: 'Game',
+      markets: [
+        totalLine('total-44', { type: 'number', value: 44.5 }, 0),
+        totalLine('total-47', undefined, 1),
+        totalLine('total-50', { type: 'number', value: 50.5 }, 2),
+      ],
+    });
+
+    expect(sectionsOf(event.markets)?.[0].periods[0].cards).toEqual([
+      {
+        type: 'marketSelector',
+        key: 'totals',
+        marketType: 'total',
+        markets: ['total-44', 'total-50'],
+      },
+      { type: 'standard', key: 'market:total-47', markets: ['total-47'] },
+    ]);
+  });
+
   it('shows a group of an unknown group type as standard cards', () => {
     const layout = layoutOf('props', 4, FULL_GAME);
     const ladder = (displayOrder: number): PredictMarketGroup => ({
@@ -455,7 +527,7 @@ describe('createMarketLayoutProjection', () => {
       tab: [string, number],
       section: [string, number],
       subgroup?: [string, number],
-    ) =>
+    ): PredictMarket =>
       createMarket(id, {
         layout: {
           tab: { key: tab[0], order: tab[1] },
@@ -556,5 +628,99 @@ describe('createMarketLayoutProjection', () => {
       ['spread', '1300'],
     ]);
     expect(tabs[0].sections[0]).not.toHaveProperty('volume');
+  });
+});
+
+describe('refreshMarketLayoutProjection', () => {
+  const retick = (market: PredictMarket): PredictMarket => ({
+    ...market,
+    lastPrice: '0.4' as PredictMarket['lastPrice'],
+  });
+
+  it('returns the same projection when the markets array is unchanged', () => {
+    const markets = [createMarket('a', { layout: layoutOf('spread', 0) })];
+    const projection = createMarketLayoutProjection(markets);
+
+    expect(refreshMarketLayoutProjection(markets, projection, markets)).toBe(
+      projection,
+    );
+  });
+
+  it('keeps an untouched section and matches a full rebuild after a quote', () => {
+    const markets = [
+      createMarket('quoted', {
+        layout: layoutOf('spread', 0, FULL_GAME),
+        volume: '10',
+      }),
+      createMarket('still', {
+        layout: layoutOf('moneyline', 1, FULL_GAME),
+        volume: '5',
+      }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [retick(markets[0]), markets[1]];
+    const refreshed = refreshMarketLayoutProjection(
+      markets,
+      projection,
+      nextMarkets,
+    );
+
+    expect(refreshed).toEqual(createMarketLayoutProjection(nextMarkets));
+    expect(refreshed.tabs[0].sections[1]).toBe(projection.tabs[0].sections[1]);
+    expect(refreshed.tabs[0].sections[0]).not.toBe(
+      projection.tabs[0].sections[0],
+    );
+    expect(refreshed.tabs[0].sections[0].periods[0].cards[0]).toMatchObject({
+      market: nextMarkets[0],
+    });
+  });
+
+  it('updates only the quoted section volume', () => {
+    const markets = [
+      createMarket('a', {
+        layout: layoutOf('spread', 0),
+        volume: '1',
+      }),
+      createMarket('b', {
+        layout: layoutOf('spread', 0),
+        volume: '2',
+      }),
+      createMarket('other', {
+        layout: layoutOf('moneyline', 1),
+        volume: '9',
+      }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [
+      { ...markets[0], volume: '4' },
+      markets[1],
+      markets[2],
+    ];
+    const refreshed = refreshMarketLayoutProjection(
+      markets,
+      projection,
+      nextMarkets,
+    );
+
+    expect(refreshed).toEqual(createMarketLayoutProjection(nextMarkets));
+    expect(refreshed.tabs[0].sections[0].volume).toBe('6');
+    expect(refreshed.tabs[0].sections[0].periods[0].cards[1]).toBe(
+      projection.tabs[0].sections[0].periods[0].cards[1],
+    );
+    expect(refreshed.tabs[0].sections[1]).toBe(projection.tabs[0].sections[1]);
+  });
+
+  it('rebuilds when a Market changes group', () => {
+    const layout = layoutOf('props', 0);
+    const markets = [
+      createMarket('a', { group: choice('a', 0), layout }),
+      createMarket('b', { group: choice('a', 1), layout }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [markets[0], { ...markets[1], group: choice('b', 0) }];
+
+    expect(
+      refreshMarketLayoutProjection(markets, projection, nextMarkets),
+    ).toEqual(createMarketLayoutProjection(nextMarkets));
   });
 });

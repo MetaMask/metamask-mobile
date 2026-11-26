@@ -138,17 +138,8 @@ export type SocialLeaderboardSource =
   | 'explore_now'
   | 'explore_rwas'
   | 'explore_trending'
-  | 'explore_stocks';
-
-export type LeaderboardScreenViewedSource = Extract<
-  SocialLeaderboardSource,
-  | 'home_banner'
-  | 'nav_tab'
-  | 'nux'
-  | 'notification'
-  | 'deep_link'
-  | 'home_carousel'
->;
+  | 'explore_stocks'
+  | 'explore_perps';
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -159,6 +150,8 @@ export type TraderProfileScreenViewedSource = Extract<
   | 'notification'
   | 'deep_link'
   | 'trader_feed'
+  | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type TraderFollowInteractionSource = Extract<
@@ -170,6 +163,8 @@ export type TraderFollowInteractionSource = Extract<
   | 'profiles_to_follow'
   | 'nux'
   | 'trader_feed'
+  | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type FollowTradingTokenSource = Extract<

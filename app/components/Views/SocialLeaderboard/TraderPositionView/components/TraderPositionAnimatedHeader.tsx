@@ -14,6 +14,7 @@ import Animated, {
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
+import ShareButtonSpinner from '../../components/ShareButtonSpinner';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 import { useSelector } from 'react-redux';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
@@ -30,6 +31,7 @@ export interface TraderPositionAnimatedHeaderProps {
   traderImageUrl?: string;
   traderAddress?: string;
   traderProfileId?: string;
+  isTraderVerified?: boolean;
   symbol: string;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
@@ -38,6 +40,8 @@ export interface TraderPositionAnimatedHeaderProps {
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
+  /** Shows a spinner in place of the share button while the link is made. */
+  isSharing?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -67,6 +71,7 @@ const TraderPositionAnimatedHeader: React.FC<
   traderImageUrl,
   traderAddress,
   traderProfileId,
+  isTraderVerified,
   symbol,
   pricePercentChange,
   activeTimePeriodLabel,
@@ -75,6 +80,7 @@ const TraderPositionAnimatedHeader: React.FC<
   onBack,
   onTraderPress,
   onShare,
+  isSharing = false,
 }) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const compactTokenProgress = useDerivedValue(() => {
@@ -125,7 +131,12 @@ const TraderPositionAnimatedHeader: React.FC<
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
       endAccessory={
-        onShare ? (
+        onShare && isSharing ? (
+          <ShareButtonSpinner
+            isCapsule={isGlassHeader}
+            testID={TraderPositionViewSelectorsIDs.SHARE_SPINNER}
+          />
+        ) : onShare ? (
           <ButtonIconGlass
             isCapsule={isGlassHeader}
             iconName={IconName.Share}
@@ -151,6 +162,7 @@ const TraderPositionAnimatedHeader: React.FC<
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={traderProfileId}
+            isVerified={isTraderVerified}
             variant="nav"
             onPress={onTraderPress}
             testID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
@@ -170,6 +182,7 @@ const TraderPositionAnimatedHeader: React.FC<
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={traderProfileId}
+            isTraderVerified={isTraderVerified}
             onTraderPress={onTraderPress}
           />
         </Animated.View>

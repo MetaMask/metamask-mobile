@@ -84,7 +84,7 @@ export const isTokenTrustworthyForPerps = (asset: Partial<TokenI>): boolean => {
 // controller-layer consumers.
 
 /**
- * Redesigned confirmations screen header configuration (Perps)
+ * Confirmations screen header configuration (Perps)
  * Controls whether the Perps header is shown when navigating to the confirmation screen
  */
 export const CONFIRMATION_HEADER_CONFIG = {
@@ -201,6 +201,30 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
  * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
  */
 export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
+/** Cross margin account ratio at and above which the account is elevated risk. */
+export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
+
+/** Cross margin account ratio above which the account is critical risk. */
+export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
+
+/** Throttle for the cross margin summary's account and position streams. */
+export const CROSS_MARGIN_SUMMARY_THROTTLE_MS = 1000;
+
+/** Cross margin summary throttle on a 2G or 3G connection. */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS = 3000;
+
+/**
+ * Cross margin summary throttle on a 2G or 3G connection with low-end
+ * hardware, the UX matrix's "rare poll" cell.
+ */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS = 5000;
+
+/**
+ * Hit slop for `ButtonIconSize.Xs` info buttons. The icon is a 20pt box, so
+ * 12pt on each side restores a 44pt target without growing the icon.
+ */
+export const PERPS_INFO_BUTTON_HIT_SLOP = 12;
 
 /**
  * Share of position notional kept back from the removable-margin maximum.
@@ -462,6 +486,8 @@ export const PROVIDER_CONFIG = {
   VenueSizedScaleProvider: 'lighter' as const,
   /** Trades from its own balance, so it has no deposit-with-order route. */
   LighterProvider: 'lighter' as const,
+  /** Only venue the dedicated server-aggregated order-book socket serves. */
+  AggregatedOrderBookProvider: 'hyperliquid' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */
@@ -532,3 +558,18 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
 } as const;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
+
+/** Perps home Live trades tab. */
+export const PERPS_LIVE_TRADES_CONFIG = {
+  MaxTrades: 5,
+  /** Only trades from traders above this win rate are shown. */
+  MinWinRatePercent: 50,
+  /** Win rates at or above this are highlighted. */
+  HighlightWinRatePercent: 70,
+  /** At most one new trade is added per interval. */
+  RevealIntervalMs: 1_000,
+  /** Live updates start this far before the section scrolls into view. */
+  NearViewportMarginPx: 200,
+  AvatarSize: 40,
+  AnimationDurationMs: 250,
+} as const;

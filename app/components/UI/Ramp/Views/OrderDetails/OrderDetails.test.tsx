@@ -3,11 +3,23 @@ import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import OrderDetails, {
   createRampsOrderDetailsNavDetails,
+  isWalletHomeOnboardingFundFlowOrderAccepted,
 } from './OrderDetails';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { TraceName } from '../../../../../util/trace';
+import {
+  RAMPS_BUY_CUF_BOUNDARY,
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
+import {
+  cancelWalletHomeOnboardingFundFlow,
+  consumeWalletHomeOnboardingFundFlowCompletion,
+  startWalletHomeOnboardingFundFlow,
+} from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -62,6 +74,15 @@ jest.mock(
   }),
 );
 
+const mockEndOpenBuyCufChildren = jest.fn();
+const mockEndBuyCufTrace = jest.fn();
+jest.mock('../../utils/rampsBuyCufTrace', () => ({
+  ...jest.requireActual('../../utils/rampsBuyCufTrace'),
+  endOpenRampsBuyCufChildrenByName: (...args: unknown[]) =>
+    mockEndOpenBuyCufChildren(...args),
+  endRampsBuyCufTrace: (...args: unknown[]) => mockEndBuyCufTrace(...args),
+}));
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -72,9 +93,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn<Record<string, string | undefined>, []>(() => ({
-  orderId: 'test-order-123',
-}));
+const mockUseParams = jest.fn<Record<string, string | boolean | undefined>, []>(
+  () => ({
+    orderId: 'test-order-123',
+  }),
+);
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
@@ -133,6 +156,7 @@ function render() {
 describe('OrderDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cancelWalletHomeOnboardingFundFlow();
     mockGetOrderById.mockReturnValue(mockOrder);
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
@@ -250,6 +274,152 @@ describe('OrderDetails', () => {
     expect(mockEmitOrderConfirmedAnalyticsFromCallback).not.toHaveBeenCalled();
   });
 
+  it('closes the native child as successful before ending the buy journey for a callback order (TRAM-4173)', async () => {
+    const createdOrder = {
+      providerOrderId: 'ord-native-cb',
+      status: RampsOrderStatus.Created,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'transak-native' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'transak-native',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(createdOrder);
+    mockGetOrderFromCallback.mockResolvedValue(createdOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledTimes(1);
+    });
+    expect(mockEndOpenBuyCufChildren).toHaveBeenCalledTimes(1);
+    expect(mockEndOpenBuyCufChildren).toHaveBeenCalledWith(
+      TraceName.RampBuyNativeToOrderCreated,
+      { [RAMPS_BUY_CUF_TAG.SUCCESS]: true, orderId: 'ord-native-cb' },
+    );
+    expect(mockEndOpenBuyCufChildren.mock.invocationCallOrder[0]).toBeLessThan(
+      mockEndBuyCufTrace.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('closes the native child as successful for a failed native order, since the order was created (TRAM-4173)', async () => {
+    const failedOrder = {
+      providerOrderId: 'ord-native-failed',
+      status: RampsOrderStatus.Failed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: '/providers/transak-native' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'transak-native',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(failedOrder);
+    mockGetOrderFromCallback.mockResolvedValue(failedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndOpenBuyCufChildren).toHaveBeenCalledWith(
+        TraceName.RampBuyNativeToOrderCreated,
+        { [RAMPS_BUY_CUF_TAG.SUCCESS]: true, orderId: 'ord-native-failed' },
+      );
+    });
+  });
+
+  it('ends the buy journey as an error when the order has already failed', async () => {
+    const failedOrder = {
+      providerOrderId: 'ord-failed',
+      status: RampsOrderStatus.Failed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(failedOrder);
+    mockGetOrderFromCallback.mockResolvedValue(failedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledTimes(1);
+    });
+    expect(mockEndBuyCufTrace).toHaveBeenCalledWith({
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: 'ord-failed',
+      },
+    });
+  });
+
+  it('ends the buy journey as successful for a created order', async () => {
+    const createdOrder = {
+      providerOrderId: 'ord-created',
+      status: RampsOrderStatus.Created,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(createdOrder);
+    mockGetOrderFromCallback.mockResolvedValue(createdOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledWith({
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+          orderId: 'ord-created',
+        },
+      });
+    });
+  });
+
+  it('leaves the native child alone for a non-native order but still ends the buy journey (TRAM-4173)', async () => {
+    const widgetOrder = {
+      providerOrderId: 'ord-widget-cb',
+      status: RampsOrderStatus.Created,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(widgetOrder);
+    mockGetOrderFromCallback.mockResolvedValue(widgetOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledTimes(1);
+    });
+    expect(mockEndOpenBuyCufChildren).not.toHaveBeenCalled();
+  });
+
   it('displays order content when order exists', async () => {
     mockRefreshOrder.mockResolvedValue(undefined);
     const { getByTestId } = render();
@@ -341,6 +511,7 @@ describe('OrderDetails', () => {
   });
 
   it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    startWalletHomeOnboardingFundFlow();
     const { getByTestId } = render();
 
     await waitFor(() => {
@@ -353,6 +524,113 @@ describe('OrderDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+  });
+
+  it.each([
+    RampsOrderStatus.Pending,
+    RampsOrderStatus.Created,
+    RampsOrderStatus.Precreated,
+    RampsOrderStatus.Unknown,
+    RampsOrderStatus.Completed,
+  ])('treats %s orders as accepted for onboarding', (status) => {
+    expect(isWalletHomeOnboardingFundFlowOrderAccepted(status)).toBe(true);
+  });
+
+  it.each([
+    RampsOrderStatus.Failed,
+    RampsOrderStatus.Cancelled,
+    RampsOrderStatus.IdExpired,
+  ])('does not treat %s orders as accepted for onboarding', (status) => {
+    expect(isWalletHomeOnboardingFundFlowOrderAccepted(status)).toBe(false);
+  });
+
+  it('completes the onboarding flow when the user leaves an accepted order with the back arrow', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
+  });
+
+  it('completes the onboarding flow for a Precreated order from an external-browser return', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Precreated,
+    });
+    mockRefreshOrder.mockResolvedValue(undefined);
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
+  });
+
+  it.each([RampsOrderStatus.Failed, RampsOrderStatus.Cancelled])(
+    'does not complete the onboarding flow for a %s order',
+    async (status) => {
+      startWalletHomeOnboardingFundFlow();
+      mockGetOrderById.mockReturnValue({ ...mockOrder, status });
+      mockUseParams.mockReturnValue({
+        orderId: 'ord-123',
+        showCloseButton: true,
+      });
+
+      const { getByTestId } = render();
+
+      await waitFor(() => {
+        expect(getByTestId('order-content')).toBeOnTheScreen();
+      });
+
+      expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+    },
+  );
+
+  it('clears the onboarding completion when a pending order turns failed', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+    });
+    mockRefreshOrder.mockImplementationOnce(async () => {
+      mockGetOrderById.mockReturnValue({
+        ...mockOrder,
+        providerOrderId: 'ord-failed',
+        status: RampsOrderStatus.Failed,
+      });
+    });
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ord-failed')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('shows V2 order toast when callback fetch succeeds', async () => {
@@ -385,6 +663,26 @@ describe('OrderDetails', () => {
         }),
       );
     });
+  });
+
+  it('does not complete the onboarding flow when callback order loading fails', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+      showCloseButton: true,
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(new Error('Callback failed'));
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('resets to build quote when callback returns no order', async () => {

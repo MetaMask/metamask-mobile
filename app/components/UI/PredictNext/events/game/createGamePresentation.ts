@@ -97,6 +97,34 @@ const formatStart = (
   return `${date} · ${time}`;
 };
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Days a weekday name stays unambiguous on either side of today. */
+const WEEKDAY_WINDOW_DAYS = 7;
+
+const startOfLocalDay = (date: Date): number =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+/**
+ * A Game's start for small cards, in the app locale and the device time
+ * zone: "Mon · 8:15 PM" within a week of today, else "Nov 23 · 1:00 PM".
+ */
+export const formatGameStartShort = (
+  startsAt: string,
+  now: Date = new Date(),
+): string => {
+  // Rounding absorbs the 23 or 25 hour days around a daylight saving change.
+  const days = Math.round(
+    (startOfLocalDay(new Date(startsAt)) - startOfLocalDay(now)) / DAY_MS,
+  );
+  const dateOptions: Intl.DateTimeFormatOptions =
+    Math.abs(days) < WEEKDAY_WINDOW_DAYS
+      ? { weekday: 'short' }
+      : { month: 'short', day: 'numeric' };
+  const { date, time } = formatDateTime(startsAt, dateOptions);
+  return `${date} · ${time}`;
+};
+
 const getStatusLine = (
   game: PredictGame,
   startsAt: string | undefined,

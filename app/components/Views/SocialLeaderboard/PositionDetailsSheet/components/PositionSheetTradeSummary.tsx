@@ -18,16 +18,22 @@ import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testId
 
 export interface PositionSheetTradeSummaryProps {
   title: string;
-  /** `40x Long` / `40x Short`. Spot cards have no tag. */
+  /** `40x Long` / `Closed 40x Short` / `Sold`. Open spot has no tag. */
   tagLabel?: string;
   direction?: PerpDirection | null;
+  /** Closed tags are neutral. Open tags follow the direction. */
+  isClosed?: boolean;
   subtitle: string;
   pnlPercentLabel: string;
   pnlValueLabel: string;
   isPnlPositive: boolean;
 }
 
-const tagSeverity = (direction: PerpDirection | null | undefined) => {
+const tagSeverity = (
+  isClosed: boolean,
+  direction: PerpDirection | null | undefined,
+) => {
+  if (isClosed) return TagSeverity.Neutral;
   if (direction === 'long') return TagSeverity.Success;
   if (direction === 'short') return TagSeverity.Danger;
   return TagSeverity.Neutral;
@@ -38,13 +44,14 @@ const pnlClassName = (isPnlPositive: boolean) =>
 
 /**
  * The position under the chart. Same type, tag, and wash as the feed card
- * header, without the token avatar. The card radius comes from
- * `PositionCardShell` (`rounded-2xl`, 16px).
+ * header, without the token avatar. A closed card uses a neutral tag. The
+ * card radius comes from `PositionCardShell` (`rounded-2xl`, 16px).
  */
 const PositionSheetTradeSummary = ({
   title,
   tagLabel,
   direction,
+  isClosed = false,
   subtitle,
   pnlPercentLabel,
   pnlValueLabel,
@@ -76,7 +83,9 @@ const PositionSheetTradeSummary = ({
             </Text>
             {tagLabel ? (
               <Box alignItems={BoxAlignItems.Center}>
-                <Tag severity={tagSeverity(direction)}>{tagLabel}</Tag>
+                <Tag severity={tagSeverity(isClosed, direction)}>
+                  {tagLabel}
+                </Tag>
               </Box>
             ) : null}
           </Box>

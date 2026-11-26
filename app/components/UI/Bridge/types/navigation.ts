@@ -23,11 +23,13 @@ import type { BatchSellMinimumReceivedInfoModalParams } from '../components/Batc
 import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
 import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
+import type { RecurringConfirmOrderModalParams } from '../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.types';
 import type { OpenLimitOrderDetailsModalParams } from '../components/OpenLimitOrderDetailsModal/types';
 import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrderModal/types';
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
 import type { SwapsLimitOrderActivityPageRouteParams } from '../Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.types';
+import type { RecurringPriceToleranceModalParams } from '../components/SwapsLimitOrderCostToleranceModal/types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -83,6 +85,12 @@ export type BridgeModalsNavigationParamList = {
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
   SwapsLimitOrderDefaultCostToleranceModal: undefined;
   SwapsLimitOrderCustomCostToleranceModal: undefined;
+  RecurringDefaultPriceToleranceModal:
+    | RecurringPriceToleranceModalParams
+    | undefined;
+  RecurringCustomPriceToleranceModal:
+    | RecurringPriceToleranceModalParams
+    | undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
   LimitOrderCostToleranceInfoModal: undefined;
   LimitOrderAccountUpgradeFeeInfoModal: undefined;
@@ -92,7 +100,7 @@ export type BridgeModalsNavigationParamList = {
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;
-  RecurringConfirmOrderModal: undefined;
+  RecurringConfirmOrderModal: RecurringConfirmOrderModalParams;
   RecurringDelegationFeeInfoModal: undefined;
 };
 

@@ -27,8 +27,13 @@ export interface SocialFeedRowProps {
   onPositionPress?: (post: SocialV1FeedPost) => void;
   requireSocialTerms?: boolean;
   requireSocialProfile?: boolean;
-  /** Clock for relative timestamps; a new value re-renders the row. */
-  now?: number;
+  /** Viewer's profile ID to hide copy trade on their own posts. */
+  viewerProfileId?: string;
+  /**
+   * Decodes an attached GIF only while the row is on screen. Off-screen rows
+   * keep the frame so recycling does not jump.
+   */
+  gifVisible?: boolean;
 }
 
 const areReactionsEqual = (
@@ -43,8 +48,8 @@ const areReactionsEqual = (
   );
 
 /**
- * Posts are rebuilt whenever the feed's clock moves, so rows compare what
- * they render instead of the post's identity.
+ * Posts can be rebuilt with the same content, so rows compare what they
+ * render instead of the post's identity.
  */
 export const areSocialFeedRowPropsEqual = (
   previous: SocialFeedRowProps,
@@ -59,7 +64,8 @@ export const areSocialFeedRowPropsEqual = (
   previous.onPositionPress === next.onPositionPress &&
   previous.requireSocialTerms === next.requireSocialTerms &&
   previous.requireSocialProfile === next.requireSocialProfile &&
-  previous.now === next.now &&
+  previous.viewerProfileId === next.viewerProfileId &&
+  previous.gifVisible === next.gifVisible &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -93,11 +99,13 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onPositionPress,
   requireSocialTerms,
   requireSocialProfile,
-  now,
+  viewerProfileId,
+  gifVisible = true,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
     <FeedItemEntryAnimation
+      itemKey={post.id}
       eventId={eventId}
       scheduleEntryDelay={scheduleEntryDelay}
       onAnimationComplete={entrances.markPlayed}
@@ -111,7 +119,8 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
-          now={now}
+          showCopyTrade={post.item.author.id !== viewerProfileId}
+          gifVisible={gifVisible}
         />
       </Box>
       {dividerTestID ? (

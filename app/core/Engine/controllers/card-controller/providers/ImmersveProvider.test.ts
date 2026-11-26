@@ -1264,6 +1264,83 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
+    it('createCard sends one POST when called concurrently', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
+      const [first, second] = await Promise.all([
+        provider.createCard('fs-1', TOKENS),
+        provider.createCard('fs-1', TOKENS),
+      ]);
+
+      expect(service.post).toHaveBeenCalledTimes(1);
+      expect(first.cardId).toBe('card-1');
+      expect(second.cardId).toBe('card-1');
+    });
+
+    it('createCard returns the card it just created while the card list lags', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
+      await provider.createCard('fs-1', TOKENS);
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(1);
+      expect(result.cardId).toBe('card-1');
+    });
+
+    it('createCard posts a replacement when the just-created card was cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValueOnce({ items: [] }).mockResolvedValueOnce({
+        items: [{ ...activeCard, id: 'card-1', status: 'cancelled' }],
+      });
+      service.post
+        .mockResolvedValueOnce({ cardId: 'card-1' })
+        .mockResolvedValueOnce({ cardId: 'card-2' });
+
+      await provider.createCard('fs-1', TOKENS);
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-2');
+    });
+
+    it('createCard posts again once the created card window has passed', async () => {
+      jest.useFakeTimers();
+      try {
+        const { provider, service } = createProvider();
+        service.get.mockResolvedValue({ items: [] });
+        service.post
+          .mockResolvedValueOnce({ cardId: 'card-1' })
+          .mockResolvedValueOnce({ cardId: 'card-2' });
+
+        await provider.createCard('fs-1', TOKENS);
+        jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+        const result = await provider.createCard('fs-1', TOKENS);
+
+        expect(service.post).toHaveBeenCalledTimes(2);
+        expect(result.cardId).toBe('card-2');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('createCard posts again after a failed create', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce({ cardId: 'card-1' });
+
+      await expect(provider.createCard('fs-1', TOKENS)).rejects.toThrow();
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-1');
+    });
+
     it('createCard reuses the existing card instead of issuing a duplicate', async () => {
       const { provider, service } = createProvider();
       service.get.mockResolvedValue({ items: [activeCard] });
@@ -1461,6 +1538,24 @@ describe('ImmersveProvider', () => {
       ]);
     });
 
+    it('shares one card list request between concurrent callers', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(routeGet({ cards: { items: [] } }));
+      const cardListCalls = (): unknown[][] =>
+        service.get.mock.calls.filter(([path]: [string]) =>
+          path.includes('/cards?'),
+        );
+
+      await Promise.all([
+        provider.getCardHomeData('0xabc', TOKENS),
+        provider.getResumeCardInfo(TOKENS),
+      ]);
+      expect(cardListCalls()).toHaveLength(1);
+
+      await provider.getResumeCardInfo(TOKENS);
+      expect(cardListCalls()).toHaveLength(2);
+    });
+
     it('returns a provisioning alert for a card that is still being created', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
@@ -1504,7 +1599,7 @@ describe('ImmersveProvider', () => {
         symbol: 'USDC',
         name: 'USDC',
         address: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
-        walletAddress: '0xabc',
+        walletAddress: '0xwallet',
         decimals: 6,
         chainId: 'eip155:84532',
         spendableBalance: '',
@@ -1569,6 +1664,7 @@ describe('ImmersveProvider', () => {
         symbol: 'vmUSD',
         address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
         walletAddress: moneyAccountAddress,
+        fundingSourceType: 'moneyAccount',
         chainId: 'eip155:143',
         decimals: 6,
         spendableBalance: '15',
@@ -1618,6 +1714,122 @@ describe('ImmersveProvider', () => {
       expect(data.primaryFundingAsset).toMatchObject({
         walletAddress: moneyAccountAddress,
       });
+    });
+
+    it('reads a wallet-channel allowance from externalId, not the signed-in address', async () => {
+      const fundingAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        findFundingChannelById: (channelId: string) =>
+          channelId === LINEA_USDC_CHANNEL.fundingChannelId
+            ? LINEA_USDC_CHANNEL
+            : null,
+      });
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'linea-mainnet',
+            fundingChannelId: LINEA_USDC_CHANNEL.fundingChannelId,
+            fundingAddress: undefined,
+            externalId: fundingAddress,
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '10.0',
+        allowance: '4.0',
+        spendableBalance: '4',
+      });
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        LINEA_USDC_CHANNEL.tokenAddress,
+        fundingAddress,
+        LINEA_USDC_CHANNEL.spenderAddress,
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        walletAddress: fundingAddress,
+        fundingSourceType: 'wallet',
+        spendableBalance: '4',
+      });
+    });
+
+    it('logs a missing spender instead of treating it as a zero balance', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '',
+        spendingCap: '',
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'resolveOnChainSpendableBalance: funding channel is missing a spender',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'resolveOnChainSpendableBalance',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('throws a non-auth card fetch error instead of returning empty data', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(new Error('down'));
+
+      await expect(provider.getCardHomeData('0xabc', TOKENS)).rejects.toThrow(
+        'down',
+      );
+    });
+
+    it('rethrows an auth error from the card fetch', async () => {
+      const { provider, service } = createProvider();
+      const unauthorized = Object.assign(new Error('unauthorized'), {
+        statusCode: 401,
+      });
+      service.get.mockRejectedValue(unauthorized);
+
+      await expect(provider.getCardHomeData('0xabc', TOKENS)).rejects.toBe(
+        unauthorized,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('throws when a funding source fetch fails', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({ items: [activeCard] });
+        }
+        if (path.startsWith('/api/cards/')) {
+          return Promise.resolve(activeCardDetail);
+        }
+        if (path.includes('/funding-source/')) {
+          return Promise.reject(new Error('funding down'));
+        }
+        return Promise.resolve({});
+      });
+
+      await expect(provider.getCardHomeData('0xabc', TOKENS)).rejects.toThrow(
+        'funding down',
+      );
     });
 
     it('logs when a Money account funding source has no address', async () => {
@@ -2169,16 +2381,15 @@ describe('ImmersveProvider', () => {
       expect(data.card?.regionCode).toBe('AU');
     });
 
-    it('swallows non-auth errors and returns empty data', async () => {
+    it('throws non-auth errors instead of returning empty data', async () => {
       const { provider, service } = createProvider();
       service.get.mockRejectedValue(
         new CardApiError(500, '/api/accounts/cardholder-1/cards', 'boom'),
       );
 
-      const data = await provider.getCardHomeData('0xabc', TOKENS);
-
-      expect(data.card).toBeNull();
-      expect(data.fundingAssets).toStrictEqual([]);
+      await expect(
+        provider.getCardHomeData('0xabc', TOKENS),
+      ).rejects.toBeInstanceOf(CardApiError);
     });
 
     it('populates spendableBalance as min(wallet, allowance) when spender is configured', async () => {
@@ -2192,7 +2403,10 @@ describe('ImmersveProvider', () => {
         routeGet({
           cards: { items: [activeCard] },
           cardDetail: activeCardDetail,
-          fundingSource: fundingSourceDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            externalId: fundingAddress,
+          },
         }),
       );
       mockReadErc20AllowanceAndBalance.mockResolvedValue({
@@ -2232,7 +2446,10 @@ describe('ImmersveProvider', () => {
         routeGet({
           cards: { items: [activeCard] },
           cardDetail: activeCardDetail,
-          fundingSource: fundingSourceDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            externalId: fundingAddress,
+          },
         }),
       );
       mockReadErc20AllowanceAndBalance.mockResolvedValue({
@@ -2263,7 +2480,10 @@ describe('ImmersveProvider', () => {
         routeGet({
           cards: { items: [activeCard] },
           cardDetail: activeCardDetail,
-          fundingSource: fundingSourceDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            externalId: fundingAddress,
+          },
         }),
       );
       mockReadErc20AllowanceAndBalance.mockRejectedValue(
@@ -2312,7 +2532,10 @@ describe('ImmersveProvider', () => {
         routeGet({
           cards: { items: [activeCard] },
           cardDetail: activeCardDetail,
-          fundingSource: fundingSourceDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            externalId: fundingAddress,
+          },
         }),
       );
       mockReadErc20AllowanceAndBalance.mockResolvedValue({
@@ -2373,6 +2596,7 @@ describe('ImmersveProvider', () => {
           fundingSource: {
             ...fundingSourceDetail,
             network: 'arbitrum-sepolia',
+            externalId: fundingAddress,
           },
         }),
       );
@@ -2425,6 +2649,7 @@ describe('ImmersveProvider', () => {
             ...fundingSourceDetail,
             network: 'linea-mainnet',
             fundingChannelId: LINEA_USDC_CHANNEL.fundingChannelId,
+            externalId: fundingAddress,
           },
         }),
       );

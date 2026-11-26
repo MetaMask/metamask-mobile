@@ -109,6 +109,14 @@ const isPerpsControllerOrigin = (context) =>
     .includes('/@metamask/perps-controller/');
 
 module.exports = function (baseConfig) {
+  // Reject a misconfigured bundle before it can reach wallet initialization.
+  const collectiblesEnvironment = process.env.MM_COLLECTIBLES_ENVIRONMENT;
+  if (
+    collectiblesEnvironment &&
+    !['mainnet', 'devnet'].includes(collectiblesEnvironment)
+  ) {
+    throw new Error('MM_COLLECTIBLES_ENVIRONMENT must be devnet or mainnet');
+  }
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
       const defaultConfig = mergeConfig(
@@ -233,6 +241,19 @@ module.exports = function (baseConfig) {
                       'app/shims/react-native-safe-area-context.tsx',
                     ),
                   };
+                }
+                // WalletConnect relay auth: sign and derive keys with native
+                // ed25519 instead of relay-auth's bundled pure-JS curve (about
+                // 500 ms of JS thread at unlock). The shim re-exports the real
+                // package, so its own import must resolve to it.
+                if (moduleName === '@walletconnect/relay-auth') {
+                  const relayAuthShim = path.resolve(
+                    __dirname,
+                    'app/shims/walletconnect-relay-auth.ts',
+                  );
+                  if (context.originModulePath !== relayAuthShim) {
+                    return { type: 'sourceFile', filePath: relayAuthShim };
+                  }
                 }
                 // reflect-metadata's only job is to add metadata APIs
                 // (Reflect.defineMetadata etc.) to the global Reflect object.

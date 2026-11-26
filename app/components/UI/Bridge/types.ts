@@ -33,6 +33,8 @@ export interface PopularToken {
     isDestination: boolean;
   };
   securityData?: SecurityData;
+  rwaData?: TokenRwaData;
+  badgeLabel?: string;
 }
 
 export interface IncludeAsset {
@@ -71,6 +73,9 @@ export interface BridgeToken {
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
   securityData?: SecurityData;
+  badgeLabel?: string;
+  isMoneyToken?: boolean;
+  apy?: number;
 }
 
 export enum BridgeViewMode {

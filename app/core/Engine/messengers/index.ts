@@ -4,7 +4,6 @@ import {
   getAccountTreeControllerMessenger,
 } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
-import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
@@ -20,7 +19,6 @@ import {
   getAccountActivityServiceMessenger,
   getOHLCVServiceMessenger,
 } from './core-backend';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   getCronjobControllerMessenger,
   getExecutionServiceMessenger,
@@ -30,17 +28,14 @@ import {
   getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
-///: END:ONLY_INCLUDE_IF
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
-import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getCollectiblesControllerMessenger } from './collectibles-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
   getPredictMarketDataServiceInitMessenger,
@@ -60,6 +55,10 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import {
+  getPredictFundingServiceInitMessenger,
+  getPredictFundingServiceMessenger,
+} from './predict-funding-service-messenger';
 import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
 import {
   getPredictDeviceAuthServiceInitMessenger,
@@ -106,9 +105,7 @@ import {
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
-import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
-import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
@@ -117,7 +114,10 @@ import {
   getRampsControllerInitMessenger,
 } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
-import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
+import {
+  getTransakServiceInitMessenger,
+  getTransakServiceMessenger,
+} from './transak-service-messenger/transak-service-messenger';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
@@ -155,6 +155,7 @@ import {
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
 import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountLifecycleControllerMessenger } from './money-account-lifecycle-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -180,16 +181,8 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getEarnControllerMessenger,
     getInitMessenger: noop,
   },
-  GeolocationApiService: {
-    getMessenger: getGeolocationApiServiceMessenger,
-    getInitMessenger: noop,
-  },
   SentinelApiService: {
     getMessenger: getSentinelApiServiceMessenger,
-    getInitMessenger: noop,
-  },
-  GeolocationController: {
-    getMessenger: getGeolocationControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionPayController: {
@@ -220,10 +213,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
-  SignatureController: {
-    getMessenger: getSignatureControllerMessenger,
-    getInitMessenger: noop,
-  },
   DeFiPositionsController: {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
@@ -232,7 +221,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerV2Messenger,
     getInitMessenger: getDeFiPositionsControllerV2InitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
     getInitMessenger: noop,
@@ -273,8 +261,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
@@ -291,7 +277,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
   SamplePetnamesController: {
     // Only construct the (parented) messenger when the feature is actually
     // enabled. `initMessengerClients` calls `getMessenger` unconditionally
@@ -310,16 +295,16 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
   },
-  NetworkEnablementController: {
-    getMessenger: getNetworkEnablementControllerMessenger,
-    getInitMessenger: noop,
-  },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
     getInitMessenger: noop,
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesController: {
+    getMessenger: getCollectiblesControllerMessenger,
     getInitMessenger: noop,
   },
   PredictMarketDataService: {
@@ -341,6 +326,10 @@ export const MESSENGER_FACTORIES = {
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictFundingService: {
+    getMessenger: getPredictFundingServiceMessenger,
+    getInitMessenger: getPredictFundingServiceInitMessenger,
   },
   PredictVenueController: {
     getMessenger: getPredictVenueControllerMessenger,
@@ -400,7 +389,7 @@ export const MESSENGER_FACTORIES = {
   },
   TransakService: {
     getMessenger: getTransakServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getTransakServiceInitMessenger,
   },
   NeoBankService: {
     getMessenger: getNeoBankServiceMessenger,
@@ -516,6 +505,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountLifecycleController: {
+    getMessenger: getMoneyAccountLifecycleControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
