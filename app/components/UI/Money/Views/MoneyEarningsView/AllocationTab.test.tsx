@@ -12,6 +12,7 @@ import AllocationTab, { setAllocationScrollEnabled } from './AllocationTab';
 const mockUseMoneyVaultComposition = jest.mocked(useMoneyVaultComposition);
 const mockChart = jest.fn();
 const mockMarketsTable = jest.fn();
+const mockAllocationDetails = jest.fn();
 const mockRefetch = jest.fn();
 const mockSetNativeProps = jest.fn();
 
@@ -31,6 +32,14 @@ jest.mock('./components/MoneyVaultCompositionMarketsTable', () => ({
   __esModule: true,
   default: (props: MoneyVaultCompositionMarketsTableProps) => {
     mockMarketsTable(props);
+    return null;
+  },
+}));
+
+jest.mock('./components/AllocationDetails', () => ({
+  __esModule: true,
+  default: () => {
+    mockAllocationDetails();
     return null;
   },
 }));
@@ -71,18 +80,26 @@ describe('AllocationTab', () => {
     expect(mockUseMoneyVaultComposition).toHaveBeenCalledWith();
   });
 
-  it('renders a loading skeleton while composition data loads', () => {
+  it('passes loading state to composition sections while keeping static content visible', () => {
     setCompositionResult({ isLoading: true });
 
-    const { getByTestId } = renderWithProvider(<AllocationTab />);
+    const { getByText } = renderWithProvider(<AllocationTab />);
 
+    expect(mockChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        components: [],
+        isLoading: true,
+      }),
+    );
+    expect(mockMarketsTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        components: [],
+        isLoading: true,
+      }),
+    );
     expect(
-      getByTestId(MoneyEarningsViewTestIds.ALLOCATION_LOADING),
+      getByText(strings('money.earnings.risks_and_disclosures.title')),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyEarningsViewTestIds.ALLOCATION_LOADING).props
-        .accessibilityLabel,
-    ).toBe(strings('money.earnings.allocation_loading'));
   });
 
   it('renders an error with a retry action', () => {
@@ -177,6 +194,25 @@ describe('AllocationTab', () => {
         apyLabel: 'APY',
       }),
     );
+  });
+
+  it('renders the divider and allocation details after the markets table', () => {
+    setCompositionResult({ data: compositionData });
+
+    const { getAllByTestId, getByText } = renderWithProvider(<AllocationTab />);
+
+    expect(
+      getAllByTestId(MoneyEarningsViewTestIds.ALLOCATION_DETAILS_DIVIDER)
+        .length,
+    ).toBeGreaterThan(0);
+    expect(mockMarketsTable).toHaveBeenCalledTimes(1);
+    expect(mockAllocationDetails).toHaveBeenCalledTimes(1);
+    expect(
+      getByText(strings('money.earnings.risks_and_disclosures.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.risks_and_disclosures.description')),
+    ).toBeOnTheScreen();
   });
 
   it('provides a scroll callback to the chart', () => {

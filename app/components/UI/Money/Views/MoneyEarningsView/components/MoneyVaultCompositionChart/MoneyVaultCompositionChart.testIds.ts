@@ -1,4 +1,5 @@
 export const MoneyVaultCompositionChartTestIds = {
+  LOADING: 'money-vault-composition-chart-loading',
   CHART: 'money-vault-composition-chart',
   RING: 'money-vault-composition-chart-ring',
   CENTER_PERCENTAGE: 'money-vault-composition-chart-center-percentage',

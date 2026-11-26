@@ -26,6 +26,8 @@ export const MoneyEarningsViewTestIds = {
   ALLOCATION_ERROR: 'money-earnings-view-allocation-error',
   ALLOCATION_EMPTY: 'money-earnings-view-allocation-empty',
   ALLOCATION_DEGRADED: 'money-earnings-view-allocation-degraded',
+  ALLOCATION_DETAILS_DIVIDER: 'money-earnings-view-allocation-details-divider',
+  ALLOCATION_RISKS_DIVIDER: 'money-earnings-view-allocation-risks-divider',
   SUMMARY: 'money-earnings-view-summary',
   SUMMARY_ROW: (index: number): string =>
     `money-earnings-view-summary-row-${index}`,

@@ -29,6 +29,16 @@ const createComponent = (
 });
 
 describe('MoneyVaultCompositionMarketRow', () => {
+  it('renders loading placeholders without component data', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionMarketRow isLoading networkLabel="Monad" />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionMarketRowTestIds.LOADING),
+    ).toBeOnTheScreen();
+  });
+
   it('renders market, asset, allocation, and estimated APY values', () => {
     const component = createComponent();
 

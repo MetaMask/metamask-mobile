@@ -143,6 +143,19 @@ describe('MoneyVaultCompositionChart', () => {
     jest.restoreAllMocks();
   });
 
+  it('renders a loading skeleton instead of the chart while loading', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={[]} isLoading />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).not.toBeOnTheScreen();
+  });
+
   it.each([1, 3, 5])('renders exactly %i wedges', (count) => {
     const { getAllByTestId } = renderWithProvider(
       <MoneyVaultCompositionChart components={createComponents(count)} />,

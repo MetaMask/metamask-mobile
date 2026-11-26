@@ -12,6 +12,8 @@ import MoneyVaultCompositionMarketRow from '../MoneyVaultCompositionMarketRow';
 import type { MoneyVaultCompositionMarketsTableProps } from './MoneyVaultCompositionMarketsTable.types';
 import { MoneyVaultCompositionMarketsTableTestIds } from './MoneyVaultCompositionMarketsTable.testIds';
 
+const LOADING_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3'];
+
 /**
  * Renders the positive vault components in the same order as the composition chart.
  *
@@ -22,6 +24,7 @@ const MoneyVaultCompositionMarketsTable = ({
   allocationLabel,
   apyLabel,
   components,
+  isLoading = false,
   marketLabel,
   networkLabel,
 }: MoneyVaultCompositionMarketsTableProps): React.ReactElement => {
@@ -69,13 +72,21 @@ const MoneyVaultCompositionMarketsTable = ({
           {apyLabel}
         </Text>
       </Box>
-      {orderedComponents.map((component) => (
-        <MoneyVaultCompositionMarketRow
-          key={component.component_key}
-          component={component}
-          networkLabel={networkLabel}
-        />
-      ))}
+      {isLoading
+        ? LOADING_ROW_KEYS.map((key) => (
+            <MoneyVaultCompositionMarketRow
+              key={key}
+              isLoading
+              networkLabel={networkLabel}
+            />
+          ))
+        : orderedComponents.map((component) => (
+            <MoneyVaultCompositionMarketRow
+              key={component.component_key}
+              component={component}
+              networkLabel={networkLabel}
+            />
+          ))}
     </Box>
   );
 };

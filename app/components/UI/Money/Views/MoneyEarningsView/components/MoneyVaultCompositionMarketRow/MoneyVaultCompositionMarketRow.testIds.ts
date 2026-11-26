@@ -1,4 +1,5 @@
 export const MoneyVaultCompositionMarketRowTestIds = {
+  LOADING: 'money-vault-composition-market-row-loading',
   ROW: (componentKey: string): string =>
     `money-vault-composition-market-row-${componentKey}`,
   INDICATOR: (componentKey: string): string =>

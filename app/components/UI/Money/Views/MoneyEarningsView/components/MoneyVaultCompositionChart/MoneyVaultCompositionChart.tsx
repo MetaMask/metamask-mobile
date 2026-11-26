@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { G, Path, Svg } from 'react-native-svg';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Skeleton,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatVaultCompositionLabel } from '../../../../utils/moneyVaultComposition';
 import { formatPercentage } from '../../../../utils/formatPercentage';
@@ -20,6 +25,7 @@ import useMoneyVaultCompositionChartInteraction from './useMoneyVaultComposition
 
 const MoneyVaultCompositionChart = ({
   components,
+  isLoading = false,
   setScrollEnabled,
 }: MoneyVaultCompositionChartProps): React.ReactElement => {
   const { colors } = useTheme();
@@ -68,6 +74,20 @@ const MoneyVaultCompositionChart = ({
 
     previousActiveKey.current = activeWedge.componentKey;
   }, [accessibilityText, activeWedge]);
+
+  if (isLoading) {
+    return (
+      <Skeleton
+        testID={MoneyVaultCompositionChartTestIds.LOADING}
+        height={CHART_VIEWBOX_SIZE}
+        width={CHART_VIEWBOX_SIZE}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={strings('money.earnings.allocation_loading')}
+        twClassName="rounded-full"
+      />
+    );
+  }
 
   if (model.status === 'empty') {
     return (

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   FontWeight,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -29,10 +30,54 @@ const formatMarketAssetSymbol = (assetSymbol: string): string =>
  */
 const MoneyVaultCompositionMarketRow = ({
   component,
+  isLoading = false,
   networkLabel,
 }: MoneyVaultCompositionMarketRowProps): React.ReactElement => {
   const tw = useTailwind();
   const { colors } = useTheme();
+
+  if (isLoading) {
+    return (
+      <Box
+        testID={MoneyVaultCompositionMarketRowTestIds.LOADING}
+        accessible={false}
+        twClassName="flex-row items-center gap-3 py-3"
+      >
+        <Skeleton width={8} height={40} accessible={false} />
+        <Box accessible={false} twClassName="min-w-0 flex-1 gap-1">
+          <Skeleton
+            width="85%"
+            height={18}
+            accessible={false}
+            twClassName="rounded-md"
+          />
+          <Skeleton
+            width="55%"
+            height={16}
+            accessible={false}
+            twClassName="rounded-md"
+          />
+        </Box>
+        <Skeleton
+          width={64}
+          height={18}
+          accessible={false}
+          twClassName="rounded-md"
+        />
+        <Skeleton
+          width={64}
+          height={18}
+          accessible={false}
+          twClassName="rounded-md"
+        />
+      </Box>
+    );
+  }
+
+  if (!component) {
+    throw new Error('Market row requires component data when not loading');
+  }
+
   const componentKey = component.component_key;
   const protocolLabel = formatVaultCompositionProtocolName(component.protocol);
   const primaryLabel =

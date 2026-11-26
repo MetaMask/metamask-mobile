@@ -65,6 +65,26 @@ describe('MoneyVaultCompositionMarketsTable', () => {
     );
   });
 
+  it('keeps headers visible and renders loading rows while loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <MoneyVaultCompositionMarketsTable
+        components={[]}
+        marketLabel="Markets"
+        allocationLabel="Allocation"
+        apyLabel="APY"
+        networkLabel="Monad"
+        isLoading
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER),
+    ).toHaveTextContent('Markets');
+    expect(
+      getAllByTestId(MoneyVaultCompositionMarketRowTestIds.LOADING),
+    ).toHaveLength(3);
+  });
+
   it('filters zero allocations and preserves chart ordering', () => {
     const components = [
       createComponent('aave_v3_musd', '0.3'),

@@ -5,6 +5,7 @@ export type ComponentKey = VaultComponent['component_key'];
 
 export interface MoneyVaultCompositionChartProps {
   components: VaultCompositionResponse['components'];
+  isLoading?: boolean;
   setScrollEnabled?: (enabled: boolean) => void;
 }
 
