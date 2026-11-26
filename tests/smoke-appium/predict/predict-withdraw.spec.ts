@@ -100,6 +100,7 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
 
           await TransactionPayConfirmation.tapKeyboardAmount('5');
           await TransactionPayConfirmation.tapKeyboardContinueButton();
+          await TransactionPayConfirmation.verifyTransactionFeeVisible();
           await FooterActions.tapConfirmButton();
 
           await PredictHome.waitForScreenToDisplay({
