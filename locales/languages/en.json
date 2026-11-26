@@ -8844,6 +8844,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
+    "tron_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again."
+    },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",
@@ -12296,6 +12299,10 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
+      "more_button_label": "More options",
+      "more_sheet": {
+        "title": "More"
+      },
       "enable_card_error": "Failed to enable card. Try again later.",
       "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
@@ -12384,6 +12391,7 @@
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
