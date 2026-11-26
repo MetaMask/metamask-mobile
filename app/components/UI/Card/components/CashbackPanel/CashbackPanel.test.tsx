@@ -26,10 +26,7 @@ describe('CashbackPanel', () => {
   it.each<[CashbackPanelStatus, string]>([
     [
       'accruing',
-      strings('card.card_home.cashback_panel.progress', {
-        amount: '$2.30',
-        target: '$5',
-      }),
+      strings('card.card_home.cashback_panel.getting_there', { target: '$5' }),
     ],
     ['claimable', strings('card.card_home.cashback_panel.ready')],
     ['claiming', strings('card.card_home.cashback_panel.claiming')],
@@ -55,9 +52,30 @@ describe('CashbackPanel', () => {
     const { getByTestId } = renderPanel({ status: 'claimable' });
 
     expect(getByTestId(CashbackPanelSelectors.SUBLABEL)).toHaveTextContent(
-      'Ready to claim',
+      'Your cashback is ready',
     );
   });
+
+  it.each<[string, Partial<CashbackPanelProps>, string]>([
+    ['zero balance', { progress: 0 }, 'Earn mUSD every time you spend'],
+    ['below the increment', { progress: 0.46 }, 'Getting there, unlocks at $5'],
+    [
+      'claimable',
+      { status: 'claimable', progress: 1 },
+      'Your cashback is ready',
+    ],
+    ['claiming', { status: 'claiming', progress: 1 }, 'On its way…'],
+    ['auto payout', { status: 'autoPayout' }, 'Pays out on its own at $5'],
+  ])(
+    'uses the %s copy without repeating the amount',
+    (_name, overrides, expected) => {
+      const { getByTestId } = renderPanel(overrides);
+      const sublabel = getByTestId(CashbackPanelSelectors.SUBLABEL);
+
+      expect(sublabel).toHaveTextContent(expected);
+      expect(sublabel).not.toHaveTextContent(/\$\d+\.\d{2}/);
+    },
+  );
 
   it('claims the whole-increment amount from the pill', () => {
     const { getByTestId, props } = renderPanel({ status: 'claimable' });
@@ -90,10 +108,10 @@ describe('CashbackPanel', () => {
     expect(props.onClaim).not.toHaveBeenCalled();
   });
 
-  it('shimmers the full bar only while claimable', () => {
+  it('shimmers the full bar only while claimable', async () => {
     const claimable = renderPanel({ status: 'claimable', progress: 1 });
     expect(
-      claimable.getByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER),
+      await claimable.findByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER),
     ).toBeOnTheScreen();
     claimable.unmount();
 
@@ -101,6 +119,28 @@ describe('CashbackPanel', () => {
     expect(
       claiming.queryByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER),
     ).toBeNull();
+  });
+
+  it('holds the shimmer until the focus refill has run', async () => {
+    const pending = renderPanel({
+      status: 'claimable',
+      progress: 1,
+      isRefillPending: true,
+    });
+    expect(
+      pending.queryByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER),
+    ).toBeNull();
+
+    pending.rerender(
+      <CashbackPanel
+        {...pending.props}
+        isRefillPending={false}
+        refillKey={1}
+      />,
+    );
+    expect(
+      await pending.findByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER),
+    ).toBeOnTheScreen();
   });
 
   it('reports progress for assistive tech', () => {

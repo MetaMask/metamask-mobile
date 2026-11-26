@@ -99,6 +99,9 @@ interface ManageCardOptionsProps {
   onToggleCashbackAutoPayout?: (value: boolean) => void;
   /** Payout increment for the auto payout description, e.g. "$5". */
   cashbackPayoutIncrementLabel?: string;
+  /** PROTOTYPE: ring layout toggle, shown alongside auto payout. */
+  isCashbackRingOn?: boolean;
+  onToggleCashbackRing?: (value: boolean) => void;
   providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
@@ -150,6 +153,8 @@ const ManageCardOptions = ({
   isCashbackAutoPayoutOn = false,
   onToggleCashbackAutoPayout,
   cashbackPayoutIncrementLabel = '',
+  isCashbackRingOn = false,
+  onToggleCashbackRing,
   providerId,
   onTravel,
   onTransactionHistory,
@@ -281,6 +286,25 @@ const ManageCardOptions = ({
                 />
               }
               testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM}
+            />
+          )}
+        {showCashbackAutoPayout &&
+          !hideManageOptions &&
+          onToggleCashbackRing && (
+            <ManageCardListItem
+              title={strings('card.card_home.cashback_panel.ring_title')}
+              description={strings(
+                'card.card_home.cashback_panel.ring_description',
+              )}
+              rightElement={
+                <DSSwitch
+                  isOn={isCashbackRingOn}
+                  onValueChange={onToggleCashbackRing}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.CASHBACK_RING_TOGGLE}
+                />
+              }
+              testID={CardHomeSelectors.CASHBACK_RING_ITEM}
             />
           )}
         {!hiddenQuickActionRows?.details &&

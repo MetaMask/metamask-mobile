@@ -4,10 +4,11 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
@@ -33,6 +34,7 @@ import { withBiometricAuth } from '../../util/withBiometricAuth';
 import { useCashbackAutoPayoutPrototype } from '../../util/cashbackAutoPayoutPrototype';
 import { getRedeemWithdrawalAmounts } from '../../Views/RedeemWallet/RedeemWallet.utils';
 import CashbackPanel, { type CashbackPanelStatus } from './CashbackPanel';
+import CashbackRing from './CashbackRing';
 import {
   CASHBACK_PAYOUT_INCREMENT,
   formatClaimAmount,
@@ -53,6 +55,9 @@ const formatUsd = (value: number, wholeDollars = false): string =>
 /** Longest we wait for a push-opened Card home to finish its transition. */
 const PUSH_CELEBRATION_FALLBACK_MS = 900;
 
+/** Longest we wait for Card home's focus transition before refilling. */
+const REFILL_FALLBACK_MS = 600;
+
 interface TransitionAwareNavigation {
   addListener: (
     event: 'transitionEnd',
@@ -60,6 +65,45 @@ interface TransitionAwareNavigation {
   ) => () => void;
   getParent?: () => TransitionAwareNavigation | undefined;
 }
+
+/**
+ * Calls `onSettled` once Card home has finished sliding in. Native stack emits
+ * `transitionEnd` on the route that animated, which may be any ancestor, so
+ * listen up the tree; the fallback covers a screen that had already settled.
+ * Returns a cleanup.
+ */
+const whenTransitionSettles = (
+  navigation: unknown,
+  onSettled: () => void,
+  fallbackMs: number,
+): (() => void) => {
+  let fired = false;
+  const unsubscribes: (() => void)[] = [];
+  const timer: { fallback?: ReturnType<typeof setTimeout> } = {};
+  const cleanup = () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
+    clearTimeout(timer.fallback);
+  };
+  const fire = () => {
+    if (fired) return;
+    fired = true;
+    cleanup();
+    onSettled();
+  };
+  let current = navigation as TransitionAwareNavigation | undefined;
+  while (current) {
+    unsubscribes.push(
+      current.addListener('transitionEnd', (event) => {
+        if (!event?.data?.closing) {
+          fire();
+        }
+      }),
+    );
+    current = current.getParent?.();
+  }
+  timer.fallback = setTimeout(fire, fallbackMs);
+  return cleanup;
+};
 
 export interface CardCashbackPanelProps {
   /**
@@ -73,6 +117,8 @@ export interface CardCashbackPanelProps {
    * whole view). Call `onDone` when it has finished.
    */
   onCelebrate?: (onDone: () => void) => void;
+  /** PROTOTYPE: 'ring' shows the radial ring layout (option 2) instead of the panel. */
+  variant?: 'panel' | 'ring';
 }
 
 /**
@@ -84,6 +130,7 @@ const CardCashbackPanel = ({
   pushPayoutAmount,
   onPushPayoutHandled,
   onCelebrate,
+  variant = 'panel',
 }: CardCashbackPanelProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
@@ -234,40 +281,38 @@ const CardCashbackPanel = ({
 
   // A push tap lands here with the paid-out amount. Hold the celebration
   // until Card home has finished sliding in, so no coins fall over the
-  // screen we came from. Native stack emits `transitionEnd` on the route
-  // that animated, which may be any ancestor, so listen up the tree; the
-  // fallback covers a screen that had already settled.
+  // screen we came from.
   useEffect(() => {
     if (!pushPayoutAmount) return undefined;
-    let fired = false;
-    const timer: { fallback?: ReturnType<typeof setTimeout> } = {};
-    const unsubscribes: (() => void)[] = [];
-    const fire = () => {
-      if (fired) return;
-      fired = true;
-      unsubscribes.forEach((unsubscribe) => unsubscribe());
-      clearTimeout(timer.fallback);
-      celebrate(pushPayoutAmount);
-      onPushPayoutHandled?.();
-    };
-    let current: TransitionAwareNavigation | undefined =
-      navigation as unknown as TransitionAwareNavigation;
-    while (current) {
-      unsubscribes.push(
-        current.addListener('transitionEnd', (event) => {
-          if (!event?.data?.closing) {
-            fire();
-          }
-        }),
-      );
-      current = current.getParent?.();
-    }
-    timer.fallback = setTimeout(fire, PUSH_CELEBRATION_FALLBACK_MS);
-    return () => {
-      unsubscribes.forEach((unsubscribe) => unsubscribe());
-      clearTimeout(timer.fallback);
-    };
+    return whenTransitionSettles(
+      navigation,
+      () => {
+        celebrate(pushPayoutAmount);
+        onPushPayoutHandled?.();
+      },
+      PUSH_CELEBRATION_FALLBACK_MS,
+    );
   }, [celebrate, navigation, onPushPayoutHandled, pushPayoutAmount]);
+
+  // Refill the progress each time Card home comes into focus (pushed to or
+  // popped back to): empty during the transition, then animate to the value.
+  const [refill, setRefill] = useState({ key: 0, isPending: true });
+  useFocusEffect(
+    useCallback(() => {
+      setRefill((previous) =>
+        previous.isPending ? previous : { ...previous, isPending: true },
+      );
+      return whenTransitionSettles(
+        navigation,
+        () =>
+          setRefill((previous) => ({
+            key: previous.key + 1,
+            isPending: false,
+          })),
+        REFILL_FALLBACK_MS,
+      );
+    }, [navigation]),
+  );
 
   // The controller owns the claim outcome, so it survives leaving Card home.
   useEffect(() => {
@@ -369,8 +414,10 @@ const CardCashbackPanel = ({
     startLinkFlow,
   ]);
 
+  const Layout = variant === 'ring' ? CashbackRing : CashbackPanel;
+
   return (
-    <CashbackPanel
+    <Layout
       status={status}
       availableLabel={formatUsd(breakdown.available)}
       claimableLabel={formatUsd(breakdown.claimable)}
@@ -380,6 +427,8 @@ const CardCashbackPanel = ({
       progress={breakdown.claimable > 0 ? 1 : breakdown.progress}
       onClaim={handleClaim}
       onSetup={handleSetup}
+      refillKey={refill.key}
+      isRefillPending={refill.isPending}
     />
   );
 };

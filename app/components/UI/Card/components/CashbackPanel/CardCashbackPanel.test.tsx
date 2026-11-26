@@ -13,15 +13,20 @@ import { useCashbackAutoPayoutPrototype } from '../../util/cashbackAutoPayoutPro
 
 const mockNavigate = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+const mockNavigation = {
+  navigate: (...args: unknown[]) => mockNavigate(...args),
+  addListener: (...args: unknown[]) => (mockAddListener as jest.Mock)(...args),
+  getParent: () => undefined,
+};
 const mockStartLinkFlow = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    addListener: mockAddListener,
-    getParent: () => undefined,
-  }),
+  // Stable like the real hook, so focus effects don't re-run every render.
+  useNavigation: () => mockNavigation,
+  // Run focus effects like a mount effect (no navigator in these tests).
+  useFocusEffect: (effect: () => void | (() => void)) =>
+    jest.requireActual('react').useEffect(effect, [effect]),
 }));
 
 jest.mock('react-redux', () => ({
@@ -127,6 +132,15 @@ describe('CardCashbackPanel', () => {
     jest.mocked(useRedeemDestination).mockReturnValue(destinationState());
     mockAccountByAddress.mockReturnValue(undefined);
     jest.mocked(useCashbackAutoPayoutPrototype).mockReturnValue(false);
+  });
+
+  it('shows the ring layout instead of the panel for the ring variant', () => {
+    const { getByTestId, queryByTestId } = renderPanel({ variant: 'ring' });
+
+    expect(
+      getByTestId(CashbackPanelSelectors.RING_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(CashbackPanelSelectors.CONTAINER)).toBeNull();
   });
 
   it('shows the whole-increment amount as ready to claim', () => {
@@ -261,6 +275,26 @@ describe('CardCashbackPanel', () => {
         ],
       }),
     );
+  });
+
+  it('refills the bar after Card home comes into focus, then shimmers', async () => {
+    const { findByTestId, queryByTestId } = renderPanel();
+
+    // Empty while Card home is still transitioning in.
+    expect(queryByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER)).toBeNull();
+    expect(mockAddListener).toHaveBeenCalledWith(
+      'transitionEnd',
+      expect.any(Function),
+    );
+
+    // The transition fallback fires, the fill runs, then the shimmer starts.
+    expect(
+      await findByTestId(
+        CashbackPanelSelectors.PROGRESS_SHIMMER,
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('plays the push payout celebration after the screen settles', () => {

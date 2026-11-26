@@ -11,6 +11,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import Animated from 'react-native-reanimated';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextVariant,
   Button,
@@ -130,7 +132,9 @@ import { CASHBACK_PAYOUT_INCREMENT } from '../../components/CashbackPanel/Cashba
 import {
   IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED,
   setCashbackAutoPayoutPrototype,
+  setCashbackRingPrototype,
   useCashbackAutoPayoutPrototype,
+  useCashbackRingPrototype,
 } from '../../util/cashbackAutoPayoutPrototype';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
@@ -895,6 +899,8 @@ const CardHome = () => {
     capabilities?.supportsCashback === true &&
     data?.account?.verificationStatus === 'VERIFIED';
   const isCashbackAutoPayoutOn = useCashbackAutoPayoutPrototype();
+  // PROTOTYPE (option 2): ring above the card instead of the panel.
+  const isCashbackRingOn = useCashbackRingPrototype();
   // Cashback payout coin rain covers the whole view, so the screen owns it.
   const [coinRainKey, setCoinRainKey] = useState<number | null>(null);
   const coinRainDoneRef = useRef<(() => void) | null>(null);
@@ -1086,18 +1092,42 @@ const CardHome = () => {
             the Money home balance header. States that hide the balance today
             (setup actions or alert-only) show no header at all. */}
             {isAuthenticated && !hasSetupActions && !hasAlertOnlyState && (
-              <CardBalanceDisplay
-                isLoading={isLoading}
-                balanceAmount={balanceAmount}
-                privacyMode={privacyMode}
-                currentCurrency={currentCurrency}
-                onTogglePrivacy={handleTogglePrivacy}
-                showInfoBadge={creditIncludedInBalance}
-                onInfoPress={handleOpenCreditBalanceTooltip}
-                infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
-                isUnavailable={primaryToken?.isUnavailable}
-                animateBalance={showCashbackPanel}
-              />
+              // PROTOTYPE (option 2): the cashback ring sits on the trailing
+              // side of the balance header, vertically centred with it.
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <Box twClassName="flex-1">
+                  <CardBalanceDisplay
+                    isLoading={isLoading}
+                    balanceAmount={balanceAmount}
+                    privacyMode={privacyMode}
+                    currentCurrency={currentCurrency}
+                    onTogglePrivacy={handleTogglePrivacy}
+                    showInfoBadge={creditIncludedInBalance}
+                    onInfoPress={handleOpenCreditBalanceTooltip}
+                    infoBadgeTestID={
+                      CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON
+                    }
+                    isUnavailable={primaryToken?.isUnavailable}
+                    animateBalance={showCashbackPanel}
+                  />
+                </Box>
+                {showCashbackPanel && isCashbackRingOn && (
+                  <Box
+                    twClassName="mr-4"
+                    testID={CardHomeSelectors.CASHBACK_RING_SLOT}
+                  >
+                    <CardCashbackPanel
+                      variant="ring"
+                      pushPayoutAmount={route.params?.cashbackPayoutAmount}
+                      onPushPayoutHandled={handleCashbackPushHandled}
+                      onCelebrate={handleCashbackCelebrate}
+                    />
+                  </Box>
+                )}
+              </Box>
             )}
 
             {showSpendingLimitProgress &&
@@ -1267,7 +1297,7 @@ const CardHome = () => {
               />
             )}
 
-            {showCashbackPanel && (
+            {showCashbackPanel && !isCashbackRingOn && (
               <Box testID={CardHomeSelectors.CASHBACK_PANEL_SLOT}>
                 <CardCashbackPanel
                   pushPayoutAmount={route.params?.cashbackPayoutAmount}
@@ -1387,6 +1417,8 @@ const CardHome = () => {
                   }
                   isCashbackAutoPayoutOn={isCashbackAutoPayoutOn}
                   onToggleCashbackAutoPayout={setCashbackAutoPayoutPrototype}
+                  isCashbackRingOn={isCashbackRingOn}
+                  onToggleCashbackRing={setCashbackRingPrototype}
                   cashbackPayoutIncrementLabel={formatWithThreshold(
                     CASHBACK_PAYOUT_INCREMENT,
                     0.01,

@@ -738,6 +738,12 @@ jest.mock('../../components/CashbackPanel/CardCashbackPanel', () => {
   };
 });
 
+const mockUseCashbackRingPrototype = jest.fn((): boolean => false);
+jest.mock('../../util/cashbackAutoPayoutPrototype', () => ({
+  ...jest.requireActual('../../util/cashbackAutoPayoutPrototype'),
+  useCashbackRingPrototype: () => mockUseCashbackRingPrototype(),
+}));
+
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
   .setActiveNetwork as jest.MockedFunction<
@@ -7197,6 +7203,7 @@ describe('CardHome Component', () => {
   describe('Cashback panel', () => {
     beforeEach(() => {
       mockGetCapabilities.mockReturnValue({ supportsCashback: true });
+      mockUseCashbackRingPrototype.mockReturnValue(false);
     });
 
     it('shows the cashback panel for an authenticated international user with VERIFIED KYC', () => {
@@ -7294,6 +7301,30 @@ describe('CardHome Component', () => {
         ).toBeOnTheScreen();
       },
     );
+
+    it('shows the ring above the card instead of the panel when the ring prototype is on', () => {
+      mockUseCashbackRingPrototype.mockReturnValue(true);
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CASHBACK_RING_SLOT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('Enable Card - ChooseYourCard Redirect', () => {

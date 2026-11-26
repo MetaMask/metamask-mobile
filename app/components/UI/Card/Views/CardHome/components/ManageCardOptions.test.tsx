@@ -83,6 +83,8 @@ const renderComponent = (
     showCashbackAutoPayout?: boolean;
     isCashbackAutoPayoutOn?: boolean;
     onToggleCashbackAutoPayout?: (value: boolean) => void;
+    isCashbackRingOn?: boolean;
+    onToggleCashbackRing?: (value: boolean) => void;
   } = {},
 ) =>
   render(
@@ -127,6 +129,8 @@ const renderComponent = (
       showCashbackAutoPayout={overrides.showCashbackAutoPayout}
       isCashbackAutoPayoutOn={overrides.isCashbackAutoPayoutOn}
       onToggleCashbackAutoPayout={overrides.onToggleCashbackAutoPayout}
+      isCashbackRingOn={overrides.isCashbackRingOn}
+      onToggleCashbackRing={overrides.onToggleCashbackRing}
       cashbackPayoutIncrementLabel="$5"
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
@@ -734,5 +738,36 @@ describe('ManageCardOptions cashback auto payout (prototype)', () => {
     expect(
       queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
     ).toBeNull();
+  });
+});
+
+describe('ManageCardOptions cashback ring layout (prototype)', () => {
+  it('shows the ring layout row next to auto payout', () => {
+    const { getByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: true,
+      onToggleCashbackAutoPayout: jest.fn(),
+      onToggleCashbackRing: jest.fn(),
+    });
+
+    expect(getByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toHaveTextContent(
+      strings('card.card_home.cashback_panel.ring_title'),
+    );
+  });
+
+  it('hides the ring layout row when the prototype is off', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: false,
+      onToggleCashbackRing: jest.fn(),
+    });
+
+    expect(queryByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toBeNull();
+  });
+
+  it('hides the ring layout row when no toggle handler is provided', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: true,
+    });
+
+    expect(queryByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toBeNull();
   });
 });
