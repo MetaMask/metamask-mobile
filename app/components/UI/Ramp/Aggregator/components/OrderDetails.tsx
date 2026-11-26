@@ -20,7 +20,10 @@ import {
 } from '../../../../../util/number/bigint';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { useActivityBlockExplorer } from '../../../../Views/ActivityDetails/hooks/useActivityBlockExplorer';
-import { toFiatOrderCaipChainId } from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
+import {
+  isPlausibleRampTxHash,
+  toFiatOrderCaipChainId,
+} from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import Spinner from '../../../AnimatedSpinner';
 import useAnalytics from '../../hooks/useAnalytics';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -246,7 +249,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const trackEvent = useAnalytics();
   const explorerLink = useActivityBlockExplorer(
     toFiatOrderCaipChainId(order) ?? undefined,
-    txHash,
+    isPlausibleRampTxHash(txHash) ? txHash : undefined,
   );
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
@@ -597,7 +600,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   style={styles.textCenter}
                 >
                   {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
-                  {explorerLink?.title ??
+                  {explorerLink?.title ||
                     strings(
                       'fiat_on_ramp_aggregator.order_details.a_block_explorer',
                     )}

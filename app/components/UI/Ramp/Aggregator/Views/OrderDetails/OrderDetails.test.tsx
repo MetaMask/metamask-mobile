@@ -654,6 +654,18 @@ describe('OrderDetails', () => {
       expect(screen.queryByText(/View full details on/u)).toBeNull();
     });
 
+    it.each([
+      ['0x', '0x'],
+      ['an all-zero hash', `0x${'0'.repeat(64)}`],
+    ])(
+      'does not render the explorer link for a placeholder hash (%s)',
+      (_label, txHash) => {
+        render(OrderDetails, [completedOrderWith('tron:728126428', txHash)]);
+
+        expect(screen.queryByText(/View full details on/u)).toBeNull();
+      },
+    );
+
     it('does not render the explorer link when the order is not completed', () => {
       render(OrderDetails, [
         {
