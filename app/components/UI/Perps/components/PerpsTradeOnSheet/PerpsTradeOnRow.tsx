@@ -62,7 +62,7 @@ const PerpsTradeOnRow: React.FC<PerpsTradeOnRowProps> = ({
       </Text>
       <Box
         accessible={false}
-        twClassName="flex-row items-center gap-0.5 rounded-full bg-muted px-1 py-0.5"
+        className="flex-row items-center gap-0.5 rounded-full bg-muted px-1 py-0.5"
         testID={testID ? `${testID}-tag` : undefined}
       >
         <PerpsProviderLogos
