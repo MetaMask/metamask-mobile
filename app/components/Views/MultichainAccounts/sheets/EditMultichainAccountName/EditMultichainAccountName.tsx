@@ -130,7 +130,7 @@ export const EditMultichainAccountName = () => {
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="mt-4 gap-4 px-6"
+          className="mt-4 gap-4 px-6"
           testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -156,7 +156,7 @@ export const EditMultichainAccountName = () => {
           />
           {error ? <Text color={TextColor.ErrorDefault}>{error}</Text> : null}
         </Box>
-        <Box twClassName="mt-4 w-full px-6 py-2.5">
+        <Box className="mt-4 w-full px-6 py-2.5">
           <Button
             isFullWidth
             variant={ButtonVariant.Primary}

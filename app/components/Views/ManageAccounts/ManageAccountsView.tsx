@@ -150,7 +150,7 @@ const ManageAccountsView = ({
               </Box>
             ) : null}
             {shouldShowSectionDivider(sectionIndex, sections.length) && (
-              <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+              <Box className="mx-4 my-2 h-px bg-border-muted" />
             )}
           </Box>
         ))}

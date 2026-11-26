@@ -144,7 +144,7 @@ const OtherBottomSheetContent = ({
   return (
     <Box
       pointerEvents="box-none"
-      twClassName="absolute inset-0"
+      className="absolute inset-0"
       style={{ transform: [{ translateY: -keyboardHeight }] }}
       testID={OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER}
     >

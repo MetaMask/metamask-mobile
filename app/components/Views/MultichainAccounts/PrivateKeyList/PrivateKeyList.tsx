@@ -223,8 +223,8 @@ export const PrivateKeyList = () => {
 
   const renderPassword = useCallback(
     () => (
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
-        <Box twClassName="flex-1 px-4 pt-6">
+      <Box flexDirection={BoxFlexDirection.Column} className="flex-1">
+        <Box className="flex-1 px-4 pt-6">
           <Text
             variant={TextVariant.BodyLg}
             testID={PrivateKeyListIds.PASSWORD_TITLE}
@@ -261,25 +261,25 @@ export const PrivateKeyList = () => {
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Evenly}
           style={{ paddingBottom: passwordFooterPaddingBottom }}
-          twClassName="w-full shrink-0 border-t border-border-muted px-4 pt-4 gap-2"
+          className="w-full shrink-0 border-t border-border-muted px-4 pt-4 gap-2"
         >
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Button
               size={ButtonSize.Lg}
               variant={ButtonVariant.Secondary}
               onPress={onCancel}
-              twClassName="w-full"
+              className="w-full"
               testID={PrivateKeyListIds.CANCEL_BUTTON}
             >
               {strings('multichain_accounts.private_key_list.cancel')}
             </Button>
           </Box>
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Button
               size={ButtonSize.Lg}
               variant={ButtonVariant.Primary}
               onPress={() => verifyPasswordAndUnlockKeys()}
-              twClassName="w-full"
+              className="w-full"
               testID={PrivateKeyListIds.CONTINUE_BUTTON}
             >
               {strings('multichain_accounts.private_key_list.continue')}
@@ -301,7 +301,7 @@ export const PrivateKeyList = () => {
 
   const renderPrivateKeyList = useCallback(
     () => (
-      <Box twClassName="flex-1 p-4">
+      <Box className="flex-1 p-4">
         <FlashList
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}
@@ -317,12 +317,12 @@ export const PrivateKeyList = () => {
   );
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+    <Box flexDirection={BoxFlexDirection.Column} className="flex-1">
       <BannerAlert
         severity={BannerAlertSeverity.Danger}
         title={strings('multichain_accounts.private_key_list.warning_title')}
         description={privateKeyBannerDescription}
-        twClassName="mx-[10px] mt-2"
+        className="mx-[10px] mt-2"
         testID={PrivateKeyListIds.BANNER}
       />
 

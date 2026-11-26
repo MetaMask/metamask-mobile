@@ -96,10 +96,27 @@ const MfaPasskeys = () => {
               })
             }
             testID={`${MfaPasskeysSelectorsIDs.ROW}-${index}`}
+          /><AvatarIcon iconName={IconName.Key} />}
+            title={getPasskeyName(passkey, index)}
+            description={getLastUsedLine(passkey)}
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
+            onPress={() =>
+              navigation.navigate(Routes.MFA.METHOD_DETAILS, {
+                method: 'passkey',
+                index,
+              })
+            }
+            testID={`${MfaPasskeysSelectorsIDs.ROW}-${index}`}
           />
         ))}
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

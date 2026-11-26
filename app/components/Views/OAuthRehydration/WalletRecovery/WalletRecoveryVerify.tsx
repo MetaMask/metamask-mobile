@@ -94,7 +94,7 @@ const MethodRow = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}
-        twClassName="ml-3 flex-1"
+        className="ml-3 flex-1"
       >
         {label}
       </Text>
@@ -143,7 +143,7 @@ const WalletRecoveryVerify = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       testID={WalletRecoverySelectorsIDs.VERIFY_SCREEN}
     >
@@ -154,14 +154,14 @@ const WalletRecoveryVerify = ({
         backButtonProps={{ isDisabled: isBusy }}
       />
 
-      <Box twClassName="flex-1 px-4 pt-2">
+      <Box className="flex-1 px-4 pt-2">
         <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
           {strings('wallet_recovery_mfa.verify_title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {strings('wallet_recovery_mfa.verify_description')}
         </Text>
@@ -169,7 +169,7 @@ const WalletRecoveryVerify = ({
         {offlineMessage ? (
           <HelpText
             severity={HelpTextSeverity.Warning}
-            twClassName="mt-3"
+            className="mt-3"
             testID={WalletRecoverySelectorsIDs.VERIFY_OFFLINE}
             accessibilityLiveRegion="polite"
           >
@@ -180,7 +180,7 @@ const WalletRecoveryVerify = ({
         {error ? (
           <HelpText
             severity={HelpTextSeverity.Danger}
-            twClassName="mt-3"
+            className="mt-3"
             testID={WalletRecoverySelectorsIDs.VERIFY_ERROR}
             accessibilityLiveRegion="polite"
           >
@@ -188,7 +188,7 @@ const WalletRecoveryVerify = ({
           </HelpText>
         ) : null}
 
-        <Box twClassName="mt-8 gap-4">
+        <Box className="mt-8 gap-4">
           {showPasskey ? (
             <Button
               variant={ButtonVariant.Primary}
@@ -203,17 +203,17 @@ const WalletRecoveryVerify = ({
           ) : null}
 
           {showPasskey && hasSecondaryMethods ? (
-            <Box twClassName="flex-row items-center gap-4">
-              <Box twClassName="flex-1 border-t border-muted" />
+            <Box className="flex-row items-center gap-4">
+              <Box className="flex-1 border-t border-muted" />
               <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
                 {strings('wallet_recovery_mfa.or')}
               </Text>
-              <Box twClassName="flex-1 border-t border-muted" />
+              <Box className="flex-1 border-t border-muted" />
             </Box>
           ) : null}
 
           {hasSecondaryMethods ? (
-            <Box twClassName="gap-3">
+            <Box className="gap-3">
               {showPassword ? (
                 <MethodRow
                   icon={IconName.Lock}

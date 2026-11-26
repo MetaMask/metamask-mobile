@@ -385,7 +385,7 @@ const AccountsMenu = () => {
   ) : null;
 
   const cardRowEndAccessory = cardUpdateBadge ? (
-    <Box twClassName="flex-row items-center gap-2">
+    <Box className="flex-row items-center gap-2">
       {cardUpdateBadge}
       {arrowRightIcon}
     </Box>
@@ -463,6 +463,12 @@ const AccountsMenu = () => {
             endAccessory={renderNotificationsEndAccessory}
             onPress={onPressNotifications}
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
+          /><Icon name={IconName.Notification} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.notifications')}
+            endAccessory={renderNotificationsEndAccessory}
+            onPress={onPressNotifications}
+            testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
 
@@ -475,12 +481,23 @@ const AccountsMenu = () => {
             endAccessory={arrowRightIcon}
             onPress={onPressOrange}
             testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
+          /><Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            }
+            label={orangeLabel}
+            endAccessory={arrowRightIcon}
+            onPress={onPressOrange}
+            testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
           />
         ) : null}
 
         {/* MetaMask Card Row */}
         <ActionListItem
           startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+          label={strings('accounts_menu.card_title')}
+          onPress={onPressManageWallet}
+          endAccessory={cardRowEndAccessory}
+          testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+        /><Icon name={IconName.Card} size={IconSize.Lg} />}
           label={strings('accounts_menu.card_title')}
           onPress={onPressManageWallet}
           endAccessory={cardRowEndAccessory}
@@ -503,11 +520,21 @@ const AccountsMenu = () => {
           endAccessory={arrowRightIcon}
           onPress={onPressSettings}
           testID={AccountsMenuSelectorsIDs.SETTINGS}
+        /><Icon name={IconName.Setting} size={IconSize.Lg} />}
+          label={strings('accounts_menu.settings')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressSettings}
+          testID={AccountsMenuSelectorsIDs.SETTINGS}
         />
 
         {/* Contacts Row */}
         <ActionListItem
           startAccessory={<Icon name={IconName.Bookmark} size={IconSize.Lg} />}
+          label={strings('send.contacts')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressContacts}
+          testID={AccountsMenuSelectorsIDs.CONTACTS}
+        /><Icon name={IconName.Bookmark} size={IconSize.Lg} />}
           label={strings('send.contacts')}
           endAccessory={arrowRightIcon}
           onPress={onPressContacts}
@@ -523,11 +550,22 @@ const AccountsMenu = () => {
           endAccessory={arrowRightIcon}
           onPress={onPressPermissions}
           testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+        /><Icon name={IconName.SecurityTick} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.permissions')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressPermissions}
+          testID={AccountsMenuSelectorsIDs.PERMISSIONS}
         />
 
         {/* Networks Row */}
         <ActionListItem
           startAccessory={<Icon name={IconName.Hierarchy} size={IconSize.Lg} />}
+          label={strings('accounts_menu.networks')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressNetworks}
+          testID={AccountsMenuSelectorsIDs.NETWORKS}
+        /><Icon name={IconName.Hierarchy} size={IconSize.Lg} />}
           label={strings('accounts_menu.networks')}
           endAccessory={arrowRightIcon}
           onPress={onPressNetworks}
@@ -550,11 +588,20 @@ const AccountsMenu = () => {
           endAccessory={arrowRightIcon}
           onPress={onPressAboutMetaMask}
           testID={AccountsMenuSelectorsIDs.ABOUT_METAMASK}
+        /><Icon name={IconName.Info} size={IconSize.Lg} />}
+          label={aboutMetaMaskTitle}
+          endAccessory={arrowRightIcon}
+          onPress={onPressAboutMetaMask}
+          testID={AccountsMenuSelectorsIDs.ABOUT_METAMASK}
         />
 
         {/* Request a Feature Row */}
         <ActionListItem
           startAccessory={<Icon name={IconName.Details} size={IconSize.Lg} />}
+          label={strings('app_settings.request_feature')}
+          onPress={onPressRequestFeature}
+          testID={AccountsMenuSelectorsIDs.REQUEST_FEATURE}
+        /><Icon name={IconName.Details} size={IconSize.Lg} />}
           label={strings('app_settings.request_feature')}
           onPress={onPressRequestFeature}
           testID={AccountsMenuSelectorsIDs.REQUEST_FEATURE}
@@ -566,6 +613,10 @@ const AccountsMenu = () => {
           label={strings('app_settings.contact_support')}
           onPress={onPressSupport}
           testID={AccountsMenuSelectorsIDs.SUPPORT}
+        /><Icon name={IconName.Sms} size={IconSize.Lg} />}
+          label={strings('app_settings.contact_support')}
+          onPress={onPressSupport}
+          testID={AccountsMenuSelectorsIDs.SUPPORT}
         />
 
         {separator}
@@ -574,6 +625,16 @@ const AccountsMenu = () => {
         <ActionListItem
           startAccessory={
             <Icon
+              name={IconName.Lock}
+              size={IconSize.Lg}
+              color={IconColor.ErrorDefault}
+            />
+          }
+          label={strings('accounts_menu.log_out')}
+          labelTextProps={{ color: TextColor.ErrorDefault }}
+          onPress={onPressLogOut}
+          testID={AccountsMenuSelectorsIDs.LOCK}
+        /><Icon
               name={IconName.Lock}
               size={IconSize.Lg}
               color={IconColor.ErrorDefault}

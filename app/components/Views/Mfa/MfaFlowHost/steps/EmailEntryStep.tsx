@@ -52,11 +52,30 @@ const EmailEntryStep = ({ step, state, onAction }: StepProps<'emailEntry'>) => {
         </Button>
       }
     >
-      <Box twClassName="pt-4 gap-2">
+      <Box className="pt-4 gap-2">
         <TextField
           value={email}
           startAccessory={
             <Icon name={IconName.Mail} color={IconColor.IconAlternative} />
+          }
+          onChangeText={(text) => {
+            setEmail(text);
+            setShowInvalid(false);
+          }}
+          placeholder={strings('mfa.email_entry.placeholder')}
+          isError={showInvalid || state.error !== undefined}
+          autoFocus
+          inputProps={{
+            keyboardType: 'email-address',
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            autoComplete: 'email',
+            textContentType: 'emailAddress',
+            returnKeyType: 'done',
+            onSubmitEditing: submit,
+            testID: MfaFlowSelectorsIDs.EMAIL_INPUT,
+          }}
+        /><Icon name={IconName.Mail} color={IconColor.IconAlternative} />
           }
           onChangeText={(text) => {
             setEmail(text);

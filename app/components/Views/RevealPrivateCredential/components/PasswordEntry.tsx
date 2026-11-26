@@ -26,7 +26,7 @@ const PasswordEntry = ({
   return (
     <>
       <Text
-        twClassName="mb-1"
+        className="mb-1"
         color={TextColor.TextDefault}
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -53,9 +53,24 @@ const PasswordEntry = ({
           returnKeyType: 'done',
           autoComplete: 'password',
         }}
+      /><ButtonIcon
+            iconName={showPassword ? IconName.Eye : IconName.EyeSlash}
+            onPress={onToggleShowPassword}
+          />
+        }
+        inputProps={{
+          secureTextEntry: !showPassword,
+          autoCapitalize: 'none',
+          onSubmitEditing: onSubmit,
+          keyboardAppearance: themeAppearance,
+          testID: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+          accessibilityLabel: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+          returnKeyType: 'done',
+          autoComplete: 'password',
+        }}
       />
       <Text
-        twClassName="mt-2"
+        className="mt-2"
         color={TextColor.ErrorDefault}
         variant={TextVariant.BodySm}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}

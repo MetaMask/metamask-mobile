@@ -121,7 +121,7 @@ const DetailRow = ({
   value: string;
   testID: string;
 }) => (
-  <Box twClassName="flex-row justify-between gap-4" testID={testID}>
+  <Box className="flex-row justify-between gap-4" testID={testID}>
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {label}
     </Text>
@@ -236,7 +236,7 @@ const MfaMethodDetails = () => {
       />
       <ScrollView contentContainerStyle={tw.style('p-4 gap-6')}>
         {credential.type === 'passkey' ? (
-          <Box twClassName="gap-4 pb-6 border-b border-muted">
+          <Box className="gap-4 pb-6 border-b border-muted">
             <Text variant={TextVariant.HeadingLg}>{name}</Text>
             {createdOn ? (
               <DetailRow
@@ -252,9 +252,9 @@ const MfaMethodDetails = () => {
             />
           </Box>
         ) : (
-          <Box twClassName="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
+          <Box className="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
             <AvatarIcon iconName={copy.icon} />
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <Text variant={TextVariant.BodyMd}>{name}</Text>
               {addedOn ? (
                 <Text
@@ -267,13 +267,13 @@ const MfaMethodDetails = () => {
             </Box>
           </Box>
         )}
-        <Box twClassName="gap-4">
+        <Box className="gap-4">
           <Text variant={TextVariant.HeadingSm}>
             {strings('mfa.settings.used_for')}
           </Text>
           {getMfaUsedFor(method, { isSocialLogin }).map(
             ({ key, icon, label }) => (
-              <Box key={key} twClassName="flex-row items-center gap-4">
+              <Box key={key} className="flex-row items-center gap-4">
                 <AvatarIcon iconName={icon} />
                 <Text variant={TextVariant.BodyMd}>{strings(label)}</Text>
               </Box>
@@ -281,7 +281,7 @@ const MfaMethodDetails = () => {
           )}
         </Box>
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
@@ -308,7 +308,7 @@ const MfaMethodDetails = () => {
             isGlass={isGlassHeader}
             onClose={() => closeSheet()}
           />
-          <Box twClassName="px-4 pb-4 gap-4">
+          <Box className="px-4 pb-4 gap-4">
             <TitleAlert
               severity={IconAlertSeverity.Danger}
               title={strings(

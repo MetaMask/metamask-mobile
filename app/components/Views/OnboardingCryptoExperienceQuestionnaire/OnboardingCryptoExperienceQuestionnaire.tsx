@@ -124,7 +124,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
       })}
       testID={OnboardingCryptoExperienceQuestionnaireTestIds.SCREEN}
     >
-      <Box twClassName="mx-4 mt-4 mb-2">
+      <Box className="mx-4 mt-4 mb-2">
         <Text
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
@@ -139,7 +139,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
         contentContainerStyle={tw.style('px-4 pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="gap-2 py-2">
+        <Box className="gap-2 py-2">
           {EXPERIENCE_OPTIONS.map((option) => {
             const isSelected = selectedLevel === option.id;
 

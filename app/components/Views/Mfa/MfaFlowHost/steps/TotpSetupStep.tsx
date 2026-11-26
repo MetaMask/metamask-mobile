@@ -112,7 +112,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
           </Button>
         }
       >
-        <Box twClassName="gap-4 pt-2">
+        <Box className="gap-4 pt-2">
           {step.isRestart ? (
             <BannerAlert
               severity={BannerAlertSeverity.Warning}
@@ -134,7 +134,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
             }
             testID={MfaFlowSelectorsIDs.TOTP_COPY_KEY}
           >
-            <Box twClassName="flex-1 gap-1">
+            <Box className="flex-1 gap-1">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
@@ -169,7 +169,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
           >
             {strings('mfa.totp_setup.qr_title')}
           </BottomSheetHeader>
-          <Box twClassName="items-center gap-4 px-4 pb-6">
+          <Box className="items-center gap-4 px-4 pb-6">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -180,7 +180,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
                 encodes the setup link itself, as the server's image has a
                 wide margin built in. */}
             <Box
-              twClassName="mb-4 rounded-2xl border border-muted p-4"
+              className="mb-4 rounded-2xl border border-muted p-4"
               style={tw.style({ backgroundColor: brandColors.white })}
             >
               <QRCode
