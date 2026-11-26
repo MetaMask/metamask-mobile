@@ -124,6 +124,21 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 }));
 
 let mockIsMoneyAccountSelected = false;
+let mockSelectedPaymentToken: {
+  address: string;
+  chainId: string;
+  symbol?: string;
+} | null = null;
+
+jest.mock('../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    selectedPaymentToken: mockSelectedPaymentToken,
+    isPredictBalanceSelected:
+      mockSelectedPaymentToken === null && !mockIsMoneyAccountSelected,
+    onPaymentTokenChange: jest.fn(),
+    resetSelectedPaymentToken: jest.fn(),
+  }),
+}));
 
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
@@ -559,6 +574,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockActiveOrder = null;
     mockPredictBalance = 10;
     mockIsPredictBalanceLoading = false;
+    mockSelectedPaymentToken = null;
     mockIsMoneyAccountSelected = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
@@ -1253,6 +1269,38 @@ describe('PredictBuyWithAnyToken', () => {
 
       mockPredictBalance = 0;
       mockIsPredictBalanceLoading = true;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+    });
+
+    it('keeps automatic Money Account selection disabled after the user opens Pay with and picks an ERC-20 token, even if the amount later exceeds Predict balance', () => {
+      mockCurrentValue = 5;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+      mockSelectedPaymentToken = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+
+      // User opens Pay with and selects USDC.
+      fireEvent.press(screen.getByTestId('predict-pay-with-row'));
+      mockSelectedPaymentToken = {
+        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC',
+      };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      // Amount rises above Predict balance ($25).
+      mockCurrentValue = 30;
       rerender(<PredictBuyWithAnyToken {...sheetProps} />);
 
       expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({

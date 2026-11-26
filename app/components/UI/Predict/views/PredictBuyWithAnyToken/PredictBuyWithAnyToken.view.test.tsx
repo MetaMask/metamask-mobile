@@ -58,6 +58,8 @@ const PAYMENT_SELECTOR_UNLOCK_TIMEOUT_MS = 3000;
 const MUSD_MONAD_ASSET_ID = `eip155:143/erc20:${MUSD_TOKEN_ADDRESS}` as const;
 const PUSD_POLYGON_ASSET_ID =
   `eip155:137/erc20:${POLYGON_PUSD.address}` as const;
+const USDC_MAINNET_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const USDC_MAINNET_ASSET_ID = `eip155:1/erc20:${USDC_MAINNET_ADDRESS}` as const;
 
 const ERC20_TRANSFER_ZERO_DATA =
   '0xa9059cbb00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000';
@@ -137,6 +139,7 @@ const originalGasFeeController = { ...engine.context.GasFeeController };
 interface RenderScenarioOptions {
   predictBalance: number;
   moneyAccountBalanceRaw?: string;
+  usdcBalanceHuman?: string;
   enableMoneyAccountForPredictOrder?: boolean;
   defaultMoneyAccountFlag?: boolean;
   initialActiveOrder?: {
@@ -149,6 +152,7 @@ interface RenderScenarioOptions {
 function renderPredictBuyScenario({
   predictBalance,
   moneyAccountBalanceRaw = '50000000',
+  usdcBalanceHuman,
   enableMoneyAccountForPredictOrder = true,
   defaultMoneyAccountFlag = false,
   initialActiveOrder = { state: ActiveOrderState.PREVIEW },
@@ -430,18 +434,24 @@ function renderPredictBuyScenario({
         isLoading: false,
         tokens: [],
       };
+      const isUsdc =
+        assetId.toLowerCase() === USDC_MAINNET_ASSET_ID.toLowerCase();
+      const balanceHuman = isUsdc ? (usdcBalanceHuman ?? '0') : '0';
+      const balanceRaw = isUsdc
+        ? String(Math.round(Number(balanceHuman) * 1_000_000))
+        : '0';
       transactionPayData = {
         ...transactionPayData,
         [transactionId]: {
           ...existing,
           paymentToken: {
             assetId,
-            symbol: 'MUSD',
+            symbol: isUsdc ? 'USDC' : 'MUSD',
             decimals: 6,
-            balanceRaw: '0',
-            balanceHuman: '0',
-            balanceUsd: '0',
-            balanceFiat: '0',
+            balanceRaw,
+            balanceHuman,
+            balanceUsd: balanceHuman,
+            balanceFiat: balanceHuman,
           },
         },
       };
@@ -575,6 +585,18 @@ function renderPredictBuyScenario({
       },
       confirmations_pay_tokens: {
         minimumRequiredTokenBalance: 10,
+        ...(usdcBalanceHuman
+          ? {
+              preferredTokens: {
+                default: [
+                  {
+                    address: USDC_MAINNET_ADDRESS,
+                    chainId: CHAIN_IDS.MAINNET,
+                  },
+                ],
+              },
+            }
+          : {}),
       },
     })
     .withOverrides({
@@ -638,9 +660,27 @@ function renderPredictBuyScenario({
                 name: 'Polymarket USD',
                 decimals: 6,
               },
+              ...(usdcBalanceHuman
+                ? {
+                    [USDC_MAINNET_ASSET_ID]: {
+                      type: 'erc20',
+                      symbol: 'USDC',
+                      name: 'USD Coin',
+                      decimals: 6,
+                    },
+                  }
+                : {}),
             },
             assetsBalance: {
-              'acc-1': {},
+              'acc-1': {
+                ...(usdcBalanceHuman
+                  ? {
+                      [USDC_MAINNET_ASSET_ID]: {
+                        amount: usdcBalanceHuman,
+                      },
+                    }
+                  : {}),
+              },
             },
             assetsPrice: {
               [MUSD_MONAD_ASSET_ID]: {
@@ -653,6 +693,15 @@ function renderPredictBuyScenario({
                 price: 1,
                 usdPrice: 1,
               },
+              ...(usdcBalanceHuman
+                ? {
+                    [USDC_MAINNET_ASSET_ID]: {
+                      assetPriceType: 'fungible',
+                      price: 1,
+                      usdPrice: 1,
+                    },
+                  }
+                : {}),
             },
           },
         },
@@ -719,6 +768,29 @@ function renderPredictBuyScenario({
     });
   };
 
+  const settlePayQuote = async () => {
+    const existing = transactionPayData[ORDER_TX_ID];
+    if (!existing) return;
+    transactionPayData = {
+      ...transactionPayData,
+      [ORDER_TX_ID]: { ...existing, isLoading: true },
+    };
+    await act(async () => {
+      syncBgSlice('TransactionPayController', {
+        transactionData: transactionPayData,
+      });
+    });
+    transactionPayData = {
+      ...transactionPayData,
+      [ORDER_TX_ID]: { ...existing, isLoading: false },
+    };
+    await act(async () => {
+      syncBgSlice('TransactionPayController', {
+        transactionData: transactionPayData,
+      });
+    });
+  };
+
   return {
     ...view,
     spies: {
@@ -728,6 +800,7 @@ function renderPredictBuyScenario({
       setTransactionConfig,
     },
     setActiveOrderState,
+    settlePayQuote,
     getPaymentOverride: () =>
       (
         view.store.getState().engine.backgroundState
@@ -745,6 +818,17 @@ function renderPredictBuyScenario({
           activeBuyOrders: Record<string, { state?: ActiveOrderState }>;
         }
       ).activeBuyOrders[ACCOUNT_ADDRESS]?.state,
+    getSelectedPaymentToken: () =>
+      (
+        view.store.getState().engine.backgroundState
+          .PredictController as unknown as {
+          selectedPaymentToken: {
+            address: string;
+            chainId: string;
+            symbol?: string;
+          } | null;
+        }
+      ).selectedPaymentToken,
   };
 }
 
@@ -997,6 +1081,95 @@ describe('PredictBuyWithAnyToken — Money Account selection and confirmation', 
       );
     });
     expect(engine.acceptPendingApproval).not.toHaveBeenCalled();
+  });
+
+  it('keeps an explicit USDC pick when the user raises the amount above Predict balance while the Money Account flag default is on', async () => {
+    const view = renderPredictBuyScenario({
+      predictBalance: 5,
+      moneyAccountBalanceRaw: '50000000',
+      usdcBalanceHuman: '100',
+      enableMoneyAccountForPredictOrder: true,
+      defaultMoneyAccountFlag: true,
+    });
+
+    expect(
+      await view.findByText(strings('confirm.label.pay_with')),
+    ).toBeOnTheScreen();
+
+    expect(view.getPaymentOverride()).toBeUndefined();
+    expect(view.getActiveOrderState()).toBe(ActiveOrderState.PREVIEW);
+
+    fireEvent.press(view.getByText(strings('confirm.label.pay_with')));
+    fireEvent.press(
+      await view.findByTestId(PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW),
+    );
+
+    await waitFor(() => {
+      expect(view.getSelectedPaymentToken()?.address.toLowerCase()).toBe(
+        USDC_MAINNET_ADDRESS.toLowerCase(),
+      );
+      expect(view.getActiveOrderState()).toBe(
+        ActiveOrderState.PAY_WITH_ANY_TOKEN,
+      );
+      expect(view.getPaymentOverride()).toBeUndefined();
+    });
+
+    // Raise amount above the $5 Predict balance so isPredictBalanceCoveringOrder turns false.
+    fireEvent.press(
+      await view.findByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+    );
+    fireEvent.press(await view.findByTestId(KeypadTestIds.KEY_1));
+    fireEvent.press(await view.findByTestId(KeypadTestIds.KEY_0));
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('10');
+      expect(view.getByText('$22.22')).toBeOnTheScreen();
+    });
+
+    await view.settlePayQuote();
+
+    await waitFor(
+      () => {
+        const confirmButton = view.getByTestId(
+          PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON,
+        );
+        expect(confirmButton.props.accessibilityState?.disabled).toBe(false);
+      },
+      { timeout: PAYMENT_SELECTOR_UNLOCK_TIMEOUT_MS },
+    );
+
+    expect(view.getPaymentOverride()).toBeUndefined();
+    expect(view.getSelectedPaymentToken()?.address.toLowerCase()).toBe(
+      USDC_MAINNET_ADDRESS.toLowerCase(),
+    );
+
+    fireEvent.press(
+      view.getByTestId(PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(engine.acceptPendingApproval).toHaveBeenCalledWith(
+        ORDER_TX_ID,
+        expect.anything(),
+        {
+          deleteAfterResult: true,
+          waitForResult: true,
+          handleErrors: false,
+        },
+      );
+      expect(view.spies.startPredictBuyAttempt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: 'pay_with_any_token',
+        }),
+      );
+      expect(view.spies.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionId: ORDER_TX_ID,
+        }),
+      );
+    });
   });
 
   it('returns to PREVIEW and clears paymentOverride when switching from Money Account back to Predict balance', async () => {

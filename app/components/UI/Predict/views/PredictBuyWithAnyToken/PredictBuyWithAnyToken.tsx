@@ -48,6 +48,7 @@ import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
 import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -147,6 +148,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const [hasOpenedPaymentSelector, setHasOpenedPaymentSelector] =
+    useState(false);
+  const [hasUserPickedPaymentSource, setHasUserPickedPaymentSource] =
+    useState(false);
 
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
@@ -170,6 +175,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     usePredictBuyAvailableBalance();
   const { data: predictBalance, isLoading: isPredictBalanceLoading } =
     usePredictBalance();
+  const { selectedPaymentToken } = usePredictPaymentToken();
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
   useAddToken({
@@ -268,16 +274,21 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     !isPredictBalanceLoading &&
     predictBalance !== undefined &&
     predictBalance >= requiredPredictBalance;
+  const isExplicitTokenSelection =
+    hasOpenedPaymentSelector && Boolean(selectedPaymentToken);
 
   // Money Account is not reachable through this view's own pay-token
   // defaulting, so opt this flow into the shared money-account selection.
   // Hold automatic/flag selection back while the Predict balance is still
-  // loading or already covers the order (manual picks ignore `disable`).
+  // loading, already covers the order, or after the user explicitly picked a
+  // payment source in Pay with (manual picks ignore `disable`).
   useMoneyAccountDepositAndOrder({
     disable:
       isPredictBalanceLoading ||
       predictBalance === undefined ||
-      isPredictBalanceCoveringOrder,
+      isPredictBalanceCoveringOrder ||
+      isExplicitTokenSelection ||
+      hasUserPickedPaymentSource,
   });
 
   // All three Money Account selection paths (manual row, automatic fallback,
@@ -287,9 +298,19 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   // placeOrder takes the deposit-and-order branch.
   const wasMoneyAccountSelectedRef = useRef(false);
   useEffect(() => {
+    const wasMoneyAccountSelected = wasMoneyAccountSelectedRef.current;
     const didSelectMoneyAccount =
-      isMoneyAccountSelected && !wasMoneyAccountSelectedRef.current;
+      isMoneyAccountSelected && !wasMoneyAccountSelected;
     wasMoneyAccountSelectedRef.current = isMoneyAccountSelected;
+
+    if (
+      isExplicitTokenSelection ||
+      (hasOpenedPaymentSelector &&
+        wasMoneyAccountSelected &&
+        !isMoneyAccountSelected)
+    ) {
+      setHasUserPickedPaymentSource(true);
+    }
 
     if (!isMoneyAccountSelected) {
       return;
@@ -303,7 +324,12 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         clearError: didSelectMoneyAccount,
       });
     }
-  }, [isMoneyAccountSelected, activeOrder?.state]);
+  }, [
+    isMoneyAccountSelected,
+    activeOrder?.state,
+    isExplicitTokenSelection,
+    hasOpenedPaymentSelector,
+  ]);
   const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
     preview,
     side: Side.BUY,
@@ -366,10 +392,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     [isCurrentTokenInsufficient, hasAlternativeBalance],
   );
 
-  const handleChangePaymentMethod = useCallback(() => {
+  const handlePaymentSelectorOpen = useCallback(() => {
+    setHasOpenedPaymentSelector(true);
     lockPaymentSelectorNavigation();
+  }, [lockPaymentSelectorNavigation]);
+
+  const handleChangePaymentMethod = useCallback(() => {
+    handlePaymentSelectorOpen();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [lockPaymentSelectorNavigation, navigation]);
+  }, [handlePaymentSelectorOpen, navigation]);
 
   const handleAddFunds = useCallback(() => {
     if (isSheetMode) {
@@ -655,7 +686,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             {payWithAnyTokenEnabled && (
               <PredictPayWithRow
                 disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
-                onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+                onPaymentSelectorOpen={handlePaymentSelectorOpen}
               />
             )}
           </Box>
@@ -692,7 +723,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               availableBalance={
                 isAvailableBalanceLoading ? undefined : availableBalanceDisplay
               }
-              onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+              onPaymentSelectorOpen={handlePaymentSelectorOpen}
             />
           )}
           {/* Always enabled when rendered: in legacy mode the parent only
