@@ -333,6 +333,11 @@ export type PredictControllerSelectPaymentTokenAction = {
   handler: PredictController['selectPaymentToken'];
 };
 
+export type PredictControllerEnterPayWithAnyTokenAction = {
+  type: `PredictController:enterPayWithAnyToken`;
+  handler: PredictController['enterPayWithAnyToken'];
+};
+
 export type PredictControllerClearActiveOrderAction = {
   type: `PredictController:clearActiveOrder`;
   handler: PredictController['clearActiveOrder'];
@@ -473,6 +478,7 @@ export type PredictControllerMethodActions =
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction
   | PredictControllerSelectPaymentTokenAction
+  | PredictControllerEnterPayWithAnyTokenAction
   | PredictControllerClearActiveOrderAction
   | PredictControllerSetSelectedPaymentTokenAction
   | PredictControllerDepositWithConfirmationAction

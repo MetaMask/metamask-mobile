@@ -27,6 +27,7 @@ import {
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
+import { useIsMoneyAccountPaymentOverride } from '../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import Logger from '../../../../../../util/Logger';
 
@@ -77,7 +78,9 @@ export const usePredictBuyActions = ({
   const { activeOrder, clearActiveOrderTransactionId } =
     usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
+  const { resetSelectedPaymentToken, selectedPaymentToken } =
+    usePredictPaymentToken();
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -293,12 +296,16 @@ export const usePredictBuyActions = ({
       };
     }
 
+    const paymentMethod = isMoneyAccountSelected
+      ? PredictEventValues.PAYMENT_METHOD.MONEY_ACCOUNT
+      : Boolean(selectedPaymentToken) ||
+          currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+        ? PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN
+        : PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE;
+
     const attempt = PredictController.startPredictBuyAttempt({
       amountUsd,
-      paymentMethod:
-        currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
-          ? PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN
-          : PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE,
+      paymentMethod,
       analyticsProperties,
       sharePrice: preview.sharePrice,
       orderType: preview.orderType,
@@ -350,6 +357,8 @@ export const usePredictBuyActions = ({
     stopConfirming,
     PredictController,
     transactionActiveAbTests,
+    isMoneyAccountSelected,
+    selectedPaymentToken,
   ]);
 
   useEffect(() => {

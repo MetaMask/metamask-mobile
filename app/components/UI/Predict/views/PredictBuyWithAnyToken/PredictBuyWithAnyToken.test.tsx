@@ -19,12 +19,13 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetry = jest.fn();
+const mockEnterPayWithAnyToken = jest.fn();
 const mockCancelRetryablePredictBuyAttempt = jest.fn();
 let mockRetryableAttempt:
   | {
       attemptId: string;
       amountUsd: number;
-      paymentMethod: 'pay_with_any_token' | 'predict_balance';
+      paymentMethod: 'pay_with_any_token' | 'predict_balance' | 'money_account';
     }
   | undefined;
 
@@ -34,6 +35,8 @@ jest.mock('../../../../../core/Engine', () => ({
       getRetryablePredictBuyAttempt: () => mockRetryableAttempt,
       cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
         mockCancelRetryablePredictBuyAttempt(...args),
+      enterPayWithAnyToken: (...args: unknown[]) =>
+        mockEnterPayWithAnyToken(...args),
       trackPredictOrderEvent: jest.fn(),
     },
   },
@@ -101,11 +104,38 @@ jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
 }));
 
+let mockActiveOrder: { state: string; error?: string } | null = null;
+
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     isPlacingOrder: mockIsPlacingOrder,
-    activeOrder: null,
+    activeOrder: mockActiveOrder,
   }),
+}));
+
+let mockPredictBalance: number | undefined = 10;
+let mockIsPredictBalanceLoading = false;
+
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => ({
+    data: mockPredictBalance,
+    isLoading: mockIsPredictBalanceLoading,
+  }),
+}));
+
+let mockIsMoneyAccountSelected = false;
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
+
+const mockUseAddToken = jest.fn();
+
+jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
+  useAddToken: (...args: unknown[]) => mockUseAddToken(...args),
 }));
 
 const mockDeposit = jest.fn();
@@ -176,10 +206,13 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+const mockUseMoneyAccountDepositAndOrder = jest.fn();
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder',
   () => ({
-    useMoneyAccountDepositAndOrder: jest.fn(),
+    useMoneyAccountDepositAndOrder: (...args: unknown[]) =>
+      mockUseMoneyAccountDepositAndOrder(...args),
   }),
 );
 
@@ -518,6 +551,10 @@ describe('PredictBuyWithAnyToken', () => {
     mockCurrentValue = 20;
     mockIsOrderNotFilled = false;
     mockRetryableAttempt = undefined;
+    mockActiveOrder = null;
+    mockPredictBalance = 10;
+    mockIsPredictBalanceLoading = false;
+    mockIsMoneyAccountSelected = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -1164,6 +1201,147 @@ describe('PredictBuyWithAnyToken', () => {
           ),
         }),
       );
+    });
+  });
+
+  describe('Money Account integration and post-failure keypad editing', () => {
+    const sheetProps = {
+      mode: 'sheet' as const,
+      market: { id: 'market-1' },
+      outcome: { id: 'outcome-1' },
+      outcomeToken: { id: 'token-1', title: 'Yes', price: 0.62 },
+      entryPoint: 'market_details',
+      onClose: jest.fn(),
+    } as unknown as PredictBuyPreviewProps;
+
+    it('registers POLYGON_PUSD via useAddToken so required-token resolution succeeds without an existing pUSD balance', () => {
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseAddToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          decimals: 6,
+          symbol: 'pUSD',
+        }),
+      );
+    });
+
+    it('disables automatic Money Account selection when Predict balance covers the order or is still loading', () => {
+      mockCurrentValue = 5;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+
+      mockPredictBalance = 15;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: false,
+      });
+
+      mockPredictBalance = 0;
+      mockIsPredictBalanceLoading = true;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+    });
+
+    it('calls enterPayWithAnyToken when Money Account becomes selected and when activeOrder reaches PREVIEW while selected', () => {
+      mockIsMoneyAccountSelected = false;
+      mockActiveOrder = { state: 'preview' };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+
+      mockIsMoneyAccountSelected = true;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: true,
+      });
+
+      mockEnterPayWithAnyToken.mockClear();
+      mockActiveOrder = { state: 'pay_with_any_token' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+    });
+
+    it('closes the keypad once when an error banner appears in sheet mode, but allows re-opening the keypad while the banner is visible', () => {
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: true,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      mockBuyErrorBanner = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockSetIsKeypadOpen).not.toHaveBeenCalledWith(false);
+
+      // Banner appears while keypad is open -> closes keypad once.
+      mockBuyErrorBanner = {
+        variant: 'order_failed',
+        title: 'Order failed',
+        description: 'Failed to place order',
+      };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockSetIsKeypadOpen).toHaveBeenCalledWith(false);
+      mockSetIsKeypadOpen.mockClear();
+
+      // Keypad closed after banner appeared.
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: false,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      // User taps amount display to re-open keypad while banner is still visible.
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: true,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockSetIsKeypadOpen).not.toHaveBeenCalledWith(false);
     });
   });
 });
