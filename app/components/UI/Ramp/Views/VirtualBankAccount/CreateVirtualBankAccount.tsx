@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +27,7 @@ import {
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
+import type { KycDisclaimer } from '@metamask/kyc-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
@@ -91,12 +98,36 @@ const FeatureRow = ({
   />
 );
 
+/**
+ * Partner content for a vendor terms screen that is not VBA's own. Off by
+ * default: without it the screen reads, fetches and submits exactly as it
+ * always has. A partner flow supplies its copy, its documents, its legal
+ * sentence and its own acceptance action, and the VBA feature list and
+ * MoonPay branding stay hidden.
+ */
+export interface CreateVirtualBankAccountPartnerContent {
+  /** TitleStandard copy. */
+  title: string;
+  description: string;
+  /** The vendor documents the screen shows and the CTA submits. */
+  disclaimers: KycDisclaimer[];
+  /** Records the acceptance; `true` advances. */
+  onAgree: () => Promise<boolean> | boolean;
+  /** The legal sentence, replacing VBA's MoonPay line. */
+  agreement: ReactNode;
+  /** The CTA label; VBA's own label when omitted. */
+  ctaLabel?: string;
+}
+
 interface CreateVirtualBankAccountProps {
   onSuccess: () => void | Promise<void>;
+  /** Partner content; omitted keeps VBA's own screen. */
+  partnerContent?: CreateVirtualBankAccountPartnerContent;
 }
 
 const CreateVirtualBankAccount = ({
   onSuccess,
+  partnerContent,
 }: CreateVirtualBankAccountProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
@@ -111,36 +142,45 @@ const CreateVirtualBankAccount = ({
     error: disclaimersError,
     acceptDisclaimers,
     retry,
-  } = useKycDisclaimers();
+  } = useKycDisclaimers({ isEnabled: !partnerContent });
+  const partnerDisclaimers = partnerContent?.disclaimers;
+  const shownDisclaimers = partnerDisclaimers ?? disclaimers;
+  const shownIsLoading = partnerContent ? false : isLoading;
+  const shownIsAccepting = partnerContent ? false : isAccepting;
+  const shownDisclaimersError = partnerContent ? null : disclaimersError;
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTitle } = useVbaArrivalTime();
 
   let vendorTermsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
-  if (disclaimersError) {
+  if (shownDisclaimersError) {
     vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
-  } else if (disclaimers?.length) {
+  } else if (shownDisclaimers?.length) {
     vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
   }
 
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId: VBA_SCREEN_ID.VENDOR_TERMS,
-    contentReady: !isLoading,
+    contentReady: !shownIsLoading,
     contentState: vendorTermsContentState,
   });
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading &&
-    !isAccepting &&
+    !shownIsLoading &&
+    !shownIsAccepting &&
     !isAdvancing &&
-    !disclaimersError &&
-    Boolean(disclaimers?.length);
+    !shownDisclaimersError &&
+    Boolean(shownDisclaimers?.length);
 
+  // A partner flow's walkthrough is not VBA funnel data, so it stays quiet.
   useEffect(() => {
+    if (partnerContent) {
+      return;
+    }
     trackVendorTerms('viewed');
-  }, []);
+  }, [partnerContent]);
 
   // Warm both idOS JWKS caches once the disclaimers request settles, so
   // session creation finds the enclave and relay signing keys already cached.
@@ -173,8 +213,13 @@ const CreateVirtualBankAccount = ({
   // initial network burst limited to the disclaimers fetch. A failure here
   // does not block onboarding: `startSession` creates the secret if it is
   // still missing. Guarded so a disclaimers retry cannot re-fire this call.
+  // A partner flow's own acceptance handles its session, so this stays VBA's.
   useEffect(() => {
-    if (isLoading || hasEnsuredLocalUserSecretRef.current) {
+    if (
+      partnerContent ||
+      shownIsLoading ||
+      hasEnsuredLocalUserSecretRef.current
+    ) {
       return;
     }
     hasEnsuredLocalUserSecretRef.current = true;
@@ -189,16 +234,19 @@ const CreateVirtualBankAccount = ({
         });
       },
     );
-  }, [isLoading]);
+  }, [partnerContent, shownIsLoading]);
 
   // Only the load and empty-catalog failures leave the screen without usable
   // terms. A save failure keeps them on screen and is reported from the
   // handler as terms_submission_failed.
   useEffect(() => {
-    if (disclaimersError && !disclaimers?.length) {
+    if (partnerContent) {
+      return;
+    }
+    if (shownDisclaimersError && !shownDisclaimers?.length) {
       trackVendorTerms('failed', 'terms_unavailable');
     }
-  }, [disclaimersError, disclaimers]);
+  }, [partnerContent, shownDisclaimersError, shownDisclaimers]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -213,11 +261,16 @@ const CreateVirtualBankAccount = ({
     try {
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
-      if (await acceptDisclaimers()) {
-        trackVendorTerms('accepted');
+      const accepted = partnerContent
+        ? await partnerContent.onAgree()
+        : await acceptDisclaimers();
+      if (accepted) {
+        if (!partnerContent) {
+          trackVendorTerms('accepted');
+        }
         await onSuccess();
         didAdvance = true;
-      } else {
+      } else if (!partnerContent) {
         // The terms loaded but the accepted ids could not be stored.
         trackVendorTerms('failed', 'terms_submission_failed');
       }
@@ -235,7 +288,7 @@ const CreateVirtualBankAccount = ({
         setIsAdvancing(false);
       }
     }
-  }, [acceptDisclaimers, isAdvancing, onSuccess]);
+  }, [acceptDisclaimers, isAdvancing, onSuccess, partnerContent]);
 
   return (
     <SafeAreaView
@@ -256,62 +309,72 @@ const CreateVirtualBankAccount = ({
         testID={CreateVirtualBankAccountSelectorsIDs.CONTAINER}
       >
         <TitleStandard
-          title={strings(
-            'virtual_bank_account.create_virtual_bank_account.title',
-          )}
-          bottomLabel={strings(
-            'virtual_bank_account.create_virtual_bank_account.description',
-          )}
+          title={
+            partnerContent
+              ? partnerContent.title
+              : strings(
+                  'virtual_bank_account.create_virtual_bank_account.title',
+                )
+          }
+          bottomLabel={
+            partnerContent
+              ? partnerContent.description
+              : strings(
+                  'virtual_bank_account.create_virtual_bank_account.description',
+                )
+          }
           twClassName="px-4 pb-4"
         />
 
-        <Box>
-          <FeatureRow
-            icon={IconName.MoneyBag}
-            title={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
-            )}
-            description={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
-            )}
-          />
-          <FeatureRow
-            icon={IconName.Clock}
-            title={arrivalTitle}
-            description={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
-            )}
-          />
-          <FeatureRow
-            icon={IconName.Refresh}
-            title={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
-            )}
-            description={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
-            )}
-          />
-          <FeatureRow
-            icon={IconName.TrendUp}
-            title={strings(
-              'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
-            )}
-            description={
-              isPositiveNumberOrZero(apyPercent)
-                ? strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
-                    { percentage: apyPercent },
-                  )
-                : strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
-                  )
-            }
-          />
-        </Box>
+        {partnerContent ? null : (
+          <Box>
+            <FeatureRow
+              icon={IconName.MoneyBag}
+              title={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
+              )}
+              description={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
+              )}
+            />
+            <FeatureRow
+              icon={IconName.Clock}
+              title={arrivalTitle}
+              description={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
+              )}
+            />
+            <FeatureRow
+              icon={IconName.Refresh}
+              title={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
+              )}
+              description={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
+              )}
+            />
+            <FeatureRow
+              icon={IconName.TrendUp}
+              title={strings(
+                'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
+              )}
+              description={
+                isPositiveNumberOrZero(apyPercent)
+                  ? strings(
+                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
+                      { percentage: apyPercent },
+                    )
+                  : strings(
+                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
+                    )
+              }
+            />
+          </Box>
+        )}
       </ScrollView>
 
       <Box twClassName="gap-4 px-4 pt-4 pb-2">
-        {disclaimersError ? (
+        {shownDisclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}
@@ -331,13 +394,15 @@ const CreateVirtualBankAccount = ({
               )}
             </TextButton>
           </Box>
+        ) : partnerContent ? (
+          partnerContent.agreement
         ) : (
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="text-center"
             testID={
-              isLoading
+              shownIsLoading
                 ? CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING
                 : undefined
             }
@@ -345,7 +410,7 @@ const CreateVirtualBankAccount = ({
             {strings(
               'virtual_bank_account.create_virtual_bank_account.agreement_prefix',
             )}
-            {disclaimers?.length ? (
+            {shownDisclaimers?.length ? (
               <>
                 {/* TRAM-4169: this URL ships with the app instead of coming from
                     the vendor catalog. It renders with the catalog documents and
@@ -362,7 +427,7 @@ const CreateVirtualBankAccount = ({
                     'virtual_bank_account.create_virtual_bank_account.moonpay_privacy_policy_link',
                   )}
                 </TextButton>
-                {disclaimers.map((disclaimer) => (
+                {shownDisclaimers.map((disclaimer) => (
                   <React.Fragment key={disclaimer.id}>
                     {strings(
                       'virtual_bank_account.create_virtual_bank_account.agreement_separator',
@@ -375,7 +440,7 @@ const CreateVirtualBankAccount = ({
                       {/* A single document carries the MoonPay label
                           (TRAM-4169); with several, the vendor labels keep each
                           link distinguishable. */}
-                      {disclaimers.length === 1
+                      {shownDisclaimers.length === 1
                         ? strings(
                             'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
                           )
@@ -395,7 +460,7 @@ const CreateVirtualBankAccount = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isAccepting || isAdvancing}
+          isLoading={shownIsAccepting || isAdvancing}
           // The loading state toggles whether Fabric flattens this row. If that
           // lands in the same commit that removes the screen, Android crashes
           // re-parenting the label ("The specified child already has a parent").
@@ -406,25 +471,34 @@ const CreateVirtualBankAccount = ({
             CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON
           }
         >
-          {strings('virtual_bank_account.create_virtual_bank_account.button')}
+          {partnerContent
+            ? (partnerContent.ctaLabel ??
+              strings(
+                'virtual_bank_account.create_virtual_bank_account.button',
+              ))
+            : strings(
+                'virtual_bank_account.create_virtual_bank_account.button',
+              )}
         </Button>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="h-10 justify-center gap-1 opacity-40"
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+        {partnerContent ? null : (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="h-10 justify-center gap-1 opacity-40"
           >
-            {strings(
-              'virtual_bank_account.create_virtual_bank_account.powered_by',
-            )}
-          </Text>
-          <MoonPayPoweredByLogo name="moonpay-powered-by-logo" />
-        </Box>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'virtual_bank_account.create_virtual_bank_account.powered_by',
+              )}
+            </Text>
+            <MoonPayPoweredByLogo name="moonpay-powered-by-logo" />
+          </Box>
+        )}
       </Box>
     </SafeAreaView>
   );

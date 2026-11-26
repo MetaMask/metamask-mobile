@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { Keyboard, Pressable, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -15,9 +16,11 @@ import {
   ButtonSize,
   ButtonVariant,
   HelpText,
+  HelpTextSeverity,
   IconName,
   Spinner,
   Text,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -38,6 +41,43 @@ import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { StepError, type StepProps } from './StepLayout';
 
 const CELL_COUNT = 6;
+
+/**
+ * The partner treatment of the shared code-entry view. Off by default:
+ * MetaMask's own MFA never passes it, so the screen reads as it always has.
+ * A partner flow passes a lockup to show above the title and, when its email
+ * can be changed from here, the link that does that.
+ */
+export interface CodeStepPartnerProps {
+  /** Shown above the title: the partner co-brand. */
+  lockup?: ReactNode;
+  /** Shown under the description: the way back to choosing the email. */
+  useDifferentEmail?: {
+    label: string;
+    onPress: () => void;
+    /**
+     * Renders the control as a full-width secondary button under the footer's
+     * resend button, instead of the link above the boxes. Email codes only:
+     * the resend button lives on those steps.
+     */
+    asButton?: boolean;
+  };
+  /**
+   * Replaces the step's title, for a partner whose code is theirs. Omitted
+   * keeps the MFA copy.
+   */
+  title?: string;
+  /**
+   * Replaces the step's description, for a partner code that did not come
+   * from an email. Omitted keeps the MFA copy.
+   */
+  description?: string;
+  /**
+   * Replaces the step's error with the partner's own copy. Omitted keeps the
+   * MFA error copy.
+   */
+  errorMessage?: string;
+}
 /**
  * Keeps the digits of typed or pasted text, up to a full code.
  *
@@ -64,7 +104,12 @@ const useSecondsUntil = (at?: number) => {
   return at === undefined ? 0 : Math.max(0, Math.ceil((at - now) / 1000));
 };
 
-const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
+const CodeStep = ({
+  step,
+  state,
+  onAction,
+  partner,
+}: StepProps<'otp'> & { partner?: CodeStepPartnerProps }) => {
   const tw = useTailwind();
   const [code, setCode] = useState('');
   const inputRef = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
@@ -188,7 +233,24 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   };
   const canResend = !isCoolingDown && !busy;
 
+  // The partner's way back to choosing the email, as the designs ask for it:
+  // a secondary button stacked under the resend button in the footer.
+  const differentEmailButton = partner?.useDifferentEmail?.asButton ? (
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      onPress={partner.useDifferentEmail.onPress}
+      testID={MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK}
+    >
+      {partner.useDifferentEmail.label}
+    </Button>
+  ) : null;
+
   const getDescription = () => {
+    if (partner?.description) {
+      return partner.description;
+    }
     if (isTotp) {
       return strings('mfa.otp.description_totp');
     }
@@ -210,8 +272,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   return (
     <StepLayout
       onAction={onAction}
-      title={strings('mfa.otp.title')}
+      title={partner?.title ?? strings('mfa.otp.title')}
       description={getDescription()}
+      top={partner?.lockup}
       footer={
         isTotp && !codeSent && !busy ? (
           // The verification failed to start: start it again, after any
@@ -233,29 +296,41 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
               : strings('mfa.otp.retry')}
           </Button>
         ) : isTotp ? undefined : (
-          <Button
-            variant={
-              canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
-            }
-            size={ButtonSize.Lg}
-            isFullWidth
-            // A complete code submits itself; the line under the boxes shows
-            // it being checked.
-            isDisabled={!canResend}
-            onPress={() => {
-              onAction({ type: 'resend' });
-            }}
-            testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
-          >
-            {needsNewCode && !isCoolingDown
-              ? strings('mfa.otp.get_new_code')
-              : getResendLabel()}
-          </Button>
+          <>
+            <Button
+              variant={
+                canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              size={ButtonSize.Lg}
+              isFullWidth
+              // A complete code submits itself; the line under the boxes shows
+              // it being checked.
+              isDisabled={!canResend}
+              onPress={() => {
+                onAction({ type: 'resend' });
+              }}
+              testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
+            >
+              {needsNewCode && !isCoolingDown
+                ? strings('mfa.otp.get_new_code')
+                : getResendLabel()}
+            </Button>
+            {differentEmailButton}
+          </>
         )
       }
     >
       {/* Keep this container and the code field at the screen's available
           width so entering digits cannot change the row's measurements. */}
+      {partner?.useDifferentEmail && !partner.useDifferentEmail.asButton && (
+        <TextButton
+          variant={TextVariant.BodyMd}
+          onPress={partner.useDifferentEmail.onPress}
+          testID={MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK}
+        >
+          {partner.useDifferentEmail.label}
+        </TextButton>
+      )}
       <Box twClassName="w-full gap-2">
         <Box twClassName="w-full">
           <CodeField
@@ -312,7 +387,15 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             </Text>
           </Box>
         ) : null}
-        {showErrorState && error ? (
+        {showErrorState && error && partner?.errorMessage ? (
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            testID={MfaFlowSelectorsIDs.ERROR}
+          >
+            {partner.errorMessage}
+          </HelpText>
+        ) : showErrorState && error ? (
           <StepError code={error} method={step.method} onAction={onAction} />
         ) : null}
         {codeResent && !error ? (

@@ -255,6 +255,14 @@ const Routes = {
     NETWORKS_MANAGEMENT: 'NetworksManagement',
     NETWORK_DETAILS: 'NetworkDetails',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    /**
+     * Dev-only Kalshi onboarding prototype. The fake backend, the
+     * scaled-back Predictions start screen and the flow live in the KYC
+     * feature; these routes only mount them.
+     */
+    KALSHI_PROTOTYPE_HOME: 'KalshiPrototypeHome',
+    KALSHI_PROTOTYPE_SETTINGS: 'KalshiPrototypeSettings',
+    KALSHI_PROTOTYPE_ONBOARDING: 'KalshiPrototypeOnboarding',
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {

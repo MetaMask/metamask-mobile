@@ -1234,7 +1234,7 @@
       "step_take_selfie": "Take a selfie",
       "step_confirm_details": "Confirm your details",
       "step_answer_questions": "Answer a few questions",
-      "partner_title": "We partner with idOS to verify your identity",
+      "partner_title": "We partner with idOS for verification",
       "benefit_reuse_title": "Verify once, reuse later",
       "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verification, so you can sign up with other partners faster.",
       "benefit_control_title": "You control your data",
@@ -1242,6 +1242,7 @@
       "benefit_delete_title": "Delete anytime",
       "benefit_delete_description": "Delete your verification anytime in Settings.",
       "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_kalshi": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS and Kalshi.",
       "agreement_terms_of_use": "Terms of Use",
       "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Couldn't load the terms and conditions.",
@@ -1281,10 +1282,11 @@
       "more_info_help": "Need help verifying?",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening identity verification. Please try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "cancel": "Cancel"
     },
     "kyc_taking_longer": {
-      "title": "Verifying your identity",
+      "title": "Verifying identity",
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
       "button": "Come back later",
       "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",

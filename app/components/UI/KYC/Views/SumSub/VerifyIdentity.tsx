@@ -19,6 +19,7 @@ import {
   IconSize,
   ListItem,
   ListItemVariant,
+  SectionDivider,
   Text,
   TextButton,
   TextColor,
@@ -50,8 +51,11 @@ import {
 } from '../../constants';
 import SentenceWithLinks from '../../components/SentenceWithLinks';
 
-/** Pages the identity-verification terms are split across ("1 of 2"). */
-const TOTAL_PAGES = 2;
+/**
+ * Pages the identity-verification terms are split across ("1 of 2"). A flow
+ * that adds its own terms page after them passes a larger total.
+ */
+const DEFAULT_TOTAL_PAGES = 2;
 
 const IDENTITY_VERIFICATION_LEARN_MORE_URL =
   'https://support.metamask.io/trade/identity-verification';
@@ -105,6 +109,14 @@ interface KycVerifyIdentityProps {
   onContinue: (disclaimers: KycCatalogDisclaimerLink[]) => void;
   /** Leaves identity verification. The caller chooses the destination. */
   onExit: () => void;
+  /** The step indicator's total ("1 of 2"); defaults to the two terms pages. */
+  totalSteps?: number;
+  /**
+   * Who else MetaMask passes the user's details to, besides idOS. Omitted:
+   * idOS only (VBA). 'kalshi' names Kalshi too, since each new recipient
+   * needs its own consent.
+   */
+  dataRecipient?: 'kalshi';
 }
 
 /**
@@ -116,7 +128,12 @@ interface KycVerifyIdentityProps {
  * loading state of its own. Continue stays disabled until it lands — the user
  * cannot be sent to a terms page with no terms on it.
  */
-const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
+const KycVerifyIdentity = ({
+  onContinue,
+  onExit,
+  totalSteps = DEFAULT_TOTAL_PAGES,
+  dataRecipient,
+}: KycVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
@@ -177,14 +194,14 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
         'wallet.home_onboarding_steps.progress_a11y',
         {
           current: 1,
-          total: TOTAL_PAGES,
+          total: totalSteps,
         },
       )}
       testID={KycVerifyIdentitySelectorsIDs.STEP_INDICATOR}
     >
       {strings('kyc.verify_identity.step_indicator', {
         current: 1,
-        total: TOTAL_PAGES,
+        total: totalSteps,
       })}
     </Text>
   );
@@ -199,6 +216,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={handleBack}
+          title={stepIndicator}
           backButtonProps={{
             testID: KycVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
@@ -208,7 +226,6 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
           contentContainerStyle={tw.style('flex-grow pb-4')}
           testID={KycVerifyIdentitySelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.verify_identity.title')}
             bottomLabel={
@@ -233,7 +250,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
                 </TextButton>
               </Text>
             }
-            twClassName="px-4 pb-4"
+            twClassName="px-4 pt-2 pb-4"
           />
           <Box>
             {VERIFICATION_STEPS.map((step) => (
@@ -253,10 +270,22 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
             ))}
           </Box>
 
+          {/* Inset to the content margin. 8px margin each side plus the last
+              row's 12px bottom padding and the heading's 12px top padding:
+              20px above and below. */}
+          <Box twClassName="px-4">
+            <SectionDivider
+              marginVertical={2}
+              testID={KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER}
+            />
+          </Box>
+
+          {/* 6px below plus the first row's 8px top padding: a 14px gap, tighter
+              than the 20px above so the heading reads with its rows. */}
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-1 pt-6"
+            twClassName="px-4 pb-1.5 pt-3"
           >
             {strings('kyc.verify_identity.partner_title')}
           </Text>
@@ -310,7 +339,11 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
             </Box>
           ) : null}
           <SentenceWithLinks
-            i18nKey="kyc.verify_identity.agreement"
+            i18nKey={
+              dataRecipient === 'kalshi'
+                ? 'kyc.verify_identity.agreement_kalshi'
+                : 'kyc.verify_identity.agreement'
+            }
             twClassName="text-center"
             testID={KycVerifyIdentitySelectorsIDs.AGREEMENT}
             links={{

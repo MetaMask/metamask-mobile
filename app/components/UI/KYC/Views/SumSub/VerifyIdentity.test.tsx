@@ -80,7 +80,7 @@ describe('KycVerifyIdentity', () => {
     expect(getByText('Confirm your details')).toBeOnTheScreen();
     expect(getByText('Answer a few questions')).toBeOnTheScreen();
     expect(
-      getByText('We partner with idOS to verify your identity'),
+      getByText('We partner with idOS for verification'),
     ).toBeOnTheScreen();
     expect(getByText('Verify once, reuse later')).toBeOnTheScreen();
     expect(
@@ -115,6 +115,28 @@ describe('KycVerifyIdentity', () => {
     const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 1 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 1 of 2');
+  });
+
+  it('counts against the total a longer flow passes', () => {
+    const { getByTestId } = renderWithProvider(
+      <KycVerifyIdentity
+        onContinue={mockOnContinue}
+        onExit={mockOnExit}
+        totalSteps={3}
+      />,
+    );
+
+    const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
+    expect(indicator).toHaveTextContent('Step 1 of 3');
+    expect(indicator.props.accessibilityLabel).toBe('Step 1 of 3');
+  });
+
+  it('separates the steps from the idOS partner section', () => {
+    const { getByTestId } = renderScreen();
+
+    expect(
+      getByTestId(KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER),
+    ).toBeOnTheScreen();
   });
 
   it('renders the agreement sentence with both MetaMask links inline', () => {

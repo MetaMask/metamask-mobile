@@ -41,9 +41,20 @@ const FETCH_TIMEOUT_MS = 10_000;
  *
  * @returns Disclaimer data, loading/acceptance state, and actions.
  */
-export const useKycDisclaimers = (): UseKycDisclaimersResult => {
+interface UseKycDisclaimersOptions {
+  /**
+   * Whether the hook loads anything. `false` idles the hook for a caller
+   * that supplies its own documents (a partner flow's terms screen); the
+   * screen then reads idle state and never fetches. Defaults to `true`.
+   */
+  isEnabled?: boolean;
+}
+
+export const useKycDisclaimers = ({
+  isEnabled = true,
+}: UseKycDisclaimersOptions = {}): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isEnabled);
   const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -79,6 +90,9 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
   }, [disclaimers, isAccepting]);
 
   useEffect(() => {
+    if (!isEnabled) {
+      return undefined;
+    }
     let isMounted = true;
     setIsLoading(true);
     setError(null);
@@ -179,7 +193,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
       clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [retryCount]);
+  }, [isEnabled, retryCount]);
 
   return {
     disclaimers,

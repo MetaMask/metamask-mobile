@@ -1,11 +1,21 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import KycSumSub, { KycSumSubSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
 import I18n from '../../../../../../locales/i18n';
 import { toSumSubLocale } from '../../utils/toSumSubLocale';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
+import { Alert, type AlertButton } from 'react-native';
+
+const alertSpy = () => Alert.alert as jest.Mock;
+const lastAlertButtons = () =>
+  (alertSpy().mock.calls[alertSpy().mock.calls.length - 1][2] ??
+    []) as AlertButton[];
+const pressAlertButton = (text: string) =>
+  lastAlertButtons()
+    .find((button) => button.text === text)
+    ?.onPress?.();
 const mockOnSubmitted = jest.fn();
 const mockOnExit = jest.fn();
 const mockGoBack = jest.fn();
@@ -69,6 +79,7 @@ const catalog = {
 describe('KycSumSub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     mockCanGoBack.mockReturnValue(true);
     mockParentCanGoBack.mockReturnValue(false);
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
@@ -141,8 +152,14 @@ describe('KycSumSub', () => {
     );
 
     await waitFor(() => {
-      expect(getByTestId(KycSumSubSelectorsIDs.ERROR)).toBeOnTheScreen();
+      expect(alertSpy()).toHaveBeenCalledWith(
+        "Couldn't start verification",
+        'Something went wrong opening identity verification. Please try again.',
+        expect.any(Array),
+        { cancelable: false },
+      );
     });
+    expect(getByTestId(KycSumSubSelectorsIDs.LOADER)).toBeOnTheScreen();
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
@@ -156,9 +173,33 @@ describe('KycSumSub', () => {
     );
 
     await waitFor(() => {
-      expect(getByTestId(KycSumSubSelectorsIDs.ERROR)).toBeOnTheScreen();
+      expect(alertSpy()).toHaveBeenCalled();
     });
-    expect(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON)).toBeOnTheScreen();
+    expect(lastAlertButtons().map((button) => button.text)).toEqual([
+      'Cancel',
+      'Try again',
+    ]);
+    expect(getByTestId(KycSumSubSelectorsIDs.LOADER)).toBeOnTheScreen();
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('goes back when Cancel is pressed on the launch error dialog', async () => {
+    mockKycController.launchProviderFlow.mockRejectedValue(
+      new Error('sdk down'),
+    );
+
+    renderWithProvider(
+      <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
+    );
+
+    await waitFor(() => {
+      expect(alertSpy()).toHaveBeenCalled();
+    });
+    act(() => {
+      pressAlertButton('Cancel');
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
@@ -223,22 +264,24 @@ describe('KycSumSub', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('re-launches SumSub when the retry button is pressed', async () => {
+  it('re-launches SumSub when Try again is pressed on the launch error dialog', async () => {
     mockKycController.launchProviderFlow.mockRejectedValueOnce(
       new Error('sdk down'),
     );
 
-    const { getByTestId } = renderWithProvider(
+    renderWithProvider(
       <KycSumSub onSubmitted={mockOnSubmitted} onExit={mockOnExit} />,
     );
 
     await waitFor(() => {
-      expect(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON)).toBeOnTheScreen();
+      expect(alertSpy()).toHaveBeenCalled();
     });
 
     const callsBeforeRetry =
       mockKycController.launchProviderFlow.mock.calls.length;
-    fireEvent.press(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON));
+    act(() => {
+      pressAlertButton('Try again');
+    });
 
     await waitFor(() => {
       expect(
