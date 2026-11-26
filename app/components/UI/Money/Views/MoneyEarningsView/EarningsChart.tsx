@@ -115,7 +115,6 @@ const EarningsChart = ({
           height={EARNINGS_CHART_HEIGHT}
           width="100%"
           testID={MoneyEarningsViewTestIds.LOADING}
-          twClassName="mb-6"
         />
       );
     }
