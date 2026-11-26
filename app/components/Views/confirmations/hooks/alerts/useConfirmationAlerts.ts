@@ -15,6 +15,7 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
+import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -51,6 +52,7 @@ function useTransactionAlerts(): Alert[] {
   // without ever committing the over-cap amount.
   const depositLimitAlert = useTransactionDepositLimitAlert();
   const lighterDepositMinimumAlert = useLighterDepositMinimumAlert();
+  const lighterWithdrawMinimumAlert = useLighterWithdrawMinimumAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -77,6 +79,7 @@ function useTransactionAlerts(): Alert[] {
       ...fiatBuyLimitAlert,
       ...depositLimitAlert,
       ...lighterDepositMinimumAlert,
+      ...lighterWithdrawMinimumAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -101,6 +104,7 @@ function useTransactionAlerts(): Alert[] {
       fiatBuyLimitAlert,
       depositLimitAlert,
       lighterDepositMinimumAlert,
+      lighterWithdrawMinimumAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,

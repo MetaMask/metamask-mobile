@@ -177,7 +177,7 @@ describe('useClearPaymentOverride', () => {
 
   it('keeps the Lighter payment override', () => {
     mockSelectors({
-      paymentOverride: 'perpsLighter' as PaymentOverride,
+      paymentOverride: PaymentOverride.PerpsLighter,
     });
 
     const { result } = renderHook(() => useClearPaymentOverride());

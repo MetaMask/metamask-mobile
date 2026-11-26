@@ -172,8 +172,6 @@ const PositionDetailsSheet = () => {
   });
 
   const { profile } = useMyProfile();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
@@ -288,6 +286,15 @@ const PositionDetailsSheet = () => {
       next();
     }
   }, []);
+
+  // Onboarding pushed from this transparent modal would open inside the sheet,
+  // so the gates close it first and onboarding opens full screen.
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    runNavigation: closeThen,
+  });
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({
+    runNavigation: closeThen,
+  });
 
   const handleOpenAsset = useCallback(() => {
     if (data.isPerp) {
@@ -504,7 +511,13 @@ const PositionDetailsSheet = () => {
   );
 
   const handlePerpsOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    function perpsOrder(direction: PerpDirection, leverage?: number): void {
+      if (
+        !ensureSocialTermsAccepted(() => perpsOrder(direction, leverage)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED, {
         direction:
           direction === 'short'
@@ -513,15 +526,31 @@ const PositionDetailsSheet = () => {
       });
       openPerpsMarketOrder(direction, leverage);
     },
-    [openPerpsMarketOrder, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openPerpsMarketOrder,
+      trackInteraction,
+    ],
   );
 
   const handleSpotTrade = useCallback(
-    (mode: QuickBuyTradeMode) => {
+    function spotTrade(mode: QuickBuyTradeMode): void {
+      if (
+        !ensureSocialTermsAccepted(() => spotTrade(mode)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED);
       openQuickBuy(mode);
     },
-    [openQuickBuy, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openQuickBuy,
+      trackInteraction,
+    ],
   );
 
   const handleCopyTrade = useCallback(
@@ -665,6 +694,7 @@ const PositionDetailsSheet = () => {
             onPressTrader={handleOpenTraderProfile}
             onShare={shareSource ? handleSharePosition : undefined}
             isSharing={isSharing}
+            runNavigation={closeThen}
           />
           {/* Always bounces so content that fits still stretches at both ends. */}
           <ScrollView
