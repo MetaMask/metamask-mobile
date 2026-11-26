@@ -4238,9 +4238,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      expect(
-        screen.queryByText('500 USDC of 1000 USDC left'),
-      ).not.toBeOnTheScreen();
+      expect(screen.queryByText(/of 1000 \S+ left/)).not.toBeOnTheScreen();
     });
 
     it('shows the consumed and total amounts', () => {
