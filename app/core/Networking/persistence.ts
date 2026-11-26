@@ -1,3 +1,5 @@
+// shortcut: hand-rolled persister over StorageWrapper (MMKV); replace with the
+// `persister` query option once query-core ships experimental_createPersister.
 import { hashKey, type QueryKey } from '@tanstack/react-query';
 import { type, number, unknown, is } from '@metamask/superstruct';
 import StorageWrapper from '../../store/storage-wrapper';
