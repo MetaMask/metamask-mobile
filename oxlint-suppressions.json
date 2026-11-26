@@ -3260,9 +3260,6 @@
     }
   },
   "app/components/UI/Card/hooks/useImmersveKycOutcome.tsx": {
-    "typescript/promise-function-async": {
-      "count": 2
-    },
     "typescript/unbound-method": {
       "count": 2
     }
@@ -10336,11 +10333,11 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelectorModal/PaymentMethodSelectorModal.tsx": {
@@ -14169,11 +14166,6 @@
       "count": 13
     }
   },
-  "app/components/UI/Trending/hooks/useSearchRequest/useSearchRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Trending/hooks/useTokenListFilters/useTokenListFilters.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
@@ -14190,9 +14182,6 @@
     }
   },
   "app/components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
     }
@@ -14290,9 +14279,6 @@
     }
   },
   "app/components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -18285,13 +18271,13 @@
   },
   "app/components/Views/Wallet/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 4
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 3

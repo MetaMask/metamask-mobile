@@ -14,6 +14,8 @@ import {
 interface UseTokensFeedOptions {
   /** Search query; results are displayed in the API relevance order. */
   query?: string;
+  /** When false, skip token feed requests while retaining hook stability. */
+  enabled?: boolean;
   performance?: SearchRequestPerformance;
   refresh?: RefreshConfig;
   /**
@@ -49,6 +51,7 @@ export const filterRiskyTokens = (tokens: TrendingAsset[]): TrendingAsset[] =>
 /** Trending tokens feed; same source for the home list, "crypto movers" pills, and search. */
 export const useTokensFeed = ({
   query,
+  enabled = true,
   performance,
   refresh,
   hideRiskyTokens = true,
@@ -67,6 +70,7 @@ export const useTokensFeed = ({
   } = useTrendingSearch({
     searchQuery: query,
     enableDebounce: false,
+    ...(enabled ? {} : { enabled: false }),
     ...(performance ? { performance } : {}),
     sortBy,
     filterLowQuality: true,
