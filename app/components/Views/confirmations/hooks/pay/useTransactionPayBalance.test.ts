@@ -10,12 +10,14 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { useTransactionPayBalance } from './useTransactionPayBalance';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 jest.mock('./usePayTokenAccountBalance');
+jest.mock('../../temp-lighter/useLighterWithdrawableBalance');
 
 const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
 const MONEY_ACCOUNT_KEYRING_ID_MOCK = 'mock-money-keyring-id';
@@ -102,6 +104,43 @@ describe('useTransactionPayBalance', () => {
       balanceRaw: '12500000',
       balanceUsd: 25,
     });
+  });
+
+  it('returns the Lighter balance for a Lighter withdraw', () => {
+    mockTransaction({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.perpsLighterWithdraw }],
+      txParams: { from: '0xabc' },
+    });
+    jest.mocked(useLighterWithdrawableBalance).mockReturnValue('5.570887');
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual({
+      balanceRaw: '5570887',
+      balanceUsd: 5.570887,
+    });
+    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith('0xabc', true);
+  });
+
+  it('returns zero for a Lighter withdraw until the balance loads', () => {
+    mockTransaction({
+      type: TransactionType.perpsLighterWithdraw,
+    });
+    jest.mocked(useLighterWithdrawableBalance).mockReturnValue(undefined);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual({ balanceRaw: '0', balanceUsd: 0 });
+  });
+
+  it('does not enable the Lighter lookup for other flows', () => {
+    runHook();
+
+    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith(
+      undefined,
+      false,
+    );
   });
 
   it('returns zero when the pay token is unset', () => {

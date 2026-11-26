@@ -6,6 +6,11 @@ import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagContro
 import { SOCIAL_TERMS_VERSION } from '../terms/socialTermsAcceptance';
 import { withSocialAppBuild } from './socialAppBuild';
 import {
+  getSocialInteractionMilestones,
+  getSocialScreenViewedMilestones,
+  type SocialMilestoneEmission,
+} from './socialMilestoneEvents';
+import {
   getSocialReactionType,
   SocialEvent,
   type SocialBlockedReason,
@@ -52,29 +57,52 @@ type SocialInteractionOutcome = NonNullable<
 export const useSocialAnalytics = () => {
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { track } = useSocialLeaderboardAnalytics();
+  const trackMilestone = useCallback(
+    (emission: SocialMilestoneEmission) => {
+      if (isSocialV1Enabled) {
+        track(emission.event, withSocialAppBuild(emission.properties));
+      }
+    },
+    [isSocialV1Enabled, track],
+  );
   const trackInteraction = useCallback(
     (properties: SocialUIInteractionProperties) => {
       if (isSocialV1Enabled) {
+        // TODO(TSA-1860): remove this legacy `Social UI Interaction` emit once
+        // the milestone events below are the only ones dashboards read.
         track(
           MetaMetricsEvents.SOCIAL_UI_INTERACTION,
           withSocialAppBuild(properties),
         );
+        getSocialInteractionMilestones(properties).forEach((emission) =>
+          trackMilestone(emission),
+        );
       }
     },
-    [isSocialV1Enabled, track],
+    [isSocialV1Enabled, track, trackMilestone],
   );
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
+        // TODO(TSA-1860): remove this legacy `Social Screen Viewed` emit once
+        // the milestone events below are the only ones dashboards read.
         track(
           MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
           withSocialAppBuild(properties),
         );
+        getSocialScreenViewedMilestones(properties).forEach((emission) =>
+          trackMilestone(emission),
+        );
       }
     },
-    [isSocialV1Enabled, track],
+    [isSocialV1Enabled, track, trackMilestone],
   );
-  return { isSocialV1Enabled, trackInteraction, trackScreenViewed };
+  return {
+    isSocialV1Enabled,
+    trackInteraction,
+    trackScreenViewed,
+    trackMilestone,
+  };
 };
 type Tracker = ReturnType<typeof useSocialAnalytics>['trackInteraction'];
 const useBoundSocialInteraction = (

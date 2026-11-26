@@ -55,6 +55,17 @@ export async function getTransactionPayAmountCalls(
     return getLighterUsdcDepositAmountCalls(transactionMeta, amountHuman);
   }
 
+  // A Lighter withdraw is quoted from its required asset, which holds the
+  // amount. The nested transfer is only a placeholder, so there are no calls to
+  // re-encode and only the required asset amount is committed by the caller.
+  // Without this, the generic single-call update rewrites the transfer only and
+  // the required asset stays at the amount it had when Lighter was selected.
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.perpsLighterWithdraw])
+  ) {
+    return [];
+  }
+
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
