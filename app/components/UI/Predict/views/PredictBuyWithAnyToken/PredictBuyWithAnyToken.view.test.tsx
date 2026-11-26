@@ -81,7 +81,7 @@ const MOCK_OUTCOME_TOKEN: PredictOutcomeToken = {
   id: 'token-yes-1',
   title: 'Yes',
   price: 0.45,
-} as unknown as PredictOutcomeToken;
+};
 
 const buildOrderPreview = (amount: number): OrderPreview =>
   ({
@@ -694,7 +694,7 @@ function renderPredictBuyScenario({
     [
       {
         name: Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
-        Component: PayWithBottomSheetScreen as unknown as React.ComponentType,
+        Component: PayWithBottomSheetScreen,
       },
     ],
     { state },

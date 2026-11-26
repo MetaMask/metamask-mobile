@@ -16,6 +16,7 @@ import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/feature
 import {
   PredictDismissalMethod,
   PredictEventValues,
+  type PredictPaymentMethodValue,
 } from '../../../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
@@ -52,6 +53,27 @@ function rejectPendingTransactions() {
     }
   }
 }
+function getBuyPaymentMethod({
+  isMoneyAccountSelected,
+  hasSelectedPaymentToken,
+  currentState,
+}: {
+  isMoneyAccountSelected: boolean;
+  hasSelectedPaymentToken: boolean;
+  currentState: ActiveOrderState | undefined;
+}): PredictPaymentMethodValue {
+  if (isMoneyAccountSelected) {
+    return PredictEventValues.PAYMENT_METHOD.MONEY_ACCOUNT;
+  }
+  if (
+    hasSelectedPaymentToken ||
+    currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+  ) {
+    return PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN;
+  }
+  return PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE;
+}
+
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   amountUsd: number;
@@ -169,7 +191,7 @@ export const usePredictBuyActions = ({
       return () => {
         resetSelectedPaymentToken();
         PredictController.cancelRetryablePredictBuyAttempt();
-        onRejectRef.current(undefined, true);
+        onRejectRef.current(undefined, true)?.catch(() => undefined);
         clearActiveOrderTransactionIdRef.current();
       };
     }
@@ -198,7 +220,7 @@ export const usePredictBuyActions = ({
         });
       }
       resetSelectedPaymentToken();
-      onRejectRef.current(undefined, true);
+      onRejectRef.current(undefined, true)?.catch(() => undefined);
       clearActiveOrderTransactionIdRef.current();
     });
   }, [
@@ -296,12 +318,11 @@ export const usePredictBuyActions = ({
       };
     }
 
-    const paymentMethod = isMoneyAccountSelected
-      ? PredictEventValues.PAYMENT_METHOD.MONEY_ACCOUNT
-      : Boolean(selectedPaymentToken) ||
-          currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
-        ? PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN
-        : PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE;
+    const paymentMethod = getBuyPaymentMethod({
+      isMoneyAccountSelected,
+      hasSelectedPaymentToken: Boolean(selectedPaymentToken),
+      currentState,
+    });
 
     const attempt = PredictController.startPredictBuyAttempt({
       amountUsd,
