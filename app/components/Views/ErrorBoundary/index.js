@@ -533,7 +533,7 @@ class ErrorBoundary extends Component {
   openTicket = () => {
     const navigation = this.props.navigation;
     if (!navigation) {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+      Linking.openURL(METAMASK_SUPPORT_URL).catch(() => undefined);
       return;
     }
 
