@@ -89,12 +89,15 @@ const MoneyVbaHomeCard = ({
   variant,
   sourceCurrency,
   onDismiss,
+  onRoutingChange,
 }: {
   variant: MoneyVbaHomeCardVariant;
   /** Market currency serving the user, when one resolved. */
   sourceCurrency?: VbaSourceCurrency;
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
+  /** Called when the CTA starts and stops resolving its destination. */
+  onRoutingChange?: (isRouting: boolean) => void;
 }) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
@@ -192,9 +195,13 @@ const MoneyVbaHomeCard = ({
     }
 
     setIsRouting(true);
+    onRoutingChange?.(true);
     try {
       const resolved = await resolveVbaOnboarding(config.source);
-      if (!isMountedRef.current) {
+      // Resolving can update the KYC and abilities state that picks this card,
+      // so the card may unmount first. Still navigate while Money home is in
+      // front, or the tap ends with the card gone and nothing opened.
+      if (!isMountedRef.current && !navigation.isFocused()) {
         return;
       }
       if (resolved.status === 'error') {
@@ -232,7 +239,7 @@ const MoneyVbaHomeCard = ({
           data: { source: config.source },
         },
       });
-      if (isMountedRef.current) {
+      if (isMountedRef.current || navigation.isFocused()) {
         endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
         navigateToVbaOnboardingDestination(navigation, 'error');
       }
@@ -241,11 +248,13 @@ const MoneyVbaHomeCard = ({
       if (isMountedRef.current) {
         setIsRouting(false);
       }
+      onRoutingChange?.(false);
     }
   }, [
     chooseCurrency,
     config,
     navigation,
+    onRoutingChange,
     openSupportWithConsent,
     sourceCurrency,
     trackButtonClicked,

@@ -20,6 +20,7 @@ import {
   selectRampsOrdersForSelectedAccountGroup,
   selectSelectedVbaWalletAddress,
   selectUsableVbaAutoramp,
+  selectVbaCustomerAbilities,
   selectTransak,
 } from './index';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -590,6 +591,28 @@ describe('RampsController Selectors', () => {
           null,
         ),
       ).toBeUndefined();
+    });
+  });
+
+  describe('selectVbaCustomerAbilities', () => {
+    it('returns the abilities from the last refresh', () => {
+      const abilities = { currencies: [] };
+      expect(
+        selectVbaCustomerAbilities.resultFunc({
+          vbaCustomerAbilities: abilities,
+        } as never),
+      ).toBe(abilities);
+    });
+
+    it('returns null before any refresh or without controller state', () => {
+      expect(
+        selectVbaCustomerAbilities.resultFunc({
+          vbaCustomerAbilities: null,
+        } as never),
+      ).toBeNull();
+      expect(
+        selectVbaCustomerAbilities.resultFunc(undefined as never),
+      ).toBeNull();
     });
   });
 });

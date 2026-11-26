@@ -50,7 +50,12 @@ jest.mock('../../../../../util/haptics', () => ({
 }));
 
 const mockNavigate = jest.fn();
-const mockNavigation = { dispatch: jest.fn(), navigate: mockNavigate };
+const mockIsFocused = jest.fn(() => true);
+const mockNavigation = {
+  dispatch: jest.fn(),
+  navigate: mockNavigate,
+  isFocused: mockIsFocused,
+};
 
 const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
@@ -261,6 +266,7 @@ describe('MoneyVbaHomeCard', () => {
     // case sets this to true, which would skip hydration on a later
     // account_is_ready run.
     mockCanOpenPersistedVbaDetails.mockReturnValue(false);
+    mockIsFocused.mockReturnValue(true);
     mockChooseCurrency = false;
     mockResolve.mockResolvedValue({
       status: 'ready',
@@ -550,7 +556,81 @@ describe('MoneyVbaHomeCard', () => {
     );
   });
 
-  it('does not navigate after the card unmounts during onboarding resolution', async () => {
+  it('reports routing while the CTA resolves its destination', async () => {
+    let resolveOnboarding!: (
+      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+    ) => void;
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        (resolve) => {
+          resolveOnboarding = resolve;
+        },
+      ),
+    );
+    const onRoutingChange = jest.fn();
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard
+        variant="finish_verification"
+        onRoutingChange={onRoutingChange}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CTA_BUTTON),
+    );
+
+    expect(onRoutingChange).toHaveBeenLastCalledWith(true);
+
+    await act(async () => {
+      resolveOnboarding({
+        status: 'ready',
+        destinationId: 'accountCreateUnavailable',
+        snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+      });
+    });
+
+    expect(onRoutingChange).toHaveBeenLastCalledWith(false);
+    expect(onRoutingChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens the resolved destination when the card unmounts while Money home stays in front', async () => {
+    let resolveOnboarding!: (
+      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+    ) => void;
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        (resolve) => {
+          resolveOnboarding = resolve;
+        },
+      ),
+    );
+    const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+    const { getByTestId, unmount } = render(
+      <MoneyVbaHomeCard variant="finish_verification" />,
+    );
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CTA_BUTTON),
+    );
+
+    unmount();
+    await act(async () => {
+      resolveOnboarding({
+        status: 'ready',
+        destinationId: 'accountCreateUnavailable',
+        snapshot,
+      });
+    });
+
+    expect(mockNavigateToDestination).toHaveBeenCalledWith(
+      mockNavigation,
+      'accountCreateUnavailable',
+      snapshot,
+    );
+  });
+
+  it('does not navigate after the card unmounts and the user has left Money home', async () => {
+    mockIsFocused.mockReturnValue(false);
+
     let resolveOnboarding!: (
       result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
     ) => void;

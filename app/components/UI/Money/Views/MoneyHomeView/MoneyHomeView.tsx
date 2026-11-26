@@ -47,6 +47,7 @@ import MoneyOnboardingCard, {
 import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
 import {
   getMoneyHomeCard,
+  type MoneyHomeCard,
   type MoneyHomeVbaVariant,
 } from '../../hooks/getMoneyHomeCard';
 import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
@@ -62,6 +63,7 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { useVbaMusdAvailability } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaMusdAvailability';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
@@ -250,6 +252,12 @@ const MoneyHomeView = () => {
   if (dismissedVbaVariant && dismissedVbaVariant !== vbaHomeCard.type) {
     setDismissedVbaVariant(null);
   }
+  // The VBA card whose CTA is still working out where to go. Resolving can
+  // change the KYC and abilities state that picks the card, so it stays on
+  // screen until the next screen opens.
+  const [routingVbaCard, setRoutingVbaCard] = useState<MoneyHomeCard | null>(
+    null,
+  );
   // One-shot autoramp transaction read per focus and app resume. The
   // controller owns the last-seen-status record, so repeated reads do not
   // emit duplicate Money VBA Transaction Updated events.
@@ -259,6 +267,12 @@ const MoneyHomeView = () => {
   // An approved account opens its details directly; otherwise the loading
   // screen hydrates and forwards to the first incomplete module.
   const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  // Identity verified leads to account setup, which cannot finish when the
+  // customer is not offered mUSD, so check before showing the card.
+  const musdAvailability = useVbaMusdAvailability(
+    vbaHomeCard.type === 'identity_verified' && !usableVbaAutoramp,
+    vbaMarket?.currency,
+  );
   const hasPendingDetailsOpenRef = useRef(false);
   const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
@@ -395,8 +409,10 @@ const MoneyHomeView = () => {
     isKycDecisionDismissed:
       dismissedVbaVariant === 'kyc_decision' &&
       vbaHomeCard.type === 'kyc_decision',
+    isMusdAvailabilityLoading: musdAvailability.isLoading,
+    isMusdUnavailable: musdAvailability.isUnavailable,
   });
-  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
+  const moneyHomeCard = routingVbaCard ?? devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -1345,6 +1361,9 @@ const MoneyHomeView = () => {
             key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
             sourceCurrency={vbaMarket?.currency}
+            onRoutingChange={(isRouting) =>
+              setRoutingVbaCard(isRouting ? moneyHomeCard : null)
+            }
             onDismiss={() => {
               if (devOverride?.card.type === 'vba') {
                 if (devOverride.card.variant === 'kyc_decision') {

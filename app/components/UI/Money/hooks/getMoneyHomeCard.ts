@@ -42,6 +42,10 @@ export interface MoneyHomeCardInputs {
   isCardStepSkipped: boolean;
   /** User dismissed the KYC decision card this session. */
   isKycDecisionDismissed: boolean;
+  /** The mUSD availability check for Identity verified is still running. */
+  isMusdAvailabilityLoading: boolean;
+  /** The customer is not offered mUSD, so account setup cannot finish. */
+  isMusdUnavailable: boolean;
 }
 
 /**
@@ -51,7 +55,9 @@ export interface MoneyHomeCardInputs {
  * while balances are still loading. The terminal rejection card does too,
  * until the user dismisses it. Everything else waits for both balances. Get
  * started and Identity verified give way once the Money account is funded. A
- * usable autoramp shows nothing until then.
+ * usable autoramp shows nothing until then. Identity verified also gives way
+ * when the customer is not offered mUSD, since its CTA could only end on the
+ * unsupported region screen.
  *
  * @param inputs - Eligibility, balances, VBA card, and card-step state.
  * @returns The one card to mount, or `none`.
@@ -80,7 +86,12 @@ export function getMoneyHomeCard(inputs: MoneyHomeCardInputs): MoneyHomeCard {
     !inputs.hasUsableAutoramp &&
     !inputs.isMoneyAccountFunded
   ) {
-    return { type: 'vba', variant: 'identity_verified' };
+    if (inputs.isMusdAvailabilityLoading) {
+      return { type: 'none' };
+    }
+    if (!inputs.isMusdUnavailable) {
+      return { type: 'vba', variant: 'identity_verified' };
+    }
   }
 
   if (
