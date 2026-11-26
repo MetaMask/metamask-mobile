@@ -664,7 +664,7 @@ const Wallet = ({
       actionButtonOnPress: () => {
         storePrivacyPolicyClickedOrClosed();
         toast.dismiss();
-        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        Linking.openURL(CONSENSYS_PRIVACY_POLICY).catch(() => undefined);
       },
     });
   }, [
