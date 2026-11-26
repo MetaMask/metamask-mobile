@@ -160,7 +160,7 @@ import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
-import PullToRefresh from './components/PullToRefresh/PullToRefresh';
+import { PullToRefreshScrollView } from '../../../component-library/components-temp/PullToRefresh';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -1401,10 +1401,11 @@ const Wallet = ({
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >
-                  <PullToRefresh
+                  <PullToRefreshScrollView
                     ref={scrollViewRef}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
+                    isActive={isFocused}
                     indicatorTopInset={viewportTopInset}
                     refreshControlTopInset={floatingHeaderInset}
                     indicatorBottomInset={
@@ -1430,7 +1431,7 @@ const Wallet = ({
                         balanceBreakdownSectionProps
                       }
                     />
-                  </PullToRefresh>
+                  </PullToRefreshScrollView>
                 </HomepageScrollContext.Provider>
               </View>
             </>

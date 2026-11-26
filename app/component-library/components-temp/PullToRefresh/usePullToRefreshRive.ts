@@ -15,8 +15,8 @@ import {
   type ViewModelNumberProperty,
 } from '@rive-app/react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
-import PullRefreshAnimation from '../../../../../animations/pull_refresh.riv';
-import Logger from '../../../../../util/Logger';
+import PullRefreshAnimation from '../../../animations/pull_refresh.riv';
+import Logger from '../../../util/Logger';
 import {
   RIVE_ARTBOARD_NAME,
   RIVE_IS_PULLING_PATH,
@@ -25,7 +25,7 @@ import {
   clamp,
 } from './pullToRefreshConstants';
 
-interface UsePullToRefreshRiveOptions {
+export interface UsePullToRefreshRiveOptions {
   enabled: boolean;
   pullDistance: SharedValue<number>;
 }
@@ -34,7 +34,7 @@ type RiveHookResult = ReturnType<typeof useRive>;
 type RiveFileHookResult = ReturnType<typeof useRiveFile>;
 type RiveViewProps = ComponentProps<typeof RiveView>;
 
-interface UsePullToRefreshRiveResult {
+export interface UsePullToRefreshRiveResult {
   canRenderRive: boolean;
   bindingReady: boolean;
   instance: RiveViewProps['dataBind'] | null;
@@ -86,10 +86,7 @@ export const usePullToRefreshRive = ({
 
   useEffect(() => {
     if (riveFileError) {
-      Logger.error(
-        riveFileError as Error,
-        'PullToRefresh: Rive file failed to load',
-      );
+      Logger.error(riveFileError, 'PullToRefresh: Rive file failed to load');
       pullDistanceShared.value = 0;
       riveReadyShared.value = false;
       setBindingReady(false);
@@ -98,7 +95,7 @@ export const usePullToRefreshRive = ({
 
     if (instanceError) {
       Logger.error(
-        instanceError as Error,
+        instanceError,
         'PullToRefresh: Rive View Model failed to load',
       );
       pullDistanceShared.value = 0;

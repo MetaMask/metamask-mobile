@@ -10787,7 +10787,9 @@
   "common": {
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect": "Disconnect",
+    "refreshing": "Refreshing",
+    "updated": "Updated"
   },
   "tooltip_modal": {
     "reward_rate": {
