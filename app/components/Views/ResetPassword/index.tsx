@@ -701,32 +701,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       autoCapitalize: 'none',
                       keyboardAppearance: themeAppearance,
                     }}
-                  /><TouchableOpacity onPress={() => toggleShowPassword(0)}>
-                        <Icon
-                          name={
-                            showPasswordIndex.includes(0)
-                              ? IconName.Eye
-                              : IconName.EyeSlash
-                          }
-                          size={IconSize.Lg}
-                          color={IconColor.IconAlternative}
-                          testID={
-                            ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
-                          }
-                        />
-                      </TouchableOpacity>
-                    }
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(0),
-                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      onSubmitEditing: jumpToConfirmPassword,
-                      returnKeyType: 'next',
-                      autoComplete: 'password-new',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
                   />
                   {renderPasswordHelperText()}
                 </Box>
@@ -749,32 +723,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     )}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
-                        <Icon
-                          name={
-                            showPasswordIndex.includes(1)
-                              ? IconName.Eye
-                              : IconName.EyeSlash
-                          }
-                          size={IconSize.Lg}
-                          color={IconColor.IconAlternative}
-                          testID={
-                            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
-                          }
-                        />
-                      </TouchableOpacity>
-                    }
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(1),
-                      testID:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      returnKeyType: 'done',
-                      autoComplete: 'password-new',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
-                  /><TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon
                           name={
                             showPasswordIndex.includes(1)

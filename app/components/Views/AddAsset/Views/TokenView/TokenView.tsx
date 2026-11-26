@@ -114,16 +114,6 @@ const TokenView = ({
           textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
           className="shrink-0"
           onPress={openNetworkSelector}
-        /><AvatarNetwork
-                src={getNetworkImageSource({ chainId: selectedNetwork })}
-                size={AvatarNetworkSize.Xs}
-                name={selectedNetworkName}
-              />
-            ) : undefined
-          }
-          textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
-          twClassName="shrink-0"
-          onPress={openNetworkSelector}
         />
       </Box>
 
@@ -139,19 +129,6 @@ const TokenView = ({
             title={strings('add_asset.hidden_tokens')}
             startAccessory={
               <Icon name={IconName.EyeSlash} size={IconSize.Md} />
-            }
-            endAccessory={
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            }
-            accessoryGap={3}
-            onPress={() => navigation.navigate(Routes.WALLET.HIDDEN_TOKENS)}
-            accessibilityRole="button"
-            testID={ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON}
-          /><Icon name={IconName.EyeSlash} size={IconSize.Md} />
             }
             endAccessory={
               <Icon

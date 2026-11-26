@@ -178,26 +178,7 @@ export const TokenSortBottomSheet = () => {
             testID={option.testID}
             endAccessory={
               isSelected ? (
-                <Box className="flex-row items-center gap-2">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(option.orderLabelKeys[draftOrder])}
-                  </Text>
-                  <Icon
-                    name={
-                      draftOrder === 'asc'
-                        ? IconName.Arrow2Up
-                        : IconName.Arrow2Down
-                    }
-                    size={IconSize.Md}
-                    color={IconColor.IconAlternative}
-                  />
-                </Box>
-              ) : undefined
-            }
-          /><Box className="flex-row items-center gap-2">
+                <Box twClassName="flex-row items-center gap-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}

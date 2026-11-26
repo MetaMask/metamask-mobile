@@ -67,34 +67,12 @@ const SeedphraseModal = () => {
             'account_backup_step_1.keep_private_description',
           )}
           descriptionProps={DESCRIPTION_PROPS}
-        /><AvatarIcon
-              iconName={IconName.Danger}
-              severity={AvatarIconSeverity.Danger}
-            />
-          }
-          title={strings('account_backup_step_1.keep_private_title')}
-          titleProps={TITLE_PROPS}
-          description={strings(
-            'account_backup_step_1.keep_private_description',
-          )}
-          descriptionProps={DESCRIPTION_PROPS}
         />
         <ListItem
           variant={ListItemVariant.MultiLine}
           className="min-h-0 pt-0"
           avatar={
             <AvatarIcon
-              iconName={IconName.Lock}
-              severity={AvatarIconSeverity.Neutral}
-            />
-          }
-          title={strings('account_backup_step_1.store_safely_title')}
-          titleProps={TITLE_PROPS}
-          description={strings(
-            'account_backup_step_1.store_safely_description',
-          )}
-          descriptionProps={DESCRIPTION_PROPS}
-        /><AvatarIcon
               iconName={IconName.Lock}
               severity={AvatarIconSeverity.Neutral}
             />

@@ -1155,13 +1155,6 @@ const Wallet = ({
               {strings('wallet.banner.link')}
             </CustomText>
           }
-        /><CustomText
-              color={TextColor.InfoDefault}
-              onPress={turnOnBasicFunctionality}
-            >
-              {strings('wallet.banner.link')}
-            </CustomText>
-          }
         />
       ) : null}
       <NetworkConnectionBannerContent {...networkConnectionBanner} />

@@ -249,14 +249,6 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
                 }
                 title={strings(step.title)}
                 testID={`${KycVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
-              /><AvatarIcon
-                    iconName={step.icon}
-                    severity={AvatarIconSeverity.Neutral}
-                    size={AvatarIconSize.Lg}
-                  />
-                }
-                title={strings(step.title)}
-                testID={`${KycVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
               />
             ))}
           </Box>
@@ -276,15 +268,6 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
                 className="min-h-0 justify-start py-2"
                 avatar={
                   <AvatarIcon
-                    iconName={benefit.icon}
-                    severity={AvatarIconSeverity.Neutral}
-                    size={AvatarIconSize.Lg}
-                  />
-                }
-                title={strings(benefit.title)}
-                description={strings(benefit.description)}
-                testID={`${KycVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
-              /><AvatarIcon
                     iconName={benefit.icon}
                     severity={AvatarIconSeverity.Neutral}
                     size={AvatarIconSize.Lg}

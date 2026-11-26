@@ -95,17 +95,6 @@ export default function ManageNetworksComponent() {
         }}
         onPress={switchNetwork}
         className="self-start my-4"
-      /><AvatarNetwork
-            src={networkImageSource}
-            size={AvatarNetworkSize.Xs}
-            name={networkName}
-          />
-        }
-        textProps={{
-          numberOfLines: 1,
-        }}
-        onPress={switchNetwork}
-        twClassName="self-start my-4"
       />
     </View>
   );

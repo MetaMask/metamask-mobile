@@ -83,7 +83,7 @@ const WalletHeaderCompact = ({
       title={
         useSearchHeaderLayout ? (
           <Box
-            className={
+            twClassName={
               isSearchReturnTransitionActive ? 'flex-1 opacity-0' : 'flex-1'
             }
             pointerEvents={isSearchReturnTransitionActive ? 'none' : 'auto'}
@@ -131,7 +131,7 @@ const WalletHeaderCompact = ({
           accessibilityRole="button"
           accessibilityLabel={displayName}
         >
-          <Box className="h-10 w-10 items-center justify-center rounded-full bg-section">
+          <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-section">
             <BadgeWrapper
               style={styles.badgeWrapperCenter}
               position={BadgeWrapperPosition.BottomRight}
@@ -161,7 +161,7 @@ const WalletHeaderCompact = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          className="gap-2"
+          twClassName="gap-2"
         >
           <ButtonIcon
             iconProps={{
@@ -190,114 +190,6 @@ const WalletHeaderCompact = ({
         </Box>
       }
       className="pl-4 pr-3"
-    /><Box
-            className={
-              isSearchReturnTransitionActive ? 'flex-1 opacity-0' : 'flex-1'
-            }
-            pointerEvents={isSearchReturnTransitionActive ? 'none' : 'auto'}
-            accessibilityElementsHidden={isSearchReturnTransitionActive}
-            importantForAccessibility={
-              isSearchReturnTransitionActive ? 'no-hide-descendants' : 'auto'
-            }
-          >
-            <ExploreSearchBar
-              type="button"
-              onPress={handleSearchPress ?? (() => undefined)}
-              placeholder={strings('wallet.homepage_search_placeholder')}
-              showPastePill={showSearchPastePill}
-              onPastePress={handleSearchPastePress}
-              clipboardButtonTestID={
-                WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON
-              }
-            />
-          </Box>
-        ) : (
-          <ButtonAnimated
-            onPress={handleAccountHubPress}
-            hitSlop={touchAreaSlop}
-            accessibilityRole="button"
-            accessibilityLabel={displayName}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              numberOfLines={1}
-            >
-              {displayName}
-            </Text>
-          </ButtonAnimated>
-        )
-      }
-      scrollY={scrollY}
-      titleSectionHeight={titleSectionHeight}
-      startAccessory={
-        <ButtonAnimated
-          onPress={handleAccountHubPress}
-          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON}
-          hitSlop={touchAreaSlop}
-          accessibilityRole="button"
-          accessibilityLabel={displayName}
-        >
-          <Box className="h-10 w-10 items-center justify-center rounded-full bg-section">
-            <BadgeWrapper
-              style={styles.badgeWrapperCenter}
-              position={BadgeWrapperPosition.BottomRight}
-              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-              badge={
-                hasAccountsMenuAttention ? (
-                  <BadgeStatus
-                    status={BadgeStatusStatus.Attention}
-                    testID={
-                      WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON_BADGE
-                    }
-                  />
-                ) : null
-              }
-            >
-              <AvatarAccount
-                address={accountAddress}
-                variant={getAvatarAccountVariant(avatarAccountType)}
-                size={AvatarAccountSize.Sm}
-                testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-              />
-            </BadgeWrapper>
-          </Box>
-        </ButtonAnimated>
-      }
-      endAccessory={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          className="gap-2"
-        >
-          <ButtonIcon
-            iconProps={{
-              color: MMDSIconColor.IconDefault,
-            }}
-            onPress={handleRewardsPress}
-            iconName={MMDSIconName.Gift}
-            size={ButtonIconSize.Md}
-            testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
-            accessibilityLabel={strings('wallet.rewards_accessibility_label')}
-            hitSlop={touchAreaSlop}
-          />
-          {!useSearchHeaderLayout && handleSearchPress ? (
-            <ButtonIcon
-              iconProps={{
-                color: MMDSIconColor.IconDefault,
-              }}
-              onPress={handleSearchPress}
-              iconName={MMDSIconName.Search}
-              size={ButtonIconSize.Md}
-              testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-              accessibilityLabel={strings('wallet.search_accessibility_label')}
-              hitSlop={touchAreaSlop}
-            />
-          ) : null}
-        </Box>
-      }
-      twClassName="pl-4 pr-3"
     />
   );
 };

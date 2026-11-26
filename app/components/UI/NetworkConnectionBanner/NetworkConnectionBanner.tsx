@@ -323,31 +323,6 @@ export const NetworkConnectionBannerContent = ({
             'network_connection_banner.dismiss_slow_network',
           ),
         }}
-      /><Icon
-            name={IconName.Wifi}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-          />
-        }
-        title={strings('network_connection_banner.slow_network_title')}
-        titleProps={{
-          variant: TextVariant.BodyXs,
-          fontWeight: FontWeight.Medium,
-        }}
-        description={strings(
-          'network_connection_banner.slow_network_description',
-        )}
-        descriptionProps={{
-          variant: TextVariant.BodyXs,
-          fontWeight: FontWeight.Medium,
-          color: TextColor.TextAlternative,
-        }}
-        onClose={dismissSlowNetwork}
-        closeButtonProps={{
-          accessibilityLabel: strings(
-            'network_connection_banner.dismiss_slow_network',
-          ),
-        }}
       />
     );
   }
@@ -369,7 +344,7 @@ export const NetworkConnectionBannerContent = ({
           size={IconSize.Sm}
           color={icon.color}
           // Vertically align icon with text better
-          className="mt-[0.1rem]"
+          twClassName="mt-[0.1rem]"
         />
       }
       title={primaryMessage}

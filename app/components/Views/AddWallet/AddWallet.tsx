@@ -158,24 +158,6 @@ const AddWallet = () => {
                 testID={AddWalletTestIds.ROW_ARROW}
               />
             }
-          /><AvatarIcon
-                iconName={config.iconName}
-                severity={AvatarIconSeverity.Neutral}
-                size={AvatarIconSize.Lg}
-              />
-            }
-            title={config.title}
-            description={config.description}
-            endAccessory={
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-                accessible={false}
-                importantForAccessibility="no"
-                testID={AddWalletTestIds.ROW_ARROW}
-              />
-            }
           />
         ))}
       </Box>

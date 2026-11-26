@@ -84,11 +84,6 @@ const KycOnboardingErrorItemRow = ({
     title={item.title}
     description={item.description}
     testID={`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
-  /><AvatarIcon iconName={item.icon} severity={AvatarIconSeverity.Neutral} />
-    }
-    title={item.title}
-    description={item.description}
-    testID={`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
   />
 );
 

@@ -100,15 +100,6 @@ const DisclaimerRow = ({
       onPress={openLink}
       accessibilityRole="link"
       testID={`${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
-    /><Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
-      }
-      onPress={openLink}
-      accessibilityRole="link"
-      testID={`${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
     />
   );
 };

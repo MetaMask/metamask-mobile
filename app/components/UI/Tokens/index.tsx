@@ -335,15 +335,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               description={strings('wallet.no_tokens_match_search')}
               actionButtonText={strings('wallet.clear_search')}
               onAction={clearSearch}
-            /><Icon
-                  name={IconName.Search}
-                  size={IconSize.Xl}
-                  color={IconColor.IconMuted}
-                />
-              }
-              description={strings('wallet.no_tokens_match_search')}
-              actionButtonText={strings('wallet.clear_search')}
-              onAction={clearSearch}
             />
           </Box>
         );

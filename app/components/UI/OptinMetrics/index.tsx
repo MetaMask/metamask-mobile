@@ -437,27 +437,6 @@ const OptinMetrics = () => {
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
-            /><Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
-                  <TextButton
-                    variant={TextVariant.BodySm}
-                    onPress={(e) => {
-                      e?.stopPropagation?.();
-                      openLearnMore();
-                    }}
-                  >
-                    {strings('privacy_policy.gather_basic_usage_learn_more')}
-                  </TextButton>
-                </Text>
-              }
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-              }
             />
             <Box className="gap-2">
               <Text

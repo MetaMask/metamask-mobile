@@ -126,17 +126,6 @@ const SearchTokenResultRow = React.memo(
           fontWeight: FontWeight.Medium,
           numberOfLines: 1,
         }}
-      /><TokenAvatar asset={item} />}
-        title={item.name}
-        titleProps={{
-          fontWeight: FontWeight.Medium,
-          numberOfLines: 1,
-        }}
-        description={item.symbol}
-        descriptionProps={{
-          fontWeight: FontWeight.Medium,
-          numberOfLines: 1,
-        }}
       />
     );
   },

@@ -180,56 +180,12 @@ const DeleteWalletModal: React.FC = () => {
                   {strings('login.forgot_password_point_1_1')}
                 </Text>
               }
-            /><AvatarIcon
-                  iconName={IconName.FaceId}
-                  size={AvatarIconSize.Md}
-                  severity={AvatarIconSeverity.Neutral}
-                />
-              }
-              title={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('login.forgot_password_point_1')}{' '}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    fontWeight={FontWeight.Bold}
-                  >
-                    {strings('login.forgot_password_point_1_bold')}
-                  </Text>{' '}
-                  {strings('login.forgot_password_point_1_1')}
-                </Text>
-              }
             />
             <ListItem
               variant={ListItemVariant.MultiLine}
               className="min-h-0 pt-0 pb-2"
               avatar={
                 <AvatarIcon
-                  iconName={IconName.ShieldLock}
-                  size={AvatarIconSize.Md}
-                  severity={AvatarIconSeverity.Neutral}
-                />
-              }
-              title={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('login.forgot_password_point_2')}{' '}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    fontWeight={FontWeight.Bold}
-                  >
-                    {strings('login.forgot_password_point_2_bold')}{' '}
-                  </Text>
-                  {strings('login.forgot_password_point_2_1')}
-                </Text>
-              }
-            /><AvatarIcon
                   iconName={IconName.ShieldLock}
                   size={AvatarIconSize.Md}
                   severity={AvatarIconSeverity.Neutral}
