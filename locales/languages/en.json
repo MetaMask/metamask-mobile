@@ -12363,12 +12363,13 @@
         },
         "setup_incomplete": {
           "title": "Finish setting up your card",
+          "rejected_title": "We couldn't complete your card application",
           "descriptions": {
             "contact": "Add your contact details to continue.",
             "kyc": "Verify your identity to continue.",
             "expected_spend": "Tell us how you plan to use your card to continue.",
             "funding": "Approve funding so you can start spending.",
-            "rejected": "We couldn't verify your identity. Try again to continue."
+            "rejected": "Continue to see details or contact support."
           },
           "confirm_button_label": "Continue"
         }
