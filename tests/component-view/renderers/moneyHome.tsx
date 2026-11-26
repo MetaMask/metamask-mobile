@@ -12,7 +12,15 @@ import { renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
 /** KYC `finalStatus` values the Money home card splits. */
-export type MoneyHomeVbaKycFinalStatus = 'retry' | 'rejected';
+export type MoneyHomeVbaKycFinalStatus = 'retry' | 'rejected' | 'approved';
+
+export interface RenderMoneyHomeVbaCardOptions {
+  /**
+   * MoonPay customer abilities already in `RampsController` state. Leave it
+   * out to start with none loaded, as after an app restart.
+   */
+  vbaCustomerAbilities?: unknown;
+}
 
 /**
  * Stored UKYC session. `retryReasons` is not on {@link KycSessionStatus} yet;
@@ -87,10 +95,12 @@ const buildSession = (
  *
  * @param finalStatus - Persisted KYC session outcome. `retry` also stores
  * `retryReasons: ['poa_resubmit']`.
+ * @param options - Extra controller state for the render.
  * @returns The rendered Money home screen and its store.
  */
 export function renderMoneyHomeVbaCard(
   finalStatus: MoneyHomeVbaKycFinalStatus,
+  options: RenderMoneyHomeVbaCardOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
   const sessionStatus = buildSession(finalStatus);
   const state = initialStateVba()
@@ -112,6 +122,9 @@ export function renderMoneyHomeVbaCard(
           KycController: {
             sessionStatus,
             providerFlowStatus: 'submitted',
+          },
+          RampsController: {
+            vbaCustomerAbilities: options.vbaCustomerAbilities ?? null,
           },
           // Money home reads token balances for the card section. sortAssets
           // throws when PreferencesController.tokenSortConfig is missing.

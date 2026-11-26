@@ -1193,37 +1193,6 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('checks mUSD availability for the identity_verified card with the market currency', () => {
-      mockUseVbaHomeCard.mockReturnValue({ type: 'identity_verified' });
-      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
-
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockUseVbaMusdAvailability).toHaveBeenLastCalledWith(true, 'BRL');
-    });
-
-    it.each([
-      ['mUSD is not offered', { isLoading: false, isUnavailable: true }],
-      ['the mUSD check is running', { isLoading: true, isUnavailable: false }],
-    ])('hides the identity_verified card when %s', (_label, availability) => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
-        totalFiatFormatted: '$0.00',
-        totalFiatRaw: '0',
-        tokenTotal: new BigNumber(0),
-      });
-      mockUseVbaHomeCard.mockReturnValue({ type: 'identity_verified' });
-      mockUseVbaMusdAvailability.mockReturnValue(availability);
-
-      const rendered = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        rendered.queryByTestId(
-          MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
     it('keeps the tapped card on screen while its CTA resolves, even when the picked card changes', async () => {
       let resolveOnboarding!: (
         result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,

@@ -1,6 +1,8 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderMoneyHomeVbaCard } from '../../../../../../tests/component-view/renderers/moneyHome';
@@ -11,6 +13,9 @@ import {
 import { KycRejectedSelectorsIDs } from '../../../KYC/Views/Status/KycRejected';
 import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 // Hydrate, then the root stack resets onto the VBA onboarding navigator.
 const ONBOARDING_TIMEOUT_MS = 5000;
@@ -133,6 +138,109 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
     ).not.toBeOnTheScreen();
     expect(
       queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+const rampsController = Engine.context.RampsController as unknown as {
+  refreshCustomerAbilities?: jest.Mock;
+};
+
+const brlAbilities = (currencies: unknown[]) => ({
+  fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
+  fiat_payout: {},
+  currencies,
+  blocking_abilities: {},
+});
+
+// Publishes RampsController state the way an Engine state change reaches Redux.
+const setRampsControllerState = (
+  store: ReturnType<typeof renderMoneyHomeVbaCard>['store'],
+  patch: Record<string, unknown>,
+): void => {
+  const engineWithState = Engine as unknown as {
+    state: Record<string, unknown>;
+  };
+  engineWithState.state = {
+    ...engineWithState.state,
+    RampsController: {
+      ...store.getState().engine.backgroundState.RampsController,
+      ...patch,
+    },
+  };
+  store.dispatch(updateBgState({ key: 'RampsController' }));
+};
+
+const MUSD_ON_MONAD = {
+  currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
+  flows: ['Onramp'],
+};
+const USDC_ON_ETHEREUM = {
+  currency: { type: 'Crypto', token: 'USDC', blockchain: 'Ethereum' },
+  flows: ['Onramp'],
+};
+
+describeForPlatforms('MoneyHomeView Identity verified card', () => {
+  beforeEach(() => {
+    // The abilities fetch is skipped offline, and view tests start offline.
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    rampsController.refreshCustomerAbilities = jest.fn();
+  });
+
+  afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
+    delete rampsController.refreshCustomerAbilities;
+  });
+
+  it('shows the Identity verified card when MoonPay offers mUSD', async () => {
+    const { findByTestId } = renderMoneyHomeVbaCard('approved', {
+      vbaCustomerAbilities: brlAbilities([MUSD_ON_MONAD]),
+    });
+
+    expect(
+      await findByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.TITLE),
+    ).toHaveTextContent(strings('money.vba_home_card.identity_verified.title'));
+    expect(rampsController.refreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it('hides the Identity verified card once abilities show mUSD is not offered', async () => {
+    const view = renderMoneyHomeVbaCard('approved', {
+      vbaCustomerAbilities: brlAbilities([MUSD_ON_MONAD]),
+    });
+    expect(
+      await view.findByTestId(
+        MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
+      ),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      setRampsControllerState(view.store, {
+        vbaCustomerAbilities: brlAbilities([USDC_ON_ETHEREUM]),
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(rampsController.refreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it('fetches abilities once and holds the card while none are loaded', async () => {
+    rampsController.refreshCustomerAbilities = jest
+      .fn()
+      .mockReturnValue(new Promise(() => undefined));
+
+    const { queryByTestId } = renderMoneyHomeVbaCard('approved');
+
+    await waitFor(() => {
+      expect(rampsController.refreshCustomerAbilities).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 });
