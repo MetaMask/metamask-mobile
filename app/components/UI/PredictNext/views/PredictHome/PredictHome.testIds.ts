@@ -51,10 +51,11 @@ export const PredictHomeTestIds = {
   SECTIONS_RETRY: 'predict-next-home-sections-retry',
   SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
   CATEGORIES: 'predict-next-home-categories',
-  CATEGORIES_HEADER: 'predict-next-home-categories-header',
   CATEGORIES_LIST: 'predict-next-home-categories-list',
   categoryChip: (categoryId: string) =>
     `predict-next-home-category-${categoryId}`,
+  categoryChipIcon: (categoryId: string) =>
+    `predict-next-home-category-icon-${categoryId}`,
   /** A Feed preview section, by its catalog section ID. */
   section: (sectionId: string) => `predict-next-home-section-${sectionId}`,
   sectionHeader: (sectionId: string) =>

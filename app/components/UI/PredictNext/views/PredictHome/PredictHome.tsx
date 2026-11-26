@@ -306,7 +306,6 @@ const PredictHomeView = ({
         return (
           <HomeCategoriesSection
             key={section.key}
-            title={strings('predict_next.home_categories.title')}
             categories={categories}
             onSelect={openCategory}
           />
@@ -362,18 +361,24 @@ const PredictHomeView = ({
   );
   // Collect only the blocks that actually render so SectionDivider sits
   // between PortfolioActions and the first visible block, and strictly
-  // between adjacent visible blocks — never doubled or trailing.
-  const visibleItems: { key: string; node: React.ReactNode }[] = [];
+  // between adjacent visible blocks (except directly below Categories) —
+  // never doubled or trailing.
+  const visibleItems: {
+    key: string;
+    kind: HomeSectionView<HomeFeedRead>['kind'] | 'games-error';
+    node: React.ReactNode;
+  }[] = [];
   liveSections.forEach((section, index) => {
     if (isSectionVisible(section)) {
       const node = renderSection(section);
       if (node !== null) {
-        visibleItems.push({ key: section.key, node });
+        visibleItems.push({ key: section.key, kind: section.kind, node });
       }
     }
     if (index === gamesErrorAfter && failedGamesReads.length > 0) {
       visibleItems.push({
         key: '__games-error__',
+        kind: 'games-error',
         node: <HomeGamesError onRetry={retryFailedGamesReads} />,
       });
     }
@@ -486,7 +491,7 @@ const PredictHomeView = ({
           />
           {visibleItems.map((item, index) => (
             <React.Fragment key={item.key}>
-              {index > 0 ? (
+              {index > 0 && visibleItems[index - 1].kind !== 'categories' ? (
                 <SectionDivider
                   marginVertical={0}
                   twClassName="-mx-4"
