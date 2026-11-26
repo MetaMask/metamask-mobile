@@ -166,14 +166,10 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET_VIEW,
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
     expect(navigation.navigate).toHaveBeenCalledWith(

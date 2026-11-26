@@ -33,3 +33,20 @@ export interface PackCategoryMapping {
   categories: PackCategory[];
   packCategories: Record<string, string>;
 }
+
+export interface EpicHuntMachine extends CatalogPack {
+  isApproved: boolean;
+  epicOdds?: number;
+  pullsSinceEpic: number;
+}
+
+export interface RankedEpicHuntPack extends EpicHuntMachine {
+  priceUsd: number;
+  epicOdds: number;
+  averagePulls: number;
+  ratio: number;
+}
+
+export interface EpicHuntPack extends HomePack {
+  pullsOverAverage: number;
+}

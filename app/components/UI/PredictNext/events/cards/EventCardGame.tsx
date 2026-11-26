@@ -46,7 +46,7 @@ const CompactGameCard = ({
     onOrder={onOrder}
   >
     <EventCard.Root
-      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      twClassName="gap-3 bg-elevated1 p-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <GameCard.Navigation>
@@ -71,7 +71,7 @@ const FeaturedGameCard = ({
     onOrder={onOrder}
   >
     <EventCard.Root
-      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      twClassName="gap-3 bg-elevated1 p-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <GameCard.Navigation>
@@ -108,7 +108,7 @@ const SmallGameCard = ({
       onOrder={onOrder}
     >
       <EventCard.Root
-        twClassName="w-[190px] rounded-2xl border border-muted bg-muted py-3"
+        twClassName="w-[190px] bg-muted py-3"
         testID={`predict-next-event-${event.venueId}-${event.id}`}
       >
         <GameCard.Navigation>

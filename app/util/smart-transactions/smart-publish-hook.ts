@@ -215,8 +215,8 @@ class SmartTransactionHook {
       let submitBatchResponse;
       if (submitTransactionResponse?.txHashes) {
         submitBatchResponse = {
-          results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
-            transactionHash: txHash,
+          results: submitTransactionResponse.txHashes.map((txHash: string) => ({
+            transactionHash: txHash as Hex,
           })),
         };
       } else {
@@ -273,7 +273,7 @@ class SmartTransactionHook {
     value: this.#txParams.value,
   });
 
-  #createSignedTransactions = async (fees: Fee[]): Promise<string[]> => {
+  #createSignedTransactions = async (fees: Fee[]): Promise<Hex[]> => {
     const unsignedTransactions = fees.map((fee) =>
       this.#applyFeeToTransaction(fee),
     );
@@ -284,7 +284,7 @@ class SmartTransactionHook {
     return (await this.#transactionController.approveTransactionsWithSameNonce(
       transactionsWithChainId,
       { hasNonce: true },
-    )) as string[];
+    )) as Hex[];
   };
 
   #signAndSubmitTransactions = async ({
@@ -293,7 +293,7 @@ class SmartTransactionHook {
     getFeesResponse?: Fees;
   } = {}) => {
     let signedTransactionsWithMetadata: SignedTransactionWithMetadata[] = [];
-    let signedTransactions: string[] = [];
+    let signedTransactions: Hex[] = [];
     if (
       this.#transactions &&
       Array.isArray(this.#transactions) &&
