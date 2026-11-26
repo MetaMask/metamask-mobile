@@ -68,7 +68,6 @@ describe('useHistoricalVaultApys', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     setSelector();
-    mockUseQuery.mockReturnValue({} as never);
   });
 
   it('uses the configured vault address and decimal chain ID', () => {

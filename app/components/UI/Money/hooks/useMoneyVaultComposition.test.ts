@@ -68,7 +68,6 @@ describe('useMoneyVaultComposition', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     setSelector();
-    mockUseQuery.mockReturnValue({} as never);
   });
 
   it('uses the configured vault address and chain ID', () => {

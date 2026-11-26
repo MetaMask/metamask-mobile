@@ -161,7 +161,6 @@ interface SetupMoneyAllocationApiMockOptions {
     | VaultCompositionResponse
     | Record<string, unknown>
     | null;
-  historicalApyResponse?: VaultApyHistoryResponse | Record<string, unknown>;
   status?: number;
   compositionStatus?: number;
   historicalApyStatus?: number;
@@ -188,7 +187,6 @@ export const clearMoneyEarningsApiMocks = (): void => {
 
 export const setupMoneyAllocationApiMock = ({
   compositionResponse = moneyVaultCompositionResponse,
-  historicalApyResponse = moneyHistoricalVaultApysResponse,
   status = 200,
   compositionStatus = status,
   historicalApyStatus = status,
@@ -206,7 +204,7 @@ export const setupMoneyAllocationApiMock = ({
     stubFetchPath(
       origin,
       MONEY_VAULT_APY_HISTORY_PATH,
-      historicalApyResponse,
+      moneyHistoricalVaultApysResponse,
       historicalApyStatus,
       { method: 'GET' },
     );

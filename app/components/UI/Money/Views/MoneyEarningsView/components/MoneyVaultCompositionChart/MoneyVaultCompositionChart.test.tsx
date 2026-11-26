@@ -96,13 +96,6 @@ describe('MoneyVaultCompositionChart', () => {
                 {} as PanResponderGestureState,
               ) ?? false
           : undefined,
-        onMoveShouldSetResponder: config.onMoveShouldSetPanResponder
-          ? (event) =>
-              config.onMoveShouldSetPanResponder?.(
-                event,
-                {} as PanResponderGestureState,
-              ) ?? false
-          : undefined,
         onResponderGrant: config.onPanResponderGrant
           ? (event) =>
               config.onPanResponderGrant?.(
@@ -127,13 +120,6 @@ describe('MoneyVaultCompositionChart', () => {
                 event,
                 {} as PanResponderGestureState,
               )
-          : undefined,
-        onResponderTerminationRequest: config.onPanResponderTerminationRequest
-          ? (event) =>
-              config.onPanResponderTerminationRequest?.(
-                event,
-                {} as PanResponderGestureState,
-              ) ?? false
           : undefined,
       },
     }));
