@@ -15,26 +15,12 @@ import {
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersResponse,
   type ListRecurringSwapsResponse,
-  RecurringSwapStatus,
 } from '../../../app/components/UI/Bridge/api/recurringOrders.types';
 import type {
   RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
 } from '../../../app/components/UI/Bridge/queries/recurringOrders';
-// eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock from 'nock';
-
-import {
-  type MockAccountsApiTransaction,
-  toV5TransactionRecord,
-} from './accounts-transactions';
-import {
-  clearAllNockMocks,
-  disableNetConnect,
-  teardownNock,
-} from './nockHelpers';
-import { restoreFetchPath, stubFetchPath } from './fetchStub';
 
 type MessengerCall = (action: string, ...args: unknown[]) => unknown;
 
@@ -203,67 +189,6 @@ export async function cancelMockRecurringOrder(
   };
 }
 
-const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
-const BRIDGE_CV_ACCOUNT = '0x0000000000000000000000000000000000000001';
-
-function buildMockRecurringSwapTransactions(): Record<
-  string,
-  MockAccountsApiTransaction
-> {
-  const transactions: Record<string, MockAccountsApiTransaction> = {};
-
-  for (const swaps of Object.values(MOCK_RECURRING_SWAPS_BY_ORDER_ID)) {
-    for (const swap of swaps) {
-      if (swap.txHash) {
-        transactions[swap.txHash.toLowerCase()] = {
-          hash: swap.txHash,
-          timestamp:
-            swap.timingData.executedAt ?? swap.timingData.scheduledAt ?? '',
-          chainId: 1,
-          from: BRIDGE_CV_ACCOUNT,
-          to: '0x0000000000000000000000000000000000000000',
-          value: swap.src.amount,
-          isError: swap.status === RecurringSwapStatus.Failed,
-          transactionCategory: 'swap',
-        };
-      }
-    }
-  }
-
-  return transactions;
-}
-
-function setupRecurringSwapTransactionsApiMock() {
-  const transactions = buildMockRecurringSwapTransactions();
-
-  clearAllNockMocks();
-  disableNetConnect();
-
-  for (const [txHash, transaction] of Object.entries(transactions)) {
-    const path = `/v5/accounts/eip155:1:${BRIDGE_CV_ACCOUNT}/transactions/${txHash}`;
-    const response = toV5TransactionRecord(transaction, BRIDGE_CV_ACCOUNT);
-
-    nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, {
-      data: response,
-    });
-
-    stubFetchPath(ACCOUNTS_API_ORIGIN, path, {
-      data: response,
-    });
-  }
-}
-
-function clearRecurringSwapTransactionsApiMock() {
-  const transactions = buildMockRecurringSwapTransactions();
-
-  for (const txHash of Object.keys(transactions)) {
-    const path = `/v5/accounts/eip155:1:${BRIDGE_CV_ACCOUNT}/transactions/${txHash}`;
-    restoreFetchPath(ACCOUNTS_API_ORIGIN, path);
-  }
-
-  teardownNock();
-}
-
 export function setupRecurringOrdersDataServiceMock({
   recurringOrder = getMockRecurringOrder,
   recurringOrders = getMockRecurringOrders,
@@ -271,8 +196,6 @@ export function setupRecurringOrdersDataServiceMock({
   recurringSwaps = getMockRecurringSwaps,
   cancelRecurringOrder: cancelRecurringOrderRequest = cancelMockRecurringOrder,
 }: RecurringOrdersDataServiceMockOptions = {}) {
-  setupRecurringSwapTransactionsApiMock();
-
   cancelRecurringOrderSpy?.mockRestore();
   cancelRecurringOrderSpy = jest
     .spyOn(recurringOrdersApiClient, 'cancelRecurringOrder')
@@ -324,8 +247,6 @@ export function setupRecurringOrdersDataServiceMock({
 }
 
 export function clearRecurringOrdersDataServiceMock() {
-  clearRecurringSwapTransactionsApiMock();
-
   cancelRecurringOrderSpy?.mockRestore();
   cancelRecurringOrderSpy = undefined;
 
