@@ -123,6 +123,13 @@ const rowEventIds = (row: Parameters<typeof within>[0]) =>
     );
 const eventIdsOf = (events: readonly PredictEvent[]) =>
   events.map((event) => event.id);
+/** The test ids of the portfolio actions, in display order. */
+const portfolioActionOrder = (view: {
+  getByTestId: (id: string) => Parameters<typeof within>[0];
+}) =>
+  within(view.getByTestId(PredictHomeTestIds.ACTIONS))
+    .getAllByRole('button')
+    .map((action) => String(action.props.testID));
 /** The messenger calls to one action, in call order. */
 const callsTo = (action: string) =>
   messengerCall.mock.calls.filter(([name]) => name === action);
@@ -289,6 +296,11 @@ describe('PredictHome', () => {
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
   });
 
   it('hides Withdraw where the Venue does not list it', async () => {
@@ -320,6 +332,10 @@ describe('PredictHome', () => {
       view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
     ).not.toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
   });
 
   it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
@@ -360,6 +376,10 @@ describe('PredictHome', () => {
     });
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+    ]);
 
     fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
 
