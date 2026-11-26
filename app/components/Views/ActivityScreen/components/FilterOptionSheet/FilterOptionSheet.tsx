@@ -1,6 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -15,6 +13,7 @@ import {
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { Pressable } from '../../../../UI/primitives/Pressable';
 
 export interface FilterOptionSheetProps<T extends string> {
   /** Sheet header title. */
@@ -59,7 +58,6 @@ export function FilterOptionSheet<T extends string>({
   getOptionTestID,
 }: FilterOptionSheetProps<T>) {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   // ROOT_MODAL_FLOW uses animation: 'none', so the opening tap can land on the
   // overlay and immediately dismiss (goBack). Keep the sheet non-interactive
@@ -94,17 +92,16 @@ export function FilterOptionSheet<T extends string>({
       <BottomSheetHeaderGlass isGlass={isGlassHeader}>
         {title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="pb-2">
+      <Box className="pb-2">
         {options.map((option) => {
           const isSelected = option === selected;
           return (
             <Pressable
               key={option}
               onPress={() => handleSelect(option)}
-              style={tw.style(
-                'flex-row items-center justify-between px-4 py-3',
-                isSelected && 'bg-muted',
-              )}
+              className={`flex-row items-center justify-between px-4 py-3${
+                isSelected ? ' bg-muted' : ''
+              }`}
               testID={getOptionTestID(option)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}

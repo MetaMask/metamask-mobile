@@ -120,7 +120,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   return (
     <Box
       testID={ActivityScreenSelectorsIDs.LIST}
-      twClassName="flex-1 items-center justify-center pb-32"
+      className="flex-1 items-center justify-center pb-32"
     >
       <TabEmptyState
         testID={ActivityScreenSelectorsIDs.EMPTY_STATE}
