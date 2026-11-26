@@ -93,9 +93,18 @@ export function useConfirmNavigation() {
 
       if (stack && !isForceBottomSheet) {
         if (replace) {
-          navigation.dispatch(
-            StackActions.replace(stack, { screen: route, params }),
-          );
+          // Targeting the navigator that owns the route makes the router
+          // replace the calling route (`source`) rather than the focused one.
+          // Otherwise leave it untargeted so it bubbles to a parent.
+          navigation.dispatch((state) => {
+            const action = StackActions.replace(stack, {
+              screen: route,
+              params,
+            });
+            return state.routeNames.some((name) => name === stack)
+              ? { ...action, target: state.key }
+              : action;
+          });
           return;
         }
 
@@ -106,7 +115,12 @@ export function useConfirmNavigation() {
       }
 
       if (replace) {
-        navigation.dispatch(StackActions.replace(route, params));
+        navigation.dispatch((state) => {
+          const action = StackActions.replace(route, params);
+          return state.routeNames.includes(route)
+            ? { ...action, target: state.key }
+            : action;
+        });
         return;
       }
 

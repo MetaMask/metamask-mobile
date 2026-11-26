@@ -8,6 +8,9 @@ on:
       skip_everything:
         description: 'Whether all jobs should be skipped in merge-queue (branch is already up-to-date with latest commit)'
         value: ${{ jobs.detect-changes.outputs.skip_everything }}
+      skip_jest_tests:
+        description: 'Whether the unit, component-view and integration Jest jobs (and the JS dependency prep they need) should be skipped. True only for pull requests whose changed files are all documentation; always false for pushes, merge-queue and scheduled runs.'
+        value: ${{ jobs.detect-changes.outputs.skip_jest_tests }}
       skip_e2e:
         description: 'Whether all E2E builds and tests should be skipped. True for any skip signal (labels or commit tag). Check block_merge_for_e2e_readiness separately to know if merge is also blocked'
         value: ${{ jobs.detect-changes.outputs.skip_e2e }}
@@ -52,6 +55,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       skip_everything: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
+      skip_jest_tests: ${{ steps.set-jest-outputs.outputs.skip_jest_tests || 'false' }}
       skip_e2e: ${{ steps.set-e2e-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
       android_e2e_needed: ${{ steps.set-e2e-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-e2e-outputs.outputs.ios_final }}
@@ -166,6 +170,23 @@ jobs:
         with:
           filters: .github/rules/filter-rules.yml
           list-files: shell
+
+      - name: Compute Jest skip flag
+        id: set-jest-outputs
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          JEST_SKIPPABLE_DOCS_COUNT: ${{ steps.filter.outputs.jest_skippable_docs_count }}
+        run: |
+          skip=false
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]] &&
+             [[ "${ALL_CHANGES_COUNT:-0}" -gt 0 ]] &&
+             [[ "${JEST_SKIPPABLE_DOCS_COUNT:-0}" -eq "${ALL_CHANGES_COUNT:-0}" ]]; then
+            skip=true
+            echo "-> Skipping Jest jobs (docs-only changes)"
+          fi
+          echo "skip_jest_tests=$skip" >> "$GITHUB_OUTPUT"
 
       # Changed component view test files for flakiness detection. Mirrors
       # changed_spec_files: PRs targeting main only, emitted as a heredoc so a
