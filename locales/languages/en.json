@@ -10142,7 +10142,7 @@
       "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
       "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
       "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
-      "earn_more": "Earn more",
+      "add_funds": "Add funds",
       "chart_allocation_accessibility_label": "{{label}}, {{percentage}}",
       "cash_reserve": "Cash reserve",
       "markets": "Markets",
