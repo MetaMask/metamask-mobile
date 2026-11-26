@@ -5513,6 +5513,21 @@
       "open_pack_price": "Open {{name}}, {{price}}",
       "tile_label": "{{name}}, {{opens}}",
       "empty": "No packs available right now"
+    },
+    "collection": {
+      "value_label": "Collection value",
+      "no_value": "-",
+      "search": "Search cards",
+      "newest": "Newest",
+      "filter": "Filter cards",
+      "sort": "Sort cards",
+      "card_label": "{{name}}, {{value}}",
+      "buyback_hours": "Buyback · {{count}}h left",
+      "buyback_minutes": "Buyback · {{count}}m left",
+      "empty": "No cards in your collection yet",
+      "browse_packs": "Browse packs",
+      "no_results": "No cards found",
+      "error": "Couldn't load your cards. Try again later."
     }
   },
   "collectible": {

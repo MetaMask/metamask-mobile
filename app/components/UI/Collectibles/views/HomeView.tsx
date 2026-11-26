@@ -22,19 +22,29 @@ const routes: TabViewRoute[] = collectiblesTabs.map((tab) => ({
   title: strings(`collectibles.tabs.${tab}`),
 }));
 
-const scenes: Record<CollectiblesTab, () => React.JSX.Element> = {
+interface SceneProps {
+  jumpTo: (tab: CollectiblesTab) => void;
+}
+
+const scenes: Record<
+  CollectiblesTab,
+  (props: SceneProps) => React.JSX.Element
+> = {
   popular: PopularView,
   packs: PackListingsView,
   collection: CollectionView,
   marketplace: MarketplaceView,
 };
 
-function renderScene({ route }: { route: TabViewRoute }) {
+function renderScene({
+  route,
+  jumpTo,
+}: SceneRendererProps & { route: TabViewRoute }) {
   const Scene = scenes[route.key as CollectiblesTab];
 
   return (
     <ErrorBoundary view={`Collectibles-${route.key}`}>
-      <Scene />
+      <Scene jumpTo={jumpTo} />
     </ErrorBoundary>
   );
 }

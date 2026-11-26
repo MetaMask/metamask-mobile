@@ -28,4 +28,17 @@ export const collectiblesTestIds = {
   packsTileArt: (code: string) => `collectibles-packs-tile-art-${code}`,
   packsTileArtPlaceholder: (code: string) =>
     `collectibles-packs-tile-art-placeholder-${code}`,
+  collectionValue: 'collectibles-collection-value',
+  collectionSearch: 'collectibles-collection-search',
+  collectionFilterSortLine: 'collectibles-collection-filter-sort-line',
+  collectionFilterButton: 'collectibles-collection-filter-button',
+  collectionSortButton: 'collectibles-collection-sort-button',
+  collectionGrid: 'collectibles-collection-grid',
+  collectionSkeleton: 'collectibles-collection-skeleton',
+  collectionEmpty: 'collectibles-collection-empty',
+  collectionNoResults: 'collectibles-collection-no-results',
+  collectionError: 'collectibles-collection-error',
+  collectionTile: (mint: string) => `collectibles-collection-tile-${mint}`,
+  collectionBuyback: (mint: string) =>
+    `collectibles-collection-buyback-${mint}`,
 } as const;
