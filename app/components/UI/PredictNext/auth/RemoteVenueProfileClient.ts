@@ -180,11 +180,8 @@ export class RemoteVenueProfileClient {
           }
           length += value.byteLength;
           if (length > VENUE_PROFILE_MAX_BYTES) {
-            try {
-              void reader.cancel().catch(() => undefined);
-            } catch {
-              // Cancellation must not replace the size error.
-            }
+            // Cancellation must not replace the size error.
+            void reader.cancel().catch(() => undefined);
             throw new VenueProfileFetchError('oversize');
           }
           chunks.push(value);
