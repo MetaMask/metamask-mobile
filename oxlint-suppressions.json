@@ -22749,11 +22749,6 @@
       "count": 1
     }
   },
-  "app/core/XAuthService/XAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 4
-    }
-  },
   "app/core/XAuthService/XAuthService.ts": {
     "typescript/promise-function-async": {
       "count": 1
