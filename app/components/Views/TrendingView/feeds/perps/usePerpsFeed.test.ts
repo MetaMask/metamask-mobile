@@ -30,6 +30,7 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
   usePerpsMarkets: jest.fn(() => ({
     markets: mockMarkets,
     isLoading: false,
+    error: null,
     refresh: mockRefetch,
     isRefreshing: false,
   })),
@@ -255,5 +256,20 @@ describe('usePerpsFeed', () => {
     renderFeed({ skipInitialFetch: true });
 
     expect(usePerpsMarkets).toHaveBeenCalledWith({ skipInitialFetch: true });
+  });
+
+  it('exposes market errors to feed consumers', () => {
+    (usePerpsMarkets as jest.Mock).mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: 'Market stream unavailable',
+      refresh: mockRefetch,
+      isRefreshing: false,
+    });
+
+    const { result } = renderFeed({ query: 'ETH' });
+
+    expect(result.current.data).toEqual([]);
+    expect(result.current.error).toBe('Market stream unavailable');
   });
 });
