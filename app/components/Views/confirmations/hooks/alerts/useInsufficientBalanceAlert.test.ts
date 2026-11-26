@@ -156,6 +156,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: false,
       isUnavailable: false,
+      recheck: jest.fn(),
     });
   });
 
@@ -371,6 +372,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: true,
       isUnavailable: false,
+      recheck: jest.fn(),
     });
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
@@ -395,6 +397,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: false,
       isUnavailable: true,
+      recheck: jest.fn(),
     });
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
@@ -431,10 +434,13 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
-  it('returns empty array if transaction type is perpsWithdraw', () => {
+  it.each([
+    TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
+  ])('returns empty array if transaction type is %s', (type) => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
-      type: TransactionType.perpsWithdraw,
+      type,
     } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());

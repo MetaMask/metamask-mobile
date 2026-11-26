@@ -42,8 +42,6 @@ jest.mock('./useMoneyAccount', () => ({
 jest.mock('../utils/firstTimeDeposit', () => ({
   shouldShowMoneyFirstTimeDepositAnimation: jest.fn(() => false),
 }));
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
@@ -140,7 +138,7 @@ const mockTransactionPayData: Record<
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
   ...jest.requireActual('../../../../selectors/transactionPayController'),
-  selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
+  selectAccountOverrideAddressByTransactionId: (_state: unknown, id: string) =>
     mockTransactionPayData[id]?.accountOverride,
   selectTransactionPayFiatPaymentByTransactionId: (
     _state: unknown,
@@ -209,27 +207,19 @@ describe('useMoneyTransactionStatus', () => {
   const mockCloseToast = jest.fn();
 
   const baseInProgressToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Loading,
     hasNoTimeout: true,
     hapticsType: NotificationMoment.Warning,
-    labelOptions: [{ label: 'In progress', isBold: true }],
+    title: 'In progress',
   };
   const baseSuccessToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Confirmation,
     hasNoTimeout: false,
-    iconColor: '#success',
     hapticsType: NotificationMoment.Success,
-    labelOptions: [{ label: 'Success', isBold: true }],
+    title: 'Success',
   };
   const baseFailedToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.CircleX,
     hasNoTimeout: false,
-    iconColor: '#error',
     hapticsType: NotificationMoment.Error,
-    labelOptions: [{ label: 'Failed', isBold: true }],
+    title: 'Failed',
   };
 
   const depositInProgressFn = jest.fn<
@@ -243,6 +233,10 @@ describe('useMoneyTransactionStatus', () => {
   const depositFailedFn = jest.fn<
     ReturnType<MoneyToastOptionsConfig['deposit']['failed']>,
     Parameters<MoneyToastOptionsConfig['deposit']['failed']>
+  >(() => baseFailedToast);
+  const depositDeclinedFn = jest.fn<
+    ReturnType<MoneyToastOptionsConfig['deposit']['declined']>,
+    Parameters<MoneyToastOptionsConfig['deposit']['declined']>
   >(() => baseFailedToast);
   const withdrawInProgressFn = jest.fn<
     ReturnType<MoneyToastOptionsConfig['withdraw']['inProgress']>,
@@ -274,6 +268,7 @@ describe('useMoneyTransactionStatus', () => {
       inProgress: depositInProgressFn,
       success: depositSuccessFn,
       failed: depositFailedFn,
+      declined: depositDeclinedFn,
     },
     withdraw: {
       inProgress: withdrawInProgressFn,
@@ -788,6 +783,45 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawFailedFn).not.toHaveBeenCalled();
     });
 
+    it('shows the declined toast for a terminal fiat order failure', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: { strategy: 'fiat' },
+          error: {
+            name: 'Error',
+            message: 'MetaMask Pay: Fiat: Fiat order failed',
+          },
+        }),
+      });
+
+      expect(depositDeclinedFn).toHaveBeenCalledTimes(1);
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalled();
+    });
+
+    it('keeps the generic toast for a failed fiat deposit with another error', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: { strategy: 'fiat' },
+          error: {
+            name: 'Error',
+            message: 'MetaMask Pay: Fiat: Fiat order polling timed out',
+          },
+        }),
+      });
+
+      expect(depositDeclinedFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
     it.each([
       ['dropped', TransactionStatus.dropped],
       ['cancelled', TransactionStatus.cancelled],
@@ -1092,6 +1126,33 @@ describe('useMoneyTransactionStatus', () => {
         'your account',
       );
       expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it('falls back to "your account" when the transfer keeps the mUSD on the money account', () => {
+      const moneyAccount = '0x2222222222222222222222222222222222222222';
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: moneyAccount,
+            data: encodeWithdrawData(BigInt(5_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(moneyAccount, BigInt(5_000_000)),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
     });
 
     it('failed → withdraw failed toast', () => {

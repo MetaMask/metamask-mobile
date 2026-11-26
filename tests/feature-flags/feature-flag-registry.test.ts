@@ -204,13 +204,22 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('keeps the Money deposit Braze campaign default-off', () => {
+    it('enables the Money deposit Braze campaign at 8.18.0+', () => {
       expect(
         getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
           ?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.18.0',
+      });
+    });
+
+    it('registers the Money earnings history flag', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarningHistoryEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.21.0',
       });
     });
 
@@ -252,6 +261,7 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -271,6 +281,7 @@ describe('Feature Flag Registry', () => {
     it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
       ];
 
       for (const flagName of abTestFlags) {
@@ -408,34 +419,22 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
-      expect(
-        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-      expect(
-        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-    });
-
-    it('enables Social AI comment translation from 8.17.0', () => {
+    it('enables Social AI comment translation from 8.21.0', () => {
       expect(
         getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
       ).toEqual({
         enabled: true,
-        minimumVersion: '8.17.0',
+        minimumVersion: '8.21.0',
       });
     });
 
-    it('keeps the Social GIF API off until it is in production', () => {
+    it('enables the Social GIF API from 8.21.0', () => {
       expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
-        inProd: false,
-        productionDefault: false,
+        inProd: true,
+        productionDefault: {
+          enabled: true,
+          minimumVersion: '8.21.0',
+        },
         status: FeatureFlagStatus.Active,
       });
     });

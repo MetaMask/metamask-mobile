@@ -30,6 +30,8 @@ import {
 import { ethers } from 'ethers';
 import Engine from '../../../Engine';
 import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
+import ReduxService from '../../../redux/ReduxService';
+import { setDestToken, setSourceToken } from '../../../redux/slices/bridge';
 import { isHex } from 'viem';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import {
@@ -38,6 +40,7 @@ import {
 } from '../../../../util/networks/networkToastSuppression';
 
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
+import { getDeeplinkProcessedAppStartType } from '../../../Performance/DeeplinkPerformance';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import {
@@ -140,7 +143,6 @@ const addEvmNetworkFromPopularList = async (chainId: Hex) => {
       rpcEndpoints: [
         {
           url: popularNetwork.rpcUrl,
-          failoverUrls: popularNetwork.failoverRpcUrls,
           name: popularNetwork.nickname,
           type: RpcEndpointType.Custom,
         },
@@ -186,14 +188,14 @@ function getSwapUrlParams(swapPath: string) {
   return new URLSearchParams(cleanPath);
 }
 
-function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
+function getInitialTab(urlParams: URLSearchParams): BridgeTabKey {
   const tab = urlParams.get('tab');
 
   if (tab === BridgeTabKey.Limit || tab === BridgeTabKey.Recurring) {
     return tab;
   }
 
-  return undefined;
+  return BridgeTabKey.Market;
 }
 
 function parseLimitOrderExpirationMinutes(
@@ -314,7 +316,7 @@ function getInitialRouteParams(
     };
   }
 
-  return {};
+  return { initialTab };
 }
 
 /**
@@ -339,27 +341,23 @@ function getInitialRouteParams(
  *
  * All parameters are optional, allows partial deep linking
  */
-const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => {
-  const tracedParams = startSwapBridgePageLoadTrace(params);
-
-  return {
-    type: 'main-stack',
-    routeName: Routes.BRIDGE.ROOT,
-    params: {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: tracedParams,
-    },
-  };
-};
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
+  type: 'main-stack',
+  routeName: Routes.BRIDGE.ROOT,
+  params: {
+    screen: Routes.BRIDGE.BRIDGE_VIEW,
+    params,
+  },
+});
 
 /**
- * Resolve the navigation target for a swap deeplink. Token metadata lookup and
+ * Resolve the Bridge params for a swap deeplink. Token metadata lookup and
  * chain enabling must complete before navigation, so this builder is async and
  * fully resolves the Bridge params up front.
  */
-const resolveSwapTarget = async (
+const resolveSwapRouteParams = async (
   swapPath: string,
-): Promise<DeeplinkIntent['target']> => {
+): Promise<BridgeRouteParams> => {
   // Parse URL parameters
   const urlParams = getSwapUrlParams(swapPath);
 
@@ -400,7 +398,7 @@ const resolveSwapTarget = async (
       ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
       : undefined;
 
-  return bridgeTarget({
+  return {
     sourceToken: sourceToken ?? undefined,
     destToken: destToken ?? undefined,
     sourceAmount: sourceAmount ?? undefined,
@@ -408,15 +406,36 @@ const resolveSwapTarget = async (
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
     ...initialRouteParams,
-  });
+  };
 };
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-}: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
-  target: await resolveSwapTarget(swapPath),
-  prepare: resetSwapSessionBeforeDeeplink,
-});
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
+  const routeParams = await resolveSwapRouteParams(swapPath);
+  const { sourceToken, destToken } = routeParams;
+  const intent: DeeplinkIntent = {
+    target: bridgeTarget(routeParams),
+    // Executors read `target` after `prepare`. Seeding tokens and starting the
+    // trace here, right before navigation, matches in-app opens.
+    prepare: () => {
+      resetSwapSessionBeforeDeeplink();
+      const { dispatch } = ReduxService.store;
+      if (sourceToken) {
+        dispatch(setSourceToken(sourceToken));
+      }
+      if (destToken) {
+        dispatch(setDestToken(destToken));
+      }
+      intent.target = bridgeTarget(
+        startSwapBridgePageLoadTrace(routeParams, {
+          appStartType: getDeeplinkProcessedAppStartType(),
+        }),
+      );
+    },
+  };
+  return intent;
+};
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));
@@ -427,12 +446,15 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
     resetSwapSessionBeforeDeeplink();
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'deeplink',
-      bridgeViewMode: BridgeViewMode.Unified,
-      location: MetaMetricsSwapsEventSource.MainView,
-      ...initialRouteParams,
-    });
+    const params = startSwapBridgePageLoadTrace(
+      {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        ...initialRouteParams,
+      },
+      { appStartType: getDeeplinkProcessedAppStartType() },
+    );
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,

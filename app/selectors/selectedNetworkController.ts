@@ -17,6 +17,7 @@ import {
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../core/Multichain/utils';
+import { getRegistryNetworkImagesByChainId } from './configRegistry';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -90,12 +91,15 @@ const selectProviderNetworkName = createSelector(
 );
 
 const selectProviderNetworkImageSource = createSelector(
-  selectProviderConfig,
-  (providerConfig: ProviderConfig) =>
-    getNetworkImageSource({
-      networkType: providerConfig.type,
-      chainId: providerConfig.chainId,
-    }),
+  [selectProviderConfig, getRegistryNetworkImagesByChainId],
+  (providerConfig: ProviderConfig, networkImageUrls) =>
+    getNetworkImageSource(
+      {
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
+      },
+      networkImageUrls,
+    ),
 );
 
 const selectChainIdToUse = createSelector(
@@ -161,6 +165,7 @@ export const makeSelectNetworkImageSource = () =>
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
+      getRegistryNetworkImagesByChainId,
     ],
     (
       networkConfigurations,
@@ -169,6 +174,7 @@ export const makeSelectNetworkImageSource = () =>
       chainId,
       hostname,
       chainIdToUse,
+      networkImageUrls,
     ) => {
       if (!hostname) return providerNetworkImageSource;
 
@@ -176,14 +182,20 @@ export const makeSelectNetworkImageSource = () =>
 
       const networkConfig = networkConfigurations[relevantChainId];
       if (networkConfig) {
-        return getNetworkImageSource({ chainId: networkConfig.chainId });
+        return getNetworkImageSource(
+          { chainId: networkConfig.chainId },
+          networkImageUrls,
+        );
       }
-      return getNetworkImageSource({
-        // @ts-expect-error The utils/network file is still JS
-        networkType: NetworkList[networkClientIdForDomain]?.networkType,
-        // @ts-expect-error The utils/network file is still JS
-        chainId: NetworkList[networkClientIdForDomain]?.chainId,
-      });
+      return getNetworkImageSource(
+        {
+          // @ts-expect-error The utils/network file is still JS
+          networkType: NetworkList[networkClientIdForDomain]?.networkType,
+          // @ts-expect-error The utils/network file is still JS
+          chainId: NetworkList[networkClientIdForDomain]?.chainId,
+        },
+        networkImageUrls,
+      );
     },
   );
 

@@ -18,7 +18,10 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -84,6 +87,8 @@ type OrderBookViewMode = 'default' | 'buy' | 'sell';
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
   symbol: string;
+  /** Venue whose book to show. Omit to follow the default venue. */
+  providerId?: PerpsProviderType;
   /**
    * Fallback mid/market price used to derive grouping options before the raw
    * order book produces its own mid.
@@ -428,6 +433,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
  */
 const PerpsProOrderBookPanel = ({
   symbol,
+  providerId,
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
@@ -506,6 +512,7 @@ const PerpsProOrderBookPanel = ({
   const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
     usePerpsLiveOrderBook({
       symbol,
+      providerId,
       enabled: Boolean(symbol) && isMarketContextReady,
       resetKey: marketContextKey,
       // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
@@ -594,6 +601,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
+    providerId,
     channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,

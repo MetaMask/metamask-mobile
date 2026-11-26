@@ -39,6 +39,7 @@ export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   NOT_YET_COMPUTED: 'perps-campaign-leaderboard-not-yet-computed',
   TOTAL_PARTICIPANTS: 'perps-campaign-leaderboard-total-participants',
   POWERED_BY: 'perps-campaign-leaderboard-powered-by',
+  POWERED_BY_PREFIX: 'perps-campaign-leaderboard-powered-by-prefix',
   HYPERTRACKER_LOGO: 'perps-campaign-leaderboard-hypertracker-logo',
 } as const;
 
@@ -60,7 +61,10 @@ export interface PerpsTradingCampaignLeaderboardProps {
   isCampaignComplete?: boolean;
   /**
    * Number of prize-winning ranks for this campaign, from the leaderboard API.
-   * Falls back to PERPS_TRADING_MAX_WINNERS when the backend does not send it.
+   * Crowns use this count. The full board shows every returned row and is
+   * never shorter than PERPS_TRADING_MAX_WINNERS, so a missing tail still
+   * opens the neighbor strip. Falls back to PERPS_TRADING_MAX_WINNERS when
+   * the backend does not send it.
    */
   numberOfWinners?: number;
 }
@@ -81,6 +85,10 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
+  // Show every returned row, but do not stretch the split cutoff out to
+  // numberOfWinners. A winner count larger than the rows actually returned
+  // would hide ranks that sit between the two.
+  const boardSize = Math.max(PERPS_TRADING_MAX_WINNERS, entries.length);
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -97,6 +105,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
       entries,
       maxEntries,
       userPosition,
+      boardSize,
     });
 
   const isCurrentUser = useCallback(
@@ -107,7 +116,9 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
+    return (
+      <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? boardSize} />
+    );
   }
 
   if (hasError && entries.length === 0) {
@@ -200,7 +211,11 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         twClassName="mt-4 px-4 w-full flex-row items-center"
         testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY}
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY_PREFIX}
+        >
           {strings(
             'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
           )}

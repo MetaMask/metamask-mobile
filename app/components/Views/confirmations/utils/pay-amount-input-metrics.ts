@@ -52,7 +52,7 @@ export function getDepositPrefillAmountInputType({
 
 /**
  * Whether Money Account deposit confirmation will present an amount prefill.
- * Uses forceAddMusd so addMusd matches the loader / always-prefill path.
+ * Uses forceFullBalanceIntent so full-balance intents match the always-prefill path.
  */
 export function resolveMoneyAccountDepositPrefillPresented(
   transactionMeta: TransactionMeta,
@@ -89,6 +89,6 @@ export function resolveMoneyAccountDepositPrefillPresented(
     remotePrefillEnabled: prefillConfig.enabled,
     abTestPrefillEnabled,
     intent,
-    forceAddMusd: true,
+    forceFullBalanceIntent: true,
   });
 }

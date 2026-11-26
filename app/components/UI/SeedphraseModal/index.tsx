@@ -5,7 +5,6 @@ import {
   AvatarIconSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FontWeight,
@@ -19,6 +18,9 @@ import {
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const TITLE_PROPS = {
   fontWeight: FontWeight.Bold,
@@ -31,6 +33,7 @@ const DESCRIPTION_PROPS = {
 };
 
 const SeedphraseModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -40,9 +43,9 @@ const SeedphraseModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={navigation.goBack}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         {strings('account_backup_step_1.what_is_seedphrase_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-2">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('account_backup_step_1.what_is_seedphrase_description')}

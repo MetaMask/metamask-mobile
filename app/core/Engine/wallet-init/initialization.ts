@@ -8,6 +8,8 @@ import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-option
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
+import { getSignatureControllerInstanceOptions } from './instance-options/signature-controller';
+import { getSignatureControllerInitMessenger } from './messengers/signature-controller-messenger';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
@@ -22,6 +24,14 @@ import { getTransactionControllerInitMessenger } from './messengers/transaction-
 import { getPermissionControllerInstanceOptions } from './instance-options/permission-controller';
 import { getPermissionControllerInitMessenger } from './messengers/permission-controller-messenger';
 import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
+import {
+  getAnalyticsControllerInstanceOptions,
+  withMobileAnalyticsControllerState,
+} from './instance-options/analytics-controller';
+import { getAnalyticsControllerInitMessenger } from './messengers/analytics-controller-messenger';
+import { setupAnalyticsControllerListeners } from './listeners/analytics-controller';
+import { getGeolocationApiServiceInstanceOptions } from './instance-options/geolocation-api-service';
+import { fetchInitialGeolocation } from './listeners/geolocation-controller';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -30,15 +40,20 @@ import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
  * @param request - The wallet initialization request.
  * @param request.messenger - The root messenger.
  * @param request.state - The persisted controller state.
+ * @param request.analyticsId - The analytics ID read from MMKV.
  * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
-  state,
+  state: persistedState,
+  analyticsId,
 }: {
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
+  analyticsId: string;
 }) {
+  const state = withMobileAnalyticsControllerState(persistedState, analyticsId);
+
   // Ledger DMK mode: seeded once here from persisted state; the keyring
   // bridge and adapter creation (`useAdapterLifecycle`) read this same value.
   const remoteFeatureFlagState = (state as Record<string, unknown>)
@@ -75,9 +90,11 @@ export function initializeWallet({
     messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
+      analyticsController: getAnalyticsControllerInstanceOptions(analyticsId),
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
       gasFeeController: getGasFeeControllerInstanceOptions(),
+      geolocationApiService: getGeolocationApiServiceInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
       permissionController: getPermissionControllerInstanceOptions(
@@ -93,6 +110,9 @@ export function initializeWallet({
       selectedNetworkController: {
         domainProxyMap: new DomainProxyMap(),
       },
+      signatureController: getSignatureControllerInstanceOptions({
+        initMessenger: getSignatureControllerInitMessenger(messenger),
+      }),
       storageService: getStorageServiceInstanceOptions(),
       subscriptionService: getSubscriptionServiceInstanceOptions(),
       shieldApiService: getShieldApiServiceInstanceOptions(),
@@ -104,7 +124,17 @@ export function initializeWallet({
     },
   });
 
+  setupAnalyticsControllerListeners(
+    getAnalyticsControllerInitMessenger(messenger),
+  );
+
+  // `wallet.init()` also runs `NetworkEnablementController.init()`, which
+  // reads `MultichainNetworkController:getState`. Mobile registers that
+  // controller after the wallet, so Engine calls
+  // `NetworkEnablementController.init()` again once it exists.
   wallet.init().catch((error: unknown) => console.error(error));
+
+  fetchInitialGeolocation(wallet.getInstance('GeolocationController'));
 
   return wallet;
 }

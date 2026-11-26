@@ -15,7 +15,7 @@ import {
   passwordSet,
   setExistingUser,
   setIsConnectionRemoved,
-  setMoneyOnboardingSeen,
+  setMoneySplashSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -37,7 +37,6 @@ import Routes from '../../constants/navigation/Routes';
 import {
   TraceName,
   TraceOperation,
-  TraceContext,
   trace,
   endTrace,
   getTraceContext,
@@ -115,6 +114,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
+import type { Span } from '@sentry/core';
 import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
@@ -965,7 +965,7 @@ class AuthenticationService {
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
       navigationBehavior?: 'default' | 'preserve';
-      parentContext?: TraceContext;
+      parentContext?: Span;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -1526,7 +1526,7 @@ class AuthenticationService {
     // Optional so existing callers are unaffected. When provided (from the onboarding UI), it
     // nests OnboardingFetchSrps under the overall-journey span instead of emitting it as a
     // disconnected root transaction in Sentry.
-    parentContext?: TraceContext,
+    parentContext?: Span,
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
@@ -1965,9 +1965,9 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
-    // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
-    // Engine rebuild — without this, Money splash is skipped after reset.
-    ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
+    // The Money splash flag lives in persisted user state and is not wiped by
+    // the Engine rebuild, so without this the splash is skipped after a reset.
+    ReduxService.store.dispatch(setMoneySplashSeen(false));
   };
 
   /**

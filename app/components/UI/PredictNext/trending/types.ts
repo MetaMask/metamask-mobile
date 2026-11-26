@@ -24,7 +24,7 @@ export type PredictTrendingVariant =
  * a Feed key (`PREDICT_SURFACE_FEED_KEYS.exploreTabs`); a tab whose key the
  * Active Venue does not support shows no Predictions section.
  */
-export type PredictTrendingTab = 'now' | 'macro' | 'rwas' | 'crypto' | 'sports';
+export type PredictTrendingTab = 'now' | 'rwas' | 'crypto' | 'sports';
 
 export interface UsePredictTrendingFeedOptions {
   /** @default 'now' */

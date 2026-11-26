@@ -32,6 +32,19 @@ const mockRouteState: { params: { campaignId?: string } } = {
   params: { campaignId: 'campaign-1' },
 };
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+jest.mock(
+  '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: jest.fn(),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,

@@ -2,7 +2,6 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   findPositionByTokenAddress,
   getOpenPositionForAsset,
-  isOpenPositionEndpointUnreachable,
   getTraderPosition,
   openPositionUrl,
   toOpenPositionPnl,
@@ -397,47 +396,7 @@ describe('getOpenPositionForAsset', () => {
     ).rejects.toBeInstanceOf(TraderPositionHttpError);
   });
 
-  it('treats a request with no HTTP response as an unreachable endpoint', () => {
-    expect(
-      isOpenPositionEndpointUnreachable(
-        new TypeError('Network request failed'),
-      ),
-    ).toBe(true);
-    expect(
-      isOpenPositionEndpointUnreachable(new TraderPositionHttpError(404, '')),
-    ).toBe(false);
-    expect(
-      isOpenPositionEndpointUnreachable(
-        new TraderPositionHttpError(
-          404,
-          JSON.stringify({
-            message:
-              'Cannot GET /api/v2/traders/0x1/eip155%3A1%2Ferc20%3A0xabc/open',
-            error: 'Not Found',
-            statusCode: 404,
-          }),
-        ),
-      ),
-    ).toBe(true);
-    expect(
-      isOpenPositionEndpointUnreachable(
-        new TraderPositionHttpError(
-          404,
-          JSON.stringify({
-            errorMessage:
-              'No open position found for 0x1 in eip155:1/erc20:0xabc',
-          }),
-        ),
-      ),
-    ).toBe(false);
-    expect(
-      isOpenPositionEndpointUnreachable(
-        Object.assign(new Error('aborted'), { name: 'AbortError' }),
-      ),
-    ).toBe(false);
-  });
-
-  it('uses stand-in figures when the route is not registered', async () => {
+  it('throws when the route is not registered', async () => {
     mockFetch.mockResolvedValue(
       jsonResponse(404, {
         message: `Cannot GET /api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
@@ -446,26 +405,16 @@ describe('getOpenPositionForAsset', () => {
       }),
     );
 
-    const result = await getOpenPositionForAsset(walletAddress, assetId);
-
-    expect(result.pnl.isOpen).toBe(true);
-    expect(result.pnl.pnlStatus).toBe('ready');
-    expect(result.earliestTradeAt).toEqual(expect.any(Number));
+    await expect(
+      getOpenPositionForAsset(walletAddress, assetId),
+    ).rejects.toBeInstanceOf(TraderPositionHttpError);
   });
 
-  it('uses stand-in figures when the request never gets a response', async () => {
+  it('throws when the request never gets a response', async () => {
     mockFetch.mockRejectedValue(new TypeError('Network request failed'));
 
-    const result = await getOpenPositionForAsset(walletAddress, assetId);
-
-    expect(result.pnl).toEqual(
-      expect.objectContaining({
-        isOpen: true,
-        pnlStatus: 'ready',
-        positionAmount: 713930,
-        currentValueUSD: 150,
-      }),
-    );
-    expect(result.earliestTradeAt).toEqual(expect.any(Number));
+    await expect(
+      getOpenPositionForAsset(walletAddress, assetId),
+    ).rejects.toThrow('Network request failed');
   });
 });

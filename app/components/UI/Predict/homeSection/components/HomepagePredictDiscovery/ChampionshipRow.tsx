@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   BoxFlexDirection,
+  type IconName,
   Text,
   TextColor,
   TextVariant,
@@ -13,7 +14,7 @@ import PredictMarketRowItem from '../../../components/PredictMarketRowItem';
 import { PredictEventValues } from '../../../constants/eventNames';
 import type { PredictMarket } from '../../../types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
+import HomepagePredictDiscoveryRowIcon from './HomepagePredictDiscoveryRowIcon';
 
 /** One-row placeholder aligned with `PredictMarketRowItem` loading height. */
 const ChampionshipRowSkeleton: React.FC<{ testID?: string }> = ({ testID }) => {
@@ -51,6 +52,7 @@ export type ChampionshipRowState =
 
 interface ChampionshipRowProps {
   state: ChampionshipRowState;
+  iconName?: IconName;
   onPress?: () => void;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   testID?: string;
@@ -58,6 +60,7 @@ interface ChampionshipRowProps {
 
 const ChampionshipRow = ({
   state,
+  iconName,
   onPress,
   transactionActiveAbTests,
   testID,
@@ -80,7 +83,10 @@ const ChampionshipRow = ({
       entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       showChevron
       leadingAccessory={
-        <HomepagePredictDiscoveryMaterialGlyph name="emojiEvents" />
+        <HomepagePredictDiscoveryRowIcon
+          iconName={iconName}
+          fallbackGlyph="emojiEvents"
+        />
       }
       detailsTitle={state.detailsTitle}
       onPress={onPress}

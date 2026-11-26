@@ -259,10 +259,24 @@ describe('SocialLivePricesProvider', () => {
     );
     const { callback } = mockSubscribeToSymbols.mock.calls[0][0];
     act(() => {
-      callback({ BTC: { price: '100000', markPrice: '100010' } });
+      callback({ BTC: { price: '100000', oraclePrice: '100010' } });
     });
 
     expect(context?.store.get('perp:BTC')?.price).toBe(100010);
+  });
+
+  it('keeps the live mid when the oracle has diverged', async () => {
+    renderProvider([{ id: 'a', key: 'perp:SOL', y: 100 }]);
+    await settle();
+    const { callback } = mockSubscribeToSymbols.mock.calls[0][0];
+
+    act(() => {
+      callback({
+        SOL: { price: '86.58', oraclePrice: '25.999', isTradable: false },
+      });
+    });
+
+    expect(context?.store.get('perp:SOL')?.price).toBe(86.58);
   });
 
   it('drops every subscription when the screen blurs', async () => {

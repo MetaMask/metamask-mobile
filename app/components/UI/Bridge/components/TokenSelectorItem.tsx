@@ -32,7 +32,6 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken, SecurityDataType } from '../types';
-import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
@@ -126,12 +125,6 @@ const createStyles = ({
       borderRadius: 30,
       backgroundColor: theme.colors.background.alternative,
     },
-    secondaryBalance: {
-      color: theme.colors.text.alternative,
-      paddingHorizontal: 0,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
     badgeWrapper: {
       // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
       alignSelf: undefined,
@@ -167,7 +160,7 @@ interface TokenSelectorItemProps {
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
-  showStockBadge?: boolean;
+  badgeLabel?: string;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
   shouldChangeSelectedStyle?: boolean;
@@ -274,7 +267,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   shouldShowBalance = true,
   children,
   isNoFeeAsset = false,
-  showStockBadge = false,
+  badgeLabel,
   secondaryRowContent,
   tokenBalanceTextProps,
   shouldChangeSelectedStyle = true,
@@ -498,7 +491,9 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 textColor={BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor}
               />
             </Box>
-            {showStockBadge && <StockBadge token={token} />}
+            {badgeLabel ? (
+              <StockBadge token={token} label={badgeLabel} />
+            ) : null}
           </Box>
         </Box>
         {shouldIncludeChildrenInPressTarget && children ? (

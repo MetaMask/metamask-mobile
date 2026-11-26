@@ -40,6 +40,8 @@ import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
+import { getAdvancedOrderTokenProperties } from '../../utils/advancedOrders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -205,11 +207,14 @@ export const LimitOrderConfirmationModalScreen = () => {
 
   const sharedAdvancedOrderProperties = useMemo(
     () => ({
+      ...getAdvancedOrderTokenProperties({
+        sourceToken: params.sourceToken,
+        destToken: params.destToken,
+      }),
       feature_id: FeatureId.LIMIT_ORDER,
-      // TODO use location from navigation context
-      location: 'Main View',
+      location: params.location,
     }),
-    [],
+    [params.sourceToken, params.destToken, params.location],
   );
 
   const publishDelegationFailureEvent = useCallback(() => {
@@ -248,6 +253,7 @@ export const LimitOrderConfirmationModalScreen = () => {
       return;
     }
 
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsCreatingOrder(true);
 
     try {
@@ -406,7 +412,10 @@ export const LimitOrderConfirmationModalScreen = () => {
         onPress: handleConfirm,
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
-        isLoading: delegationFee.status === 'loading' || isCreatingOrder,
+        isLoading:
+          delegationFee.status === 'checking' ||
+          delegationFee.status === 'loading' ||
+          isCreatingOrder,
         isDisabled:
           !feeTokenValidation.isValid ||
           confirmError === LimitOrderConfirmError.GeoRestricted,

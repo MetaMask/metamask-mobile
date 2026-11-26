@@ -33,6 +33,9 @@ export function useTransactionPayPostQuote(): void {
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
+  const isLighterWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsLighterWithdraw,
+  ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
@@ -72,14 +75,19 @@ export function useTransactionPayPostQuote(): void {
       const { TransactionPayController } = Engine.context;
 
       // Predict Safe withdrawals refund to the proxy.
-      // Money Account withdrawals refund to the Money Account in txParams.from.
-      // Relay funds the bridge from the EOA after the unvault transfer, so the
-      // quote must send a failed fill's mUSD back to the Money Account.
-      // Perps and Polymarket deposit-wallet withdrawals leave refundTo unset.
+      // Money Account withdrawals refund to the Money Account in txParams.from,
+      // which funds the bridge, so a failed fill's mUSD goes back there.
+      // Perps (Hyperliquid and Lighter) and Polymarket deposit-wallet withdrawals
+      // leave refundTo unset.
       let refundTo: Hex | undefined;
       if (isMoneyAccountWithdraw) {
         refundTo = from;
-      } else if (!isPerpsWithdraw && !isDepositWalletWithdraw && from) {
+      } else if (
+        !isPerpsWithdraw &&
+        !isLighterWithdraw &&
+        !isDepositWalletWithdraw &&
+        from
+      ) {
         refundTo = computeProxyAddress(from);
       }
 
@@ -105,6 +113,7 @@ export function useTransactionPayPostQuote(): void {
         transactionId,
         refundTo,
         isPerpsWithdraw,
+        isLighterWithdraw,
         isMoneyAccountWithdraw,
         isDepositWalletWithdraw,
       });
@@ -118,6 +127,7 @@ export function useTransactionPayPostQuote(): void {
     accountState,
     canSelectWithdrawToken,
     isDepositWalletWithdraw,
+    isLighterWithdraw,
     isMoneyAccountWithdraw,
     isPerpsWithdraw,
     isPredictWithdraw,

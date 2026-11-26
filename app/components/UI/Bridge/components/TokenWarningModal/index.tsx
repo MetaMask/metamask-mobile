@@ -22,7 +22,6 @@ import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
 import { SecurityDataType, SecurityFeature } from '../../types';
 import {
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -38,6 +37,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TokenWarningModalParams {
   warningType:
@@ -47,6 +48,11 @@ export interface TokenWarningModalParams {
   features: SecurityFeature[];
   mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
+  /**
+   * Execution mode only: runs on Proceed instead of the Bridge confirm, for
+   * flows that submit outside the Bridge screens (e.g. Quick Buy).
+   */
+  onProceed?: () => Promise<void>;
 }
 
 export const getTokenWarningContent = (
@@ -80,7 +86,20 @@ export const getTokenWarningContent = (
   };
 };
 
-export const TokenWarningModal = () => {
+type BridgeQuoteData = ReturnType<typeof useBridgeQuoteDataContext>;
+
+interface TokenWarningModalSheetProps {
+  activeQuote?: BridgeQuoteData['activeQuote'];
+  shouldShowPriceImpactError?: BridgeQuoteData['shouldShowPriceImpactError'];
+  confirmBridge?: ReturnType<typeof useBridgeConfirm>;
+}
+
+const TokenWarningModalSheet = ({
+  activeQuote,
+  shouldShowPriceImpactError,
+  confirmBridge,
+}: TokenWarningModalSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
@@ -90,31 +109,25 @@ export const TokenWarningModal = () => {
     features = [],
     mode,
     location,
+    onProceed,
   } = useParams<TokenWarningModalParams>();
 
   const destToken = useSelector(selectDestToken);
-
-  const { activeQuote, shouldShowPriceImpactError } =
-    useBridgeQuoteDataContext();
-
-  const confirmBridge = useBridgeConfirm({
-    activeQuote,
-    location,
-  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleProceed = useCallback(async () => {
-    if (hasMissingPriceData(activeQuote)) {
+    // An `onProceed` caller runs its own quote checks.
+    if (!onProceed && hasMissingPriceData(activeQuote)) {
       navigation.replace(Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL, {
         location,
       });
       return;
     }
 
-    if (shouldShowPriceImpactError) {
+    if (!onProceed && shouldShowPriceImpactError) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         location,
@@ -122,11 +135,12 @@ export const TokenWarningModal = () => {
       return;
     }
 
+    const confirm = onProceed ?? confirmBridge;
     setLoading(true);
     if (sheetRef.current?.onCloseBottomSheet) {
-      sheetRef.current.onCloseBottomSheet(confirmBridge);
+      sheetRef.current.onCloseBottomSheet(confirm);
     } else {
-      await confirmBridge();
+      await confirm?.();
     }
   }, [
     activeQuote,
@@ -134,6 +148,7 @@ export const TokenWarningModal = () => {
     navigation,
     location,
     shouldShowPriceImpactError,
+    onProceed,
   ]);
 
   const {
@@ -148,10 +163,20 @@ export const TokenWarningModal = () => {
   } = getTokenWarningContent(warningType, destToken?.symbol ?? '');
 
   const negativeFeatureLabels = getNegativeFeatureLabels();
+  // Same rule as Token Details: only list features matching this severity.
+  const severityTypes: string[] = isMalicious
+    ? [SecurityDataType.Malicious]
+    : [SecurityDataType.Warning, SecurityDataType.Spam];
+  const shownFeatures = features.filter((feature) =>
+    severityTypes.includes(
+      negativeFeatureLabels[feature.featureId]?.type ?? feature.type,
+    ),
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -208,9 +233,9 @@ export const TokenWarningModal = () => {
               </Text>
             )}
           </Box>
-          {features.length > 0 ? (
+          {shownFeatures.length > 0 ? (
             <Box twClassName="w-full">
-              {features.map((feature) => (
+              {shownFeatures.map((feature) => (
                 <Box
                   key={feature.featureId}
                   flexDirection={BoxFlexDirection.Row}
@@ -292,5 +317,32 @@ export const TokenWarningModal = () => {
         />
       )}
     </BottomSheet>
+  );
+};
+
+// Quote data and confirm only exist inside the Bridge providers, so they are
+// read only in Execution mode without `onProceed`. The other cases can open
+// from outside them (e.g. Quick Buy).
+const TokenWarningExecutionModal = () => {
+  const { location } = useParams<TokenWarningModalParams>();
+  const { activeQuote, shouldShowPriceImpactError } =
+    useBridgeQuoteDataContext();
+  const confirmBridge = useBridgeConfirm({ activeQuote, location });
+
+  return (
+    <TokenWarningModalSheet
+      activeQuote={activeQuote}
+      shouldShowPriceImpactError={shouldShowPriceImpactError}
+      confirmBridge={confirmBridge}
+    />
+  );
+};
+
+export const TokenWarningModal = () => {
+  const { mode, onProceed } = useParams<TokenWarningModalParams>();
+  return mode === TokenWarningModalMode.Execution && !onProceed ? (
+    <TokenWarningExecutionModal />
+  ) : (
+    <TokenWarningModalSheet />
   );
 };

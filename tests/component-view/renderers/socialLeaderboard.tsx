@@ -36,8 +36,12 @@ import {
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import MyProfileView from '../../../app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
+import TraderProfileView from '../../../app/components/Views/SocialLeaderboard/TraderProfileView';
 import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import NotificationSettingsSection from '../../../app/components/Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { createStateFixture } from '../stateFixture';
 
@@ -63,6 +67,73 @@ function SocialV1ViewWithCompliance() {
 export interface RenderSocialLeaderboardOptions {
   presetOptions?: SocialLeaderboardPresetOptions;
   overrides?: DeepPartial<RootState>;
+}
+
+export const CV_TRADER_PROFILE_PARAMS = {
+  traderId: 'trader-1',
+  traderName: 'alpha.eth',
+  traderAddress: '0x0000000000000000000000000000000000000001',
+  source: 'leaderboard',
+  traderRank: 1,
+} as const;
+
+/**
+ * Renders `TraderProfileView` with the leaderboard preset and optional extra
+ * routes. Route params default to the shared fixture trader.
+ */
+export function renderTraderProfileView(
+  extraRoutes: ExtraRoute[] = [],
+  options: RenderSocialLeaderboardOptions & {
+    initialParams?: Record<string, unknown>;
+  } = {},
+) {
+  const { presetOptions, overrides, initialParams } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+
+  return renderScreenWithRoutes(
+    TraderProfileView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.PROFILE },
+    extraRoutes,
+    { state: builder.build() },
+    initialParams ?? CV_TRADER_PROFILE_PARAMS,
+  );
+}
+
+/**
+ * Renders the Settings trading-signals section (thresholds and per-trader
+ * notification switches) through the social leaderboard preset.
+ */
+export function renderSocialAINotificationSettingsSection(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+
+  return renderComponentViewScreen(
+    NotificationSettingsSection as unknown as React.ComponentType,
+    { name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION },
+    { state: builder.build() },
+    { type: 'socialAI' },
+  );
+}
+
+/** Renders the owner profile with the shared linked-profile Redux preset. */
+export function renderMyProfileView(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const builder = initialStateSocialLeaderboard({
+    ...options.presetOptions,
+    linkedSocialProfile: true,
+  });
+  if (options.overrides) builder.withOverrides(options.overrides);
+
+  return renderComponentViewScreen(
+    MyProfileView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.MY_PROFILE },
+    { state: builder.build() },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -247,7 +318,8 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
   address: '0x0000000000000000000000000000000000000002',
 };
 
-const ONBOARDING_WALLET_ID = 'entropy:wallet1';
+const ONBOARDING_ENTROPY_SOURCE_ID = 'wallet1';
+const ONBOARDING_WALLET_ID = `entropy:${ONBOARDING_ENTROPY_SOURCE_ID}`;
 const ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/0`;
 const SECOND_ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/1`;
 
@@ -311,12 +383,18 @@ const buildOnboardingAccountTree = (
  *
  * Seeds `AccountTreeController` because `useLinkableSocialAccounts` reads
  * account groups (the production shape) rather than the flat account list.
+ * The HD keyring id matches the wallet entropy id, so this SRP is the primary
+ * profile member.
  *
- * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
+ * Pass `includeSecondEvmAccount` to add a second EVM account after the default,
+ * and `initialParams` to open it in a specific mode such as `termsOnly`.
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean } = {},
+  options: {
+    includeSecondEvmAccount?: boolean;
+    initialParams?: Record<string, unknown>;
+  } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -327,6 +405,16 @@ export function renderSocialProfileOnboarding(
         backgroundState: {
           PreferencesController: {
             privacyMode: false,
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [
+              {
+                type: 'HD Key Tree',
+                accounts: ['0x0000000000000000000000000000000000000001'],
+                metadata: { id: ONBOARDING_ENTROPY_SOURCE_ID, name: '' },
+              },
+            ],
           },
           AccountsController: {
             internalAccounts: {
@@ -401,6 +489,7 @@ export function renderSocialProfileOnboarding(
     { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
     { state },
+    options.initialParams,
   );
 }
 

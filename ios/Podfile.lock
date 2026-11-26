@@ -2339,8 +2339,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-randombytes (3.6.1):
-    - React-Core
   - react-native-release-profiler (0.4.4):
     - hermes-engine
     - RCTRequired
@@ -2597,7 +2595,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview-mm (14.8.0):
+  - react-native-webview-mm (14.8.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3734,7 +3732,6 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
-  - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -4061,8 +4058,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
-  react-native-randombytes:
-    :path: "../node_modules/react-native-randombytes"
   react-native-release-profiler:
     :path: "../node_modules/react-native-release-profiler"
   react-native-render-html:
@@ -4291,7 +4286,7 @@ SPEC CHECKSUMS:
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
-  QuickCrypto: f0d41b4933cfff875e87628e2fade6d98ccb99e1
+  QuickCrypto: cf3c568757f4a971dee8142af41c8e0b9559f401
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
@@ -4349,7 +4344,6 @@ SPEC CHECKSUMS:
   react-native-pager-view: 6b98421fc9198e59349977100dc252bbd979cc16
   react-native-performance: 3290079971f56838ae50f7f1d65d6e075d88b932
   react-native-quick-base64: 53393ee5ea472a7486e6652ad3d7a640ebf6ebda
-  react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-release-profiler: b7d3f26e662f9bdd8612072a9613257d41eb6051
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: fb5c8ee9f6dd62ef710611b3d370c501f42a4ac0
@@ -4359,7 +4353,7 @@ SPEC CHECKSUMS:
   react-native-video: db3a70efc9fa0c00f5499d7798283bf0585cbd37
   react-native-view-shot: 2829bd78c1fef42db12553bf85833e05a1a73609
   react-native-wallet: 29d91d8cf99be725227242bddb7629db7f145c6d
-  react-native-webview-mm: a402404c1eca7b092a413f3c8ba0ce65c06e151c
+  react-native-webview-mm: 8475bdcbae625450bbf8a2391a121d33281d5fd7
   React-NativeModulesApple: 2b658272ca69df0694cf5d54f9510aa7c33977bc
   React-networking: 6be0b80e18e710dd30e77b04838ec46666a7bb78
   React-oscompat: cea7c66df8076bd97e95885d7f584b86afffde41

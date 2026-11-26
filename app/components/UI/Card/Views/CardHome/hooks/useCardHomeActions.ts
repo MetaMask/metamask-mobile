@@ -1,5 +1,4 @@
 import { useCallback, useContext } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
@@ -126,7 +125,6 @@ export function useCardHomeActions({
 
   const handleToggleFreeze = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
 
@@ -234,7 +232,6 @@ export function useCardHomeActions({
 
   const viewPinAction = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
     if (isPinLoading) return;
@@ -258,7 +255,6 @@ export function useCardHomeActions({
 
   const setPinAction = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
     const cardId = data?.card?.id;
@@ -367,14 +363,13 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigateWithDetails(
-        navigation,
-        createAssetSelectionModalNavigationDetails({}),
-      );
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({}),
+    );
   }, [
     isAuthenticated,
     navigation,
@@ -408,13 +403,12 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'manage',
-      });
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'manage',
+    });
   }, [
     isAuthenticated,
     navigation,
@@ -433,14 +427,10 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, {
-        showAuthPrompt: true,
-        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
-      });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.CONTACT_DETAILS);
   }, [
     activeProviderId,
     createEventBuilder,
@@ -501,27 +491,6 @@ export function useCardHomeActions({
     });
   }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
 
-  const logoutAction = useCallback(() => {
-    Alert.alert(
-      strings('card.card_home.logout_confirmation_title'),
-      strings('card.card_home.logout_confirmation_message'),
-      [
-        {
-          text: strings('card.card_home.logout_confirmation_cancel'),
-          style: 'cancel',
-        },
-        {
-          text: strings('card.card_home.logout_confirmation_confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            await Engine.context.CardController.logout();
-            navigation.goBack();
-          },
-        },
-      ],
-    );
-  }, [navigation]);
-
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -563,11 +532,10 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.CASHBACK);
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.CASHBACK);
   }, [
     isAuthenticated,
     navigation,
@@ -600,14 +568,10 @@ export function useCardHomeActions({
         return;
       }
 
-      if (isAuthenticated) {
-        navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
-      } else {
-        navigation.navigate(Routes.CARD.AUTHENTICATION, {
-          showAuthPrompt: true,
-          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
-        });
+      if (!isAuthenticated) {
+        return;
       }
+      navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
     },
     [isAuthenticated, navigation],
   );
@@ -638,7 +602,6 @@ export function useCardHomeActions({
     howToUseApplePayAction,
     unlinkMoneyAccountAction,
     revokeAllowanceAction,
-    logoutAction,
     orderMetalCardAction,
     cashbackAction,
     redeemCreditAction,

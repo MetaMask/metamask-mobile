@@ -5,11 +5,13 @@ import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
+import { AndroidShortlinkGate } from './utils/androidShortlinkGate';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
   getBrazeInitialPush,
@@ -38,6 +40,8 @@ export type DeeplinkResolveResult = DeeplinkIntent | false | null;
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
  * with link.metamask.io/$deeplink_path while preserving the original query string.
+ * A query on `$deeplink_path` itself (e.g. `social/profile?traderId=…`) fills
+ * the keys that string does not already have.
  */
 export function rewriteBranchUri(
   uri: string | undefined,
@@ -50,8 +54,23 @@ export function rewriteBranchUri(
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+    const queryStart = rawPath.indexOf('?');
+    const path = queryStart === -1 ? rawPath : rawPath.slice(0, queryStart);
     // Set the pathname to the sanitized $deeplink_path
-    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    parsed.pathname = `/${path.replace(/^\//, '')}`;
+    // A Branch short link's own query does not carry the route's ids (e.g. a
+    // shared trader's traderId and positionId); the share flow puts them on
+    // $deeplink_path. Copy only keys the short link does not already have, so
+    // an existing query such as a swap amount stays as it was.
+    if (queryStart !== -1) {
+      new URLSearchParams(rawPath.slice(queryStart + 1)).forEach(
+        (value, key) => {
+          if (!parsed.searchParams.has(key)) {
+            parsed.searchParams.set(key, value);
+          }
+        },
+      );
+    }
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
@@ -164,8 +183,13 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    const getBranchDeeplink = async (uri?: string) => {
+    const shortlinkGate = new AndroidShortlinkGate((uri) =>
+      handleDeeplink({ uri }),
+    );
+
+    const getBranchDeeplink = async (uri?: string, rawUri?: string) => {
       if (uri) {
+        shortlinkGate.recordBranchResolution(rawUri ?? uri);
         handleDeeplink({ uri });
         return;
       }
@@ -174,17 +198,22 @@ export class DeeplinkManager {
         const latestParams = await branch.getLatestReferringParams();
 
         // Cold start: params may contain a resolved Branch link with $deeplink_path.
+        const referringLink = latestParams?.['~referring_link'] as
+          | string
+          | undefined;
         const rewritten = rewriteBranchUri(
-          latestParams?.['~referring_link'] as string | undefined,
+          referringLink,
           latestParams as Record<string, unknown> | undefined,
         );
         if (rewritten) {
+          shortlinkGate.recordBranchResolution(referringLink ?? rewritten);
           handleDeeplink({ uri: rewritten });
           return;
         }
 
         const deeplink = latestParams?.['+non_branch_link'] as string;
         if (deeplink) {
+          shortlinkGate.recordBranchResolution(deeplink);
           handleDeeplink({ uri: deeplink });
         }
       } catch (error) {
@@ -267,17 +296,21 @@ export class DeeplinkManager {
       onPushTap(AppOpenedPushProvider.Braze, { deeplink });
     });
 
-    Linking.getInitialURL().then((url) => {
-      if (!url) {
-        return;
-      }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
-      handleDeeplink({ uri: url });
-    });
+    Linking.getInitialURL()
+      .then((url) => {
+        if (!url) {
+          return;
+        }
+        Logger.log(`handleDeeplink:: got initial URL ${url}`);
+        shortlinkGate.handleLinkingUrl(url);
+      })
+      .catch((error: unknown) => {
+        Logger.error(ensureError(error), 'Error handling initial deeplink');
+      });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
-      handleDeeplink({ uri: url });
+      shortlinkGate.handleLinkingUrl(url);
     });
 
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
@@ -295,7 +328,11 @@ export class DeeplinkManager {
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri);
+      getBranchDeeplink(rewritten ?? opts.uri, opts.uri).catch(
+        (error: unknown) => {
+          Logger.error(ensureError(error), 'Error handling Branch deeplink');
+        },
+      );
     });
   }
 }

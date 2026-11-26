@@ -153,7 +153,6 @@ interface ButtonsProps {
   styles: Record<string, ViewStyle>;
   isConfirmed: boolean;
   isDangerAlert: boolean;
-  isBlocking: boolean;
 }
 
 const Buttons: React.FC<ButtonsProps> = ({
@@ -164,16 +163,14 @@ const Buttons: React.FC<ButtonsProps> = ({
   onHandleActionClick,
   isConfirmed,
   isDangerAlert,
-  isBlocking,
 }) => {
   const primaryButtonLabel = isDangerAlert
     ? strings('alert_system.alert_modal.acknowledge_btn')
     : strings('alert_system.alert_modal.got_it_btn');
 
-  // Button is disabled for:
-  // - Blocking alerts (must use action to proceed)
-  // - Danger alerts where checkbox is not confirmed
-  const isButtonDisabled = isBlocking || (isDangerAlert && !isConfirmed);
+  // Non-blocking danger alerts stay disabled until the risk checkbox is confirmed.
+  // Blocking alerts keep Got it enabled so the sheet can be dismissed.
+  const isButtonDisabled = isDangerAlert && !isConfirmed;
 
   return (
     <View style={styles.buttonsContainer}>
@@ -342,7 +339,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
               selectedAlert.severity === Severity.Danger &&
               !selectedAlert.isBlocking
             }
-            isBlocking={selectedAlert.isBlocking ?? false}
           />
         </Box>
       </BottomSheet>

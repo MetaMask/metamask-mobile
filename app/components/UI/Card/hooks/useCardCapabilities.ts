@@ -18,6 +18,8 @@ export const useCardCapabilities = (): CardProviderCapabilities | null => {
   );
   return useMemo(() => {
     if (!providerId) return null;
-    return Engine.context?.CardController?.getCapabilities() ?? null;
+    // Ask for this provider. The no-arg call follows the controller's active
+    // provider, which can still be the previous one after the UI has switched.
+    return Engine.context?.CardController?.getCapabilities(providerId) ?? null;
   }, [providerId, userLocation, fundingChannel]);
 };

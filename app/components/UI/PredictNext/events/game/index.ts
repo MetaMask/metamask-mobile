@@ -1,5 +1,6 @@
 export {
   createGamePresentation,
+  formatGameStartShort,
   getEventGame,
   getGameTeamOrder,
   getTeamAbbreviation,
@@ -12,6 +13,7 @@ export { getGameMoneylineMarkets } from './getGameMoneylineMarkets';
 export {
   findGameTradingQuote,
   findWinnerMarketQuotes,
+  toGameTradingQuote,
   type WinnerMarketQuotes,
 } from './findWinnerMarketQuotes';
 export type {
@@ -27,4 +29,4 @@ export {
   shouldMirrorTeamLogo,
   type MatchupSlot,
 } from './shouldMirrorTeamLogo';
-export { useGameTeamColors } from './useGameTeamColors';
+export { getReadableQuoteColors, useGameTeamColors } from './useGameTeamColors';

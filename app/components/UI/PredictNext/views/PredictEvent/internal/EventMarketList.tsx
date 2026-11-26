@@ -1,4 +1,12 @@
-import React, { useCallback, useMemo, useState, type ReactNode } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import type { ViewToken } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BadgeCount,
@@ -30,14 +38,20 @@ import type {
 import { EventPositionCard } from './EventPositionCard';
 import {
   createMarketGroupProjection,
+  refreshMarketGroupProjection,
   type MarketGroupProjection,
 } from './createMarketGroupProjection';
 import {
   createMarketLayoutProjection,
+  refreshMarketLayoutProjection,
   type MarketLayoutCard,
+  type MarketLayoutProjection,
   type MarketLayoutSection,
 } from './createMarketLayoutProjection';
-import { EventMarketLayoutCard } from './EventMarketLayoutCard';
+import {
+  EventMarketLayoutCard,
+  getLayoutCardMarketIds,
+} from './EventMarketLayoutCard';
 import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
 import {
   EventMarketLayoutSectionHeader,
@@ -47,6 +61,7 @@ import {
 import { getMarketLayoutTitle } from './marketLayoutTitles';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { useEventPositions } from './useEventPositions';
+import { TOP_CHART_MARKET_LIMIT } from './selectTopChartMarkets';
 
 const MAX_BADGE_COUNT = 99;
 const DEFAULT_LIST_WINDOW = {
@@ -64,8 +79,34 @@ const OPEN_SECTION_COUNT = 3;
 /** Cards a section shows before "View all N markets". */
 const COLLAPSED_CARD_COUNT = 3;
 const POSITIONS_TAB = 'positions';
+/**
+ * Most Market ids the list asks live prices for. The live-data connection
+ * holds 250 Markets unless the gateway's `welcome` says otherwise
+ * (`PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION`), and it keeps ids
+ * past the cap waiting rather than live. The header chart takes up to
+ * {@link TOP_CHART_MARKET_LIMIT} more, so the list stays within the rest.
+ */
+export const EVENT_LIST_LIVE_MARKET_BUDGET = 250 - TOP_CHART_MARKET_LIMIT;
+/**
+ * Rows kept live on each side of the viewable rows when the active tab is
+ * over {@link EVENT_LIST_LIVE_MARKET_BUDGET}, so a short scroll lands on rows
+ * that are already live.
+ */
+const LIVE_ROW_BUFFER = 10;
+/** A row counts as viewable once a tenth of it is on screen, as on the Feed. */
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
 
-const positionCardTestIds = ({ marketId, side }: PredictPosition) => ({
+const positionCardTestIds = ({
+  marketId,
+  side,
+}: PredictPosition): {
+  root: string;
+  value: string;
+  pnl: string;
+  chance: string;
+  buy: string;
+  cashOut: string;
+} => ({
   root: EventMarketListTestIds.positionRow(marketId, side),
   value: EventMarketListTestIds.positionValue(marketId, side),
   pnl: EventMarketListTestIds.positionPnl(marketId, side),
@@ -84,6 +125,18 @@ export interface EventMarketListProps {
   onRulesPress: (market: PredictMarket) => void;
   /** Expresses Cash Out intent for one canonical Position. */
   onCashOut: (position: PredictPosition) => void;
+  /**
+   * Reports the Market ids the list renders in its current state, whenever
+   * that set changes: the active tab only, open sections only, the selected
+   * period of each, and the selected line of each line picker. The caller
+   * holds live prices for exactly these. When the tab prices more than
+   * {@link EVENT_LIST_LIVE_MARKET_BUDGET} Markets, only the viewable rows and
+   * a bounded buffer around them are reported, and the set follows the
+   * scroll position.
+   */
+  onVisibleMarketIdsChange?: (
+    marketIds: readonly PredictMarket['id'][],
+  ) => void;
   /** Static header content above the tabs in the same scrolling surface. */
   children?: ReactNode;
   /** Overrides the virtualized list's root test ID. */
@@ -152,8 +205,10 @@ const countMarkets = (cards: readonly MarketLayoutCard[]): number =>
  * Section rows space themselves: headers bring their divider and cards their
  * gap, so only the rows around them get the list gap.
  */
-const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
-  !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
+const isSeparated = (
+  leadingRow: ContentRow,
+  trailingRow: ContentRow,
+): boolean => !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
 
 interface MarketTab {
   key: string;
@@ -187,15 +242,105 @@ const getRowKey = (row: ContentRow): string => {
 };
 
 /**
+ * Market ids one row prices. Section headers and "View all" rows price
+ * nothing; a closed section or an unselected period has no card rows at all.
+ */
+const getRowMarketIds = (
+  row: ContentRow,
+  selectedMarketIds: Readonly<Record<string, PredictMarket['id']>>,
+): readonly PredictMarket['id'][] => {
+  switch (row.type) {
+    case 'position':
+      return [row.position.marketId];
+    case 'sectionCard':
+      return getLayoutCardMarketIds(row.card, selectedMarketIds[row.card.key]);
+    case 'standard':
+      return [row.market.id];
+    case 'group': {
+      const selectedMarket =
+        row.markets.find(
+          (market) => market.id === selectedMarketIds[row.key],
+        ) ?? row.markets[0];
+      return selectedMarket ? [selectedMarket.id] : [];
+    }
+    default:
+      return [];
+  }
+};
+
+/** Market ids the given rows price, each once, in row order. */
+const getRowsMarketIds = (
+  rows: readonly ContentRow[],
+  selectedMarketIds: Readonly<Record<string, PredictMarket['id']>>,
+): PredictMarket['id'][] => [
+  ...new Set(rows.flatMap((row) => getRowMarketIds(row, selectedMarketIds))),
+];
+
+/**
+ * Row indexes nearest first: the viewable range, then the buffer rows
+ * alternating below and above it. Until the list reports what is viewable
+ * (or when none of the reported rows is in the current tab) the first rows it
+ * renders stand in.
+ */
+const getLiveRowOrder = (
+  rows: readonly ContentRow[],
+  viewableRowKeys: readonly string[],
+  initialNumToRender: number,
+): number[] => {
+  const viewable = new Set(viewableRowKeys);
+  const viewableIndexes = rows.flatMap((row, index) =>
+    viewable.has(getRowKey(row)) ? [index] : [],
+  );
+  const first = viewableIndexes.length > 0 ? Math.min(...viewableIndexes) : 0;
+  const last =
+    viewableIndexes.length > 0
+      ? Math.max(...viewableIndexes)
+      : Math.min(rows.length, initialNumToRender) - 1;
+  const order: number[] = [];
+  for (let index = first; index <= last; index += 1) {
+    order.push(index);
+  }
+  for (let step = 1; step <= LIVE_ROW_BUFFER; step += 1) {
+    if (last + step < rows.length) order.push(last + step);
+    if (first - step >= 0) order.push(first - step);
+  }
+  return order;
+};
+
+/**
+ * Market ids the list holds live prices for. A tab within
+ * {@link EVENT_LIST_LIVE_MARKET_BUDGET} keeps every row it renders live, so
+ * scrolling never re-scopes. A larger tab (a long flat Event, an expanded
+ * section, choice cards with many rows) keeps only the viewable rows and
+ * {@link LIVE_ROW_BUFFER} rows around them, nearest first, cut at the budget,
+ * so scrolling to a row past the connection cap releases the rows it left.
+ */
+const getLiveMarketIds = (
+  rows: readonly ContentRow[],
+  selectedMarketIds: Readonly<Record<string, PredictMarket['id']>>,
+  viewableRowKeys: readonly string[],
+  initialNumToRender: number,
+): PredictMarket['id'][] => {
+  const liveRows = getLiveRowOrder(
+    rows,
+    viewableRowKeys,
+    initialNumToRender,
+  ).map((index) => rows[index]);
+  return getRowsMarketIds(liveRows, selectedMarketIds).slice(
+    0,
+    EVENT_LIST_LIVE_MARKET_BUDGET,
+  );
+};
+
+/**
  * One tab per layout tab, with its sections; Markets without layout follow
  * the first tab's sections. Without layout, one Markets tab of flat rows.
  */
-const toMarketTabs = (event: PredictEvent): MarketTab[] => {
-  const { tabs, remainingMarkets } = createMarketLayoutProjection(
-    event.markets,
-  );
-  const flatRows = createMarketGroupProjection(remainingMarkets);
-
+const toMarketTabs = (
+  event: PredictEvent,
+  { tabs }: MarketLayoutProjection,
+  flatRows: readonly MarketGroupProjection[],
+): MarketTab[] => {
   if (tabs.length === 0) {
     return flatRows.length === 0
       ? []
@@ -225,6 +370,59 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
     })),
     flatRows: tabIndex === 0 ? flatRows : [],
   }));
+};
+
+/**
+ * Layout and line grouping depend on Market identity, not the quote. A live
+ * tick keeps the previous tabs when only prices moved, and reuses every card
+ * the tick did not touch.
+ */
+const useMarketTabs = (event: PredictEvent): MarketTab[] => {
+  const cacheRef = useRef<{
+    markets: readonly PredictMarket[];
+    projection: MarketLayoutProjection;
+    flatRows: readonly MarketGroupProjection[];
+    isGame: boolean;
+    tabs: MarketTab[];
+  } | null>(null);
+
+  return useMemo(() => {
+    const cached = cacheRef.current;
+    const projection = cached
+      ? refreshMarketLayoutProjection(
+          cached.markets,
+          cached.projection,
+          event.markets,
+        )
+      : createMarketLayoutProjection(event.markets);
+    const flatRows =
+      cached === null
+        ? createMarketGroupProjection(projection.remainingMarkets)
+        : cached.projection.remainingMarkets === projection.remainingMarkets
+          ? cached.flatRows
+          : refreshMarketGroupProjection(
+              cached.projection.remainingMarkets,
+              cached.flatRows,
+              projection.remainingMarkets,
+            );
+    const isGame = Boolean(getEventGame(event));
+    const reuseTabs =
+      cached?.projection === projection &&
+      cached?.flatRows === flatRows &&
+      cached?.isGame === isGame;
+    const tabs =
+      reuseTabs && cached
+        ? cached.tabs
+        : toMarketTabs(event, projection, flatRows);
+    cacheRef.current = {
+      markets: event.markets,
+      projection,
+      flatRows,
+      isGame,
+      tabs,
+    };
+    return tabs;
+  }, [event]);
 };
 
 /**
@@ -288,9 +486,10 @@ const EventMarketListContent = ({
   onOrder,
   onRulesPress,
   onCashOut,
+  onVisibleMarketIdsChange,
   children,
   testID = EventMarketListTestIds.ROOT,
-}: EventMarketListProps) => {
+}: EventMarketListProps): React.ReactElement => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
   // Unknown transport keeps the default window, including on LOW hardware.
@@ -311,7 +510,7 @@ const EventMarketListContent = ({
   const [expandedSections, setExpandedSections] = useState<
     Record<string, readonly string[]>
   >({});
-  const marketTabs = useMemo(() => toMarketTabs(event), [event]);
+  const marketTabs = useMarketTabs(event);
   let firstTab: string | undefined;
   if (positions.length > 0) {
     firstTab = POSITIONS_TAB;
@@ -356,6 +555,58 @@ const EventMarketListContent = ({
     positions,
     selectedPeriods,
   ]);
+  const rowsMarketIds = getRowsMarketIds(rows, selectedMarketIds);
+  const isOverLiveBudget = rowsMarketIds.length > EVENT_LIST_LIVE_MARKET_BUDGET;
+  // Row keys the list last reported viewable. Every report lands in the ref;
+  // only a tab over the live budget also re-renders on it, since only that
+  // tab's live set depends on the scroll position.
+  const viewableRowKeysRef = useRef<readonly string[]>([]);
+  const isOverLiveBudgetRef = useRef(isOverLiveBudget);
+  const [viewableRowKeys, setViewableRowKeys] = useState<readonly string[]>([]);
+  // A tab that grows past the budget (View all, a refresh) picks up the rows
+  // reported while it was within it.
+  useEffect(() => {
+    isOverLiveBudgetRef.current = isOverLiveBudget;
+    if (isOverLiveBudget) {
+      setViewableRowKeys(viewableRowKeysRef.current);
+    }
+  }, [isOverLiveBudget]);
+  // FlatList rejects a changing callback, so this one only stores row keys.
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const keys = viewableItems.flatMap((token) =>
+        token.item ? [getRowKey(token.item as ContentRow)] : [],
+      );
+      // A fling or bounce can report nothing; keep the last measured rows.
+      if (keys.length === 0) {
+        return;
+      }
+      viewableRowKeysRef.current = keys;
+      if (!isOverLiveBudgetRef.current) {
+        return;
+      }
+      setViewableRowKeys((current) =>
+        JSON.stringify(current) === JSON.stringify(keys) ? current : keys,
+      );
+    },
+  ).current;
+  // Keyed by content: a live tick rebuilds the rows without changing which
+  // Markets they price, and each report re-renders the caller.
+  const visibleMarketKey = JSON.stringify(
+    isOverLiveBudget
+      ? getLiveMarketIds(
+          rows,
+          selectedMarketIds,
+          viewableRowKeys,
+          listWindow.initialNumToRender,
+        )
+      : rowsMarketIds,
+  );
+  useEffect(() => {
+    onVisibleMarketIdsChange?.(
+      JSON.parse(visibleMarketKey) as PredictMarket['id'][],
+    );
+  }, [onVisibleMarketIdsChange, visibleMarketKey]);
   const tabs = [
     ...(positions.length > 0
       ? [
@@ -389,21 +640,48 @@ const EventMarketListContent = ({
     },
     [],
   );
-  const handleSectionToggle = useCallback((stateKey: string, open: boolean) => {
-    setOpenSections((current) => ({ ...current, [stateKey]: open }));
-    // Closing a section folds it back to its first cards.
-    if (!open) {
-      setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
-    }
-  }, []);
-  const handleViewAll = useCallback((stateKey: string, periodKey: string) => {
-    setExpandedSections((current) => ({
-      ...current,
-      [stateKey]: [...(current[stateKey] ?? []), periodKey],
-    }));
-  }, []);
+  // One callback per group, stable across quotes, so a line picker whose
+  // Markets did not change can skip rendering.
+  const selectMarketByGroupRef = useRef(
+    new Map<string, (marketId: PredictMarket['id']) => void>(),
+  );
+  const handleGroupMarketSelectRef = useRef(handleGroupMarketSelect);
+  handleGroupMarketSelectRef.current = handleGroupMarketSelect;
+  const onSelectMarketInGroup = useCallback(
+    (groupKey: string): ((marketId: PredictMarket['id']) => void) => {
+      const existing = selectMarketByGroupRef.current.get(groupKey);
+      if (existing) {
+        return existing;
+      }
+      const selectMarket = (marketId: PredictMarket['id']): void => {
+        handleGroupMarketSelectRef.current(groupKey, marketId);
+      };
+      selectMarketByGroupRef.current.set(groupKey, selectMarket);
+      return selectMarket;
+    },
+    [],
+  );
+  const handleSectionToggle = useCallback(
+    (stateKey: string, open: boolean): void => {
+      setOpenSections((current) => ({ ...current, [stateKey]: open }));
+      // Closing a section folds it back to its first cards.
+      if (!open) {
+        setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
+      }
+    },
+    [],
+  );
+  const handleViewAll = useCallback(
+    (stateKey: string, periodKey: string): void => {
+      setExpandedSections((current) => ({
+        ...current,
+        [stateKey]: [...(current[stateKey] ?? []), periodKey],
+      }));
+    },
+    [],
+  );
   const handlePeriodSelect = useCallback(
-    (stateKey: string, periodKey: string) => {
+    (stateKey: string, periodKey: string): void => {
       setSelectedPeriods((current) => ({ ...current, [stateKey]: periodKey }));
     },
     [],
@@ -500,8 +778,7 @@ const EventMarketListContent = ({
         groupKey: projection.key,
         markets: projection.markets,
         selectedMarket,
-        onSelectMarket: (marketId: PredictMarket['id']) =>
-          handleGroupMarketSelect(projection.key, marketId),
+        onSelectMarket: onSelectMarketInGroup(projection.key),
         onOrder,
         onRulesPress,
       };
@@ -527,6 +804,7 @@ const EventMarketListContent = ({
       handleViewAll,
       onOrder,
       onRulesPress,
+      onSelectMarketInGroup,
       selectedMarketIds,
     ],
   );
@@ -554,6 +832,8 @@ const EventMarketListContent = ({
       testID={testID}
       data={rows}
       extraData={selectedMarketIds}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={VIEWABILITY_CONFIG}
       keyExtractor={getRowKey}
       renderItem={renderRow}
       contentContainerStyle={contentContainerStyle}
@@ -577,7 +857,9 @@ const EventMarketListContent = ({
 };
 
 /** Owns Event content while leaving charts, navigation, and workflows outside. */
-export const EventMarketList = (props: EventMarketListProps) => (
+export const EventMarketList = (
+  props: EventMarketListProps,
+): React.ReactElement => (
   <EventMarketListContent
     key={JSON.stringify([props.event.venueId, props.event.id])}
     {...props}

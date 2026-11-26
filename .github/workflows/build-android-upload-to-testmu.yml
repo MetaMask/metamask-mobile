@@ -3,6 +3,9 @@
 # to BrowserStack by leaving upload_to_browserstack at its default.
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
+# build_variant=dev skips both of those and builds nothing here. The
+# main-dev-without-srp APK is a separate job in run-performance-e2e.yml,
+# because a reusable workflow call cannot set continue-on-error.
 #
 # Fingerprint reuse (same procedure as build-android-e2e.yml):
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
@@ -41,7 +44,7 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant (e2e = e2e environment, exp = experimental)'
+        description: 'Build variant (e2e, exp, rc, or dev). dev builds main-dev-without-srp only.'
         default: 'exp'
       source_fingerprint:
         required: false
@@ -153,6 +156,8 @@ jobs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
       with-srp-build-name: ${{ steps.names.outputs.with-srp-build-name }}
       without-srp-build-name: ${{ steps.names.outputs.without-srp-build-name }}
+      main-dev-build-name: ${{ steps.names.outputs.main-dev-build-name }}
+      srp-builds-needed: ${{ steps.names.outputs.srp-builds-needed }}
       github-environment: ${{ steps.names.outputs.github-environment }}
 
     steps:
@@ -175,22 +180,33 @@ jobs:
         env:
           BUILD_VARIANT: ${{ inputs.build_variant }}
         run: |
+          # Selecting dev builds only the main-dev-without-srp APK from run-performance-e2e.yml.
+          # The SRP pair must not fall through to the e2e profile.
+          echo "main-dev-build-name=main-dev-without-srp" >> "$GITHUB_OUTPUT"
           if [ "${BUILD_VARIANT}" = "exp" ]; then
             {
               echo "with-srp-build-name=main-exp-with-srp"
               echo "without-srp-build-name=main-exp-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-exp"
             } >> "$GITHUB_OUTPUT"
           elif [ "${BUILD_VARIANT}" = "rc" ]; then
             {
               echo "with-srp-build-name=main-rc-with-srp"
               echo "without-srp-build-name=main-rc-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-rc"
+            } >> "$GITHUB_OUTPUT"
+          elif [ "${BUILD_VARIANT}" = "dev" ]; then
+            {
+              echo "srp-builds-needed=false"
+              echo "github-environment=build-dev"
             } >> "$GITHUB_OUTPUT"
           else
             {
               echo "with-srp-build-name=main-e2e-bs-with-srp"
               echo "without-srp-build-name=main-e2e-bs-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-e2e"
             } >> "$GITHUB_OUTPUT"
           fi
@@ -201,6 +217,7 @@ jobs:
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
     outputs:
       found: ${{ steps.finalize.outputs.found }}
@@ -577,6 +594,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
@@ -598,6 +616,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
@@ -658,6 +677,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
         (
@@ -772,51 +792,73 @@ jobs:
         env:
           WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
           CI: 'true'
           GITHUB_CI: 'true'
           PLATFORM: android
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
+          # App secrets are mapped on this step only, so no other step can read them. The
+          # same list is in build.yml, eas-update-platform.yml and build-rc-repack.yml;
+          # keep them in sync.
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
+          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
+          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
+          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
+          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          # Per-variant secrets, assigned in the script: the with-SRP pack bakes in the
+          # wallet, the without-SRP pack gets the BYOA secret.
+          IN_BUILD_SRP: ${{ secrets.IN_BUILD_SRP }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          BYOA_AUTH_SECRET: ${{ secrets.E2E_BYOA_AUTH_SECRET }}
         run: |
           set -euo pipefail
 
-          # Apply builds.yml env + secrets into THIS shell so metro (child of yarn
-          # build:repack) inherits them. set-secrets-from-config only writes GITHUB_ENV
-          # for later steps, which is too late for a same-step metro invoke.
-          #
-          # Secret values are emitted single-quoted (with embedded quotes escaped) so
-          # bash never expands $, backticks, or $() inside them during eval.
-          cat > /tmp/export-profile-secrets.js <<'EXPORT_SECRETS_JS'
-          // Script lives in /tmp, so plain require() would resolve from /tmp and
-          // miss the repo's node_modules. Anchor resolution to the workspace cwd.
-          const { createRequire } = require('module');
-          const requireFromCwd = createRequire(process.cwd() + '/');
-          const yaml = requireFromCwd('js-yaml');
-          const fs = require('fs');
-          const buildName = process.argv[2];
-          const build = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds[buildName];
-          const mapping = (build && build.secrets) || {};
-          const all = JSON.parse(process.env.ALL_SECRETS || '{}');
-          const shellQuote = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'";
-          for (const [envVar, secretName] of Object.entries(mapping)) {
-            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVar)) {
-              console.error('Skipping invalid env var name: ' + envVar);
-              continue;
-            }
-            const value = all[secretName];
-            if (value != null && value !== '') {
-              process.stdout.write('export ' + envVar + '=' + shellQuote(value) + '\n');
-            } else {
-              console.error('Warning: secret ' + secretName + ' missing for ' + envVar);
-            }
-          }
-          EXPORT_SECRETS_JS
-
+          # Apply builds.yml env into THIS shell so metro (child of yarn build:repack)
+          # inherits it.
           export_build_env() {
             local build_name="$1"
             eval "$(node scripts/apply-build-config.js "$build_name" --export)"
-            eval "$(node /tmp/export-profile-secrets.js "$build_name")"
           }
 
           # Expo export:embed forces resetCache=false when CI=true (see
@@ -877,11 +919,14 @@ jobs:
           }
 
           # with-SRP first (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD inlined into JS via metro)
+          export ADDITIONAL_SRP_1="$IN_BUILD_SRP"
+          export PREDEFINED_PASSWORD="$E2E_PASSWORD"
           repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp
 
           # without-SRP: drop with-SRP bake-ins so they are not left in process.env,
           # then wipe Metro cache so CI cannot reuse the with-SRP transforms.
           unset_srp_bake_ins
+          export E2E_BYOA_AUTH_SECRET="$BYOA_AUTH_SECRET"
           repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp
 
           # Replace staged dirs so the upload step always reads artifacts/{with,without}-srp

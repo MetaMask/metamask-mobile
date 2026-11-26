@@ -3,8 +3,20 @@ import type { PredictEntryPoint as LegacyPredictEntryPoint } from '../../../Pred
 import type { PredictCampaign } from '../../campaigns/campaignVenues';
 import type { PredictEventRef } from './eventRef';
 
-/** Analytics attribution for the surface that opened Predict. */
-export type PredictEntryPoint = LegacyPredictEntryPoint;
+/**
+ * The attribution a Predict link opens with: its origin, with `_<utm_source>`
+ * appended (`deeplink_twitter`, `carousel_braze`). Open-ended, so only the
+ * link parser mints it.
+ */
+export type PredictLinkEntryPoint = string & {
+  readonly __brand: 'PredictLinkEntryPoint';
+};
+
+/**
+ * Analytics attribution for the surface that opened Predict: an in-app
+ * surface, or a link's {@link PredictLinkEntryPoint}.
+ */
+export type PredictEntryPoint = LegacyPredictEntryPoint | PredictLinkEntryPoint;
 
 /** A Predict feed a caller can open by name. */
 export type PredictFeedCategory = 'trending' | 'sports' | 'crypto' | 'politics';
@@ -49,6 +61,30 @@ export type PredictIntent =
   | {
       type: 'portfolio';
       tab?: PredictPortfolioIntentTab;
+      entryPoint?: PredictEntryPoint;
+    }
+  | {
+      /**
+       * A V1 Predict link's list parameters, in the legacy Polymarket
+       * vocabulary (`feed`, `tab`, `filter`, `query`). Minted by the link
+       * parser (`parsePredictLink`); other callers use `home` or `feed`.
+       */
+      type: 'linkList';
+      feed?: string;
+      tab?: string;
+      filter?: string;
+      query?: string;
+      entryPoint?: PredictEntryPoint;
+    }
+  | {
+      /**
+       * A Feed Screen of a Venue served by PredictNext, by its screen ID
+       * (`sports-football-nfl`). Minted by the link parser for a link marked
+       * with that Venue.
+       */
+      type: 'feedScreen';
+      feedScreenId: string;
+      tabId?: string;
       entryPoint?: PredictEntryPoint;
     }
   | {

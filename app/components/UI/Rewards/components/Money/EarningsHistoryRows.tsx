@@ -28,9 +28,16 @@ import {
 } from '../../utils/claimEarnings';
 import {
   formatMusdBaseUnits,
+  formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
 import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
+
+/** Rows the ledger keys to one UTC day; every other earning carries a real instant. */
+const DAY_GRAIN_ORIGIN_TYPES: EarningOriginType[] = [
+  'REFERRAL_REV_SHARE',
+  'SOCIAL_FOLLOW_TRADE',
+];
 
 function earningTitle(
   origin: EarningOriginType,
@@ -41,8 +48,14 @@ function earningTitle(
       return localizedText.historyReferrals;
     case 'SOCIAL_FOLLOW_TRADE':
       return localizedText.historyCommission;
+    case 'PREDICT_FEE_CASHBACK':
+      return localizedText.rebatePredictions;
     case 'SWAPS_FEE_CASHBACK':
+      return localizedText.rebateSwaps;
     case 'PERPS_FEE_CASHBACK':
+      return localizedText.rebatePerps;
+    // Any type a newer server sends: never leave the row untitled.
+    default:
       return localizedText.historyRebate;
   }
 }
@@ -52,10 +65,16 @@ function earningIcon(origin: EarningOriginType): IconName {
     case 'REFERRAL_REV_SHARE':
       return IconName.UserCircleAdd;
     case 'SOCIAL_FOLLOW_TRADE':
-      return IconName.Copy;
-    case 'SWAPS_FEE_CASHBACK':
+      return IconName.People;
+    case 'PREDICT_FEE_CASHBACK':
+      return IconName.Chart;
     case 'PERPS_FEE_CASHBACK':
-      return IconName.Coin;
+      return IconName.Candlestick;
+    case 'SWAPS_FEE_CASHBACK':
+      return IconName.SwapVertical;
+    // An undefined icon name crashes the design-system Icon.
+    default:
+      return IconName.SwapVertical;
   }
 }
 
@@ -115,9 +134,20 @@ export const EarningsHistoryRow: React.FC<{
     ? TextColor.TextAlternative
     : (credited?.color ?? TextColor.SuccessDefault);
   const voided = credited?.voided === true;
-  const subtitle = pending
-    ? localizedText.historyClaimPending
-    : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  // Social and referral rows are one UTC day, so ledger_timestamp is that
+  // day's midnight. Counting hours from it reads "19h ago" on a row that is
+  // still today. Cashback rows and settled claims carry a real instant.
+  let subtitle: string;
+  if (isPendingClaimRow(item)) {
+    subtitle = localizedText.historyClaimPending;
+  } else if (
+    item.type === 'earning' &&
+    DAY_GRAIN_ORIGIN_TYPES.includes(item.earning_origin_type)
+  ) {
+    subtitle = formatRewardsRelativeDay(item.ledger_timestamp.slice(0, 10));
+  } else {
+    subtitle = formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  }
   const iconName = isClaim
     ? IconName.Arrow2UpRight
     : earningIcon(item.earning_origin_type);
@@ -132,7 +162,7 @@ export const EarningsHistoryRow: React.FC<{
         iconName={iconName}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
-        iconProps={{ color: IconColor.IconDefault }}
+        iconProps={{ color: IconColor.IconAlternative }}
       />
       <Box twClassName="flex-1">
         <Box

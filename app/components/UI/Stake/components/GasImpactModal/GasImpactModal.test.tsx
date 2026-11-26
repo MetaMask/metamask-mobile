@@ -31,6 +31,13 @@ const mockRouteParams: GasImpactModalRouteParams = {
   chainId: '1',
 };
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -156,7 +163,7 @@ describe('GasImpactModal', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
     });
 
@@ -178,7 +185,7 @@ describe('GasImpactModal', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);

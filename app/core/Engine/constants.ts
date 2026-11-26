@@ -43,6 +43,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictLiveDataService',
   'PredictPortfolioService',
   'PredictOrderService',
+  'PredictFundingService',
   'PredictDeviceAuthService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
@@ -81,7 +82,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
   'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
@@ -91,15 +91,13 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
   'CronjobController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainTransactionsController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'MoneyAccountController:stateChange',
   'MoneyAccountUpgradeController:stateChanged',
+  'MoneyAccountLifecycleController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'RewardsMoneyController:stateChange',
@@ -112,6 +110,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
+  'CollectiblesController:stateChanged',
   'CardController:stateChange',
   'UiSlotsController:stateChanged',
   'PredictVenueController:stateChanged',

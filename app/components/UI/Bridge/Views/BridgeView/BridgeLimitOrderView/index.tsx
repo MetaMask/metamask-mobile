@@ -96,6 +96,8 @@ import {
   getOpenLimitOrderDate,
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
+import { getAdvancedOrderTokenProperties } from '../../../utils/advancedOrders';
+import { isPairSupportedForNonMarketSwapTab } from '../../../utils/tokenUtils';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -154,9 +156,19 @@ const BridgeLimitOrderViewContent = ({
     sourceAmount,
     isSourceNetworkGasSponsored,
   } = useLimitOrderSwapInputs();
-  const orderChainId = sourceToken
-    ? formatChainIdToCaip(sourceToken.chainId)
-    : undefined;
+  // The pressed tab page renders the previous tab's pair until the tab
+  // replaces it, and that pair must not be validated against this tab's fees.
+  const isPairPendingReplacement =
+    enabledChainIds !== undefined &&
+    !isPairSupportedForNonMarketSwapTab(
+      sourceToken,
+      destToken,
+      enabledChainIds,
+    );
+  const orderChainId =
+    sourceToken && !isPairPendingReplacement
+      ? formatChainIdToCaip(sourceToken.chainId)
+      : undefined;
   const sourceAssetId = sourceToken
     ? (formatAddressToAssetId(sourceToken.address, sourceToken.chainId) ??
       undefined)
@@ -313,7 +325,11 @@ const BridgeLimitOrderViewContent = ({
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingAssetsPriceData();
-  const { isBelowMinAmount, minAmountUsd } = useLimitOrderMinAmount({
+  const {
+    formattedMinAmountInSelectedCurrency,
+    hasError: hasMinAmountError,
+    isBelowMinAmount,
+  } = useLimitOrderMinAmount({
     sourceToken,
     sourceAmount,
   });
@@ -324,12 +340,13 @@ const BridgeLimitOrderViewContent = ({
     !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
+    hasMinAmountError ||
     isBelowMinAmount ||
     !feeTokenValidation.isValid;
   const createOrderLabel =
-    isBelowMinAmount && minAmountUsd !== undefined
+    isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
       ? strings('bridge.limit.min_order_amount', {
-          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+          amount: formattedMinAmountInSelectedCurrency,
         })
       : strings('bridge.limit.create_order');
   const expirationMinutes =
@@ -500,13 +517,14 @@ const BridgeLimitOrderViewContent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCreateOrderPress = useCallback(() => {
-    if (!feeTokenValidation.isValid) {
+    if (!feeTokenValidation.isValid || hasMinAmountError || isBelowMinAmount) {
       return;
     }
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
         .addProperties({
+          ...getAdvancedOrderTokenProperties({ sourceToken, destToken }),
           location,
           feature_id: FeatureId.LIMIT_ORDER,
           order_type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
@@ -541,6 +559,7 @@ const BridgeLimitOrderViewContent = ({
           limitPrice,
           priceComparisonDirection,
         },
+        location,
       },
     });
   }, [
@@ -551,6 +570,8 @@ const BridgeLimitOrderViewContent = ({
     executionType,
     expirationMinutes,
     feeTokenValidation.isValid,
+    hasMinAmountError,
+    isBelowMinAmount,
     isLimitFiatMode,
     limitPrice,
     navigation,

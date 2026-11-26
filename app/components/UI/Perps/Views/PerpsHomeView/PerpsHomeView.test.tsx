@@ -36,6 +36,7 @@ import {
   PerpsHomeViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
 } from '../../Perps.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMocks';
 import {
   HOME_SCREEN_CONFIG,
   SUPPORT_CONFIG,
@@ -307,6 +308,19 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
     isMultiProviderEnabled: false,
   })),
 }));
+
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
+jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
+}));
+
+jest.mock('../../components/PerpsBalanceBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ isVisible }: { isVisible: boolean }) =>
+    isVisible ? <View testID="mock-perps-balance-bottom-sheet" /> : null;
+});
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
@@ -623,6 +637,9 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUsePerpsProvider = jest.requireMock('../../hooks/usePerpsProvider')
+  .usePerpsProvider as jest.Mock;
+
 const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
   .useBottomSafeAreaInset as jest.Mock;
 
@@ -711,6 +728,10 @@ describe('PerpsHomeView', () => {
         returnOnEquity: '0',
       },
       isInitialLoading: false,
+    });
+    mockUsePerpsProvider.mockReturnValue({
+      isMultiProviderEnabled: false,
+      activeProvider: 'hyperliquid',
     });
   });
 
@@ -1676,6 +1697,62 @@ describe('PerpsHomeView', () => {
         'explore_commodities',
       );
       expect(properties?.sections_displayed).not.toContain('explore_forex');
+    });
+
+    it('records whats_happening between explore and top_movers in treatment', () => {
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
+      mockUsePerpsHomeExploreAbTest.mockReturnValue({
+        showExploreTable: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [{ symbol: 'BTC' }],
+      });
+      mockUseSelector.mockImplementation(
+        (selector: unknown) =>
+          selector === selectWhatsHappeningEnabled ||
+          selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+
+      render(<PerpsHomeView />);
+
+      const sections = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      )?.sections_displayed as string[];
+      expect(
+        sections.filter((name) =>
+          ['explore', 'whats_happening', 'top_movers'].includes(name),
+        ),
+      ).toEqual(['explore', 'whats_happening', 'top_movers']);
+    });
+
+    it('records whats_happening directly after explore_crypto in the stacked view', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+      });
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectWhatsHappeningEnabled,
+      );
+
+      render(<PerpsHomeView />);
+
+      const sections = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      )?.sections_displayed as string[];
+      expect(sections.indexOf('whats_happening')).toBe(
+        sections.indexOf('explore_crypto') + 1,
+      );
     });
 
     it('includes watchlist_count and watchlist_markets from raw selector', () => {

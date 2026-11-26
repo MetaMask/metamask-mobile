@@ -38,6 +38,9 @@ PredictNext/
     usePredictPortfolioValue.ts
     internal/
       legacy/                  # usePredictPortfolio pass-through, unchanged
+  funding/
+    index.ts                   # resolvePredictFunding, the legacy deposit gate, usePredictNextDepositAvailable
+    deposit/                   # Kalshi deposit workflow: Funding Plan check, USDC transfer, executors
   homeSection/
     index.ts                   # Wallet Homepage Predictions section
     PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders Positions or discovery
@@ -50,6 +53,12 @@ PredictNext/
     usePredictTrendingSupported.ts # Per surface: search (descriptor) and allSports (legacy only)
     internal/                  # Opaque-market minting: legacy casts, next Events
       next/                    # Next branch: Feed/search reads, carousel, card, search row, actions
+  searchResults/
+    index.ts                   # Browser URL autocomplete search source and result row
+    usePredictSearchResults.ts # Debounced search; venue-neutral results with an open intent
+    PredictSearchResultRow.tsx # The autocomplete row, moved from UrlAutocomplete/Result.tsx
+    internal/
+      legacy/                  # Polymarket search pass-through and its result mapping
   events/
     cards/
       index.ts                 # Supported Event-card API
@@ -78,6 +87,9 @@ PredictNext/
   views/                       # Screen compositions and private view helpers
     PredictEvent/
       internal/                # Screen-owned detail helpers
+    PredictDeposit/
+      PredictDepositScreen.tsx # Kalshi deposit: amount, review, processing (PRED-1495)
+      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, deposit environment from the Venue catalog
     PredictPortfolio/
       PredictPortfolioScreen.tsx
       internal/                # Summary, tabs, and empty-state composition
@@ -99,7 +111,7 @@ PredictNext/
     PredictDeviceAuthBootstrap.tsx
 
   capabilities/
-    index.ts                   # Venue descriptors, capability hooks and selectors
+    index.ts                   # Venue descriptors, capability hooks and selectors (requires explicit catalog environment for deposit)
     surfaceFeedKeys.ts         # The surface section/tab to Feed key table
 
   contracts/                   # Runtime API contracts

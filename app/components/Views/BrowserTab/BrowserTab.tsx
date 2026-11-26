@@ -37,6 +37,7 @@ import {
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
   buildDocumentUrlForUrlBarScript,
+  buildBlobIframeSrcdocScript,
 } from '../../../util/browserScripts';
 import {
   handleWebShare,
@@ -73,10 +74,7 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
-import {
-  createLegacyPredictEventRef,
-  usePredictEntryActions,
-} from '../../UI/PredictNext';
+import { usePredictEntryActions } from '../../UI/PredictNext';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
@@ -594,11 +592,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
+        // The blob shim has to run in nested frames (TradingView creates the
+        // chart iframe inside its own document). The provider and the rest of
+        // the bridge stay on the top frame.
         setEntryScriptWeb3(
-          webBrowserBridgeScript +
+          buildBlobIframeSrcdocScript() +
+            `(function(){try{if(window.top!==window)return;}catch(e){return;}\n` +
+            webBrowserBridgeScript +
             entryScriptWeb3Fetched +
             SPA_urlChangeListener +
-            SCROLL_TRACKER_SCRIPT,
+            SCROLL_TRACKER_SCRIPT +
+            `\n}).call(window);\n`,
         );
       };
 
@@ -956,7 +960,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Return `true` to continue loading the request and `false` to stop loading.
      */
     const onShouldStartLoadWithRequest = useCallback(
-      ({ url: urlToLoad }: { url: string }) => {
+      ({
+        url: urlToLoad,
+        isTopFrame,
+      }: {
+        url: string;
+        isTopFrame?: boolean;
+      }) => {
         if (!isTabActive) return false;
 
         if (isDisallowedExplicitPort(urlToLoad)) {
@@ -1003,7 +1013,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        if (protocolAllowList.includes(protocol)) {
+        // Chart embeds navigate an iframe to a blob: document. Blocking it
+        // shows a false "external application" alert and leaves the chart
+        // blank. A top-level blob: page stays blocked: it is never
+        // phishing-scanned and has no real address for the URL bar.
+        // A request that does not report its frame is treated as top-level.
+        const isAllowedBlob = protocol === 'blob:' && isTopFrame === false;
+
+        if (protocolAllowList.includes(protocol) || isAllowedBlob) {
           // Continue with the URL loading on the Webview
           return true;
         }
@@ -1547,16 +1564,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Predictions:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            if (
-              !openPredict({
-                type: 'event',
-                // Autocomplete searches legacy Polymarket markets.
-                eventRef: createLegacyPredictEventRef({
-                  marketId: item.id,
-                  providerId: item.providerId,
-                }),
-              })
-            ) {
+            if (!openPredict(item.intent)) {
               // The Active Venue cannot open this market: nothing navigated.
               isNavigatingToDetailRef.current = false;
             }
@@ -1914,6 +1922,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         renderError={renderError}
                         source={webViewSource}
                         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                        injectedJavaScriptBeforeContentLoadedForMainFrameOnly={
+                          false
+                        }
                         injectedJavaScript={webBrowserBridgeScript}
                         style={styles.webview}
                         onLoadStart={handleWebviewNavigationChange(OnLoadStart)}

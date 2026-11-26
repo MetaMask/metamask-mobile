@@ -26,6 +26,7 @@ jest.mock('../../selectors/socialController', () => ({
 
 jest.mock('../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+  selectPrimaryHDKeyring: jest.fn(),
 }));
 
 jest.mock('../../selectors/accountsController', () => ({
@@ -108,6 +109,7 @@ describe('useFollowToggle', () => {
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockTrack.mockReset();
   });
 
@@ -198,6 +200,42 @@ describe('useFollowToggle', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchTraderFollowing'],
       });
+    });
+
+    it('records the follow while the feed reload is still in flight', async () => {
+      mockInvalidateQueries.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'leaderboard',
+          traderAddress: '0xabc',
+          traderUsername: 'alice',
+          traderRank: 3,
+          traderAvatarUri: 'https://example.com/avatar.png',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes the older following feed and leaves the v1 feed cached', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+      });
+      const v1FeedInvalidated = mockInvalidateQueries.mock.calls.some(
+        ([query]) => query?.queryKey?.[1]?.scope === 'following_v1',
+      );
+      expect(v1FeedInvalidated).toBe(false);
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {
@@ -403,6 +441,7 @@ describe('useFollowToggleMany', () => {
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
   });
 
   it('tracks follow state independently per trader id', async () => {

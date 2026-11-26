@@ -6,9 +6,12 @@ export enum WatchlistFullScreenViewSelectorsIDs {
   EDIT_BUTTON = 'watchlist-fullscreen-edit-button',
   DONE_BUTTON = 'watchlist-fullscreen-done-button',
   TITLE = 'watchlist-fullscreen-title',
-  TOKENS_TAB = 'watchlist-fullscreen-tokens-tab',
   TOKEN_LIST = 'watchlist-fullscreen-token-list',
+  MIXED_LIST = 'watchlist-fullscreen-mixed-list',
   EDITABLE_ROW = 'watchlist-fullscreen-editable-row',
   DRAG_HANDLE = 'watchlist-fullscreen-drag-handle',
   UNWATCH_STAR = 'watchlist-fullscreen-unwatch-star',
 }
+
+export const getEditablePerpRowTestId = (symbol: string): string =>
+  `watchlist-fullscreen-editable-perp-${symbol}`;

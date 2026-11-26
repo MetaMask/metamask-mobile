@@ -1,10 +1,14 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
+import UrlAutocomplete, {
+  UrlAutocompleteCategory,
+} from '../../UI/UrlAutocomplete';
 import Routes from '../../../constants/navigation/Routes';
 import {
   DOCUMENT_URL_FOR_URL_BAR,
@@ -411,6 +415,85 @@ describe('BrowserTab', () => {
       ).toBe(false);
     });
 
+    it('loads a sub-frame blob URL without an external-application alert', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://www.tradingview.com/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+          isTopFrame: false,
+        }),
+      ).toBe(true);
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(
+        webView.props.injectedJavaScriptBeforeContentLoadedForMainFrameOnly,
+      ).toBe(false);
+      expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+        '__mmBlobIframeShim',
+      );
+      // iOS stops reading the injected script at the first NUL character.
+      expect(webView.props.injectedJavaScriptBeforeContentLoaded).not.toContain(
+        '\u0000',
+      );
+
+      alertSpy.mockRestore();
+    });
+
+    it('stops a top-level blob URL from loading', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://phishing.example/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+          isTopFrame: true,
+        }),
+      ).toBe(false);
+
+      alertSpy.mockRestore();
+    });
+
+    it('stops a blob URL that does not report its frame', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://phishing.example/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+        }),
+      ).toBe(false);
+
+      alertSpy.mockRestore();
+    });
+
     it('allow https resorce to load on webview', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
@@ -678,6 +761,36 @@ describe('BrowserTab', () => {
         );
         expect(webViewMountCount).toBeGreaterThan(mountsBefore);
       });
+    });
+  });
+
+  describe('Autocomplete Predictions result', () => {
+    it("opens Predict with the result's own intent", async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+      const autocomplete = screen.UNSAFE_getByType(UrlAutocomplete);
+
+      act(() => {
+        autocomplete.props.onSelect({
+          category: UrlAutocompleteCategory.Predictions,
+          id: 'market-1',
+          title: 'Will Bitcoin reach $100k?',
+          subtitle: 'Open',
+          intent: { type: 'home', entryPoint: 'search' },
+        });
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        expect.objectContaining({
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: expect.objectContaining({ entryPoint: 'search' }),
+        }),
+      );
     });
   });
 

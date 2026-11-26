@@ -215,7 +215,6 @@ const mockState = {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
-                failoverUrls: [],
                 networkClientId: 'mainnet',
                 type: 'infura',
                 url: 'https://mainnet.infura.io/v3/{infuraProjectId}',

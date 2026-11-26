@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
@@ -30,6 +30,7 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
+import usePrevious from '../../../../hooks/usePrevious';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
@@ -104,7 +105,7 @@ const AccountGroupBalance = ({
     [chainIdsForBalance],
   );
   const privacyMode = useSelector(selectPrivacyMode);
-  const previousPrivacyMode = useRef(privacyMode);
+  const previousPrivacyMode = usePrevious(privacyMode);
   const groupBalance = useSelector(groupBalanceSelector) as {
     groupId: string;
     totalBalanceInUserCurrency: number;
@@ -131,9 +132,15 @@ const AccountGroupBalance = ({
   const userCurrency = groupBalance?.userCurrency || currentCurrency;
   const displayBalance = formatCurrency(totalBalance, userCurrency);
   const zeroBalance = formatCurrency(0, userCurrency);
-  const skipBalanceAnimation = previousPrivacyMode.current && !privacyMode;
+  const skipBalanceAnimation = Boolean(previousPrivacyMode) && !privacyMode;
 
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  // Soft-gate like extension: keep a non-zero balance visible while the
+  // latched load is still settling so returning users are not blanked by
+  // background Snap/RPC work.
+  const isLoading =
+    !groupBalance ||
+    (!hasBalanceFetched &&
+      (groupBalance.totalBalanceInUserCurrency ?? 0) === 0);
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
@@ -169,10 +176,6 @@ const AccountGroupBalance = ({
       isWalletHomeOnboardingFundStep &&
       walletHomeOnboardingSkipInitialBalanceWait,
   });
-
-  useEffect(() => {
-    previousPrivacyMode.current = privacyMode;
-  }, [privacyMode]);
 
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (

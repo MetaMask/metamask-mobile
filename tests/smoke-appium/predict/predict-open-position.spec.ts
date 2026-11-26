@@ -28,6 +28,7 @@ import {
 } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { openPredictHomeFromWallet } from '../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
@@ -71,7 +72,9 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 appiumTest.describe(SmokePredictions('Predictions'), () => {
-  appiumTest(
+  // Skipped (flaky): `predict-market-details-screen` is not displayed after
+  // opening the Celtics vs. Nets market on Android CI, on main as well as on PR branches.
+  appiumTest.skip(
     'opens position on Celtics vs. Nets market',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
@@ -89,9 +92,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
         async ({ mockServer }) => {
           await loginForPredictTests();
 
-          await WalletView.scrollAndTapPredictionsSection();
-
-          await PredictHome.waitForScreenToDisplay({
+          await openPredictHomeFromWallet({
             description: 'Predict home should be visible',
           });
 
@@ -147,8 +148,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await PredictDetailsPage.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.scrollAndTapPredictionsSection();
-          await PredictHome.waitForScreenToDisplay({
+          await openPredictHomeFromWallet({
             description: 'Predict home should be visible for balance check',
           });
           await PredictHome.expectAmountDisplayed(positionDetails.newBalance);

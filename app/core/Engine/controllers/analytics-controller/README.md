@@ -24,12 +24,12 @@ Segment Cloud (for cloud-mode destinations & Destination Filters)
 
 ## Files
 
-| File                           | Purpose                                       |
-| ------------------------------ | --------------------------------------------- |
-| `BrazePlugin.ts`               | Segment destination plugin                    |
-| `BrazePlugin.test.ts`          | Unit tests                                    |
-| `app/core/Braze/index.ts`      | Public API (`setBrazeUser`, `clearBrazeUser`) |
-| `analytics-controller-init.ts` | Wires up plugin on init                       |
+| File                                                   | Purpose                                       |
+| ------------------------------------------------------ | --------------------------------------------- |
+| `BrazePlugin.ts`                                       | Segment destination plugin                    |
+| `BrazePlugin.test.ts`                                  | Unit tests                                    |
+| `app/core/Braze/index.ts`                              | Public API (`setBrazeUser`, `clearBrazeUser`) |
+| `wallet-init/instance-options/analytics-controller.ts` | Wires up plugin on init                       |
 
 ## Event Flow
 

@@ -59,8 +59,6 @@ export const DEBUG = `[${mm} DEBUG]:`;
 export const LAST_APP_VERSION = `${prefix}LastAppVersion`;
 export const CURRENT_APP_VERSION = `${prefix}CurrentAppVersion`;
 
-export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
-
 export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
@@ -88,7 +86,7 @@ export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDi
 
 export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
 
-export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
+export const SLOW_NETWORK_BANNER_DISMISSED_AT = `${prefix}slowNetworkBannerDismissedAt`;
 
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
 

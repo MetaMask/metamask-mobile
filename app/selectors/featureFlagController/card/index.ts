@@ -8,21 +8,17 @@ import {
   readCardFeatureFlag,
   readCardLinkApiEnabled,
   findImmersveFundingChannelById,
-  readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardImmersveMfaEnabled,
-  readCardUkMigrationSignInRoutingEnabled,
   readImmersveCountryFunding,
   resolveCardProvisioningWallets,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
 import type {
-  CardFeatureFlag,
   CardProvisioningFacts,
-  CardProviderChains,
   CardUkMigrationState,
   GateVersionedFeatureFlag,
   ImmersveFundingChannel,
@@ -58,21 +54,12 @@ export {
   readImmersveFundingChannels,
   resolveCardProviderForCountry,
   resolveCardProvisioningWallets,
+  immersveFundingChannelForCountry,
   resolveImmersveFundingChannel,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
   type CardUkMigrationUpdateBadgeSeverity,
 } from './read';
-
-/**
- * Resolves an already-extracted `cardFeature` value against the built-in
- * default. Prefer `readCardFeatureFlag(remoteFeatureFlags)` when you hold the
- * whole flag bag.
- */
-export const resolveCardFeatureFlag = (
-  cardFeatureFlag?: CardFeatureFlag | null,
-): CardFeatureFlag =>
-  readCardFeatureFlag({ cardFeature: cardFeatureFlag ?? undefined });
 
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -126,15 +113,6 @@ export const selectCardImmersveConfig = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): ImmersveProgramConfig =>
     readCardProviderConfig<ImmersveProgramConfig>(
-      remoteFeatureFlags as CardRemoteFeatureFlags,
-      CardProviderIds.Immersve,
-    ),
-);
-
-export const selectCardImmersveChains = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): CardProviderChains =>
-    readCardProviderChains(
       remoteFeatureFlags as CardRemoteFeatureFlags,
       CardProviderIds.Immersve,
     ),
@@ -239,6 +217,19 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
   },
 );
 
+/** Selects the Baanx email-code sign-in flow. Off keeps email and password. */
+export const selectCardBaanxPasswordlessLoginEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardBaanxPasswordlessLogin as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectCardFiatCreditFeatureEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -271,24 +262,6 @@ export const selectCardUkMigrationState = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): CardUkMigrationState =>
     resolveCardUkMigrationState(remoteFeatureFlags as CardRemoteFeatureFlags),
-);
-
-export const selectCardUkMigrationPhase = createSelector(
-  selectCardUkMigrationState,
-  (state) => state.phase,
-);
-
-export const selectIsCardUkMigrationActive = createSelector(
-  selectCardUkMigrationState,
-  (state) => state.isActive,
-);
-
-export const selectCardUkMigrationSignInRoutingEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    readCardUkMigrationSignInRoutingEnabled(
-      remoteFeatureFlags as CardRemoteFeatureFlags,
-    ),
 );
 
 export const selectCardImmersveMfaEnabled = createSelector(

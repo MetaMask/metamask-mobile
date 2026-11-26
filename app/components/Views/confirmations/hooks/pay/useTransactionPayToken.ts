@@ -4,24 +4,31 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type { CaipAssetType } from '@metamask/utils';
 import { noop } from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { decodeEvmAssetId } from '../../../../../util/transactions/payment-token';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
 
+/** Payment token selection, identified by its `AssetsController` asset ID. */
+export interface PayTokenSelection {
+  assetId: CaipAssetType;
+}
+
 export function useTransactionPayToken(): {
   isNative?: boolean;
   payToken: TransactionPaymentToken | undefined;
-  setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
+  setPayToken: (selection: PayTokenSelection) => void;
 } {
   const transactionMeta = useTransactionMetadataRequest();
   const { id: transactionId } = transactionMeta || { id: '' };
@@ -30,16 +37,29 @@ export function useTransactionPayToken(): {
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
 
+  const payTokenAsset = useMemo(
+    () => payToken && decodeEvmAssetId(payToken.assetId),
+    [payToken],
+  );
+
   const requiredTokens = useTransactionPayRequiredTokens();
   const primaryRequiredToken = (requiredTokens ?? []).find(
     (token) => !token.skipIfBalance,
   );
 
   const isNative =
-    payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
+    payTokenAsset &&
+    payTokenAsset.address === getNativeTokenAddress(payTokenAsset.chainId);
 
   const setPayToken = useCallback(
-    (newPayToken: { address: Hex; chainId: Hex }) => {
+    ({ assetId }: PayTokenSelection) => {
+      // Mobile only offers EVM payment tokens.
+      const newPayToken = decodeEvmAssetId(assetId);
+
+      if (!newPayToken) {
+        throw new Error(`Unsupported payment token: ${assetId}`);
+      }
+
       const { GasFeeController, NetworkController, TransactionPayController } =
         Engine.context;
 
@@ -54,9 +74,10 @@ export function useTransactionPayToken(): {
       try {
         TransactionPayController.updatePaymentToken({
           transactionId: transactionId as string,
-          tokenAddress: newPayToken.address,
-          chainId: newPayToken.chainId,
+          assetId,
         });
+
+        syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
       }

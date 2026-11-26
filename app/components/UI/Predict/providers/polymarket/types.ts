@@ -169,10 +169,12 @@ export interface PolymarketApiMarket {
    */
   positionIds?: string | string[];
   line?: number;
+  eventStartTime?: string;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;
     twapLookbackSeconds?: number | null;
   } | null;
+  resolutionSource?: string | null;
 }
 
 export interface PolymarketApiSeries {
@@ -222,7 +224,11 @@ export interface PolymarketApiEvent {
   parentEventId?: string | number | null;
   eventMetadata?: {
     priceToBeat?: number | string | null;
+    // Gamma's `/events/{id}` detail endpoint returns only this field for a live
+    // window; the list endpoints return both. Same value when both are present.
+    pendingPriceToBeat?: number | string | null;
   };
+  resolutionSource?: string | null;
 }
 
 export interface PolymarketApiActivity {

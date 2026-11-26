@@ -71,6 +71,7 @@ const PerpsClosePositionView: React.FC = () => {
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryFees,
     receiveAmount,
@@ -94,6 +95,7 @@ const PerpsClosePositionView: React.FC = () => {
   const Summary = (
     <PerpsCloseSummary
       totalMargin={summaryMargin}
+      marginMode={summaryMarginMode}
       totalPnl={summaryPnl}
       totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}
@@ -136,6 +138,7 @@ const PerpsClosePositionView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <PerpsOrderHeader
+        providerId={position.providerId}
         asset={position.symbol}
         price={currentPrice}
         title={strings('perps.close_position.title')}
@@ -285,6 +288,7 @@ const PerpsClosePositionView: React.FC = () => {
           mid-session flag flip closes it immediately (effectiveOrderType can
           only be 'limit' while the feature flag is enabled). */}
       <PerpsLimitPriceBottomSheet
+        providerId={position.providerId}
         isVisible={isLimitPriceVisible && effectiveOrderType === 'limit'}
         onClose={() => {
           setIsLimitPriceVisible(false);

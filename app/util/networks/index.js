@@ -232,6 +232,9 @@ export const isPolygonMainnetChainId = (chainId) =>
 
 export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
 
+export const isArbitrumMainnetChainId = (chainId) =>
+  chainId === CHAIN_IDS.ARBITRUM;
+
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
 /**
@@ -346,7 +349,8 @@ export const canDeleteNetwork = (chainId) =>
       !isMainNet(chainId) &&
       !isLineaMainnetChainId(chainId) &&
       !isPolygonMainnetChainId(chainId) &&
-      !isMonadMainnetChainId(chainId),
+      !isMonadMainnetChainId(chainId) &&
+      !isArbitrumMainnetChainId(chainId),
   );
 
 export function getNetworkTypeById(id) {
@@ -702,9 +706,22 @@ const imageSourceCache = new Map();
  * @param {object} params - Params that contains information about the network.
  * @param {string=} params.networkType - Type of network from the provider.
  * @param {string} params.chainId - Hex EVM chain ID or CAIP chain ID of the network.
+ * @param {object=} networkImageUrls - Chain ID to image source ({ uri }) map
+ * from the config registry; when it has an entry for the chain, it wins over
+ * the static image lists.
  * @returns {Object} - Image source of the network.
  */
-export const getNetworkImageSource = ({ networkType, chainId }) => {
+export const getNetworkImageSource = (
+  { networkType, chainId },
+  networkImageUrls,
+) => {
+  // Registry images are not cached: the map is selector-driven and can change
+  // with the registry state, unlike the static lists below.
+  const registryImageSource = networkImageUrls?.[chainId];
+  if (registryImageSource) {
+    return registryImageSource;
+  }
+
   const cacheKey = `${networkType}-${chainId}`;
   if (imageSourceCache.has(cacheKey)) {
     return imageSourceCache.get(cacheKey);

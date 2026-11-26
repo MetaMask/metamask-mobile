@@ -30,14 +30,11 @@ import {
   DeFiPositionsControllerV2State,
   DeFiPositionsControllerV2Events,
   DeFiPositionsControllerV2Actions,
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerState,
   TokenSearchDiscoveryDataControllerActions,
   TokenSearchDiscoveryDataControllerEvents,
   CodefiTokenPricesServiceV2,
-  ///: END:ONLY_INCLUDE_IF
   // Legacy asset controller actions still referenced by external messenger
   // types. Only CurrencyRate and MultichainAssets have handlers
   // (`legacy-asset-state-compat.ts`).
@@ -53,7 +50,6 @@ import {
   AssetsControllerEvents,
   AssetsControllerState,
 } from '@metamask/assets-controller';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
@@ -62,7 +58,6 @@ import {
   MultichainTransactionsControllerEvents,
   MultichainTransactionsControllerActions,
 } from './messengers/multichain-transactions-controller-messenger/types';
-///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookControllerActions,
@@ -128,10 +123,13 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
+  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
+  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -162,14 +160,11 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapController,
   ExecutionService,
@@ -195,7 +190,6 @@ import {
   ExecutionServiceActions,
   ExecutionServiceEvents,
 } from '@metamask/snaps-controllers';
-///: END:ONLY_INCLUDE_IF
 import {
   LoggingController,
   LoggingControllerActions,
@@ -220,7 +214,6 @@ import {
   type SmartTransactionsControllerEvents,
   SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AuthenticationController,
   UserStorageController,
@@ -238,7 +231,6 @@ import type {
   NotificationServicesPushControllerState,
 } from '@metamask/notification-services-controller/push-services';
 
-///: END:ONLY_INCLUDE_IF
 import {
   BackendWebSocketService,
   BackendWebSocketServiceActions,
@@ -350,6 +342,12 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import {
+  CollectiblesController,
+  type CollectiblesControllerActions,
+  type CollectiblesControllerEvents,
+  type CollectiblesControllerState,
+} from '../../components/UI/Collectibles/controllers/CollectiblesController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -376,6 +374,11 @@ import {
   type PredictOrderServiceActions,
   type PredictOrderServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictOrderService';
+import {
+  PredictFundingService,
+  type PredictFundingServiceActions,
+  type PredictFundingServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictFundingService';
 import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceActions,
@@ -601,6 +604,12 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import type {
+  MoneyAccountLifecycleController,
+  MoneyAccountLifecycleControllerActions,
+  MoneyAccountLifecycleControllerEvents,
+  MoneyAccountLifecycleControllerState,
+} from '@metamask/money-account-lifecycle-controller';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -656,7 +665,6 @@ interface SubscriptionControllerRegisterAddressAction {
   handler: (caipAccountId: string) => Promise<void>;
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -669,7 +677,6 @@ type SnapsGlobalEvents =
   | SnapRegistryControllerEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents;
-///: END:ONLY_INCLUDE_IF
 
 export type GlobalActions =
   | SamplePetnamesControllerActions
@@ -692,7 +699,6 @@ export type GlobalActions =
   | SignatureControllerActions
   | LoggingControllerActions
   | AnalyticsControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
   | AuthenticationController.Actions
@@ -702,14 +708,11 @@ export type GlobalActions =
   | CronjobControllerActions
   | WebSocketServiceActions
   | ExecutionServiceActions
-  ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | OHLCVServiceActions
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   | SnapAccountServiceActions
-  ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
@@ -731,10 +734,12 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CollectiblesControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictFundingServiceActions
   | PredictDeviceAuthServiceActions
   | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
@@ -786,6 +791,7 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
+  | MoneyAccountLifecycleControllerActions
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
@@ -804,7 +810,6 @@ export type GlobalEvents =
   | NetworkEnablementControllerEvents
   | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
   | AuthenticationController.Events
@@ -813,15 +818,12 @@ export type GlobalEvents =
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
   | ExecutionServiceEvents
-  ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
   | OHLCVServiceEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
   | SnapAccountServiceEvents
-  ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
   | AnalyticsControllerEvents
@@ -851,10 +853,12 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CollectiblesControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictFundingServiceEvents
   | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
@@ -874,6 +878,9 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | RampsControllerEvents
+  | RampsServiceEvents
+  | TransakServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -885,6 +892,7 @@ export type GlobalEvents =
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
+  | MoneyAccountLifecycleControllerEvents
   | SentinelApiServiceEvents;
 
 /**
@@ -911,12 +919,6 @@ export type RootMessenger<
   AllowedActions extends GlobalActions = GlobalActions,
   AllowedEvents extends GlobalEvents = GlobalEvents,
 > = Messenger<'Root', AllowedActions, AllowedEvents>;
-
-export const getRootMessenger = (): RootMessenger =>
-  new Messenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-    captureException,
-  });
 
 /**
  * All mobile controllers, keyed by name
@@ -971,7 +973,6 @@ export type MessengerClients = {
   ShieldApiService: ShieldApiService;
   ClaimsController: ClaimsController;
   ClaimsService: ClaimsService;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapRegistryController: SnapRegistryController;
@@ -983,16 +984,13 @@ export type MessengerClients = {
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
   WebSocketService: WebSocketService;
-  ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
   OHLCVService: OHLCVService;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapAccountService: SnapAccountService;
-  ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
@@ -1005,10 +1003,12 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CollectiblesController: CollectiblesController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictFundingService: PredictFundingService;
   PredictDeviceAuthService: PredictDeviceAuthService;
   PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
@@ -1045,6 +1045,7 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleController;
 };
 
 /**
@@ -1083,7 +1084,6 @@ export type EngineState = {
   ClaimsController: ClaimsControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -1093,7 +1093,6 @@ export type EngineState = {
   NotificationServicesPushController: NotificationServicesPushControllerState;
   SnapInterfaceController: SnapInterfaceControllerState;
   CronjobController: CronjobControllerState;
-  ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
@@ -1102,9 +1101,7 @@ export type EngineState = {
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainTransactionsController: MultichainTransactionsControllerState;
-  ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
@@ -1115,6 +1112,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   PredictVenueController: PredictVenueControllerState;
+  CollectiblesController: CollectiblesControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1133,6 +1131,7 @@ export type EngineState = {
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleControllerState;
 };
 
 /** Messenger client names */
@@ -1166,7 +1165,6 @@ export type MessengerClientsToInitialize =
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
   | 'SentinelApiService'
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
@@ -1178,16 +1176,13 @@ export type MessengerClientsToInitialize =
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
   | 'UserStorageController'
-  ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
   | 'OHLCVService'
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'SnapAccountService'
-  ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
@@ -1195,23 +1190,22 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'DeFiPositionsController'
   | 'DeFiPositionsControllerV2'
-  | 'GeolocationController'
-  | 'GeolocationApiService'
   | 'MultichainNetworkController'
   | 'NftController'
   | 'TokensController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'SignatureController'
   | 'SmartTransactionsController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionPayController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CollectiblesController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictFundingService'
   | 'PredictDeviceAuthService'
   | 'PredictVenueController'
   | 'RecurringOrdersDataService'
@@ -1224,7 +1218,6 @@ export type MessengerClientsToInitialize =
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
-  | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'RewardsMoneyController'
@@ -1238,7 +1231,6 @@ export type MessengerClientsToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'
-  | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialRealtimeService'
@@ -1251,7 +1243,8 @@ export type MessengerClientsToInitialize =
   | 'KycService'
   | 'KycController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'MoneyAccountLifecycleController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -1270,11 +1263,6 @@ type MessengerClientPersistedState = Partial<{
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
   >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
-
-/**
- * Map of messenger client messengers by name.
- */
-export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
  * Request to initialize and return a messenger client instance.
@@ -1334,14 +1322,12 @@ export type MessengerClientInitRequest<
    */
   analyticsId: string;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Remove an account from all controllers that manage accounts.
    *
    * @param address - The address of the account to remove.
    */
   removeAccount(address: string): Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * The initial state of the keyring controller, if applicable.
@@ -1398,9 +1384,7 @@ export interface InitMessengerClientsFunctionRequest {
   analyticsId: string;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
   tokenListService: TokenListService;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
   persistedState: MessengerClientPersistedState;
 }
 

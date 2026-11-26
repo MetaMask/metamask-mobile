@@ -7,11 +7,26 @@ import {
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   PerpsAdjustMarginBottomSheetSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
+
+let mockCrossMarginEnabled = false;
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mocked(useSelector).mockImplementation((selector: unknown) => {
+  if (selector === selectPerpsCrossMarginEnabledFlag) {
+    return mockCrossMarginEnabled;
+  }
+  throw new Error('Unexpected selector in PerpsAdjustMarginBottomSheet');
+});
 
 const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();
@@ -235,6 +250,7 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
 
 describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
+    mockCrossMarginEnabled = false;
     jest.clearAllMocks();
     mockMarginAdjustmentOptions = undefined;
     mockLivePriceHeaderProps = undefined;
@@ -587,8 +603,43 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       );
     });
 
-    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250, undefined);
     expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+  });
+
+  it('submits to the venue of the position being adjusted', async () => {
+    const lighterPosition: Position = { ...position, providerId: 'lighter' };
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add', 250),
+      position: lighterPosition,
+    });
+    render(
+      <PerpsAdjustMarginBottomSheet
+        position={lighterPosition}
+        initialMode="add"
+      />,
+    );
+    const slider = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER,
+    );
+
+    act(() => {
+      (
+        slider.props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(25);
+    });
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockUsePerpsAdjustMarginData).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'lighter' }),
+    );
+    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250, 'lighter');
   });
 
   it('freezes the margin transition while the submitted adjustment settles', async () => {
@@ -677,7 +728,7 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       );
     });
 
-    expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+    expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100, undefined);
     expect(mockHandleAddMargin).not.toHaveBeenCalled();
   });
 
@@ -973,4 +1024,48 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       'perps.adjust_margin.amount_accessibility_label, 200.00',
     );
   });
+
+  it('hides the margin mode label while cross margin is disabled', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toBeNull();
+  });
+
+  it.each(['isolated', 'cross'] as const)(
+    'labels margin in position as %s when cross margin is enabled',
+    (marginMode) => {
+      mockCrossMarginEnabled = true;
+      const modePosition = {
+        ...position,
+        leverage: { value: 10, type: marginMode },
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...createMarginData('add'),
+        position: modePosition,
+      });
+
+      render(
+        <PerpsAdjustMarginBottomSheet
+          position={modePosition}
+          initialMode="add"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+        ),
+      ).toHaveTextContent(
+        marginMode === 'cross'
+          ? 'perps.margin_mode.cross_title'
+          : 'perps.margin_mode.isolated_title',
+      );
+    },
+  );
 });

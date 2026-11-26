@@ -9,6 +9,7 @@ import { PERPS_MARKET_LIST_CONSTANTS } from '../../constants/marketListConfig';
 import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
 import { type PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketRow } from '../../hooks/usePerpsMarkets';
 import {
   Text,
   TextColor,
@@ -52,12 +53,15 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   emptyMessage = strings('perps.home.no_markets'),
   ListHeaderComponent,
   stickyHeader,
+  keepHeaderHiddenOnReset = false,
+  emptyComponent,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,
   filterKey,
   scrollResetKey,
+  refreshControl,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,7 +72,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   // active category, and — via scrollResetKey — search toggling on/off) so the
   // list header (e.g. the Recently Viewed rail, which sits above the first row)
   // scrolls back into view rather than leaving the user mid-list. Skips the
-  // first render.
+  // first render. With `keepHeaderHiddenOnReset` it resets to just below the
+  // list header instead, and only if the user scrolled past it.
   //
   // offset 0 targets the very top (above the header); scrollToIndex would only
   // reach the first row and push the header off-screen. This is reliable
@@ -84,8 +89,22 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     }
     // Ref is null when the new filter has no rows and no list header (empty
     // state rendered instead), so this safely no-ops in that case.
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [scrollResetToken]);
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+
+    if (keepHeaderHiddenOnReset) {
+      // The sticky row starts where the list header ends.
+      const headerHeight = list.getFirstItemOffset();
+      if (list.getAbsoluteLastScrollOffset() > headerHeight) {
+        list.scrollToOffset({ offset: headerHeight, animated: true });
+      }
+      return;
+    }
+
+    list.scrollToOffset({ offset: 0, animated: true });
+  }, [scrollResetToken, keepHeaderHiddenOnReset]);
 
   const listData = useMemo<MarketListRow[]>(() => {
     const rows: MarketListRow[] = hasStickyHeader ? [STICKY_HEADER_ROW] : [];
@@ -118,25 +137,26 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   const keyExtractor = useCallback(
     (item: MarketListRow) =>
-      item.type === 'sticky' ? STICKY_HEADER_KEY : item.market.symbol,
+      // TAT-4407: `rowId` is unique per venue row and per backend market key,
+      // so two venues listing the same symbol never collide as list keys.
+      item.type === 'sticky'
+        ? STICKY_HEADER_KEY
+        : ((item.market as PerpsMarketRow).rowId ?? item.market.symbol),
     [],
   );
 
   const getItemType = useCallback((item: MarketListRow) => item.type, []);
 
-  const renderEmpty = useCallback(
-    () => (
-      <View style={styles.emptyContainer} testID={`${testID}-empty`}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-          {emptyMessage}
-        </Text>
-      </View>
-    ),
-    [styles.emptyContainer, emptyMessage, testID],
+  const emptyState = emptyComponent ?? (
+    <View style={styles.emptyContainer} testID={`${testID}-empty`}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+        {emptyMessage}
+      </Text>
+    </View>
   );
 
   if (markets.length === 0 && !ListHeaderComponent && !hasStickyHeader) {
-    return renderEmpty();
+    return emptyState;
   }
 
   return (
@@ -151,12 +171,12 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={renderEmpty}
+      ListEmptyComponent={emptyState}
       // stickyHeader is a data row, so an empty `markets` array is still a
       // non-empty list and ListEmptyComponent never runs. Render the empty
       // copy as a footer in that case.
       ListFooterComponent={
-        markets.length === 0 && hasStickyHeader ? renderEmpty : undefined
+        markets.length === 0 && hasStickyHeader ? emptyState : undefined
       }
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       // Disabled so the scroll-to-top on filter change reliably reaches the
@@ -164,6 +184,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // snapshot with per-row live-price updates, so there are no above-viewport
       // insertions for it to protect against.
       maintainVisibleContentPosition={{ disabled: true }}
+      refreshControl={refreshControl}
       removeClippedSubviews
       showsVerticalScrollIndicator={false}
       testID={testID}

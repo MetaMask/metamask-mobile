@@ -99,7 +99,9 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
+For any test work, start with the `mms-mobile-testing` skill. It picks the layer and the references below. Running it is how a change gets a `## Test layer placement` section.
+
+The `mms-*` skill set is installed by `yarn install` (base skills for Cursor / Codex / Claude harnesses), and `yarn skills` adds every domain. The guides below are references the skill opens after it picks a layer:
 
 | Guide                                                                                      | Scope                                                                        |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
@@ -119,8 +121,9 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
 - **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
-- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers, and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see [`.cursor/rules/device-capability.mdc`](.cursor/rules/device-capability.mdc)
+- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers (measured latency is the separate `useNetworkLatency()` signal), and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see the `mms-device-capability` skill
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
+- **Slow screen open**: Heavy below-the-fold section janking a push transition? Gate it on the existing `useScreenTransitionComplete()` instead of writing a new deferral hook — see [`docs/performance/anti-patterns.md`](docs/performance/anti-patterns.md#deferring-a-heavy-section-until-the-push-transition-ends)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
@@ -225,7 +228,7 @@ Three test types coexist in this repo:
 - **Component view tests** (`*.view.test.tsx`)
 - **E2E tests** (`tests/smoke-appium/`)
 
-For conventions and skill references for each type, read `tests/AGENTS.md`.
+For any test work, start with the `mms-mobile-testing` skill. It picks the layer and the references, and `tests/AGENTS.md` is the in-repo index for each type.
 
 ## A/B Testing Agent Standard
 

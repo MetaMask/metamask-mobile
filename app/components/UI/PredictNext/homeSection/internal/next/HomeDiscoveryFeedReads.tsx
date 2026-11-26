@@ -12,8 +12,8 @@ import {
   type HomeDiscoverySlotId,
 } from './homeDiscoverySlots';
 
-/** The same params as the PredictNext Home preview, so a slot and the Home
- * section of the same Feed share one cache entry. */
+/** One page of a slot's size. PredictNext Home reads more of the same game
+ * Feeds for its Trending and Sports rows, so it keeps cache entries of its own. */
 const FEED_PARAMS = { limit: HOME_DISCOVERY_EVENTS_PER_SLOT };
 const NO_EVENTS: readonly PredictEvent[] = [];
 const NO_READS: readonly HomeDiscoveryFeedRead[] = [];
@@ -28,6 +28,8 @@ export interface HomeDiscoveryFeedRead {
   /** No data yet and a read in flight or paused (offline, or no usable
    * network). */
   isLoading: boolean;
+  /** A read is actively fetching from the network, rather than paused. */
+  isFetching: boolean;
   isError: boolean;
 }
 
@@ -65,17 +67,33 @@ const HomeDiscoveryFeedReadStep = ({
 }: StepProps) => {
   const slotId = HOME_DISCOVERY_SLOT_IDS[index];
   const feedId = slotFeeds.find((feed) => feed.sectionId === slotId)?.feedId;
-  const { data, isPending, isError } = useFeed(venueId, feedId, FEED_PARAMS, {
-    enabled: isEnabled,
-  });
+  const { data, isPending, isFetching, isError } = useFeed(
+    venueId,
+    feedId,
+    FEED_PARAMS,
+    {
+      enabled: isEnabled,
+    },
+  );
   const events = data?.pages[0]?.events ?? NO_EVENTS;
   const isLoading = feedId !== undefined && isPending && !isError;
+  const isActivelyFetching = isLoading && isEnabled && isFetching;
   const nextReads = useMemo<readonly HomeDiscoveryFeedRead[]>(
     () =>
       feedId === undefined
         ? reads
-        : [...reads, { slotId, feedId, events, isLoading, isError }],
-    [reads, slotId, feedId, events, isLoading, isError],
+        : [
+            ...reads,
+            {
+              slotId,
+              feedId,
+              events,
+              isLoading,
+              isFetching: isActivelyFetching,
+              isError,
+            },
+          ],
+    [reads, slotId, feedId, events, isLoading, isActivelyFetching, isError],
   );
 
   return index + 1 < HOME_DISCOVERY_SLOT_IDS.length ? (

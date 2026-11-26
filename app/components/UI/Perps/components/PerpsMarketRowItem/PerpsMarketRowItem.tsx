@@ -38,11 +38,14 @@ const PerpsMarketRowItem = ({
   displayMetric = 'volume',
   showBadge = false,
   compact = false,
+  enableLivePrices = true,
   onAddPress,
-}: PerpsMarketRowItemProps) => {
+  twClassName,
+}: PerpsMarketRowItemProps): React.JSX.Element => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
-    symbols: [market.symbol],
+    providerId: market.providerId,
+    symbols: enableLivePrices ? [market.symbol] : [],
     throttleMs: 3000, // 3 seconds for list view
   });
 
@@ -50,7 +53,7 @@ const PerpsMarketRowItem = ({
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
-    const livePrice = livePrices[market.symbol];
+    const livePrice = enableLivePrices ? livePrices[market.symbol] : undefined;
     if (!livePrice) {
       return market;
     }
@@ -108,9 +111,9 @@ const PerpsMarketRowItem = ({
     }
 
     return updatedMarket;
-  }, [market, livePrices]);
+  }, [enableLivePrices, market, livePrices]);
 
-  const handlePress = () => {
+  const handlePress = (): void => {
     onPress?.(displayMarket);
   };
 
@@ -192,6 +195,10 @@ const PerpsMarketRowItem = ({
         <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
       }
       description={description}
+      descriptionProps={{
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+      }}
       descriptionEndAccessory={
         showBadge && badgeType ? (
           <PerpsBadge
@@ -223,7 +230,11 @@ const PerpsMarketRowItem = ({
         ) : undefined
       }
       accessoryGap={onAddPress ? 3 : undefined}
-      twClassName={compact ? 'py-2 min-h-0' : undefined}
+      twClassName={
+        [compact ? 'py-2 min-h-0' : undefined, twClassName]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
     />
   );
 };

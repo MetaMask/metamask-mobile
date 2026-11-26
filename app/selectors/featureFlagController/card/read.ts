@@ -551,15 +551,29 @@ export function readImmersveCountryFunding(
   );
 }
 
+/**
+ * Looks up a country in an already-built funding map. Callers that already
+ * hold the memoized map should use this instead of rebuilding it.
+ */
+export function immersveFundingChannelForCountry(
+  countryFunding: Record<string, ImmersveFundingChannel> | null | undefined,
+  country: string | null | undefined,
+): ImmersveFundingChannel | null {
+  if (!country || !countryFunding) {
+    return null;
+  }
+  return countryFunding[country.toUpperCase()] ?? null;
+}
+
 /** Funding channel for `country`, or null when Immersve does not claim it. */
 export function resolveImmersveFundingChannel(
   flags: CardRemoteFeatureFlags,
   country: string | null | undefined,
 ): ImmersveFundingChannel | null {
-  if (!country) {
-    return null;
-  }
-  return readImmersveCountryFunding(flags)[country.toUpperCase()] ?? null;
+  return immersveFundingChannelForCountry(
+    readImmersveCountryFunding(flags),
+    country,
+  );
 }
 
 /**

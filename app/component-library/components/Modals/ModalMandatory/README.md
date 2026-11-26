@@ -16,7 +16,7 @@ Object that holds the props that are passed in while navigating. Props are acces
 
 ```javascript
 // Update to import from relative paths.
-import Routes from 'app/constants/navigation/Routes.ts';
+import Routes from '#app/constants/navigation/Routes.ts';
 
 navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
   screen: Routes.MODAL.MODAL_MANDATORY,

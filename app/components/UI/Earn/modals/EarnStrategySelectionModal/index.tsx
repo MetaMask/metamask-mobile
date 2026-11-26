@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -21,6 +20,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,7 +49,7 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -61,6 +61,8 @@ import {
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import type { EarnModuleNavigationContext } from '../../types/earnModuleEvents.types';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
@@ -173,6 +175,7 @@ const renderNonMoneyStrategyCard = (
 };
 
 const EarnStrategySelectionModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const isNavigatingToDepositRef = useRef(false);
   // Preserve resolved route while bottom sheet closes before navigation runs.
@@ -185,7 +188,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const { isOnboardingRedirectNeeded } = useMoneyNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -278,7 +281,8 @@ const EarnStrategySelectionModal = () => {
 
   const handleGetStartedPress = useCallback(() => {
     if (!selectedStrategy || !earnAsset) {
-      handleGetStartedAfterClose();
+      // eslint-disable-next-line no-void -- The handler catches its own navigation errors.
+      void handleGetStartedAfterClose();
       return;
     }
 
@@ -323,7 +327,7 @@ const EarnStrategySelectionModal = () => {
       is_fee_subsidized: selectedStrategy.isFeeSubsidized,
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
-        isOnboardingRedirectNeeded,
+        moneyEntryContext,
         pendingEarnDepositRouteRef.current,
       ),
     });
@@ -334,7 +338,7 @@ const EarnStrategySelectionModal = () => {
     earnAsset,
     handleGetStartedAfterClose,
     handleNavigationError,
-    isOnboardingRedirectNeeded,
+    moneyEntryContext,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
     resolveEarnDepositNavigationRoute,
@@ -379,7 +383,8 @@ const EarnStrategySelectionModal = () => {
       testID={EarnStrategySelectionModalTestIds.MODAL}
       twClassName="flex-1"
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: EarnStrategySelectionModalTestIds.CLOSE_BUTTON,
@@ -387,7 +392,7 @@ const EarnStrategySelectionModal = () => {
         testID={EarnStrategySelectionModalTestIds.MODAL_HEADER}
       >
         {strings('earn.strategy_selection.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 pb-6')}

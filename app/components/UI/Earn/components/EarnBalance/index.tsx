@@ -8,9 +8,7 @@ import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import EarnMaintenanceBanner from '../EarnMaintenanceBanner';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-///: END:ONLY_INCLUDE_IF
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
 import {
@@ -46,14 +44,12 @@ const EarnBalance = ({ asset, isGlass = false }: EarnBalanceProps) => {
   const { isConversionToken } = useMusdConversionTokens();
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTron = asset?.chainId?.startsWith('tron:');
 
   if (isTron && isTrxStakingEnabled) {
     return null;
   }
-  ///: END:ONLY_INCLUDE_IF
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset) && isGeoEligible;

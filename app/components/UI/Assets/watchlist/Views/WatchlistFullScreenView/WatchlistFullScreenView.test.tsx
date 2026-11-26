@@ -1,7 +1,12 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import WatchlistFullScreenView from './WatchlistFullScreenView';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags';
+import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
+import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
@@ -9,10 +14,58 @@ const mockUseTokenWatchlistQuery = jest.fn();
 const mockUpdateListMutate = jest.fn();
 const mockUseTrackWatchlistPageViewed = jest.fn();
 
+const mockUseSelector = jest.fn();
+const mockUseUnifiedWatchlist = jest.fn();
+const mockRemovePerpFromWatchlist = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
+let capturedOnReorder:
+  | ((event: { from: number; to: number }) => void)
+  | undefined;
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
+  useSelector: (selector: (state: unknown) => unknown) =>
+    mockUseSelector(selector),
 }));
+
+jest.mock('../../../../Watchlist/hooks/useUnifiedWatchlist', () => ({
+  useUnifiedWatchlist: () => mockUseUnifiedWatchlist(),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: () => ({
+    addToWatchlist: jest.fn(),
+    removeFromWatchlist: mockRemovePerpFromWatchlist,
+  }),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketDetails: mockNavigateToMarketDetails,
+  }),
+}));
+
+jest.mock('../../../../Perps/providers/PerpsStreamManager', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+  };
+});
+
+jest.mock(
+  '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',
+  () => {
+    const { Text, View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    return ({ market }: { market: { symbol: string } }) =>
+      ReactActual.createElement(
+        View,
+        { testID: `perps-row-${market.symbol}` },
+        ReactActual.createElement(Text, null, market.symbol),
+      );
+  },
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -44,27 +97,32 @@ jest.mock('react-native-reorderable-list', () => {
   const ReorderableList = ({
     data,
     renderItem,
+    keyExtractor,
     testID,
     onReorder,
   }: {
-    data: { assetId: string }[];
+    data: { assetId?: string; key?: string }[];
     renderItem: (info: {
-      item: { assetId: string };
+      item: { assetId?: string; key?: string };
       index: number;
     }) => React.ReactNode;
+    keyExtractor?: (item: { assetId?: string; key?: string }) => string;
     testID?: string;
     onReorder?: (event: { from: number; to: number }) => void;
-  }) =>
-    ReactActual.createElement(
+  }) => {
+    capturedOnReorder = onReorder;
+    return ReactActual.createElement(
       View,
       { testID },
-      data.map((item, index) =>
-        ReactActual.createElement(
+      data.map((item, index) => {
+        const itemKey =
+          keyExtractor?.(item) ?? item.key ?? item.assetId ?? String(index);
+        return ReactActual.createElement(
           View,
-          { key: item.assetId, testID: `reorderable-item-${item.assetId}` },
+          { key: itemKey, testID: `reorderable-item-${itemKey}` },
           renderItem({ item, index }),
-        ),
-      ),
+        );
+      }),
       onReorder
         ? ReactActual.createElement(Pressable, {
             testID: 'mock-reorder-trigger',
@@ -72,6 +130,7 @@ jest.mock('react-native-reorderable-list', () => {
           })
         : null,
     );
+  };
 
   return {
     __esModule: true,
@@ -191,6 +250,7 @@ describe('WatchlistFullScreenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    mockUseSelector.mockReturnValue(false);
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -230,7 +290,7 @@ describe('WatchlistFullScreenView', () => {
   });
 
   it('renders the fullscreen container and title', () => {
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+    const { getByTestId, queryByText } = render(<WatchlistFullScreenView />);
 
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.CONTAINER),
@@ -238,9 +298,7 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.TITLE),
     ).toBeDefined();
-    expect(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB),
-    ).toBeDefined();
+    expect(queryByText('Tokens')).toBeNull();
   });
 
   it('renders five skeletons while loading', () => {
@@ -314,7 +372,7 @@ describe('WatchlistFullScreenView', () => {
       isLoading: false,
     });
 
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+    const { getByTestId, queryByText } = render(<WatchlistFullScreenView />);
 
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
@@ -322,6 +380,7 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).toBeDefined();
+    expect(queryByText('Edit')).toBeNull();
     expect(
       getByTestId('editable-row-mode-eip155:1/erc20:0xeth').props.children,
     ).toBe('view');
@@ -865,6 +924,211 @@ describe('WatchlistFullScreenView', () => {
       expect(queryByTestId('editable-row-eip155:1/erc20:0xbtc')).toBeNull();
       expect(getByTestId('editable-row-eip155:1/erc20:0xsol')).toBeDefined();
       expect(getByTestId('editable-row-eip155:1/erc20:0xeth')).toBeDefined();
+    });
+  });
+
+  describe('glass header', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation(
+        (selector) => selector === selectGlassHeadersEnabled,
+      );
+    });
+
+    it('renders glass header components when flag is enabled', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.HEADER),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('renders CapsuleGlass wrapper for Done button in edit mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('renders CapsuleGlass wrapper for header actions with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('hides header end actions when in search mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      );
+
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders header without back button when in edit mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      ).toBeDefined();
+    });
+  });
+
+  describe('unified watchlist mode', () => {
+    const createPerpItem = (symbol: string): UnifiedWatchlistItem => ({
+      kind: 'perp',
+      key: `perp:${symbol.toLowerCase()}`,
+      symbol,
+      status: 'resolved',
+      market: { symbol, name: `${symbol} Perpetual` } as PerpsMarketData,
+    });
+
+    beforeEach(() => {
+      capturedOnReorder = undefined;
+      mockUseSelector.mockImplementation(
+        (selector) => selector === selectIsUnifiedWatchlistActive,
+      );
+    });
+
+    it('surfaces order load errors with a retry action', () => {
+      const mockRefresh = jest.fn().mockResolvedValue(undefined);
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items: [createPerpItem('BTC')],
+        tokens: { items: [], error: null },
+        perps: { items: [], error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC'],
+        tokenCount: 0,
+        perpsCount: 1,
+        isInitialLoading: false,
+        isOrderReady: false,
+        orderError: 'Failed to read watchlist order',
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: mockRefresh,
+      });
+
+      const { getByTestId, getByText } = render(<WatchlistFullScreenView />);
+
+      expect(getByTestId(WatchlistErrorRowTestIds.ROW)).toBeTruthy();
+      fireEvent.press(getByText('Try again'));
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('composes overlapping reorder events from latest draft state', async () => {
+      const mockPersistOrder = jest.fn().mockResolvedValue(undefined);
+      const items = [
+        createPerpItem('BTC'),
+        createPerpItem('ETH'),
+        createPerpItem('SOL'),
+      ];
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items,
+        tokens: { items: [], error: null },
+        perps: { items, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC', 'ETH', 'SOL'],
+        tokenCount: 0,
+        perpsCount: 3,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: mockPersistOrder,
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Dispatch two back-to-back reorders inside the same batch before re-render:
+      // [BTC, ETH, SOL] -> move 0->2 => [ETH, SOL, BTC] -> move 0->1 => [SOL, ETH, BTC]
+      act(() => {
+        capturedOnReorder?.({ from: 0, to: 2 });
+        capturedOnReorder?.({ from: 0, to: 1 });
+      });
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockPersistOrder).toHaveBeenCalledWith([
+          'perp:sol',
+          'perp:eth',
+          'perp:btc',
+        ]);
+      });
     });
   });
 });

@@ -173,7 +173,7 @@ const hookDefaults = {
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
   hasError: false,
-  hasLoaded: false,
+  hasLoaded: true,
   fetchCampaigns: mockFetchCampaigns,
 };
 

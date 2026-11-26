@@ -6,6 +6,7 @@ import {
   type Hex,
   type Json,
 } from '@metamask/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   TransactionType,
   type TransactionMeta,
@@ -124,7 +125,6 @@ import {
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
-  readCardFeatureFlag,
   readCardLinkApiEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
@@ -144,8 +144,6 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
-const CARDHOLDER_BATCH_SIZE = 50;
-const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
@@ -251,12 +249,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  cardholderAccounts: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
   providerData: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -329,12 +321,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: false,
   },
-  cardLinksSeeded: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
   cardLinkApiBlocked: {
     persist: false,
     includeInDebugSnapshot: true,
@@ -349,7 +335,6 @@ export const defaultCardControllerState: CardControllerState = {
   isAuthenticated: false,
   providerUserId: null,
   lastUnauthenticatedReason: null,
-  cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
   cardHomeDataAddress: null,
@@ -362,7 +347,6 @@ export const defaultCardControllerState: CardControllerState = {
   accountLookupCache: {},
   cardLinks: null,
   cardLinksFetchedAt: null,
-  cardLinksSeeded: false,
   cardLinkApiBlocked: false,
 };
 
@@ -383,7 +367,6 @@ export class CardController extends BaseController<
   private readonly cardService: CardService;
   private currentSession: CardAuthSession | null = null;
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
-  #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
@@ -396,8 +379,9 @@ export class CardController extends BaseController<
   readonly #sha256: CardSha256;
   readonly #isBasicFunctionalityEnabled: () => boolean;
   #cardLinksFetchPromise: Promise<void> | null = null;
-  #cardLinkSeedPromise: Promise<void> | null = null;
-  #cardLinkSeedAttempted = false;
+  #cardLinkBackfillPromise: Promise<void> | null = null;
+  /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
+  #cardLinkBackfillAttempted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -430,6 +414,10 @@ export class CardController extends BaseController<
     this.cardService = cardService;
     this.#sha256 = sha256;
     this.#isBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    // The logged-out dashboard used to persist an on-chain snapshot. Drop it
+    // on the first start after that screen is gone, and on every later start
+    // while signed out so a restored cache cannot render a balance.
+    this.#clearLoggedOutCardHomeSnapshot();
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
       this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
@@ -437,6 +425,25 @@ export class CardController extends BaseController<
       this.previousEvmAddress = null;
     }
     this.#subscribeToEvents();
+  }
+
+  #clearLoggedOutCardHomeSnapshot(): void {
+    if (this.state.isAuthenticated) return;
+    if (
+      this.state.cardHomeData === null &&
+      this.state.cardHomeDataAddress === null &&
+      this.state.cardHomeDataError === null &&
+      this.state.cardHomeDataStatus === 'idle'
+    ) {
+      return;
+    }
+
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
+      s.cardHomeDataError = null;
+      s.cardHomeDataStatus = 'idle';
+    });
   }
 
   /**
@@ -469,13 +476,35 @@ export class CardController extends BaseController<
   #subscribeToEvents(): void {
     this.messenger.subscribe('AuthenticationController:profileSignIn', () => {
       if (this.resetInProgress) return;
-      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks');
+      // Pairing can change the canonical profile, so a cached read is stale.
+      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks', {
+        force: true,
+      });
     });
+
+    // isSignedIn is persisted, so this runs on the change to signed in: the
+    // first sign-in after an SRP import, or a sign-in after a sign-out.
+    // Forced, because a wallet reset can leave the previous wallet's cached
+    // links behind when its Card cleanup does not run.
+    this.messenger.subscribe(
+      'AuthenticationController:stateChange',
+      (isSignedIn: boolean) => {
+        if (isSignedIn && !this.resetInProgress) {
+          this.#fetchCardLinksWithLogging('#onSignIn/fetchCardLinks', {
+            force: true,
+          });
+        }
+      },
+      (state) => state.isSignedIn,
+    );
 
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
-      this.#triggerCardholderCheck();
-      this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
+      // Restore publishes unlock before the new keyrings are in state, and
+      // the bearer token cannot be resolved until an HD keyring is there.
+      if (this.#hasHdKeyring()) {
+        this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
+      }
       this.validateAndRefreshSession()
         .then(({ isAuthenticated }) => {
           if (isAuthenticated && !this.resetInProgress) {
@@ -490,13 +519,12 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed) or the
-    // selected group changes. Membership alone misses a pure selection switch.
+    // Account added or removed, or the selected group changed. Membership
+    // alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
         if (this.resetInProgress) return;
-        this.#triggerCardholderCheck();
         this.#handleAccountSwitch();
         this.#invalidateNotFoundLookupCache();
       },
@@ -526,7 +554,9 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       (_cardLinkApiKey: string) => {
-        if (this.resetInProgress) return;
+        // Keyrings are empty while locked and before onboarding, so the
+        // bearer token cannot be resolved yet. The next unlock or sign-in reads.
+        if (this.resetInProgress || !this.#hasHdKeyring()) return;
         this.#fetchCardLinksWithLogging('#onCardLinkApiFlagChange');
       },
       (state) => JSON.stringify(state.remoteFeatureFlags?.cardLinkApi ?? null),
@@ -574,49 +604,6 @@ export class CardController extends BaseController<
     this.#invalidateAndClear();
   }
 
-  #triggerCardholderCheck(): void {
-    // Debounce: coalesce rapid consecutive triggers (e.g. KeyringController:unlock
-    // and AccountTreeController:stateChange both fire on wallet unlock) into a
-    // single API call. The account list is sampled inside the callback so it
-    // always reflects the latest state.
-    if (this.#cardholderCheckTimer !== undefined) {
-      clearTimeout(this.#cardholderCheckTimer);
-    }
-    this.#cardholderCheckTimer = setTimeout(() => {
-      this.#cardholderCheckTimer = undefined;
-
-      const { internalAccounts } = this.messenger.call(
-        'AccountsController:getState',
-      );
-      const evmAccounts = Object.values(internalAccounts.accounts).filter(
-        (acc) => isEthAccount(acc),
-      );
-      if (!evmAccounts.length) return;
-
-      const caipAccountIds = evmAccounts.map(
-        (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
-      );
-
-      const featureState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const cardFeature = readCardFeatureFlag(featureState.remoteFeatureFlags);
-      const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
-      if (!accountsApiUrl) return;
-
-      this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
-        (error) =>
-          Logger.error(error as Error, {
-            tags: { feature: 'card' },
-            context: {
-              name: 'CardController',
-              data: { method: '#triggerCardholderCheck' },
-            },
-          }),
-      );
-    }, 50);
-  }
-
   /**
    * Records the user's pre-authentication location selection.
    * Written to providerData[activeProviderId].location — the same field
@@ -653,8 +640,6 @@ export class CardController extends BaseController<
     if (providerChanged) {
       this.#invalidateAndClear();
     }
-    this.#cardLinkSeedAttempted = false;
-    this.#seedCardLinkIfNeededWithLogging();
   }
 
   #resolveProviderForCountry(country: string): CardProviderId {
@@ -666,80 +651,6 @@ export class CardController extends BaseController<
       featureState.remoteFeatureFlags,
       country,
     );
-  }
-
-  /**
-   * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
-   * the result in controller state. Processes up to 150 accounts (3 × 50).
-   * Public for testability.
-   */
-  async checkCardholderAccounts(
-    caipAccountIds: `${string}:${string}:${string}`[],
-    accountsApiUrl: string,
-  ): Promise<void> {
-    if (!caipAccountIds?.length || !accountsApiUrl) return;
-
-    const batches = this.#createBatches(
-      caipAccountIds,
-      CARDHOLDER_BATCH_SIZE,
-      CARDHOLDER_MAX_BATCHES,
-    );
-
-    const settled = await Promise.allSettled(
-      batches.map((batch) => this.#fetchCardholderBatch(batch, accountsApiUrl)),
-    );
-
-    const results: string[] = [];
-    let anySucceeded = false;
-    for (const outcome of settled) {
-      if (outcome.status === 'fulfilled') {
-        anySucceeded = true;
-        results.push(...outcome.value);
-      } else {
-        Logger.error(outcome.reason as Error, {
-          tags: { feature: 'card', operation: 'checkCardholderAccounts' },
-          context: {
-            name: 'CardController',
-            data: { accountCount: caipAccountIds.length },
-          },
-        });
-      }
-    }
-
-    // Only update state if at least one batch succeeded. A total failure
-    // (e.g. network outage) should leave the existing cached list intact.
-    if (anySucceeded) {
-      this.update((s) => {
-        s.cardholderAccounts = results;
-      });
-      this.#seedCardLinkIfNeededWithLogging();
-    }
-  }
-
-  async #fetchCardholderBatch(
-    accountIds: string[],
-    accountsApiUrl: string,
-  ): Promise<string[]> {
-    const url = new URL('v1/metadata', accountsApiUrl);
-    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
-    url.searchParams.set('label', 'card_user');
-    const response = await fetch(url.toString());
-    if (!response.ok)
-      throw new Error(`Cardholder API error: ${response.status}`);
-    const data = await response.json();
-    return (data.is as string[]) ?? [];
-  }
-
-  #createBatches<T>(items: T[], size: number, maxBatches: number): T[][] {
-    const batches: T[][] = [];
-    for (
-      let i = 0;
-      i < items.length && batches.length < maxBatches;
-      i += size
-    ) {
-      batches.push(items.slice(i, i + size));
-    }
-    return batches;
   }
 
   // -- Card links --
@@ -813,13 +724,25 @@ export class CardController extends BaseController<
     });
   }
 
-  #fetchCardLinksWithLogging(method: string): void {
-    this.fetchCardLinks().catch((error) =>
+  #fetchCardLinksWithLogging(
+    method: string,
+    options?: { force?: boolean },
+  ): void {
+    this.fetchCardLinks(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: { name: 'CardController', data: { method } },
       }),
     );
+  }
+
+  #hasHdKeyring(): boolean {
+    try {
+      const { keyrings } = this.messenger.call('KeyringController:getState');
+      return keyrings.some((keyring) => keyring.type === KeyringTypes.hd);
+    } catch {
+      return false;
+    }
   }
 
   async fetchCardLinks({
@@ -833,8 +756,15 @@ export class CardController extends BaseController<
       cardLinksFetchedAt !== null &&
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
     if (isFresh && !force) {
-      await this.#seedCardLinkIfNeeded();
+      await this.#backfillSessionCardLink();
       return;
+    }
+
+    // A forced read must not join one that started earlier: that result can
+    // belong to the previous profile. Wait for it, then read again. Two forced
+    // callers still share the second read.
+    if (force && this.#cardLinksFetchPromise) {
+      await this.#cardLinksFetchPromise.catch(() => undefined);
     }
 
     if (!this.#cardLinksFetchPromise) {
@@ -874,111 +804,161 @@ export class CardController extends BaseController<
       s.cardLinks = links;
       s.cardLinksFetchedAt = Date.now();
     });
-    await this.#seedCardLinkIfNeeded();
+    await this.#backfillSessionCardLink();
   }
 
-  #seedCardLinkIfNeededWithLogging(): void {
-    this.#seedCardLinkIfNeeded().catch((error) =>
+  #clearCardLinkBackfill(): void {
+    this.#cardLinkBackfillAttempted.clear();
+    this.#cardLinkBackfillPromise = null;
+  }
+
+  /**
+   * A restored provider session never passes through login, so it never writes
+   * a card link. Once this session has both a fresh link read and card home
+   * data, create the missing row or move an onboarding row to active. A closed
+   * row is the server's decision and is left alone. One backfill runs at a time.
+   */
+  async #backfillSessionCardLink(): Promise<void> {
+    if (!this.#cardLinkBackfillPromise) {
+      const run = this.#doBackfillSessionCardLink().finally(() => {
+        if (this.#cardLinkBackfillPromise === run) {
+          this.#cardLinkBackfillPromise = null;
+        }
+      });
+      this.#cardLinkBackfillPromise = run;
+    }
+    await this.#cardLinkBackfillPromise;
+  }
+
+  async #doBackfillSessionCardLink(): Promise<void> {
+    try {
+      if (!this.#isCardLinkApiEnabled()) return;
+
+      const {
+        isAuthenticated,
+        activeProviderId,
+        cardLinks,
+        cardLinksFetchedAt,
+        cardHomeData,
+        cardHomeDataStatus,
+        cardHomeDataFetchedThisSession,
+      } = this.state;
+      const readIsFresh =
+        cardLinksFetchedAt !== null &&
+        Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+      if (
+        !isAuthenticated ||
+        !activeProviderId ||
+        !readIsFresh ||
+        cardLinks === null ||
+        cardHomeDataStatus !== 'success' ||
+        !cardHomeDataFetchedThisSession ||
+        this.#cardLinkBackfillAttempted.has(activeProviderId)
+      ) {
+        return;
+      }
+
+      const home = cardHomeData as {
+        card?: unknown;
+        account?: { verificationStatus?: string };
+        primaryFundingAsset?: { walletAddress?: string };
+      } | null;
+      const status: CardLinkWriteStatus =
+        home?.card != null || home?.account?.verificationStatus === 'VERIFIED'
+          ? 'active'
+          : 'onboarding';
+      const existing = latestByUpdatedAt(
+        cardLinks.filter((link) => link.provider === activeProviderId),
+      );
+      // Status only moves forward. An active row is already current, and an
+      // onboarding row stays until the provider reports a card.
+      if (existing?.status === 'closed') return;
+      if (
+        existing &&
+        (existing.status === 'active' || status === 'onboarding')
+      ) {
+        return;
+      }
+
+      // A row that already names an account keeps that ref. Sending another
+      // address would replace it and ask for a signature.
+      const address = existing?.linkedAccountRef
+        ? undefined
+        : await this.#backfillLinkedAccountAddress(
+            activeProviderId,
+            home?.primaryFundingAsset?.walletAddress,
+          );
+      const providerCardholderId =
+        await this.#storedCardholderId(activeProviderId);
+
+      if (!this.state.isAuthenticated) return;
+      if (this.#cardLinkBackfillAttempted.has(activeProviderId)) return;
+
+      const outcome = await this.#writeCardLink(
+        activeProviderId,
+        status,
+        {
+          address,
+          providerCardholderId,
+          promptWalletProof: false,
+        },
+        '#backfillSessionCardLink',
+      );
+      if (outcome === 'rejected') {
+        this.#cardLinkBackfillAttempted.add(activeProviderId);
+      }
+      if (outcome !== 'skipped') {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+          provider: activeProviderId,
+          outcome,
+          source: 'session',
+          change: existing ? 'upgraded' : 'created',
+        });
+      }
+    } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: {
           name: 'CardController',
-          data: { method: '#seedCardLinkIfNeeded' },
+          data: { method: '#backfillSessionCardLink' },
         },
-      }),
-    );
-  }
-
-  async #seedCardLinkIfNeeded(): Promise<void> {
-    const {
-      cardLinks,
-      cardLinksFetchedAt,
-      cardLinksSeeded,
-      cardholderAccounts,
-    } = this.state;
-    const readIsFresh =
-      cardLinksFetchedAt !== null &&
-      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
-    if (
-      cardLinksSeeded ||
-      this.#cardLinkSeedAttempted ||
-      !readIsFresh ||
-      cardLinks === null ||
-      cardLinks.length > 0 ||
-      cardholderAccounts.length === 0 ||
-      !this.#isCardLinkApiEnabled()
-    ) {
-      return;
-    }
-
-    if (!this.#cardLinkSeedPromise) {
-      const seed = this.#doSeedCardLink(
-        this.#preferSelectedCardholderAccount(cardholderAccounts),
-      ).finally(() => {
-        if (this.#cardLinkSeedPromise === seed) {
-          this.#cardLinkSeedPromise = null;
-        }
       });
-      this.#cardLinkSeedPromise = seed;
     }
-    await this.#cardLinkSeedPromise;
   }
 
-  #preferSelectedCardholderAccount(cardholderAccounts: string[]): string {
-    const selected = this.#getSelectedEvmAddress();
+  async #backfillLinkedAccountAddress(
+    provider: CardProviderId,
+    baanxWalletAddress: string | undefined,
+  ): Promise<string | undefined> {
+    let candidate = baanxWalletAddress;
+    if (provider === CardProviderIds.Immersve) {
+      try {
+        candidate = (await CardTokenStore.get(provider))?.accountAddress;
+      } catch {
+        return undefined;
+      }
+    }
+    if (!candidate) return undefined;
+    return this.#ownedEvmAddress(candidate) ?? undefined;
+  }
+
+  #ownedEvmAddress(address: string): string | null {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    if (!bare) return null;
+    const accounts = Object.values(
+      this.messenger.call('AccountsController:getState').internalAccounts
+        .accounts,
+    );
     return (
-      cardholderAccounts.find(
-        (caipId) =>
-          selected !== null && this.#caipAddressEquals(caipId, selected),
-      ) ?? cardholderAccounts[0]
+      accounts.find(
+        (account) =>
+          isEthAccount(account) && account.address.toLowerCase() === bare,
+      )?.address ?? null
     );
-  }
-
-  #caipAddressEquals(caipAccountId: string, address: string): boolean {
-    const bare = caipAccountId.slice(caipAccountId.lastIndexOf(':') + 1);
-    return bare.toLowerCase() === address.toLowerCase();
-  }
-
-  #isCardholderAccount(address: string): boolean {
-    return this.state.cardholderAccounts.some((caipId) =>
-      this.#caipAddressEquals(caipId, address),
-    );
-  }
-
-  async #doSeedCardLink(caipAccountId: string): Promise<void> {
-    const country = this.state.selectedCountry;
-    if (!country) return;
-
-    this.#cardLinkSeedAttempted = true;
-    const providerForCountry = this.#resolveProviderForCountry(country);
-    if (country === 'GB' || providerForCountry !== CardProviderIds.Baanx) {
-      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
-        provider: CardProviderIds.Baanx,
-        outcome: 'skipped',
-        skip_reason: country === 'GB' ? 'gb' : 'not_baanx',
-      });
-      return;
-    }
-
-    const generation = this.#cardLinksGeneration;
-    const outcome = await this.#writeCardLink(
-      CardProviderIds.Baanx,
-      'active',
-      { address: caipAccountId },
-      '#seedCardLinkIfNeeded',
-    );
-    if (outcome !== 'skipped') {
-      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
-        provider: CardProviderIds.Baanx,
-        outcome,
-      });
-    }
-    if (generation !== this.#cardLinksGeneration) return;
-    if (outcome === 'written' || outcome === 'rejected') {
-      this.update((s) => {
-        s.cardLinksSeeded = true;
-      });
-    }
   }
 
   #trackCardLinkEvent(
@@ -1136,7 +1116,7 @@ export class CardController extends BaseController<
     provider: CardProviderId,
     phase: CardLinkWriteStatus,
   ): void {
-    // Resolved when the queued write runs, so a seed ahead of it is visible.
+    // Resolved when the queued write runs, so a write ahead of it is visible.
     this.#writeCardLink(
       provider,
       phase,
@@ -1158,11 +1138,10 @@ export class CardController extends BaseController<
   // Writes for one provider run in order, so a slow `onboarding` PUT cannot
   // land after `active` and replace the stored row with the older state.
   // card-api replaces linkedAccountRef on every write that carries one, so a
-  // login from a non-cardholder account must not move the ref off the card.
+  // login sends the selected account only when the stored link has no ref yet.
   #loginAccountForLinkedRef(provider: CardProviderId): string | null {
     const selected = this.#getSelectedEvmAddress();
     if (!selected) return null;
-    if (this.#isCardholderAccount(selected)) return selected;
     const { cardLinks, cardLinksFetchedAt } = this.state;
     const linksAreFresh =
       cardLinks !== null &&
@@ -1464,6 +1443,7 @@ export class CardController extends BaseController<
           s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
+        await this.#backfillSessionCardLink();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -1501,8 +1481,8 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Sentry span for the card home request. `is_authenticated` separates the
-   * provider call from the on-chain-assets fallback — very different costs.
+   * Sentry span for the card home request. `is_authenticated` separates a
+   * signed-in provider call from the empty result returned with no session.
    */
   async #tracedGetCardHomeData(address: string): Promise<CardHomeData> {
     return await trace(
@@ -2294,6 +2274,23 @@ export class CardController extends BaseController<
     await provider.executeStepAction?.(this.currentSession);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: no active auth session',
+      );
+    }
+    const provider = this.getActiveProvider();
+    if (!provider.requestEmailLoginCode) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: provider does not support email codes',
+      );
+    }
+    await provider.requestEmailLoginCode(email);
+  }
+
   async logout(): Promise<void> {
     const pid = this.state.activeProviderId;
     if (!pid) return;
@@ -2326,6 +2323,7 @@ export class CardController extends BaseController<
     await this.clearTokens();
     this.invalidateFetch();
     this.#invalidateRedeemWithdrawal();
+    this.#clearCardLinkBackfill();
     this.update((s) => {
       s.isAuthenticated = false;
       s.providerUserId = null;
@@ -2405,13 +2403,8 @@ export class CardController extends BaseController<
       this.#invalidateRedeemWithdrawal();
       this.#cardLinksGeneration += 1;
       this.#cardLinksFetchPromise = null;
-      this.#cardLinkSeedPromise = null;
       this.#cardLinkWriteQueues = {};
-      this.#cardLinkSeedAttempted = false;
-      if (this.#cardholderCheckTimer !== undefined) {
-        clearTimeout(this.#cardholderCheckTimer);
-        this.#cardholderCheckTimer = undefined;
-      }
+      this.#clearCardLinkBackfill();
       this.update(() => ({ ...defaultCardControllerState }));
 
       ReduxService.store.dispatch(resetCardState());
@@ -2654,14 +2647,7 @@ export class CardController extends BaseController<
       );
     }
 
-    const onChainProvider =
-      provider.getOnChainAssets != null
-        ? provider
-        : this.providers[DEFAULT_CARD_PROVIDER_ID];
-    return (
-      (await onChainProvider?.getOnChainAssets?.(address)) ??
-      emptyCardHomeData()
-    );
+    return emptyCardHomeData();
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(
@@ -2918,7 +2904,33 @@ export class CardController extends BaseController<
         'Card creation not supported',
       );
     }
-    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+    const pid = this.state.activeProviderId;
+    try {
+      const result = await this.#withAuthRetry((tokens) =>
+        createCard(fundingSourceId, tokens),
+      );
+      this.#recordCreatedCard(pid);
+      return result;
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.Conflict
+      ) {
+        this.#recordCreatedCard(pid);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * The card now exists at the provider. Record it active without an address,
+   * so an existing account ref stays put and no wallet is asked to sign.
+   */
+  #recordCreatedCard(provider: CardProviderId | null): void {
+    if (!provider) return;
+    this.#recordProviderMilestone(provider, 'active', {}, 'createCard').catch(
+      () => undefined,
+    );
   }
 
   async getContactDetails(): Promise<CardContactDetails> {

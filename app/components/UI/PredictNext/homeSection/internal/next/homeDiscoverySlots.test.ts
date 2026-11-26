@@ -1,4 +1,4 @@
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictVenueCapabilities } from '../../../capabilities';
 import type { PredictVenueDescriptor } from '../../../capabilities/types';
 import {

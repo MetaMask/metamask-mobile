@@ -48,14 +48,12 @@ import {
 } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import {
-  useRewardDashboardModals,
-  RewardsDashboardModalType,
-} from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { isHardwareAccount } from '../../../../util/address';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
 import {
@@ -66,10 +64,13 @@ import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
-import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
+import {
+  hasShownNotSupportedSheet,
+  markNotSupportedSheetShown,
+} from '../utils/notSupportedSheetSession';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -124,7 +125,6 @@ const RewardsDashboard: React.FC = () => {
   // The version guard and candidate-subscription fetch live one level up in
   // RewardsHome (MainNavigator) so they also cover the onboarding entry path for
   // non-enrolled users; only dashboard-specific hooks remain here.
-  useGeoRewardsMetadata({});
   useReferralDetails();
 
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
@@ -142,8 +142,7 @@ const RewardsDashboard: React.FC = () => {
     return false;
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
 
-  // Use the reward dashboard modals hook
-  const { showNotSupportedModal, hasShownModal } = useRewardDashboardModals();
+  const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
 
   const {
     currentAccountGroupPartiallySupported,
@@ -188,27 +187,45 @@ const RewardsDashboard: React.FC = () => {
     }, []),
   );
 
-  // Auto-trigger dashboard modals based on account/rewards state (session-aware)
-  // This effect runs whenever key dependencies change and determines which informational
-  // modal should be shown to guide the user. Each modal type is only shown once per app session.
+  // Tell the user when the selected account group is entirely not supported
+  // (e.g. a hardware wallet account group). Shown once per account group per
+  // app session: closing the sheet refocuses the dashboard, and transient
+  // loading or error states must not bring it back.
   useFocusEffect(
     useCallback(() => {
+      const groupId = selectedAccountGroup?.id;
       if (
-        currentAccountGroupPartiallySupported === false &&
-        !hideCurrentAccountNotOptedInBanner &&
-        selectedAccountGroup?.id
+        currentAccountGroupPartiallySupported !== false ||
+        hideCurrentAccountNotOptedInBanner ||
+        !groupId ||
+        hasShownNotSupportedSheet(groupId)
       ) {
-        // Account group entirely not supported (e.g. hardware wallet account group)
-        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-          showNotSupportedModal();
-        }
+        return;
       }
+      markNotSupportedSheetShown(groupId);
+
+      const hasHardwareAccounts = getAccountsByGroupId(groupId).some(
+        (account) => isHardwareAccount(account.address),
+      );
+
+      navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+        title: strings(
+          'rewards.dashboard_modal_info.account_not_supported.title',
+        ),
+        description: hasHardwareAccounts
+          ? strings(
+              'rewards.dashboard_modal_info.account_not_supported.description_hardware',
+            )
+          : strings(
+              'rewards.dashboard_modal_info.account_not_supported.description_general',
+            ),
+      });
     }, [
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
       selectedAccountGroup?.id,
-      hasShownModal,
-      showNotSupportedModal,
+      getAccountsByGroupId,
+      navigation,
     ]),
   );
 
@@ -318,9 +335,10 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
 
   const copyTradingText = referralMe?.localized_text;
   const showCopyTrading = Boolean(
@@ -437,7 +455,7 @@ const RewardsDashboard: React.FC = () => {
               As a tab it stays in HeaderRoot, unchanged. */}
           {isPushedScreen ? (
             <Box
-              twClassName="px-4 pb-3"
+              twClassName="px-4 pt-3 pb-3"
               onLayout={(event) =>
                 setTitleSectionHeight(event.nativeEvent.layout.height)
               }
@@ -458,14 +476,13 @@ const RewardsDashboard: React.FC = () => {
               <CampaignsPreview />
             ) : (
               <RewardsOptInSection
-                showDivider={false}
                 localizedText={{
                   invitedOptInDescription:
                     referralMe?.localized_text.invitedOptInDescription ||
                     strings('rewards.onboarding.description'),
                   invitedOptInAction:
                     referralMe?.localized_text.invitedOptInAction ||
-                    strings('rewards.campaign.opt_in'),
+                    strings('rewards.campaign.opt_in_cta'),
                   invitedOptInLegal:
                     referralMe?.localized_text.invitedOptInLegal,
                 }}
@@ -480,7 +497,7 @@ const RewardsDashboard: React.FC = () => {
                   <TabEmptyState
                     icon={
                       <AvatarIcon
-                        iconName={IconName.Activity}
+                        iconName={IconName.People}
                         size={AvatarIconSize.Xl}
                         severity={AvatarIconSeverity.Neutral}
                         iconProps={{ color: IconColor.IconDefault }}
@@ -498,7 +515,7 @@ const RewardsDashboard: React.FC = () => {
                       twClassName: 'mt-3 self-stretch',
                       testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
                     }}
-                    onAction={openSocialTab}
+                    onAction={openComposerPress}
                     testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
                   />
                 </Box>

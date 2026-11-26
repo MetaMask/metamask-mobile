@@ -8,6 +8,8 @@ import {
   type PredictIntentResolution,
 } from '../../targets';
 
+const FEED_SCREEN_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 /**
  * The PredictNext branch: PredictNext routes, each carrying the Active
  * Venue. Feeds open Home, where the Venue's own sections are; a Venue's
@@ -19,8 +21,11 @@ export const resolveNextIntent = (
   venueId: PredictVenueId,
 ): PredictIntentResolution => {
   switch (intent.type) {
+    // A V1 link's list parameters (`linkList`) name Polymarket feeds and
+    // tabs, which a PredictNext Venue does not have, so they open Home too.
     case 'home':
     case 'feed':
+    case 'linkList':
       return ready({
         kind: 'predict',
         params: { screen: PredictNextRoutes.HOME },
@@ -50,6 +55,25 @@ export const resolveNextIntent = (
           params: intent.tab
             ? { venueId, initialTab: intent.tab }
             : { venueId },
+        },
+      });
+    // The Venue catalog owns its Feed Screens and loads asynchronously, so a
+    // link is not checked against it here: the Feed Screen shows its own
+    // unavailable state once the catalog lacks the screen. Only an ID no
+    // catalog can serve (screen IDs are kebab-case) is refused.
+    case 'feedScreen':
+      if (!FEED_SCREEN_ID.test(intent.feedScreenId)) {
+        return unavailable('notFound');
+      }
+      return ready({
+        kind: 'predict',
+        params: {
+          screen: PredictNextRoutes.FEED,
+          params: {
+            venueId,
+            feedScreenId: intent.feedScreenId,
+            ...(intent.tabId ? { selectedTabId: intent.tabId } : {}),
+          },
         },
       });
     case 'addFunds':

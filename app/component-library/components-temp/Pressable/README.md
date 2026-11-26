@@ -8,16 +8,11 @@ the list-row case (backdrop highlight) without per-call-site guesswork.
 ## Exports
 
 - `Pressable` (default) — uses RN core `Pressable`.
-- `PressableGH` — uses `Pressable` from `react-native-gesture-handler`.
-  Use this when the pressable lives inside a `react-native-gesture-handler`
-  scroll/list tree. Mixing the two on Android causes scroll/swipe
-  gesture conflicts.
 
 ## Props
 
 The default export's props are RN `PressableProps` plus a `variant`
-field. `PressableGH` takes RNGH's `PressableProps` plus the same
-`variant`. Behavioural differences vs. the underlying primitive:
+field. Behavioural differences vs. the underlying primitive:
 
 - `accessibilityRole` defaults to `'button'` (preserves the implicit
   role `TouchableOpacity` provided).
@@ -44,7 +39,7 @@ recommended choice anywhere the DS list-item treatment applies.
 ```tsx
 import Pressable, {
   PressableVariant,
-} from 'app/component-library/components-temp/Pressable';
+} from '#app/component-library/components-temp/Pressable';
 
 // Default: opacity dim — no need to pass `variant` explicitly
 <Pressable onPress={onPress} style={styles.row}>
@@ -59,23 +54,6 @@ import Pressable, {
 >
   <Text>Item</Text>
 </Pressable>;
-```
-
-Inside a `react-native-gesture-handler` scroll/list tree:
-
-```tsx
-import {
-  PressableGH,
-  PressableVariant,
-} from 'app/component-library/components-temp/Pressable';
-
-<PressableGH
-  variant={PressableVariant.Highlight}
-  onPress={onPress}
-  style={styles.row}
->
-  ...
-</PressableGH>;
 ```
 
 ## Migration notes

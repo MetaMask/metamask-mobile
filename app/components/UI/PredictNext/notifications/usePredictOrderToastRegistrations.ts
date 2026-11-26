@@ -59,14 +59,32 @@ const copyFor = (outcome: PredictOrderOutcome): OrderToastCopy => {
         ),
         isSuccess: false,
       };
-    default:
-      // Only terminal receipts resolve an operation; `not_filled` is the
-      // remaining one.
+    case 'needs_manual_review':
+      return {
+        title: strings('predict_next.order_receipt.needs_review_title'),
+        description: strings(
+          'predict_next.order_receipt.needs_review_description',
+        ),
+        isSuccess: false,
+      };
+    case 'pending':
+    case 'submitted':
+    case 'reconciliation_required':
+      return {
+        title: strings('predict_next.order_receipt.reconciling_title'),
+        description: strings(
+          'predict_next.order_receipt.reconciling_description',
+        ),
+        isSuccess: false,
+      };
+    case 'not_filled':
       return {
         title: strings('predict_next.order_receipt.not_filled_title'),
         isSuccess: false,
       };
   }
+  const unhandledStatus: never = receipt.status;
+  throw new Error(`Unhandled Predict order receipt status: ${unhandledStatus}`);
 };
 
 /**

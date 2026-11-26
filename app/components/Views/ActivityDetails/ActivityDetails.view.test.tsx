@@ -205,7 +205,6 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
             amount: '1000000',
             symbol: 'mUSD',
             decimal: 6,
-            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
             name: 'MetaMask USD',
             transferType: 'ERC20',
           },
@@ -350,7 +349,7 @@ describeForPlatforms('ActivityDetails — ramp buy / sell', () => {
     expect(getByText('EUR value')).toBeOnTheScreen();
     expect(getByText('€61.88')).toBeOnTheScreen();
     expect(getByText('Fees')).toBeOnTheScreen();
-    expect(getByText('€3')).toBeOnTheScreen();
+    expect(getByText('€3.00')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('€58.88')).toBeOnTheScreen();
     expect(queryByText('Transaction fee')).toBeNull();

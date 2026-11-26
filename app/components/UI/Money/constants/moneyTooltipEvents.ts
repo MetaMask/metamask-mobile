@@ -3,6 +3,7 @@ export enum MONEY_TOOLTIP_NAMES {
   MONTHLY_EARNINGS = 'monthly_earnings',
   LIFETIME_EARNINGS = 'lifetime_earnings',
   EARN_ON_YOUR_CRYPTO = 'earn_on_your_crypto',
+  ESTIMATED_BALANCE = 'estimated_balance',
   APY = 'apy',
 }
 

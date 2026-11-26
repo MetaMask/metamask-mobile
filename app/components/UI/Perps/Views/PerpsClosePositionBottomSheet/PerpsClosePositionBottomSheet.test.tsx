@@ -66,6 +66,11 @@ jest.mock('../../components/PerpsRebateBanner', () => ({
   default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => () => ({ kind: 'none' }) }),
+);
+
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
   usePerpsCloseInFlight: jest.fn(() => false),
 }));
@@ -241,7 +246,11 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
-    usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
+    // A quoted fee: the close waits for one before it can be confirmed.
+    usePerpsOrderFeesMock.mockReturnValue({
+      ...defaultPerpsOrderFeesMock,
+      totalFeeRate: 0.00045,
+    });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );

@@ -25,15 +25,11 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-} from '../components/abTestConfig';
-
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -293,7 +289,6 @@ jest.mock('../components/ShareTokenBottomSheet', () => {
   };
 });
 
-let mockLastUseAmbientColorProp: boolean | undefined;
 let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockLatestOnBuy: (() => void) | undefined;
 let mockLatestOnSend: (() => Promise<void> | void) | undefined;
@@ -335,7 +330,6 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend,
     onMarketInsightsDisclaimerPress,
     token,
-    useAmbientColor,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
@@ -350,7 +344,6 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend?: () => Promise<void> | void;
     onMarketInsightsDisclaimerPress?: () => void;
     token?: { address?: string; chainId?: string; symbol?: string };
-    useAmbientColor?: boolean;
   }) => {
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     // Capture the latest handlers in a deps-less effect (runs every render, no
@@ -363,7 +356,6 @@ jest.mock('../components/AssetOverviewContent', () => {
         onMarketInsightsDisclaimerPress;
     });
     ReactLib.useEffect(() => {
-      mockLastUseAmbientColorProp = useAmbientColor;
       mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
       mockLatestPerpsResolver = onPerpsMarketResolved;
@@ -381,7 +373,6 @@ jest.mock('../components/AssetOverviewContent', () => {
       onMarketInsightsDisplayResolved,
       onPerpsMarketResolved,
       onPriceDirectionChange,
-      useAmbientColor,
       insightsTokenKey,
     ]);
 
@@ -409,11 +400,15 @@ jest.mock('../../Transactions', () => ({
   },
 }));
 
+const mockMultichainTransactionsView = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
   () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: Record<string, unknown>) =>
+      mockMultichainTransactionsView(props),
   }),
 );
 
@@ -481,27 +476,11 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-const defaultUseABTestImpl = (key: string) => {
-  if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
-    return {
-      variant: { useAmbientPriceColor: false },
-      variantName: 'control',
-      isActive: false,
-    };
-  }
-  if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-    return {
-      variant: { showMoneyDepositFooterCta: false },
-      variantName: 'control',
-      isActive: false,
-    };
-  }
-  return {
-    variant: { swapLabelKey: 'asset_overview.swap' },
-    variantName: 'control',
-    isActive: false,
-  };
-};
+const defaultUseABTestImpl = (_key: string) => ({
+  variant: { swapLabelKey: 'asset_overview.swap' },
+  variantName: 'control',
+  isActive: false,
+});
 const mockUseABTest = jest.fn(defaultUseABTestImpl);
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...(args as [string])),
@@ -575,7 +554,6 @@ describe('TokenDetails', () => {
     mockAutoResolvePerps = true;
     mockLatestMarketInsightsResolver = undefined;
     mockLatestPerpsResolver = undefined;
-    mockLastUseAmbientColorProp = undefined;
     mockLatestPriceDirectionChange = undefined;
     mockLatestOnBuy = undefined;
     mockLatestOnSend = undefined;
@@ -697,6 +675,65 @@ describe('TokenDetails', () => {
       expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
     });
+
+    // The dialog's KeyboardAvoidingView forwards onLayout after an await.
+    const layoutFooter = async (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+      height: number,
+    ) => {
+      await act(async () => {
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          persist: jest.fn(),
+          nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
+        });
+      });
+    };
+
+    it('reserves the floating footer height at the end of the activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$7.92',
+          pnl: { amount: '+$0.10', percentage: '+1.28%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockTransactions).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('reserves the floating footer height at the end of the non-EVM activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockMultichainTransactionsView).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('keeps the default list padding when the footer sits in the page flow', () => {
+      applySelectorsWithMemeFlag(false);
+
+      render(<TokenDetails />);
+
+      expect(mockTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contentBottomInset: undefined }),
+      );
+    });
   });
 
   it('does not render a full-page loader when txLoading is true', () => {
@@ -815,11 +852,13 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Swap/Buy sticky buttons', () => {
-    it('does not render Money Earn CTA in the control variant', () => {
+  describe('Money deposit footer CTA', () => {
+    it('renders with the localized APY label when visible', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: 4,
-        footerLabelLocalized: 'Earn 4% APY',
+        footerLabelLocalized: strings('money.asset_overview.cta.earn_apy', {
+          apy: 4,
+        }),
         isBalanceCtaLoading: false,
         isBalanceCtaVisible: false,
         isFooterCtaEligible: true,
@@ -830,42 +869,16 @@ describe('TokenDetails', () => {
         projectedEarningsFormatted: '$4.00',
       });
 
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(
-        queryByTestId('money-asset-overview-footer-cta'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders Money Earn CTA in the treatment variant when eligible', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-          return {
-            variant: { showMoneyDepositFooterCta: true },
-            variantName: 'treatment',
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImpl(key);
-      });
-      mockUseMoneyAssetOverviewCtas.mockReturnValue({
-        apyPercent: 4,
-        footerLabelLocalized: 'Earn 4% APY',
-        isBalanceCtaLoading: false,
-        isBalanceCtaVisible: false,
-        isFooterCtaEligible: true,
-        isFooterCtaLoading: false,
-        isFooterCtaVisible: true,
-        onBalancePress: jest.fn(),
-        onFooterPress: jest.fn(),
-        projectedEarningsFormatted: '$4.00',
-      });
-
-      const { getByTestId } = render(<TokenDetails />);
+      const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.asset_overview.cta.earn_apy', { apy: 4 })),
+      ).toBeOnTheScreen();
     });
+  });
 
+  describe('Swap/Buy sticky buttons', () => {
     it('shows sticky buttons when token is loaded', () => {
       const { getByTestId, getByText, queryByTestId } = render(
         <TokenDetails />,
@@ -1103,55 +1116,55 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Ambient price color A/B test', () => {
-    const enableAmbientColor = () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
-          return {
-            variant: { useAmbientPriceColor: true },
-            variantName: 'treatment',
-            isActive: true,
-          };
-        }
-        return {
-          variant: { swapLabelKey: 'asset_overview.swap' },
-          variantName: 'control',
-          isActive: false,
-        };
-      });
-    };
+  it('does not report the previous perps market on the next token', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockAutoResolvePerps = false;
 
-    it('does not pass useAmbientColor in control variant', () => {
-      render(<TokenDetails />);
+    const { getByText, rerender } = render(<TokenDetails />);
 
-      expect(mockLastUseAmbientColorProp).toBeFalsy();
+    expect(getByText('Buy')).toBeOnTheScreen();
+
+    triggerPerpsResolved({ hasPerpsMarket: true, isLoading: false });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
     });
 
-    it('passes useAmbientColor=true in treatment variant', () => {
-      enableAmbientColor();
+    rerender(<TokenDetails />);
 
-      render(<TokenDetails />);
-
-      expect(mockLastUseAmbientColorProp).toBe(true);
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
     });
 
-    it('does not pass iconColor or useAmbientColor to the inline header', () => {
-      enableAmbientColor();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
 
-      render(<TokenDetails />);
+    triggerPerpsResolved({ hasPerpsMarket: false, isLoading: false });
 
-      const headerProps = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0];
-      expect(headerProps).not.toHaveProperty('iconColor');
-      expect(headerProps).not.toHaveProperty('useAmbientColor');
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          has_perps_market: false,
+        }),
+      );
     });
+  });
 
-    it('always shows sticky footer regardless of chart direction', () => {
-      enableAmbientColor();
+  it('always shows sticky footer regardless of chart direction', () => {
+    const { queryByTestId } = render(<TokenDetails />);
 
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
-    });
+    expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
   });
 
   describe('price alert button', () => {

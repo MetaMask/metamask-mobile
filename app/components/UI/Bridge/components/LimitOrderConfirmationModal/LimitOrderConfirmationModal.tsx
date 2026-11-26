@@ -7,7 +7,6 @@ import {
   BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -26,12 +25,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import DottedUnderline from '../../../DottedUnderline';
 import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
-import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
+import { PriceToleranceTooltip } from '../PriceToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { InsufficientBalanceBanner } from './InsufficientBalanceBanner';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -54,6 +56,7 @@ export const LimitOrderConfirmationModal = ({
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -96,7 +99,8 @@ export const LimitOrderConfirmationModal = ({
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: LimitOrderConfirmationModalSelectorsIDs.CLOSE_BUTTON,
@@ -106,7 +110,7 @@ export const LimitOrderConfirmationModal = ({
           source: sourceToken?.symbol ?? '',
           dest: destToken?.symbol ?? '',
         })}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {error && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert
@@ -179,7 +183,7 @@ export const LimitOrderConfirmationModal = ({
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
           label={
-            <LimitOrderCostToleranceTooltip
+            <PriceToleranceTooltip
               testID={
                 LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
               }

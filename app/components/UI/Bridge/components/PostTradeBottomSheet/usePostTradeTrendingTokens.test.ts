@@ -119,10 +119,6 @@ describe('usePostTradeTrendingTokens', () => {
       expect.objectContaining({
         chainIds: ['eip155:1'],
         sort: 'h24_trending',
-      }),
-    );
-    expect(mockGetTrendingTokens).not.toHaveBeenCalledWith(
-      expect.objectContaining({
         includeTokenSecurityData: true,
       }),
     );
@@ -141,6 +137,55 @@ describe('usePostTradeTrendingTokens', () => {
     expect(
       result.current.tokens.some((token) => token.symbol === 'NOCAP'),
     ).toBe(false);
+  });
+
+  it('fills suggestions with only Verified, Benign and unscanned tokens', async () => {
+    const { Wrapper } = createWrapper();
+    const withVerdict = (token: TrendingAsset, resultType: string) => ({
+      ...token,
+      securityData: { resultType } as TrendingAsset['securityData'],
+    });
+    const [verified, warning] = ['Verified', 'Warning'].map((verdict, index) =>
+      withVerdict(
+        createTrendingToken(
+          `eip155:59144/erc20:0x${(index + 1).toString(16).padStart(40, '0')}`,
+          verdict,
+          index + 1,
+        ),
+        verdict,
+      ),
+    );
+    const [malicious, spam, benign, ...unscanned] = Array.from(
+      { length: POST_TRADE_TRENDING_TOKENS_LIMIT + 1 },
+      (_, index) => {
+        const token = createTrendingToken(
+          `eip155:1/erc20:0x${(index + 1).toString(16).padStart(40, '0')}`,
+          `ETH${index + 1}`,
+          100 - index,
+        );
+        const verdict = ['Malicious', 'Spam', 'Benign'][index];
+        return verdict ? withVerdict(token, verdict) : token;
+      },
+    );
+    mockGetTrendingTokens
+      .mockResolvedValueOnce([warning, verified])
+      .mockResolvedValueOnce([spam, malicious, benign, ...unscanned]);
+
+    const { result } = renderHook(
+      () =>
+        usePostTradeTrendingTokens({
+          destToken: createBridgeToken({ chainId: '0xe708' }),
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.tokens).toStrictEqual([
+        verified,
+        benign,
+        ...unscanned,
+      ]);
+    });
   });
 
   it('does not fetch when disabled', () => {

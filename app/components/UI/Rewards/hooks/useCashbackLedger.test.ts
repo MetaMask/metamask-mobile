@@ -4,10 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setCashbackLedger } from '../../../../reducers/rewardsMoney';
-import {
-  CASHBACK_LEDGER_ORIGIN_TYPES,
-  useCashbackLedger,
-} from './useCashbackLedger';
+import { useCashbackLedger } from './useCashbackLedger';
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
@@ -93,7 +90,11 @@ describe('useCashbackLedger', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getEarningsLedger',
       {
-        originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
+        originTypes: [
+          'SWAPS_FEE_CASHBACK',
+          'PERPS_FEE_CASHBACK',
+          'PREDICT_FEE_CASHBACK',
+        ],
         cursor: undefined,
         includeClaims: false,
         forceFresh: false,
@@ -139,7 +140,11 @@ describe('useCashbackLedger', () => {
       2,
       'RewardsMoneyController:getEarningsLedger',
       {
-        originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
+        originTypes: [
+          'SWAPS_FEE_CASHBACK',
+          'PERPS_FEE_CASHBACK',
+          'PREDICT_FEE_CASHBACK',
+        ],
         cursor: 'cursor-2',
         includeClaims: false,
         forceFresh: undefined,
@@ -149,6 +154,43 @@ describe('useCashbackLedger', () => {
 
   it('does not fetch when disabled', async () => {
     renderHook(() => useCashbackLedger(PROFILE_A, { enabled: false }));
+    await flushPromises();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('asks for a failed later page again only once', async () => {
+    mockEngineCall.mockResolvedValueOnce({
+      results: [earning],
+      has_more: true,
+      cursor: 'cursor-2',
+      window: null,
+    });
+
+    const { result } = renderHook(() => useCashbackLedger(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.items).not.toBeNull();
+    });
+
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not fetch without a profile', async () => {
+    renderHook(() => useCashbackLedger(undefined));
     await flushPromises();
 
     expect(mockEngineCall).not.toHaveBeenCalled();

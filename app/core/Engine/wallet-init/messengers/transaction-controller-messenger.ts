@@ -57,6 +57,7 @@ import {
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
 import { TransactionPayControllerActions } from '@metamask/transaction-pay-controller';
+import type { PerpsControllerSubmitLighterTransferAction } from '@metamask/perps-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import {
@@ -89,6 +90,7 @@ export type TransactionControllerInitMessengerActions =
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | PerpsControllerSubmitLighterTransferAction
   | PreferencesControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction
   | SmartTransactionsControllerGetFeesAction
@@ -161,6 +163,9 @@ export function getTransactionControllerInitMessenger(
       'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      // The Pay submit hook runs on this messenger, and submits Lighter
+      // withdrawal transfers through the PerpsController.
+      'PerpsController:submitLighterTransfer',
       'PreferencesController:getState',
       'RemoteFeatureFlagController:getState',
       'SmartTransactionsController:getFees',
@@ -176,6 +181,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:isAtomicBatchSupported',
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
+      'TransactionPayController:getClientId',
       'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getFiatOptions',
       'TransactionPayController:getPaymentOverrideData',

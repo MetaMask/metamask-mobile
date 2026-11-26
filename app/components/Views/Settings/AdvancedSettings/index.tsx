@@ -45,6 +45,7 @@ import { createStyles } from './AdvancedSettings.styles';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { selectMoneyAccountStatusPageEnabled } from '../../../UI/Money/selectors/featureFlags';
 
 interface SettingsState {
   showHexData: boolean;
@@ -100,6 +101,9 @@ const AdvancedSettings = ({
   isBasicFunctionalityConsolidationEnabled,
 }: Props) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isMoneyAccountStatusPageEnabled = useSelector(
+    selectMoneyAccountStatusPageEnabled,
+  );
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const scrollView = useRef<KeyboardAwareScrollView | null>(null);
@@ -291,6 +295,32 @@ const AdvancedSettings = ({
               {strings('app_settings.state_logs_button')}
             </Button>
           </View>
+
+          {isMoneyAccountStatusPageEnabled && (
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('app_settings.money_account_status')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.money_account_status_desc')}
+              </Text>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => navigation.navigate(Routes.MONEY.ACCOUNT_STATUS)}
+                style={styles.accessory}
+                testID={AdvancedViewSelectorsIDs.MONEY_ACCOUNT_STATUS_BUTTON}
+              >
+                {strings('app_settings.money_account_status_button')}
+              </Button>
+            </View>
+          )}
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

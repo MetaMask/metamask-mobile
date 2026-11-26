@@ -33,7 +33,7 @@ export { default as SocialFeed } from './components/SocialFeed';
 export type {
   SocialFeedInlineRow,
   SocialFeedProps,
-  SocialFeedScrollMode,
+  SocialFeedRefreshHandle,
 } from './components/SocialFeed';
 export { SocialFeedLiveButton } from './components/SocialFeedRealtime';
 export type { SocialFeedLiveButtonProps } from './components/SocialFeedRealtime';
@@ -44,11 +44,9 @@ export {
   useSocialFeedSurface,
 } from './SocialFeedSurface';
 export type {
-  SocialFeedLocation,
   SocialFeedSurface,
   SocialSurfaceLocation,
 } from './SocialFeedSurface';
-
 export type {
   SocialAssetClass,
   SocialV1FeedItem,

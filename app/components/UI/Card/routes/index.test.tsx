@@ -212,40 +212,19 @@ jest.mock(
   }),
 );
 
-interface EntryRouting {
-  hasCard: boolean;
-  provider: string | null;
-  source: 'card_links' | 'legacy';
-  disagreesWithLegacy: boolean;
-}
-
 jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: (state: {
     card: { isAuthenticatedCard: boolean };
   }) => state.card.isAuthenticatedCard,
-  selectCardEntryRouting: (state: {
-    card: { isCardholder: boolean; entryRouting?: EntryRouting };
-  }): EntryRouting =>
-    state.card.entryRouting ?? {
-      hasCard: state.card.isCardholder,
-      provider: state.card.isCardholder ? 'immersve' : null,
-      source: state.card.isCardholder ? 'card_links' : 'legacy',
-      disagreesWithLegacy: false,
-    },
-  selectHasCard: (state: {
-    card: { isCardholder: boolean; entryRouting?: EntryRouting };
-  }) => {
-    const routing = state.card.entryRouting ?? {
-      hasCard: state.card.isCardholder,
-      source: state.card.isCardholder ? 'card_links' : 'legacy',
-    };
-    return routing.source === 'card_links'
-      ? routing.hasCard
-      : state.card.isCardholder;
-  },
+  selectHasCard: (state: { card: { hasCard: boolean } }) => state.card.hasCard,
 }));
 
 jest.mock('../../../../constants/navigation/Routes', () => ({
+  HOME_TABS: 'Home',
+  MONEY: {
+    ROOT: 'MoneyScreens',
+    HOME: 'MoneyHome',
+  },
   CARD: {
     HOME: 'CardHome',
     APPLE_PAY_SPLASH: 'CardApplePaySplash',
@@ -289,17 +268,12 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-const createMockStore = (
-  isAuthenticated = false,
-  isCardholder = false,
-  entryRouting?: EntryRouting,
-) =>
+const createMockStore = (isAuthenticated = false, hasCard = false) =>
   configureStore({
     reducer: {
       card: () => ({
         isAuthenticatedCard: isAuthenticated,
-        isCardholder,
-        entryRouting,
+        hasCard,
       }),
     },
   });
@@ -372,63 +346,23 @@ describe('CardRoutes', () => {
     };
 
     it('navigates to Home when authenticated', () => {
-      expect(initialRouteNames(createMockStore(true, false))).toContain(
+      expect(initialRouteNames(createMockStore(true, true))).toContain(
         'CardHome',
       );
       expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
     });
 
-    it('navigates to Home when is cardholder', () => {
-      expect(initialRouteNames(createMockStore(false, true))).not.toContain(
-        'CardWelcome',
+    it('opens login and switches to the linked account when a logged-out user has a card', () => {
+      expect(initialRouteNames(createMockStore(false, true))).toContain(
+        'CardAuthentication',
       );
-    });
-
-    it('opens Welcome when the flag is off and only another account is a cardholder', () => {
-      const store = createMockStore(false, false, {
-        hasCard: true,
-        provider: null,
-        source: 'legacy',
-        disagreesWithLegacy: false,
-      });
-
-      expect(initialRouteNames(store)).toContain('CardWelcome');
-      expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
-    });
-
-    it('opens Home and switches to the linked account when stored links say there is a card', () => {
-      const store = createMockStore(false, false, {
-        hasCard: true,
-        provider: 'immersve',
-        source: 'card_links',
-        disagreesWithLegacy: false,
-      });
-
-      expect(initialRouteNames(store)).not.toContain('CardWelcome');
       expect(mockSwitchToLinkedCardAccount).toHaveBeenCalledTimes(1);
     });
 
-    it('opens Home without switching when the user is already signed in', () => {
-      const store = createMockStore(true, false, {
-        hasCard: true,
-        provider: 'immersve',
-        source: 'card_links',
-        disagreesWithLegacy: false,
-      });
-
-      expect(initialRouteNames(store)).not.toContain('CardWelcome');
-      expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
-    });
-
-    it('opens Welcome when stored links have no routable card', () => {
-      const store = createMockStore(false, true, {
-        hasCard: false,
-        provider: null,
-        source: 'card_links',
-        disagreesWithLegacy: true,
-      });
-
-      expect(initialRouteNames(store)).toContain('CardWelcome');
+    it('opens Welcome without switching when a logged-out user has no card', () => {
+      expect(initialRouteNames(createMockStore(false, false))).toContain(
+        'CardWelcome',
+      );
       expect(mockSwitchToLinkedCardAccount).not.toHaveBeenCalled();
     });
   });

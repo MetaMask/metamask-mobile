@@ -3,9 +3,11 @@ import React, { useRef, useCallback, useMemo } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   ButtonSize,
   ButtonsAlignment,
   Text,
@@ -21,7 +23,11 @@ import {
   PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
@@ -49,7 +55,9 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     buttonConfig: buttonConfigProps,
     data,
     buttonLocation,
+    titleMarginMode,
   }) => {
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const bottomSheetRef = useRef<BottomSheetRef>(null);
 
     const title = useMemo(
@@ -124,12 +132,29 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     return (
       <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
         {!hasCustomHeader && (
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={handleClose}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
           >
-            {title}
-          </BottomSheetHeader>
+            {titleMarginMode ? (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                gap={2}
+                accessible={false}
+              >
+                <Text variant={TextVariant.HeadingSm}>{title}</Text>
+                <PerpsMarginModeTag
+                  marginMode={titleMarginMode}
+                  testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE_TAG}
+                />
+              </Box>
+            ) : (
+              title
+            )}
+          </BottomSheetHeaderGlass>
         )}
         <Box paddingHorizontal={4}>{renderContent()}</Box>
         <BottomSheetFooter

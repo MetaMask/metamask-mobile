@@ -47,12 +47,6 @@ import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import Transactions from '../../Transactions';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  AMBIENT_PRICE_COLOR_VARIANTS,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-} from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -299,16 +293,6 @@ const TokenDetails: React.FC<{
     token,
     source: 'asset_details',
   });
-  const { variant: ambientColorVariant } = useABTest(
-    AMBIENT_PRICE_COLOR_AB_KEY,
-    AMBIENT_PRICE_COLOR_VARIANTS,
-  );
-  const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-  const { variant: moneyFooterCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
-
   const caip19AssetId = useTokenCaipAssetId(token);
 
   // Port the memecoin TDP V1 position line to the legacy page, gated on the
@@ -441,6 +425,14 @@ const TokenDetails: React.FC<{
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
+  // The trader-position footer floats over the list, so the list reserves its
+  // measured height. The in-flow footer reports 0 and keeps the list default.
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback((height: number) => {
+    setFooterHeight((current) => (current === height ? current : height));
+  }, []);
+  const listBottomInset = footerHeight > 0 ? footerHeight : undefined;
+
   const handleListScrollOffset = useCallback(
     (y: number) => {
       headerScrollY.set(y);
@@ -520,7 +512,6 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const refreshTronAssets = useFreshTronAssets(token.chainId);
   useFocusEffect(
     useCallback(() => {
@@ -529,18 +520,15 @@ const TokenDetails: React.FC<{
       }
     }, [refreshTronAssets, token]),
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     balance,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -552,9 +540,8 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
-    (moneyAssetOverviewCtas.isFooterCtaLoading ||
-      moneyAssetOverviewCtas.isFooterCtaVisible);
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -614,7 +601,7 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    onBuy();
+    void onBuy();
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
@@ -738,16 +725,13 @@ const TokenDetails: React.FC<{
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         onPriceDirectionChange={handlePriceDirectionChange}
-        useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
         mostRecentOrder={mostRecentOrder}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
         <ActivityHeader
@@ -797,6 +781,7 @@ const TokenDetails: React.FC<{
             location={TransactionDetailLocation.AssetDetails}
             onScroll={handleMultichainScroll}
             refreshControlOffset={headerInset}
+            contentBottomInset={listBottomInset}
           />
         ) : (
           <>
@@ -821,6 +806,7 @@ const TokenDetails: React.FC<{
               hideEmptyState
               location={TransactionDetailLocation.AssetDetails}
               refreshControlOffset={headerInset}
+              contentBottomInset={listBottomInset}
             />
           </>
         )}
@@ -837,7 +823,6 @@ const TokenDetails: React.FC<{
           moneyDepositCta={moneyDepositCta}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
           onQuickBuyPress={onQuickBuyPress}
@@ -845,6 +830,7 @@ const TokenDetails: React.FC<{
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
           tokenKey={traderPositionTokenKey}
+          onFooterLayout={handleFooterLayout}
         />
       ) : (
         <TokenDetailsStickyFooter
@@ -857,13 +843,13 @@ const TokenDetails: React.FC<{
           moneyDepositCta={moneyDepositCta}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
           onQuickBuyPress={onQuickBuyPress}
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
+          onFooterLayout={handleFooterLayout}
         />
       )}
 
@@ -1013,9 +999,9 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  const prevTokenKeyRef = useRef<string | null>(null);
-  if (prevTokenKeyRef.current !== tokenKey) {
-    prevTokenKeyRef.current = tokenKey;
+  const [prevTokenKey, setPrevTokenKey] = useState<string | null>(null);
+  if (prevTokenKey !== tokenKey) {
+    setPrevTokenKey(tokenKey);
     if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
       setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
     }

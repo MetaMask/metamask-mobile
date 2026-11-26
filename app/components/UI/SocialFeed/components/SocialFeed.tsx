@@ -8,7 +8,7 @@ import SocialFeedVirtualized from './SocialFeedVirtualized';
 export type {
   SocialFeedInlineRow,
   SocialFeedProps,
-  SocialFeedScrollMode,
+  SocialFeedRefreshHandle,
 } from './SocialFeed.types';
 export {
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,

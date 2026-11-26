@@ -98,7 +98,11 @@ const renderLighter = (leverage?: number) => {
             initializationState: InitializationState.Initialized,
             ...(leverage === undefined
               ? {}
-              : { tradeConfigurations: { testnet: { ETH: { leverage } } } }),
+              : {
+                  tradeConfigurations: {
+                    testnet: { lighter: { ETH: { leverage } } },
+                  },
+                }),
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -440,7 +444,12 @@ describe('Lighter Scale through the Pro market screen', () => {
         }),
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '');
+    // Order-form reset propagates through usePerpsProSizeInput and
+    // usePerpsProInputDisplay effects after the toast commits, so wait for the
+    // cleared input value itself rather than treating the toast as proof.
+    await waitFor(() =>
+      expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', ''),
+    );
   });
 
   it.each(['complete', 'partial'] as const)(

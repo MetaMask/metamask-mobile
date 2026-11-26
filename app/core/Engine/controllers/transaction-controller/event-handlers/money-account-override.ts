@@ -4,7 +4,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 
 import Engine from '../../../../Engine';
@@ -12,8 +11,11 @@ import ReduxService from '../../../../redux';
 import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
-import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
+import {
+  isBridgeDepositTx,
+  isBridgeWithdrawTx,
+} from '../../../../../util/bridge/money-operations';
 
 /**
  * Eagerly refresh native and token balances for the override account so that
@@ -86,6 +88,14 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   const { TransactionPayController, AccountsController } = Engine.context;
 
+  /*
+   * Deposit/withdraw transactions can be queued before or after a swap or bridge.
+   * In this case the transactionConfig overrides are set by the bridge-status-controller
+   */
+  if (isBridgeDepositTx(transaction) || isBridgeWithdrawTx(transaction)) {
+    return;
+  }
+
   const existingOverride =
     TransactionPayController.state.transactionData[transaction.id]
       ?.accountOverride;
@@ -100,17 +110,8 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
     return;
   }
 
-  if (isMoneyAccountWithdraw(transaction)) {
-    replaceAccountInNestedTransactions({
-      transactionId: transaction.id,
-      nestedTransactions: transaction.nestedTransactions,
-      oldAddress: transaction.txParams?.from,
-      newAddress: selectedAccount.address,
-    });
-  }
-
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
-    config.accountOverride = selectedAccount.address as Hex;
+    config.accountOverride = selectedAccount.id;
 
     if (!isMoneyAccountWithdraw(transaction)) {
       config.isQuoteRequired = true;

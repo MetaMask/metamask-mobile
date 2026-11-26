@@ -8,11 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import {
-  InteractionManager,
-  ScrollView,
-  type RefreshControlProps,
-} from 'react-native';
+import { ScrollView, type RefreshControlProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -32,7 +28,10 @@ import {
 import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectSortedAssetsBySelectedAccountGroup,
+} from '../../../selectors/assets/assets-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
@@ -44,6 +43,8 @@ import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
+import { useAssetsHaveLoaded } from '../Assets/hooks/useAssetsHaveLoaded';
+import { shouldShowAssetsLoadingSkeleton } from '../Assets/utils/shouldShowAssetsLoadingSkeleton';
 
 // Same delay as the Explore search, so typing does not re-filter on every key.
 const SEARCH_DEBOUNCE_MS = 200;
@@ -168,13 +169,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectMoneyHubEnabledFlag,
     );
 
-    const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const assetsHaveLoaded = useAssetsHaveLoaded();
+    const assetsByChain = useSelector(selectAssetsBySelectedAccountGroup);
     const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
       selectSortedAssetsBySelectedAccountGroup,
     );
+    const isTokenListLoading = shouldShowAssetsLoadingSkeleton({
+      assetsHaveLoaded,
+      assetsByChain,
+      musdOnly: showOnlyMusd,
+    });
 
     // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
     // in the Money hub.
@@ -205,20 +212,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     useFocusEffect(
       useCallback(() => {
         forceUpdate((n) => n + 1);
-      }, []),
+      }, [forceUpdate]),
     );
 
-    // Mark as loaded once we have data (even if empty)
     useEffect(() => {
-      if (!hasInitialLoad && sortedTokenKeys) {
-        InteractionManager.runAfterInteractions(() => {
-          setHasInitialLoad(true);
-        });
-      }
-    }, [sortedTokenKeys, hasInitialLoad]);
-
-    useEffect(() => {
-      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+      if (!isFullView || !assetsHaveLoaded || hasTrackedScreenViewRef.current)
         return;
       hasTrackedScreenViewRef.current = true;
       trackEvent(
@@ -233,7 +231,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       );
     }, [
       isFullView,
-      hasInitialLoad,
+      assetsHaveLoaded,
       tokenKeysForList.length,
       showOnlyMusd,
       trackEvent,
@@ -251,20 +249,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
-
-      try {
-        // Wait for interactions to complete first for better performance
-        await new Promise<void>((resolve) => {
-          InteractionManager.runAfterInteractions(() => {
-            resolve();
-          });
-        });
-
-        // Then await the actual refresh
-        await refreshTokensForGroup();
-      } finally {
+      await refreshTokensForGroup().finally(() => {
         setRefreshing(false);
-      }
+      });
     }, [refreshTokensForGroup]);
 
     // One event per settled, non-empty query (never per keystroke).
@@ -273,7 +260,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const resultCount = searchedTokenKeys.length;
     useEffect(() => {
       const query = debouncedQuery.trim().toLowerCase();
-      if (!isFullView || !hasInitialLoad || !query) {
+      if (!isFullView || !assetsHaveLoaded || !query) {
         lastTrackedQueryRef.current = '';
         return;
       }
@@ -286,7 +273,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     }, [
       debouncedQuery,
       isFullView,
-      hasInitialLoad,
+      assetsHaveLoaded,
       resultCount,
       trackFiltering,
     ]);
@@ -311,7 +298,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!hasInitialLoad || isDebouncing) {
+      // Soft-gate like extension: unsettled loads with real balances skip the
+      // skeleton. When there is still nothing to show, always render a skeleton
+      // (including Cash's hideLoadingSkeleton path) so the list does not go
+      // blank after CashTokensFullView drops its one-tick placeholder.
+      if (isTokenListLoading) {
+        return (
+          <Box twClassName={isFullView ? 'px-4' : undefined}>
+            <TokenListSkeleton />
+          </Box>
+        );
+      }
+
+      if (isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -371,7 +370,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         />
       );
     }, [
-      hasInitialLoad,
+      isTokenListLoading,
       isDebouncing,
       hideLoadingSkeleton,
       isFullView,
@@ -398,7 +397,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         {isFullView && !showOnlyMusd && (
-          <Box twClassName="px-4 pb-2">
+          <Box twClassName="px-4 pt-1 pb-2">
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}

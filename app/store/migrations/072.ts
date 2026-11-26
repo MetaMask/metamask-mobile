@@ -54,7 +54,6 @@ const migration = (state: unknown): unknown => {
         nativeCurrency: NetworksTicker[megaethTestnet],
         rpcEndpoints: [
           {
-            failoverUrls: [],
             networkClientId: megaethTestnet,
             type: RpcEndpointType.Custom,
             url: BUILT_IN_CUSTOM_NETWORKS_RPC.MEGAETH_TESTNET,
