@@ -139,7 +139,7 @@ const OnboardingSheet = ({
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="p-4 gap-y-4"
+        className="p-4 gap-y-4"
         testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
       >
         <Button
@@ -243,9 +243,9 @@ const OnboardingSheet = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-2.5"
+          className="gap-2.5"
         >
-          <Box twClassName="flex-1 h-px bg-border-muted" />
+          <Box className="flex-1 h-px bg-border-muted" />
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Medium}
@@ -254,7 +254,7 @@ const OnboardingSheet = ({
           >
             {strings('onboarding.or')}
           </Text>
-          <Box twClassName="flex-1 h-px bg-border-muted" />
+          <Box className="flex-1 h-px bg-border-muted" />
         </Box>
         {!createWallet &&
         isAddDeviceSyncEnabled &&
@@ -290,7 +290,7 @@ const OnboardingSheet = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="mt-6 text-center"
+          className="mt-6 text-center"
         >
           {strings('onboarding.by_continuing')}{' '}
           <TextButton

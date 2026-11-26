@@ -118,12 +118,12 @@ const CardRow = ({
     justifyContent={BoxJustifyContent.Between}
     alignItems={BoxAlignItems.Center}
     testID={testID}
-    twClassName="pt-3"
+    className="pt-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-4"
+      className="gap-4"
     >
       <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -137,7 +137,7 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="self-start gap-1"
+    className="self-start gap-1"
     testID={testID}
   >
     <Icon
@@ -176,7 +176,7 @@ const LinkContent = ({
   ) : null;
 
   return (
-    <Box twClassName="gap-6">
+    <Box className="gap-6">
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
@@ -187,7 +187,7 @@ const LinkContent = ({
       {hideCardImage ? (
         apyBullet ? (
           <Box
-            twClassName="gap-2"
+            className="gap-2"
             testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
           >
             {apyBullet}
@@ -197,7 +197,7 @@ const LinkContent = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-4"
+          className="gap-4"
           testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
         >
           <MoneyCardTiltAnimation
@@ -205,7 +205,7 @@ const LinkContent = ({
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           {apyBullet ? (
-            <Box twClassName="gap-2 flex-1 justify-center">{apyBullet}</Box>
+            <Box className="gap-2 flex-1 justify-center">{apyBullet}</Box>
           ) : null}
         </Box>
       )}
@@ -226,16 +226,16 @@ const ManageContent = ({
   showMetalCard: boolean;
   privacyMode: boolean;
 }) => (
-  <Box twClassName="gap-7" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
+  <Box className="gap-7" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="pt-3 gap-3"
+      className="pt-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
-      <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
+      <Box alignItems={BoxAlignItems.End} className="gap-1 flex-1">
         {isBalanceLoading ? (
           <Skeleton
             height={24}
@@ -321,7 +321,7 @@ const SetupContent = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="py-3"
+        className="py-3"
         testID={MoneyMetaMaskCardTestIds.SETUP_SPINNER}
       >
         <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
@@ -336,16 +336,16 @@ const SetupContent = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="pt-3 gap-4"
+        className="pt-3 gap-4"
       >
         {/* Muted while pending so the card doesn't read as ready to use. */}
         <Box
-          twClassName="opacity-50"
+          className="opacity-50"
           testID={MoneyMetaMaskCardTestIds.SETUP_CARD_ART}
         >
           <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
         </Box>
-        <Box twClassName="gap-1 flex-1">
+        <Box className="gap-1 flex-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -372,12 +372,12 @@ const SignInContent = () => (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="pt-3 gap-4"
+      className="pt-3 gap-4"
     >
       <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART}>
         <MoneyCardTiltAnimation isMetalCard={false} />
       </Box>
-      <Box twClassName="gap-1 flex-1">
+      <Box className="gap-1 flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -585,7 +585,7 @@ const MoneyMetaMaskCard = ({
     content = <SignInContent />;
   } else if (mode === 'verifying') {
     content = (
-      <Box twClassName="pt-3">
+      <Box className="pt-3">
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           description={strings('money.metamask_card.verification_pending')}
@@ -600,7 +600,7 @@ const MoneyMetaMaskCard = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="py-3"
+        className="py-3"
         testID={MoneyMetaMaskCardTestIds.LOADING_SPINNER}
       >
         <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
@@ -646,7 +646,7 @@ const MoneyMetaMaskCard = ({
 
   return (
     <Box
-      twClassName="px-4 py-3 gap-3"
+      className="px-4 py-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
       <MoneySectionHeader
@@ -655,7 +655,7 @@ const MoneyMetaMaskCard = ({
         onPress={pressHandler ? handleHeaderPress : undefined}
       />
       {showsSetupContinue ? (
-        <Box twClassName="gap-4">
+        <Box className="gap-4">
           {contentPressable}
           <Button
             variant={ButtonVariant.Secondary}
@@ -669,7 +669,7 @@ const MoneyMetaMaskCard = ({
           </Button>
         </Box>
       ) : showsSignIn ? (
-        <Box twClassName="gap-4">
+        <Box className="gap-4">
           {contentPressable}
           <Button
             variant={ButtonVariant.Secondary}

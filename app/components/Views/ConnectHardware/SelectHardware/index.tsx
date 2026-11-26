@@ -162,7 +162,7 @@ const SelectHardwareWallet = () => {
         <Icon
           name={IconName.QrCode}
           size={IconSize.Md}
-          twClassName={qrIconClassName}
+          className={qrIconClassName}
         />,
       ),
     },
@@ -217,9 +217,9 @@ const SelectHardwareWallet = () => {
       />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
-        twClassName="px-4 pt-3 pb-6"
+        className="px-4 pt-3 pb-6"
       />
-      <Box twClassName="gap-3 px-4">
+      <Box className="gap-3 px-4">
         {hardwareOptions.map(renderHardwareButton)}
       </Box>
     </SafeAreaView>

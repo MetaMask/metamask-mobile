@@ -110,7 +110,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
       testID={testID}
     >
       <Box
-        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
+        className={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
           isDisabled ? ' opacity-50' : ''
         }`}
       >
@@ -169,7 +169,7 @@ const PriceField = ({
     startAccessory={
       <Text
         variant={TextVariant.BodySm}
-        twClassName="mr-1"
+        className="mr-1"
         testID={prefixTestID}
       >
         $
@@ -177,11 +177,11 @@ const PriceField = ({
     }
     endAccessory={
       onUseMidPress ? (
-        <Box twClassName="h-full shrink-0 justify-center">
+        <Box className="h-full shrink-0 justify-center">
           <ButtonBase
             size={ButtonBaseSize.Sm}
             onPress={onUseMidPress}
-            twClassName="h-[26px] shrink-0 rounded-md bg-subsection px-2 py-0.5"
+            className="h-[26px] shrink-0 rounded-md bg-subsection px-2 py-0.5"
             contentWrapperProps={{ twClassName: 'justify-end' }}
             textProps={{
               variant: TextVariant.BodyXs,
@@ -199,7 +199,7 @@ const PriceField = ({
 
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   notices.length > 0 ? (
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       {notices.map((notice) =>
         notice.variant === 'banner' ? (
           <BannerAlert
@@ -252,7 +252,7 @@ const OrderSummary = ({
   takerFeeRate,
   makerFeeRate,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
+  <Box className="w-full gap-1" testID={ids.SUMMARY}>
     {twapSummary ? (
       <>
         <KeyValueRow
@@ -263,7 +263,7 @@ const OrderSummary = ({
             ...summaryValueTextProps,
             testID: ids.SUMMARY_TWAP_RUNTIME_VALUE,
           }}
-          twClassName={summaryRowClassName}
+          className={summaryRowClassName}
           style={summaryRowStyle}
           testID={ids.SUMMARY_TWAP_RUNTIME}
         />
@@ -277,7 +277,7 @@ const OrderSummary = ({
             ...summaryValueTextProps,
             testID: ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE,
           }}
-          twClassName={summaryRowClassName}
+          className={summaryRowClassName}
           style={summaryRowStyle}
           testID={ids.SUMMARY_TWAP_SIZE_PER_SUBORDER}
         />
@@ -288,7 +288,7 @@ const OrderSummary = ({
       value={margin}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryBeforeAfterValueTextProps}
-      twClassName={summaryBeforeAfterRowClassName}
+      className={summaryBeforeAfterRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
@@ -298,7 +298,7 @@ const OrderSummary = ({
         value={liquidationPrice}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryBeforeAfterValueTextProps}
-        twClassName={summaryBeforeAfterRowClassName}
+        className={summaryBeforeAfterRowClassName}
         style={summaryRowStyle}
         testID={ids.SUMMARY_LIQUIDATION}
       />
@@ -321,7 +321,7 @@ const OrderSummary = ({
         }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
-        twClassName={summaryRowClassName}
+        className={summaryRowClassName}
         style={summaryRowStyle}
         testID={ids.SUMMARY_SLIPPAGE}
       />
@@ -350,7 +350,7 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName={summaryFeesRowClassName}
+      className={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
@@ -387,7 +387,7 @@ const ScaleFields = ({
     pointerEvents={isHidden ? 'none' : undefined}
     accessibilityElementsHidden={isHidden}
     importantForAccessibility={isHidden ? 'no-hide-descendants' : undefined}
-    twClassName={isHidden ? 'h-0 overflow-hidden opacity-0' : undefined}
+    className={isHidden ? 'h-0 overflow-hidden opacity-0' : undefined}
   >
     {inputs.map((input) => (
       <PerpsProCompactInput
@@ -423,7 +423,7 @@ const ScalePreview = ({
   const first = model.rungs[0];
   const last = model.rungs[model.rungs.length - 1];
   return (
-    <Box twClassName="gap-1" testID={ids.SCALE_PREVIEW}>
+    <Box className="gap-1" testID={ids.SCALE_PREVIEW}>
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.start')}
         value={
@@ -436,7 +436,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_START_VALUE,
         }}
-        twClassName={summaryRowClassName}
+        className={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -451,7 +451,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_END_VALUE,
         }}
-        twClassName={summaryRowClassName}
+        className={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -462,7 +462,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_MARGIN_VALUE,
         }}
-        twClassName={summaryRowClassName}
+        className={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -473,7 +473,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
         }}
-        twClassName={summaryRowClassName}
+        className={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -489,7 +489,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_FEES_VALUE,
         }}
-        twClassName={summaryFeesRowClassName}
+        className={summaryFeesRowClassName}
         style={summaryRowStyle}
       />
     </Box>
@@ -722,12 +722,12 @@ const PerpsProOrderForm = ({
 
   return (
     <>
-      <Box twClassName="gap-4" testID={ids.CONTAINER}>
+      <Box className="gap-4" testID={ids.CONTAINER}>
         {/* Screen-edge inset comes from PerpsProMarketLayout's outer padding
             (wraps form + divider + book), not this Box. Summary rows use
             KeyValueRow which ships with px-4 by default — override to px-0 so
             margin/liquidation/slippage/fees align with the form above. */}
-        <Box twClassName="gap-3">
+        <Box className="gap-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -737,7 +737,7 @@ const PerpsProOrderForm = ({
               value={direction}
               onChange={handleDirectionChange}
               isFullWidth
-              twClassName="flex-1"
+              className="flex-1"
               size={ButtonBaseSize.Sm}
               testID={ids.DIRECTION_CONTROL}
             >
@@ -752,7 +752,7 @@ const PerpsProOrderForm = ({
               <FilterButton
                 value="long"
                 disabled={isScaleFormLocked}
-                twClassName={`px-1 ${isLong ? 'bg-success-muted' : ''}`}
+                className={`px-1 ${isLong ? 'bg-success-muted' : ''}`}
                 testID={ids.DIRECTION_LONG}
                 textProps={{
                   twClassName: isLong
@@ -766,7 +766,7 @@ const PerpsProOrderForm = ({
               <FilterButton
                 value="short"
                 disabled={isScaleFormLocked}
-                twClassName={`px-1 ${!isLong ? 'bg-error-muted' : ''}`}
+                className={`px-1 ${!isLong ? 'bg-error-muted' : ''}`}
                 testID={ids.DIRECTION_SHORT}
                 textProps={{
                   twClassName: isLong
@@ -789,7 +789,7 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <Box
-            twClassName="flex-row items-center gap-2"
+            className="flex-row items-center gap-2"
             testID={ids.MARGIN_SETTINGS_ROW}
           >
             <ButtonBase
@@ -799,7 +799,7 @@ const PerpsProOrderForm = ({
               // The ratio tag is not shrinkable, so with it present the button
               // takes a larger share of the row (and tighter padding) instead of
               // letting the tag cover the "Cross" label.
-              twClassName={
+              className={
                 marginModeTag
                   ? 'flex-1 rounded-xl bg-muted pl-3 pr-2'
                   : 'flex-1 rounded-xl bg-muted'
@@ -837,7 +837,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Md}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="flex-1 rounded-xl bg-muted px-2"
+              className="flex-1 rounded-xl bg-muted px-2"
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
               endIconProps={{
@@ -852,13 +852,13 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName="overflow-hidden rounded-xl bg-muted"
+            className="overflow-hidden rounded-xl bg-muted"
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-[48px] w-full bg-transparent px-3"
+              className="h-[48px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
@@ -891,7 +891,7 @@ const PerpsProOrderForm = ({
             >
               {isChase ? (
                 <Box
-                  twClassName="min-w-0 flex-1 flex-row items-center justify-between pr-2"
+                  className="min-w-0 flex-1 flex-row items-center justify-between pr-2"
                   testID={`${ids.ORDER_TYPE_BUTTON}-label-row`}
                 >
                   <Text
@@ -1039,7 +1039,7 @@ const PerpsProOrderForm = ({
           />
           <Box
             testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+            className="h-12 justify-center rounded-xl bg-muted px-3"
           >
             <Checkbox
               label={strings('perps.order.reduce_only')}
@@ -1052,7 +1052,7 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked}
               onChange={handleReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
-              twClassName="w-full flex-row-reverse justify-between"
+              className="w-full flex-row-reverse justify-between"
             />
           </Box>
           {showsTpSl ? (

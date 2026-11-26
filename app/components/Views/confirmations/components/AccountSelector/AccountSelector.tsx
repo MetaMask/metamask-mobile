@@ -198,7 +198,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                 variant={TextVariant.BodyMd}
                 numberOfLines={1}
                 ellipsizeMode="middle"
-                twClassName="shrink"
+                className="shrink"
               >
                 {accountName}
               </Text>
@@ -266,7 +266,7 @@ export function AccountSelectorSkeleton() {
       <View style={styles.row}>
         <Skeleton height={18} width={60} />
         <View style={styles.valueContainer}>
-          <Skeleton height={32} width={32} twClassName="rounded-full" />
+          <Skeleton height={32} width={32} className="rounded-full" />
           <Skeleton height={18} width={120} />
         </View>
       </View>

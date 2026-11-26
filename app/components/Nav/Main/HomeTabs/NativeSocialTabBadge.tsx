@@ -92,7 +92,7 @@ const NativeSocialTabBadge = ({
       accessible={false}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      twClassName="absolute"
+      className="absolute"
       style={{
         left,
         top,
@@ -106,7 +106,7 @@ const NativeSocialTabBadge = ({
         badge={
           <BadgeStatus
             status={BadgeStatusStatus.Active}
-            twClassName="translate-y-1"
+            className="translate-y-1"
             testID={SOCIAL_TAB_BADGE_OVERLAY_TEST_ID}
           />
         }

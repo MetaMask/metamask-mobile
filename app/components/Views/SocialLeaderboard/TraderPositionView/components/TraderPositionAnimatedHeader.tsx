@@ -150,7 +150,7 @@ const TraderPositionAnimatedHeader: React.FC<
         )
       }
       testID={TraderPositionViewSelectorsIDs.HEADER}
-      twClassName="bg-default"
+      className="bg-default"
     >
       <View style={styles.centerSlot}>
         <Animated.View

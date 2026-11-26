@@ -65,7 +65,7 @@ const PredictMarketUnavailableModal: React.FC = () => {
         </Text>
       </Box>
       <BottomSheetFooter
-        twClassName="px-4"
+        className="px-4"
         primaryButtonProps={{
           children: strings('predict.market_unavailable.button'),
           onPress: handleClose,

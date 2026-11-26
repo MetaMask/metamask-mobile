@@ -126,9 +126,9 @@ const AddWallet = () => {
           testID: AddWalletTestIds.BACK_BUTTON,
         }}
       />
-      <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 pt-3">
+      <Box testID={AddWalletTestIds.SCREEN} className="flex-1 pt-3">
         <TitleStandard
-          twClassName="mb-2 px-4"
+          className="mb-2 px-4"
           title={strings('multichain_accounts.add_wallet')}
         />
 

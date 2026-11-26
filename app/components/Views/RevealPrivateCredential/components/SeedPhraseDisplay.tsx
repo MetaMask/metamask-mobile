@@ -28,12 +28,12 @@ const SeedPhraseDisplay = ({
   onCopyToClipboard,
 }: SeedPhraseDisplayProps) => (
   <Box
-    twClassName="flex-1 w-full h-full gap-y-4"
+    className="flex-1 w-full h-full gap-y-4"
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
   >
-    <Box twClassName="min-h-[200px] flex-1 w-full h-full">
+    <Box className="min-h-[200px] flex-1 w-full h-full">
       <FlatList
         data={words}
         numColumns={3}
@@ -48,7 +48,7 @@ const SeedPhraseDisplay = ({
             paddingVertical={1}
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             margin={1}
-            twClassName="flex-1 rounded-lg h-10 gap-x-1.5"
+            className="flex-1 rounded-lg h-10 gap-x-1.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -65,7 +65,7 @@ const SeedPhraseDisplay = ({
               adjustsFontSizeToFit
               minimumFontScale={0.7}
               maxFontSizeMultiplier={1}
-              twClassName="flex-1"
+              className="flex-1"
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
             >
               {item}
@@ -84,7 +84,7 @@ const SeedPhraseDisplay = ({
         isFullWidth
         startIconName={IconName.Copy}
         isDisabled={!showSeedPhrase}
-        twClassName="mb-2"
+        className="mb-2"
       >
         {strings('reveal_credential.copy_to_clipboard')}
       </Button>

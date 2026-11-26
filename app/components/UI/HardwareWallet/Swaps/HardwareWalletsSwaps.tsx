@@ -234,7 +234,7 @@ export function HardwareWalletsSwaps() {
           size={ButtonIconSize.Md}
           onPress={handleHeaderClose}
         />
-        <Box twClassName="h-10 w-10" />
+        <Box className="h-10 w-10" />
       </Box>
 
       <ScrollView
@@ -247,7 +247,7 @@ export function HardwareWalletsSwaps() {
         <Text
           testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
           variant={TextVariant.HeadingLg}
-          twClassName="mb-8"
+          className="mb-8"
         >
           {title}
         </Text>

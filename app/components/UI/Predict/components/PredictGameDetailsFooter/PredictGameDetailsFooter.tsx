@@ -56,7 +56,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
 
   const content = (
     <Box
-      twClassName={'px-4 pt-3 border-t border-muted'}
+      className={'px-4 pt-3 border-t border-muted'}
       style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       testID={testID}
     >
@@ -65,7 +65,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-2"
+          className="mb-2"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}

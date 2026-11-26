@@ -432,7 +432,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     <Box
       testID={baseTestID}
       onLayout={handleLayout}
-      twClassName="relative self-stretch overflow-visible pb-2"
+      className="relative self-stretch overflow-visible pb-2"
       // The thumb is drawn 13px above the track. That top padding keeps the
       // thumb inside this box so the section's 8px margin stays visible.
       style={{

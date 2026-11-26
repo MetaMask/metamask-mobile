@@ -235,13 +235,13 @@ const StakingBalanceContent = ({
           }
         >
           <BadgeWrapper
-            twClassName="self-center"
+            className="self-center"
             position={BadgeWrapperPosition.BottomRight}
             badge={
               <BadgeNetwork
                 src={NetworkBadgeSource(asset.chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
-                twClassName="h-5 w-5"
+                className="h-5 w-5"
               />
             }
           >

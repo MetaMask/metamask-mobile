@@ -333,7 +333,7 @@ const ShareTokenBottomSheet = ({
         {strings('share_token.title')}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-4 gap-3">
+      <Box className="px-4 pb-4 gap-3">
         <ShareTokenCard
           token={token}
           shareUrl={shareUrl}
@@ -346,7 +346,7 @@ const ShareTokenBottomSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           numberOfLines={2}
           testID="share-token-url"
         >
@@ -362,7 +362,7 @@ const ShareTokenBottomSheet = ({
           startIconName: IconName.Share,
           testID: 'share-token-native-share-button',
         }}
-        twClassName="px-4"
+        className="px-4"
       />
     </BottomSheet>
   );

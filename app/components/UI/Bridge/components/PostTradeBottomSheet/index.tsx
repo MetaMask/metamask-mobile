@@ -136,7 +136,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       backgroundColor={BoxBackgroundColor.PrimaryMuted}
-      twClassName="h-12 w-12 rounded-full"
+      className="h-12 w-12 rounded-full"
     >
       <Spinner
         color={IconColor.PrimaryDefault}
@@ -496,7 +496,7 @@ export const PostTradeBottomSheet = () => {
         isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
-        twClassName="pt-4 h-auto"
+        className="pt-4 h-auto"
       >
         <StatusIcon status={status} />
       </BottomSheetHeaderGlass>
@@ -522,7 +522,7 @@ export const PostTradeBottomSheet = () => {
       {isCreatePostVisible ? (
         // Same layout as PostTradeShareBottomSheet: Create post is the filled
         // primary action on top, and View activity is a text-only button below.
-        <Box twClassName="px-4 pb-6">
+        <Box className="px-4 pb-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

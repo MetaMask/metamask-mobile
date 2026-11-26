@@ -126,11 +126,11 @@ const SDKConnectV2OtpModal: React.FC = () => {
         </Text>
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-4 gap-4">
+      <Box className="px-4 pb-4 gap-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('sdk_connect_v2.show_otp.modal_description')}
         </Text>
@@ -139,7 +139,7 @@ const SDKConnectV2OtpModal: React.FC = () => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
           backgroundColor={BoxBackgroundColor.BackgroundMuted}
-          twClassName="rounded-lg py-4 px-4 gap-2"
+          className="rounded-lg py-4 px-4 gap-2"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -183,7 +183,7 @@ const SDKConnectV2OtpModal: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           backgroundColor={BoxBackgroundColor.WarningMuted}
-          twClassName="rounded-lg p-3 gap-3"
+          className="rounded-lg p-3 gap-3"
           testID={SDKConnectV2OtpModalSelectors.SECURITY_NOTICE}
         >
           <Icon
@@ -195,7 +195,7 @@ const SDKConnectV2OtpModal: React.FC = () => {
             variant={TextVariant.BodySm}
             color={TextColor.WarningDefault}
             fontWeight={FontWeight.Medium}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings('sdk_connect_v2.show_otp.security_notice')}
           </Text>

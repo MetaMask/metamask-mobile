@@ -287,7 +287,7 @@ const AddCustomCollectible = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       testID={NFTImportScreenSelectorsIDs.CONTAINER}
     >
       <ActionView
@@ -302,7 +302,7 @@ const AddCustomCollectible = ({
       >
         <Box>
           {/* Address */}
-          <Box twClassName="px-4 pt-4">
+          <Box className="px-4 pt-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_address')}
             </Text>
@@ -330,7 +330,7 @@ const AddCustomCollectible = ({
           </Box>
 
           {/* Token ID */}
-          <Box twClassName="px-4 pt-4">
+          <Box className="px-4 pt-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_token_id')}
             </Text>

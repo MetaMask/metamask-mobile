@@ -49,11 +49,11 @@ export const StatCell: React.FC<StatCellProps> = ({
 }) => {
   const tw = useTailwind();
   return (
-    <Box style={CELL_STYLE} twClassName="gap-0.5">
+    <Box style={CELL_STYLE} className="gap-0.5">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1.5"
+        className="gap-1.5"
       >
         <Text
           variant={TextVariant.BodySm}
@@ -70,7 +70,7 @@ export const StatCell: React.FC<StatCellProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -101,7 +101,7 @@ export const ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
 } as const;
 
 export const PendingTag: React.FC<{ testID?: string }> = ({ testID }) => (
-  <Box twClassName="bg-muted rounded-[6px] px-1.5" testID={testID}>
+  <Box className="bg-muted rounded-[6px] px-1.5" testID={testID}>
     <Text
       variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Medium}
@@ -113,7 +113,7 @@ export const PendingTag: React.FC<{ testID?: string }> = ({ testID }) => (
 );
 
 export const IneligibleTag: React.FC<{ testID?: string }> = ({ testID }) => (
-  <Box twClassName="bg-warning-muted rounded-[6px] px-1.5" testID={testID}>
+  <Box className="bg-warning-muted rounded-[6px] px-1.5" testID={testID}>
     <Text
       variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Medium}
@@ -194,7 +194,7 @@ const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
 
   return (
     <Box
-      twClassName="gap-3"
+      className="gap-3"
       testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}
     >
       {/* Rank | Tier */}
@@ -265,7 +265,7 @@ const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
         !isIneligible &&
         isQualified &&
         tierMinDeposit != null && (
-          <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+          <Box className="bg-muted rounded-xl p-4 mt-2 gap-2">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('rewards.ondo_campaign_stats.qualified_title')}
             </Text>
@@ -283,7 +283,7 @@ const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
       {/* Not eligible banner */}
       {!isCampaignComplete && isIneligible && (
         <Box
-          twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+          className="bg-muted rounded-xl p-4 mt-2 gap-2"
           testID={ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -307,7 +307,7 @@ const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
           ONDO_GM_REQUIRED_QUALIFIED_DAYS - leaderboardPosition.qualifiedDays,
           0,
         ) > 0 && (
-          <Box twClassName="bg-muted rounded-xl p-4 mt-2 gap-2">
+          <Box className="bg-muted rounded-xl p-4 mt-2 gap-2">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

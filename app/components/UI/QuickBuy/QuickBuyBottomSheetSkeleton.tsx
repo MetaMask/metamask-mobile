@@ -25,7 +25,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="flex-1"
+      className="flex-1"
       testID={QuickBuySheetSelectorsIDs.CONTENT_LOADING}
     >
       {/* QuickBuyToolbar — token avatar + title/price | settings */}
@@ -33,7 +33,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-1 pb-3"
+        className="px-4 pt-1 pb-3"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -47,11 +47,11 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
             testID="quick-buy-skeleton-token"
           />
           <Box>
-            <Box twClassName="h-6" justifyContent={BoxJustifyContent.Center}>
+            <Box className="h-6" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={80} height={16} style={tw.style('rounded-md')} />
             </Box>
             <Box
-              twClassName="h-[22px]"
+              className="h-[22px]"
               justifyContent={BoxJustifyContent.Center}
             >
               <Skeleton width={64} height={14} style={tw.style('rounded-md')} />
@@ -62,13 +62,13 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
       </Box>
 
       {/* QuickBuyAmountSection — centered in the remaining space */}
-      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
-        <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pt-6 pb-4">
-          <Box twClassName="h-[88px]" justifyContent={BoxJustifyContent.Center}>
+      <Box className="flex-1" justifyContent={BoxJustifyContent.Center}>
+        <Box alignItems={BoxAlignItems.Center} className="px-4 pt-6 pb-4">
+          <Box className="h-[88px]" justifyContent={BoxJustifyContent.Center}>
             <Skeleton width={120} height={52} style={tw.style('rounded-xl')} />
           </Box>
-          <Box twClassName="mt-2">
-            <Box twClassName="h-6" justifyContent={BoxJustifyContent.Center}>
+          <Box className="mt-2">
+            <Box className="h-6" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={64} height={16} style={tw.style('rounded-md')} />
             </Box>
           </Box>
@@ -76,13 +76,13 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
       </Box>
 
       {/* QuickBuyActionFooter — Est. receive row, Pay with row + quick-amount pills */}
-      <Box twClassName="px-4">
-        <Box twClassName="mb-4 min-h-6" />
+      <Box className="px-4">
+        <Box className="mb-4 min-h-6" />
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="pb-5"
+          className="pb-5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('social_leaderboard.quick_buy.pay_with')}
@@ -94,7 +94,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
             testID="quick-buy-skeleton-pay-with"
           />
         </Box>
-        <Box twClassName="py-1">
+        <Box className="py-1">
           <Skeleton
             width="100%"
             height={40}
@@ -105,11 +105,11 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
       </Box>
 
       {/* QuickBuyKeypad — 4 rows of 48px keys, gap-3 */}
-      <Box twClassName="px-4 py-4" gap={3} testID="quick-buy-skeleton-keypad">
+      <Box className="px-4 py-4" gap={3} testID="quick-buy-skeleton-keypad">
         {KEYPAD_ROWS.map((row) => (
           <Box key={row} flexDirection={BoxFlexDirection.Row} gap={3}>
             {KEYPAD_COLUMNS.map((column) => (
-              <Box key={column} twClassName="flex-1">
+              <Box key={column} className="flex-1">
                 <Skeleton
                   width="100%"
                   height={48}

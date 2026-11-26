@@ -67,7 +67,7 @@ export const EventMarketSection = ({
         accessibilityLabel={volume ? `${title}, ${volume}` : title}
         accessibilityState={{ expanded: open }}
         testID={EventMarketSectionTestIds.HEADER}
-        twClassName="py-3.5"
+        className="py-3.5"
         endAccessory={
           // SectionHeader's title box doesn't grow, so push the volume and
           // chevron to the trailing edge, 8px from the title at minimum.
@@ -75,7 +75,7 @@ export const EventMarketSection = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="ml-auto pl-1"
+            className="ml-auto pl-1"
           >
             {volume ? (
               <Text

@@ -47,7 +47,7 @@ export const GetStartedBanner = ({
         }
         testID={PredictHomeTestIds.GET_STARTED_BANNER}
       >
-        <Box twClassName="h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-lg bg-muted p-2">
+        <Box className="h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-lg bg-muted p-2">
           <Image
             resizeMode="contain"
             source={securityIllustration}
@@ -55,11 +55,11 @@ export const GetStartedBanner = ({
             testID={PredictHomeTestIds.GET_STARTED_BANNER_IMAGE}
           />
         </Box>
-        <Box twClassName="flex-1 gap-0.5">
+        <Box className="flex-1 gap-0.5">
           {/* pr-8 keeps the title clear of the close button over its row. */}
           <Text
             fontWeight={FontWeight.Medium}
-            twClassName="pr-8"
+            className="pr-8"
             variant={TextVariant.BodyMd}
           >
             {strings('predict_next.get_started_banner.title')}
@@ -75,7 +75,7 @@ export const GetStartedBanner = ({
         onPress={onDismiss}
         size={ButtonIconSize.Sm}
         testID={PredictHomeTestIds.GET_STARTED_BANNER_DISMISS}
-        twClassName="absolute right-4 top-3"
+        className="absolute right-4 top-3"
       />
     </Box>
   );

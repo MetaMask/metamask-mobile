@@ -66,10 +66,10 @@ const OnboardingAnimation = ({
 
   return (
     <>
-      <Box twClassName="w-full flex-1" pointerEvents="box-none">
+      <Box className="w-full flex-1" pointerEvents="box-none">
         <Box
           pointerEvents="box-none"
-          twClassName="absolute left-1/2"
+          className="absolute left-1/2"
           style={tw.style({
             top: '50%',
             marginLeft: -(wordmarkWidth / 2),
@@ -89,7 +89,7 @@ const OnboardingAnimation = ({
       </Box>
       <Box
         pointerEvents="box-none"
-        twClassName="absolute left-0 right-0 flex-col px-4"
+        className="absolute left-0 right-0 flex-col px-4"
         style={tw.style({
           top: '50%',
           rowGap: isMedium ? 12 : 16,

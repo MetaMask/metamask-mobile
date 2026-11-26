@@ -17,7 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
  * state: the icon centered above the description, with no action button.
  */
 const BenefitEmptyList = () => (
-  <Box twClassName="items-center px-4 py-4">
+  <Box className="items-center px-4 py-4">
     <TabEmptyState
       icon={
         <AvatarIcon

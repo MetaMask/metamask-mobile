@@ -289,7 +289,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
         isFilterActive={isFilterActive}
         filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
         testID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR}
-        twClassName="px-4 pt-4 pb-2"
+        className="px-4 pt-4 pb-2"
       >
         <FeedSortFilterSelector value={feedSort} onPress={openSortSheet} />
       </SocialTabFilterBar>
@@ -299,7 +299,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   const emptyState = useMemo(
     () =>
       isFilterActive ? (
-        <Box twClassName="-mt-2">
+        <Box className="-mt-2">
           <SocialFilterEmptyState
             onClear={onClearFilters ?? (() => undefined)}
           />
@@ -311,7 +311,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       {prefetchSuggestions ? <FollowingSuggestionsPrefetch /> : null}
       {hasBeenActive ? (
         <SocialFeed

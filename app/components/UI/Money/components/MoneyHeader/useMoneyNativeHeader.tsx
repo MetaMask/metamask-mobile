@@ -45,7 +45,7 @@ const MoneyNativeTitle = ({
   );
 
   return (
-    <Box ref={titleRef} onLayout={alignTitle} twClassName="overflow-visible">
+    <Box ref={titleRef} onLayout={alignTitle} className="overflow-visible">
       <Text
         variant={TextVariant.HeadingLg}
         testID={MoneyHeaderTestIds.TITLE}
@@ -98,13 +98,13 @@ export const useMoneyNativeHeader = ({
       {
         type: 'custom',
         element: (
-          <Box twClassName="px-1">
+          <Box className="px-1">
             <ButtonIcon
               iconName={IconName.MoreVertical}
               onPress={onMenuPress}
               accessibilityLabel="Menu"
               testID={MoneyHeaderTestIds.MENU_BUTTON}
-              twClassName="bg-transparent"
+              className="bg-transparent"
             />
           </Box>
         ),

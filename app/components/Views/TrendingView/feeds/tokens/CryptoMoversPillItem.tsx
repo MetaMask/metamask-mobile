@@ -63,11 +63,11 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
 
   const leading = useMemo(
     () => (
-      <Box twClassName="mr-2">
+      <Box className="mr-2">
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
-            <BadgeNetwork src={networkBadgeImageSource} twClassName="h-4 w-4" />
+            <BadgeNetwork src={networkBadgeImageSource} className="h-4 w-4" />
           }
         >
           <TrendingTokenLogo

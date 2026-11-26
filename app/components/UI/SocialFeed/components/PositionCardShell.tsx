@@ -146,7 +146,7 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
         : null;
 
   return (
-    <Box testID="position-card-shell" twClassName="rounded-2xl overflow-hidden">
+    <Box testID="position-card-shell" className="rounded-2xl overflow-hidden">
       {showWash && colorsForWash ? (
         <View
           pointerEvents="none"
@@ -163,13 +163,13 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
           />
         </View>
       ) : null}
-      <Box testID="position-card-shell-content" twClassName="p-3 gap-2">
+      <Box testID="position-card-shell-content" className="p-3 gap-2">
         {children}
       </Box>
       <Box
         testID="position-card-shell-border"
         pointerEvents="none"
-        twClassName={BORDER_OVERLAY_CLASS_NAME}
+        className={BORDER_OVERLAY_CLASS_NAME}
       />
     </Box>
   );

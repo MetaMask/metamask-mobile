@@ -63,12 +63,12 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
         }}
         // Header default is px-2 around a 32px button and a 24px icon, which
         // leaves the glyph 4px outside the px-4 body. px-3 lines it up.
-        twClassName="px-3"
+        className="px-3"
         testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.TITLE}
       >
         {title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -84,7 +84,7 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
           size: ButtonSize.Lg,
           testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.GOT_IT,
         }}
-        twClassName="px-4 pt-6"
+        className="px-4 pt-6"
       />
     </BottomSheet>
   );

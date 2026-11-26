@@ -98,7 +98,7 @@ const DisconnectXAccountSheet = ({
         <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={dismiss}>
           {strings('manage_profile.x_account_disconnect_sheet_title')}
         </BottomSheetHeaderGlass>
-        <Box twClassName="px-4 pb-4" gap={2} style={styles.sheetContent}>
+        <Box className="px-4 pb-4" gap={2} style={styles.sheetContent}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {body}
           </Text>

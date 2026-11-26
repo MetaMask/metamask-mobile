@@ -62,7 +62,7 @@ const CancelPostCancelSheet = ({
       isInteractable={false}
       testID={CancelMembershipTestIds.POST_CANCEL_SHEET}
     >
-      <Box twClassName="px-6 pt-2 pb-4 gap-y-4">
+      <Box className="px-6 pt-2 pb-4 gap-y-4">
         <Text
           variant={TextVariant.HeadingMd}
           accessibilityRole="header"
@@ -78,7 +78,7 @@ const CancelPostCancelSheet = ({
           {description}
         </Text>
       </Box>
-      <Box twClassName="px-6 pb-6">
+      <Box className="px-6 pb-6">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

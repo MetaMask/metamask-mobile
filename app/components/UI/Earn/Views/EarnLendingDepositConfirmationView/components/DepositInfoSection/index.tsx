@@ -61,7 +61,7 @@ const DepositInfoSection = ({
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('earn.apr')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           keyEndButtonIconProps={tooltipProps(
@@ -80,7 +80,7 @@ const DepositInfoSection = ({
           }}
         />
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('stake.estimated_annual_reward')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
@@ -103,7 +103,7 @@ const DepositInfoSection = ({
           }
         />
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('stake.reward_frequency')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           keyEndButtonIconProps={tooltipProps(
@@ -114,7 +114,7 @@ const DepositInfoSection = ({
           valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
         />
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('stake.withdrawal_time')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           keyEndButtonIconProps={tooltipProps(
@@ -125,7 +125,7 @@ const DepositInfoSection = ({
           valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
         />
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('earn.protocol')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           keyEndButtonIconProps={tooltipProps(

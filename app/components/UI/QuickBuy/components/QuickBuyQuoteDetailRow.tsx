@@ -62,13 +62,13 @@ export const QuickBuyQuoteDetailRow: React.FC<QuickBuyQuoteDetailRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full py-2"
+      className="w-full py-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="shrink-0 pr-2"
+        className="shrink-0 pr-2"
       >
         <TouchableOpacity
           onPress={onPressLabel}
@@ -83,7 +83,7 @@ export const QuickBuyQuoteDetailRow: React.FC<QuickBuyQuoteDetailRowProps> = ({
         </TouchableOpacity>
         {labelAccessory}
       </Box>
-      <Box twClassName="flex-1 min-w-0" alignItems={BoxAlignItems.End}>
+      <Box className="flex-1 min-w-0" alignItems={BoxAlignItems.End}>
         {value}
       </Box>
     </Box>

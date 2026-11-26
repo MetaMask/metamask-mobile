@@ -739,7 +739,7 @@ const BridgeMarketViewContent = ({
               <RebateBanner
                 rebatePercent={rebatePercent}
                 testID={SWAPS_REBATE_BANNER_TEST_ID}
-                twClassName="-mt-3"
+                className="-mt-3"
               />
             ) : null}
             <SwapsMarketOrderConfirmButton

@@ -72,15 +72,15 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
 
   if (loading) {
     return (
-      <Box twClassName="pt-4 pb-6 flex-col gap-4">
-        <Box twClassName="py-1">
-          <Box twClassName="flex-row justify-between items-center">
+      <Box className="pt-4 pb-6 flex-col gap-4">
+        <Box className="py-1">
+          <Box className="flex-row justify-between items-center">
             <Skeleton width={52} height={16} style={tw.style('my-1')} />
             <Skeleton width={60} height={16} style={tw.style('my-1')} />
           </Box>
         </Box>
         {shouldRenderRewardsRow && (
-          <Box twClassName={rowClassName}>
+          <Box className={rowClassName}>
             <Skeleton width={120} height={16} style={tw.style('my-1')} />
             <Skeleton width={92} height={16} style={tw.style('my-1')} />
           </Box>
@@ -91,13 +91,13 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
 
   return (
     <>
-      <Box twClassName="pt-4 pb-6 flex-col gap-4">
+      <Box className="pt-4 pb-6 flex-col gap-4">
         <TouchableOpacity
           onPress={handleFeesInfoPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={tw.style('py-1')}
         >
-          <Box twClassName="flex-row justify-between items-center">
+          <Box className="flex-row justify-between items-center">
             <DottedUnderline color={colors.text.alternative}>
               <Text
                 variant={TextVariant.BodyMd}

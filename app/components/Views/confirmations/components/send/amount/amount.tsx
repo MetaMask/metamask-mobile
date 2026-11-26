@@ -273,9 +273,9 @@ export const Amount = () => {
         )}
         {isNftLoading && (
           <View style={styles.nftImageWrapper}>
-            <Skeleton twClassName="h-[100px] w-[100px] rounded-lg mb-2" />
-            <Skeleton twClassName="h-4 w-32 rounded mb-1" />
-            <Skeleton twClassName="h-3 w-20 rounded" />
+            <Skeleton className="h-[100px] w-[100px] rounded-lg mb-2" />
+            <Skeleton className="h-4 w-32 rounded mb-1" />
+            <Skeleton className="h-3 w-20 rounded" />
           </View>
         )}
         <View style={styles.inputSection}>
@@ -307,7 +307,7 @@ export const Amount = () => {
           </View>
         </View>
         {isNftLoading ? (
-          <Skeleton twClassName="h-4 w-40 rounded self-center mt-2" />
+          <Skeleton className="h-4 w-40 rounded self-center mt-2" />
         ) : (
           <Text color={TextColor.TextAlternative} style={styles.balanceText}>
             {balanceDisplayValue}
@@ -319,7 +319,7 @@ export const Amount = () => {
             onPress={toggleFiatMode}
             size={ButtonSize.Md}
             testID="fiat_toggle"
-            twClassName="mt-4 self-center"
+            className="mt-4 self-center"
             variant={ButtonVariant.Secondary}
           >
             {alternateDisplayValue}

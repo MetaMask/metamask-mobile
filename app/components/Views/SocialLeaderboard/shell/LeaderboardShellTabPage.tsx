@@ -207,7 +207,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const listTopPadding = 16 + contentTopInset;
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={containerTestID}>
+    <Box className="flex-1 bg-default" testID={containerTestID}>
       {hasBeenActive && (
         <>
           <SocialFeedSurfaceProvider showMockedFields>
@@ -250,7 +250,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                     isFilterActive={isFilterActive}
                     filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
                     testID={TopTradersViewSelectorsIDs.FILTER_BAR}
-                    twClassName="px-4 pb-4"
+                    className="px-4 pb-4"
                   >
                     {isPerpsEnabled ? (
                       <TypeFilterSelector

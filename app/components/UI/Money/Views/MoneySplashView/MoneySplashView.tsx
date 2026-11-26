@@ -107,7 +107,7 @@ const BenefitRow = ({
   body: string;
   testID: string;
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4" testID={testID}>
+  <Box flexDirection={BoxFlexDirection.Row} className="gap-4" testID={testID}>
     <Icon
       name={IconName.Check}
       size={IconSize.Md}
@@ -205,7 +205,7 @@ export const MoneySplashView = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="px-4" style={{ paddingTop: insets.top + 48 }}>
+        <Box className="px-4" style={{ paddingTop: insets.top + 48 }}>
           {showHero && (
             <View style={styles.heroContainer}>
               <Image
@@ -251,8 +251,8 @@ export const MoneySplashView = () => {
             )}
           </Text>
         </Box>
-        <Box twClassName="px-4" style={styles.benefits}>
-          <Box twClassName="gap-4">
+        <Box className="px-4" style={styles.benefits}>
+          <Box className="gap-4">
             {BENEFITS.map((benefit, index) => (
               <BenefitRow
                 key={benefit.title}
@@ -265,8 +265,8 @@ export const MoneySplashView = () => {
         </Box>
         {!infoMode && (
           <>
-            <Box twClassName="bg-border-muted" style={styles.divider} />
-            <Box twClassName="px-4" style={styles.faqTitle}>
+            <Box className="bg-border-muted" style={styles.divider} />
+            <Box className="px-4" style={styles.faqTitle}>
               <Text
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
@@ -312,7 +312,7 @@ export const MoneySplashView = () => {
         onPress={handleClose}
         accessibilityLabel={strings('money.splash.close')}
         testID={MoneySplashViewTestIds.CLOSE_BUTTON}
-        twClassName="rounded-full bg-muted"
+        className="rounded-full bg-muted"
         style={[styles.closeButton, { top: insets.top + 4 }]}
       />
     </View>

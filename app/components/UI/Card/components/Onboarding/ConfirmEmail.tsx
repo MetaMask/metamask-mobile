@@ -352,7 +352,7 @@ const ConfirmEmail = () => {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID="confirm-email-legal-terms"
         >
           {strings('card.card_onboarding.confirm_email.legal_terms')}

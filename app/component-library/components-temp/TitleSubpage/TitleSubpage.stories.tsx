@@ -65,7 +65,7 @@ export const WithTitleAccessory = {
     <TitleSubpage
       title="Token name"
       titleAccessory={
-        <Box twClassName="ml-2">
+        <Box className="ml-2">
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
@@ -104,7 +104,7 @@ export const FullExample = {
       }
       title="Wrapped Ethereum"
       titleAccessory={
-        <Box twClassName="ml-1">
+        <Box className="ml-1">
           <Icon name={IconName.Info} size={IconSize.Sm} />
         </Box>
       }

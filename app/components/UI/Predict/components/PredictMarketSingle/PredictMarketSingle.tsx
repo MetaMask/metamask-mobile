@@ -72,7 +72,7 @@ const SemiCircleYesPercentage = ({
 
   return (
     <Box
-      twClassName="relative items-center justify-end"
+      className="relative items-center justify-end"
       style={{ width: size, height: size / 2 }}
     >
       <Svg width={size} height={size / 2} style={tw.style('absolute')}>
@@ -237,9 +237,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="flex-1 gap-3"
+            className="flex-1 gap-3"
           >
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            <Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}
@@ -248,7 +248,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                   recyclingKey={getImageUrl()}
                 />
               ) : (
-                <Box twClassName="w-full h-full bg-muted" />
+                <Box className="w-full h-full bg-muted" />
               )}
             </Box>
             <Text

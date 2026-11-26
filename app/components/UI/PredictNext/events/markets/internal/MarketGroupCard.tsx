@@ -153,7 +153,7 @@ export function MarketGroupCard({
           {title}
         </MarketCard.Title>
       ) : null}
-      <Box twClassName="gap-3">
+      <Box className="gap-3">
         {orderSides(selectedMarket).map((side) => {
           const outcome = side === 'yes' ? yesOutcome : noOutcome;
           return (

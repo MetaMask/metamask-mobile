@@ -83,7 +83,7 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
       <Button
         testID={TronStakingButtonsTestIds.UNSTAKE_BUTTON}
         variant={ButtonVariant.Secondary}
-        twClassName="flex-1"
+        className="flex-1"
         onPress={onUnstakePress}
       >
         {strings('stake.unstake')}
@@ -92,7 +92,7 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
         <Button
           testID={TronStakingButtonsTestIds.STAKE_MORE_BUTTON}
           variant={ButtonVariant.Secondary}
-          twClassName="flex-1"
+          className="flex-1"
           onPress={onStakePress}
         >
           {strings('stake.stake_more')}

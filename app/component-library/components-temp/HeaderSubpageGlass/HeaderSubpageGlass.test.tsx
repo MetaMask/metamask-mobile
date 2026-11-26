@@ -23,7 +23,7 @@ describe('HeaderSubpageGlass', () => {
       <HeaderSubpageGlass
         testID="header"
         title="Event"
-        twClassName="min-h-14 h-auto bg-default justify-center"
+        className="min-h-14 h-auto bg-default justify-center"
       />,
     );
 

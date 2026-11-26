@@ -97,14 +97,14 @@ const PredictPositionsViewHeader = ({
 
   return (
     <Box
-      twClassName="gap-3 py-4"
+      className="gap-3 py-4"
       testID={PredictPositionsViewSelectorsIDs.SUMMARY}
     >
       <Box
         style={tw.style('bg-muted rounded-xl', !showUnrealizedPnlRow && 'pb-0')}
         testID={PredictPositionsViewSelectorsIDs.SUMMARY_CARD}
       >
-        <Box twClassName="flex-row items-center justify-between px-4 py-3">
+        <Box className="flex-row items-center justify-between px-4 py-3">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
@@ -142,9 +142,9 @@ const PredictPositionsViewHeader = ({
 
         {showUnrealizedPnlRow && (
           <>
-            <Box twClassName="h-px bg-default" />
+            <Box className="h-px bg-default" />
             <Box
-              twClassName="flex-row items-center justify-between px-4 py-3"
+              className="flex-row items-center justify-between px-4 py-3"
               testID={PredictPositionsViewSelectorsIDs.UNREALIZED_PNL_ROW}
             >
               <Text

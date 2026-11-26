@@ -54,7 +54,7 @@ export const InsufficientNativeReserveBanner = () => {
   return (
     <BannerBase
       testID={SwapsBannersSelectorsIDs.INSUFFICIENT_NATIVE_RESERVE}
-      twClassName={WARNING_BANNER_TW_CLASSNAME}
+      className={WARNING_BANNER_TW_CLASSNAME}
       startAccessory={
         <Icon
           name={IconName.Warning}

@@ -51,7 +51,7 @@ const ApplePayConfirmation = () => {
   }, [navigation, returnToCardHome]);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box className="flex-1 bg-background-default">
       <SafeAreaView edges={['top']} />
       <ScrollView
         bounces={false}
@@ -64,7 +64,7 @@ const ApplePayConfirmation = () => {
         >
           {strings('card.apple_pay_confirmation.title')}
         </Text>
-        <Box twClassName="mt-6">
+        <Box className="mt-6">
           <ApplePayHandGraphic
             testID="apple-pay-confirmation-graphic"
             imageTestID="apple-pay-confirmation-hand"
@@ -72,19 +72,19 @@ const ApplePayConfirmation = () => {
         </Box>
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mt-6 text-text-alternative"
+          className="mt-6 text-text-alternative"
           testID="apple-pay-confirmation-instructions"
         >
           {strings('card.apple_pay_confirmation.instructions')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mt-4 text-text-alternative"
+          className="mt-4 text-text-alternative"
           testID="apple-pay-confirmation-marks-copy"
         >
           {strings('card.apple_pay_confirmation.marks')}
         </Text>
-        <Box twClassName="mt-4">
+        <Box className="mt-4">
           <Image
             source={isDark ? marksDark : marksLight}
             resizeMode="contain"
@@ -100,7 +100,7 @@ const ApplePayConfirmation = () => {
         </Box>
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
-        <Box twClassName="px-4 pb-4">
+        <Box className="px-4 pb-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Lg}

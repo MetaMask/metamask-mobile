@@ -27,7 +27,7 @@ const SwapsRebateBanner: React.FC<SwapsRebateBannerProps> = ({
     <RebateBanner
       rebatePercent={rebatePercent}
       testID={SWAPS_REBATE_BANNER_TEST_ID}
-      twClassName={twClassName}
+      className={twClassName}
     />
   );
 };

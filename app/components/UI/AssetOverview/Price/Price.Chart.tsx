@@ -34,7 +34,7 @@ const IntervalBarRow = () => {
   return (
     <View style={styles.intervalBarContainer}>
       <View style={styles.timeRangeSelectorWrap}>
-        <Box twClassName="w-full">
+        <Box className="w-full">
           <IntervalBar
             intervals={isLineMode ? LINE_CHART_TIME_RANGES : undefined}
             selectedInterval={isLineMode ? timeRange : displayInterval}
@@ -89,7 +89,7 @@ const BottomChrome = ({
     isTechnicalIndicatorsEnabled &&
     (isLineMode || showCandleEmptyState)
   ) {
-    return <Box twClassName="pb-4" />;
+    return <Box className="pb-4" />;
   }
 
   if (isLineMode) {
@@ -98,7 +98,7 @@ const BottomChrome = ({
       return (
         <Box
           testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
-          twClassName="w-full mt-4 mb-6"
+          className="w-full mt-4 mb-6"
           style={styles.indicatorBarSpacer}
         />
       );
@@ -123,7 +123,7 @@ const BottomChrome = ({
     return (
       <Box
         testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
-        twClassName="w-full mt-4 mb-6"
+        className="w-full mt-4 mb-6"
         style={styles.indicatorBarSpacer}
       />
     );
@@ -131,7 +131,7 @@ const BottomChrome = ({
 
   if (isTechnicalIndicatorsEnabled && chartType === ChartType.Candles) {
     return (
-      <Box twClassName={`w-full ${indicatorBarSpacing}`}>
+      <Box className={`w-full ${indicatorBarSpacing}`}>
         <IndicatorBar
           maLabel={maLabel}
           onMAPress={handleMAPress}
@@ -159,7 +159,7 @@ const BottomChrome = ({
     );
   }
 
-  return <Box twClassName="pb-4" />;
+  return <Box className="pb-4" />;
 };
 
 /**
@@ -240,7 +240,7 @@ export const PriceChartSection = ({
       {/* ── Chart area ─────────────────────────────────────────────────── */}
       {isLineMode && (
         <Box
-          twClassName={`${chartMarginTop}w-full overflow-hidden`}
+          className={`${chartMarginTop}w-full overflow-hidden`}
           style={{ height: chartHeight }}
         >
           <LinePriceChart
@@ -260,7 +260,7 @@ export const PriceChartSection = ({
       {/* ── Candle empty state (no OHLCV data / chart error / init failed) ── */}
       {showCandleEmptyState && (
         <Box
-          twClassName={`${chartMarginTop}w-full`}
+          className={`${chartMarginTop}w-full`}
           style={{ height: chartHeight }}
         >
           <NoDataOverlay
@@ -272,7 +272,7 @@ export const PriceChartSection = ({
 
       {/* Keep AdvancedChart mounted but hidden in line mode or candle empty state */}
       <Box
-        twClassName={`${chartMarginTop}w-full`}
+        className={`${chartMarginTop}w-full`}
         style={
           isLineMode || showCandleEmptyState
             ? styles.hiddenChartContainer

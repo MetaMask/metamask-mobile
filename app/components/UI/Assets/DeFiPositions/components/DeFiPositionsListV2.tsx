@@ -169,7 +169,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
     );
   }
 
-  const emptyState = <DefiEmptyState twClassName="mx-auto mt-4" />;
+  const emptyState = <DefiEmptyState className="mx-auto mt-4" />;
 
   const listBody = isFullView ? (
     <FlashList

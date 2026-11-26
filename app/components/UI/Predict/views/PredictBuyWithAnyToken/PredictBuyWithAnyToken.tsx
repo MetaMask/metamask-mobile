@@ -542,7 +542,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full pt-6 pb-8"
+          className="w-full pt-6 pb-8"
         >
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
@@ -574,7 +574,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="w-full"
+            className="w-full"
           >
             <PredictBuyAmountSection
               currentValueUSDString={currentValueUSDString}

@@ -23,10 +23,10 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
 }) => (
   <Box
     paddingTop={4}
-    twClassName="w-full"
+    className="w-full"
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >
-    <Box alignItems={BoxAlignItems.Center} twClassName="px-4 py-8">
+    <Box alignItems={BoxAlignItems.Center} className="px-4 py-8">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {message ?? strings('social_leaderboard.my_profile.empty_title')}
       </Text>

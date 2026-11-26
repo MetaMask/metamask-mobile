@@ -228,7 +228,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
       gap={4}
-      twClassName="min-h-10"
+      className="min-h-10"
     >
       <Box
         accessible={false}
@@ -455,24 +455,24 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         justifyContent={BoxJustifyContent.Between}
         paddingHorizontal={4}
         gap={2}
-        twClassName="min-h-16 py-1"
+        className="min-h-16 py-1"
       >
         <Box
           accessible={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
         >
           <PerpsTokenLogo symbol={oiCapSymbol} size={40} />
-          <Box accessible={false} twClassName="min-w-0 flex-1">
+          <Box accessible={false} className="min-w-0 flex-1">
             <Box
               accessible={false}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={1}
             >
-              <Text variant={TextVariant.HeadingSm} twClassName="shrink">
+              <Text variant={TextVariant.HeadingSm} className="shrink">
                 {directionLabel}
               </Text>
               {maxLeverage !== null ? (
@@ -558,7 +558,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={PerpsTradeSheetSelectorsIDs.KEYPAD_25_PERCENT_BUTTON}
                   onPress={() => onPercentagePress(0.25)}
                 >
@@ -567,7 +567,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={PerpsTradeSheetSelectorsIDs.KEYPAD_50_PERCENT_BUTTON}
                   onPress={() => onPercentagePress(0.5)}
                 >
@@ -576,7 +576,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={PerpsTradeSheetSelectorsIDs.KEYPAD_MAX_BUTTON}
                   onPress={onMaxPress}
                 >
@@ -585,7 +585,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON}
                   onPress={onDonePress}
                 >
@@ -842,7 +842,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                     coin={asset}
                     direction={direction}
                     notionalUsd={amount}
-                    twClassName="mt-2"
+                    className="mt-2"
                   />
                 ) : null}
               </>
@@ -885,7 +885,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   }
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
+                  className={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
                   isDisabled={areLimitPricePresetsDisabled}
                   onPress={() => onLimitPricePresetPress(preset)}
                 >
@@ -896,7 +896,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 testID={PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
+                className={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
                 onPress={onLimitPriceDonePress}
               >
                 {strings('perps.deposit.done_button')}
@@ -932,7 +932,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           accessible={false}
           paddingHorizontal={4}
           paddingTop={2}
-          twClassName="border-t border-muted"
+          className="border-t border-muted"
         >
           <Box accessible={false} paddingVertical={2} gap={2}>
             {errorMessages.length > 0 ? (
@@ -965,7 +965,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
                 width={112}
                 height={FEE_SKELETON_HEIGHT}
-                twClassName="self-center"
+                className="self-center"
               />
             ) : feePercentage ? (
               <PerpsFeeCaption

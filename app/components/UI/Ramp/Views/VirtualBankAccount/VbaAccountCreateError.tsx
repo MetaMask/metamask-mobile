@@ -135,7 +135,7 @@ const VbaAccountCreateError = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.End}
-              twClassName="mb-5 w-full"
+              className="mb-5 w-full"
             >
               <VbaAccountCreateFailure name="vba-account-create-failure" />
             </Box>

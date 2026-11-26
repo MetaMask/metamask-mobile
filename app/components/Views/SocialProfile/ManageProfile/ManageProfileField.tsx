@@ -155,7 +155,7 @@ const ManageProfileField = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           {isSwitch ? (
             <ProfileToggleCard
               label={label}
@@ -165,7 +165,7 @@ const ManageProfileField = () => {
               onValueChange={handleToggle}
             />
           ) : (
-            <Box twClassName="gap-2 px-4 pt-2">
+            <Box className="gap-2 px-4 pt-2">
               <Label>{title}</Label>
               {field === ManageProfileFieldName.Bio ? (
                 <>
@@ -221,7 +221,7 @@ const ManageProfileField = () => {
           )}
         </Box>
         {isSwitch ? null : (
-          <Box twClassName="px-4 pb-4">
+          <Box className="px-4 pb-4">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}

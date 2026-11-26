@@ -90,7 +90,7 @@ interface FeedEventRowProps {
   onOpenEvent: (event: PredictEvent) => void;
 }
 
-const EventSeparator = () => <Box twClassName="h-3" />;
+const EventSeparator = () => <Box className="h-3" />;
 
 const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
   const { openOrderFlow } = usePredictOrderFlow();
@@ -118,16 +118,16 @@ const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
 });
 
 const FeedLoading = () => (
-  <Box testID={PredictFeedScreenTestIds.LOADING} twClassName="gap-3 px-3 pt-2">
-    <Box twClassName="h-40 rounded-2xl bg-muted" />
-    <Box twClassName="h-40 rounded-2xl bg-muted" />
+  <Box testID={PredictFeedScreenTestIds.LOADING} className="gap-3 px-3 pt-2">
+    <Box className="h-40 rounded-2xl bg-muted" />
+    <Box className="h-40 rounded-2xl bg-muted" />
   </Box>
 );
 
 const FeedError = ({ onRetry }: { onRetry: () => void }) => (
   <Box
     testID={PredictFeedScreenTestIds.ERROR}
-    twClassName="items-start gap-2 px-4 py-6"
+    className="items-start gap-2 px-4 py-6"
   >
     <Text>Events couldn’t be loaded.</Text>
     <Button
@@ -152,7 +152,7 @@ const FeedScreenFrame = ({
 }) => {
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   return (
-    <Box testID={PredictFeedScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+    <Box testID={PredictFeedScreenTestIds.VIEW} className="flex-1 bg-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
@@ -162,8 +162,8 @@ const FeedScreenFrame = ({
         testID={PredictFeedScreenTestIds.HEADER}
         backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
       />
-      <Box twClassName="flex-1">
-        <Box twClassName="px-4 pb-3 pt-4">
+      <Box className="flex-1">
+        <Box className="px-4 pb-3 pt-4">
           {definition.selectionLabel ? (
             <Text variant={TextVariant.HeadingMd}>
               {definition.selectionLabel}
@@ -179,7 +179,7 @@ const FeedScreenFrame = ({
 const FeedUnavailable = ({ onBack }: { onBack: () => void }) => (
   <Box
     testID={PredictFeedScreenTestIds.UNAVAILABLE}
-    twClassName="flex-1 gap-6 p-4 pt-12"
+    className="flex-1 gap-6 p-4 pt-12"
   >
     <Button
       testID={PredictFeedScreenTestIds.BACK}
@@ -303,7 +303,7 @@ const PredictFeedContent = ({
     () => (
       <Box
         testID={PredictFeedScreenTestIds.EMPTY}
-        twClassName="items-center px-4 py-8"
+        className="items-center px-4 py-8"
       >
         <Text>No events available.</Text>
       </Box>
@@ -316,7 +316,7 @@ const PredictFeedContent = ({
       return (
         <Box
           testID={PredictFeedScreenTestIds.NEXT_PAGE_LOADING}
-          twClassName="items-center py-4"
+          className="items-center py-4"
         >
           <ActivityIndicator />
         </Box>

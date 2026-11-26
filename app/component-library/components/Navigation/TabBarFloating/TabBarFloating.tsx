@@ -210,7 +210,7 @@ const TabBarFloating = ({
         <TabBarFloatingSurface
           isBlurAvailable={isBlurAvailable}
           colorScheme={colorScheme}
-          twClassName="flex-1 flex-row items-center rounded-full p-1"
+          className="flex-1 flex-row items-center rounded-full p-1"
           style={{ height: TAB_BAR_FLOATING_HEIGHT }}
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
         >
@@ -221,7 +221,7 @@ const TabBarFloating = ({
         <TabBarFloatingSurface
           isBlurAvailable={isBlurAvailable}
           colorScheme={colorScheme}
-          twClassName="items-center justify-center rounded-full"
+          className="items-center justify-center rounded-full"
           style={{
             height: TAB_BAR_FLOATING_HEIGHT,
             width: TAB_BAR_FLOATING_HEIGHT,
@@ -239,7 +239,7 @@ const TabBarFloating = ({
               onPress={handleSearchPress}
               testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
               accessibilityLabel={strings('wallet.search_accessibility_label')}
-              twClassName="h-full w-full rounded-full bg-transparent"
+              className="h-full w-full rounded-full bg-transparent"
             />
           )}
         </TabBarFloatingSurface>

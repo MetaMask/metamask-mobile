@@ -30,7 +30,7 @@ const TokenValueStack = ({
         position={BadgeWrapperPosition.BottomRight}
         badge={
           <BadgeNetwork
-            twClassName="h-6 w-6 rounded-md bg-default"
+            className="h-6 w-6 rounded-md bg-default"
             src={
               images.ETHEREUM as React.ComponentProps<
                 typeof BadgeNetwork

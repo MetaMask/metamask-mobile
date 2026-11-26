@@ -34,13 +34,13 @@ const CheckBulletRow = ({
   body: string;
   testID: string;
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4" testID={testID}>
+  <Box flexDirection={BoxFlexDirection.Row} className="gap-4" testID={testID}>
     <Icon
       name={IconName.Check}
       size={IconSize.Md}
       color={IconColor.SuccessDefault}
     />
-    <Box twClassName="flex-1 gap-1">
+    <Box className="flex-1 gap-1">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -89,14 +89,14 @@ export const MoneyMusdInfoSheet = ({
         onClose={onClose}
         testID={MoneyMusdInfoSheetTestIds.CONTAINER}
         keyboardAvoidingViewEnabled={false}
-        twClassName="bg-section rounded-t-3xl"
+        className="bg-section rounded-t-3xl"
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           testID={MoneyMusdInfoSheetTestIds.SCROLL_VIEW}
         >
-          <Box twClassName="px-4 pt-4 pb-4 gap-6">
-            <Box twClassName="gap-2">
+          <Box className="px-4 pt-4 pb-4 gap-6">
+            <Box className="gap-2">
               <Text
                 variant={TextVariant.HeadingLg}
                 color={TextColor.TextDefault}
@@ -115,7 +115,7 @@ export const MoneyMusdInfoSheet = ({
                 {strings('confirm.money_deposit.musd_info_sheet.lead')}
               </Text>
             </Box>
-            <Box twClassName="gap-5">
+            <Box className="gap-5">
               <CheckBulletRow
                 title={strings(
                   'confirm.money_deposit.musd_info_sheet.bullet_worth_title',

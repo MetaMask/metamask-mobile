@@ -52,7 +52,7 @@ const EmailEntryStep = ({ step, state, onAction }: StepProps<'emailEntry'>) => {
         </Button>
       }
     >
-      <Box twClassName="pt-4 gap-2">
+      <Box className="pt-4 gap-2">
         <TextField
           value={email}
           startAccessory={

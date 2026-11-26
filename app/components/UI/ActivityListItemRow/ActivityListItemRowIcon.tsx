@@ -162,7 +162,7 @@ export function ActivityListItemRowIcon({
       position={BadgeWrapperPosition.BottomRight}
       badge={
         <BadgeNetwork
-          twClassName="rounded-md"
+          className="rounded-md"
           src={
             networkImageSource as React.ComponentProps<
               typeof BadgeNetwork

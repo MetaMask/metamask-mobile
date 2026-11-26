@@ -27,9 +27,9 @@ const RewardsCard = ({
   const tooltipProps = useKeyValueRowTooltip();
 
   return (
-    <Card accessible twClassName="bg-default" style={styles.card}>
+    <Card accessible className="bg-default" style={styles.card}>
       <KeyValueRow
-        twClassName={KEY_VALUE_ROW_CLASSNAME}
+        className={KEY_VALUE_ROW_CLASSNAME}
         keyLabel={strings('tooltip_modal.reward_rate.title')}
         keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
         keyEndButtonIconProps={tooltipProps(
@@ -45,7 +45,7 @@ const RewardsCard = ({
         }}
       />
       <KeyValueRow
-        twClassName={KEY_VALUE_ROW_CLASSNAME}
+        className={KEY_VALUE_ROW_CLASSNAME}
         keyLabel={strings('stake.estimated_annual_rewards')}
         keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
         value={
@@ -56,7 +56,7 @@ const RewardsCard = ({
         }
       />
       <KeyValueRow
-        twClassName={KEY_VALUE_ROW_CLASSNAME}
+        className={KEY_VALUE_ROW_CLASSNAME}
         keyLabel={strings('tooltip_modal.reward_frequency.title')}
         keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
         keyEndButtonIconProps={tooltipProps(

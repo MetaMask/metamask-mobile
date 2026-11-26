@@ -50,7 +50,7 @@ const WatchlistUnavailablePerpRow = ({
     }}
     titleEndAccessory={
       showTypeTag ? (
-        <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+        <Tag severity={TagSeverity.Neutral} className="self-center">
           {strings('token_watchlist.perp_tag')}
         </Tag>
       ) : undefined
@@ -73,7 +73,7 @@ const WatchlistUnavailablePerpRow = ({
         />
       ) : undefined
     }
-    twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
+    className={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
   />
 );
 

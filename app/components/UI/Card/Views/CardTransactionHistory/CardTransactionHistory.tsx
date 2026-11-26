@@ -144,11 +144,11 @@ const CardTransactionHistory = () => {
   }, [error, hasMore, isLoadingMore, loadMore]);
 
   const listFooter = isLoadingMore ? (
-    <Box twClassName="items-center py-4">
+    <Box className="items-center py-4">
       <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
     </Box>
   ) : error && items.length > 0 && isLoadMoreError ? (
-    <Box twClassName="items-center gap-2 py-4">
+    <Box className="items-center gap-2 py-4">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('card.transactions.load_error_more')}
       </Text>
@@ -156,14 +156,14 @@ const CardTransactionHistory = () => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
         onPress={loadMore}
-        twClassName="self-center"
+        className="self-center"
         testID="card-transaction-history-load-more-retry"
       >
         {strings('card.transactions.retry')}
       </Button>
     </Box>
   ) : error && items.length > 0 ? (
-    <Box twClassName="items-center gap-2 py-4">
+    <Box className="items-center gap-2 py-4">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('card.transactions.load_error')}
       </Text>
@@ -171,14 +171,14 @@ const CardTransactionHistory = () => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
         onPress={handleRetry}
-        twClassName="self-center"
+        className="self-center"
         testID="card-transaction-history-retry"
       >
         {strings('card.transactions.retry')}
       </Button>
     </Box>
   ) : !hasMore && items.length > 0 ? (
-    <Box twClassName="items-center py-4">
+    <Box className="items-center py-4">
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('card.transactions.end_of_list')}
       </Text>
@@ -191,7 +191,7 @@ const CardTransactionHistory = () => {
   const renderEmpty = () => {
     if (showEmptyLoading) {
       return (
-        <Box twClassName="flex-1 items-center justify-center py-12">
+        <Box className="flex-1 items-center justify-center py-12">
           <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
         </Box>
       );
@@ -199,11 +199,11 @@ const CardTransactionHistory = () => {
 
     if (error) {
       return (
-        <Box twClassName="flex-1 items-center justify-center gap-3 px-8 py-12">
+        <Box className="flex-1 items-center justify-center gap-3 px-8 py-12">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('card.transactions.load_error')}
           </Text>
@@ -211,7 +211,7 @@ const CardTransactionHistory = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Md}
             onPress={handleRetry}
-            twClassName="self-center"
+            className="self-center"
             testID="card-transaction-history-retry"
           >
             {strings('card.transactions.retry')}
@@ -221,11 +221,11 @@ const CardTransactionHistory = () => {
     }
 
     return (
-      <Box twClassName="flex-1 items-center justify-center px-8 py-12">
+      <Box className="flex-1 items-center justify-center px-8 py-12">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('card.transactions.empty')}
         </Text>
@@ -236,14 +236,14 @@ const CardTransactionHistory = () => {
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
-      twClassName="flex-1 bg-background-default"
+      className="flex-1 bg-background-default"
     >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         title={strings('card.transactions.title')}
         includesTopInset={false}
-        twClassName="bg-background-default"
+        className="bg-background-default"
         onBack={headerHandlers.onBack}
       />
 
@@ -251,7 +251,7 @@ const CardTransactionHistory = () => {
         sections={sections}
         keyExtractor={(item) => item.id}
         renderSectionHeader={({ section }) => (
-          <Box twClassName="bg-background-default px-4 pb-1 pt-2">
+          <Box className="bg-background-default px-4 pb-1 pt-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}

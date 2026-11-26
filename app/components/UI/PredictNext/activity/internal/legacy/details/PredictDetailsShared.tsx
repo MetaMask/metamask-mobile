@@ -46,11 +46,11 @@ export function PredictHero({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      className="flex-row items-center gap-3"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
       {showTokenIcon ? (
-        <Box twClassName="h-8 w-8 items-center justify-center">
+        <Box className="h-8 w-8 items-center justify-center">
           <UsdcIcon
             name="Usdc"
             width={32}
@@ -94,13 +94,13 @@ export function PredictMarketContext({
   title?: string;
 }) {
   return (
-    <Box twClassName="gap-2">
-      <Box twClassName="flex-row items-center justify-between gap-2 pb-2">
+    <Box className="gap-2">
+      <Box className="flex-row items-center justify-between gap-2 pb-2">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('predict.transactions.you_predicted')}
         </Text>
         {outcome ? (
-          <Box twClassName="rounded bg-success-muted px-2 py-1">
+          <Box className="rounded bg-success-muted px-2 py-1">
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -111,8 +111,8 @@ export function PredictMarketContext({
           </Box>
         ) : null}
       </Box>
-      <Box twClassName="flex-row items-center gap-3">
-        <Box twClassName="h-10 w-10 overflow-hidden rounded bg-muted">
+      <Box className="flex-row items-center gap-3">
+        <Box className="h-10 w-10 overflow-hidden rounded bg-muted">
           {icon ? (
             <Image
               source={{ uri: icon }}
@@ -125,7 +125,7 @@ export function PredictMarketContext({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="flex-1"
+          className="flex-1"
         >
           {title}
         </Text>
@@ -163,8 +163,8 @@ export function ClaimWinningsBreakdown({
         }
       />
       {title ? (
-        <Box twClassName="flex-row items-start justify-between gap-4 pl-3">
-          <Box twClassName="flex-1 flex-row items-start gap-2">
+        <Box className="flex-row items-start justify-between gap-4 pl-3">
+          <Box className="flex-1 flex-row items-start gap-2">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -174,7 +174,7 @@ export function ClaimWinningsBreakdown({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {title}
             </Text>

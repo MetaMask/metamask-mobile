@@ -69,7 +69,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
         isDisabled && 'opacity-50',
       )}
     >
-      <Box twClassName="flex-row items-center gap-3 flex-1 min-w-0">
+      <Box className="flex-row items-center gap-3 flex-1 min-w-0">
         {startAccessory}
         <Text
           variant={TextVariant.BodyMd}
@@ -78,7 +78,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
               ? TextColor.TextAlternative
               : TextColor.TextDefault
           }
-          twClassName="shrink"
+          className="shrink"
           numberOfLines={1}
         >
           {hasValue ? value : placeholder}

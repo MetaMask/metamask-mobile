@@ -488,9 +488,9 @@ const CampaignOutcomeBannerLayout =
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="rounded-xl bg-muted p-4 gap-3"
+          className="rounded-xl bg-muted p-4 gap-3"
         >
-          <Box twClassName="flex-1 gap-0.5">
+          <Box className="flex-1 gap-0.5">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {title}
             </Text>

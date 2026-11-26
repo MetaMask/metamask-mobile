@@ -114,7 +114,7 @@ export const PortfolioPositionsPanel = ({
           isFetchingNextPage ? (
             <Box
               testID={PredictPortfolioScreenTestIds.POSITIONS_NEXT_PAGE_LOADING}
-              twClassName="items-center py-4"
+              className="items-center py-4"
             >
               <ActivityIndicator />
             </Box>
@@ -124,5 +124,5 @@ export const PortfolioPositionsPanel = ({
     );
   }
 
-  return <Box twClassName="flex-1">{content}</Box>;
+  return <Box className="flex-1">{content}</Box>;
 };

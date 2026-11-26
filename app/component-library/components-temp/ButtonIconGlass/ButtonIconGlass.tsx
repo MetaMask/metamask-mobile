@@ -36,7 +36,7 @@ const ButtonIconGlass = ({
 }: ButtonIconGlassProps) =>
   isCapsule ? (
     <CapsuleGlass
-      twClassName={`${CAPSULE_SIZE_CLASS[size]} justify-center`}
+      className={`${CAPSULE_SIZE_CLASS[size]} justify-center`}
       testID={capsuleTestID}
     >
       <ButtonIcon size={size} hitSlop={CAPSULE_HIT_SLOP} {...props} />

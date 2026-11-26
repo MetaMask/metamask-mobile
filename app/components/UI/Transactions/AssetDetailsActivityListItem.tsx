@@ -132,7 +132,7 @@ export const AssetDetailsActivityListItem = ({
     shouldRenderImportTime && accountImportTime > activityItem.timestamp;
 
   return (
-    <Box twClassName="px-4">
+    <Box className="px-4">
       {shouldShowImportTimeBeforeRow && importTimeRow}
       <ActivityListItemRow
         bridgeHistoryItem={bridgeHistoryItem}

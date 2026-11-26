@@ -56,13 +56,13 @@ export const SpendableBalanceSection = ({
     <Box
       testID={SpendableBalanceSectionTestIds.CONTAINER}
       flexDirection={BoxFlexDirection.Column}
-      twClassName="px-4 py-4 gap-3"
+      className="px-4 py-4 gap-3"
     >
       <Text variant={TextVariant.HeadingMd}>
         {strings('asset_overview.your_balance')}
       </Text>
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+      <Box flexDirection={BoxFlexDirection.Row} className="gap-3">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -80,7 +80,7 @@ export const SpendableBalanceSection = ({
             {totalDisplay}
           </SensitiveText>
         </Box>
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -98,8 +98,8 @@ export const SpendableBalanceSection = ({
           </SensitiveText>
         </Box>
       </Box>
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+      <Box flexDirection={BoxFlexDirection.Row} className="gap-3">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -117,7 +117,7 @@ export const SpendableBalanceSection = ({
             {spendableDisplay}
           </SensitiveText>
         </Box>
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

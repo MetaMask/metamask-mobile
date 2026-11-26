@@ -49,7 +49,7 @@ const TokensFullView = () => {
   return (
     <>
       <AssetPollingProvider />
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}

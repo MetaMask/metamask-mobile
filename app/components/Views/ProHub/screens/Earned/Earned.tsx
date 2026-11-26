@@ -45,10 +45,10 @@ const BreakdownRow = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="gap-x-4"
+    className="gap-x-4"
     testID={testID}
   >
-    <Box twClassName="flex-1 gap-y-1">
+    <Box className="flex-1 gap-y-1">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Bold}
@@ -93,7 +93,7 @@ const Earned = () => {
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        twClassName="px-4"
+        className="px-4"
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: handleBack,
@@ -106,7 +106,7 @@ const Earned = () => {
         contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="gap-y-2">
+        <Box className="gap-y-2">
           <Text
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -126,7 +126,7 @@ const Earned = () => {
 
         <SectionDivider marginVertical={6} />
 
-        <Box twClassName="gap-y-6">
+        <Box className="gap-y-6">
           <BreakdownRow
             title={strings('pro_hub.earned.interest_title')}
             subtitle={strings('pro_hub.earned.interest_subtitle')}
@@ -145,7 +145,7 @@ const Earned = () => {
 
         <SectionDivider marginVertical={6} />
 
-        <Box twClassName="gap-y-2">
+        <Box className="gap-y-2">
           <Text
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
@@ -159,7 +159,7 @@ const Earned = () => {
             fontFamily={FontFamily.Hero}
             color={TextColor.SuccessDefault}
             testID={EarnedTestIds.PAID_FOR_ITSELF_VALUE}
-            twClassName="tabular-nums"
+            className="tabular-nums"
           >
             {paidForItselfValue}
           </Text>
@@ -177,8 +177,8 @@ const Earned = () => {
 
         <SectionDivider marginVertical={6} />
 
-        <Box twClassName="gap-y-4">
-          <Box twClassName="gap-y-2">
+        <Box className="gap-y-4">
+          <Box className="gap-y-2">
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
@@ -200,7 +200,7 @@ const Earned = () => {
             size={ButtonSize.Lg}
             onPress={handleAddMoney}
             testID={EarnedTestIds.ADD_MONEY_BUTTON}
-            twClassName="w-max"
+            className="w-max"
           >
             {strings('pro_hub.earned.add_money')}
           </Button>

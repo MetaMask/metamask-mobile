@@ -154,7 +154,7 @@ export function MarketGroupOptionSelector({
   );
 
   return (
-    <Box twClassName={`relative h-[${SELECTOR_HEIGHT}px]`}>
+    <Box className={`relative h-[${SELECTOR_HEIGHT}px]`}>
       <MaskedView
         style={tw.style('flex-1 overflow-hidden')}
         maskElement={fadeMask}

@@ -34,7 +34,7 @@ const PositionCardDivider: React.FC<PositionCardDividerProps> = ({
 
   return (
     <Box
-      twClassName={`${POSITION_CARD_BLEED_TW_CLASS} -mt-px h-px`}
+      className={`${POSITION_CARD_BLEED_TW_CLASS} -mt-px h-px`}
       testID={testID}
     >
       <Svg width="100%" height={DIVIDER_HEIGHT}>

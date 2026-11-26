@@ -210,7 +210,7 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
     formattedDeFiPositions.length > 0 ? (
       content
     ) : (
-      <DefiEmptyState twClassName="mx-auto mt-4" />
+      <DefiEmptyState className="mx-auto mt-4" />
     );
 
   return (

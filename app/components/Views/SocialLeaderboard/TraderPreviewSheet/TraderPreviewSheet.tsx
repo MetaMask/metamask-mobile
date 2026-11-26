@@ -115,7 +115,7 @@ const StatColumn = ({
   isLoading: boolean;
   animate: boolean;
 }) => (
-  <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 min-w-0 gap-0.5">
+  <Box alignItems={BoxAlignItems.Center} className="flex-1 min-w-0 gap-0.5">
     <Text
       variant={TextVariant.BodySm}
       fontWeight={FontWeight.Medium}
@@ -125,7 +125,7 @@ const StatColumn = ({
       {label}
     </Text>
     {isLoading ? (
-      <Skeleton hideChildren autoPlay={animate} twClassName="rounded-md">
+      <Skeleton hideChildren autoPlay={animate} className="rounded-md">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {PLACEHOLDER_VALUE}
         </Text>
@@ -166,7 +166,7 @@ const StatsCard = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={1}
-      twClassName="w-full rounded-2xl border border-muted py-2"
+      className="w-full rounded-2xl border border-muted py-2"
       accessible={!isLoading}
       accessibilityLabel={
         isLoading
@@ -193,7 +193,7 @@ const StatsCard = ({
       />
       {showWinRate ? (
         <>
-          <Box twClassName="w-px self-stretch bg-border-muted" />
+          <Box className="w-px self-stretch bg-border-muted" />
           <StatColumn
             label={winRateTitle}
             value={winRateValue}
@@ -225,7 +225,7 @@ const ReferralRowContent = ({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       />
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -274,7 +274,7 @@ const ReferralCodeRow = ({
 }) =>
   code ? (
     <Box
-      twClassName={REFERRAL_ROW_CLASS}
+      className={REFERRAL_ROW_CLASS}
       testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW}
     >
       <ReferralRowContent
@@ -287,10 +287,10 @@ const ReferralCodeRow = ({
     <Skeleton
       hideChildren
       autoPlay={animate}
-      twClassName="w-full rounded-2xl"
+      className="w-full rounded-2xl"
       testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON}
     >
-      <Box twClassName={REFERRAL_ROW_CLASS}>
+      <Box className={REFERRAL_ROW_CLASS}>
         <ReferralRowContent
           code={PLACEHOLDER_VALUE}
           benefitTitle={PLACEHOLDER_HANDLE}
@@ -464,10 +464,10 @@ const TraderPreviewSheet = () => {
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             alignItems={BoxAlignItems.Start}
-            twClassName="w-full"
+            className="w-full"
           >
             {/* Mirrors the close button so the avatar stays centred. */}
-            <Box twClassName="w-8 h-8" />
+            <Box className="w-8 h-8" />
             {profile ? (
               <TraderAvatar
                 imageUrl={profile.imageUrl}
@@ -480,7 +480,7 @@ const TraderPreviewSheet = () => {
             ) : (
               <Skeleton
                 autoPlay={animateSkeletons}
-                twClassName="w-14 h-14 rounded-full"
+                className="w-14 h-14 rounded-full"
                 testID={TraderPreviewSheetSelectorsIDs.HEADER_SKELETON}
               />
             )}
@@ -493,17 +493,17 @@ const TraderPreviewSheet = () => {
             />
           </Box>
 
-          <Box alignItems={BoxAlignItems.Center} gap={1} twClassName="w-full">
+          <Box alignItems={BoxAlignItems.Center} gap={1} className="w-full">
             {profile ? (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
-                twClassName="max-w-full"
+                className="max-w-full"
               >
                 <Text
                   variant={TextVariant.HeadingLg}
-                  twClassName="text-center shrink"
+                  className="text-center shrink"
                   numberOfLines={1}
                   accessibilityRole="header"
                   testID={TraderPreviewSheetSelectorsIDs.HANDLE}
@@ -521,7 +521,7 @@ const TraderPreviewSheet = () => {
               <Skeleton
                 hideChildren
                 autoPlay={animateSkeletons}
-                twClassName="rounded-lg"
+                className="rounded-lg"
               >
                 <Text variant={TextVariant.HeadingLg}>
                   {PLACEHOLDER_HANDLE}
@@ -534,7 +534,7 @@ const TraderPreviewSheet = () => {
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
-                  twClassName="text-center"
+                  className="text-center"
                   testID={TraderPreviewSheetSelectorsIDs.STATS_LINE}
                 >
                   {statsLine}
@@ -543,7 +543,7 @@ const TraderPreviewSheet = () => {
                 <Skeleton
                   hideChildren
                   autoPlay={animateSkeletons}
-                  twClassName="rounded-md"
+                  className="rounded-md"
                   testID={TraderPreviewSheetSelectorsIDs.STATS_LINE_SKELETON}
                 >
                   <Text
@@ -581,7 +581,7 @@ const TraderPreviewSheet = () => {
               ) : sharedPosition.isLoading ? (
                 <Skeleton
                   autoPlay={animateSkeletons}
-                  twClassName="w-full h-56 rounded-2xl"
+                  className="w-full h-56 rounded-2xl"
                   testID={TraderPreviewSheetSelectorsIDs.POSITION_CARD_SKELETON}
                 />
               ) : null}
@@ -600,7 +600,7 @@ const TraderPreviewSheet = () => {
       </SocialFeedSurfaceProvider>
 
       <BottomSheetFooter
-        twClassName="pb-4"
+        className="pb-4"
         primaryButtonProps={{
           children: strings('social_leaderboard.trader_preview.join'),
           size: ButtonSize.Lg,

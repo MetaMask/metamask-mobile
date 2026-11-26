@@ -219,7 +219,7 @@ const ImportPrivateKey = () => {
                 )}
               </View>
             }
-            twClassName="px-4 pt-3 pb-6"
+            className="px-4 pt-3 pb-6"
           />
           <View style={styles.bottom}>
             <TextInput

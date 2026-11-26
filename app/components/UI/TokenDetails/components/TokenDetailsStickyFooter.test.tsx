@@ -93,7 +93,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       twClassName,
       ...rest
     }: Record<string, unknown>) => (
-      <View testID={testID} twClassName={twClassName} {...rest}>
+      <View testID={testID} className={twClassName} {...rest}>
         <Text>{children}</Text>
       </View>
     ),

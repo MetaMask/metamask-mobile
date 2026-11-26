@@ -295,7 +295,7 @@ const KycIdentityLayout = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName="mb-5 w-full overflow-hidden"
+              className="mb-5 w-full overflow-hidden"
               testID="immersve-kyc-processing-illustration"
             >
               <ImmersveVerifyingIdentityAnimation />
@@ -306,7 +306,7 @@ const KycIdentityLayout = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
+            className="mt-4 text-center"
             testID="immersve-kyc-processing-reason"
           >
             {reasonLine}
@@ -314,7 +314,7 @@ const KycIdentityLayout = ({
         ) : null}
       </ScrollView>
       {buttonLabel ? (
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+        <Box className="gap-2 px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -956,7 +956,7 @@ const ImmersveKYCProcessing = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
       />
     );

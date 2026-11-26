@@ -86,7 +86,7 @@ const DeleteIdentityData = () => {
   }
 
   return (
-    <Box twClassName="mt-6">
+    <Box className="mt-6">
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('identity_verification.delete_section_title')}
       </Text>
@@ -94,14 +94,14 @@ const DeleteIdentityData = () => {
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        twClassName="mt-2"
+        className="mt-2"
       >
         {strings('identity_verification.delete_section_description')}
       </Text>
-      <Box twClassName="mt-4">
+      <Box className="mt-4">
         <ButtonSemantic
           severity={ButtonSemanticSeverity.Danger}
-          twClassName="w-full"
+          className="w-full"
           onPress={handleDeletePress}
           isLoading={isDeleting}
           isDisabled={isDeleting}

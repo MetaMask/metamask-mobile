@@ -1344,7 +1344,7 @@ const Onboarding = () => {
       <Box
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}
-        twClassName={`flex-1 w-full px-5 ${Device.isMediumDevice() ? 'gap-y-4' : 'gap-y-6'}`}
+        className={`flex-1 w-full px-5 ${Device.isMediumDevice() ? 'gap-y-4' : 'gap-y-6'}`}
       >
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
@@ -1352,7 +1352,7 @@ const Onboarding = () => {
           onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
           <FooterGlass
-            twClassName="px-0"
+            className="px-0"
             primaryButtonProps={{
               children: strings('onboarding.start_exploring_now'),
               onPress: () => handleCtaActions('create'),
@@ -1667,7 +1667,7 @@ const Onboarding = () => {
           inside the sheet instead of the Create and Import buttons behind it.
         */}
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           testID={OnboardingSelectorIDs.LANDING_CONTENT_ID}
           accessibilityElementsHidden={isOnboardingSheetOpen}
           importantForAccessibility={
@@ -1688,7 +1688,7 @@ const Onboarding = () => {
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName="flex-1 py-4"
+                className="flex-1 py-4"
               >
                 {renderContent()}
               </Box>

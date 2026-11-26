@@ -194,7 +194,7 @@ const Btn: React.FC<{
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
-        twClassName={active ? 'text-primary-inverse' : 'text-text-alternative'}
+        className={active ? 'text-primary-inverse' : 'text-text-alternative'}
       >
         {label}
       </Text>
@@ -206,14 +206,14 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({
   label,
   children,
 }) => (
-  <Box twClassName="mb-2">
+  <Box className="mb-2">
     <Text
       variant={TextVariant.BodyXs}
-      twClassName="text-text-muted uppercase mb-1 tracking-widest"
+      className="text-text-muted uppercase mb-1 tracking-widest"
     >
       {label}
     </Text>
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="flex-wrap">
+    <Box flexDirection={BoxFlexDirection.Row} className="flex-wrap">
       {children}
     </Box>
   </Box>
@@ -523,25 +523,25 @@ const LivelineDemo: React.FC = () => {
   return (
     <ScrollView style={tw.style('flex-1 bg-background-default')}>
       {/* Header */}
-      <Box twClassName="pt-12 px-4 pb-3">
-        <Text variant={TextVariant.HeadingMd} twClassName="text-text-default">
+      <Box className="pt-12 px-4 pb-3">
+        <Text variant={TextVariant.HeadingMd} className="text-text-default">
           LivelineChart Playground
         </Text>
-        <Text variant={TextVariant.BodyXs} twClassName="text-text-muted mt-0.5">
+        <Text variant={TextVariant.BodyXs} className="text-text-muted mt-0.5">
           {ticks.length} ticks · value: {value.toFixed(2)} · window:{' '}
           {windowSecs}s
         </Text>
       </Box>
 
       {/* Tab switcher */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 mb-3 gap-2">
+      <Box flexDirection={BoxFlexDirection.Row} className="px-4 mb-3 gap-2">
         {(['line', 'candle', 'multi'] as Tab[]).map((t) => (
           <Btn key={t} label={t} active={tab === t} onPress={() => setTab(t)} />
         ))}
       </Box>
 
       {/* ── Controls ── */}
-      <Box twClassName="px-4">
+      <Box className="px-4">
         {/* State */}
         <Row label="State">
           <Btn
@@ -741,7 +741,7 @@ const LivelineDemo: React.FC = () => {
       </Box>
 
       {/* ── Chart ── */}
-      <Box twClassName="mx-4 rounded-xl overflow-hidden">
+      <Box className="mx-4 rounded-xl overflow-hidden">
         {tab === 'line' && (
           <LivelineChart
             {...sharedProps}
@@ -789,9 +789,9 @@ const LivelineDemo: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-1.5 pb-2"
+        className="px-4 pt-1.5 pb-2"
       >
-        <Text variant={TextVariant.BodyXs} twClassName="text-text-muted">
+        <Text variant={TextVariant.BodyXs} className="text-text-muted">
           {hoverPoint
             ? `t=${new Date(hoverPoint.time * 1000).toLocaleTimeString()} v=${hoverPoint.value.toFixed(2)}`
             : 'Hover over chart'}
@@ -800,22 +800,22 @@ const LivelineDemo: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-3"
+            className="gap-3"
           >
             <Text
               variant={TextVariant.BodyXs}
-              twClassName="text-success-default"
+              className="text-success-default"
             >
               Yes {series[0].value.toFixed(1)}%
             </Text>
-            <Text variant={TextVariant.BodyXs} twClassName="text-error-default">
+            <Text variant={TextVariant.BodyXs} className="text-error-default">
               No {series[1].value.toFixed(1)}%
             </Text>
           </Box>
         )}
       </Box>
 
-      <Box twClassName="pb-16" />
+      <Box className="pb-16" />
     </ScrollView>
   );
 };

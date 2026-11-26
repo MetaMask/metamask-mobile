@@ -56,10 +56,10 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={`Current provider: ${currentProvider.name}, ${isTestnet ? 'Testnet' : 'Mainnet'}. Tap to change.`}
-      twClassName="self-center"
+      className="self-center"
       startAccessory={
         isTestnet ? (
-          <Box twClassName="w-1.5 h-1.5 rounded-full bg-warning-default" />
+          <Box className="w-1.5 h-1.5 rounded-full bg-warning-default" />
         ) : undefined
       }
     />

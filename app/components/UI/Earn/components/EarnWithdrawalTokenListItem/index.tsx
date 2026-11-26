@@ -39,7 +39,7 @@ const EarnWithdrawalTokenListItem = ({
             position={BadgeWrapperPosition.BottomRight}
             badge={
               <BadgeNetwork
-                twClassName="h-4 w-4 rounded bg-default"
+                className="h-4 w-4 rounded bg-default"
                 src={
                   getNetworkImageSource({
                     chainId: earnToken?.chainId ?? '',

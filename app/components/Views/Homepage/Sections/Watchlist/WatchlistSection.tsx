@@ -279,7 +279,7 @@ const LegacyWatchlistSection = forwardRef<
               token={token}
               position={index}
               tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-              twClassName="-mx-4 w-auto px-4"
+              className="-mx-4 w-auto px-4"
             />
           </WatchlistAnimatedRow>
         ))}
@@ -411,7 +411,7 @@ const MixedWatchlistSection = forwardRef<
                   position={index}
                   tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
                   showTypeTag
-                  twClassName="-mx-4 w-auto px-4"
+                  className="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
             );
@@ -426,7 +426,7 @@ const MixedWatchlistSection = forwardRef<
                     removeFromWatchlist(item.symbol).catch(() => undefined);
                   }}
                   showTypeTag
-                  twClassName="-mx-4 w-auto px-4"
+                  className="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
             );
@@ -440,7 +440,7 @@ const MixedWatchlistSection = forwardRef<
                 showBadge={false}
                 showTypeTag
                 enableLivePrices={canUseLivePerpsPrices}
-                twClassName="-mx-4 w-auto px-4"
+                className="-mx-4 w-auto px-4"
                 onPress={handlePerpPress}
               />
             </WatchlistAnimatedRow>

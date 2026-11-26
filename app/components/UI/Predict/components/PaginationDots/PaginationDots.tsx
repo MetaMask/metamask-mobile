@@ -28,7 +28,7 @@ export const PaginationDots: React.FC<PaginationDotsProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-row justify-center items-center gap-2 mt-3"
+      className="flex-row justify-center items-center gap-2 mt-3"
     >
       {Array.from({ length: count }).map((_, dotPosition) => (
         <View

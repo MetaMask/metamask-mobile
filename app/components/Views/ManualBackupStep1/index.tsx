@@ -283,18 +283,18 @@ const ManualBackupStep1 = () => {
       behavior={'padding'}
     >
       <KeyboardAwareScrollView style={tw.style('flex-grow')} enableOnAndroid>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Box
             alignItems={BoxAlignItems.Start}
             marginBottom={5}
-            twClassName="flex-1"
+            className="flex-1"
           >
             <Box marginBottom={2}>
               <Label color={TextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </Box>
-            <Box twClassName="relative flex-col gap-0.5 w-full">
+            <Box className="relative flex-col gap-0.5 w-full">
               <TextField
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
@@ -320,9 +320,9 @@ const ManualBackupStep1 = () => {
               )}
             </Box>
           </Box>
-          <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
+          <Box justifyContent={BoxJustifyContent.End} className="flex-1">
             <FooterGlass
-              twClassName="px-0 py-2"
+              className="px-0 py-2"
               primaryButtonProps={{
                 children: strings('manual_backup_step_1.confirm'),
                 onPress: tryUnlock,
@@ -340,9 +340,9 @@ const ManualBackupStep1 = () => {
   const showRemindLaterButton = !hasFunds && !backupFlow && !settingsBackup;
 
   const renderSeedphraseView = () => (
-    <Box twClassName="flex-1 justify-between">
+    <Box className="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col gap-6"
+        className="flex-1 flex-col gap-6"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
         <TitleStandard
@@ -352,7 +352,7 @@ const ManualBackupStep1 = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('manual_backup_step_1.description')}{' '}
               <TextButton
@@ -366,7 +366,7 @@ const ManualBackupStep1 = () => {
           }
         />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
+          <Box className="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
@@ -381,7 +381,7 @@ const ManualBackupStep1 = () => {
                 <TextField
                   value={item}
                   isReadOnly
-                  twClassName="flex-1"
+                  className="flex-1"
                   startAccessory={
                     <Text
                       variant={TextVariant.BodySm}
@@ -397,7 +397,7 @@ const ManualBackupStep1 = () => {
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
                       maxFontSizeMultiplier={1}
-                      twClassName="flex-1"
+                      className="flex-1"
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                     >
                       {item}
@@ -410,7 +410,7 @@ const ManualBackupStep1 = () => {
         )}
       </Box>
       <FooterGlass
-        twClassName="px-0 py-2"
+        className="px-0 py-2"
         primaryButtonProps={{
           children: strings('manual_backup_step_1.continue'),
           onPress: goNext,
@@ -454,7 +454,7 @@ const ManualBackupStep1 = () => {
             : undefined
         }
       />
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

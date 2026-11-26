@@ -155,7 +155,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                       severity={TagSeverity.Neutral}
                       // Optically center the tag against the label — mathematical
                       // centering leaves it looking slightly high next to the text.
-                      twClassName="mt-[1.25px]"
+                      className="mt-[1.25px]"
                     >
                       {strings('money.add_money_sheet.no_fees')}
                     </Tag>

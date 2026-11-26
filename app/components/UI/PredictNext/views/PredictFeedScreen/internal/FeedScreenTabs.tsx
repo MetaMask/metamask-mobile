@@ -29,7 +29,7 @@ export const FeedScreenTabs = ({
   }
 
   return (
-    <Box testID={PredictFeedScreenTestIds.TABS} twClassName="pb-4">
+    <Box testID={PredictFeedScreenTestIds.TABS} className="pb-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

@@ -101,7 +101,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   );
 
   return (
-    <Box twClassName="flex-1 gap-2">
+    <Box className="flex-1 gap-2">
       <ActivityDetailsDualAmountHeader
         sentToken={sourceToken}
         receivedToken={destinationToken}
@@ -110,7 +110,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       <ActivityDetailsMetadata item={item} />
       <SectionDivider marginVertical={0} />
       <ActivityDetailsFeesAndTotal item={item} token={totalToken} fiatOnly />
-      <Box twClassName="mt-auto pt-4">
+      <Box className="mt-auto pt-4">
         <ActivityDetailsFooter>
           <ActivityDetailsBlockExplorerButton
             chainId={item.chainId}

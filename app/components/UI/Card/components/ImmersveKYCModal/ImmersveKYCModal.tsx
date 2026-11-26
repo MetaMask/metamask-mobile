@@ -567,7 +567,7 @@ const ImmersveKYCModal: React.FC = () => {
             testID="immersve-kyc-header-logo"
           />
         }
-        twClassName="bg-background-default"
+        className="bg-background-default"
       />
       {isErrorStatus ? (
         <View
@@ -576,7 +576,7 @@ const ImmersveKYCModal: React.FC = () => {
         >
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
             testID="immersve-kyc-error-text"
           >
             {strings(errorMessageKey)}

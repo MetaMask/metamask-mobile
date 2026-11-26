@@ -51,7 +51,7 @@ const ProfileAvatar = ({
 }: ProfileAvatarProps) => (
   <AvatarBase
     shape={AvatarBaseShape.Circle}
-    twClassName={twClassName}
+    className={twClassName}
     style={{ width: size, height: size }}
     accessible
     accessibilityRole="image"

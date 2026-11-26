@@ -51,7 +51,7 @@ const BrowserTabsButton: React.FC<BrowserTabsButtonProps> = ({
     >
       {isGlass ? (
         <CapsuleGlass
-          twClassName="h-12 gap-1 px-3"
+          className="h-12 gap-1 px-3"
           testID={TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS}
         >
           {content}
@@ -60,7 +60,7 @@ const BrowserTabsButton: React.FC<BrowserTabsButtonProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-12 gap-1 rounded-full border border-border-muted bg-muted px-3"
+          className="h-12 gap-1 rounded-full border border-border-muted bg-muted px-3"
         >
           {content}
         </Box>

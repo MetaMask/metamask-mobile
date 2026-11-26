@@ -190,7 +190,7 @@ const TokenWarningModalSheet = ({
           paddingBottom={4}
           gap={4}
         >
-          <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
+          <Box alignItems={BoxAlignItems.Center} className="w-full">
             <Icon
               name={headlineIconName}
               size={IconSize.Xl}
@@ -198,7 +198,7 @@ const TokenWarningModalSheet = ({
             />
             <Text
               variant={TextVariant.HeadingMd}
-              twClassName="text-center mt-4"
+              className="text-center mt-4"
             >
               {title}
             </Text>
@@ -207,18 +207,18 @@ const TokenWarningModalSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 backgroundColor={BoxBackgroundColor.ErrorMuted}
                 gap={3}
-                twClassName="mt-5 w-full rounded-2xl pl-[25px] pr-4 py-3"
+                className="mt-5 w-full rounded-2xl pl-[25px] pr-4 py-3"
               >
                 <Icon
                   name={IconName.Error}
                   size={IconSize.Md}
                   color={IconColor.ErrorDefault}
-                  twClassName="mt-1"
+                  className="mt-1"
                 />
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.ErrorDefault}
-                  twClassName="flex-1"
+                  className="flex-1"
                 >
                   {description}
                 </Text>
@@ -227,14 +227,14 @@ const TokenWarningModalSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="text-center mt-2"
+                className="text-center mt-2"
               >
                 {description}
               </Text>
             )}
           </Box>
           {shownFeatures.length > 0 ? (
-            <Box twClassName="w-full">
+            <Box className="w-full">
               {shownFeatures.map((feature) => (
                 <Box
                   key={feature.featureId}
@@ -242,14 +242,14 @@ const TokenWarningModalSheet = ({
                   alignItems={BoxAlignItems.Center}
                   gap={3}
                   paddingVertical={2}
-                  twClassName="w-full"
+                  className="w-full"
                 >
                   <Icon
                     name={featureIconName}
                     size={IconSize.Md}
                     color={featureIconColor}
                   />
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     <Text variant={TextVariant.BodyMd}>
                       {negativeFeatureLabels[feature.featureId]?.label ??
                         fallbackFeatureRowTitle}
@@ -269,7 +269,7 @@ const TokenWarningModalSheet = ({
       </ScrollView>
       {mode === TokenWarningModalMode.Execution ? (
         isMalicious ? (
-          <Box gap={4} twClassName="px-2 py-1">
+          <Box gap={4} className="px-2 py-1">
             <Button
               isDanger
               isFullWidth

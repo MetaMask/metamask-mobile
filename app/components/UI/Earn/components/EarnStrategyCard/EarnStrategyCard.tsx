@@ -77,7 +77,7 @@ const EarnStrategyCard = ({
       style={({ pressed }) => tw.style(pressed ? 'opacity-70' : '')}
     >
       <Box
-        twClassName={`w-full rounded-xl border bg-muted p-3 ${
+        className={`w-full rounded-xl border bg-muted p-3 ${
           isPrimary ? 'min-h-[196px]' : 'min-h-[100px]'
         } ${isActive ? 'border-default' : 'border-muted'}`}
         accessible={false}
@@ -86,19 +86,19 @@ const EarnStrategyCard = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="min-w-0"
+          className="min-w-0"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="min-w-0 flex-1"
+            className="min-w-0 flex-1"
           >
             <Text
               variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
-              twClassName="flex-shrink"
+              className="flex-shrink"
             >
               {title}
             </Text>
@@ -140,7 +140,7 @@ const EarnStrategyCard = ({
 
         {isPrimary
           ? infoRows && (
-              <Box gap={3} twClassName="mt-4">
+              <Box gap={3} className="mt-4">
                 {infoRows.map((infoRow, index) => (
                   <EarnStrategyInfoRow
                     key={infoRow.id}
@@ -152,7 +152,7 @@ const EarnStrategyCard = ({
                     }
                     startAccessory={
                       <Box
-                        twClassName="h-8 w-8 items-center justify-center rounded-full bg-default"
+                        className="h-8 w-8 items-center justify-center rounded-full bg-default"
                         accessible={false}
                       >
                         <Icon
@@ -167,7 +167,7 @@ const EarnStrategyCard = ({
               </Box>
             )
           : Boolean(subtitle) && (
-              <Box twClassName="mt-3">
+              <Box className="mt-3">
                 {subtitle && (
                   <Text
                     variant={TextVariant.BodySm}

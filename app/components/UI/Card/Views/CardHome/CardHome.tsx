@@ -944,15 +944,15 @@ const CardHome = () => {
   // --- Error state ---
   if (isError) {
     return (
-      <Box twClassName="flex-1 bg-background-default">
+      <Box className="flex-1 bg-background-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="bg-background-default"
+          className="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 items-center justify-center gap-2">
+        <Box className="flex-1 items-center justify-center gap-2">
           <Icon
             name={IconName.Forest}
             size={IconSize.Xl}
@@ -960,17 +960,17 @@ const CardHome = () => {
           />
           <Text
             variant={TextVariant.HeadingSm}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {strings('card.card_home.error_title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-text-alternative text-center px-12"
+            className="text-text-alternative text-center px-12"
           >
             {strings('card.card_home.error_description')}
           </Text>
-          <Box twClassName="pt-2">
+          <Box className="pt-2">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
@@ -1037,7 +1037,7 @@ const CardHome = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="bg-background-default"
+          className="bg-background-default"
           {...headerHandlers}
           title={strings('card.card_home.title')}
           endButtonIconProps={[moreButtonProps]}
@@ -1046,7 +1046,7 @@ const CardHome = () => {
           asset={
             <Box
               // Dimmed: the card is not live yet, so the art reads as pending.
-              twClassName="w-full opacity-50"
+              className="w-full opacity-50"
               testID={CardHomeSelectors.CARD_ART}
             >
               <CardImage
@@ -1091,12 +1091,12 @@ const CardHome = () => {
 
   // --- Main render ---
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box className="flex-1 bg-background-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
         // Shown whenever the old footer links showed (every non-loading state).
         endButtonIconProps={isLoading ? undefined : [moreButtonProps]}
@@ -1123,7 +1123,7 @@ const CardHome = () => {
             {/* Status banners sit under the header and above the balance. */}
             {hasDashboardBanners ? (
               <Box
-                twClassName="px-4 pt-2 mb-4 gap-2"
+                className="px-4 pt-2 mb-4 gap-2"
                 testID={CardHomeSelectors.DASHBOARD_BANNERS}
               >
                 {hasAlertSectionBanners ? (
@@ -1197,13 +1197,13 @@ const CardHome = () => {
             )}
 
             {/* Card art sits on the page at full content width (no panel). */}
-            <Box twClassName="mt-4 mx-4">
+            <Box className="mt-4 mx-4">
               <Animated.View
                 style={[tw.style('w-full relative'), arrival.cardStyle]}
               >
                 {/* Muted while identity is in review, so the card doesn't look ready. */}
                 <Box
-                  twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+                  className={isSignedOutKycPending ? 'opacity-50' : undefined}
                   testID={CardHomeSelectors.CARD_ART}
                 >
                   {arrival.usesRiveCard ? (
@@ -1238,7 +1238,7 @@ const CardHome = () => {
               </Animated.View>
 
               {isAuthenticated && !isUkMigrationForced && hasSetupActions && (
-                <Box twClassName="w-full mt-4">
+                <Box className="w-full mt-4">
                   <CardActionsButtons
                     actions={effectiveActions}
                     isLoading={isLoading}
@@ -1255,9 +1255,9 @@ const CardHome = () => {
               !isLoading &&
               walletEntry === 'push' &&
               !isUkMigrationForced && (
-                <Box twClassName="w-full px-4 pt-3 items-center justify-center">
+                <Box className="w-full px-4 pt-3 items-center justify-center">
                   {isProvisioning ? (
-                    <Box twClassName="h-12 items-center justify-center">
+                    <Box className="h-12 items-center justify-center">
                       <Spinner
                         testID="push-provisioning-spinner"
                         spinnerIconProps={{ size: IconSize.Xl }}
@@ -1331,7 +1331,7 @@ const CardHome = () => {
             )}
 
             {showHomeSegments && (
-              <Box twClassName="px-4 mt-4 mb-4">
+              <Box className="px-4 mt-4 mb-4">
                 <SegmentedControl
                   value={activeHomeSegment}
                   onChange={(value) =>
@@ -1383,7 +1383,7 @@ const CardHome = () => {
               !hasAlertOnlyState &&
               !isUkMigrationForced && (
                 <Box
-                  twClassName="mx-4 mt-4"
+                  className="mx-4 mt-4"
                   testID={CardHomeSelectors.CREDIT_BANNER}
                 >
                   <CardMessageBox
@@ -1400,7 +1400,7 @@ const CardHome = () => {
 
             {isAuthenticated && showLinkMoneyAccountCta && (
               <>
-                <Box twClassName="mb-6 mt-7">
+                <Box className="mb-6 mt-7">
                   <MoneyMetaMaskCard
                     mode="link"
                     hideCardImage
@@ -1419,7 +1419,7 @@ const CardHome = () => {
                   />
                 </Box>
                 <Box
-                  twClassName="h-px bg-border-muted"
+                  className="h-px bg-border-muted"
                   testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM}
                 />
               </>

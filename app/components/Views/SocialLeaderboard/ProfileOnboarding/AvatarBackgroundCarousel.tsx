@@ -176,7 +176,7 @@ const Swatch: React.FC<SwatchProps> = ({
 
   return (
     <Box
-      twClassName="items-center justify-center"
+      className="items-center justify-center"
       style={{ width: SLOT_WIDTH, height: STRIP_HEIGHT }}
     >
       <Animated.View
@@ -360,7 +360,7 @@ const DissolvingAvatarArt: React.FC<{
       testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_FLICKER}
     >
       <Box
-        twClassName="items-center justify-center"
+        className="items-center justify-center"
         style={{ width: sizePx, height: sizePx }}
       >
         {layers.map((preset) => (
@@ -578,7 +578,7 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
 
   return (
     <Box
-      twClassName="self-stretch -mx-4 justify-center"
+      className="self-stretch -mx-4 justify-center"
       style={tw.style({ height: STRIP_HEIGHT })}
       onLayout={handleLayout}
       testID={SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL}
@@ -613,14 +613,14 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
       ) : null}
       <Box
         pointerEvents="none"
-        twClassName="absolute inset-0 items-center justify-center"
+        className="absolute inset-0 items-center justify-center"
         testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW}
       >
         {isLowTier ? null : (
           <AvatarGlow scrollX={scrollX} opacity={glowOpacity} />
         )}
         <Box
-          twClassName="absolute rounded-full border border-icon-default"
+          className="absolute rounded-full border border-icon-default"
           style={tw.style({ width: SOLID_RING_SIZE, height: SOLID_RING_SIZE })}
         />
         <DissolvingAvatarArt

@@ -57,7 +57,7 @@ const CloseSlot: React.FC<{
   }));
   return (
     <Animated.View style={[styles.closeSlot, slotStyle]}>
-      <Box twClassName="ml-1">
+      <Box className="ml-1">
         <Icon
           name={IconName.Close}
           size={IconSize.Sm}
@@ -176,7 +176,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
   }));
 
   const avatar = (
-    <Box twClassName="mr-1">
+    <Box className="mr-1">
       <PositionTokenAvatar position={token.avatar} size={AvatarTokenSize.Sm} />
     </Box>
   );
@@ -189,7 +189,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
       <ExplorePill
         testID={getSocialV1HotTokenSelectedChipTestId(token.id)}
         accessibilityState={{ selected: true }}
-        twClassName="bg-icon-default border-transparent pl-2"
+        className="bg-icon-default border-transparent pl-2"
         leading={avatar}
         title={token.label}
         titleTextColor={TextColor.InfoInverse}
@@ -210,7 +210,7 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
       >
         <ExplorePill
           testID={`${getSocialV1HotTokenSelectedChipTestId(token.id)}-fill`}
-          twClassName="pl-2"
+          className="pl-2"
           leading={avatar}
           title={token.label}
           onPress={noop}

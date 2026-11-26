@@ -42,7 +42,7 @@ const LendingMaxWithdrawalModal = () => {
           isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ size: ButtonIconSize.Lg }}
-          twClassName="min-h-14 h-auto px-4"
+          className="min-h-14 h-auto px-4"
         >
           <Text variant={TextVariant.HeadingSm}>
             {strings(

@@ -98,15 +98,15 @@ const CardBalanceDisplay = ({
     // "Available balance" arrives (same block as CardHomeLoadingSkeleton).
     return (
       <>
-        <Box twClassName="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
+        <Box className="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
           <Skeleton
-            twClassName="h-14 w-40 rounded-xl"
+            className="h-14 w-40 rounded-xl"
             testID={CardHomeSelectors.BALANCE_SKELETON}
           />
         </Box>
-        <Box twClassName="px-4 mt-1 h-6 justify-center">
+        <Box className="px-4 mt-1 h-6 justify-center">
           <Skeleton
-            twClassName="h-5 w-36 rounded-md"
+            className="h-5 w-36 rounded-md"
             testID={CardHomeSelectors.BALANCE_SUBTITLE_SKELETON}
           />
         </Box>
@@ -134,7 +134,7 @@ const CardBalanceDisplay = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 mt-1 gap-1"
+        className="px-4 mt-1 gap-1"
       >
         <Text
           variant={TextVariant.BodyMd}

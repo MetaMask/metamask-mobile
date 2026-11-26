@@ -217,14 +217,14 @@ const RewardsClaimBottomSheetModal = ({
   );
 
   const renderActions = () => (
-    <Box twClassName="w-full">
+    <Box className="w-full">
       <Button
         variant={confirmAction.variant || ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={confirmAction.onPress}
         disabled={buttonDisabled}
         isLoading={confirmAction.loading}
-        twClassName="w-full"
+        className="w-full"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON}
       >
         {confirmAction.label}
@@ -233,29 +233,29 @@ const RewardsClaimBottomSheetModal = ({
   );
 
   const renderTitle = () => (
-    <Box twClassName="flex-row items-center justify-between w-full">
-      <Text variant={TextVariant.HeadingLg} twClassName="w-[80%]">
+    <Box className="flex-row items-center justify-between w-full">
+      <Text variant={TextVariant.HeadingLg} className="w-[80%]">
         {title}
       </Text>
       <Box
-        twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
+        className={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
         testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
       >
         <Icon
           name={icon}
           size={IconSize.Lg}
-          twClassName="text-primary-default"
+          className="text-primary-default"
         />
       </Box>
     </Box>
   );
 
   const renderDescription = () => (
-    <Box twClassName="my-4 w-full">
+    <Box className="my-4 w-full">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="text-text-alternative"
+        className="text-text-alternative"
       >
         {description}
       </Text>
@@ -267,14 +267,14 @@ const RewardsClaimBottomSheetModal = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName="text-primary-default underline mr-1"
+            className="text-primary-default underline mr-1"
           >
             {formatUrl(claimUrl)}
           </Text>
           <Icon
             name={IconName.ArrowSquareOut}
             size={IconSize.Sm}
-            twClassName="text-primary-default"
+            className="text-primary-default"
           />
         </TouchableOpacity>
       )}
@@ -284,7 +284,7 @@ const RewardsClaimBottomSheetModal = ({
   const renderError = () => {
     if (claimRewardError) {
       return (
-        <Box twClassName="w-full my-4">
+        <Box className="w-full my-4">
           <RewardsErrorBanner
             title={strings('rewards.claim_reward_error.title')}
             description={claimRewardError}
@@ -317,7 +317,7 @@ const RewardsClaimBottomSheetModal = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="p-4"
+      className="p-4"
     >
       {renderTitle()}
       {renderDescription()}

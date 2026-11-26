@@ -186,7 +186,7 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 
   return (
     <Box
-      twClassName="overflow-hidden rounded-2xl bg-muted p-4"
+      className="overflow-hidden rounded-2xl bg-muted p-4"
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON}
     >
       <Box>
@@ -298,10 +298,10 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
 
   return (
     <Box
-      twClassName="overflow-hidden rounded-2xl bg-muted"
+      className="overflow-hidden rounded-2xl bg-muted"
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {headingLabel}
@@ -325,7 +325,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
                   color: IconColor.IconAlternative,
                   size: IconSize.Md,
                 }}
-                twClassName="-mr-1.5"
+                className="-mr-1.5"
                 onPress={onBalanceBreakdown}
                 accessibilityLabel={localizedText.breakdown}
                 testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN}
@@ -341,11 +341,11 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
           </Text>
         </Box>
         {button === 'hidden' ? null : (
-          <Box twClassName="mt-3">
+          <Box className="mt-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              twClassName="w-full"
+              className="w-full"
               isDisabled={
                 button === 'claimed' || claimCoolingDown || claimBlocked
               }
@@ -365,7 +365,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}
-                twClassName="mt-2 text-center"
+                className="mt-2 text-center"
                 testID={caption.testID}
               >
                 {caption.text}

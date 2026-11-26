@@ -45,12 +45,12 @@ const PredictMarketDetailsStatus = memo(
     }
 
     return (
-      <Box twClassName="gap-2">
+      <Box className="gap-2">
         {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             {resolutionStatus === 'resolved' ? (
               <>
@@ -94,7 +94,7 @@ const PredictMarketDetailsStatus = memo(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              className="gap-2"
             >
               <Icon
                 name={IconName.Clock}

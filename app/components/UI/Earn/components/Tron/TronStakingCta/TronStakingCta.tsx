@@ -56,14 +56,14 @@ const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
     <Box
       padding={4}
       backgroundColor={BoxBackgroundColor.BackgroundSection}
-      twClassName="rounded-xl"
+      className="rounded-xl"
       testID={TronStakingCtaTestIds.CONTAINER}
     >
       <Box alignItems={BoxAlignItems.Center} marginBottom={4} gap={1}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+        <Text variant={TextVariant.HeadingMd} className="text-center">
           {strings('stake.stake_your_trx_cta.title')}
         </Text>
-        <Text twClassName="text-center">
+        <Text className="text-center">
           {strings('stake.stake_your_trx_cta.description_start')}
           {aprText ? (
             <Text color={TextColor.SuccessDefault}>{aprText}</Text>

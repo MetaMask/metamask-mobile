@@ -118,11 +118,11 @@ export const TokenPriceTitleHub = ({
 
   return (
     <TitleHub
-      twClassName="px-4 pb-3 pt-4"
+      className="px-4 pb-3 pt-4"
       title={undefined}
       amount={
         isLoading ? (
-          <Box twClassName="pt-2">
+          <Box className="pt-2">
             <Skeleton style={tw.style('h-14 w-[100px] rounded-md')} />
           </Box>
         ) : (

@@ -33,19 +33,19 @@ export const PortfolioEmptyState = ({
 
   return (
     <Box
-      twClassName="flex-1 items-center justify-center px-8 py-10"
+      className="flex-1 items-center justify-center px-8 py-10"
       testID={PredictPortfolioScreenTestIds.EMPTY_STATE}
     >
-      <Box twClassName="mb-4 h-[72px] w-[72px] items-center justify-center">
+      <Box className="mb-4 h-[72px] w-[72px] items-center justify-center">
         <EmptyIcon name="predict-next-portfolio-empty" width={72} height={72} />
       </Box>
-      <Text variant={TextVariant.HeadingSm} twClassName="mb-2 text-center">
+      <Text variant={TextVariant.HeadingSm} className="mb-2 text-center">
         {title}
       </Text>
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="mb-4 max-w-[220px] text-center"
+        className="mb-4 max-w-[220px] text-center"
       >
         {description}
       </Text>
@@ -53,7 +53,7 @@ export const PortfolioEmptyState = ({
         variant={ButtonVariant.Secondary}
         onPress={onBrowseMarkets}
         testID={PredictPortfolioScreenTestIds.BROWSE_MARKETS}
-        twClassName="self-center"
+        className="self-center"
       >
         {strings('predict_next.portfolio.empty.browse_markets')}
       </Button>

@@ -57,7 +57,7 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
         </Box>
       </TouchableOpacity>
     }
-    twClassName="h-auto"
+    className="h-auto"
   />
 );
 

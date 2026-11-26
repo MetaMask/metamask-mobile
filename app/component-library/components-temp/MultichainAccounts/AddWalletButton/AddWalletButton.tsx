@@ -28,14 +28,14 @@ const AddWalletButton = ({ onPress, testID }: AddWalletButtonProps) => {
     : strings('multichain_accounts.add_wallet');
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-6 pb-5">
+    <Box flexDirection={BoxFlexDirection.Row} className="px-4 pt-6 pb-5">
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={onPress}
         isDisabled={isAccountSyncingInProgress}
         testID={testID}
-        twClassName="flex-1"
+        className="flex-1"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

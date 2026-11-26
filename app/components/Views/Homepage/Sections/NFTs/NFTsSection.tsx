@@ -277,7 +277,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
                       (__, i) => (
                         <Box
                           key={`empty-${rowIndex}-${i}`}
-                          twClassName="flex-1"
+                          className="flex-1"
                         />
                       ),
                     )}

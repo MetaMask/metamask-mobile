@@ -50,9 +50,9 @@ export const PerpsProInputKeyboardAccessory = ({
 
   return Platform.OS === 'ios' ? (
     <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
-      <Box twClassName="flex-row items-center justify-between border-t border-muted bg-default px-3 py-2">
+      <Box className="flex-row items-center justify-between border-t border-muted bg-default px-3 py-2">
         {showsNavigation ? (
-          <Box twClassName="flex-row gap-2">
+          <Box className="flex-row gap-2">
             <ButtonIcon
               iconName={IconName.ArrowUp}
               size={ButtonIconSize.Md}
@@ -80,7 +80,7 @@ export const PerpsProInputKeyboardAccessory = ({
         <ButtonBase
           size={ButtonBaseSize.Sm}
           onPress={Keyboard.dismiss}
-          twClassName="h-10 rounded-full bg-muted px-4"
+          className="h-10 rounded-full bg-muted px-4"
           testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`}
         >
           {strings('perps.pro_order_form.keyboard_done')}
@@ -290,7 +290,7 @@ const PerpsProCompactInput = React.forwardRef<
         placeholderTextColor={tw.color(`text-${placeholderColor}`)}
         textVariant={TextVariant.BodySm}
         isStateStylesDisabled
-        twClassName="flex-1 border-0 bg-transparent p-0"
+        className="flex-1 border-0 bg-transparent p-0"
         testID={testID}
         accessibilityLabel={label}
       />
@@ -300,7 +300,7 @@ const PerpsProCompactInput = React.forwardRef<
       return (
         <Box
           ref={containerRef}
-          twClassName={
+          className={
             isHidden
               ? undefined
               : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
@@ -317,7 +317,7 @@ const PerpsProCompactInput = React.forwardRef<
             testID={getPerpsProCompactFieldTestId(testID)}
           >
             <Box
-              twClassName={
+              className={
                 isInlineActive
                   ? 'absolute inset-x-0 top-0'
                   : 'absolute inset-0 justify-center'
@@ -342,14 +342,14 @@ const PerpsProCompactInput = React.forwardRef<
                 opacity 1, so focusing cannot reparent the Android input. */}
             <Box
               collapsable={false}
-              twClassName={
+              className={
                 isInlineActive
                   ? 'absolute inset-x-0 bottom-0 flex-row items-center'
                   : 'absolute inset-x-0 bottom-0 flex-row items-center opacity-0'
               }
               testID={getPerpsProCompactInputRowTestId(testID)}
             >
-              <Box twClassName="shrink-0">{startAccessory}</Box>
+              <Box className="shrink-0">{startAccessory}</Box>
               {input}
             </Box>
           </Pressable>
@@ -360,11 +360,11 @@ const PerpsProCompactInput = React.forwardRef<
 
     return (
       <Box
-        twClassName={isHidden ? undefined : 'rounded-xl bg-muted p-3'}
+        className={isHidden ? undefined : 'rounded-xl bg-muted p-3'}
         testID={`${testID}-container`}
         {...hiddenProps}
       >
-        <Box twClassName="flex-row items-center justify-between">
+        <Box className="flex-row items-center justify-between">
           {/* Tapping the label focuses the input and opens the keyboard, same
               as tapping the visually small input row itself. */}
           <Pressable onPress={focusInput} disabled={isInteractionBlocked}>
@@ -378,12 +378,12 @@ const PerpsProCompactInput = React.forwardRef<
           </Pressable>
           {endAccessory}
         </Box>
-        <Box twClassName="flex-row items-center">
+        <Box className="flex-row items-center">
           {startAccessory}
           {input}
         </Box>
         {footer ? (
-          <Box twClassName="mt-3" testID={`${testID}-footer`}>
+          <Box className="mt-3" testID={`${testID}-footer`}>
             {footer}
           </Box>
         ) : null}

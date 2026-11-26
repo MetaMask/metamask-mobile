@@ -33,12 +33,12 @@ const withClass = (base: string, twClassName?: string) =>
 const SearchFieldGlass = ({
   textFieldSearchProps,
 }: Pick<HeaderSearchProps, 'textFieldSearchProps'>) => (
-  <Box twClassName="flex-1">
-    <CapsuleGlass twClassName="h-12">
+  <Box className="flex-1">
+    <CapsuleGlass className="h-12">
       <TextFieldSearch
         {...textFieldSearchProps}
         // The capsule draws the fill and the outline.
-        twClassName={withClass(
+        className={withClass(
           'h-12 flex-1 border-0 bg-transparent',
           textFieldSearchProps.twClassName,
         )}
@@ -57,7 +57,7 @@ const ScreenRowGlass = ({
 }: HeaderSearchScreenProps) => (
   <Box
     {...boxProps}
-    twClassName={withClass(`${BASE_CLASS} ml-1 mr-4 gap-2`, twClassName)}
+    className={withClass(`${BASE_CLASS} ml-1 mr-4 gap-2`, twClassName)}
   >
     <ButtonIconGlass
       isCapsule
@@ -80,10 +80,10 @@ const InlineRowGlass = ({
 }: HeaderSearchInlineProps) => (
   <Box
     {...boxProps}
-    twClassName={withClass(`${BASE_CLASS} mx-4 gap-2`, twClassName)}
+    className={withClass(`${BASE_CLASS} mx-4 gap-2`, twClassName)}
   >
     <SearchFieldGlass textFieldSearchProps={textFieldSearchProps} />
-    <CapsuleGlass twClassName="h-12">
+    <CapsuleGlass className="h-12">
       <Button
         {...cancelButtonProps}
         variant={ButtonVariant.Tertiary}

@@ -75,7 +75,7 @@ const PredictPositionRowBase = ({
           style={tw.style('w-10 h-10 rounded-lg mt-1')}
         />
       ) : (
-        <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
+        <Box className="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
       )}
       <Box style={tw.style('flex-1')} gap={0}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
@@ -99,7 +99,7 @@ const PredictPositionRowBase = ({
           })}
         </SensitiveText>
       </Box>
-      <Box twClassName="items-end" gap={0}>
+      <Box className="items-end" gap={0}>
         <SensitiveText
           variant={ComponentTextVariant.BodyMDMedium}
           isHidden={privacyMode}

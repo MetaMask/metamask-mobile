@@ -65,7 +65,7 @@ const SignInEmailFields = ({
   const resendLocked = resendCooldown > 0 || isRequestingCode;
 
   return (
-    <Box twClassName="gap-4">
+    <Box className="gap-4">
       {showBack && onBack && (
         <TouchableOpacity
           onPress={onBack}
@@ -191,7 +191,7 @@ const SignInEmailFields = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                twClassName="text-default"
+                className="text-default"
               >
                 {strings('card.card_authentication.forgot_password_button')}
               </Text>

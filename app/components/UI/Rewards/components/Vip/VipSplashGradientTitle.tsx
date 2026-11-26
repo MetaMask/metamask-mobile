@@ -19,7 +19,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
   return (
     <MaskedView
       maskElement={
-        <MarketingMomentTitle testID={testID} twClassName="w-full text-center">
+        <MarketingMomentTitle testID={testID} className="w-full text-center">
           {title}
         </MarketingMomentTitle>
       }
@@ -33,7 +33,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         {/* Sizes the gradient to the mask. Opacity 0 keeps it from covering the gold fill. */}
         <MarketingMomentTitle
           accessibilityRole="text"
-          twClassName="w-full text-center opacity-0"
+          className="w-full text-center opacity-0"
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
         >

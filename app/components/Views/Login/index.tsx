@@ -678,7 +678,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           )}
         </Box>
         <FooterGlass
-          twClassName="px-0"
+          className="px-0"
           primaryButtonProps={{
             children: strings('login.unlock_button'),
             size: ctaSize,

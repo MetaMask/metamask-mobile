@@ -29,7 +29,7 @@ const SRPList = ({
 
   return (
     <Box
-      twClassName="py-4 px-4 bg-default m-2"
+      className="py-4 px-4 bg-default m-2"
       style={
         {
           maxHeight,

@@ -141,7 +141,7 @@ const WatchlistTokenRowItem = ({
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
-            <BadgeNetwork src={networkBadgeImageSource} twClassName="h-5 w-5" />
+            <BadgeNetwork src={networkBadgeImageSource} className="h-5 w-5" />
           }
         >
           <TrendingTokenLogo
@@ -160,7 +160,7 @@ const WatchlistTokenRowItem = ({
       }}
       titleEndAccessory={
         showTypeTag ? (
-          <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+          <Tag severity={TagSeverity.Neutral} className="self-center">
             {strings('token_watchlist.token_tag')}
           </Tag>
         ) : undefined
@@ -197,7 +197,7 @@ const WatchlistTokenRowItem = ({
         ) : undefined
       }
       accessoryGap={hasStarAction ? 3 : undefined}
-      twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
+      className={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
     />
   );
 };

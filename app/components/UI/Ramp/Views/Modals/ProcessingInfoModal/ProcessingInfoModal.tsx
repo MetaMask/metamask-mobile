@@ -111,7 +111,7 @@ function ProcessingInfoModal() {
       />
 
       {statusDescription && (
-        <Box twClassName="px-6 pb-4">
+        <Box className="px-6 pb-4">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
@@ -122,7 +122,7 @@ function ProcessingInfoModal() {
         </Box>
       )}
 
-      <Box twClassName="px-6 pb-6">
+      <Box className="px-6 pb-6">
         <Button
           size={ButtonBaseSize.Lg}
           onPress={handleGoToSupport}

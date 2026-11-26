@@ -9,5 +9,5 @@ interface Props extends SkeletonProps {
 }
 
 export function Skeleton({ className, ...rest }: Props) {
-  return <DSSkeleton {...rest} twClassName={className} />;
+  return <DSSkeleton {...rest} className={className} />;
 }

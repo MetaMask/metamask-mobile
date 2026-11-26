@@ -42,8 +42,8 @@ export function Nft({ asset, onPress }: NftProps) {
       }
       onPress={handlePress}
     >
-      <Box twClassName="flex-row items-center px-4">
-        <Box twClassName="h-12 justify-center">
+      <Box className="flex-row items-center px-4">
+        <Box className="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
             badgeElement={
@@ -65,7 +65,7 @@ export function Nft({ asset, onPress }: NftProps) {
           </BadgeWrapper>
         </Box>
 
-        <Box twClassName="ml-4 h-12 justify-center">
+        <Box className="ml-4 h-12 justify-center">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}

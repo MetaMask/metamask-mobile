@@ -375,7 +375,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                     amount: minimumOrderAmount.toString(),
                   }),
                 ]}
-                twClassName="pt-2"
+                className="pt-2"
                 testID={PerpsFlipPositionConfirmSheetSelectorsIDs.MINIMUM_ERROR}
               />
             )}

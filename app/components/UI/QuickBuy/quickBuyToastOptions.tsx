@@ -72,7 +72,7 @@ export function buildQuickBuyToastOptions(
         // which pins the default check to the first line. Wrapping the check in
         // a self-centered box keeps it level with the middle of the text block.
         startAccessory: (
-          <Box twClassName="self-center">
+          <Box className="self-center">
             <IconAlert
               severity={IconAlertSeverity.Success}
               size={IconSize.Lg}

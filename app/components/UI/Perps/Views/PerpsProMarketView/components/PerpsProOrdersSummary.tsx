@@ -30,15 +30,15 @@ const PerpsProOrdersSummary = ({
   orderCount,
   onCancelAll,
 }: PerpsProOrdersSummaryProps) => (
-  <Box twClassName="px-2 py-3">
+  <Box className="px-2 py-3">
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="gap-4 rounded-xl bg-muted px-4 py-3"
+      className="gap-4 rounded-xl bg-muted px-4 py-3"
       testID={PerpsProMarketViewSelectorsIDs.ORDERS_SUMMARY}
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
           {strings('perps.pro_positions_panel.open_orders', {
             count: orderCount,

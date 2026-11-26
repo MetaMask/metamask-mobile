@@ -118,15 +118,15 @@ export const StepHeader = ({
 }) => {
   const textAlign = isCentered ? 'text-center' : undefined;
   return (
-    <Box twClassName="gap-2">
-      <Text variant={TextVariant.HeadingLg} twClassName={textAlign}>
+    <Box className="gap-2">
+      <Text variant={TextVariant.HeadingLg} className={textAlign}>
         {title}
       </Text>
       {description ? (
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName={textAlign}
+          className={textAlign}
         >
           {description}
         </Text>
@@ -173,7 +173,7 @@ const StepLayout = ({
       </ScrollView>
       {footer ? (
         <Box
-          twClassName="px-4 pt-4 gap-2"
+          className="px-4 pt-4 gap-2"
           style={{ paddingBottom: 8 + bottom }}
         >
           {footer}

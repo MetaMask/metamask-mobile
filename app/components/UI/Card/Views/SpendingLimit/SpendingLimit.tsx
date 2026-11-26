@@ -265,10 +265,10 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="bg-background-default"
+          className="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-4">
+        <Box className="flex-1 justify-center items-center px-4">
           <ActivityIndicator
             testID={SpendingLimitSelectors.LOADING_INDICATOR}
             size="large"
@@ -276,7 +276,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           />
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mt-4 text-text-alternative text-center"
+            className="mt-4 text-text-alternative text-center"
           >
             {strings('card.card_spending_limit.loading')}
           </Text>
@@ -295,11 +295,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="bg-background-default"
+          className="bg-background-default"
           {...headerHandlers}
         />
         <Box
-          twClassName="flex-1 justify-center items-center px-4"
+          className="flex-1 justify-center items-center px-4"
           testID={SpendingLimitSelectors.ERROR_CONTAINER}
         >
           <Icon
@@ -309,11 +309,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           />
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mt-4 mb-6 text-text-alternative text-center"
+            className="mt-4 mb-6 text-text-alternative text-center"
           >
             {strings('card.card_spending_limit.load_error')}
           </Text>
-          <Box twClassName="w-full gap-3">
+          <Box className="w-full gap-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
@@ -346,7 +346,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
       />
       <KeyboardAwareScrollView
@@ -358,23 +358,23 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         contentContainerStyle={tw.style('flex-grow pb-4')}
       >
         {/* Header copy */}
-        <Box twClassName="mb-6">
+        <Box className="mb-6">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-text-default py-4"
+            className="text-text-default py-4"
           >
             {strings('card.card_spending_limit.setup_title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {strings('card.card_spending_limit.setup_description')}
           </Text>
         </Box>
 
         {/* Settings card */}
-        <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
+        <Box className="bg-background-muted rounded-2xl overflow-hidden mb-6">
           <AccountRow
             isMoneyAccountLocked={isMoneyAccountLocked}
             isMoneyAccountSource={isMoneyAccountSource}
@@ -398,17 +398,17 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             activeOpacity={0.7}
             testID={SpendingLimitSelectors.SPENDING_LIMIT_ROW}
           >
-            <Box twClassName="flex-row items-center p-4">
+            <Box className="flex-row items-center p-4">
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="flex-1 text-text-alternative"
+                className="flex-1 text-text-alternative"
               >
                 {strings('card.card_spending_limit.restricted_limit_title')}
               </Text>
-              <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+              <Box className="flex-row items-center gap-2 shrink min-w-0">
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-text-default font-medium self-center shrink"
+                  className="text-text-default font-medium self-center shrink"
                   numberOfLines={1}
                 >
                   {spendingLimitLabel}
@@ -437,12 +437,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         )}
 
         {/* Spacer to push buttons to bottom */}
-        <Box twClassName="flex-1" />
+        <Box className="flex-1" />
 
         {/* Footer Buttons */}
-        <Box twClassName="gap-3 mt-6">
-          <Box twClassName="flex-row gap-3">
-            <Box twClassName="flex-1">
+        <Box className="gap-3 mt-6">
+          <Box className="flex-row gap-3">
+            <Box className="flex-1">
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
@@ -453,7 +453,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 {strings('card.card_spending_limit.cancel')}
               </Button>
             </Box>
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}

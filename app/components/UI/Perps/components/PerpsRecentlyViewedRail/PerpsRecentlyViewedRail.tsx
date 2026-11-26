@@ -120,10 +120,10 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   const visibleMarkets = markets.slice(0, MAX_TILES);
 
   return (
-    <Box testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL} twClassName="pb-1">
+    <Box testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL} className="pb-1">
       <SectionHeader
         title={strings('perps.recently_viewed')}
-        twClassName="pt-1"
+        className="pt-1"
         titleProps={{
           variant: TextVariant.BodyMd,
           color: TextColor.TextAlternative,
@@ -139,7 +139,7 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           gap={3}
-          twClassName="px-4 pb-1"
+          className="px-4 pb-1"
         >
           {visibleMarkets.map((market, index) => (
             <PerpsRecentlyViewedPill

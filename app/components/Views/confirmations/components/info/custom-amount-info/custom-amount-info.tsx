@@ -794,14 +794,14 @@ export function PrefillCustomAmountInfoSkeleton() {
         <View style={styles.skeletonRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
-            <Skeleton height={28} width={28} twClassName="rounded-full" />
+            <Skeleton height={28} width={28} className="rounded-full" />
             <Skeleton height={18} width={100} />
           </View>
         </View>
         <View style={styles.skeletonInfoRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
-            <Skeleton height={24} width={24} twClassName="rounded-full" />
+            <Skeleton height={24} width={24} className="rounded-full" />
             <Skeleton height={18} width={100} />
           </View>
         </View>

@@ -121,7 +121,7 @@ const SRPSecurityQuiz = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.End}
       justifyContent={BoxJustifyContent.End}
-      twClassName="w-full flex-1"
+      className="w-full flex-1"
       gap={4}
     >
       <Button
@@ -133,7 +133,7 @@ const SRPSecurityQuiz = ({
             ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER
             : SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER
         }
-        twClassName="w-full text-center"
+        className="w-full text-center"
       >
         {strings(
           currentQuestionIndex === 1
@@ -150,7 +150,7 @@ const SRPSecurityQuiz = ({
             ? SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER
             : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER
         }
-        twClassName="w-full text-center"
+        className="w-full text-center"
       >
         {strings(
           currentQuestionIndex === 1
@@ -161,7 +161,7 @@ const SRPSecurityQuiz = ({
       <TextButton
         onPress={onLearnMore}
         testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-        twClassName="w-full text-center flex items-center justify-center"
+        className="w-full text-center flex items-center justify-center"
       >
         {strings('multichain_accounts.reveal_srp.learn_more')}
       </TextButton>
@@ -173,7 +173,7 @@ const SRPSecurityQuiz = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.End}
       justifyContent={BoxJustifyContent.End}
-      twClassName="w-full flex-1"
+      className="w-full flex-1"
       gap={4}
     >
       <Button
@@ -189,7 +189,7 @@ const SRPSecurityQuiz = ({
               ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
               : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
         }
-        twClassName="w-full text-center"
+        className="w-full text-center"
       >
         {strings(
           correctAnswer
@@ -200,7 +200,7 @@ const SRPSecurityQuiz = ({
       <TextButton
         onPress={onLearnMore}
         testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-        twClassName="w-full text-center flex items-center justify-center"
+        className="w-full text-center flex items-center justify-center"
       >
         {strings('multichain_accounts.reveal_srp.learn_more')}
       </TextButton>
@@ -212,7 +212,7 @@ const SRPSecurityQuiz = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Start}
       justifyContent={BoxJustifyContent.Start}
-      twClassName="w-full flex-1"
+      className="w-full flex-1"
       paddingHorizontal={4}
       paddingTop={2}
       paddingBottom={6}
@@ -220,7 +220,7 @@ const SRPSecurityQuiz = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="mb-2"
+        className="mb-2"
       >
         {strings('srp_security_quiz.question_step', {
           step: currentQuestionIndex,
@@ -234,7 +234,7 @@ const SRPSecurityQuiz = ({
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
-          twClassName="w-[90%] mb-6"
+          className="w-[90%] mb-6"
         >
           {strings(
             currentQuestionIndex === 1

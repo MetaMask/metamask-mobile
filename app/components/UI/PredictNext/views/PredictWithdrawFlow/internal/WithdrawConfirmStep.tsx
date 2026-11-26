@@ -69,11 +69,11 @@ export const WithdrawConfirmStep = ({
       <KeyValueRow
         keyLabel={strings('predict_next.withdraw.destination_row')}
         value={
-          <Box twClassName="flex-1 flex-row items-center gap-2">
+          <Box className="flex-1 flex-row items-center gap-2">
             <SensitiveText
               isHidden={isPrivacyMode}
               length={SensitiveTextLength.Medium}
-              twClassName="flex-1"
+              className="flex-1"
               testID={PredictWithdrawFlowTestIds.DESTINATION}
             >
               {preview.destination.address}

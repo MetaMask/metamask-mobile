@@ -8,5 +8,5 @@ interface Props extends CapsuleGlassProps {
 }
 
 export function CapsuleGlass({ className, ...rest }: Props) {
-  return <DSCapsuleGlass {...rest} twClassName={className} />;
+  return <DSCapsuleGlass {...rest} className={className} />;
 }

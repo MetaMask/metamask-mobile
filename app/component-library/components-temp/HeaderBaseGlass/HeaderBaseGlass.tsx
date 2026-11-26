@@ -45,7 +45,7 @@ const HeaderBaseGlass = ({
       <HeaderBase
         {...props}
         onLayout={onLayout}
-        twClassName={headerClassName}
+        className={headerClassName}
       />
     );
   }
@@ -65,7 +65,7 @@ const HeaderBaseGlass = ({
     >
       <HeaderBase
         {...props}
-        twClassName={headerClassName}
+        className={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

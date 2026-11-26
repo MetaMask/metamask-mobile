@@ -142,7 +142,7 @@ const ReadOnlyAccountRow = ({
         />
       ) : undefined
     }
-    twClassName="p-4 h-auto"
+    className="p-4 h-auto"
     testID="immersve-funding-approval-account-row"
   />
 );
@@ -227,7 +227,7 @@ const ReadOnlyTokenRow = () => (
         />
       </BadgeWrapper>
     }
-    twClassName="p-4 h-auto"
+    className="p-4 h-auto"
     testID="immersve-funding-approval-token-row"
   />
 );
@@ -526,7 +526,7 @@ const ImmersveFundingApproval = () => {
         headerMode={headerMode}
         formFields={
           <Box
-            twClassName="flex-1 justify-center items-center gap-4"
+            className="flex-1 justify-center items-center gap-4"
             testID="immersve-funding-approval-loading"
           >
             <Spinner
@@ -536,7 +536,7 @@ const ImmersveFundingApproval = () => {
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings(
                 'card.card_onboarding.immersve_funding_approval.helper_text',
@@ -592,7 +592,7 @@ const ImmersveFundingApproval = () => {
         <>
           <Card
             testID="immersve-funding-approval-summary"
-            twClassName="p-0 overflow-hidden"
+            className="p-0 overflow-hidden"
           >
             {isMoneyAccountMode ? (
               <MoneyAccountRow testID="immersve-funding-approval-account-row" />

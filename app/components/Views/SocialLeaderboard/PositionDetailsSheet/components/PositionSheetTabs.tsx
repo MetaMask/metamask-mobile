@@ -107,14 +107,14 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
         <PositionSheetPostRow key={post.uid} post={post} author={author} />
       ))
     ) : (
-      <Box twClassName="items-center px-4 py-6">
+      <Box className="items-center px-4 py-6">
         <TabEmptyState
           description={strings('social_leaderboard.position_sheet.no_posts')}
           descriptionProps={{
             color: TextColor.TextAlternative,
             fontWeight: FontWeight.Medium,
           }}
-          twClassName="bg-transparent"
+          className="bg-transparent"
           testID={PositionDetailsSheetSelectorsIDs.POSTS_EMPTY}
         />
       </Box>
@@ -143,7 +143,7 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
       </GestureDetector>
       {isExpanded ? (
         <Box
-          twClassName="mt-3"
+          className="mt-3"
           testID={
             isPostsTab
               ? PositionDetailsSheetSelectorsIDs.POSTS_LIST

@@ -54,7 +54,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
     <Skeleton
       height={16}
       width={96}
-      twClassName="rounded"
+      className="rounded"
       testID={WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON}
     />
   ) : secondaryLine ? (

@@ -183,10 +183,10 @@ const CardReportTransaction = () => {
         isFloating={false}
         title=""
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
       />
-      <Box twClassName="flex-1 gap-4 px-4 pt-2">
+      <Box className="flex-1 gap-4 px-4 pt-2">
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('card.transactions.report_title')}
         </Text>
@@ -197,7 +197,7 @@ const CardReportTransaction = () => {
           {strings('card.transactions.report_body_continue')}
         </Text>
       </Box>
-      <Box twClassName="gap-3 px-4 pb-4 pt-4">
+      <Box className="gap-3 px-4 pb-4 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

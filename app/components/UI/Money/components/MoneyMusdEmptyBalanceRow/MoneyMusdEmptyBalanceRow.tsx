@@ -39,7 +39,7 @@ const MoneyMusdEmptyBalanceRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3 gap-4"
+      className="px-4 py-3 gap-4"
     >
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
@@ -64,12 +64,12 @@ const MoneyMusdEmptyBalanceRow = ({
           size={AvatarTokenSize.Lg}
         />
       </BadgeWrapper>
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {MUSD_TOKEN.name}
         </Text>
       </Box>
-      <Box twClassName="items-end">
+      <Box className="items-end">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}

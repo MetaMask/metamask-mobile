@@ -97,12 +97,12 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
     <Box>
       <SectionDivider marginVertical={6} />
       <Box testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}>
-        <Box twClassName="flex-col gap-1 pt-3 px-4">
+        <Box className="flex-col gap-1 pt-3 px-4">
           <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
             {strings('social_leaderboard.my_profile.performance_30d')}
           </Text>
           {uncountedNote ? (
-            <Box twClassName="w-full items-start">
+            <Box className="w-full items-start">
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel={uncountedNote}
@@ -116,13 +116,13 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
               >
                 <DottedUnderline
                   color={colors.text.default}
-                  twClassName="self-start"
+                  className="self-start"
                 >
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
-                    twClassName="-mt-0.5"
+                    className="-mt-0.5"
                   >
                     {uncountedNote}
                   </Text>
@@ -131,7 +131,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
             </Box>
           ) : null}
         </Box>
-        <Box gap={2} twClassName="px-4 py-3">
+        <Box gap={2} className="px-4 py-3">
           {chunkPairs(cells).map((row) => (
             <Box
               key={row.map((cell) => cell.id).join('-')}
@@ -139,7 +139,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
               gap={4}
             >
               {row.map((cell) => (
-                <Box key={cell.id} twClassName="flex-1 min-w-0 gap-0.5">
+                <Box key={cell.id} className="flex-1 min-w-0 gap-0.5">
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
@@ -151,7 +151,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    twClassName={TONE_CLASS[cell.tone]}
+                    className={TONE_CLASS[cell.tone]}
                     numberOfLines={1}
                     testID={CELL_CONFIG[cell.id].testID}
                   >
@@ -159,12 +159,12 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                   </Text>
                 </Box>
               ))}
-              {row.length === 1 ? <Box twClassName="flex-1" /> : null}
+              {row.length === 1 ? <Box className="flex-1" /> : null}
             </Box>
           ))}
         </Box>
       </Box>
-      <SectionDivider marginVertical={0} twClassName="mt-6" />
+      <SectionDivider marginVertical={0} className="mt-6" />
     </Box>
   );
 };

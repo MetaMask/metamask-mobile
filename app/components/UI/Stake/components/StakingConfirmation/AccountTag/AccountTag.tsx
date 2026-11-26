@@ -17,10 +17,10 @@ const AccountTag = ({
   avatarAccountType = AvatarAccountType.Maskicon,
 }: AccountTagProps) => (
   <Tag
-    twClassName="rounded-full px-2 py-0.5"
+    className="rounded-full px-2 py-0.5"
     startAccessory={
       <AvatarAccount
-        twClassName="rounded bg-default"
+        className="rounded bg-default"
         size={AvatarAccountSize.Xs}
         address={accountAddress}
         variant={getAvatarAccountVariant(avatarAccountType)}

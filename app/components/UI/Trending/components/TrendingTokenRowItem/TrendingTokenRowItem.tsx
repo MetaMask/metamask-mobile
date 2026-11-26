@@ -243,7 +243,7 @@ const TrendingTokenRowItem = ({
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
         badge={
-          <BadgeNetwork src={networkBadgeImageSource} twClassName="h-5 w-5" />
+          <BadgeNetwork src={networkBadgeImageSource} className="h-5 w-5" />
         }
       >
         <TrendingTokenLogo
@@ -310,7 +310,7 @@ const TrendingTokenRowItem = ({
           onPress={() => endAction.onPress(token)}
           accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
           testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
-          twClassName="self-center"
+          className="self-center"
         />
       )}
       {endAction?.type === 'quick-trade' && (
@@ -330,7 +330,7 @@ const TrendingTokenRowItem = ({
           <Icon
             name={IconName.Flash}
             size={IconSize.Md}
-            twClassName="text-icon-default"
+            className="text-icon-default"
           />
         </Pressable>
       )}

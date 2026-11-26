@@ -143,7 +143,7 @@ export function CustomAmountSkeleton({
       style={styles.container}
       testID="custom-amount-skeleton"
     >
-      <Skeleton height={88} twClassName="rounded-lg" width={80} />
+      <Skeleton height={88} className="rounded-lg" width={80} />
     </Pressable>
   );
 }

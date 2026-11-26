@@ -74,7 +74,7 @@ const NetworkFeeRow = ({
           name={IconName.Edit}
           size={IconSize.Md}
           color={IconColor.InfoDefault}
-          twClassName="mr-1"
+          className="mr-1"
           testID="cancel-speedup-edit-gas"
         />
       )}
@@ -130,7 +130,7 @@ const Description = ({ text }: { text: string }) => (
   <Text
     variant={TextVariant.BodySm}
     color={TextColor.TextAlternative}
-    twClassName="mt-2 pb-3"
+    className="mt-2 pb-3"
   >
     {text}
   </Text>

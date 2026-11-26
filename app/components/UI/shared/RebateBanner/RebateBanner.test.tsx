@@ -32,7 +32,7 @@ describe('RebateBanner', () => {
       <RebateBanner
         rebatePercent={5}
         testID="perps-rebate-banner"
-        twClassName="mb-3"
+        className="mb-3"
       />,
     );
 

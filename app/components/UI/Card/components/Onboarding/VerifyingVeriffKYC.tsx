@@ -123,7 +123,7 @@ const VerifyingVeriffKYC = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
       />
       <ScrollView
@@ -152,7 +152,7 @@ const VerifyingVeriffKYC = () => {
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName="mb-5 w-full overflow-hidden"
+              className="mb-5 w-full overflow-hidden"
               testID="verifying-veriff-kyc-illustration"
             >
               <ImmersveVerifyingIdentityAnimation />

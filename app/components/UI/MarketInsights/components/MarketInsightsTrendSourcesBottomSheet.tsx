@@ -102,17 +102,17 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                 )
               }
             >
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Start}
-                  twClassName="pr-1"
+                  className="pr-1"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextDefault}
                     numberOfLines={2}
-                    twClassName="flex-1 pr-2"
+                    className="flex-1 pr-2"
                   >
                     {tweet.contentSummary}
                   </Text>
@@ -127,9 +127,9 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="pt-3"
+                  className="pt-3"
                 >
-                  <Box twClassName="w-6 h-6 rounded-full items-center justify-center bg-muted mr-2">
+                  <Box className="w-6 h-6 rounded-full items-center justify-center bg-muted mr-2">
                     <Icon
                       name={IconName.X}
                       size={IconSize.Sm}

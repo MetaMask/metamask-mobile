@@ -37,7 +37,7 @@ export function NoQuoteAlert({ error }: Props) {
 
   return (
     <Pressable onPress={handlePress} testID="no-quote-alert">
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
+      <Box flexDirection={BoxFlexDirection.Column} className="gap-2">
         {allMessages.map((message, index) => (
           <AlertMessage alertMessage={message} key={index} />
         ))}

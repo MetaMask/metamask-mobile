@@ -18,7 +18,7 @@ const QuickBuyBanners: React.FC<QuickBuyBannersProps> = ({
   }
 
   return (
-    <Box twClassName="px-4" gap={3}>
+    <Box className="px-4" gap={3}>
       {isHardwareSolanaBlocked && (
         <BannerAlert
           severity={BannerAlertSeverity.Danger}

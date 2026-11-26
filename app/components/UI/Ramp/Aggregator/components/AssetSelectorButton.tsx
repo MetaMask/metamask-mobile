@@ -50,7 +50,7 @@ const AssetSelectorButton: React.FC<Props> = ({
           <ListItemColumn>
             <AvatarToken
               size={AvatarTokenSize.Xl}
-              twClassName="bg-background-hover"
+              className="bg-background-hover"
             />
           </ListItemColumn>
           <ListItemColumn widthType={WidthType.Fill}>

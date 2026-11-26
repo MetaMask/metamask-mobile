@@ -101,7 +101,7 @@ const OTAUpdatesModal = () => {
       <HeaderStandardGlass
         isFloating={false}
         isGlass={isGlassHeader}
-        twClassName="px-4"
+        className="px-4"
         onClose={() => dismissBottomSheet()}
         closeButtonProps={{ testID: 'close-button' }}
       >
@@ -111,9 +111,9 @@ const OTAUpdatesModal = () => {
           resizeMode="contain"
         />
       </HeaderStandardGlass>
-      <Box twClassName="px-6 pt-2 items-center">
-        <Box twClassName="items-center py-6">
-          <Box twClassName="items-center mb-6">
+      <Box className="px-6 pt-2 items-center">
+        <Box className="items-center py-6">
+          <Box className="items-center mb-6">
             <Image
               source={foxLogo}
               style={tw.style('w-[100px] h-[100px]')}
@@ -131,9 +131,9 @@ const OTAUpdatesModal = () => {
             {description}
           </Text>
         </Box>
-        <Box twClassName="w-full pb-4">
+        <Box className="w-full pb-4">
           <Button
-            twClassName="w-full"
+            className="w-full"
             size={ButtonSize.Lg}
             variant={ButtonVariant.Primary}
             onPress={onPress}

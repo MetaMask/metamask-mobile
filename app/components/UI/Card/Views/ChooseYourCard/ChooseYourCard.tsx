@@ -303,7 +303,7 @@ const ChooseYourCard = () => {
   const renderCardItem: ListRenderItem<CardOption> = useCallback(
     ({ item }) => (
       <Box
-        twClassName="rounded-xl overflow-hidden"
+        className="rounded-xl overflow-hidden"
         style={{ width: CARD_WIDTH }}
         testID={`${ChooseYourCardSelectors.CARD_IMAGE}-${item.id}`}
       >
@@ -315,7 +315,7 @@ const ChooseYourCard = () => {
 
   const renderFeatureItem = useCallback(
     (feature: string, index: number, isHighlighted: boolean) => (
-      <Box key={`feature-${index}`} twClassName="flex-row items-start gap-2">
+      <Box key={`feature-${index}`} className="flex-row items-start gap-2">
         <Icon
           name={IconName.Check}
           size={IconSize.Lg}
@@ -324,7 +324,7 @@ const ChooseYourCard = () => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName={`flex-1 ${isHighlighted ? 'text-text-default' : 'text-text-alternative'}`}
+          className={`flex-1 ${isHighlighted ? 'text-text-default' : 'text-text-alternative'}`}
         >
           {feature}
         </Text>
@@ -384,15 +384,15 @@ const ChooseYourCard = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="bg-background-default"
+          className="bg-background-default"
           {...headerHandlers}
         />
       )}
-      <Box twClassName="flex-1">
-        <Box twClassName="px-4 py-4">
+      <Box className="flex-1">
+        <Box className="px-4 py-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-default"
+            className="text-default"
             testID={ChooseYourCardSelectors.TITLE}
           >
             {isUpgradeFlow
@@ -401,7 +401,7 @@ const ChooseYourCard = () => {
           </Text>
         </Box>
 
-        <Box twClassName="mt-4 relative">
+        <Box className="mt-4 relative">
           <FlatList
             ref={flatListRef}
             data={cardOptions}
@@ -455,15 +455,15 @@ const ChooseYourCard = () => {
         </Box>
 
         {showPagination && (
-          <Box twClassName="flex-row justify-center items-center gap-1 mt-4">
+          <Box className="flex-row justify-center items-center gap-1 mt-4">
             {cardOptions.map((_, index) => renderPaginationDot(index))}
           </Box>
         )}
 
-        <Box twClassName="items-center mt-4 px-4">
+        <Box className="items-center mt-4 px-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-default"
+            className="text-default"
             testID={ChooseYourCardSelectors.CARD_NAME}
           >
             {selectedCard.name}
@@ -471,20 +471,20 @@ const ChooseYourCard = () => {
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Bold}
-            twClassName="text-text-alternative mt-1"
+            className="text-text-alternative mt-1"
             testID={ChooseYourCardSelectors.CARD_PRICE}
           >
             {selectedCard.price}
           </Text>
         </Box>
 
-        <Box twClassName="px-4 mt-4 gap-4 flex-1">
+        <Box className="px-4 mt-4 gap-4 flex-1">
           {selectedCard.features.map((feature, index) =>
             renderFeatureItem(feature.label, index, feature.isHighlighted),
           )}
         </Box>
 
-        <Box twClassName="px-4 pb-4 gap-2">
+        <Box className="px-4 pb-4 gap-2">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -505,7 +505,7 @@ const ChooseYourCard = () => {
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Regular}
-                twClassName="text-text-default"
+                className="text-text-default"
               >
                 {strings('card.choose_your_card.upgrade_to_metal_label')}
               </Text>

@@ -619,7 +619,7 @@ const EventMarketListContent = ({
               <BadgeCount
                 count={positions.length}
                 max={MAX_BADGE_COUNT}
-                twClassName="relative -top-px -ml-2 h-auto min-h-3 min-w-3 rounded bg-error-default-hover px-0.5"
+                className="relative -top-px -ml-2 h-auto min-h-3 min-w-3 rounded bg-error-default-hover px-0.5"
                 textProps={{ twClassName: 'text-[10px] leading-[12px]' }}
               />
             ),
@@ -709,7 +709,7 @@ const EventMarketListContent = ({
 
       if (projection.type === 'sectionViewAll') {
         return (
-          <Box twClassName="pt-3">
+          <Box className="pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -734,7 +734,7 @@ const EventMarketListContent = ({
         // A card can render several standard cards; gap spaces them.
         return (
           <Box
-            twClassName={projection.spaced ? 'gap-3 pt-3' : 'gap-3'}
+            className={projection.spaced ? 'gap-3 pt-3' : 'gap-3'}
             testID={EventMarketLayoutSectionTestIds.card(
               projection.sectionKey,
               card.key,
@@ -844,7 +844,7 @@ const EventMarketListContent = ({
           {tabs.length > 0 ? (
             <TabsBar
               testID={EventMarketListTestIds.TABS}
-              twClassName="-mx-4 mb-4"
+              className="-mx-4 mb-4"
               tabs={tabs}
               activeIndex={tabs.findIndex((tab) => tab.key === activeTab)}
               onTabPress={(index) => setSelectedTab(tabs[index].key)}

@@ -326,7 +326,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3 gap-2"
+      className="py-3 gap-2"
     >
       <Text
         variant={TextVariant.BodyMD}
@@ -360,13 +360,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3 gap-2"
+      className="py-3 gap-2"
     >
       <DesignSystemText
         variant={DesignSystemTextVariant.BodyMd}
         color={DesignSystemTextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="shrink-0"
+        className="shrink-0"
         testID={PredictActivityDetailsSelectorsIDs.MARKET_LABEL}
       >
         {label}
@@ -374,7 +374,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <DesignSystemText
         variant={DesignSystemTextVariant.BodySm}
         color={DesignSystemTextColor.TextDefault}
-        twClassName="flex-1 text-right"
+        className="flex-1 text-right"
         testID={PredictActivityDetailsSelectorsIDs.MARKET_VALUE}
       >
         {value}
@@ -392,7 +392,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       // so the section's top margin is the only space above it and the block
       // sits evenly between the header and the first detail row.
       <Box
-        twClassName="items-center gap-4 my-12"
+        className="items-center gap-4 my-12"
         testID={PredictActivityDetailsSelectorsIDs.AMOUNT_SECTION}
       >
         <UsdcIcon
@@ -428,7 +428,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       // margin so the rule sits evenly between the last market row and the
       // first transaction row.
       <Box
-        twClassName={hasSectionDivider ? 'mb-3' : 'mb-6'}
+        className={hasSectionDivider ? 'mb-3' : 'mb-6'}
         testID={PredictActivityDetailsSelectorsIDs.MARKET_SECTION}
       >
         {activityDetails.marketRows.map((row, index) => (
@@ -443,13 +443,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
                   row.isMonetary,
                 )}
             {index < activityDetails.marketRows.length - 1 ? (
-              <Box twClassName="w-full h-px" />
+              <Box className="w-full h-px" />
             ) : null}
           </React.Fragment>
         ))}
         {hasSectionDivider ? (
           <Box
-            twClassName="w-full border-t border-muted mt-3"
+            className="w-full border-t border-muted mt-3"
             testID={PredictActivityDetailsSelectorsIDs.SECTION_DIVIDER}
           />
         ) : null}
@@ -468,7 +468,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       // When Net P&L follows, the rule's top margin matches the section's
       // bottom margin so both sides of the rule are 24px (same as Outcome/Fees).
       <Box
-        twClassName={hasNetPnlDivider ? 'mb-3' : 'mb-6'}
+        className={hasNetPnlDivider ? 'mb-3' : 'mb-6'}
         testID={PredictActivityDetailsSelectorsIDs.TRANSACTION_SECTION}
       >
         {activityDetails.transactionRows.map((row, index) => {
@@ -484,7 +484,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         })}
         {hasNetPnlDivider ? (
           <Box
-            twClassName="w-full border-t border-muted mt-3"
+            className="w-full border-t border-muted mt-3"
             testID={PredictActivityDetailsSelectorsIDs.NET_PNL_DIVIDER}
           />
         ) : null}
@@ -518,7 +518,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       edges={['left', 'right', 'bottom']}
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <HeaderStandardGlass
           isGlass={isBrandRefresh}
           isFloating={false}
@@ -532,7 +532,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           }}
           includesTopInset
         />
-        <Box twClassName="px-4">
+        <Box className="px-4">
           {renderAmountDisplay()}
           {renderPredictionMarketDetails()}
           {renderTransactionDetails()}

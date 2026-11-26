@@ -45,7 +45,7 @@ function SmartAccountUpgradeHero({
     : renderShortAddress(address);
 
   return (
-    <Box twClassName="flex-row items-center gap-3">
+    <Box className="flex-row items-center gap-3">
       {address ? (
         <AvatarAccount
           address={address}
@@ -55,7 +55,7 @@ function SmartAccountUpgradeHero({
       ) : null}
       <Text
         variant={TextVariant.DisplayMd}
-        twClassName="shrink"
+        className="shrink"
         numberOfLines={1}
         ellipsizeMode="tail"
       >

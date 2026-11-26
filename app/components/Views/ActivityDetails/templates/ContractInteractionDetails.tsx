@@ -22,7 +22,7 @@ function ContractInteractionHero({
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
 
   return (
-    <Box twClassName="flex-row items-center gap-3">
+    <Box className="flex-row items-center gap-3">
       {/* Match the list row's fallback avatar (same DS AvatarIcon + resolver). */}
       <AvatarIcon
         iconName={resolveTransactionIconName(item.type)}

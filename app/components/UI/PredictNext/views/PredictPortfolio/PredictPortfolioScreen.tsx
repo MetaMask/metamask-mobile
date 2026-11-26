@@ -151,7 +151,7 @@ export const PredictPortfolioScreen = () => {
           backButtonProps={{ testID: PredictPortfolioScreenTestIds.BACK }}
         />
       </Box>
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         <PortfolioSummaryCard
           summary={summaryQuery.data}
           isLoading={summaryQuery.isPending}
@@ -174,7 +174,7 @@ export const PredictPortfolioScreen = () => {
             isFullWidth
             startIconName={IconName.Add}
             onPress={openDeposit}
-            twClassName="mb-4"
+            className="mb-4"
             testID={PredictPortfolioScreenTestIds.ADD_FUNDS}
           >
             {strings('predict_next.portfolio.add_funds')}
@@ -182,7 +182,7 @@ export const PredictPortfolioScreen = () => {
         ) : null}
         <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Box
             accessibilityElementsHidden={!positionsActive}
             importantForAccessibility={

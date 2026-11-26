@@ -72,7 +72,7 @@ const CheckGroup = ({
   testID: string;
   twClassName?: string;
 }) => (
-  <Box testID={testID} twClassName={twClassName}>
+  <Box testID={testID} className={twClassName}>
     {checkKeys.map((checkKey, index) => {
       const check = checks[checkKey];
       const outcome = check?.outcome ?? 'unknown';
@@ -149,13 +149,13 @@ const RiskList = ({ risks }: { risks: readonly SecurityRisk[] }) => (
             <SectionDivider testID={ContractSecuritySelectors.DIVIDER} />
           ) : null}
           <Box
-            twClassName="gap-1"
+            className="gap-1"
             testID={ContractSecuritySelectors.risk(risk.id)}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              className="gap-2"
             >
               <Icon
                 name={presentation.iconName}
@@ -311,7 +311,7 @@ export const ContractSecurityScreen: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3 px-4 pb-2"
+        className="gap-3 px-4 pb-2"
         style={{ paddingTop: insets.top + 8 }}
       >
         <TouchableOpacity
@@ -342,7 +342,7 @@ export const ContractSecurityScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={scrollContentStyle}
       >
-        <Box twClassName="px-4">
+        <Box className="px-4">
           {/* "Contract checks" rather than the tab's "Contract", so the
               heading does not simply repeat the screen title above it. Padded
               exactly like the Additional checks heading below, since the two
@@ -352,13 +352,13 @@ export const ContractSecurityScreen: React.FC = () => {
               'token_details_v1.security_tab.sections.contract_checks',
             )}
             titleProps={{ accessibilityRole: 'header' }}
-            twClassName="px-0 pb-5 pt-0"
+            className="px-0 pb-5 pt-0"
           />
           <CheckGroup
             checkKeys={CONTRACT_CHECK_KEYS}
             checks={facts.checks}
             testID={ContractSecuritySelectors.SECTION_CONTRACT}
-            twClassName="pb-6"
+            className="pb-6"
           />
 
           {/* The whole section goes when there is nothing to list, rule
@@ -382,7 +382,7 @@ export const ContractSecurityScreen: React.FC = () => {
                   below as the only spacing. */}
               <SectionDivider
                 marginVertical={0}
-                twClassName="-mx-4"
+                className="-mx-4"
                 testID={ContractSecuritySelectors.SECTION_RULE}
               />
               {/* Same `px-0` cancellation and header role as the tab's titles:
@@ -399,7 +399,7 @@ export const ContractSecurityScreen: React.FC = () => {
                   'token_details_v1.security_tab.sections.additional_checks',
                 )}
                 titleProps={{ accessibilityRole: 'header' }}
-                twClassName="px-0 pb-5 pt-6"
+                className="px-0 pb-5 pt-6"
               />
               <RiskList risks={facts.risks} />
             </>
@@ -410,7 +410,7 @@ export const ContractSecurityScreen: React.FC = () => {
           <SecurityAttribution
             fetchedMinutesAgo={fetchedMinutesAgo}
             testID={ContractSecuritySelectors.SCAN_META}
-            twClassName="pt-6"
+            className="pt-6"
             onPress={handleOpenDisclaimer}
           />
         </Box>

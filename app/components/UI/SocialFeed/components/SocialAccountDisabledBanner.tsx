@@ -34,7 +34,7 @@ const SocialAccountDisabledBanner: React.FC<
   }
 
   return (
-    <Box twClassName={twClassName}>
+    <Box className={twClassName}>
       <BannerAlert
         severity={BannerAlertSeverity.Danger}
         title={strings('social_leaderboard.account_disabled.title')}

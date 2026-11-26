@@ -21,11 +21,11 @@ export const PortfolioPanelError = ({
   testID,
   retryTestID,
 }: PortfolioPanelErrorProps) => (
-  <Box testID={testID} twClassName="items-center py-8">
+  <Box testID={testID} className="items-center py-8">
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
-      twClassName="mb-3 text-center"
+      className="mb-3 text-center"
     >
       {strings('predict_next.portfolio.load_failed')}
     </Text>

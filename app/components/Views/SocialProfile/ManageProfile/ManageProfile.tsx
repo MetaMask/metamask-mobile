@@ -159,10 +159,10 @@ const ManageProfile = () => {
         contentContainerStyle={tw.style('pb-8')}
         testID={ManageProfileSelectorsIDs.CONTENT}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="py-4">
+        <Box alignItems={BoxAlignItems.Center} className="py-4">
           <ProfileAvatar
             src={profile.image}
-            twClassName="bg-default"
+            className="bg-default"
             imageProps={{ contentFit: 'contain' }}
             accessibilityLabel={
               profile.displayName ||
@@ -177,7 +177,7 @@ const ManageProfile = () => {
           titleProps={SECTION_TITLE_PROPS}
           testID={ManageProfileSelectorsIDs.ABOUT_SECTION}
         />
-        <Card twClassName="mx-4 overflow-hidden p-0">
+        <Card className="mx-4 overflow-hidden p-0">
           <ProfileRow
             title={strings('manage_profile.display_name')}
             value={valueOrPlaceholder(profile.displayName)}
@@ -223,7 +223,7 @@ const ManageProfile = () => {
           titleProps={SECTION_TITLE_PROPS}
           testID={ManageProfileSelectorsIDs.PRIVACY_SECTION}
         />
-        <Card twClassName="mx-4 overflow-hidden p-0">
+        <Card className="mx-4 overflow-hidden p-0">
           <ProfileRow
             title={strings('manage_profile.trading_activity')}
             value={

@@ -127,7 +127,7 @@ const TaxFormOpenFormSheet: React.FC = () => {
       >
         {params.title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="gap-4 px-4">
+      <Box className="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -135,7 +135,7 @@ const TaxFormOpenFormSheet: React.FC = () => {
         >
           {params.description}
         </Text>
-        <Box twClassName="gap-1">
+        <Box className="gap-1">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -151,7 +151,7 @@ const TaxFormOpenFormSheet: React.FC = () => {
           {rateLimitMessage ? (
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-error-default"
+              className="text-error-default"
               testID={TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.RATE_LIMIT}
             >
               {rateLimitMessage}

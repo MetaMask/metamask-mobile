@@ -47,14 +47,14 @@ const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
       rebatePercent={rebatePercent}
       testID={PERPS_REBATE_BANNER_TEST_ID}
       textTwClassName={textTwClassName}
-      twClassName={twClassName}
+      className={twClassName}
     />
   );
 
   return containerTwClassName ? (
     <Box
       testID={PERPS_REBATE_BANNER_CONTAINER_TEST_ID}
-      twClassName={containerTwClassName}
+      className={containerTwClassName}
     >
       {banner}
     </Box>

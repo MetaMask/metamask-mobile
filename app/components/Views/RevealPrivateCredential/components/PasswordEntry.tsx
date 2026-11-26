@@ -26,7 +26,7 @@ const PasswordEntry = ({
   return (
     <>
       <Text
-        twClassName="mb-1"
+        className="mb-1"
         color={TextColor.TextDefault}
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -55,7 +55,7 @@ const PasswordEntry = ({
         }}
       />
       <Text
-        twClassName="mt-2"
+        className="mt-2"
         color={TextColor.ErrorDefault}
         variant={TextVariant.BodySm}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}

@@ -372,7 +372,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full gap-4 p-4"
+      className="w-full gap-4 p-4"
     >
       <TouchableOpacity
         testID="back-button"
@@ -412,9 +412,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
+      <Box flexDirection={BoxFlexDirection.Column} className="flex-1 min-w-0">
+        <Box flexDirection={BoxFlexDirection.Row} className="min-w-0 gap-4">
+          <Box className="flex-1 min-w-0">
             <Text
               variant={TextVariant.HeadingSm}
               numberOfLines={1}
@@ -424,14 +424,14 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             </Text>
           </Box>
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+        <Box flexDirection={BoxFlexDirection.Row} className="min-w-0 gap-4">
+          <Box className="flex-1 min-w-0">
+            <Box flexDirection={BoxFlexDirection.Row} className="gap-1">
               {!!outcomeGroupTitle && (
                 <>
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="font-medium"
+                    className="font-medium"
                     color={TextColor.TextAlternative}
                     numberOfLines={1}
                     ellipsizeMode="tail"
@@ -440,7 +440,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="font-medium"
+                    className="font-medium"
                     color={TextColor.TextAlternative}
                   >
                     {separator}
@@ -449,7 +449,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               )}
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="font-medium"
+                className="font-medium"
                 color={
                   outcomeToken?.title === 'Yes'
                     ? TextColor.SuccessDefault
@@ -477,9 +477,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full"
+        className="w-full"
       >
-        <Box twClassName="text-center leading-[72px]">
+        <Box className="text-center leading-[72px]">
           <PredictAmountDisplay
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
@@ -488,7 +488,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           />
         </Box>
         {/* Available balance */}
-        <Box twClassName="text-center mt-2">
+        <Box className="text-center mt-2">
           {isAvailableBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
@@ -508,11 +508,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="mt-2"
+          className="mt-2"
         >
           <Text
             variant={TextVariant.BodyLg}
-            twClassName="font-medium"
+            className="font-medium"
             color={TextColor.SuccessDefault}
           >
             {`${strings('predict.order.to_win')} `}
@@ -522,7 +522,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           ) : (
             <Text
               variant={TextVariant.BodyLg}
-              twClassName="font-medium"
+              className="font-medium"
               color={TextColor.SuccessDefault}
             >
               {formatPrice(toWin, {
@@ -582,11 +582,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     return (
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted"
+        className="border-t border-muted"
       >
         {/* Padding lives here rather than on the parent so the top border
             stays full-bleed while the rows line up with the action button. */}
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PredictFeeSummary
             disabled={false}
             total={total}
@@ -599,7 +599,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-2 px-4 pb-0"
+          className="gap-2 px-4 pb-0"
         >
           {errorMessage && (
             <Text
@@ -610,8 +610,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               {errorMessage}
             </Text>
           )}
-          <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
+          <Box className="w-full h-12">{renderActionButton()}</Box>
+          <Box className="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}

@@ -124,7 +124,7 @@ const MultichainAddressRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="p-4 gap-4"
+      className="p-4 gap-4"
       testID={testID}
       {...viewProps}
     >
@@ -137,19 +137,19 @@ const MultichainAddressRow = ({
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Start}
-        twClassName="flex-1"
+        className="flex-1"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
           >
             {networkName}
@@ -157,7 +157,7 @@ const MultichainAddressRow = ({
           {accountTypeLabel && (
             <Tag
               testID={MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID}
-              twClassName="self-center"
+              className="self-center"
             >
               {accountTypeLabel}
             </Tag>
@@ -175,7 +175,7 @@ const MultichainAddressRow = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-4"
+        className="gap-4"
       >
         {copyParams && (
           <ButtonIcon

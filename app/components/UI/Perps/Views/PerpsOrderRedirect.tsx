@@ -229,7 +229,7 @@ const PerpsOrderRedirect: React.FC = () => {
   // touches, so the feed stays usable until the sheet replaces this screen.
   if (useBottomSheetParam) {
     return (
-      <Box twClassName="flex-1 items-center pt-20" pointerEvents="box-none">
+      <Box className="flex-1 items-center pt-20" pointerEvents="box-none">
         <Box pointerEvents="none">
           <PerpsLoader message="Preparing order..." fullScreen={false} />
         </Box>
@@ -240,7 +240,7 @@ const PerpsOrderRedirect: React.FC = () => {
   // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20
   return (
     <Box
-      twClassName="flex-1 bg-default pt-20"
+      className="flex-1 bg-default pt-20"
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Start}
     >

@@ -106,7 +106,7 @@ export const ContactFormFields = ({
   toEnsName,
 }: ContactFormFieldsProps) => (
   <>
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <Label>{strings('address_book.name')}</Label>
       {editable ? (
         <TextField
@@ -129,7 +129,7 @@ export const ContactFormFields = ({
         </Text>
       )}
     </Box>
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <Label>{strings('address_book.address')}</Label>
       {isAddMode ? (
         <TextField
@@ -157,7 +157,7 @@ export const ContactFormFields = ({
           }}
         />
       ) : (
-        <Box twClassName="gap-2">
+        <Box className="gap-2">
           <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
             {address}
           </Text>
@@ -183,7 +183,7 @@ export const ContactFormFields = ({
         </TextButton>
       ) : null}
     </Box>
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <Label>{strings('address_book.memo')}</Label>
       {editable ? (
         <TextArea

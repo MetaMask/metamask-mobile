@@ -124,7 +124,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
   return (
     <Box
-      twClassName="gap-3"
+      className="gap-3"
       testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER}
     >
       <Box flexDirection={BoxFlexDirection.Row}>
@@ -161,13 +161,13 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             value={volumeDisplay}
             testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
           />
-          <Box twClassName="flex-1" />
+          <Box className="flex-1" />
         </Box>
       )}
 
       {showQualifiedCard && (
         <Box
-          twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+          className="bg-muted rounded-xl p-4 mt-2 gap-2"
           testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFIED_CARD}
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -206,13 +206,13 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
       {showQualifyForRankCard && (
         <Box
-          twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
+          className="bg-muted rounded-xl p-4 mt-2 gap-2"
           testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.QUALIFY_FOR_RANK_CARD}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings(

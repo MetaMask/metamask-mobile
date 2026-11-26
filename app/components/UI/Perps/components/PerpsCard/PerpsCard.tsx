@@ -217,7 +217,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     <ListItem
       isInteractive
       variant={ListItemVariant.TwoLines}
-      twClassName={rowClassName}
+      className={rowClassName}
       avatar={
         symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
       }

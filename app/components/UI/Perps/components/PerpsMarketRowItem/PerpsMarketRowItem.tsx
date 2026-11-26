@@ -210,9 +210,9 @@ const PerpsMarketRowItem = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
-            <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+            <Tag severity={TagSeverity.Neutral} className="self-center">
               {strings('token_watchlist.perp_tag')}
             </Tag>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
@@ -259,7 +259,7 @@ const PerpsMarketRowItem = ({
         ) : undefined
       }
       accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
-      twClassName={
+      className={
         [compact ? 'py-2 min-h-0' : undefined, twClassName]
           .filter(Boolean)
           .join(' ') || undefined

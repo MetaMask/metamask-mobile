@@ -374,7 +374,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
         <Text variant={TextVariant.HeadingSm}>
           {strings('rewards.ondo_rwa_asset_selector.title_swap_prefix')}
@@ -420,7 +420,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   );
 
   const renderSkeleton = () => (
-    <Box twClassName="px-4 pt-4 gap-3">
+    <Box className="px-4 pt-4 gap-3">
       {[1, 2, 3, 4, 5].map((i) => (
         <Skeleton key={i} style={tw.style('h-14 rounded-xl')} />
       ))}
@@ -428,7 +428,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   );
 
   const renderEmpty = () => (
-    <Box twClassName="px-4 pt-8" alignItems={BoxAlignItems.Center}>
+    <Box className="px-4 pt-8" alignItems={BoxAlignItems.Center}>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('rewards.ondo_rwa_asset_selector.no_results')}
       </Text>

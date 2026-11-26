@@ -97,7 +97,7 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
             twClassName: 'text-default',
           },
         }}
-        twClassName="mr-0 mb-2"
+        className="mr-0 mb-2"
       />
     );
   }

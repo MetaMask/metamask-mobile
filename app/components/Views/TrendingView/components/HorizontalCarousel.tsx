@@ -53,7 +53,7 @@ function HorizontalCarousel<T>({
           <Box
             borderColor={BoxBorderColor.BorderDefault}
             style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
-            twClassName={`rounded-2xl overflow-hidden ${
+            className={`rounded-2xl overflow-hidden ${
               !isLastItem ? 'pr-3' : ''
             }`}
           >

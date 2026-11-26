@@ -126,7 +126,7 @@ const OtherBottomSheetContent = ({
       </Box>
 
       <FooterGlass
-        twClassName="mt-4 pb-6"
+        className="mt-4 pb-6"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),
           size: ButtonSize.Lg,
@@ -144,7 +144,7 @@ const OtherBottomSheetContent = ({
   return (
     <Box
       pointerEvents="box-none"
-      twClassName="absolute inset-0"
+      className="absolute inset-0"
       style={{ transform: [{ translateY: -keyboardHeight }] }}
       testID={OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER}
     >

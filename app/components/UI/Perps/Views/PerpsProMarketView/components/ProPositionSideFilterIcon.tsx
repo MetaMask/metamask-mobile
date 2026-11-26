@@ -36,7 +36,7 @@ const ProPositionSideFilterIcon = ({
   const barWidths = sideFilter === 'all' ? [18, 14, 14, 10] : [18, 14, 10];
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-0.5">
+    <Box flexDirection={BoxFlexDirection.Column} className="gap-0.5">
       {barWidths.map((width, index) => (
         <View
           // eslint-disable-next-line react/no-array-index-key

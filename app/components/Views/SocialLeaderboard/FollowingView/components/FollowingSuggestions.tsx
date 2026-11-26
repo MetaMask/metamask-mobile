@@ -81,7 +81,7 @@ const FollowingSuggestions: React.FC = () => {
   const list = (() => {
     if (showLoading) {
       return (
-        <Box alignItems={BoxAlignItems.Center} twClassName="py-6">
+        <Box alignItems={BoxAlignItems.Center} className="py-6">
           <Spinner />
         </Box>
       );
@@ -90,7 +90,7 @@ const FollowingSuggestions: React.FC = () => {
       return (
         <Box
           alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-6 gap-4"
+          className="px-4 py-6 gap-4"
           testID={ProfilesToFollowViewSelectorsIDs.ERROR}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -133,7 +133,7 @@ const FollowingSuggestions: React.FC = () => {
         title={strings(
           'social_leaderboard.feed.v1_empty.following_suggestions.title',
         )}
-        twClassName="pt-4"
+        className="pt-4"
       >
         <Text
           variant={TextVariant.BodySm}

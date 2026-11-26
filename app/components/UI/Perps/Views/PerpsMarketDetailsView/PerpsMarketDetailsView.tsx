@@ -2256,13 +2256,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="mt-2 mb-2 gap-6"
+          className="mt-2 mb-2 gap-6"
         >
           <CandlePeriodSelector
             selectedPeriod={selectedCandlePeriod}
             onPeriodChange={handleCandlePeriodChange}
             onMorePress={handleMorePress}
-            twClassName="flex-1 py-0"
+            className="flex-1 py-0"
             groupTwClassName="gap-2"
             filterVariant={FilterButtonVariant.Secondary}
             periodButtonTwClassName="h-8 rounded-lg px-1"
@@ -2315,7 +2315,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       {Boolean(market?.symbol) &&
         isTradingHalted &&
         !isLoadingTradingHalted && (
-          <Box twClassName="px-4 mb-4">
+          <Box className="px-4 mb-4">
             <PerpsPriceDeviationWarning
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
             />
@@ -2324,14 +2324,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
       {/* OI Cap Warning - Shows when market is at capacity */}
       {isAtOICap && market.symbol ? (
-        <Box twClassName="px-4 mb-4">
+        <Box className="px-4 mb-4">
           <PerpsOICapWarning symbol={market.symbol} variant="banner" />
         </Box>
       ) : null}
 
       {/* Market Hours Banner - Hidden when OI cap warning is showing */}
       {!isAtOICap && isEquityAsset(market?.marketType) && (
-        <Box twClassName="px-4 mb-4">
+        <Box className="px-4 mb-4">
           <PerpsMarketHoursBanner
             marketType={market?.marketType}
             onInfoPress={handleMarketHoursInfoPress}
@@ -2343,7 +2343,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       {/* Stop Loss Prompt Banner - Shows when position needs attention */}
       {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
       {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-        <Box twClassName="px-4 mb-4">
+        <Box className="px-4 mb-4">
           <PerpsStopLossPromptBanner
             variant={bannerVariant}
             liquidationDistance={liquidationDistance ?? 0}
@@ -2360,7 +2360,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       )}
 
       {shouldShowPerpsMarketInsightsSection && !isPerpsSocialEnabled ? (
-        <Box twClassName="mb-4">{marketInsightsCard}</Box>
+        <Box className="mb-4">{marketInsightsCard}</Box>
       ) : null}
 
       {isDeferredReady ? (
@@ -2380,7 +2380,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                       key: 'market-insights',
                       visible: shouldShowPerpsMarketInsightsSection,
                       content: (
-                        <Box twClassName="pt-3 pb-6">{marketInsightsCard}</Box>
+                        <Box className="pt-3 pb-6">{marketInsightsCard}</Box>
                       ),
                     },
                     ...overviewSections,
@@ -2412,7 +2412,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           its title row once the content is scrolled. Outer flag guard avoids
           mounting the padded wrapper (and banner hooks) when disabled. */}
       {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
+        <Box className="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
           <PerpsServiceInterruptionBanner
             scrollY={scrollYShared}
             testID={

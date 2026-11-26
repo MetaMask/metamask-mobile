@@ -32,8 +32,8 @@ interface FeeRowProps {
 
 const FeeRow = ({ title, description, amount }: FeeRowProps) => (
   <>
-    <Box twClassName="flex-row items-start py-4">
-      <Box twClassName="flex-1 pr-4 gap-1">
+    <Box className="flex-row items-start py-4">
+      <Box className="flex-1 pr-4 gap-1">
         <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
           {title}
         </Text>
@@ -45,7 +45,7 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
         {amount}
       </Text>
     </Box>
-    <Box twClassName="border-t border-muted" />
+    <Box className="border-t border-muted" />
   </>
 );
 
@@ -132,12 +132,12 @@ const PredictFeeBreakdownSheet = forwardRef<
                   textProps={{ testID: 'predict-fee-breakdown-header' }}
                   // The built-in header height clips the title against the sheet's
                   // top radius. Release it and keep a taller minimum instead.
-                  twClassName="h-auto min-h-16"
+                  className="h-auto min-h-16"
                   testID="predict-fee-breakdown-header-bar"
                 >
                   {strings('predict.fee_summary.price_details')}
                 </BottomSheetHeader>
-                <Box twClassName="px-4 pb-6 flex-col">
+                <Box className="px-4 pb-6 flex-col">
                   <FeeRow
                     title={strings('predict.fee_summary.prediction_order')}
                     description={strings(
@@ -171,8 +171,8 @@ const PredictFeeBreakdownSheet = forwardRef<
 
                   {depositFee && (
                     <>
-                      <Box twClassName="flex-row items-start py-4">
-                        <Box twClassName="flex-1 pr-4 gap-1">
+                      <Box className="flex-row items-start py-4">
+                        <Box className="flex-1 pr-4 gap-1">
                           <Text
                             color={TextColor.TextDefault}
                             variant={TextVariant.BodyMd}
@@ -196,11 +196,11 @@ const PredictFeeBreakdownSheet = forwardRef<
                         </Text>
                       </Box>
 
-                      <Box twClassName="border-t border-muted" />
+                      <Box className="border-t border-muted" />
                     </>
                   )}
 
-                  <Box twClassName="flex-row justify-between items-center pt-4">
+                  <Box className="flex-row justify-between items-center pt-4">
                     <Text
                       color={TextColor.TextDefault}
                       variant={TextVariant.BodyMd}

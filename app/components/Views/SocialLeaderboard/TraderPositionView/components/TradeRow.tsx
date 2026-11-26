@@ -117,13 +117,13 @@ const TradeRow: React.FC<TradeRowProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 py-3"
+        className="px-4 py-3"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={4}
-          twClassName="flex-1 min-w-0 mr-3"
+          className="flex-1 min-w-0 mr-3"
         >
           {showValueAvatar ? (
             <AvatarIcon
@@ -142,7 +142,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
               size={AVATAR_SIZE}
             />
           )}
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -153,7 +153,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {actionLabel}
               </Text>
@@ -172,7 +172,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName={
+            className={
               isEntry ? 'text-success-default' : 'text-error-default'
             }
           >

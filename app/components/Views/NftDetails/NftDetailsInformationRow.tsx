@@ -38,7 +38,7 @@ const NftDetailsInformationRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-1"
+      className="py-1"
     >
       <Text
         variant={TextVariant.BodyMd}
@@ -51,7 +51,7 @@ const NftDetailsInformationRow = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           {onValuePress ? (
             <TouchableOpacity onPress={onValuePress}>

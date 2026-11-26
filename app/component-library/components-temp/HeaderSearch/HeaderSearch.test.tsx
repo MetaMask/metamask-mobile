@@ -181,7 +181,7 @@ describe('HeaderSearch', () => {
           onPressBackButton={onPressBackButton}
           textFieldSearchProps={mockTextFieldSearchProps}
           testID="container"
-          twClassName="bg-error-default"
+          className="bg-error-default"
         />,
       );
 
@@ -196,7 +196,7 @@ describe('HeaderSearch', () => {
           onPressCancelButton={onPressCancelButton}
           textFieldSearchProps={mockTextFieldSearchProps}
           testID="container"
-          twClassName="bg-error-default"
+          className="bg-error-default"
         />,
       );
 

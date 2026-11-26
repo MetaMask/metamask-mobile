@@ -190,7 +190,7 @@ const CustomNetwork = ({
               />
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
-              <Box twClassName="flex-row gap-2">
+              <Box className="flex-row gap-2">
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}

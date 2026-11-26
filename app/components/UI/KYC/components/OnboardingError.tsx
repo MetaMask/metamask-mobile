@@ -174,7 +174,7 @@ const KycOnboardingError = ({
         <TitleStandard
           title={title}
           bottomLabel={description}
-          twClassName="px-4 pb-4"
+          className="px-4 pb-4"
         />
         {items.length > 0 ? (
           <Box testID={KycOnboardingErrorSelectorsIDs.LIST}>
@@ -184,7 +184,7 @@ const KycOnboardingError = ({
           </Box>
         ) : null}
       </ScrollView>
-      <Box twClassName="gap-2 px-4 pb-2 pt-4">
+      <Box className="gap-2 px-4 pb-2 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

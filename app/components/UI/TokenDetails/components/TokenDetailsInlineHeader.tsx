@@ -167,7 +167,7 @@ export const TokenDetailsInlineHeader = ({
       return (
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="items-center gap-1"
+          className="items-center gap-1"
         >
           {verifiedBadge}
           {stockBadge}
@@ -220,10 +220,10 @@ export const TokenDetailsInlineHeader = ({
     if (buttons.length === 0) return undefined;
     // On glass the actions share one capsule, as on the home header.
     if (isGlass) {
-      return <CapsuleGlass twClassName="gap-1 px-1">{buttons}</CapsuleGlass>;
+      return <CapsuleGlass className="gap-1 px-1">{buttons}</CapsuleGlass>;
     }
     return (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+      <Box flexDirection={BoxFlexDirection.Row} className="gap-2">
         {buttons}
       </Box>
     );
@@ -260,7 +260,7 @@ export const TokenDetailsInlineHeader = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="shrink-0 gap-1"
+            className="shrink-0 gap-1"
             testID={TokenDetailsIds.header.address}
           >
             <Text
@@ -308,7 +308,7 @@ export const TokenDetailsInlineHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full min-w-0 gap-1"
+        className="w-full min-w-0 gap-1"
         style={tw.style('min-w-0 flex-1 -ml-1')}
         testID={TokenDetailsIds.header.subtitle}
       >
@@ -319,7 +319,7 @@ export const TokenDetailsInlineHeader = ({
             color={TextColor.TextDefault}
             numberOfLines={1}
             ellipsizeMode="tail"
-            twClassName="shrink min-w-0"
+            className="shrink min-w-0"
             testID={TokenDetailsIds.header.ticker}
           >
             {tokenTicker}
@@ -337,7 +337,7 @@ export const TokenDetailsInlineHeader = ({
       scrollY={scrollY}
       includesTopInset
       // The glass backdrop replaces the solid background.
-      twClassName={
+      className={
         isGlass
           ? 'min-h-14 h-auto justify-center'
           : 'min-h-14 h-auto bg-default justify-center'
@@ -347,11 +347,11 @@ export const TokenDetailsInlineHeader = ({
       endAccessory={endAccessory}
       avatar={
         <BadgeWrapper
-          twClassName="self-center"
+          className="self-center"
           position={BadgeWrapperPosition.BottomRight}
           badge={
             networkBadgeSource ? (
-              <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
+              <BadgeNetwork src={networkBadgeSource} className="h-5 w-5" />
             ) : undefined
           }
         >

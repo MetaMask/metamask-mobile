@@ -300,7 +300,7 @@ export const DepositStatusLine = ({
             <Text
               variant={TextVariant.BodySm}
               color={copy.color}
-              twClassName="shrink"
+              className="shrink"
               testID={testID}
             >
               {strings('predict_next.deposit.status.under_review_label')}{' '}

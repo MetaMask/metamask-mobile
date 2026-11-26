@@ -136,7 +136,7 @@ const OnboardingStep = ({
       : headerHandlers;
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       {headerMode !== 'none' ? (
         <HeaderStandardGlass
           isGlass={isGlassHeader}
@@ -168,9 +168,9 @@ const OnboardingStep = ({
             titleProps={{ testID: 'onboarding-step-title' }}
             bottomLabel={description}
             bottomLabelProps={{ testID: 'onboarding-step-description' }}
-            twClassName="mt-3 shrink-0"
+            className="mt-3 shrink-0"
           />
-          <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
+          <Box testID="onboarding-step-form" className="gap-4 flex-1">
             {formFields}
           </Box>
         </KeyboardAwareScrollView>
@@ -181,17 +181,17 @@ const OnboardingStep = ({
         tertiaryButtonProps ? (
           <Box
             testID="onboarding-step-actions"
-            twClassName="px-4 pt-4"
+            className="px-4 pt-4"
             style={{ paddingBottom: footerBottomPadding + bottom }}
             onLayout={handleFooterLayout}
           >
             {footerContent ? (
-              <Box testID="onboarding-step-footer-content" twClassName="pb-4">
+              <Box testID="onboarding-step-footer-content" className="pb-4">
                 {footerContent}
               </Box>
             ) : null}
             <FooterGlass
-              twClassName="px-0 gap-2"
+              className="px-0 gap-2"
               primaryButtonProps={primaryButtonProps}
               secondaryButtonProps={secondaryButtonProps}
               tertiaryButtonProps={tertiaryButtonProps}

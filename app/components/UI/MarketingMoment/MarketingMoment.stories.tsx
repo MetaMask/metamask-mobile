@@ -15,7 +15,7 @@ const MarketingMomentMeta = {
   component: MarketingMoment,
   decorators: [
     (Story: React.FC) => (
-      <Box twClassName="h-full flex-1">
+      <Box className="h-full flex-1">
         <Story />
       </Box>
     ),
@@ -53,7 +53,7 @@ export const Artwork = {
           justifyContent: BoxJustifyContent.End,
           className: 'overflow-visible',
         }}
-        artwork={<Box twClassName="h-48 w-full bg-primary-default" />}
+        artwork={<Box className="h-48 w-full bg-primary-default" />}
         {...actions}
       />
     );
@@ -66,7 +66,7 @@ export const DarkBackground = {
     return (
       <MarketingMoment
         theme={Theme.Dark}
-        background={<Box twClassName="flex-1 bg-accent02-dark" />}
+        background={<Box className="flex-1 bg-accent02-dark" />}
         title="Spend and earn"
         description="A dark theme and a full-bleed background, as on Card and VIP."
         titleProps={{ twClassName: 'text-accent02-light text-center' }}
@@ -84,14 +84,14 @@ export const UnsupportedLanguage = {
     return (
       <MarketingMoment
         title={
-          <Box twClassName="w-full" gap={6}>
-            <MarketingMomentTitle twClassName="w-full text-center">
+          <Box className="w-full" gap={6}>
+            <MarketingMomentTitle className="w-full text-center">
               永续合约来了
             </MarketingMomentTitle>
-            <MarketingMomentTitle twClassName="w-full text-center">
+            <MarketingMomentTitle className="w-full text-center">
               Перпы уже здесь
             </MarketingMomentTitle>
-            <MarketingMomentTitle twClassName="w-full text-center">
+            <MarketingMomentTitle className="w-full text-center">
               Τα perps είναι εδώ
             </MarketingMomentTitle>
           </Box>

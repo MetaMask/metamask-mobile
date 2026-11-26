@@ -96,7 +96,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   );
 
   return (
-    <Box twClassName="w-full bg-default" testID={testID}>
+    <Box className="w-full bg-default" testID={testID}>
       {/* Row 1: Category Badges (+ optional watchlist star badge) */}
       {showCategoryRow && (
         <PerpsMarketCategoryBadges
@@ -114,7 +114,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
           [logo(s)] "N markets" [chevron] opens the exchange filter sheet
           (TAT-4511 design). Without one it is plain text. */}
       {showSortRow && (
-        <Box twClassName="flex-row items-center justify-between py-1.5 pl-4 pr-1">
+        <Box className="flex-row items-center justify-between py-1.5 pl-4 pr-1">
           {onExchangeFilterPress ? (
             <Pressable
               accessibilityRole="button"
@@ -136,11 +136,11 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
               />
             </Pressable>
           ) : (
-            <Box twClassName="flex-row items-center gap-1">
+            <Box className="flex-row items-center gap-1">
               {marketCountText}
             </Box>
           )}
-          <Box twClassName="flex-row items-center gap-2">
+          <Box className="flex-row items-center gap-2">
             <PerpsMarketSortDropdowns
               selectedOptionId={selectedOptionId}
               onSortPress={onSortPress}

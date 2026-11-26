@@ -52,38 +52,38 @@ const SignInHelpBottomSheet = () => {
         </Text>
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-8 gap-5">
-        <Box twClassName="flex-row gap-3">
+      <Box className="px-4 pb-8 gap-5">
+        <Box className="flex-row gap-3">
           <Icon name={IconName.Mail} size={IconSize.Md} />
-          <Box twClassName="flex-1 gap-1">
+          <Box className="flex-1 gap-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('card.card_authentication.sign_in_help_email_title')}
             </Text>
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             >
               {strings('card.card_authentication.sign_in_help_email_body')}
             </Text>
           </Box>
         </Box>
 
-        <Box twClassName="flex-row gap-3">
+        <Box className="flex-row gap-3">
           <Icon name={IconName.Wallet} size={IconSize.Md} />
-          <Box twClassName="flex-1 gap-1">
+          <Box className="flex-1 gap-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('card.card_authentication.sign_in_help_wallet_title')}
             </Text>
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             >
               {strings('card.card_authentication.sign_in_help_wallet_body')}
             </Text>
           </Box>
         </Box>
 
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-text-alternative">
           {strings('card.card_authentication.sign_in_help_footer')}
         </Text>
 

@@ -368,7 +368,7 @@ describe('TabsList', () => {
 
     // Act
     const { getByText } = render(
-      <TabsList twClassName="bg-background-alternative" padding={4}>
+      <TabsList className="bg-background-alternative" padding={4}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>

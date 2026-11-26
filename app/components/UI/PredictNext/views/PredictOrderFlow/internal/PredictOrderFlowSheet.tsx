@@ -672,7 +672,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.VENUE_CHANGED}
         >
           {strings('predict_next.order_preview.venue_changed')}
@@ -687,7 +687,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.over_sell', {
@@ -701,7 +701,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.minimum_contracts')}
@@ -713,7 +713,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('predict_next.order_preview.minimum_amount', {
             amount: MINIMUM_AMOUNT,
@@ -729,7 +729,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.ERROR}
         >
           {quoteError.message}
@@ -737,7 +737,7 @@ export const PredictOrderFlowSheet = ({
       );
       return onAddFunds &&
         quoteError.code === PredictErrorCode.INSUFFICIENT_BALANCE ? (
-        <Box twClassName="items-center">
+        <Box className="items-center">
           {message}
           <Button
             variant={ButtonVariant.Tertiary}
@@ -757,7 +757,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.EXPIRED}
         >
           {strings('predict_next.order_preview.expired')}
@@ -785,7 +785,7 @@ export const PredictOrderFlowSheet = ({
     if (phase === 'submitting') {
       return (
         <Box
-          twClassName="h-12 flex-row items-center justify-center gap-2"
+          className="h-12 flex-row items-center justify-center gap-2"
           testID={PredictOrderFlowTestIds.SUBMITTING}
         >
           <ActivityIndicator size="small" />
@@ -831,7 +831,7 @@ export const PredictOrderFlowSheet = ({
         onClose={onClose}
         testID={PredictOrderFlowTestIds.SHEET}
       >
-        <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
+        <Box className="flex-row items-center gap-3 px-4 pb-3 pt-1">
           {intent.action === 'buy' ? (
             // The buy sheet shows the event mark unboxed, as the
             // Kalshi x Predict design does with team logos.
@@ -842,7 +842,7 @@ export const PredictOrderFlowSheet = ({
                 resizeMode="contain"
               />
             ) : (
-              <Box twClassName="h-10 w-10 rounded-full bg-muted" />
+              <Box className="h-10 w-10 rounded-full bg-muted" />
             )
           ) : intent.eventImageUrl ? (
             <Image
@@ -850,9 +850,9 @@ export const PredictOrderFlowSheet = ({
               style={tw.style('h-12 w-12 rounded-lg')}
             />
           ) : (
-            <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
+            <Box className="h-12 w-12 rounded-lg bg-muted" />
           )}
-          <Box twClassName="min-w-0 flex-1">
+          <Box className="min-w-0 flex-1">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -863,7 +863,7 @@ export const PredictOrderFlowSheet = ({
             </Text>
             {intent.action === 'buy' ? (
               <Box
-                twClassName="min-w-0 flex-row items-center gap-1"
+                className="min-w-0 flex-row items-center gap-1"
                 testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
               >
                 <Text
@@ -872,7 +872,7 @@ export const PredictOrderFlowSheet = ({
                   color={TextColor.SuccessDefault}
                   numberOfLines={1}
                   ellipsizeMode="tail"
-                  twClassName="shrink"
+                  className="shrink"
                 >
                   {intent.outcomeLabel}
                 </Text>
@@ -887,7 +887,7 @@ export const PredictOrderFlowSheet = ({
               </Box>
             ) : (
               <Box
-                twClassName="min-w-0 flex-row items-center"
+                className="min-w-0 flex-row items-center"
                 testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
               >
                 <Text
@@ -918,7 +918,7 @@ export const PredictOrderFlowSheet = ({
             accessibilityLabel={strings('predict_next.order_preview.close')}
           />
         </Box>
-        <Box twClassName="px-4">
+        <Box className="px-4">
           {phase === 'receipt' && receipt ? (
             <>
               {isStale ? statusMessage : null}
@@ -934,12 +934,12 @@ export const PredictOrderFlowSheet = ({
               />
             </>
           ) : phase === 'approval' && preview ? (
-            <Box twClassName="gap-2 py-3">
+            <Box className="gap-2 py-3">
               {commitError ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
-                  twClassName="text-center"
+                  className="text-center"
                   testID={PredictOrderFlowTestIds.ERROR}
                 >
                   {commitError.message}
@@ -959,7 +959,7 @@ export const PredictOrderFlowSheet = ({
             </Box>
           ) : (
             <>
-              <Box twClassName="items-center justify-center gap-2 py-6">
+              <Box className="items-center justify-center gap-2 py-6">
                 <PredictAmountDisplay
                   amount={intent.action === 'sell' ? contracts : amount}
                   isActive={isKeypadOpen}
@@ -1014,7 +1014,7 @@ export const PredictOrderFlowSheet = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="text-center"
+                    className="text-center"
                     testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
                   >
                     {strings('predict_next.order_preview.held_contracts', {
@@ -1038,15 +1038,15 @@ export const PredictOrderFlowSheet = ({
                   isDisabled={!isAmountEditable}
                 />
               )}
-              <Box twClassName="py-3">
+              <Box className="py-3">
                 {intent.action === 'sell' ? null : (
                   <OrderSummaryRows balance={balanceLabel} />
                 )}
               </Box>
-              <Box twClassName="gap-2">
+              <Box className="gap-2">
                 {statusMessage}
                 {renderCta()}
-                <Box twClassName="flex-row flex-wrap justify-center gap-1">
+                <Box className="flex-row flex-wrap justify-center gap-1">
                   <Text
                     variant={TextVariant.BodyXs}
                     color={TextColor.TextAlternative}

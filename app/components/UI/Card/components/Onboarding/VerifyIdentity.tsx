@@ -163,10 +163,10 @@ const VerifyIdentity = () => {
   const renderFormFields = () => (
     <>
       {/* ListItem already pads itself; cancel OnboardingStep's horizontal padding. */}
-      <Box twClassName="-mx-4">
+      <Box className="-mx-4">
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 justify-start py-2"
+          className="min-h-0 justify-start py-2"
           avatar={
             <AvatarIcon
               iconName={IconName.EyeSlash}
@@ -182,7 +182,7 @@ const VerifyIdentity = () => {
         />
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 justify-start py-2"
+          className="min-h-0 justify-start py-2"
           avatar={
             <AvatarIcon
               iconName={IconName.Fingerprint}
@@ -202,7 +202,7 @@ const VerifyIdentity = () => {
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-center"
+          className="text-center"
         >
           {startVeriricationErr}
         </HelpText>
@@ -212,7 +212,7 @@ const VerifyIdentity = () => {
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-center"
+          className="text-center"
         >
           {strings(
             'card.card_onboarding.verify_identity.start_verification_error',

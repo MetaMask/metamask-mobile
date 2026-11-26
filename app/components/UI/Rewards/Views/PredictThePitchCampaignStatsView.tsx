@@ -142,7 +142,7 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          <Box twClassName="p-4">
+          <Box className="p-4">
             <PredictThePitchStatsHeader
               position={position}
               isLoading={isLoading}
@@ -151,8 +151,8 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
               isCampaignComplete={isCampaignComplete}
             />
           </Box>
-          <Box twClassName="my-1 border-b border-border-muted" />
-          <Box twClassName="p-4 gap-3">
+          <Box className="my-1 border-b border-border-muted" />
+          <Box className="p-4 gap-3">
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.predict_the_pitch_campaign.performance_title')}
             </Text>
@@ -200,13 +200,13 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
                   }
                 />
               ) : (
-                <Box twClassName="flex-1" />
+                <Box className="flex-1" />
               )}
             </Box>
 
             {showQualifiedCard && (
               <Box
-                twClassName="bg-muted rounded-xl p-4 gap-2"
+                className="bg-muted rounded-xl p-4 gap-2"
                 testID={
                   PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFIED_CARD
                 }
@@ -232,7 +232,7 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
 
             {showQualifyForRankCard && (
               <Box
-                twClassName="bg-muted rounded-xl p-4 gap-2"
+                className="bg-muted rounded-xl p-4 gap-2"
                 testID={
                   PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFY_FOR_RANK_CARD
                 }

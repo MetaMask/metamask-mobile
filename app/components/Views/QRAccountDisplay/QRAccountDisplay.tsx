@@ -124,10 +124,10 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   };
 
   return (
-    <Box twClassName="items-center">
+    <Box className="items-center">
       {renderLabel()}
       {renderDescription()}
-      <Box twClassName="mt-8 items-center">
+      <Box className="mt-8 items-center">
         <Text
           variant={TextVariant.BodyMd}
           style={tw.style('w-[200px] text-center')}
@@ -146,7 +146,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
           endIconName={IconName.Copy}
           // Buttons that are not full width carry `self-start`, which wins over
           // this container's `items-center`.
-          twClassName="mt-2 self-center"
+          className="mt-2 self-center"
         >
           {strings('receive_request.copy_address')}
         </Button>

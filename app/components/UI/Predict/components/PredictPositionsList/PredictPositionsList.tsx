@@ -27,20 +27,20 @@ const PredictPositionsListSkeleton = () => {
   return (
     <Box
       testID={PredictPositionsListSelectorsIDs.LOADING_STATE}
-      twClassName="gap-3 py-4"
+      className="gap-3 py-4"
     >
       {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
         <Box
           key={index}
           testID={PredictPositionsListSelectorsIDs.SKELETON_ROW}
-          twClassName="flex-row items-start gap-4 py-2"
+          className="flex-row items-start gap-4 py-2"
         >
           <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
-          <Box twClassName="flex-1 gap-2">
+          <Box className="flex-1 gap-2">
             <Skeleton width="100%" height={18} style={tw.style('rounded-md')} />
             <Skeleton width="70%" height={16} style={tw.style('rounded-md')} />
           </Box>
-          <Box twClassName="items-end gap-2">
+          <Box className="items-end gap-2">
             <Skeleton width={64} height={18} style={tw.style('rounded-md')} />
             <Skeleton width={48} height={16} style={tw.style('rounded-md')} />
           </Box>

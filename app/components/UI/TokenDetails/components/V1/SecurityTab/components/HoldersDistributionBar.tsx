@@ -37,10 +37,10 @@ const LegendEntry = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="shrink gap-1.5"
+    className="shrink gap-1.5"
     testID={testID}
   >
-    <Box twClassName={`h-2 w-2 rounded-full ${swatchTwClassName}`} />
+    <Box className={`h-2 w-2 rounded-full ${swatchTwClassName}`} />
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextDefault}
@@ -89,13 +89,13 @@ export const HoldersDistributionBar: React.FC<HoldersDistributionBarProps> = ({
   }
 
   return (
-    <Box twClassName="gap-3" testID={SecurityTabSelectors.DISTRIBUTION_BAR}>
+    <Box className="gap-3" testID={SecurityTabSelectors.DISTRIBUTION_BAR}>
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName={`h-2.5 overflow-hidden rounded-full ${REMAINING_SWATCH}`}
+        className={`h-2.5 overflow-hidden rounded-full ${REMAINING_SWATCH}`}
       >
         <Box
-          twClassName={`h-full rounded-full ${TOP_TEN_SWATCH}`}
+          className={`h-full rounded-full ${TOP_TEN_SWATCH}`}
           style={fillStyle}
           testID={SecurityTabSelectors.DISTRIBUTION_BAR_FILL}
         />
@@ -103,7 +103,7 @@ export const HoldersDistributionBar: React.FC<HoldersDistributionBarProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-5"
+        className="gap-5"
       >
         <LegendEntry
           swatchTwClassName={TOP_TEN_SWATCH}

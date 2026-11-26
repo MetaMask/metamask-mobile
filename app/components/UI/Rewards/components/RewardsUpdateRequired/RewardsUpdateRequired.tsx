@@ -58,7 +58,7 @@ const RewardsUpdateRequired: React.FC = () => {
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1 bg-default px-6"
+      className="flex-1 bg-default px-6"
       testID="rewards-update-required-container"
     >
       <Image
@@ -69,7 +69,7 @@ const RewardsUpdateRequired: React.FC = () => {
 
       <Text
         variant={TextVariant.HeadingLg}
-        twClassName="text-center mb-3"
+        className="text-center mb-3"
         testID="rewards-update-required-title"
       >
         {strings('rewards.version_guard.title')}
@@ -77,7 +77,7 @@ const RewardsUpdateRequired: React.FC = () => {
 
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-alternative text-center mb-8"
+        className="text-alternative text-center mb-8"
         testID="rewards-update-required-description"
       >
         {strings('rewards.version_guard.description')}
@@ -89,7 +89,7 @@ const RewardsUpdateRequired: React.FC = () => {
         startIconName={IconName.ArrowSquareOut}
         startIconProps={{ size: IconSize.Sm }}
         onPress={handleUpdate}
-        twClassName="w-full"
+        className="w-full"
         testID="rewards-update-required-update-button"
       >
         {strings('rewards.version_guard.update_button')}

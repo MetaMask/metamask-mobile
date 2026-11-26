@@ -34,7 +34,7 @@ const PerpsMarketListEmptyState: React.FC<PerpsMarketListEmptyStateProps> = ({
   ctaTestID,
 }) => (
   <Box
-    twClassName="flex-1 items-center justify-center px-6 py-12 mb-[120px]"
+    className="flex-1 items-center justify-center px-6 py-12 mb-[120px]"
     testID={containerTestID}
   >
     <TabEmptyState

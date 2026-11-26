@@ -43,7 +43,7 @@ function TileCarousel<T>({
   return (
     <>
       {isLoading ? (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Skeleton />
         </Box>
       ) : (
@@ -61,7 +61,7 @@ function TileCarousel<T>({
           {onViewMore && (
             <ViewMoreCard
               onPress={onViewMore}
-              twClassName="w-[180px] flex-1"
+              className="w-[180px] flex-1"
               testID={viewMoreTestID}
             />
           )}

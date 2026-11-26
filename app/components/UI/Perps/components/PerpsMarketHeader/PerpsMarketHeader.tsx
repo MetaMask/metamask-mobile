@@ -285,7 +285,7 @@ const PerpsMarketHeader = ({
       <BadgeWrapper
         key="wallet"
         // The wrapper pins itself to the top of the row. Center it with the star.
-        twClassName="self-center"
+        className="self-center"
         testID={
           testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
         }
@@ -302,7 +302,7 @@ const PerpsMarketHeader = ({
               importantForAccessibility="no-hide-descendants"
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              className={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
               testID={
                 testIDs.walletButton
                   ? `${testIDs.walletButton}-risk-badge`
@@ -358,12 +358,12 @@ const PerpsMarketHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
         {/* On glass the icons share one capsule, as on the home header. */}
         {isBrandRefresh && iconButtons.length > 0 ? (
           <CapsuleGlass
-            twClassName="gap-1 px-1.5"
+            className="gap-1 px-1.5"
             testID={`${testIDs.container}-actions-capsule`}
           >
             {iconButtons}
@@ -389,7 +389,7 @@ const PerpsMarketHeader = ({
       testID={testIDs.container}
       style={styles.container}
       // The glass backdrop replaces the solid background.
-      twClassName={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
+      className={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
@@ -404,7 +404,7 @@ const PerpsMarketHeader = ({
         />
       ) : null}
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {showMarketIdentity ? (
           <PerpsMarketIdentity
             symbol={market.symbol}

@@ -125,7 +125,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         isFilterActive={isFilterActive}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
         testID={LiveViewSelectorsIDs.FILTER_BAR}
-        twClassName="px-4 pt-4 pb-2"
+        className="px-4 pt-4 pb-2"
       >
         <SocialFeedLiveButton onPausedChange={handlePausedChange} />
       </SocialTabFilterBar>
@@ -134,7 +134,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const liveEmpty = (
-    <Box twClassName="-mt-2">
+    <Box className="-mt-2">
       {isFilterActive ? (
         <SocialFilterEmptyState onClear={onClearFilters ?? (() => undefined)} />
       ) : (
@@ -144,7 +144,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <SocialFeed
         scope="all"
         enabled={hasBeenActive}

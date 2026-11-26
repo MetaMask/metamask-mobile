@@ -75,7 +75,7 @@ const PerpsLiveTrades: React.FC<PerpsLiveTradesProps> = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="px-4 pb-2"
+        className="px-4 pb-2"
       >
         {strings('perps.home.live_trades_subtitle')}
       </Text>

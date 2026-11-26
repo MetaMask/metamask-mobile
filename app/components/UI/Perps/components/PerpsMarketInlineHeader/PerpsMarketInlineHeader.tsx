@@ -91,7 +91,7 @@ export const PerpsMarketInlineHeader = ({
       isGlass={isBrandRefresh}
       isFloating={false}
       includesTopInset
-      twClassName="min-h-14 h-auto bg-default justify-center"
+      className="min-h-14 h-auto bg-default justify-center"
       testID={testID}
       onBack={onBackPress}
       backButtonProps={

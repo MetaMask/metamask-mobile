@@ -20,7 +20,7 @@ export const MarketClosedBanner = () => {
   }
 
   return (
-    <Box twClassName="mb-3">
+    <Box className="mb-3">
       <BannerAlert
         severity={BannerAlertSeverity.Danger}
         title={strings('bridge.market_closed.title')}

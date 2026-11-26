@@ -102,7 +102,7 @@ const BenefitsPreview = () => {
           name={IconName.ArrowRight}
           size={IconSize.Md}
           color={IconColor.IconAlternative}
-          twClassName="shrink-0"
+          className="shrink-0"
         />
       }
       // The growing end accessory takes the remaining row width so the count
@@ -111,7 +111,7 @@ const BenefitsPreview = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.End}
-          twClassName="grow"
+          className="grow"
         >
           {benefitsCountBadge}
         </Box>
@@ -144,7 +144,7 @@ const BenefitsPreview = () => {
       ))}
     </ScrollView>
   ) : (
-    <Box twClassName="px-4">
+    <Box className="px-4">
       <BenefitEmptyList />
     </Box>
   );
@@ -155,11 +155,11 @@ const BenefitsPreview = () => {
       {/* paddingTop matches the Home tab, where sections pair SectionHeader
           with a pt-3 content box. The carousel is full-bleed, so horizontal
           padding lives on the scroll content instead of this box. */}
-      <Box paddingTop={3} twClassName="pb-6">
+      <Box paddingTop={3} className="pb-6">
         {isLoading ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-3 px-4"
+            className="gap-3 px-4"
             testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON}
           >
             {[0, 1].map((index) => (

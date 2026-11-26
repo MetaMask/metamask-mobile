@@ -115,7 +115,7 @@ const TopTradersCarousel = ({
         return (
           <ViewMoreCard
             onPress={onViewMore}
-            twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
+            className={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
             testID={TopTradersSectionSelectorsIDs.VIEW_MORE_CARD}
           />
         );

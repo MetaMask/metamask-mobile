@@ -293,14 +293,14 @@ const TraderTradesSection = forwardRef<
         return (
           <View onLayout={handleSectionHeaderLayout}>
             <Box
-              twClassName="bg-default px-4 pt-3"
+              className="bg-default px-4 pt-3"
               style={
                 isHiddenBySticky
                   ? sectionHeaderStyles.hiddenBySticky
                   : undefined
               }
             >
-              <Box twClassName="self-start pb-2">
+              <Box className="self-start pb-2">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Bold}
@@ -309,7 +309,7 @@ const TraderTradesSection = forwardRef<
                   {section.dayLabel}
                 </Text>
               </Box>
-              <Box twClassName="h-px bg-muted" />
+              <Box className="h-px bg-muted" />
             </Box>
           </View>
         );
@@ -366,7 +366,7 @@ const TraderTradesSection = forwardRef<
         scrollEventThrottle={onScroll ? 16 : undefined}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         ListEmptyComponent={
-          <Box twClassName="px-4 py-6 items-center">
+          <Box className="px-4 py-6 items-center">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

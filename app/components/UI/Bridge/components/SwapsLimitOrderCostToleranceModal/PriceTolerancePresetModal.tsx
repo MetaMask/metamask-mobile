@@ -95,7 +95,7 @@ export function PriceTolerancePresetModal({
         }}
       />
       <Box paddingHorizontal={4} paddingVertical={2}>
-        <Text twClassName="text-center">
+        <Text className="text-center">
           {getDescription(selectedPriceTolerance)}
         </Text>
       </Box>

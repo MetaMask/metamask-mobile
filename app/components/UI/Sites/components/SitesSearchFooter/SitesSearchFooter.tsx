@@ -110,20 +110,20 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
           onPress={() => handlePress(searchQuery, 'open_url')}
           testID="trending-search-footer-url-link"
         >
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-primary"
+              className="text-primary"
               numberOfLines={1}
             >
               {searchQuery}
             </Text>
           </Box>
-          <Box twClassName="ml-3">
+          <Box className="ml-3">
             <Icon
               name={IconName.Arrow2UpRight}
               size={IconSize.Md}
-              twClassName="text-primary"
+              className="text-primary"
             />
           </Box>
         </TouchableOpacity>
@@ -134,32 +134,32 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
         onPress={() => handlePress(searchUrl, 'engine_search')}
         testID="trending-search-footer-search-link"
       >
-        <Box twClassName="flex-1 flex-row items-center">
+        <Box className="flex-1 flex-row items-center">
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-primary shrink-0"
+            className="text-primary shrink-0"
           >
             Search for {'"'}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-primary shrink"
+            className="text-primary shrink"
             numberOfLines={1}
           >
             {searchQuery}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-primary shrink-0"
+            className="text-primary shrink-0"
           >
             {'"'} on {searchEngineLabel}
           </Text>
         </Box>
-        <Box twClassName="ml-3">
+        <Box className="ml-3">
           <Icon
             name={IconName.Arrow2UpRight}
             size={IconSize.Md}
-            twClassName="text-primary"
+            className="text-primary"
           />
         </Box>
       </TouchableOpacity>

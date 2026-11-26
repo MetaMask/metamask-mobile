@@ -58,7 +58,7 @@ function OpenOrderRow({
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
         badge={
-          <BadgeNetwork twClassName="rounded-md" src={networkImageSource} />
+          <BadgeNetwork className="rounded-md" src={networkImageSource} />
         }
       >
         <AvatarToken
@@ -69,19 +69,19 @@ function OpenOrderRow({
       </BadgeWrapper>
     ),
     title: (
-      <Box twClassName="w-full min-w-0">
+      <Box className="w-full min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={4}
-          twClassName="w-full min-w-0"
+          className="w-full min-w-0"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             flexWrap={BoxFlexWrap.Wrap}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            twClassName="flex-1 min-w-0"
+            className="flex-1 min-w-0"
             testID={OpenOrderRowSelectorsIDs.TITLE_ROW}
           >
             <Text
@@ -90,7 +90,7 @@ function OpenOrderRow({
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
               ellipsizeMode="tail"
-              twClassName="shrink"
+              className="shrink"
               testID={OpenOrderRowSelectorsIDs.TITLE}
             >
               {title}
@@ -106,7 +106,7 @@ function OpenOrderRow({
             color={primaryColor}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            twClassName="grow-0 shrink-0"
+            className="grow-0 shrink-0"
             testID={OpenOrderRowSelectorsIDs.PRIMARY}
           >
             {primaryValue}
@@ -117,13 +117,13 @@ function OpenOrderRow({
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
           gap={4}
-          twClassName="w-full"
+          className="w-full"
         >
           <Text
             variant={TextVariant.BodySm}
             color={subtitleColor}
             fontWeight={FontWeight.Medium}
-            twClassName="shrink-0"
+            className="shrink-0"
             testID={OpenOrderRowSelectorsIDs.SUBTITLE}
           >
             {subtitle}
@@ -133,7 +133,7 @@ function OpenOrderRow({
             color={TextColor.TextAlternative}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            twClassName="grow-0 shrink-0"
+            className="grow-0 shrink-0"
             testID={OpenOrderRowSelectorsIDs.SECONDARY}
           >
             {secondaryValue}

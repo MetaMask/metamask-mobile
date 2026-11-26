@@ -70,7 +70,7 @@ const BlockExplorerSection: React.FC<BlockExplorerSectionProps> = ({
 
   if (addMode) {
     return (
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         <Label>{strings('app_settings.network_block_explorer_label')}</Label>
         <TextField
           ref={inputBlockExplorerURL}
@@ -318,10 +318,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
       >
         {/* Block explorer list — always visible when items exist */}
         {blockExplorerUrls.length > 0 && (
-          <Box twClassName="mx-4 rounded-xl overflow-hidden border border-border-muted">
+          <Box className="mx-4 rounded-xl overflow-hidden border border-border-muted">
             {blockExplorerUrls.map((url, index) => (
               <React.Fragment key={url}>
-                {index > 0 && <Box twClassName="h-px bg-border-muted" />}
+                {index > 0 && <Box className="h-px bg-border-muted" />}
                 <BlockExplorerListItem
                   url={url}
                   isSelected={blockExplorerUrl === url}
@@ -334,10 +334,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
         )}
 
         {blockExplorerSheetError ? (
-          <Box twClassName="mx-4 mt-2">
+          <Box className="mx-4 mt-2">
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-error-default"
+              className="text-error-default"
               testID={
                 NetworkDetailsViewSelectorsIDs.BLOCK_EXPLORER_SHEET_SUBMIT_ERROR
               }
@@ -357,8 +357,8 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
             <View
               pointerEvents={isBlockExplorerSheetSubmitting ? 'none' : 'auto'}
             >
-              <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
-                <Box twClassName="gap-1">
+              <Box className="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
+                <Box className="gap-1">
                   <Label>
                     {strings('app_settings.network_block_explorer_label')}
                   </Label>
@@ -380,7 +380,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
                   {hasInvalidUrl && (
                     <Text
                       variant={TextVariant.BodySm}
-                      twClassName="text-error-default"
+                      className="text-error-default"
                     >
                       {strings('app_settings.invalid_block_explorer_url')}
                     </Text>
@@ -409,7 +409,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
           style={toggleButtonStyle}
           pointerEvents={showForm ? 'none' : 'auto'}
         >
-          <Box twClassName="self-center pt-4">
+          <Box className="self-center pt-4">
             <Button
               variant={ButtonVariants.Secondary}
               label={strings('app_settings.add_block_explorer_url')}

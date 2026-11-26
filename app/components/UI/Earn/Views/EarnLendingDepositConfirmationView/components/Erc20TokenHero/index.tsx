@@ -52,7 +52,7 @@ const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {
         position={BadgeWrapperPosition.BottomRight}
         badge={
           <BadgeNetwork
-            twClassName={
+            className={
               token.isNative
                 ? NATIVE_TOKEN_BADGE_CLASSNAME
                 : ERC20_TOKEN_BADGE_CLASSNAME

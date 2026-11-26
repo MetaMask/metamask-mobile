@@ -31,7 +31,7 @@ export const SwapsBanners = ({
   >
     <Box
       gap={gap}
-      twClassName="mx-4"
+      className="mx-4"
       testID={SwapsBannersSelectorsIDs.CONTAINER}
     >
       {children}

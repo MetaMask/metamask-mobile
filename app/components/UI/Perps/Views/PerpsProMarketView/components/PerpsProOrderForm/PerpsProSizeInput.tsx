@@ -153,14 +153,14 @@ const PerpsProSizeInput = ({
   return (
     <Box
       ref={containerRef}
-      twClassName="overflow-visible rounded-xl bg-muted"
+      className="overflow-visible rounded-xl bg-muted"
       testID={ids.SIZE_CARD}
     >
-      <Box twClassName="relative">
+      <Box className="relative">
         <ButtonBase
           onPress={focusInput}
           isDisabled={isDisabled}
-          twClassName="h-[78px] w-full bg-transparent p-0"
+          className="h-[78px] w-full bg-transparent p-0"
           contentWrapperProps={{
             twClassName: 'w-full flex-col items-start',
           }}
@@ -170,7 +170,7 @@ const PerpsProSizeInput = ({
             unit: unitLabel,
           })}
         >
-          <Box twClassName="h-[46px] w-full justify-center px-3 py-3">
+          <Box className="h-[46px] w-full justify-center px-3 py-3">
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -179,11 +179,11 @@ const PerpsProSizeInput = ({
               {label}
             </Text>
           </Box>
-          <Box twClassName="h-8 w-full min-w-0 flex-row items-center gap-0.5 px-3 pr-8">
+          <Box className="h-8 w-full min-w-0 flex-row items-center gap-0.5 px-3 pr-8">
             {showUsdPrefix ? (
               <Text
                 variant={TextVariant.BodyLg}
-                twClassName="font-semibold"
+                className="font-semibold"
                 testID={ids.SIZE_PREFIX}
               >
                 {strings('perps.tpsl.usd_label')}
@@ -201,7 +201,7 @@ const PerpsProSizeInput = ({
               placeholderTextColor={tw.color('text-muted')}
               textVariant={TextVariant.HeadingLg}
               isStateStylesDisabled
-              twClassName="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
+              className="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
               testID={ids.SIZE_INPUT}
               accessibilityLabel={label}
               accessibilityHint={strings(
@@ -213,7 +213,7 @@ const PerpsProSizeInput = ({
             />
           </Box>
         </ButtonBase>
-        <Box twClassName="absolute right-3 top-3 z-10">
+        <Box className="absolute right-3 top-3 z-10">
           <ButtonIcon
             iconName={IconName.SwapHorizontal}
             size={ButtonIconSize.Sm}
@@ -233,7 +233,7 @@ const PerpsProSizeInput = ({
         </Box>
       </Box>
       <Box
-        twClassName="overflow-visible px-3 pb-4 pt-4"
+        className="overflow-visible px-3 pb-4 pt-4"
         onTouchCancel={handleSliderDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
@@ -255,11 +255,11 @@ const PerpsProSizeInput = ({
           )}
         />
       </Box>
-      <Box twClassName="w-full border-t border-muted" />
+      <Box className="w-full border-t border-muted" />
       <ButtonBase
         onPress={handleAddFundsPress}
         isDisabled={isDisabled || !onAddFundsPress}
-        twClassName="h-[46px] w-full rounded-b-2xl bg-transparent px-3"
+        className="h-[46px] w-full rounded-b-2xl bg-transparent px-3"
         contentWrapperProps={{
           twClassName: 'w-full flex-row items-center justify-start gap-1',
         }}

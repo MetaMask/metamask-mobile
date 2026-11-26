@@ -90,16 +90,16 @@ const PaymentMethodRow = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName={`w-10 h-10 rounded-full ${iconBackgroundClass}`}
+        className={`w-10 h-10 rounded-full ${iconBackgroundClass}`}
         testID={iconSlotTestID}
       >
         {icon}
       </Box>
-      <Box twClassName="ml-3 flex-1 min-w-0">
+      <Box className="ml-3 flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 flex-wrap"
+          className="gap-2 flex-wrap"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -124,7 +124,7 @@ const PaymentMethodRow = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="min-w-6"
+        className="min-w-6"
       >
         {renderTrailing(trailingElement)}
       </Box>
@@ -136,7 +136,7 @@ const PaymentMethodRow = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={`px-4 py-3 ${rowBackgroundClass} ${
+        className={`px-4 py-3 ${rowBackgroundClass} ${
           disabled ? 'opacity-50' : ''
         }`}
         testID={resolvedTestID}

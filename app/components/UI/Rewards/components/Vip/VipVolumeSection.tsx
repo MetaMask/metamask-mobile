@@ -55,8 +55,8 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   labels,
   onSwapsVolumeInfoPress,
 }) => (
-  <Box twClassName="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
-    <Box twClassName="gap-1">
+  <Box className="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
+    <Box className="gap-1">
       <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
         {title}
       </Text>
@@ -69,8 +69,8 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
       </Text>
     </Box>
 
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
-      <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS}>
+    <Box flexDirection={BoxFlexDirection.Row} className="gap-6 mt-1">
+      <Box className="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {labels.points}
         </Text>
@@ -78,11 +78,11 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
           {formatNumber(volume.points)}
         </Text>
       </Box>
-      <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS}>
+      <Box className="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {labels.swapsVolume}
@@ -106,9 +106,9 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
       </Box>
     </Box>
 
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
+    <Box flexDirection={BoxFlexDirection.Row} className="gap-6 mt-1">
       <Box
-        twClassName="flex-1"
+        className="flex-1"
         testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS_FROM_REFERRALS}
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -119,7 +119,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         </Text>
       </Box>
 
-      <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.PERPS}>
+      <Box className="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.PERPS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {labels.perpsVolume}
         </Text>
@@ -128,8 +128,8 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         </Text>
       </Box>
     </Box>
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
-      <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.REFERRALS}>
+    <Box flexDirection={BoxFlexDirection.Row} className="gap-6 mt-1">
+      <Box className="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.REFERRALS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {labels.vipReferrals}
         </Text>

@@ -83,7 +83,7 @@ function RecurringNumberCard({
       testID={testID}
       gap={2}
       padding={3}
-      twClassName="min-w-px flex-1 rounded-2xl bg-muted"
+      className="min-w-px flex-1 rounded-2xl bg-muted"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -121,7 +121,7 @@ function RecurringNumberCard({
           onPressIn={onInputPress}
           onFocus={onInputPress}
           placeholderTextColor={tw.color('text-muted')}
-          twClassName={`h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold${
+          className={`h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold${
             hasError ? ' text-error-default' : ''
           }`}
           testID={inputTestID}
@@ -231,7 +231,7 @@ const RecurringScheduleFields = forwardRef<
                 iconName={IconName.Info}
                 iconProps={{ color: IconColor.IconAlternative }}
                 size={ButtonIconSize.Xs}
-                twClassName="-ml-1"
+                className="-ml-1"
                 onPress={onRepeatInfoPress}
                 testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
                 accessibilityLabel={strings(

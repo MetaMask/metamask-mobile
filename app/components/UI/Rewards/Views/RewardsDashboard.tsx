@@ -352,7 +352,7 @@ const RewardsDashboard: React.FC = () => {
     ? undefined
     : tw.style('h-8 w-8 items-center justify-center');
   const vipIcon = isGlassHeader ? (
-    <CapsuleGlass twClassName="w-10 justify-center">
+    <CapsuleGlass className="w-10 justify-center">
       <VipIcon width={24} height={24} name="VipIcon" />
     </CapsuleGlass>
   ) : (
@@ -360,7 +360,7 @@ const RewardsDashboard: React.FC = () => {
   );
 
   const headerEndAccessory = (
-    <Box twClassName="flex-row gap-2">
+    <Box className="flex-row gap-2">
       {isVipProgramEnabled && isVipReferee && (
         <Pressable
           accessibilityRole="button"
@@ -455,7 +455,7 @@ const RewardsDashboard: React.FC = () => {
               As a tab it stays in HeaderRoot, unchanged. */}
           {isPushedScreen ? (
             <Box
-              twClassName="px-4 pt-3 pb-3"
+              className="px-4 pt-3 pb-3"
               onLayout={(event) =>
                 setTitleSectionHeight(event.nativeEvent.layout.height)
               }
@@ -471,7 +471,7 @@ const RewardsDashboard: React.FC = () => {
               </Pressable>
             </Box>
           ) : null}
-          <Box twClassName="gap-3">
+          <Box className="gap-3">
             {subscriptionId ? (
               <CampaignsPreview />
             ) : (
@@ -493,7 +493,7 @@ const RewardsDashboard: React.FC = () => {
                 <SectionHeader
                   title={copyTradingText.tradingCommissionsSection}
                 />
-                <Box twClassName="items-center px-4 py-4">
+                <Box className="items-center px-4 py-4">
                   <TabEmptyState
                     icon={
                       <AvatarIcon

@@ -43,7 +43,7 @@ interface CardHomeRecentActivityProps {
 
 /** Same 40pt muted circle as the Manage rows, so the first row lines up. */
 const ActivityRowIcon = ({ name }: { name: IconName }) => (
-  <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+  <Box className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
     <Icon name={name} size={IconSize.Md} color={IconColor.IconDefault} />
   </Box>
 );
@@ -92,7 +92,7 @@ const ActivityListItem = ({
       color={amountColor}
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
-      twClassName="text-right"
+      className="text-right"
     >
       {display.primaryAmount}
     </SensitiveText>
@@ -114,7 +114,7 @@ const ActivityListItem = ({
       }
       isHidden={privacyMode && !isPending}
       length={SensitiveTextLength.Short}
-      twClassName="text-right"
+      className="text-right"
     >
       {secondaryLabel}
     </SensitiveText>
@@ -158,7 +158,7 @@ const CardHomeRecentActivity = ({
   const hasTransactions = recent.length > 0;
   // A destination is enough: an empty or failed feed still opens full history.
   const seeAllButton = onSeeAll ? (
-    <Box twClassName={hasTransactions ? 'px-4 pt-2 pb-2' : 'w-full pt-2 pb-2'}>
+    <Box className={hasTransactions ? 'px-4 pt-2 pb-2' : 'w-full pt-2 pb-2'}>
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
@@ -175,7 +175,7 @@ const CardHomeRecentActivity = ({
     return (
       <Box
         testID={CardHomeSelectors.RECENT_ACTIVITY}
-        twClassName="items-center px-4 pt-6"
+        className="items-center px-4 pt-6"
       >
         <Box testID={CardHomeSelectors.RECENT_ACTIVITY_LOADING}>
           <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
@@ -188,12 +188,12 @@ const CardHomeRecentActivity = ({
     return (
       <Box
         testID={CardHomeSelectors.RECENT_ACTIVITY}
-        twClassName="items-center px-4 pt-6"
+        className="items-center px-4 pt-6"
       >
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={CardHomeSelectors.RECENT_ACTIVITY_ERROR}
         >
           {strings('card.transactions.load_error')}
@@ -202,7 +202,7 @@ const CardHomeRecentActivity = ({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}
           onPress={onRetry}
-          twClassName="mt-3 self-center"
+          className="mt-3 self-center"
           testID={CardHomeSelectors.RECENT_ACTIVITY_RETRY}
         >
           {strings('card.transactions.retry')}
@@ -228,7 +228,7 @@ const CardHomeRecentActivity = ({
         </>
       ) : (
         <Box
-          twClassName="items-center px-4 pt-6"
+          className="items-center px-4 pt-6"
           testID={CardHomeSelectors.RECENT_ACTIVITY_EMPTY}
         >
           <TabEmptyState
@@ -245,7 +245,7 @@ const CardHomeRecentActivity = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('card.card_home.activity_empty_description')}
             </Text>

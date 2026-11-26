@@ -101,7 +101,7 @@ describe('MarketingMomentTitle', () => {
     const { getByTestId } = render(
       <MarketingMomentTitle
         testID="marketing-title"
-        twClassName="text-accent02-light"
+        className="text-accent02-light"
         style={callerStyle}
       >
         Spend and earn

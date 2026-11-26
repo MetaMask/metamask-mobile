@@ -125,7 +125,7 @@ function RecurringTokenSummary({
           badge={
             <BadgeNetwork
               src={networkImageSource}
-              twClassName="rounded-md"
+              className="rounded-md"
               testID={networkBadgeTestID}
             />
           }
@@ -340,7 +340,7 @@ function RecurringOrderDetailsView() {
           />
         </Box>
 
-        <Box twClassName="mx-4 border-t-[1px] border-muted" />
+        <Box className="mx-4 border-t-[1px] border-muted" />
 
         <Box
           gap={2}
@@ -351,7 +351,7 @@ function RecurringOrderDetailsView() {
           <DetailRow label={strings('bridge.recurring.filled')}>
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-right"
+              className="text-right"
               testID={RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE}
             >
               {`${filledAmount} / ${totalSourceAmount} ${sourceToken.symbol} `}
@@ -368,45 +368,45 @@ function RecurringOrderDetailsView() {
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.interval')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {scheduleSummary}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.size_per_order')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {`${sizePerOrder} ${sourceToken.symbol}`}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.price_range.label')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {priceRange}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.total_received')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {`${totalReceived} ${destinationToken.symbol}`}
             </Text>
           </DetailRow>
           <DetailRow
             label={strings('bridge.recurring.average_execution_price')}
           >
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {averageExecutionPrice}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.start_date')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {formatRecurringOrderDate(order.timingData.createdAt)}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.end_date')}>
-            <Text variant={TextVariant.BodyMd} twClassName="text-right">
+            <Text variant={TextVariant.BodyMd} className="text-right">
               {formatRecurringOrderDate(order.timingData.endsAt)}
             </Text>
           </DetailRow>
         </Box>
 
-        <Box twClassName="mx-4 border-t-[1px] border-muted" />
+        <Box className="mx-4 border-t-[1px] border-muted" />
 
         <Box
           paddingHorizontal={4}

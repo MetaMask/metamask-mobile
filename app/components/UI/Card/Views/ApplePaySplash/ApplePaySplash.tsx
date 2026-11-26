@@ -55,12 +55,12 @@ const ApplePaySplash = () => {
   );
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box className="flex-1 bg-background-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         onClose={handleClose}
         closeButtonProps={{
           testID: 'apple-pay-splash-close',
@@ -74,12 +74,12 @@ const ApplePaySplash = () => {
       >
         <Text
           variant={TextVariant.DisplayMd}
-          twClassName="px-10 text-center"
+          className="px-10 text-center"
           testID="apple-pay-splash-title"
         >
           {strings('card.apple_pay_splash.title')}
         </Text>
-        <Box twClassName="items-center py-4">
+        <Box className="items-center py-4">
           <Image
             source={hero}
             resizeMode="contain"
@@ -94,21 +94,21 @@ const ApplePaySplash = () => {
         <Box alignItems={BoxAlignItems.Center} gap={4}>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-center"
+            className="text-center"
             testID="apple-pay-splash-description"
           >
             {strings('card.apple_pay_splash.description')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-center"
+            className="text-center"
             testID="apple-pay-splash-no-downloads"
           >
             {strings('card.apple_pay_splash.no_downloads')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-center"
+            className="text-center"
             testID="apple-pay-splash-setup"
           >
             {strings('card.apple_pay_splash.setup')}
@@ -116,9 +116,9 @@ const ApplePaySplash = () => {
         </Box>
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
-        <Box twClassName="items-center px-4 pb-4">
+        <Box className="items-center px-4 pb-4">
           {isProvisioning ? (
-            <Box twClassName="py-3">
+            <Box className="py-3">
               <Spinner
                 testID="apple-pay-splash-spinner"
                 spinnerIconProps={{ size: IconSize.Xl }}

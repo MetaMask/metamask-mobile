@@ -74,13 +74,13 @@ function ScannerRecovery({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1 px-4"
+      className="flex-1 px-4"
     >
       {title ? (
         <Text
           variant={TextVariant.HeadingSm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
         >
           {title}
         </Text>
@@ -89,12 +89,12 @@ function ScannerRecovery({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextDefault}
-          twClassName={title ? 'mt-2 text-center' : 'text-center'}
+          className={title ? 'mt-2 text-center' : 'text-center'}
         >
           {message}
         </Text>
       ) : null}
-      <Box gap={3} twClassName="mt-8 w-full">
+      <Box gap={3} className="mt-8 w-full">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonBaseSize.Lg}
@@ -338,16 +338,16 @@ export function HwQrScanner() {
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6"
+          className="flex-1 px-6"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('transaction.no_camera_permission')}
           </Text>
-          <Box twClassName="mt-6 w-full">
+          <Box className="mt-6 w-full">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Lg}
@@ -402,12 +402,12 @@ export function HwQrScanner() {
           size={ButtonIconSize.Md}
           onPress={handleGoBack}
         />
-        <Box twClassName="h-10 w-10" />
+        <Box className="h-10 w-10" />
       </Box>
 
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         <Box
-          twClassName="w-full overflow-hidden rounded-lg bg-muted"
+          className="w-full overflow-hidden rounded-lg bg-muted"
           style={styles.cameraPreview}
         >
           {renderCameraContent()}
@@ -417,7 +417,7 @@ export function HwQrScanner() {
           testID={HwQrScannerSelectorsIDs.STEP_TEXT}
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
-          twClassName="mt-8"
+          className="mt-8"
         >
           {stepText}
         </Text>

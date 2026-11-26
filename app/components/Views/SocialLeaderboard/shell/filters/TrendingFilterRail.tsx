@@ -69,7 +69,7 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
     // leaves 8px, and the first post keeps its own 8px padding, for 16px total.
     <Box
       testID={TRENDING_FILTER_RAIL_TEST_ID}
-      twClassName="relative -mb-4 min-h-10"
+      className="relative -mb-4 min-h-10"
     >
       {children}
       <View pointerEvents="box-none" style={styles.fade}>
@@ -88,12 +88,12 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
         <Box
           alignItems={BoxAlignItems.End}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 pr-4"
+          className="flex-1 pr-4"
           pointerEvents="box-none"
         >
           <Box
             testID={`${testID}-disc`}
-            twClassName="rounded-full bg-default overflow-hidden"
+            className="rounded-full bg-default overflow-hidden"
           >
             <ButtonIcon
               iconName={IconName.Filter}
@@ -117,7 +117,7 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
                 'social_leaderboard.shell.filters.title',
               )}
               accessibilityState={{ selected: isFilterActive }}
-              twClassName={
+              className={
                 isFilterActive
                   ? 'rounded-full bg-icon-default'
                   : 'rounded-full bg-muted'

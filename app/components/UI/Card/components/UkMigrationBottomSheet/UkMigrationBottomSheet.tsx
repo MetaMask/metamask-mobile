@@ -164,28 +164,28 @@ const UkMigrationBottomSheet = () => {
         </Text>
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-6 gap-6">
+      <Box className="px-4 pb-6 gap-6">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative"
+          className="text-alternative"
           testID={UkMigrationBottomSheetSelectors.DESCRIPTION}
         >
           {description}
         </Text>
 
-        <Box twClassName="gap-4" testID={UkMigrationBottomSheetSelectors.STEPS}>
+        <Box className="gap-4" testID={UkMigrationBottomSheetSelectors.STEPS}>
           {steps.map((step) => (
             <Box
               key={step.number}
-              twClassName="flex-row items-center gap-3"
+              className="flex-row items-center gap-3"
               testID={UkMigrationBottomSheetSelectors.step(step.number)}
             >
-              <Box twClassName="w-6 h-6 rounded-full bg-icon-default items-center justify-center">
+              <Box className="w-6 h-6 rounded-full bg-icon-default items-center justify-center">
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  twClassName="text-background-default"
+                  className="text-background-default"
                 >
                   {step.number}
                 </Text>
@@ -193,7 +193,7 @@ const UkMigrationBottomSheet = () => {
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                twClassName="flex-1"
+                className="flex-1"
               >
                 {step.label}
               </Text>
@@ -201,7 +201,7 @@ const UkMigrationBottomSheet = () => {
           ))}
         </Box>
 
-        <Box twClassName="gap-4">
+        <Box className="gap-4">
           <Button
             onPress={handleGetStarted}
             variant={ButtonVariant.Primary}

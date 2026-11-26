@@ -391,7 +391,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     return (
       <Box
-        twClassName={
+        className={
           includeTopMargin ? 'flex-col gap-1 mt-2 mb-6' : 'flex-col gap-1 mb-6'
         }
       >
@@ -414,14 +414,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             onSubmitEditing={dismissKeyboard}
             placeholder={placeholderText}
             isError={Boolean(errorWordIndexes[0])}
-            twClassName="min-h-[140px] rounded-[12px]"
+            className="min-h-[140px] rounded-[12px]"
             testID={testIdPrefix}
             autoFocus={autoFocusProp}
             onKeyPress={(e) => handleKeyPress(e, 0)}
             isDisabled={disabled}
           />
         ) : (
-          <Box twClassName="flex-row flex-wrap w-full">
+          <Box className="flex-row flex-wrap w-full">
             {seedPhrase.map((item, index) => (
               <SrpInput
                 key={`seed-phrase-item-${uniqueId}-${index}`}
@@ -454,7 +454,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   (autoFocusProp || index > 0)
                 }
                 isDisabled={disabled}
-                twClassName={getGridItemClassName(index)}
+                className={getGridItemClassName(index)}
                 inputProps={{
                   ...SHARED_INPUT_PROPS,
                   testID: `${testIdPrefix}_${index}`,
@@ -467,7 +467,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         )}
 
         {(showPaste || showClearAll) && (
-          <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
+          <Box className="flex-row justify-end items-end pt-1 pb-[1px]">
             <Button
               variant={ButtonVariant.Tertiary}
               onPress={showClearAll ? handleClear : handlePaste}

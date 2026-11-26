@@ -210,7 +210,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           alignItems={BoxAlignItems.Center}
           gap={1}
           marginBottom={3}
-          twClassName="flex-wrap"
+          className="flex-wrap"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -236,7 +236,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 name={quoteUnitTokenSymbol}
                 src={quoteUnitImageSource}
                 size={AvatarTokenSize.Xs}
-                twClassName="mr-0.5 h-3 w-3"
+                className="mr-0.5 h-3 w-3"
                 testID={
                   LimitOrderPriceAdjustInputSectionSelectorsIDs.QUOTE_UNIT_AVATAR
                 }
@@ -265,7 +265,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           </Text>
         </Box>
         <Box
-          twClassName="w-full min-w-0"
+          className="w-full min-w-0"
           marginBottom={shouldShowSecondaryRow ? 2 : 3}
           onLayout={onContainerLayout}
         >
@@ -280,7 +280,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="min-w-0"
+              className="min-w-0"
               pointerEvents={isInputPressDisabled ? 'none' : 'auto'}
               testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW}
             >
@@ -289,7 +289,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
                   style={amountTextStyle}
-                  twClassName="p-0 leading-none"
+                  className="p-0 leading-none"
                 >
                   {inputPrefix}
                 </Text>
@@ -309,7 +309,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 onPressIn={onInputPress}
                 onFocus={onInputPress}
                 style={amountTextStyle}
-                twClassName="min-w-0 flex-1 border-0 bg-transparent p-0"
+                className="min-w-0 flex-1 border-0 bg-transparent p-0"
               />
             </Box>
           )}
@@ -320,7 +320,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            className="mb-4"
           >
             {shouldShowAmountTypeToggle ? (
               <Text

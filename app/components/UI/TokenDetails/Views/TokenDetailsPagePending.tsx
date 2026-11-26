@@ -41,28 +41,28 @@ const PendingBodySkeleton = (): React.ReactElement => {
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   return (
-    <Box twClassName="w-full flex-1" testID={PENDING_BODY_SKELETON_TEST_ID}>
+    <Box className="w-full flex-1" testID={PENDING_BODY_SKELETON_TEST_ID}>
       {isMarketInsightsEnabled ? <MarketInsightsEntryCardSkeleton /> : null}
-      <Box twClassName="mt-6 gap-3 px-4">
-        <Skeleton twClassName="h-5 w-28 rounded-md" />
-        <Box twClassName="flex-row items-center gap-3">
-          <Skeleton twClassName="h-10 w-10 rounded-full" />
-          <Box twClassName="flex-1 gap-2">
-            <Skeleton twClassName="h-4 w-2/5 rounded-md" />
-            <Skeleton twClassName="h-3.5 w-1/4 rounded-md" />
+      <Box className="mt-6 gap-3 px-4">
+        <Skeleton className="h-5 w-28 rounded-md" />
+        <Box className="flex-row items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Box className="flex-1 gap-2">
+            <Skeleton className="h-4 w-2/5 rounded-md" />
+            <Skeleton className="h-3.5 w-1/4 rounded-md" />
           </Box>
-          <Skeleton twClassName="h-4 w-16 rounded-md" />
+          <Skeleton className="h-4 w-16 rounded-md" />
         </Box>
       </Box>
-      <Box twClassName="mt-4 px-4">
-        <Skeleton twClassName="h-[72px] w-full rounded-xl" />
+      <Box className="mt-4 px-4">
+        <Skeleton className="h-[72px] w-full rounded-xl" />
       </Box>
-      <Box twClassName="mt-auto gap-3 px-4 pb-6 pt-4">
-        <Box twClassName="flex-row items-center justify-between">
-          <Skeleton twClassName="h-4 w-24 rounded-md" />
-          <Skeleton twClassName="h-4 w-12 rounded-md" />
+      <Box className="mt-auto gap-3 px-4 pb-6 pt-4">
+        <Box className="flex-row items-center justify-between">
+          <Skeleton className="h-4 w-24 rounded-md" />
+          <Skeleton className="h-4 w-12 rounded-md" />
         </Box>
-        <Skeleton twClassName="h-12 w-full rounded-full" />
+        <Skeleton className="h-12 w-full rounded-full" />
       </Box>
     </Box>
   );
@@ -140,7 +140,7 @@ const TokenDetailsPagePending = ({
 
   const chart = (
     <Box
-      twClassName={`w-full ${isTechnicalIndicatorsEnabled ? 'mt-1' : 'mt-3'}`}
+      className={`w-full ${isTechnicalIndicatorsEnabled ? 'mt-1' : 'mt-3'}`}
       style={{ height: TOKEN_OVERVIEW_CHART_HEIGHT }}
     >
       {chartType === ChartType.Candles ? (
@@ -154,7 +154,7 @@ const TokenDetailsPagePending = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="flex-1"
+      className="flex-1"
       testID={TokenDetailsIds.pending}
     >
       <TokenDetailsInlineHeader
@@ -173,7 +173,7 @@ const TokenDetailsPagePending = ({
       />
       {isTechnicalIndicatorsEnabled ? (
         <>
-          <Box twClassName="w-full py-2">
+          <Box className="w-full py-2">
             <IntervalBar
               intervals={isLineMode ? LINE_CHART_TIME_RANGES : undefined}
               selectedInterval={isLineMode ? timeRange : chartInterval}
@@ -184,9 +184,9 @@ const TokenDetailsPagePending = ({
           </Box>
           {chart}
           {isLineMode ? (
-            <Box twClassName="pb-4" />
+            <Box className="pb-4" />
           ) : (
-            <Box twClassName="mt-4 mb-4 w-full">
+            <Box className="mt-4 mb-4 w-full">
               <IndicatorBar
                 maLabel={maLabelFrom(indicators)}
                 activeIndicators={new Set(indicators)}
@@ -198,7 +198,7 @@ const TokenDetailsPagePending = ({
       ) : (
         <>
           {chart}
-          <Box twClassName="w-full pt-3 pb-6">
+          <Box className="w-full pt-3 pb-6">
             <TimeRangeSelector
               selected={timeRange}
               onSelect={setTimeRange}

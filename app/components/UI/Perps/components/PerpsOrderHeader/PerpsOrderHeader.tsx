@@ -179,7 +179,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       isGlass={isBrandRefresh}
       isFloating={false}
       includesTopInset
-      twClassName="min-h-14 h-auto bg-default justify-center pr-4"
+      className="min-h-14 h-auto bg-default justify-center pr-4"
       testID={PerpsOrderHeaderSelectorsIDs.HEADER}
       onBack={handleBack}
       backButtonProps={{

@@ -162,7 +162,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       )}
 
       {/* Title */}
-      <Box twClassName={titleWrapperClass}>
+      <Box className={titleWrapperClass}>
         {typeof children === 'string' ? (
           <Text
             variant={textVariant}

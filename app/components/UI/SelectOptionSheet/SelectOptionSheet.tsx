@@ -59,7 +59,7 @@ const SelectOptionSheet = ({
           name={IconName.ArrowDown}
           size={IconSize.Xs}
           color={IconColor.IconAlternative}
-          twClassName="mr-2"
+          className="mr-2"
         />
       </View>
     </TouchableOpacity>

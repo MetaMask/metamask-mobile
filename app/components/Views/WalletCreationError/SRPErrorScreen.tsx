@@ -178,29 +178,29 @@ const SRPErrorScreen = ({
         contentContainerStyle={tw.style('flex-grow p-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="items-center pt-12">
+        <Box className="items-center pt-12">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
             color={IconColor.ErrorDefault}
-            twClassName="mb-4"
+            className="mb-4"
           />
 
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-4">
+          <Text variant={TextVariant.HeadingMd} className="text-center mb-4">
             {strings('wallet_creation_error.title')}
           </Text>
 
-          <Box twClassName="flex-row bg-info-muted rounded-lg p-3 mb-6 w-full">
+          <Box className="flex-row bg-info-muted rounded-lg p-3 mb-6 w-full">
             <Icon
               name={IconName.Info}
               size={IconSize.Sm}
               color={IconColor.InfoDefault}
-              twClassName="mr-2 mt-0.5"
+              className="mr-2 mt-0.5"
             />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('wallet_creation_error.srp_description_part1')}{' '}
               <Text
@@ -214,7 +214,7 @@ const SRPErrorScreen = ({
             </Text>
           </Box>
 
-          <Box twClassName="flex-row justify-between items-center mb-2 w-full">
+          <Box className="flex-row justify-between items-center mb-2 w-full">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('wallet_creation_error.error_report')}
             </Text>
@@ -244,7 +244,7 @@ const SRPErrorScreen = ({
         </Box>
       </ScrollView>
       <FooterGlass
-        twClassName="py-2"
+        className="py-2"
         primaryButtonProps={{
           children: strings('wallet_creation_error.send_error_report'),
           size: ButtonSize.Lg,

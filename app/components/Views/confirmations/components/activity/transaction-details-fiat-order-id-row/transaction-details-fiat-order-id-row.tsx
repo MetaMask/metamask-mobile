@@ -43,7 +43,7 @@ export function TransactionDetailsFiatOrderIdRow() {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1.5"
+        className="gap-1.5"
       >
         {/* Order ids can be long (e.g. UUIDs); shorten to a start…end form so
             the value never collides with the label, and let the copy button

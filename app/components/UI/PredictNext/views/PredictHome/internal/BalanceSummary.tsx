@@ -71,7 +71,7 @@ export const BalanceSummary = ({
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('predict_next.balance_unavailable.description')}
         </Text>
-        <Box twClassName="self-start">
+        <Box className="self-start">
           <Button
             variant={ButtonVariant.Secondary}
             onPress={onRetry}

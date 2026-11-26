@@ -69,7 +69,7 @@ const DepositReceiveSection = ({
                 uri: token.image,
               }}
               size={AvatarTokenSize.Xs}
-              twClassName="bg-default"
+              className="bg-default"
               style={styles.receiveTokenIcon}
             />
             <Text variant={TextVariant.BodyMd}>{receiptTokenName}</Text>

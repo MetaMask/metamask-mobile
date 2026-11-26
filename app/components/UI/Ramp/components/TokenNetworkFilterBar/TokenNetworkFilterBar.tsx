@@ -94,7 +94,7 @@ function TokenNetworkFilterBar({
                   size={AvatarNetworkSize.Xs}
                   name={displayName}
                   shape={AvatarBaseShape.Square}
-                  twClassName="rounded translate-y-px"
+                  className="rounded translate-y-px"
                 />
                 <Text
                   variant={TextVariant.BodyMd}

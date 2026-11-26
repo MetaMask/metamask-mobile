@@ -144,13 +144,13 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const destinationChip = useMemo(() => {
     if (destination.isMoneyAccountDestination) {
       return (
-        <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+        <Box className="flex-row items-center gap-2 shrink min-w-0">
           <MoneyBalanceIcon width={24} height={24} name="money-balance" />
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
           >
             {strings('card.card_spending_limit.money_account_label')}
           </Text>
@@ -161,7 +161,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       return null;
     }
     return (
-      <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+      <Box className="flex-row items-center gap-2 shrink min-w-0">
         <AvatarAccount
           address={receivingAddress}
           variant={getAvatarAccountVariant(avatarAccountType)}
@@ -171,7 +171,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="shrink"
+          className="shrink"
         >
           {receivingAccount?.metadata?.name ||
             formatAddress(receivingAddress, 'short')}
@@ -403,17 +403,17 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...headerHandlers}
       />
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         {config.screenTitle ? (
-          <Text variant={TextVariant.HeadingLg} twClassName="pt-2 pb-2">
+          <Text variant={TextVariant.HeadingLg} className="pt-2 pb-2">
             {strings(config.screenTitle)}
           </Text>
         ) : null}
         {showSetupBanner ? (
-          <Box twClassName="pt-4" testID={testIds.FUNDING_WARNING}>
+          <Box className="pt-4" testID={testIds.FUNDING_WARNING}>
             <CardMessageBox
               messageType={fundingWarningMessageType}
               onConfirm={handleSetupPress}
@@ -421,13 +421,13 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
           </Box>
         ) : null}
 
-        <Box twClassName="py-4" testID={testIds.BALANCE_TITLE}>
+        <Box className="py-4" testID={testIds.BALANCE_TITLE}>
           {isLoading ? (
             <Skeleton height={32} width={160} style={tw.style('rounded-lg')} />
           ) : (
             <Text variant={TextVariant.HeadingLg}>{headlineBalance}</Text>
           )}
-          <Box twClassName="flex-row items-center gap-1 mt-1">
+          <Box className="flex-row items-center gap-1 mt-1">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -448,7 +448,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         </Box>
 
         {showLoadingError ? (
-          <Box twClassName="rounded-xl bg-background-muted p-4 items-center">
+          <Box className="rounded-xl bg-background-muted p-4 items-center">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -458,13 +458,13 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
           </Box>
         ) : (
           <Box
-            twClassName="rounded-xl bg-background-muted p-4"
+            className="rounded-xl bg-background-muted p-4"
             testID={testIds.DETAILS_CARD}
           >
-            <Box twClassName="gap-3">
+            <Box className="gap-3">
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
-                twClassName="px-0 h-auto"
+                className="px-0 h-auto"
                 keyLabel={strings(config.strings.networkFee)}
                 value={
                   isLoading || isEstimating ? (
@@ -480,7 +480,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
               />
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
-                twClassName="px-0 h-auto"
+                className="px-0 h-auto"
                 keyLabel={strings(config.strings.expectedToReceive)}
                 value={
                   isLoading || isEstimating ? (
@@ -498,7 +498,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
                 <Box testID={testIds.TO_ROW}>
                   <KeyValueRow
                     variant={KeyValueRowVariant.Summary}
-                    twClassName="px-0 h-auto"
+                    className="px-0 h-auto"
                     keyLabel={strings(config.strings.to)}
                     value={
                       isLoading || isEstimating ? (
@@ -519,7 +519,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         )}
       </Box>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

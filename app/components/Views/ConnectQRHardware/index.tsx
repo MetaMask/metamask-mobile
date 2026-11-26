@@ -363,7 +363,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
           isFloating={false}
           includesTopInset
           testID={ConnectQRHardwareSelectorsIDs.HEADER}
-          twClassName="px-4"
+          className="px-4"
           style={styles.header}
           startAccessory={
             <Icon

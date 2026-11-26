@@ -65,8 +65,8 @@ const FilterRangeSection: React.FC<FilterRangeSectionProps> = ({
   );
 
   return (
-    <Box twClassName="mt-4">
-      <Box twClassName="flex-row items-center justify-between">
+    <Box className="mt-4">
+      <Box className="flex-row items-center justify-between">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -78,7 +78,7 @@ const FilterRangeSection: React.FC<FilterRangeSectionProps> = ({
           {formatLabel(displayValue)}
         </Text>
       </Box>
-      <Box twClassName="mt-2 overflow-visible" testID={`${testID}-controls`}>
+      <Box className="mt-2 overflow-visible" testID={`${testID}-controls`}>
         <RangeSlider
           minimumValue={minimumValue}
           maximumValue={maximumValue}

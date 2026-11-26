@@ -41,7 +41,7 @@ const TrendingCardSkeleton = () => (
   <Skeleton
     width={CARD_WIDTH}
     height={CARD_HEIGHT}
-    twClassName="rounded-[20px]"
+    className="rounded-[20px]"
     testID={PredictHomeTestIds.HOME_TRENDING_SKELETON}
   />
 );
@@ -80,7 +80,7 @@ export const HomeTrendingSection = ({
   const renderFooter = useCallback(
     ({ activePage, totalPages }: CarouselPagination) =>
       isLoading || totalPages <= 1 ? null : (
-        <Box twClassName="pt-2">
+        <Box className="pt-2">
           <CarouselPaginationDots
             totalPages={totalPages}
             activePage={activePage}
@@ -98,13 +98,13 @@ export const HomeTrendingSection = ({
   return (
     <Box
       testID={PredictHomeTestIds.HOME_TRENDING}
-      twClassName="-mx-4 gap-4"
+      className="-mx-4 gap-4"
       onLayout={onLayout}
     >
       <SectionHeader
         testID={PredictHomeTestIds.HOME_TRENDING_HEADER}
         title={strings('predict_next.home_feed.trending')}
-        twClassName="py-0"
+        className="py-0"
         {...(onOpen
           ? {
               isInteractive: true,

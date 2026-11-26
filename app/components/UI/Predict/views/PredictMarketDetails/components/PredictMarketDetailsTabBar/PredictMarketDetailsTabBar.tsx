@@ -57,20 +57,20 @@ const PredictMarketDetailsTabBar = memo(
     if (tabs.length === 0) {
       return (
         <Box
-          twClassName="bg-default pt-4"
+          className="bg-default pt-4"
           testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
         />
       );
     }
 
     return (
-      <Box twClassName="bg-default pt-4">
+      <Box className="bg-default pt-4">
         <TabsBar
           tabs={tabItems}
           activeIndex={activeIndex}
           onTabPress={onTabPress}
           testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
-          twClassName="!px-3"
+          className="!px-3"
         />
       </Box>
     );

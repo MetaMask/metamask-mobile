@@ -103,7 +103,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
       variant={AvatarAccountVariant.Maskicon}
       address={avatarSeed}
       size={toAvatarAccountSize(size)}
-      twClassName={`w-[${size}px] h-[${size}px] rounded-full`}
+      className={`w-[${size}px] h-[${size}px] rounded-full`}
       maskiconProps={{ size }}
       testID={testID}
     />

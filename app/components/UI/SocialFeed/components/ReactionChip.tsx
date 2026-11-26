@@ -101,7 +101,7 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
           style: COUNT_TEXT_STYLE,
           twClassName: COUNT_TW_CLASS,
         }}
-        twClassName={`border px-2 ${
+        className={`border px-2 ${
           isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
         }`}
         accessibilityState={{ selected: isSelected }}

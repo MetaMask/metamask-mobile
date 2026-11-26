@@ -24,7 +24,7 @@ const OnboardingAnimationMock = ({
   return (
     <Box
       testID="onboarding-animation-mock"
-      twClassName="w-full items-center justify-center"
+      className="w-full items-center justify-center"
       style={tw.style('px-4 py-6')}
     >
       {children}

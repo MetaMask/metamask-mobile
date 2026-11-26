@@ -419,7 +419,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         isGlass={isBrandRefresh}
         isFloating={false}
         includesTopInset
-        twClassName="min-h-14 h-auto bg-default justify-center"
+        className="min-h-14 h-auto bg-default justify-center"
         onBack={handleBack}
         backButtonProps={{
           testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,

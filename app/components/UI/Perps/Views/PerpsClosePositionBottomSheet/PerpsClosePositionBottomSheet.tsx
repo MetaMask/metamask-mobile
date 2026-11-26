@@ -233,7 +233,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       />
 
       {!isEditingLimitPrice && !isInputFocused && (
-        <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+        <Box className="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
           <PerpsSlider
             value={displayClosePercentage}
             onValueChange={handleSliderValueChange}
@@ -276,14 +276,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             containerTwClassName="px-4 mb-3"
           />
 
-          <SectionDivider marginVertical={1} twClassName="mx-4" />
+          <SectionDivider marginVertical={1} className="mx-4" />
 
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
             errors={displayedErrors}
             alignment="start"
-            twClassName="min-h-[22px] justify-center px-4"
+            className="min-h-[22px] justify-center px-4"
           />
 
           <BottomSheetFooter
@@ -295,7 +295,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 ),
               }),
             }}
-            twClassName="pt-3"
+            className="pt-3"
           />
 
           {feePercentage ? (
@@ -305,7 +305,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               feeDiscountPercentage={feeResults.feeDiscountPercentage}
               feeDiscountKind={feeResults.feeDiscountKind}
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
-              twClassName="pt-2"
+              className="pt-2"
             />
           ) : null}
         </>
@@ -313,11 +313,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isInputFocused && (
         <>
-          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
+          <Box className="flex-row gap-2 px-4 pt-3 mb-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              className="flex-1"
               onPress={() => handlePercentagePress(0.25)}
             >
               25%
@@ -325,7 +325,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              className="flex-1"
               onPress={() => handlePercentagePress(0.5)}
             >
               50%
@@ -333,7 +333,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              className="flex-1"
               onPress={handleMaxPress}
             >
               {strings('perps.deposit.max_button')}
@@ -347,7 +347,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             </Button>
           </Box>
 
-          <Box twClassName="mb-4 px-4">
+          <Box className="mb-4 px-4">
             <Keypad
               value={showTokenAmount ? amountKeypadValue : closeAmountUSDString}
               onChange={handleKeypadChange}
@@ -360,14 +360,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isEditingLimitPrice && (
         <>
-          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
+          <Box className="flex-row gap-2 px-4 pt-3 mb-3">
             {limitPriceInput.presets.map((preset) => (
               <Button
                 key={preset.testID}
                 testID={preset.testID}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1 rounded-xl"
+                className="flex-1 rounded-xl"
                 onPress={preset.onPress}
               >
                 {preset.label}
@@ -376,14 +376,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="rounded-xl"
+              className="rounded-xl"
               onPress={handleLimitPriceDone}
             >
               {strings('perps.deposit.done_button')}
             </Button>
           </Box>
 
-          <Box twClassName="mb-4 px-4">
+          <Box className="mb-4 px-4">
             <Keypad
               value={limitPrice}
               currency="USD_PERPS"

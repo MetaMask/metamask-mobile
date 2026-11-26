@@ -53,17 +53,17 @@ const PredictThePitchCampaignPortfolioSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="gap-3 py-1"
+      className="gap-3 py-1"
       testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.LOADING}
     >
       {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-        <Box key={index} twClassName="flex-row items-start gap-4 py-2">
+        <Box key={index} className="flex-row items-start gap-4 py-2">
           <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
-          <Box twClassName="flex-1 gap-2">
+          <Box className="flex-1 gap-2">
             <Skeleton width="100%" height={18} style={tw.style('rounded-md')} />
             <Skeleton width="70%" height={16} style={tw.style('rounded-md')} />
           </Box>
-          <Box twClassName="items-end gap-2">
+          <Box className="items-end gap-2">
             <Skeleton width={64} height={18} style={tw.style('rounded-md')} />
             <Skeleton width={48} height={16} style={tw.style('rounded-md')} />
           </Box>
@@ -116,7 +116,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
   const renderPositionsContent = () => {
     if (isLoading && !positions) {
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PredictThePitchCampaignPortfolioSkeleton />
         </Box>
       );
@@ -124,7 +124,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
 
     if (hasError && !positions) {
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <RewardsErrorBanner
             title={strings(
               'rewards.predict_the_pitch_campaign.positions_error',
@@ -144,7 +144,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
 
     if (isEmpty) {
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <RewardsInfoBanner
             title={strings(
               'rewards.predict_the_pitch_campaign.positions_empty',
@@ -165,7 +165,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
     return (
       <Box testID={testIds.POSITIONS}>
         {openPositions.length > 0 && (
-          <Box testID={testIds.OPEN_SECTION} twClassName="px-4">
+          <Box testID={testIds.OPEN_SECTION} className="px-4">
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {strings(
                 'rewards.predict_the_pitch_campaign.positions_open_section',
@@ -176,7 +176,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
                 return (
                   <Box
                     key={`open-header-${item.dateKey}`}
-                    twClassName="pt-3 pb-1"
+                    className="pt-3 pb-1"
                   >
                     <Text
                       variant={TextVariant.BodySm}
@@ -205,13 +205,13 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
 
         {openPositions.length > 0 && resolvedPositions.length > 0 && (
           <Box
-            twClassName="my-4 border-b border-border-muted"
+            className="my-4 border-b border-border-muted"
             testID={testIds.DIVIDER}
           />
         )}
 
         {resolvedPositions.length > 0 && (
-          <Box testID={testIds.CLOSED_SECTION} twClassName="px-4">
+          <Box testID={testIds.CLOSED_SECTION} className="px-4">
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {strings(
                 'rewards.predict_the_pitch_campaign.positions_closed_section',
@@ -222,7 +222,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
                 return (
                   <Box
                     key={`closed-header-${item.dateKey}`}
-                    twClassName="pt-3 pb-1"
+                    className="pt-3 pb-1"
                   >
                     <Text
                       variant={TextVariant.BodySm}
@@ -297,11 +297,11 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
         >
           {renderPositionsContent()}
           {positions?.computedAt && (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                twClassName="mb-3 mt-4"
+                className="mb-3 mt-4"
               >
                 {strings(
                   'rewards.predict_the_pitch_campaign.positions_last_updated',

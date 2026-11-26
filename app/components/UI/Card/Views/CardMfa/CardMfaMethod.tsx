@@ -205,7 +205,7 @@ const CardMfaMethod = () => {
   ]);
 
   const formFields = (
-    <Box twClassName="gap-4">
+    <Box className="gap-4">
       {options.map((option) => {
         const isSelected = selectedMethod === option.method;
         return (
@@ -232,7 +232,7 @@ const CardMfaMethod = () => {
                 : 'card.mfa.method_email',
             )}
             description={option.maskedDestination}
-            twClassName={
+            className={
               isSelected
                 ? 'rounded-xl border border-primary-default bg-muted'
                 : 'rounded-xl border border-muted'
@@ -243,8 +243,8 @@ const CardMfaMethod = () => {
 
       {selectedMethod === 'phone' ? (
         <CardFormField label={strings('card.mfa.phone_label')}>
-          <Box twClassName="flex-row items-center gap-2">
-            <Box twClassName="w-28">
+          <Box className="flex-row items-center gap-2">
+            <Box className="w-28">
               <SelectField
                 value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? callingCode ?? ''}`}
                 onPress={openCountrySelector}
@@ -253,7 +253,7 @@ const CardMfaMethod = () => {
                 accessibilityLabel={countryCodeLabel}
               />
             </Box>
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <TextField
                 onChangeText={(value) => {
                   setPhoneNumber(value.replace(/\D/g, ''));

@@ -64,16 +64,16 @@ const PredictResolvedOutcomesDropdown = memo(
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-3"
+          className="gap-3"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="font-medium"
+              className="font-medium"
               color={TextColor.TextDefault}
             >
               {strings('predict.resolved_outcomes')}
@@ -82,7 +82,7 @@ const PredictResolvedOutcomesDropdown = memo(
               severity={TagSeverity.Neutral}
               // Tag defaults to `self-start`, which opts it out of the row's
               // centering and leaves it sitting above the label.
-              twClassName="self-center"
+              className="self-center"
               testID={countTestID}
             >
               {String(count)}

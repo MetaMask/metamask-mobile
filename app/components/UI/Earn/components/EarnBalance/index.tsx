@@ -60,7 +60,7 @@ const EarnBalance = ({ asset, isGlass = false }: EarnBalanceProps) => {
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <StakingBalance asset={asset} isGlass={isGlass} />
       </Box>
     );
@@ -72,7 +72,7 @@ const EarnBalance = ({ asset, isGlass = false }: EarnBalanceProps) => {
     return (
       <>
         {isPooledStakingServiceInterruptionBannerEnabled && (
-          <Box twClassName="px-4 pt-4">
+          <Box className="px-4 pt-4">
             <EarnMaintenanceBanner
               experienceName={EARN_EXPERIENCES.POOLED_STAKING}
             />

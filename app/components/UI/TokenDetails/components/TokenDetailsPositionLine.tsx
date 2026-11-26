@@ -54,7 +54,7 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-1"
+    className="py-1"
   >
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
       {label}
@@ -117,7 +117,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
   const held = position == null ? null : holdTimeMs(position, Date.now());
 
   return (
-    <Box twClassName="mb-3 gap-1">
+    <Box className="mb-3 gap-1">
       <Pressable
         testID={TOKEN_DETAILS_POSITION_LINE_TEST_ID}
         accessibilityRole={showPnl ? 'button' : undefined}
@@ -136,7 +136,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {valueLabel}
@@ -155,7 +155,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-1"
+            className="mt-1"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -185,7 +185,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
         )}
       </Pressable>
       {expanded && showPnl && position != null && (
-        <Box twClassName="mt-2">
+        <Box className="mt-2">
           <DetailRow
             label={strings('asset_overview.position_pnl.average_cost')}
             value={

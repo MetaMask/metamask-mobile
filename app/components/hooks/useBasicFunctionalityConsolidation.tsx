@@ -213,7 +213,7 @@ export function useBasicFunctionalityConsolidation(): void {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings('basic_functionality_migration.title')}
           </Text>
@@ -224,7 +224,7 @@ export function useBasicFunctionalityConsolidation(): void {
             // The 32pt touch target would otherwise grow the title row and sit
             // further in than the padding the toast reserves for its own close
             // button.
-            twClassName="-my-1 -mr-2"
+            className="-my-1 -mr-2"
             onPress={() => {
               acknowledgeToast(BasicFunctionalityMixedToastAction.DISMISS);
               toast.dismiss();

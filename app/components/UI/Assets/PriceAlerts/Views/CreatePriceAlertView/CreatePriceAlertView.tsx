@@ -181,7 +181,7 @@ const CreatePriceAlertView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         {/* The header centers the title block but not the text inside it, so
             longer translations wrap with their trailing line pushed left. */}
         <HeaderStandardGlass

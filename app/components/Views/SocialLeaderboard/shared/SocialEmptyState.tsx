@@ -18,11 +18,11 @@ const SocialEmptyState: React.FC<SocialEmptyStateProps> = ({
   description,
   testID,
 }) => (
-  <Box twClassName="w-full px-6 pt-12" testID={testID}>
+  <Box className="w-full px-6 pt-12" testID={testID}>
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
     >
       {description}
     </Text>

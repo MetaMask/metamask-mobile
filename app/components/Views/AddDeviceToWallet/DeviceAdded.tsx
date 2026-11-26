@@ -67,20 +67,20 @@ const DeviceAdded = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <Box twClassName="flex-1 px-4 justify-center items-center gap-4">
+      <Box className="flex-1 px-4 justify-center items-center gap-4">
         <DeviceAddedLoader />
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('app_settings.add_device.waiting_for_extension')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center px-4"
+          className="text-center px-4"
         >
           {strings('app_settings.add_device.waiting_for_extension_description')}
         </Text>

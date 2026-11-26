@@ -25,7 +25,7 @@ export const OrderBreakdownSheet = forwardRef<
     onClose={onClose}
     testID={PredictOrderFlowTestIds.BREAKDOWN}
   >
-    <Box twClassName="px-4 pb-6">
+    <Box className="px-4 pb-6">
       <OrderDetailsRows preview={preview} />
     </Box>
   </BottomSheet>

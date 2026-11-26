@@ -112,7 +112,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="flex-wrap gap-2"
+      className="flex-wrap gap-2"
       testID={SecuritySocialSectionSelectors.SECTION}
     >
       <SecurityPill
@@ -130,7 +130,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
           iconName={iconName}
           size={ButtonIconSize.Xs}
           variant={ButtonIconVariant.Filled}
-          twClassName="h-7 w-7"
+          className="h-7 w-7"
           onPress={() => openUrl(url)}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
@@ -145,7 +145,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
           // An address is data, not a label, so it keeps the regular weight
           // rather than the medium weight buttons give their text.
           textProps={{ fontWeight: FontWeight.Regular }}
-          twClassName="h-7 px-2"
+          className="h-7 px-2"
           onPress={handleCopyAddress}
           accessibilityLabel={strings('token_details_v1.social.copy_address', {
             address: contractAddress,

@@ -45,7 +45,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   }
 
   return (
-    <Box twClassName="mx-2 pb-2">
+    <Box className="mx-2 pb-2">
       <BoxGlass
         radiusClassName="rounded-full"
         isGlass={isGlass}
@@ -67,7 +67,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
               isGlass={isGlass}
               variant={ButtonVariant.Tertiary}
               size={ButtonSize.Md}
-              twClassName="self-center"
+              className="self-center"
               onPressIn={onPressIn}
               onPress={() => onSuggestionSelect(word)}
             >

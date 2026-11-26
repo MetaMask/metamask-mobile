@@ -84,14 +84,14 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const EarnSectionListSkeleton = () => (
-  <Box testID={EARN_SECTION_LIST_TEST_IDS.LIST_LOADING} twClassName="px-4">
+  <Box testID={EARN_SECTION_LIST_TEST_IDS.LIST_LOADING} className="px-4">
     {Array.from({ length: 8 }, (_, index) => (
       <Box
         key={`earn-section-list-skeleton-${index}`}
-        twClassName="flex-row items-center gap-3 py-3"
+        className="flex-row items-center gap-3 py-3"
       >
-        <Skeleton height={40} width={40} twClassName="rounded-full" />
-        <Box twClassName="flex-1 gap-2">
+        <Skeleton height={40} width={40} className="rounded-full" />
+        <Box className="flex-1 gap-2">
           <Skeleton height={16} width={112} />
           <Skeleton height={20} width={88} />
         </Box>
@@ -106,7 +106,7 @@ const EarnSectionListSubtitle = ({ testID }: { testID?: string }) => (
     testID={testID}
     variant={TextVariant.BodyMd}
     color={TextColor.TextAlternative}
-    twClassName="pt-2 pb-1"
+    className="pt-2 pb-1"
   >
     {strings('earn_module.stake_or_lend_description')}
   </Text>
@@ -136,9 +136,9 @@ const MoneyProjection = ({
     return (
       <Box
         testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELETON}
-        twClassName="px-4 py-3 gap-3"
+        className="px-4 py-3 gap-3"
       >
-        <Skeleton height={40} width="100%" twClassName="rounded-lg" />
+        <Skeleton height={40} width="100%" className="rounded-lg" />
       </Box>
     );
   }
@@ -146,7 +146,7 @@ const MoneyProjection = ({
   return (
     <Box
       testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION}
-      twClassName="px-4 py-3 gap-3"
+      className="px-4 py-3 gap-3"
     >
       {hasPositiveProjection ? (
         <Box
@@ -158,7 +158,7 @@ const MoneyProjection = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextAlternative}
-            twClassName="shrink-0"
+            className="shrink-0"
           >
             {`${strings(
               'money.potential_earnings.description_with_amounts_prefix',
@@ -193,7 +193,7 @@ const MoneyProjection = ({
           >
             <DottedUnderline
               color={colors.success.default}
-              twClassName="shrink-0"
+              className="shrink-0"
             >
               <SensitiveText
                 variant={TextVariant.BodyMd}
@@ -522,7 +522,7 @@ const EarnSectionListView = () => {
 
   const listHeader = useMemo(() => {
     const errorBanner = hasError ? (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           description={strings('earn_module.assets_unavailable')}
@@ -541,10 +541,10 @@ const EarnSectionListView = () => {
     if (!isMoneyAccountVisible) {
       return (
         <Box>
-          <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
+          <Text variant={TextVariant.HeadingLg} className="px-4 pt-2">
             {strings('money.potential_earnings.title')}
           </Text>
-          <Box twClassName="px-4 py-2">
+          <Box className="px-4 py-2">
             <EarnSectionListSubtitle />
             {errorBanner}
           </Box>
@@ -556,7 +556,7 @@ const EarnSectionListView = () => {
 
     return (
       <>
-        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
+        <Text variant={TextVariant.HeadingLg} className="px-4 pt-2">
           {strings('money.potential_earnings.title')}
         </Text>
         <MoneyProjection
@@ -590,7 +590,7 @@ const EarnSectionListView = () => {
         {!isLoading && moreWaysAssets.length > 0 && (
           <>
             <SectionDivider testID={EARN_SECTION_LIST_TEST_IDS.DIVIDER} />
-            <Box twClassName="px-4 py-3 gap-1">
+            <Box className="px-4 py-3 gap-1">
               <Text
                 variant={TextVariant.HeadingLg}
                 testID={EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE}
@@ -634,7 +634,7 @@ const EarnSectionListView = () => {
       ) : isMoneyAccountVisible ? null : (
         <Box
           testID={EARN_SECTION_LIST_TEST_IDS.EMPTY}
-          twClassName="flex-1 items-center justify-center pt-4"
+          className="flex-1 items-center justify-center pt-4"
         >
           <TabEmptyState
             description={strings('earn_module.empty_state_description')}
@@ -645,7 +645,7 @@ const EarnSectionListView = () => {
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <Box
         style={{ paddingTop: insets.top }}
         testID={EARN_SECTION_LIST_TEST_IDS.HEADER}

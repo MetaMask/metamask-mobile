@@ -84,12 +84,12 @@ const MarketingMomentContent = ({
     <Box
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
-      twClassName={`relative min-h-0 w-full flex-1 ${
+      className={`relative min-h-0 w-full flex-1 ${
         background ? 'bg-transparent' : 'bg-default'
       }`}
     >
       {background ? (
-        <Box pointerEvents="none" twClassName="absolute inset-0">
+        <Box pointerEvents="none" className="absolute inset-0">
           {background}
         </Box>
       ) : null}
@@ -102,14 +102,14 @@ const MarketingMomentContent = ({
           flexDirection={BoxFlexDirection.Column}
           gap={4}
           paddingHorizontal={6}
-          twClassName={`${copyClassName ?? 'mt-12'} shrink-0`}
+          className={`${copyClassName ?? 'mt-12'} shrink-0`}
         >
           {title ? (
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
                   {...titleTextProps}
-                  twClassName="w-full text-center"
+                  className="w-full text-center"
                   style={[
                     titleClassName ? tw.style(titleClassName) : undefined,
                     titleStyle,
@@ -128,7 +128,7 @@ const MarketingMomentContent = ({
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
-                  twClassName="text-center"
+                  className="text-center"
                   {...descriptionProps}
                 >
                   {description}
@@ -159,7 +159,7 @@ const MarketingMomentContent = ({
               justifyContent={BoxJustifyContent.Center}
               paddingHorizontal={6}
               {...artworkBoxSpreadProps}
-              twClassName={`min-h-0 w-full flex-1 overflow-hidden${
+              className={`min-h-0 w-full flex-1 overflow-hidden${
                 artworkBoxProps.className ? ` ${artworkBoxProps.className}` : ''
               }`}
             >
@@ -167,7 +167,7 @@ const MarketingMomentContent = ({
             </Box>
           </Animated.View>
         ) : (
-          <Box twClassName="flex-1" />
+          <Box className="flex-1" />
         )}
 
         {primaryAction || secondaryAction ? (
@@ -176,7 +176,7 @@ const MarketingMomentContent = ({
               flexDirection={BoxFlexDirection.Column}
               gap={2}
               paddingHorizontal={4}
-              twClassName="shrink-0"
+              className="shrink-0"
             >
               {primaryAction ? (
                 <Button

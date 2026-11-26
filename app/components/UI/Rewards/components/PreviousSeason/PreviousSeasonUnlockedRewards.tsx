@@ -130,7 +130,7 @@ const PreviousSeasonUnlockedRewards = () => {
     endOfSeasonRewards === null
   ) {
     return (
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
+      <Box flexDirection={BoxFlexDirection.Column} className="flex-col mt-2">
         <RewardsErrorBanner
           title={strings('rewards.unlocked_rewards_error.error_fetching_title')}
           description={strings(
@@ -148,19 +148,19 @@ const PreviousSeasonUnlockedRewards = () => {
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="flex-col mt-2 max-h-[72.5%]"
+      className="flex-col mt-2 max-h-[72.5%]"
     >
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
+      <Box flexDirection={BoxFlexDirection.Column} className="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName="text-default"
+          className="text-default"
         >
           {strings('rewards.unlocked_rewards.title')}
         </Text>
 
         {unlockedRewardsLoading || endOfSeasonRewards === null ? (
-          <Box flexDirection={BoxFlexDirection.Column} twClassName="w-full">
+          <Box flexDirection={BoxFlexDirection.Column} className="w-full">
             <Skeleton style={tw.style('h-32 bg-rounded')} />
           </Box>
         ) : (
@@ -168,12 +168,12 @@ const PreviousSeasonUnlockedRewards = () => {
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="gap-4"
+            className="gap-4"
           >
             {endOfSeasonRewards?.length > 0 ? (
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="gap-4 w-full"
+                className="gap-4 w-full"
               >
                 <FlatList
                   data={endOfSeasonRewards}
@@ -204,7 +204,7 @@ const PreviousSeasonUnlockedRewards = () => {
                     const isLast = index === endOfSeasonRewards.length - 1;
 
                     return (
-                      <Box twClassName={isLast ? 'mb-12' : undefined}>
+                      <Box className={isLast ? 'mb-12' : undefined}>
                         <RewardItem
                           reward={unlockedReward}
                           seasonReward={seasonReward}
@@ -242,7 +242,7 @@ const PreviousSeasonUnlockedRewards = () => {
 
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-alternative max-w-xs text-center"
+                  className="text-alternative max-w-xs text-center"
                 >
                   {currentTier?.pointsNeeded
                     ? strings(

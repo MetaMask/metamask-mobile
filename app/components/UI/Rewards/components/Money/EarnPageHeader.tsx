@@ -84,14 +84,14 @@ const EarnPageHeader: React.FC<EarnPageHeaderProps> = ({
       />
       <SectionHeader
         title={localizedText.history}
-        twClassName="pt-0 pb-4"
+        className="pt-0 pb-4"
         testID={EARN_PAGE_HEADER_TEST_IDS.HISTORY_HEADER}
       />
       <RewardsEarningsBanners
         summary={summary.data}
         localizedText={localizedText}
         scope={{ branch, family }}
-        twClassName="px-4 pb-4"
+        className="px-4 pb-4"
       />
     </>
   );

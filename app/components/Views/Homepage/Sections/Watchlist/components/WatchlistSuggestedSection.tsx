@@ -67,7 +67,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
           showBadge={false}
           showTypeTag={showTypeTag}
           enableLivePrices={canUseLivePerpsPrices}
-          twClassName={rowTwClassName}
+          className={rowTwClassName}
           onPress={onPerpPress}
           onAddPress={onAddPerpPress}
         />
@@ -80,7 +80,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         <WatchlistTokenRowItem
           token={token}
           tokenDetailsSource={tokenDetailsSource}
-          twClassName={rowTwClassName}
+          className={rowTwClassName}
           showTypeTag
           onAddPress={() => onAddPress(suggestion.token)}
         />
@@ -91,7 +91,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
       <TrendingTokenRowItem
         token={token}
         tokenDetailsSource={tokenDetailsSource}
-        twClassName={rowTwClassName}
+        className={rowTwClassName}
         endAction={{
           type: 'watchlist',
           onPress: () => onAddPress(suggestion.token),
@@ -106,7 +106,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName={headerTwClassName}
+          className={headerTwClassName}
           testID="watchlist-suggested-header"
         >
           {strings('token_watchlist.suggested')}

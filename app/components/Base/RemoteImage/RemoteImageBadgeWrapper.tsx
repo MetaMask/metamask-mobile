@@ -70,7 +70,7 @@ const RemoteImageBadgeWrapper = (
 
   return (
     <BadgeWrapper
-      twClassName="self-auto"
+      className="self-auto"
       positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
       customPosition={{
         bottom: 5,
@@ -80,7 +80,7 @@ const RemoteImageBadgeWrapper = (
         <BadgeNetwork
           src={networkBadgeSource()}
           name={networkName}
-          twClassName={networkBadgeSizeClassName}
+          className={networkBadgeSizeClassName}
         />
       }
     >

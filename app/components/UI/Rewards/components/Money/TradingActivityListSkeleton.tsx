@@ -42,7 +42,7 @@ const TradingActivityListSkeleton: React.FC<
 
   return (
     <Box
-      twClassName="gap-4 overflow-hidden"
+      className="gap-4 overflow-hidden"
       style={rows === undefined && height > 0 ? { height } : undefined}
       testID={TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER}
     >
@@ -51,15 +51,15 @@ const TradingActivityListSkeleton: React.FC<
           key={index}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
+          className="gap-3"
           testID={TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.ROW}
         >
           <Skeleton style={tw.style('h-10 w-10 rounded-full')} />
-          <Box twClassName="flex-1 gap-2">
+          <Box className="flex-1 gap-2">
             <Skeleton style={tw.style('h-4 w-24 rounded-md')} />
             <Skeleton style={tw.style('h-3 w-16 rounded-md')} />
           </Box>
-          <Box twClassName="items-end gap-2">
+          <Box className="items-end gap-2">
             <Skeleton style={tw.style('h-4 w-16 rounded-md')} />
             <Skeleton style={tw.style('h-3 w-12 rounded-md')} />
           </Box>

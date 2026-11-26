@@ -59,15 +59,15 @@ const AlertFormShell: React.FC<AlertFormShellProps> = ({
   const { colors, brandColors } = useTheme();
 
   return (
-    <Box twClassName="flex-1">
-      <Box twClassName="flex-1 justify-center px-4">{children}</Box>
+    <Box className="flex-1">
+      <Box className="flex-1 justify-center px-4">{children}</Box>
 
       <View style={tw.style('px-4 pb-2')}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-4 px-2"
+          className="mb-4 px-2"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('price_alerts.recurring')}
@@ -97,7 +97,7 @@ const AlertFormShell: React.FC<AlertFormShellProps> = ({
           isLoading={isSubmitting}
           isDisabled={isSubmitting || isSaveDisabled}
           testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
-          twClassName="mt-3 w-full"
+          className="mt-3 w-full"
         >
           {saveButtonLabel}
         </Button>

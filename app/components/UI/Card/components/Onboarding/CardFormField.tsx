@@ -44,7 +44,7 @@ const CardFormField = ({
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="-mb-1"
+        className="-mb-1"
       >
         {label}
       </Label>

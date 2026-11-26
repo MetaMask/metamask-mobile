@@ -67,8 +67,8 @@ const DefaultStandardCard = ({
         onPress={onPress}
         testID={`predict-next-event-content-${event.venueId}-${event.id}`}
       >
-        <EventCard.Header twClassName="gap-1">
-          <EventCard.Title twClassName="w-full">{event.title}</EventCard.Title>
+        <EventCard.Header className="gap-1">
+          <EventCard.Title className="w-full">{event.title}</EventCard.Title>
           {subtitle ? (
             <EventCard.Subtitle
               testID={`predict-next-event-subtitle-${event.id}`}
@@ -79,7 +79,7 @@ const DefaultStandardCard = ({
         </EventCard.Header>
       </EventCard.Pressable>
 
-      <EventCard.Body twClassName="gap-3">
+      <EventCard.Body className="gap-3">
         {isSingleMarket
           ? (['yes', 'no'] as const).map((side) => (
               <EventCard.OutcomeRow
@@ -140,11 +140,11 @@ const getTrendingRows = (markets: readonly PredictMarket[]): TrendingRow[] =>
 
 const LiveMarker = ({ eventId }: { eventId: string }) => (
   <Box
-    twClassName="flex-row items-center gap-1"
+    className="flex-row items-center gap-1"
     testID={`predict-next-event-live-${eventId}`}
   >
     <Box
-      twClassName="h-2 w-2 rounded-full bg-success-default"
+      className="h-2 w-2 rounded-full bg-success-default"
       testID={`predict-next-event-live-dot-${eventId}`}
     />
     <Text
@@ -182,7 +182,7 @@ const TrendingMarketRow = ({
     <SharedOutcomeRow.Root
       testID={`predict-next-outcome-row-${event.id}-${market.id}`}
     >
-      <Box twClassName="min-w-0 flex-1">
+      <Box className="min-w-0 flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
@@ -213,7 +213,7 @@ const TrendingMarketRow = ({
           },
         )}
         testID={`predict-next-outcome-${event.id}-${market.id}-yes`}
-        twClassName={TRENDING_PRICE_CLASS_NAME}
+        className={TRENDING_PRICE_CLASS_NAME}
       />
     </SharedOutcomeRow.Root>
   );
@@ -235,7 +235,7 @@ const TrendingStandardCard = ({
 
   return (
     <EventCard.Root
-      twClassName="gap-3 rounded-2xl bg-section py-4"
+      className="gap-3 rounded-2xl bg-section py-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <EventCard.HeaderRow testID={`predict-next-event-header-${event.id}`}>
@@ -244,7 +244,7 @@ const TrendingStandardCard = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
           testID={`predict-next-event-category-${event.id}`}
         >
           {category}
@@ -257,8 +257,8 @@ const TrendingStandardCard = ({
         accessibilityRole="button"
         testID={`predict-next-event-content-${event.venueId}-${event.id}`}
       >
-        <EventCard.Header twClassName="gap-1 px-4">
-          <EventCard.Title twClassName="w-full">{event.title}</EventCard.Title>
+        <EventCard.Header className="gap-1 px-4">
+          <EventCard.Title className="w-full">{event.title}</EventCard.Title>
           {subtitle ? (
             <EventCard.Subtitle
               testID={`predict-next-event-subtitle-${event.id}`}
@@ -269,7 +269,7 @@ const TrendingStandardCard = ({
         </EventCard.Header>
       </EventCard.Pressable>
 
-      <EventCard.Body twClassName="gap-3 px-4 pt-1">
+      <EventCard.Body className="gap-3 px-4 pt-1">
         {rows.map(({ market, outcome }, index) => (
           <TrendingMarketRow
             key={market.id}

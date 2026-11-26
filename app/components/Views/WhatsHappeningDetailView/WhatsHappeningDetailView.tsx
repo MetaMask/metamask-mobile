@@ -301,7 +301,7 @@ const WhatsHappeningDetailView = () => {
       />
 
       <PerpsStreamProvider>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           {isLoading ? (
             <ScrollView
               horizontal
@@ -360,7 +360,7 @@ const WhatsHappeningDetailView = () => {
               {items.length > 0 && (
                 <WhatsHappeningAIGeneratedLabel
                   onInfoPress={handleAIDisclaimerPress}
-                  twClassName="mt-1 mb-4 justify-center"
+                  className="mt-1 mb-4 justify-center"
                 />
               )}
 

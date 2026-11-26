@@ -75,7 +75,7 @@ export const TeamLogo = ({
 
   return (
     <Box
-      twClassName={`${sizeClassName} items-center justify-center`}
+      className={`${sizeClassName} items-center justify-center`}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
@@ -94,7 +94,7 @@ export const TeamLogo = ({
         />
       ) : (
         <Box
-          twClassName={`${FALLBACK_CLASS_NAMES[size]} items-center justify-center rounded-full bg-muted`}
+          className={`${FALLBACK_CLASS_NAMES[size]} items-center justify-center rounded-full bg-muted`}
         >
           <Text
             variant={FALLBACK_TEXT[size].variant}

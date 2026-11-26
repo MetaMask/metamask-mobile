@@ -148,10 +148,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   return (
-    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
-      <Box twClassName="flex-row items-start gap-4">
+    <Box className="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
+      <Box className="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <Box twClassName="w-10 h-10 self-start mt-1">
+          <Box className="w-10 h-10 self-start mt-1">
             <Image
               source={{ uri: icon }}
               contentFit="cover"
@@ -159,7 +159,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             />
           </Box>
         )}
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
@@ -185,7 +185,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             })}
           </SensitiveText>
         </Box>
-        <Box twClassName="items-end justify-end ml-auto shrink-0">
+        <Box className="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN &&
             (optimistic || isPreviewLoading ? (

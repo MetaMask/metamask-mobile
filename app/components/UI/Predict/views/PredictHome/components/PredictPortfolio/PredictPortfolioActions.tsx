@@ -21,7 +21,7 @@ const PredictPortfolioActions: React.FC<PredictPortfolioActionsProps> = ({
   positionsBadgeCount = 0,
   isGlass = false,
 }) => (
-  <Box testID={PREDICT_PORTFOLIO_TEST_IDS.ACTIONS} twClassName="flex-row gap-3">
+  <Box testID={PREDICT_PORTFOLIO_TEST_IDS.ACTIONS} className="flex-row gap-3">
     <PredictPortfolioAction
       isGlass={isGlass}
       badgeCount={positionsBadgeCount}

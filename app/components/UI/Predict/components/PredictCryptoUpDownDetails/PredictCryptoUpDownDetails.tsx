@@ -565,7 +565,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     DEFAULT_CRYPTO_ACCENT_COLOR;
   const twapWindowSeconds = referenceWindowSeconds;
   const bottomAccessory = twapWindowSeconds ? (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="items-center gap-1">
+    <Box flexDirection={BoxFlexDirection.Row} className="items-center gap-1">
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
@@ -635,7 +635,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TITLE_SECTION}>
           <TitleSubpage
             startAccessory={
-              <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+              <Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
                 {selectedMarket.image ? (
                   <Image
                     source={{ uri: selectedMarket.image }}
@@ -643,14 +643,14 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                     contentFit="cover"
                   />
                 ) : (
-                  <Box twClassName="w-full h-full bg-muted" />
+                  <Box className="w-full h-full bg-muted" />
                 )}
               </Box>
             }
             title={title}
             bottomLabel={twapWindowSeconds ? undefined : subtitle}
             bottomAccessory={bottomAccessory}
-            twClassName="px-4 pt-1 pb-3"
+            className="px-4 pt-1 pb-3"
           />
         </Box>
 
@@ -663,10 +663,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 pt-3 gap-4"
+          className="px-4 pt-3 gap-4"
           testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
         >
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -703,8 +703,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               </Text>
             )}
           </Box>
-          <Box twClassName="flex-1">
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+          <Box className="flex-1">
+            <Box flexDirection={BoxFlexDirection.Row} className="gap-1">
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
@@ -755,7 +755,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
 
         {shouldRenderChart ? (
-          <Box twClassName="px-4 pt-1">
+          <Box className="px-4 pt-1">
             <PredictCryptoUpDownChart
               market={liveMarketForChart}
               targetPrice={chartTargetPrice}
@@ -765,10 +765,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             />
           </Box>
         ) : isMetalOnBreak ? (
-          <Box twClassName="px-4 pt-1">
+          <Box className="px-4 pt-1">
             <Box
               style={{ height: chartAreaHeight }}
-              twClassName="px-8 gap-2"
+              className="px-8 gap-2"
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               testID={PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK}
@@ -781,7 +781,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
               >
                 {metalReopenTime
                   ? strings('predict.crypto_up_down.market_break.reopens_at', {
@@ -794,14 +794,14 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         ) : null}
 
         {hasPositions && (
-          <Box twClassName="pt-2">
+          <Box className="pt-2">
             <PredictCryptoUpDownPositions rows={seriesPositionRows} />
           </Box>
         )}
       </ScrollView>
 
       {shouldRenderActions && (
-        <Box twClassName="px-4 pb-8">
+        <Box className="px-4 pb-8">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
             hasPositivePnl={canClaim}

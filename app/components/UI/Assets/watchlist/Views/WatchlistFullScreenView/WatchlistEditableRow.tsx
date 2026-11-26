@@ -38,7 +38,7 @@ const WatchlistEditableRow = ({
         token={token}
         position={position}
         tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
-        twClassName={isEditMode ? undefined : '-mx-4 w-auto px-4'}
+        className={isEditMode ? undefined : '-mx-4 w-auto px-4'}
       />
     </WatchlistEditableRowChrome>
   );

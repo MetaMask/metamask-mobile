@@ -70,9 +70,9 @@ const SearchingForDevice = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 bg-default"
+        className="flex-1 bg-default"
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
+        <Box alignItems={BoxAlignItems.Center} className="px-4">
           <View style={styles.riveContainer}>
             {riveFile && (
               <RiveView
@@ -90,10 +90,10 @@ const SearchingForDevice = ({
           </View>
           <Box
             alignItems={BoxAlignItems.Center}
-            twClassName="w-full pt-6"
+            className="w-full pt-6"
             testID="hardware-wallet-searching-content"
           >
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+            <Text variant={TextVariant.HeadingLg} className="text-center">
               {isBluetoothOff
                 ? strings('ledger.bluetooth_off')
                 : strings('ledger.looking_for_device')}
@@ -101,7 +101,7 @@ const SearchingForDevice = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.PrimaryAlternative}
-              twClassName="pt-2 text-center"
+              className="pt-2 text-center"
             >
               {isBluetoothOff
                 ? strings('ledger.bluetooth_off_message')

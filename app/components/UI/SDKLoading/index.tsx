@@ -24,7 +24,7 @@ export const SDKLoading = () => {
 
   return (
     <Box
-      twClassName={`bg-default rounded-t-3xl ${
+      className={`bg-default rounded-t-3xl ${
         Device.isIphoneX() ? 'pb-5' : 'pb-0'
       }`}
     >
@@ -32,7 +32,7 @@ export const SDKLoading = () => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         gap={3}
-        twClassName="w-full px-6 py-8"
+        className="w-full px-6 py-8"
       >
         <Image
           style={{ width: FOX_SIZE, height: FOX_SIZE }}

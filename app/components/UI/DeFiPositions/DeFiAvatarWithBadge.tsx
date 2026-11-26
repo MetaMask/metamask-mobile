@@ -26,7 +26,7 @@ const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
       networkIconAvatar ? (
         <BadgeNetwork
           src={networkIconAvatar as ImageOrSvgSrc}
-          twClassName="h-5 w-5 "
+          className="h-5 w-5 "
           imageOrSvgProps={{
             imageProps: { testID: 'network-avatar-image' },
           }}

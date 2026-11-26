@@ -99,7 +99,7 @@ describe('OutcomeRow', () => {
           isDisabled={false}
           onPress={jest.fn()}
           testID="price"
-          twClassName="min-w-[64px] h-[37px] px-3"
+          className="min-w-[64px] h-[37px] px-3"
         />,
       );
 

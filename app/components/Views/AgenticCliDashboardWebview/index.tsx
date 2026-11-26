@@ -73,7 +73,7 @@ const AgenticCliDashboardWebviewHeader = ({
       title={strings('sdk_connect_v2.agentic_cli_dashboard_webview.title')}
       onBack={onBack}
       includesTopInset={Platform.OS === 'android'}
-      twClassName="bg-default rounded-t-2xl"
+      className="bg-default rounded-t-2xl"
     />
   );
 };
@@ -240,7 +240,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-error-default text-center"
+          className="text-error-default text-center"
         >
           {error}
         </Text>

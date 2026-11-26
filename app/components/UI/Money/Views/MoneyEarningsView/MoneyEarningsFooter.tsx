@@ -24,7 +24,7 @@ const MoneyEarningsFooter = (): React.ReactElement => {
   }, [navigateToMoneyDeposit]);
 
   return (
-    <Box twClassName="px-4">
+    <Box className="px-4">
       <Box flexDirection={BoxFlexDirection.Row}>
         <Button
           variant={ButtonVariant.Primary}

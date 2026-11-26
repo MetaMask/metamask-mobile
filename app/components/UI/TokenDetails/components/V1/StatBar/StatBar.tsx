@@ -82,7 +82,7 @@ const StatBarItem: React.FC<StatBarItemProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Start}
-      twClassName={`shrink-0 px-5 ${isFirst ? 'pl-0' : 'min-w-24'} ${
+      className={`shrink-0 px-5 ${isFirst ? 'pl-0' : 'min-w-24'} ${
         isLast ? '' : 'border-r border-muted'
       }`}
       testID={StatBarSelectors.cell(statKey)}
@@ -127,7 +127,7 @@ const StatBarItem: React.FC<StatBarItemProps> = ({
             fontWeight={FontWeight.Regular}
             color={TextColor.TextAlternative}
             numberOfLines={1}
-            twClassName="-mt-0.5"
+            className="-mt-0.5"
           >
             {label}
           </Text>
@@ -177,7 +177,7 @@ export const StatBar: React.FC<StatBarProps> = ({
 
   return (
     <Box
-      twClassName="border-t border-b border-muted"
+      className="border-t border-b border-muted"
       testID={StatBarSelectors.BAR}
     >
       <ScrollView

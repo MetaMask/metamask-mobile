@@ -186,7 +186,7 @@ const RoeSignBadge: React.FC<{
     testID={testID}
     accessibilityLabel={accessibilityLabel}
     accessibilityValue={{ text: sign }}
-    twClassName="shrink-0 self-center"
+    className="shrink-0 self-center"
   />
 );
 
@@ -219,14 +219,14 @@ const SectionHelpText: React.FC<{
       <HelpText
         severity={HelpTextSeverity.Danger}
         showIcon
-        twClassName="opacity-0"
+        className="opacity-0"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
         {errorMessage ?? '\u00A0'}
       </HelpText>
       {errorMessage ? (
-        <Box twClassName="absolute inset-x-0 top-0">
+        <Box className="absolute inset-x-0 top-0">
           <HelpText
             severity={HelpTextSeverity.Danger}
             showIcon
@@ -236,7 +236,7 @@ const SectionHelpText: React.FC<{
           </HelpText>
         </Box>
       ) : expectedMessage ? (
-        <Box twClassName="absolute inset-x-0 top-0">
+        <Box className="absolute inset-x-0 top-0">
           <HelpText>{expectedMessage}</HelpText>
         </Box>
       ) : null}
@@ -1110,7 +1110,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   );
 
   const keypad = (
-    <Box twClassName="px-4 pt-2 bg-default">
+    <Box className="px-4 pt-2 bg-default">
       <Keypad
         value={(() => {
           if (focusedInput === 'takeProfitPrice') return takeProfitPrice;
@@ -1136,7 +1136,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     footerContent = (
       <>
         {reviewFooter}
-        <Box twClassName="flex-row gap-2 px-4 pt-3">
+        <Box className="flex-row gap-2 px-4 pt-3">
           {keypadPresets.map((preset) => (
             <Button
               key={preset.key}
@@ -1144,7 +1144,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               size={ButtonSize.Sm}
               // ButtonBase hardcodes px-4, which clips these labels once five
               // buttons share the row. Trim the padding so the text governs.
-              twClassName="flex-1 px-2"
+              className="flex-1 px-2"
               onPress={preset.onPress}
               testID={preset.testID}
               isDisabled={inputsDisabled}
@@ -1155,7 +1155,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            twClassName="px-3"
+            className="px-3"
             onPress={dismissKeypad}
             testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
           >
@@ -1190,7 +1190,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         showsVerticalScrollIndicator={false}
       >
         <Box
-          twClassName={isSheet ? undefined : 'flex-1'}
+          className={isSheet ? undefined : 'flex-1'}
           testID="scroll-content"
         >
           {isPositionReviewUnavailable && (
@@ -1203,11 +1203,11 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             </HelpText>
           )}
           {/* Current price and liquidation price info */}
-          <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
+          <Box className={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
-                twClassName={isSheet ? 'h-8' : undefined}
+                className={isSheet ? 'h-8' : undefined}
                 keyLabel={strings('perps.tpsl.entry_price')}
                 value={entryPriceDisplay}
                 keyTextProps={keyTextProps}
@@ -1216,7 +1216,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             )}
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
-              twClassName={isSheet ? 'h-8' : undefined}
+              className={isSheet ? 'h-8' : undefined}
               keyLabel={
                 orderType === 'limit' &&
                 limitPrice &&
@@ -1230,7 +1230,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             />
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
-              twClassName={isSheet ? 'h-8' : undefined}
+              className={isSheet ? 'h-8' : undefined}
               keyLabel={strings('perps.tpsl.liquidation_price')}
               value={
                 liquidationDistanceDisplay ? (
@@ -1270,16 +1270,16 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
           {/* Spacing lives on the divider so it sits equidistant from the
               rows either side of it. */}
-          {isSheet ? <SectionDivider twClassName="my-4" /> : null}
+          {isSheet ? <SectionDivider className="my-4" /> : null}
 
           {/* Take Profit Section */}
           <View ref={takeProfitSectionRef} collapsable={false}>
-            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+            <Box className={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="mb-2 -mr-3 min-h-8"
+                className="mb-2 -mr-3 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1303,14 +1303,14 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               {isSheet ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="mb-3 gap-2"
+                  className="mb-3 gap-2"
                 >
                   {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
                     <Button
                       key={percentage}
                       variant={ButtonVariant.Secondary}
                       size={ButtonSize.Md}
-                      twClassName="flex-1"
+                      className="flex-1"
                       onPress={() => handleTakeProfitPresetPress(percentage)}
                       testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                         percentage,
@@ -1325,10 +1325,10 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-2 gap-2"
+                className="mb-2 gap-2"
               >
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={takeProfitPriceRef}
                   isError={takeProfitHasError}
                   value={takeProfitPrice}
@@ -1357,7 +1357,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={takeProfitPercentageRef}
                   isError={takeProfitHasError}
                   value={formattedTakeProfitPercentage}
@@ -1421,12 +1421,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
           {/* Stop Loss Section */}
           <View ref={stopLossSectionRef} collapsable={false}>
-            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+            <Box className={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="mb-2 -mr-3 min-h-8"
+                className="mb-2 -mr-3 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1450,14 +1450,14 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               {isSheet ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="mb-3 gap-2"
+                  className="mb-3 gap-2"
                 >
                   {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
                     <Button
                       key={percentage}
                       variant={ButtonVariant.Secondary}
                       size={ButtonSize.Md}
-                      twClassName="flex-1"
+                      className="flex-1"
                       onPress={() => handleStopLossPresetPress(percentage)}
                       testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                         percentage,
@@ -1472,10 +1472,10 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-2 gap-2"
+                className="mb-2 gap-2"
               >
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={stopLossPriceRef}
                   isError={stopLossHasError}
                   value={stopLossPrice}
@@ -1504,7 +1504,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={stopLossPercentageRef}
                   isError={stopLossHasError}
                   value={formattedStopLossPercentage}
@@ -1566,7 +1566,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         </Box>
       </ScrollView>
 
-      <Box twClassName="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
+      <Box className="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
         {footerContent}
       </Box>
     </>
@@ -1579,7 +1579,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         goBack={navigation.goBack}
         // The dialog surface defaults to `bg-elevated1`; this sheet sits on
         // `background.default`.
-        twClassName="bg-default"
+        className="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
         <BottomSheetHeaderGlass isGlass={isGlassHeader}>

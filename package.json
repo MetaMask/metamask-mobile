@@ -345,6 +345,20 @@
     "express@npm:4.22.2/body-parser": "1.20.9",
     "mockttp@npm:3.15.2/body-parser": "1.20.9"
   },
+  "previewBuilds": {
+    "@metamask/design-system-react-native": {
+      "type": "non-breaking",
+      "previewVersion": "0.59.0-preview-84ed42a"
+    },
+    "@metamask/design-system-twrnc-preset": {
+      "type": "non-breaking",
+      "previewVersion": "0.14.0-preview-84ed42a"
+    },
+    "@metamask/design-tokens": {
+      "type": "non-breaking",
+      "previewVersion": "13.0.0-preview-84ed42a"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",

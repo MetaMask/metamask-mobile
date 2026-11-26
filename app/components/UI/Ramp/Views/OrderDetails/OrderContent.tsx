@@ -345,7 +345,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const getDateAndTimeValue = () => {
     if (isLoading) {
-      return <Box twClassName="h-[18px] w-40 rounded bg-muted" />;
+      return <Box className="h-[18px] w-40 rounded bg-muted" />;
     }
     if (order.createdAt) {
       return toDateFormat(order.createdAt);
@@ -355,7 +355,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const getFeesValue = () => {
     if (isLoading) {
-      return <Box twClassName="h-[18px] w-20 rounded bg-muted" />;
+      return <Box className="h-[18px] w-20 rounded bg-muted" />;
     }
     if (hasAmounts) {
       return formatOrderFiat(Number(order.totalFeesFiat ?? 0));
@@ -365,7 +365,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const getTotalValue = () => {
     if (isLoading) {
-      return <Box twClassName="h-[18px] w-24 rounded bg-muted" />;
+      return <Box className="h-[18px] w-24 rounded bg-muted" />;
     }
     if (hasAmounts) {
       return formatOrderFiat(Number(order.fiatAmount ?? 0));
@@ -378,14 +378,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const totalValue = getTotalValue();
 
   return (
-    <Box twClassName="w-full flex-1">
-      <Box twClassName="items-center pt-8 pb-6">
+    <Box className="w-full flex-1">
+      <Box className="items-center pt-8 pb-6">
         <BadgeWrapper
           // AvatarToken Lg is h-10 w-10. BadgeWrapper places the badge with
           // percentage insets, and Yoga resolves an inset against the stretched
           // parent when this shrink-wrapped row has no definite size on that
           // axis. In this column that sends BottomRight to the left.
-          twClassName="h-10 w-10 self-center"
+          className="h-10 w-10 self-center"
           position={BadgeWrapperPosition.BottomRight}
           testID="ramp-order-token-avatar"
           badgeContainerProps={{ testID: 'ramp-order-token-network-badge' }}
@@ -409,7 +409,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
-          twClassName="mt-6 text-center"
+          className="mt-6 text-center"
         >
           {order.cryptoAmount != null && Number(order.cryptoAmount) > 0
             ? (formatSubscriptNotation(
@@ -430,17 +430,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
       </Box>
 
       <KeyValueRow
-        twClassName="h-auto px-0 py-3"
+        className="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.status')}
         value={
           isLoading ? (
-            <Box twClassName="h-[18px] w-24 rounded bg-muted" />
+            <Box className="h-[18px] w-24 rounded bg-muted" />
           ) : (
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                twClassName={getStatusColor()}
+                className={getStatusColor()}
               >
                 {getStatusText()}
               </Text>
@@ -451,7 +451,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 >
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="mr-1 text-primary-default"
+                    className="mr-1 text-primary-default"
                   >
                     {strings('ramps_order_details.view_on_provider', {
                       provider: providerName,
@@ -460,7 +460,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                   <Icon
                     name={IconName.ArrowSquareOut}
                     size={IconSize.Sm}
-                    twClassName="text-primary-default"
+                    className="text-primary-default"
                   />
                 </TouchableOpacity>
               ) : null}
@@ -470,11 +470,11 @@ const OrderContent: React.FC<OrderContentProps> = ({
       />
 
       <KeyValueRow
-        twClassName="h-auto px-0 py-3"
+        className="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.order_id')}
         value={
           isLoading ? (
-            <Box twClassName="h-[18px] w-32 rounded bg-muted" />
+            <Box className="h-[18px] w-32 rounded bg-muted" />
           ) : (
             shortOrderId
           )
@@ -491,29 +491,29 @@ const OrderContent: React.FC<OrderContentProps> = ({
       />
 
       <KeyValueRow
-        twClassName="h-auto px-0 py-3"
+        className="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.date_and_time')}
         value={dateAndTimeValue}
       />
 
       <KeyValueRow
-        twClassName="h-auto px-0 py-3"
+        className="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.fees')}
         value={feesValue}
       />
 
       <KeyValueRow
-        twClassName="h-auto px-0 py-3"
+        className="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.total')}
         value={totalValue}
       />
 
       {hasBankDetails && bankDetailFields && !isLoading && (
-        <Box twClassName="mt-4 pt-4 border-t border-alternative">
+        <Box className="mt-4 pt-4 border-t border-alternative">
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
-            twClassName="mb-4"
+            className="mb-4"
           >
             {strings('deposit.bank_details.main_title')}
           </Text>
@@ -568,7 +568,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           )}
 
           {showManageBankTransfer && (
-            <Box twClassName="mt-4">
+            <Box className="mt-4">
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
@@ -582,22 +582,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
       )}
 
       <Box
-        twClassName={
+        className={
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
         {order.statusDescription && isTerminal && (
-          <Box twClassName={showCloseButton ? 'mb-4' : ''}>
+          <Box className={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="text-alternative text-center"
+                className="text-alternative text-center"
               >
                 {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  twClassName="text-alternative"
+                  className="text-alternative"
                   style={localStyles.inlineIcon}
                 />
               </Text>

@@ -217,7 +217,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
               size={AvatarNetworkSize.Xs}
               name={chain.name}
               shape={AvatarBaseShape.Square}
-              twClassName="rounded translate-y-px"
+              className="rounded translate-y-px"
             />
             <Text
               variant={TextVariant.BodyMd}

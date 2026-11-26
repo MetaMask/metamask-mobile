@@ -99,7 +99,7 @@ export const useWalletHeaderNativeHeader = ({
             handleSearchPress={handleSearchPress}
             handleHamburgerPress={handleHamburgerPress}
             touchAreaSlop={touchAreaSlop}
-            twClassName="px-1"
+            className="px-1"
           />
         ),
       },

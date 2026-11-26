@@ -107,7 +107,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
-              twClassName="text-center"
+              className="text-center"
               {...titleProps}
             >
               {title}
@@ -116,12 +116,12 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
             title
           )}
           {subtitle && (
-            <Box twClassName="-mt-0.5">
+            <Box className="-mt-0.5">
               {typeof subtitle === 'string' ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-center"
+                  className="text-center"
                   {...subtitleProps}
                 >
                   {subtitle}
@@ -143,7 +143,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
       startButtonIconProps={resolvedStartButtonIconProps}
       endButtonIconProps={resolvedEndButtonIconProps}
       {...headerBaseProps}
-      twClassName={`px-2 ${twClassName}`.trim()}
+      className={`px-2 ${twClassName}`.trim()}
     >
       {renderContent()}
     </HeaderBase>

@@ -101,7 +101,7 @@ const UpdateNeeded = () => {
         applyStyleToContainer
         style={styles.header}
         includesTopInset
-        twClassName="h-auto"
+        className="h-auto"
         testID="update-needed-modal-header"
         endButtonIconProps={[
           {

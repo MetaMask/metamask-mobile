@@ -178,7 +178,7 @@ export const TokenSortBottomSheet = () => {
             testID={option.testID}
             endAccessory={
               isSelected ? (
-                <Box twClassName="flex-row items-center gap-2">
+                <Box className="flex-row items-center gap-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
@@ -212,7 +212,7 @@ export const TokenSortBottomSheet = () => {
           onPress: handleReset,
           testID: WalletViewSelectorsIDs.SORT_RESET,
         }}
-        twClassName="pt-4"
+        className="pt-4"
       />
     </BottomSheet>
   );

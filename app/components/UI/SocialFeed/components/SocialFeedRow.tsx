@@ -105,7 +105,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       onAnimationComplete={entrances.markPlayed}
       reducedMotion={reducedMotion}
     >
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <SocialFeedPostShell
           post={post}
           onAuthorPress={onAuthorPress}

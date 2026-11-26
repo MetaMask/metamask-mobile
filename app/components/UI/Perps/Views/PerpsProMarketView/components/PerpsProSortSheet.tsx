@@ -102,7 +102,7 @@ const PerpsProSortSheet = <TField extends string>({
             endAccessory={
               isSelected ? (
                 <Box
-                  twClassName="flex-row items-center gap-2"
+                  className="flex-row items-center gap-2"
                   accessible={false}
                 >
                   <Text

@@ -86,7 +86,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       includesTopInset={isGlass}
       scrollY={props.scrollY}
       testID={MoneyHeaderTestIds.CONTAINER}
-      twClassName="pl-4 pr-3"
+      className="pl-4 pr-3"
       title={strings('money.title')}
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,

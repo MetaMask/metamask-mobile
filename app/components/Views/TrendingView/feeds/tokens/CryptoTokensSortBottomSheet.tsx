@@ -136,7 +136,7 @@ const CryptoTokensSortBottomSheet: React.FC<
             accessibilityState={{ selected: isSelected }}
             endAccessory={
               isSelected ? (
-                <Box twClassName="flex-row items-center gap-2">
+                <Box className="flex-row items-center gap-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
@@ -162,7 +162,7 @@ const CryptoTokensSortBottomSheet: React.FC<
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
         secondaryButtonProps={secondaryButtonProps}
-        twClassName="pt-4"
+        className="pt-4"
       />
     </BottomSheet>
   );

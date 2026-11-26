@@ -37,14 +37,14 @@ const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const loadingRows = useMemo(
     () =>
       Array.from({ length: 6 }, (_, index) => (
-        <Box key={index} twClassName="mb-2">
-          <Box twClassName="w-full flex-row items-center justify-between">
-            <Box twClassName="flex-row items-center flex-1">
-              <Box twClassName="flex-1">
+        <Box key={index} className="mb-2">
+          <Box className="w-full flex-row items-center justify-between">
+            <Box className="flex-row items-center flex-1">
+              <Box className="flex-1">
                 <Skeleton style={styles.skeleton} height={35} width="70%" />
               </Box>
             </Box>
-            <Box twClassName="ml-3">
+            <Box className="ml-3">
               <Skeleton height={35} width={56} style={styles.switchSkeleton} />
             </Box>
           </Box>

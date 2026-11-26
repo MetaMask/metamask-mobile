@@ -172,7 +172,7 @@ const Settings = () => {
           />
         )}
 
-        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <SectionDivider marginVertical={1} className="mx-4" />
         <Box
           style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY}
@@ -199,7 +199,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
 
-        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <SectionDivider marginVertical={1} className="mx-4" />
         <Box
           style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS}
@@ -215,7 +215,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
 
-        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <SectionDivider marginVertical={1} className="mx-4" />
         <Box
           style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_MORE}

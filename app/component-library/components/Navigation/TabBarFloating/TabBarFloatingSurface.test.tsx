@@ -28,7 +28,7 @@ const renderSurface = (
     <TabBarFloatingSurface
       isBlurAvailable={isBlurAvailable}
       colorScheme={colorScheme}
-      twClassName="rounded-full"
+      className="rounded-full"
       testID={TEST_ID}
     >
       <Text>Tabs</Text>

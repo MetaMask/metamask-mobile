@@ -91,7 +91,7 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
       onAction={onAction}
       isVerticallyCentered
       top={
-        <Box twClassName="items-center">
+        <Box className="items-center">
           <FailureImage name="mfa-failure" />
         </Box>
       }

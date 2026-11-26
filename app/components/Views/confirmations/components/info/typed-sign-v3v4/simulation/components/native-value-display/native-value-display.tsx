@@ -156,7 +156,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             >
               {modalHeaderText}
             </BottomSheetHeaderGlass>
-            <Box twClassName="flex flex-col p-4 pt-0">
+            <Box className="flex flex-col p-4 pt-0">
               <Text style={styles.valueModalText}>
                 {tokenValueMaxPrecision}
               </Text>

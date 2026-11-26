@@ -37,7 +37,7 @@ const NetworkSelector = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="px-4 pt-4" testID="add-asset-network-selector">
+    <Box className="px-4 pt-4" testID="add-asset-network-selector">
       <TouchableOpacity
         style={tw.style(
           'border border-default rounded-full flex-row items-center p-4 mb-4 mt-1',
@@ -46,7 +46,7 @@ const NetworkSelector = ({
         onLongPress={openNetworkSelector}
       >
         {selectedNetwork ? (
-          <Box twClassName="mr-2">
+          <Box className="mr-2">
             <Avatar
               variant={AvatarVariant.Network}
               size={AvatarSize.Sm}
@@ -65,7 +65,7 @@ const NetworkSelector = ({
             : strings('networks.select_network')}
         </Text>
         <Box
-          twClassName="flex-row items-center absolute px-4 right-0"
+          className="flex-row items-center absolute px-4 right-0"
           pointerEvents="none"
         >
           <ButtonIcon

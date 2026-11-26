@@ -272,7 +272,7 @@ const ForgotPasswordModal: React.FC = () => {
         isFloating={false}
         onBack={handleClose}
         backButtonProps={{ testID: 'forgot-password-back-button' }}
-        twClassName="bg-background-default"
+        className="bg-background-default"
       />
       {status === 'error' ? (
         <View
@@ -281,7 +281,7 @@ const ForgotPasswordModal: React.FC = () => {
         >
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
+            className="text-error-default text-center"
             testID="forgot-password-error-text"
           >
             {strings('card.card_forgot_password.load_error')}

@@ -205,7 +205,7 @@ export const AccountGroupDetails = () => {
           variant={TextVariant.HeadingSm}
           numberOfLines={1}
           ellipsizeMode="tail"
-          twClassName="w-full min-w-0 shrink text-center"
+          className="w-full min-w-0 shrink text-center"
           testID={HEADER_BASE_TITLE_TEST_ID}
         >
           {groupName}
@@ -218,7 +218,7 @@ export const AccountGroupDetails = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full"
+          className="w-full"
           marginBottom={8}
           testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR_CONTAINER}
         >

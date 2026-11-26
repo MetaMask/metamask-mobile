@@ -171,7 +171,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           color={TextColor.TextAlternative}
           style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
-          twClassName="tabular-nums"
+          className="tabular-nums"
           accessibilityLabel={
             isPromotionalDiscount
               ? strings('perps.tooltips.fees.original_fee_value', {
@@ -192,7 +192,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
             numberOfLines={1}
             style={styles.percentageRate}
             testID={testID ? `${testID}-taker` : undefined}
-            twClassName="tabular-nums"
+            className="tabular-nums"
           >
             {takerMakerFeeText.taker}
           </Text>
@@ -203,7 +203,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
             numberOfLines={1}
             style={styles.percentageRate}
             testID={testID ? `${testID}-maker` : undefined}
-            twClassName="tabular-nums"
+            className="tabular-nums"
           >
             {takerMakerFeeText.maker}
           </Text>
@@ -214,7 +214,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           color={discountedFeeColor}
           fontWeight={fontWeight}
           testID={testID}
-          twClassName="tabular-nums"
+          className="tabular-nums"
         >
           {feeText}
         </Text>

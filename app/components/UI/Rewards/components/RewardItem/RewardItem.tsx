@@ -115,16 +115,16 @@ const RewardItem: React.FC<RewardItemProps> = ({
       // If expired, show expired indicator
       if (isExpired) {
         return (
-          <Box twClassName="gap-1 flex-row items-center">
+          <Box className="gap-1 flex-row items-center">
             <Icon
               name={IconName.Clock}
               size={IconSize.Sm}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             />
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             >
               {strings('rewards.unlocked_rewards.expired')}
             </Text>
@@ -135,16 +135,16 @@ const RewardItem: React.FC<RewardItemProps> = ({
       // If time remaining, show time left indicator
       if (remainingTime) {
         return (
-          <Box twClassName="gap-1 flex-row items-center">
+          <Box className="gap-1 flex-row items-center">
             <Icon
               name={IconName.Clock}
               size={IconSize.Sm}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             />
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             >
               {strings('rewards.unlocked_rewards.time_left', {
                 time: remainingTime,
@@ -159,7 +159,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {descriptionText}
           </Text>
@@ -179,7 +179,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {endOfSeasonClaimedDescription ||
               strings('rewards.unlocked_rewards.claimed_label')}
@@ -190,7 +190,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {strings('rewards.unlocked_rewards.expired')}
           </Text>
@@ -200,7 +200,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {strings('rewards.end_of_season_rewards.check_back_soon')}
           </Text>
@@ -221,7 +221,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          className="text-text-alternative"
         >
           {seasonReward.shortDescription}
         </Text>
@@ -244,16 +244,16 @@ const RewardItem: React.FC<RewardItemProps> = ({
         seasonReward.rewardType === SeasonRewardType.ALPHA_FOX_INVITE
       ) {
         return (
-          <Box twClassName="gap-1 flex-row items-center">
+          <Box className="gap-1 flex-row items-center">
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Sm}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             />
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-text-alternative"
+              className="text-text-alternative"
             >
               {strings('rewards.unlocked_rewards.claimed_label')}
             </Text>
@@ -265,7 +265,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          className="text-text-alternative"
         >
           {seasonReward.shortUnlockedDescription}
         </Text>
@@ -276,7 +276,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
-        twClassName="text-text-alternative"
+        className="text-text-alternative"
       >
         {seasonReward.shortUnlockedDescription}
       </Text>
@@ -382,22 +382,22 @@ const RewardItem: React.FC<RewardItemProps> = ({
     >
       {/* Reward Icon */}
       <Box
-        twClassName={`h-10 w-10 rounded-full bg-muted items-center justify-center`}
+        className={`h-10 w-10 rounded-full bg-muted items-center justify-center`}
         testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
       >
         <Icon
           name={getIconName(seasonReward.iconName)}
           size={IconSize.Lg}
-          twClassName="text-icon-alternative"
+          className="text-icon-alternative"
         />
       </Box>
 
       {/* Reward Info */}
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-default"
+          className="text-text-default"
           testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
         >
           {isEndOfSeasonReward && seasonReward.endOfSeasonName
@@ -417,7 +417,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}
-            twClassName="text-text-alternative mr-1"
+            className="text-text-alternative mr-1"
           />
         ) : (
           <Button

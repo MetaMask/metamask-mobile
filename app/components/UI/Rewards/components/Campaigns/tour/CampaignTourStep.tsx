@@ -33,12 +33,12 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
       contentContainerStyle={tw.style('flex-grow')}
       showsVerticalScrollIndicator={false}
     >
-      <Box twClassName="flex-1 px-6 pt-3">
+      <Box className="flex-1 px-6 pt-3">
         <Box>
           <Text
             variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
-            twClassName="text-left mb-1.5"
+            className="text-left mb-1.5"
             testID={CAMPAIGN_TOUR_STEP_TEST_IDS.TITLE}
           >
             {documentToPlainText(step.title)}
@@ -46,7 +46,7 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-left mb-4"
+            className="text-left mb-4"
             testID={CAMPAIGN_TOUR_STEP_TEST_IDS.DESCRIPTION}
           >
             {documentToPlainText(step.description)}
@@ -55,7 +55,7 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
 
         {step.image && (
           <Box
-            twClassName="flex-1 w-full"
+            className="flex-1 w-full"
             justifyContent={BoxJustifyContent.Center}
           >
             <RewardsThemeImageComponent

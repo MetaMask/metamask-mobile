@@ -111,7 +111,7 @@ const CardHomeActionButtonRow = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName={`px-4 ${isTightTop ? 'pt-2' : 'pt-4'} pb-2 gap-2`}
+      className={`px-4 ${isTightTop ? 'pt-2' : 'pt-4'} pb-2 gap-2`}
       testID={CardHomeSelectors.ACTION_BUTTON_ROW}
     >
       {add ? (
@@ -121,7 +121,7 @@ const CardHomeActionButtonRow = ({
           onPress={add.onPress}
           isDisabled={add.disabled}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-          twClassName="py-3"
+          className="py-3"
           containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
@@ -137,7 +137,7 @@ const CardHomeActionButtonRow = ({
           onPress={details.onPress}
           isDisabled={details.disabled}
           testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
-          twClassName="py-3"
+          className="py-3"
           containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
@@ -149,7 +149,7 @@ const CardHomeActionButtonRow = ({
           onPress={pin.onPress}
           isDisabled={pin.disabled}
           testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-          twClassName="py-3"
+          className="py-3"
           containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
@@ -165,7 +165,7 @@ const CardHomeActionButtonRow = ({
           onPress={freeze.onPress}
           isDisabled={freeze.disabled}
           testID={CardHomeSelectors.FREEZE_CARD_BUTTON}
-          twClassName="py-3"
+          className="py-3"
           containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />

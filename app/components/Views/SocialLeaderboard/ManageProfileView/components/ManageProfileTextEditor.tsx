@@ -67,7 +67,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="flex-1 px-4 pt-2" gap={2}>
+        <Box className="flex-1 px-4 pt-2" gap={2}>
           {multiline ? (
             <TextArea
               value={value}
@@ -79,7 +79,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
           ) : (
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center"
+              className="items-center"
               gap={2}
             >
               {prefix ? (
@@ -90,7 +90,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
                   {prefix}
                 </Text>
               ) : null}
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <TextField
                   value={value}
                   onChangeText={setValue}
@@ -117,7 +117,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
             </Text>
           ) : null}
         </Box>
-        <Box twClassName="px-4 pb-8 pt-2">
+        <Box className="px-4 pb-8 pt-2">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

@@ -95,7 +95,7 @@ export const MultichainAssetDetailsActivityListItem = ({
   ]);
 
   return (
-    <Box twClassName="px-4">
+    <Box className="px-4">
       <ActivityListItemRow
         bridgeHistoryItem={bridgeHistoryItem}
         item={item}

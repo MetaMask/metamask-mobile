@@ -477,7 +477,7 @@ export const PredictWithdrawScreen = () => {
     }
     return (
       <>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <WithdrawAmountStep
             amount={input.amount}
             availableBalance={availableBalance}
@@ -486,7 +486,7 @@ export const PredictWithdrawScreen = () => {
             isPrivacyMode={privacyMode}
           />
         </Box>
-        <Box twClassName="gap-3 px-4 pb-2">
+        <Box className="gap-3 px-4 pb-2">
           {state.error !== null ? (
             <Text
               accessibilityRole="alert"
@@ -514,7 +514,7 @@ export const PredictWithdrawScreen = () => {
             }}
             // KeyValueRow carries its own horizontal padding; the step already
             // insets its content, so the row aligns with the button below.
-            twClassName="px-0"
+            className="px-0"
             testID={PredictWithdrawFlowTestIds.RECEIVE}
           />
           <Button
@@ -564,7 +564,7 @@ export const PredictWithdrawScreen = () => {
             </Text>
           ) : null}
         </ScrollView>
-        <Box twClassName="gap-3 px-4 pb-4">
+        <Box className="gap-3 px-4 pb-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -590,7 +590,7 @@ export const PredictWithdrawScreen = () => {
 
   const renderStatusActions = () =>
     state.phase === 'status' ? (
-      <Box twClassName="gap-3 px-4 pb-4">
+      <Box className="gap-3 px-4 pb-4">
         {isStatusStalled ? (
           <Text
             accessibilityRole="alert"
@@ -654,7 +654,7 @@ export const PredictWithdrawScreen = () => {
             />
           ) : (
             <Box
-              twClassName="items-center justify-center py-8"
+              className="items-center justify-center py-8"
               testID={PredictWithdrawFlowTestIds.SUBMITTING}
             >
               <Text
@@ -700,12 +700,12 @@ export const PredictWithdrawScreen = () => {
           }}
         />
       </Box>
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <View ref={phaseHeadingRef} collapsable={false}>
           <Text
             accessibilityRole="header"
             variant={TextVariant.HeadingSm}
-            twClassName="px-4 pt-4"
+            className="px-4 pt-4"
           >
             {strings(`predict_next.withdraw.phase.${state.phase}`)}
           </Text>

@@ -91,7 +91,7 @@ const KycIdentityVerified = ({
         <TitleStandard
           title={
             <Animated.View style={[tw.style('w-full'), titleStyle]}>
-              <MarketingMomentTitle twClassName="w-full text-center">
+              <MarketingMomentTitle className="w-full text-center">
                 {strings('kyc.identity_verified.title')}
               </MarketingMomentTitle>
             </Animated.View>
@@ -102,7 +102,7 @@ const KycIdentityVerified = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
               >
                 {strings('kyc.identity_verified.description')}
               </Text>
@@ -115,7 +115,7 @@ const KycIdentityVerified = ({
           topAccessory={
             <Box
               alignItems={BoxAlignItems.Center}
-              twClassName="mb-5 w-full"
+              className="mb-5 w-full"
               testID={KycIdentityVerifiedSelectorsIDs.ILLUSTRATION}
             >
               <VerifiedCheckAnimation
@@ -131,7 +131,7 @@ const KycIdentityVerified = ({
         pointerEvents={isButtonInteractive ? 'auto' : 'none'}
         testID={KycIdentityVerifiedSelectorsIDs.FOOTER}
       >
-        <Box twClassName="px-4 pb-2 pt-4">
+        <Box className="px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

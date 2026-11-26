@@ -139,7 +139,7 @@ export const PostTradeTokenSuggestions = ({
 
   return (
     <Box
-      twClassName="pb-4"
+      className="pb-4"
       testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}
     >
       <SectionHeader

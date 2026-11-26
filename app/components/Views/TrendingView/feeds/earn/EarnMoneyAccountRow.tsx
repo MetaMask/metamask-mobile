@@ -125,7 +125,7 @@ const EarnMoneyAccountRow = ({
       valueProps={{
         numberOfLines: 1,
       }}
-      twClassName="py-2 min-h-0"
+      className="py-2 min-h-0"
     />
   );
 };

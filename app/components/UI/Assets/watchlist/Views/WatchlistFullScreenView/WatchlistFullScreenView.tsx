@@ -178,14 +178,14 @@ const WatchlistFullScreenShell = ({
           }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
-          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
+          className={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
         >
           {strings('token_watchlist.done')}
         </ButtonBase>
       );
 
       return isGlassHeader ? (
-        <CapsuleGlass twClassName="shrink-0">{doneButton}</CapsuleGlass>
+        <CapsuleGlass className="shrink-0">{doneButton}</CapsuleGlass>
       ) : (
         doneButton
       );
@@ -195,7 +195,7 @@ const WatchlistFullScreenShell = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
         <ButtonIcon
           iconProps={{ color: IconColor.IconDefault }}
@@ -204,7 +204,7 @@ const WatchlistFullScreenShell = ({
           onPress={handleSearchPress}
           testID={WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON}
           accessibilityLabel={strings('wallet.search_accessibility_label')}
-          twClassName={HEADER_ICON_BUTTON_CLASS}
+          className={HEADER_ICON_BUTTON_CLASS}
         />
         {hasItems && canEdit && onEditPress ? (
           <ButtonIcon
@@ -214,14 +214,14 @@ const WatchlistFullScreenShell = ({
             onPress={onEditPress}
             testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
             accessibilityLabel={strings('token_watchlist.edit')}
-            twClassName={HEADER_ICON_BUTTON_CLASS}
+            className={HEADER_ICON_BUTTON_CLASS}
           />
         ) : null}
       </Box>
     );
 
     return isGlassHeader ? (
-      <CapsuleGlass twClassName="shrink-0 px-2">{headerActions}</CapsuleGlass>
+      <CapsuleGlass className="shrink-0 px-2">{headerActions}</CapsuleGlass>
     ) : (
       headerActions
     );
@@ -263,7 +263,7 @@ const WatchlistFullScreenShell = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
     >
       {!isSearchMode ? (
@@ -293,7 +293,7 @@ const WatchlistFullScreenShell = ({
         />
       ) : (
         <>
-          <Box twClassName="px-4 pt-3 pb-2">
+          <Box className="px-4 pt-3 pb-2">
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
@@ -704,7 +704,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
         onChange={handleFilterChange}
         variant={FilterButtonVariant.Primary}
         style={tw.style('grow-0 shrink-0')}
-        twClassName="gap-2 px-4 py-2"
+        className="gap-2 px-4 py-2"
         testID={WatchlistFullScreenViewSelectorsIDs.FILTERS}
       >
         <FilterButton
@@ -733,7 +733,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const renderContent = (): React.ReactNode => {
     if (!hasItems && hasActiveError && !hasSuggestions) {
       return (
-        <WatchlistErrorRow onRetry={retryLoadHandler} twClassName="px-4" />
+        <WatchlistErrorRow onRetry={retryLoadHandler} className="px-4" />
       );
     }
 
@@ -769,13 +769,13 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           : 'token_watchlist.no_tokens_description';
       return (
         <Box
-          twClassName="flex-1 items-center justify-center px-4"
+          className="flex-1 items-center justify-center px-4"
           testID={WatchlistFullScreenViewSelectorsIDs.MIXED_LIST}
         >
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
             {strings(emptyTitleKey)}
           </Text>
-          <Text twClassName="mt-2 text-center">
+          <Text className="mt-2 text-center">
             {strings(emptyDescriptionKey)}
           </Text>
         </Box>
@@ -783,9 +783,9 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     }
 
     return (
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {hasActiveError ? (
-          <WatchlistErrorRow onRetry={retryLoadHandler} twClassName="px-4" />
+          <WatchlistErrorRow onRetry={retryLoadHandler} className="px-4" />
         ) : null}
         <ReorderableList
           data={visibleItems}

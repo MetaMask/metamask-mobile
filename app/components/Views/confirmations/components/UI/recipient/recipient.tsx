@@ -80,9 +80,9 @@ export function Recipient({
       onPress={handlePressRecipient}
       accessibilityRole="button"
     >
-      <Box twClassName="flex-row items-center">
+      <Box className="flex-row items-center">
         <Box
-          twClassName="h-12 justify-center"
+          className="h-12 justify-center"
           testID={`recipient-avatar-${recipient.address}`}
         >
           <Avatar
@@ -92,7 +92,7 @@ export function Recipient({
             size={AvatarSize.Md}
           />
         </Box>
-        <Box twClassName="ml-4 h-12 justify-center flex-1">
+        <Box className="ml-4 h-12 justify-center flex-1">
           <Text
             testID={`recipient-name-${recipient.address}`}
             variant={TextVariant.BodyMd}

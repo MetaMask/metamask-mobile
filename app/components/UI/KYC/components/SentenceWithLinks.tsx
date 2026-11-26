@@ -86,7 +86,7 @@ const SentenceWithLinks = ({
     <Text
       variant={variant}
       color={color}
-      twClassName={twClassName}
+      className={twClassName}
       testID={testID}
       onPress={onPress}
       suppressHighlighting={suppressHighlighting}

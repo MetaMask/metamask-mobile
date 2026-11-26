@@ -175,7 +175,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
 
   const rowContent = (
     <Box
-      twClassName={isLast ? undefined : 'border-background-default border-b-4'}
+      className={isLast ? undefined : 'border-background-default border-b-4'}
     >
       <Pressable
         onPress={() => setExpanded((value) => !value)}
@@ -187,9 +187,9 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-4"
+          className="px-4 py-4"
         >
-          <Box twClassName="flex-1" testID={VIP_TIER_ROW_TEST_IDS.NAME}>
+          <Box className="flex-1" testID={VIP_TIER_ROW_TEST_IDS.NAME}>
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
@@ -204,7 +204,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
               color={pointsColor}
-              twClassName="ml-3"
+              className="ml-3"
               testID={VIP_TIER_ROW_TEST_IDS.THRESHOLDS}
             >
               {strings('rewards.vip.tier_thresholds', {
@@ -212,7 +212,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
               })}
             </Text>
           ) : null}
-          <Box twClassName="ml-3">
+          <Box className="ml-3">
             <Icon
               name={expanded ? IconName.ArrowUp : IconName.ArrowDown}
               size={IconSize.Sm}
@@ -229,7 +229,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
           layout={vipTierRowLayoutTransition}
           testID={`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${tier.id}`}
         >
-          <Box twClassName="gap-2 px-4 pb-5">
+          <Box className="gap-2 px-4 pb-5">
             <VipTierDetailRow
               label={localizedText.revenueShareTitle}
               value={`${revenueSharePercentage}%`}

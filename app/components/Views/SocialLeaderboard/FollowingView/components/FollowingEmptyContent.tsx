@@ -30,7 +30,7 @@ const FollowingEmptyContent: React.FC<FollowingEmptyContentProps> = ({
     return (
       <Box
         alignItems={BoxAlignItems.Center}
-        twClassName="py-12"
+        className="py-12"
         testID={FOLLOWING_EMPTY_LOADING_TEST_ID}
       >
         <Spinner />
@@ -38,7 +38,7 @@ const FollowingEmptyContent: React.FC<FollowingEmptyContentProps> = ({
     );
   }
   return (
-    <Box twClassName="-mt-2">
+    <Box className="-mt-2">
       <SocialV1FeedEmptyState tab="following" />
     </Box>
   );

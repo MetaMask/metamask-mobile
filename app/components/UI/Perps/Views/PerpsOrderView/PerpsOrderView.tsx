@@ -3197,7 +3197,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
-          twClassName="pt-4"
+          className="pt-4"
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -3517,7 +3517,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
-              twClassName="flex-1 min-w-0 h-12 rounded-xl"
+              className="flex-1 min-w-0 h-12 rounded-xl"
             >
               25%
             </Button>
@@ -3526,7 +3526,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
-              twClassName="flex-1 min-w-0 h-12 rounded-xl"
+              className="flex-1 min-w-0 h-12 rounded-xl"
             >
               50%
             </Button>
@@ -3535,7 +3535,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
-              twClassName="flex-1 min-w-0 h-12 rounded-xl"
+              className="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -3544,7 +3544,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
-              twClassName="flex-1 min-w-0 h-12 rounded-xl"
+              className="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.done_button')}
             </Button>
@@ -3561,7 +3561,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* OI Cap Warning - Shows when market is at capacity */}
       {!isInputFocused && isAtOICap && (
-        <Box twClassName="px-4 mb-4">
+        <Box className="px-4 mb-4">
           <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
         </Box>
       )}
@@ -3575,9 +3575,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             coin={orderForm.asset}
             direction={orderForm.direction}
             notionalUsd={orderForm.amount}
-            twClassName="mb-3"
+            className="mb-3"
           />
-          <Box twClassName="-mx-4 mb-3 border-t border-muted" />
+          <Box className="-mx-4 mb-3 border-t border-muted" />
 
           {footerErrors.length > 0 &&
             !isLoadingMarketData &&

@@ -206,7 +206,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
           testID={MoneyBalanceCardTestIds.BALANCE_ERROR}
         >
           <Text
@@ -247,7 +247,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
         numberOfLines={1}
-        twClassName="shrink"
+        className="shrink"
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
         {balanceText}
@@ -257,18 +257,18 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
 
   const content = (
     <>
-      <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
+      <Box className="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           flexWrap={BoxFlexWrap.Wrap}
-          twClassName="w-full min-w-0"
+          className="w-full min-w-0"
         >
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            twClassName="max-w-full"
+            className="max-w-full"
             testID={MoneyBalanceCardTestIds.LABEL}
           >
             {strings('money.balance_card.label')}
@@ -276,7 +276,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="shrink-0"
+            className="shrink-0"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -304,14 +304,14 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.End}
-          twClassName="gap-2"
+          className="gap-2"
         >
           {renderBalanceSlot()}
           {vaultApyQuery.isLoading ? (
             <Skeleton
               height={20}
               width={60}
-              twClassName="shrink-0"
+              className="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
             />
           ) : (
@@ -319,7 +319,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
-              twClassName="shrink-0"
+              className="shrink-0"
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
               {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
@@ -331,7 +331,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
-        twClassName="shrink-0"
+        className="shrink-0"
       >
         {buttonVariant === ButtonVariant.Secondary ? (
           <ButtonGlass

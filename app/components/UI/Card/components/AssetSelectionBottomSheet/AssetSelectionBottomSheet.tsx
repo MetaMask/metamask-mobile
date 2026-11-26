@@ -326,7 +326,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const renderBottomSheetContent = useCallback(() => {
     if (!cardHomeData?.delegationSettings) {
       return (
-        <Box twClassName="flex-1 items-center justify-center py-8">
+        <Box className="flex-1 items-center justify-center py-8">
           <Spinner
             testID={AssetSelectionBottomSheetTestIds.LOADING_SPINNER}
             spinnerIconProps={{ size: IconSize.Xl }}
@@ -337,11 +337,11 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <Box twClassName="flex-1 items-center justify-center py-8">
+        <Box className="flex-1 items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('card.no_tokens_available')}
           </Text>

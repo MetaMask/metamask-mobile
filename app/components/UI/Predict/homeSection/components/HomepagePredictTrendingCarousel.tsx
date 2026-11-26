@@ -75,7 +75,7 @@ const HomepagePredictTrendingCarousel = ({
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] flex-1"
+              className="w-[180px] flex-1"
             />
           </>
         )}

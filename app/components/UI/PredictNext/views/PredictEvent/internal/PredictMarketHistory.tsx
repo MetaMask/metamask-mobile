@@ -146,7 +146,7 @@ const MarketHistoryContent = ({
           accessibilityRole="progressbar"
           testID={PredictMarketHistoryTestIds.LOADING}
           style={chartStateStyle}
-          twClassName="rounded-2xl bg-muted"
+          className="rounded-2xl bg-muted"
         />
       );
     }
@@ -156,7 +156,7 @@ const MarketHistoryContent = ({
         <Box
           testID={PredictMarketHistoryTestIds.ERROR}
           style={chartStateStyle}
-          twClassName="items-center justify-center gap-4 rounded-2xl bg-muted px-6"
+          className="items-center justify-center gap-4 rounded-2xl bg-muted px-6"
         >
           <Text
             accessibilityRole="alert"
@@ -176,7 +176,7 @@ const MarketHistoryContent = ({
         <Box
           testID={PredictMarketHistoryTestIds.EMPTY}
           style={chartStateStyle}
-          twClassName="items-center justify-center rounded-2xl bg-muted px-6"
+          className="items-center justify-center rounded-2xl bg-muted px-6"
         >
           <Text
             color={TextColor.TextAlternative}
@@ -189,7 +189,7 @@ const MarketHistoryContent = ({
     }
 
     return (
-      <Box twClassName="-ml-4">
+      <Box className="-ml-4">
         <PredictMarketChart
           testID={PredictMarketHistoryTestIds.CHART}
           series={chartSeries}
@@ -199,7 +199,7 @@ const MarketHistoryContent = ({
   };
 
   return (
-    <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
+    <Box className="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
       {legend}
       {renderChartState()}
 
@@ -393,25 +393,25 @@ const TopMarketsLegend = ({
   series: readonly MarketHistorySeries[];
 }) => (
   <Box
-    twClassName="flex-row flex-wrap gap-x-4 gap-y-2"
+    className="flex-row flex-wrap gap-x-4 gap-y-2"
     testID={PredictMarketHistoryTestIds.LEGEND}
   >
     {series.map((entry) => (
       <Box
         key={entry.id}
-        twClassName="max-w-full flex-row items-center gap-1"
+        className="max-w-full flex-row items-center gap-1"
         testID={PredictMarketHistoryTestIds.legendItem(entry.id)}
       >
         <Box
           style={[styles.legendDot, { backgroundColor: entry.color }]}
-          twClassName="rounded-full"
+          className="rounded-full"
         />
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
           numberOfLines={1}
           ellipsizeMode="tail"
-          twClassName="shrink"
+          className="shrink"
         >
           {entry.label}
         </Text>

@@ -69,12 +69,12 @@ export const SecurityDetailRow: React.FC<SecurityDetailRowProps> = ({
   const isMissing = value === null;
 
   return (
-    <Box twClassName="gap-1" testID={ContractSecuritySelectors.row(checkKey)}>
+    <Box className="gap-1" testID={ContractSecuritySelectors.row(checkKey)}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-4"
+        className="gap-4"
       >
         <Text
           variant={TextVariant.BodySm}
@@ -87,7 +87,7 @@ export const SecurityDetailRow: React.FC<SecurityDetailRowProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="shrink gap-1"
+          className="shrink gap-1"
         >
           {icon && !isMissing ? (
             <Icon
@@ -106,7 +106,7 @@ export const SecurityDetailRow: React.FC<SecurityDetailRowProps> = ({
                 : (valueColor ?? TextColor.TextDefault)
             }
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={ContractSecuritySelectors.rowValue(checkKey)}
           >
             {value ?? STAT_EMPTY_VALUE}

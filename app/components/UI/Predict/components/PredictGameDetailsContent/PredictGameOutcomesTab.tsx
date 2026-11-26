@@ -46,7 +46,7 @@ const ResolvedOutcomeGroup = memo(
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="font-medium pt-3 pb-1"
+        className="font-medium pt-3 pb-1"
       >
         {isSubgroup
           ? getSportsMarketTypeLabelForGame(group.key, undefined, game)
@@ -135,7 +135,7 @@ const PredictGameOutcomesTab = memo(
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
         {pricedGroup && (
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <OutcomesContent
               group={pricedGroup}
               onBuyPress={onBuyPress}
@@ -145,7 +145,7 @@ const PredictGameOutcomesTab = memo(
             />
           </Box>
         )}
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PredictGameResultsDropdown
             groups={resolvedOutcomeGroups}
             game={game}

@@ -153,7 +153,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          <Box twClassName="p-4">
+          <Box className="p-4">
             <PerpsTradingCampaignStatsHeader
               position={position}
               isLoading={isLoading}
@@ -162,8 +162,8 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               isCampaignComplete={isCampaignComplete}
             />
           </Box>
-          <Box twClassName="my-1 border-b border-border-muted" />
-          <Box twClassName="p-4 gap-3">
+          <Box className="my-1 border-b border-border-muted" />
+          <Box className="p-4 gap-3">
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.perps_trading_campaign.performance_title')}
             </Text>
@@ -185,13 +185,13 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
                 />
               ) : (
-                <Box twClassName="flex-1" />
+                <Box className="flex-1" />
               )}
             </Box>
 
             {showQualifiedCard && (
               <Box
-                twClassName="bg-muted rounded-xl p-4 gap-2"
+                className="bg-muted rounded-xl p-4 gap-2"
                 testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFIED_CARD}
               >
                 <Text
@@ -215,7 +215,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
 
             {showQualifyForRankCard && (
               <Box
-                twClassName="bg-muted rounded-xl p-4 gap-2"
+                className="bg-muted rounded-xl p-4 gap-2"
                 testID={
                   PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFY_FOR_RANK_CARD
                 }
@@ -223,7 +223,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-2"
+                  className="gap-2"
                 >
                   <Text
                     variant={TextVariant.BodyMd}

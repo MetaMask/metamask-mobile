@@ -460,7 +460,7 @@ const TraderProfileView = () => {
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
         endAccessory={
-          <SocialHeaderGlassSurface twClassName="px-1">
+          <SocialHeaderGlassSurface className="px-1">
             {isSharing ? (
               <ShareButtonSpinner
                 testID={TraderProfileViewSelectorsIDs.SHARE_SPINNER}
@@ -482,7 +482,7 @@ const TraderProfileView = () => {
         testID={TraderProfileViewSelectorsIDs.HEADER}
       />
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
@@ -543,9 +543,9 @@ const TraderProfileView = () => {
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    twClassName="px-4 pt-3 pb-1"
+                    className="px-4 pt-3 pb-1"
                   >
-                    <Box twClassName="flex-1">
+                    <Box className="flex-1">
                       <Button
                         variant={
                           isFollowing
@@ -573,14 +573,14 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
+                  <Box className="h-px bg-muted mx-4 mt-5 mb-4" />
 
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    twClassName="mb-2"
+                    className="mb-2"
                   >
-                    <Box twClassName="flex-1">
+                    <Box className="flex-1">
                       <TabsBar
                         tabs={positionTabs}
                         activeIndex={PROFILE_TABS.indexOf(activeTab)}
@@ -588,7 +588,7 @@ const TraderProfileView = () => {
                       />
                     </Box>
                     {activeTab !== 'posts' && positions.length > 0 && (
-                      <Box twClassName="pr-4">
+                      <Box className="pr-4">
                         <SortButton
                           label={strings(
                             activeTab === 'open'

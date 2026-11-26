@@ -20,7 +20,7 @@ const XTrustMark: React.FC = () => (
     testID={X_TRUST_MARK_TEST_ID}
     accessible={false}
     importantForAccessibility="no"
-    twClassName="shrink-0"
+    className="shrink-0"
   />
 );
 

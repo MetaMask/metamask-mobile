@@ -91,7 +91,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
             </Text>
           </BottomSheetHeaderGlass>
 
-          <Box twClassName="pt-4 mx-4 flex gap-4">
+          <Box className="pt-4 mx-4 flex gap-4">
             <Button
               onPress={handleRefreshMetadata}
               variant={ButtonVariant.Secondary}

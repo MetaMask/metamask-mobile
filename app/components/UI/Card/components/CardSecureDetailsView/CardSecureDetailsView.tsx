@@ -53,13 +53,13 @@ const DetailField = ({
   testID: string;
 }) => (
   <Box>
-    <Text variant={TextVariant.BodyXs} twClassName="text-white opacity-70">
+    <Text variant={TextVariant.BodyXs} className="text-white opacity-70">
       {label}
     </Text>
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Bold}
-      twClassName="text-white"
+      className="text-white"
       testID={testID}
     >
       {value}
@@ -81,7 +81,7 @@ const CardSecureDetailsView = ({
   if (isLoading) {
     return (
       <Box
-        twClassName="w-full rounded-xl overflow-hidden"
+        className="w-full rounded-xl overflow-hidden"
         style={{ aspectRatio: 851 / 540 }}
       >
         <Skeleton
@@ -97,18 +97,18 @@ const CardSecureDetailsView = ({
   if (cardSensitiveDetails) {
     return (
       <Box
-        twClassName="w-full rounded-xl overflow-hidden"
+        className="w-full rounded-xl overflow-hidden"
         style={[
           { aspectRatio: 851 / 540 },
           { backgroundColor: CARD_DETAILS_ORANGE },
         ]}
         testID={CardHomeSelectors.CARD_SENSITIVE_DETAILS}
       >
-        <Box twClassName="flex-1 p-5 justify-end gap-4">
-          <Box twClassName="bg-white rounded-lg px-4 py-3">
+        <Box className="flex-1 p-5 justify-end gap-4">
+          <Box className="bg-white rounded-lg px-4 py-3">
             <Text
               variant={TextVariant.BodyXs}
-              twClassName="text-black opacity-60"
+              className="text-black opacity-60"
             >
               {strings('card.card_home.card_details.card_number_label')}
             </Text>
@@ -120,7 +120,7 @@ const CardSecureDetailsView = ({
               <Text
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
-                twClassName="text-black"
+                className="text-black"
                 testID={CardHomeSelectors.CARD_SENSITIVE_DETAILS_PAN}
               >
                 {formatPan(cardSensitiveDetails.pan)}
@@ -133,7 +133,7 @@ const CardSecureDetailsView = ({
                 <Icon
                   name={IconName.Copy}
                   size={IconSize.Md}
-                  twClassName="text-black"
+                  className="text-black"
                 />
               </Pressable>
             </Box>
@@ -142,7 +142,7 @@ const CardSecureDetailsView = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-4"
+            className="gap-4"
           >
             <DetailField
               label={strings('card.card_home.card_details.expiry_label')}
@@ -154,7 +154,7 @@ const CardSecureDetailsView = ({
               value={cardSensitiveDetails.cvv2}
               testID={CardHomeSelectors.CARD_SENSITIVE_DETAILS_CVV}
             />
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <DetailField
                 label={strings('card.card_home.card_details.name_label')}
                 value={cardSensitiveDetails.embossedName}
@@ -170,7 +170,7 @@ const CardSecureDetailsView = ({
   if (cardDetailsImageUrl) {
     return (
       <Box
-        twClassName="w-full rounded-xl overflow-hidden"
+        className="w-full rounded-xl overflow-hidden"
         style={{ aspectRatio: 851 / 540 }}
       >
         {isCardDetailsImageLoading && (

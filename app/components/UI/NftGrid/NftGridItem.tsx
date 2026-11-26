@@ -68,7 +68,7 @@ const NftGridItem = ({
       }}
       testID={`collectible-${item.name}-${item.tokenId}`}
     >
-      <Box twClassName="self-stretch aspect-square">
+      <Box className="self-stretch aspect-square">
         <CollectibleMedia
           style={tw.style('self-stretch aspect-square')}
           collectible={item}
@@ -76,13 +76,13 @@ const NftGridItem = ({
           onLoad={handleImageLoad}
         />
         {isImageLoading && (
-          <Skeleton twClassName="absolute inset-0 rounded-lg" />
+          <Skeleton className="absolute inset-0 rounded-lg" />
         )}
       </Box>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="mt-2 text-default"
+        className="mt-2 text-default"
         numberOfLines={1}
       >
         {item.name || '-'}
@@ -93,7 +93,7 @@ const NftGridItem = ({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          twClassName="text-alternative"
+          className="text-alternative"
           numberOfLines={1}
         >
           {item.collection.name}

@@ -105,7 +105,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
       <SectionHeader
         testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.categories_title')}
-        twClassName="px-0 pt-0 mb-1"
+        className="px-0 pt-0 mb-1"
       />
 
       <ScrollView

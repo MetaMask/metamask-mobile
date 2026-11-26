@@ -264,7 +264,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             >
               {modalHeaderText}
             </BottomSheetHeaderGlass>
-            <Box twClassName="flex flex-col">
+            <Box className="flex flex-col">
               <Text style={styles.valueModalText}>
                 {tokenValueMaxPrecision}
               </Text>

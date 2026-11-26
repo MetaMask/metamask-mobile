@@ -478,7 +478,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                className={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.withdrawal_time')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
                 keyEndButtonIconProps={tooltipProps(
@@ -493,7 +493,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                className={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.withdrawing_to')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
                 value={
@@ -508,7 +508,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 }
               />
               <KeyValueRow
-                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                className={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.protocol')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
                 keyEndButtonIconProps={tooltipProps(
@@ -527,7 +527,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
             <InfoRowDivider />
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                className={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.network')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
                 value={

@@ -29,7 +29,7 @@ const PreviousSeasonLevel: React.FC = () => {
 
   return (
     <PreviousSeasonSummaryTile
-      twClassName="flex-col gap-3 flex-grow"
+      className="flex-col gap-3 flex-grow"
       isLoading={seasonLoading && !seasonId}
       loadingHeight={106}
       testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL}
@@ -39,15 +39,15 @@ const PreviousSeasonLevel: React.FC = () => {
         <Icon
           name={IconName.Rocket}
           size={IconSize.Lg}
-          twClassName="text-accent02-normal"
+          className="text-accent02-normal"
         />
       </Box>
 
-      <Box twClassName="flex-col">
-        <Text variant={TextVariant.HeadingSm} twClassName="text-default">
+      <Box className="flex-col">
+        <Text variant={TextVariant.HeadingSm} className="text-default">
           {currentTier.levelNumber}
         </Text>
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {currentTier.name}
         </Text>
       </Box>

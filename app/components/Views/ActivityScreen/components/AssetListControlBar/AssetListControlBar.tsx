@@ -67,7 +67,7 @@ const FilterChip: React.FC<{
       endIconName={IconName.ArrowDown}
       onPress={chip.onPress}
       testID={suppressTestID ? undefined : chip.testID}
-      twClassName={isGlass ? 'bg-transparent' : undefined}
+      className={isGlass ? 'bg-transparent' : undefined}
     >
       {chip.label}
     </ButtonBase>

@@ -156,7 +156,7 @@ const DeleteWalletModal: React.FC = () => {
           <Box gap={4}>
             <ListItem
               variant={ListItemVariant.MultiLine}
-              twClassName="min-h-0 py-0"
+              className="min-h-0 py-0"
               avatar={
                 <AvatarIcon
                   iconName={IconName.FaceId}
@@ -183,7 +183,7 @@ const DeleteWalletModal: React.FC = () => {
             />
             <ListItem
               variant={ListItemVariant.MultiLine}
-              twClassName="min-h-0 pt-0 pb-2"
+              className="min-h-0 pt-0 pb-2"
               avatar={
                 <AvatarIcon
                   iconName={IconName.ShieldLock}
@@ -222,7 +222,7 @@ const DeleteWalletModal: React.FC = () => {
               },
               testID: ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
             }}
-            twClassName="pt-4"
+            className="pt-4"
           />
         </>
       ) : (
@@ -238,7 +238,7 @@ const DeleteWalletModal: React.FC = () => {
               titleProps={{
                 testID: ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
               }}
-              twClassName="pt-6"
+              className="pt-6"
             />
             <Box gap={4}>
               <Text
@@ -284,7 +284,7 @@ const DeleteWalletModal: React.FC = () => {
               testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
               twClassName: 'mt-4',
             }}
-            twClassName="pt-6 flex-col-reverse"
+            className="pt-6 flex-col-reverse"
           />
         </>
       )}

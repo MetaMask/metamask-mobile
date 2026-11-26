@@ -29,7 +29,7 @@ export interface AccountRowProps {
 }
 
 const RowLabel = () => (
-  <Text variant={TextVariant.BodyMd} twClassName="flex-1 text-text-alternative">
+  <Text variant={TextVariant.BodyMd} className="flex-1 text-text-alternative">
     {strings('card.card_spending_limit.account_label')}
   </Text>
 );
@@ -50,13 +50,13 @@ const MoneyAccountChip = ({ showChevron }: { showChevron: boolean }) => {
   const tw = useTailwind();
   return (
     <Box
-      twClassName="flex-row items-center gap-2 shrink min-w-0"
+      className="flex-row items-center gap-2 shrink min-w-0"
       testID={SpendingLimitSelectors.ACCOUNT_ROW_MONEY_ACCOUNT}
     >
       <MoneyBalanceIcon width={24} height={24} name="money-balance" />
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-text-default font-medium self-center shrink"
+        className="text-text-default font-medium self-center shrink"
         numberOfLines={1}
       >
         {strings('card.card_spending_limit.money_account_label')}
@@ -76,7 +76,7 @@ const RegularAccountChip = ({
 >) => {
   if (!selectedAccount) return null;
   return (
-    <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+    <Box className="flex-row items-center gap-2 shrink min-w-0">
       <AvatarAccount
         address={selectedAccount.address}
         variant={getAvatarAccountVariant(avatarAccountType)}
@@ -84,7 +84,7 @@ const RegularAccountChip = ({
       />
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-text-default font-medium self-center shrink"
+        className="text-text-default font-medium self-center shrink"
         numberOfLines={1}
       >
         {accountGroupName ?? selectedAccount.metadata.name}
@@ -105,7 +105,7 @@ const AccountRow: React.FC<AccountRowProps> = ({
   if (isMoneyAccountLocked) {
     return (
       <Box
-        twClassName="flex-row items-center p-4"
+        className="flex-row items-center p-4"
         testID={SpendingLimitSelectors.ACCOUNT_ROW_LOCKED}
       >
         <RowLabel />
@@ -119,7 +119,7 @@ const AccountRow: React.FC<AccountRowProps> = ({
       activeOpacity={0.7}
       testID={SpendingLimitSelectors.ACCOUNT_ROW}
     >
-      <Box twClassName="flex-row items-center p-4">
+      <Box className="flex-row items-center p-4">
         <RowLabel />
         {isMoneyAccountSource ? (
           <MoneyAccountChip showChevron />

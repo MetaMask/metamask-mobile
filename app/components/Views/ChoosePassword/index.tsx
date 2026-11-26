@@ -948,7 +948,7 @@ const ChoosePassword = () => {
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 pt-3"
+            className="flex-1 pt-3"
             gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
@@ -971,7 +971,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -996,7 +996,7 @@ const ChoosePassword = () => {
                         : IconName.EyeSlash
                     }
                     size={ButtonIconSize.Md}
-                    twClassName="-mr-1"
+                    className="-mr-1"
                     onPress={() => toggleShowPassword(0)}
                     accessibilityLabel={strings(
                       showPasswordIndex.includes(0)
@@ -1031,7 +1031,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -1053,7 +1053,7 @@ const ChoosePassword = () => {
                         : IconName.EyeSlash
                     }
                     size={ButtonIconSize.Md}
-                    twClassName="-mr-1"
+                    className="-mr-1"
                     isDisabled={password === ''}
                     onPress={() => toggleShowPassword(1)}
                     accessibilityLabel={strings(
@@ -1097,7 +1097,7 @@ const ChoosePassword = () => {
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
+                className="mt-2 border border-muted rounded-xl"
                 titleProps={{
                   variant: TextVariant.BodySm,
                   testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
@@ -1107,7 +1107,7 @@ const ChoosePassword = () => {
             )}
 
             <FooterGlass
-              twClassName="px-0 w-full mt-auto py-2"
+              className="px-0 w-full mt-auto py-2"
               primaryButtonProps={{
                 children: strings('choose_password.create_password_cta'),
                 onPress: onPressCreate,

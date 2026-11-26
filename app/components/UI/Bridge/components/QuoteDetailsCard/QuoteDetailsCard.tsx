@@ -299,7 +299,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       gap={1}
-                      twClassName="rounded-md bg-muted px-1.5"
+                      className="rounded-md bg-muted px-1.5"
                     >
                       <AvatarToken
                         name={gaslessFeeAsset.symbol}
@@ -451,7 +451,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                         name={priceImpactViewData.icon.name}
                         size={IconSize.Sm}
                         color={priceImpactViewData.icon.color}
-                        twClassName="mt-[2px]"
+                        className="mt-[2px]"
                       />
                     )}
                     <Text

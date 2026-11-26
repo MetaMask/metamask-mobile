@@ -33,7 +33,7 @@ interface StatusIconProps {
 /** The legacy Order outcome treatment: a tinted circle behind one icon. */
 const StatusIcon = ({ iconName, color, background }: StatusIconProps) => (
   <Box
-    twClassName={`h-12 w-12 items-center justify-center rounded-full ${background}`}
+    className={`h-12 w-12 items-center justify-center rounded-full ${background}`}
   >
     <Icon name={iconName} size={IconSize.Xl} color={color} />
   </Box>
@@ -161,7 +161,7 @@ export const OrderReceiptOutcome = ({
       const remainder = Math.max(receipt.quotedContracts - filled, 0);
       return (
         <Box
-          twClassName="items-center gap-3 py-6"
+          className="items-center gap-3 py-6"
           testID={
             isPartial
               ? PredictOrderFlowTestIds.RECEIPT_PARTIALLY_FILLED
@@ -188,7 +188,7 @@ export const OrderReceiptOutcome = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
               testID={PredictOrderFlowTestIds.REMAINDER}
             >
               {strings(
@@ -217,7 +217,7 @@ export const OrderReceiptOutcome = ({
               },
             )}
           </Text>
-          <Box twClassName="w-full gap-2">
+          <Box className="w-full gap-2">
             <FillRows receipt={receipt} />
           </Box>
           <Button
@@ -235,7 +235,7 @@ export const OrderReceiptOutcome = ({
     case 'not_filled':
       return (
         <Box
-          twClassName="items-center gap-3 py-6"
+          className="items-center gap-3 py-6"
           testID={PredictOrderFlowTestIds.RECEIPT_NOT_FILLED}
         >
           <StatusIcon
@@ -249,7 +249,7 @@ export const OrderReceiptOutcome = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings(
               isSell
@@ -273,7 +273,7 @@ export const OrderReceiptOutcome = ({
     case 'rejected':
       return (
         <Box
-          twClassName="items-center gap-3 py-6"
+          className="items-center gap-3 py-6"
           testID={PredictOrderFlowTestIds.RECEIPT_REJECTED}
         >
           <StatusIcon
@@ -287,7 +287,7 @@ export const OrderReceiptOutcome = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings(
               isSell
@@ -312,7 +312,7 @@ export const OrderReceiptOutcome = ({
       // invite a new order or imply the original order was not filled.
       return (
         <Box
-          twClassName="items-center gap-3 py-6"
+          className="items-center gap-3 py-6"
           testID={PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW}
         >
           <StatusIcon
@@ -330,7 +330,7 @@ export const OrderReceiptOutcome = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('predict_next.order_receipt.needs_review_description')}
           </Text>
@@ -351,7 +351,7 @@ export const OrderReceiptOutcome = ({
     case 'reconciliation_required':
       return (
         <Box
-          twClassName="items-center gap-3 py-6"
+          className="items-center gap-3 py-6"
           testID={PredictOrderFlowTestIds.RECEIPT_RECONCILING}
         >
           <StatusIcon
@@ -365,7 +365,7 @@ export const OrderReceiptOutcome = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('predict_next.order_receipt.reconciling_description')}
           </Text>

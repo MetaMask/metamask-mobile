@@ -941,7 +941,7 @@ const SocialV1ViewContent: React.FC = () => {
               // avatar needs the other 8px to share that left edge.
               style={tw.style('ml-2')}
             >
-              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+              <SocialHeaderGlassSurface className="w-10 justify-center">
                 {myProfile ? (
                   <ProfileAvatar
                     imageUrl={myProfile.imageUrl}
@@ -962,7 +962,7 @@ const SocialV1ViewContent: React.FC = () => {
             </Pressable>
           }
           endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
+            <SocialHeaderGlassSurface className="gap-2 px-2">
               <ButtonIcon
                 iconName={IconName.Gift}
                 iconProps={{ color: IconColor.IconDefault }}
@@ -972,7 +972,7 @@ const SocialV1ViewContent: React.FC = () => {
                   'wallet.rewards_accessibility_label',
                 )}
                 testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
-                twClassName="bg-transparent"
+                className="bg-transparent"
               />
               <ButtonIcon
                 iconName={IconName.FeedPost}
@@ -980,7 +980,7 @@ const SocialV1ViewContent: React.FC = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
-                twClassName="bg-transparent"
+                className="bg-transparent"
               />
             </SocialHeaderGlassSurface>
           }
@@ -989,7 +989,7 @@ const SocialV1ViewContent: React.FC = () => {
 
         {showNotificationsBanner && (
           <Box style={{ paddingTop: headerInset }}>
-            <Box twClassName="px-4 pt-2">
+            <Box className="px-4 pt-2">
               <BannerAlert
                 severity={BannerAlertSeverity.Info}
                 description={strings(
@@ -1006,7 +1006,7 @@ const SocialV1ViewContent: React.FC = () => {
           </Box>
         )}
 
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <TabView
             navigationState={navigationState}
             renderScene={renderScene}

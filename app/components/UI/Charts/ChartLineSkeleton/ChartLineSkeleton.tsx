@@ -127,7 +127,7 @@ const ChartLineSkeleton = ({
   return (
     <Box
       testID={testID}
-      twClassName="w-full overflow-hidden"
+      className="w-full overflow-hidden"
       style={{ height }}
       onLayout={(event) => {
         const next = event.nativeEvent.layout.width;

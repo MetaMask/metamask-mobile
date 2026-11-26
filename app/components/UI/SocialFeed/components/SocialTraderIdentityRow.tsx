@@ -81,7 +81,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   );
 
   const identity = (
-    <Box twClassName="min-w-0">
+    <Box className="min-w-0">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -91,14 +91,14 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="shrink min-w-0"
+          className="shrink min-w-0"
         >
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink min-w-0"
+            className="shrink min-w-0"
             testID={
               testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE
             }
@@ -121,7 +121,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
-          twClassName="shrink-0"
+          className="shrink-0"
           testID={
             testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
           }
@@ -141,7 +141,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
       gap={3}
-      twClassName={twClassName}
+      className={twClassName}
       testID={
         testIDs?.container ?? SocialTraderIdentityRowSelectorsIDs.CONTAINER
       }
@@ -157,7 +157,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
       ) : (
         avatar
       )}
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
@@ -173,7 +173,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
               {identity}
             </Pressable>
           ) : (
-            <Box twClassName="flex-1 min-w-0">{identity}</Box>
+            <Box className="flex-1 min-w-0">{identity}</Box>
           )}
           <ButtonIcon
             iconName={IconName.MoreHorizontal}
@@ -183,7 +183,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
             accessibilityLabel={strings(
               'social_leaderboard.entry_options.title',
             )}
-            twClassName="shrink-0"
+            className="shrink-0"
             testID={testIDs?.more ?? SocialTraderIdentityRowSelectorsIDs.MORE}
           />
         </Box>

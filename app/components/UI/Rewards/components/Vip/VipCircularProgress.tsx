@@ -73,7 +73,7 @@ const VipCircularProgress: React.FC<VipCircularProgressProps> = ({
         />
       </Svg>
       <Box
-        twClassName="absolute"
+        className="absolute"
         alignItems={BoxAlignItems.Center}
         testID={labelTestID}
       >

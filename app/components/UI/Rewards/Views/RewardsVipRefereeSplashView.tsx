@@ -84,7 +84,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY}
         >
           {strings('rewards.vip.referee_referred_by', {

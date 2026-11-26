@@ -75,14 +75,14 @@ const StatRow = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName="py-1"
+    className="py-1"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-x-2"
+      className="gap-x-2"
     >
-      <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center">
+      <Box className="w-8 h-8 rounded-full bg-background-section items-center justify-center">
         <Icon
           name={iconName}
           size={IconSize.Sm}
@@ -248,7 +248,7 @@ const ProHub = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         testID={ProHubTestIds.HEADER_ROOT}
-        twClassName="px-4"
+        className="px-4"
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: handleBack,
@@ -272,7 +272,7 @@ const ProHub = () => {
           contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
           showsVerticalScrollIndicator={false}
         >
-          <Box twClassName="w-full mb-4 gap-y-4">
+          <Box className="w-full mb-4 gap-y-4">
             <MembershipBanner
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
               model={membershipBanner}
@@ -282,10 +282,10 @@ const ProHub = () => {
             />
 
             <Box
-              twClassName="gap-y-4"
+              className="gap-y-4"
               testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
             >
-              <Box twClassName="gap-y-1">
+              <Box className="gap-y-1">
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
@@ -302,7 +302,7 @@ const ProHub = () => {
                 </Text>
               </Box>
 
-              <Box twClassName="gap-y-4">
+              <Box className="gap-y-4">
                 <StatRow
                   iconName={IconName.TrendUp}
                   label={strings('pro_hub.money_balance', {
@@ -341,7 +341,7 @@ const ProHub = () => {
           <SectionDivider marginVertical={5} />
 
           <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
-            <Box twClassName="gap-y-6">
+            <Box className="gap-y-6">
               <Text
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
@@ -349,7 +349,7 @@ const ProHub = () => {
               >
                 {strings('pro_hub.also_included.title')}
               </Text>
-              <Box twClassName="gap-y-3">
+              <Box className="gap-y-3">
                 {ALSO_INCLUDED_ITEMS.map((item) => (
                   <AlsoIncludedRow
                     key={item.id}
@@ -359,14 +359,14 @@ const ProHub = () => {
                 ))}
               </Box>
             </Box>
-            <SectionDivider twClassName="mb-8" />
+            <SectionDivider className="mb-8" />
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               onPress={handleManageMembership}
               isFullWidth
               testID={ProHubTestIds.MANAGE_BUTTON}
-              twClassName="mb-8"
+              className="mb-8"
             >
               {strings('pro_hub.manage_membership')}
             </Button>

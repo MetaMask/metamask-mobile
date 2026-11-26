@@ -108,7 +108,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
-        twClassName="mt-0.5"
+        className="mt-0.5"
         // One native element carries the label with its value for automation.
         accessible
         testID={pnlRowTestID}

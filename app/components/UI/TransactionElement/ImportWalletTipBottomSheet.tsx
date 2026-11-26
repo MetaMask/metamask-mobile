@@ -20,12 +20,12 @@ const ImportWalletTipBottomSheet = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={handleGoBack}>
-      <Box twClassName="px-4 pt-6 pb-2 items-center">
+      <Box className="px-4 pt-6 pb-2 items-center">
         <Text variant={TextVariant.HeadingMd} testID="import-wallet-tip-title">
           {strings('transactions.import_wallet_label')}
         </Text>
       </Box>
-      <Box twClassName="px-4 py-4">
+      <Box className="px-4 py-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('transactions.import_wallet_tip')}
         </Text>

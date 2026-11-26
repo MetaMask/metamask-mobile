@@ -41,14 +41,14 @@ export const WalletHeaderMenuButton = ({
   return (
     <BadgeWrapper
       // BadgeWrapper defaults to `self-start`, which top-aligns it in a row.
-      twClassName="self-center"
+      className="self-center"
       position={BadgeWrapperPosition.TopRight}
       positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
       badge={
         hasAccountsMenuAttention ? (
           <BadgeStatus
             status={BadgeStatusStatus.Attention}
-            twClassName="-translate-x-1 translate-y-1 border-transparent"
+            className="-translate-x-1 translate-y-1 border-transparent"
             testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
           />
         ) : null
@@ -61,7 +61,7 @@ export const WalletHeaderMenuButton = ({
         size={ButtonIconSize.Md}
         testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
         hitSlop={touchAreaSlop}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
+        className={HEADER_ICON_BUTTON_CLASS}
       />
     </BadgeWrapper>
   );
@@ -100,7 +100,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
         accessibilityLabel={strings('wallet.rewards_accessibility_label')}
         hitSlop={touchAreaSlop}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
+        className={HEADER_ICON_BUTTON_CLASS}
       />
     );
   } else if (isMoneyAccountVisible) {
@@ -113,7 +113,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
         accessibilityLabel={strings('activity_view.title')}
         hitSlop={touchAreaSlop}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
+        className={HEADER_ICON_BUTTON_CLASS}
       />
     );
   }
@@ -122,7 +122,7 @@ const WalletHeaderInterimActions = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={`gap-2 ${twClassName}`}
+      className={`gap-2 ${twClassName}`}
     >
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
@@ -132,7 +132,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
         accessibilityLabel={strings('wallet.search_accessibility_label')}
         hitSlop={touchAreaSlop}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
+        className={HEADER_ICON_BUTTON_CLASS}
       />
       {secondaryAction}
       <WalletHeaderMenuButton

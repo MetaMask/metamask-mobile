@@ -182,13 +182,13 @@ const SecurityBadgeBottomSheet = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="self-stretch px-4 gap-4"
+        className="self-stretch px-4 gap-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           gap={4}
-          twClassName="self-stretch"
+          className="self-stretch"
         >
           {iconAlertSeverity && severity !== 'Verified' ? (
             <IconAlert severity={iconAlertSeverity} size={IconSize.Xl} />
@@ -199,13 +199,13 @@ const SecurityBadgeBottomSheet = () => {
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="self-stretch"
+            className="self-stretch"
           >
             <DSText
               variant={DSTextVariant.HeadingMd}
               color={DSTextColor.TextDefault}
               fontWeight={FontWeight.Medium}
-              twClassName="text-center"
+              className="text-center"
             >
               {title}
             </DSText>
@@ -213,7 +213,7 @@ const SecurityBadgeBottomSheet = () => {
               <DSText
                 variant={DSTextVariant.BodyMd}
                 color={DSTextColor.TextAlternative}
-                twClassName="text-center mb-1"
+                className="text-center mb-1"
               >
                 {description}
               </DSText>
@@ -242,7 +242,7 @@ const SecurityBadgeBottomSheet = () => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch mb-4"
+            className="self-stretch mb-4"
             gap={4}
           >
             {featureTags.map((tag) => (
@@ -250,7 +250,7 @@ const SecurityBadgeBottomSheet = () => {
                 key={tag.label}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="w-full"
+                className="w-full"
                 gap={3}
               >
                 {iconAlertSeverity && (
@@ -270,13 +270,13 @@ const SecurityBadgeBottomSheet = () => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Start}
-            twClassName="self-stretch gap-4"
+            className="self-stretch gap-4"
           >
             <Button
               variant={ButtonVariant.Secondary}
               isFullWidth
               onPress={handleProceed}
-              twClassName={severity === 'Malicious' ? 'bg-error-default' : ''}
+              className={severity === 'Malicious' ? 'bg-error-default' : ''}
             >
               <DSText
                 variant={DSTextVariant.BodyMd}
@@ -308,7 +308,7 @@ const SecurityBadgeBottomSheet = () => {
               variant={DSTextVariant.BodyMd}
               color={DSTextColor.PrimaryInverse}
               fontWeight={FontWeight.Medium}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('security_trust.got_it')}
             </DSText>

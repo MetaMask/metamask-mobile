@@ -51,7 +51,7 @@ const CancelStepLayout = ({
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        twClassName="px-4"
+        className="px-4"
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: onBack,
@@ -71,7 +71,7 @@ const CancelStepLayout = ({
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="mb-6"
+          className="mb-6"
           testID={titleTestId}
         >
           {title}
@@ -81,7 +81,7 @@ const CancelStepLayout = ({
       </ScrollView>
 
       {/* ── Bottom actions ─────────────────────────────────────────────────── */}
-      <Box twClassName="px-4 pb-2 gap-y-4 w-full">
+      <Box className="px-4 pb-2 gap-y-4 w-full">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -107,7 +107,7 @@ const CancelStepLayout = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={CancelMembershipTestIds.ERROR_MESSAGE}
           >
             {errorMessage}

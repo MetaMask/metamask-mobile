@@ -187,17 +187,17 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       }}
     >
       <View style={styles.marketContainer}>
-        <Box twClassName={isCarousel ? 'flex-1' : ''}>
+        <Box className={isCarousel ? 'flex-1' : ''}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
+            className={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
           >
             <Box
-              twClassName={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
+              className={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
             >
               {market.image && (
-                <Box twClassName="w-full h-full">
+                <Box className="w-full h-full">
                   <Image
                     source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
@@ -207,7 +207,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 </Box>
               )}
             </Box>
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <Text
                 variant={
                   isCarousel ? TextVariant.BodyMd : TextVariant.HeadingSm
@@ -230,9 +230,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 key={`${outcome.id}`}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName={isCarousel ? 'py-0.5 gap-2' : 'py-1 gap-4'}
+                className={isCarousel ? 'py-0.5 gap-2' : 'py-1 gap-4'}
               >
-                <Box twClassName="flex-1">
+                <Box className="flex-1">
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
@@ -260,7 +260,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName={isCarousel ? 'gap-1' : 'gap-2'}
+                  className={isCarousel ? 'gap-1' : 'gap-2'}
                 >
                   <Button
                     variant={ButtonVariants.Secondary}
@@ -311,7 +311,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName={isCarousel ? '' : 'mt-3'}
+          className={isCarousel ? '' : 'mt-3'}
         >
           <Text
             variant={TextVariant.BodySm}
@@ -331,7 +331,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 flex-shrink min-w-0 ml-2"
+            className="gap-4 flex-shrink min-w-0 ml-2"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -346,7 +346,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="flex-shrink min-w-0"
+                className="flex-shrink min-w-0"
               >
                 <Icon
                   name={IconName.Refresh}

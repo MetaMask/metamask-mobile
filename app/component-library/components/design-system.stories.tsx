@@ -43,9 +43,9 @@ const WalletHome: React.FC = () => {
   return (
     <ScrollView style={tw`flex-1 bg-default`}>
       {/* Container */}
-      <Box twClassName="w-full bg-default py-4">
+      <Box className="w-full bg-default py-4">
         {/* Header */}
-        <Box twClassName="border-b border-muted p-4">
+        <Box className="border-b border-muted p-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -54,14 +54,14 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 overflow-hidden"
+              className="flex-1 overflow-hidden"
             >
               <AvatarAccount
                 shape={AvatarBaseShape.Square}
                 variant={AvatarAccountVariant.Maskicon}
                 address="0x1234567890123456789012345678901234567890"
               />
-              <Box twClassName="ml-2 flex-1">
+              <Box className="ml-2 flex-1">
                 <Text variant={TextVariant.HeadingMd} numberOfLines={1}>
                   DeFi Account
                 </Text>
@@ -74,7 +74,7 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="ml-2"
+              className="ml-2"
             >
               <ButtonIcon iconName={IconName.Copy} accessibilityLabel="Copy" />
               <ButtonIcon
@@ -95,7 +95,7 @@ const WalletHome: React.FC = () => {
         </Box>
 
         {/* Balance */}
-        <Box twClassName="p-4">
+        <Box className="p-4">
           <Text variant={TextVariant.DisplayMd}>$10,528.46</Text>
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -107,8 +107,8 @@ const WalletHome: React.FC = () => {
         </Box>
 
         {/* Actions */}
-        <Box flexDirection={BoxFlexDirection.Row} gap={3} twClassName="p-4">
-          <ButtonBase twClassName="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
+        <Box flexDirection={BoxFlexDirection.Row} gap={3} className="p-4">
+          <ButtonBase className="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
             <Box
               flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Center}
@@ -118,7 +118,7 @@ const WalletHome: React.FC = () => {
               <Text fontWeight={FontWeight.Medium}>Buy/Sell</Text>
             </Box>
           </ButtonBase>
-          <ButtonBase twClassName="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
+          <ButtonBase className="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
             <Box
               flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Center}
@@ -128,7 +128,7 @@ const WalletHome: React.FC = () => {
               <Text fontWeight={FontWeight.Medium}>Swap</Text>
             </Box>
           </ButtonBase>
-          <ButtonBase twClassName="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
+          <ButtonBase className="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
             <Box
               flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Center}
@@ -138,7 +138,7 @@ const WalletHome: React.FC = () => {
               <Text fontWeight={FontWeight.Medium}>Receive</Text>
             </Box>
           </ButtonBase>
-          <ButtonBase twClassName="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
+          <ButtonBase className="h-20 flex-1 rounded-lg bg-muted px-0 py-4">
             <Box
               flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Center}
@@ -151,7 +151,7 @@ const WalletHome: React.FC = () => {
         </Box>
 
         {/* Tabs */}
-        <Box twClassName="border-b border-muted px-4">
+        <Box className="border-b border-muted px-4">
           <Box flexDirection={BoxFlexDirection.Row}>
             <Pressable
               style={tw`flex-1 items-center justify-center border-b-2 border-default pb-2 pt-1`}
@@ -167,7 +167,7 @@ const WalletHome: React.FC = () => {
               >
                 DeFi
               </Text>
-              <Box twClassName="ml-1">
+              <Box className="ml-1">
                 <BadgeStatus status={BadgeStatusStatus.New} />
               </Box>
             </Pressable>
@@ -196,7 +196,7 @@ const WalletHome: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="p-4"
+            className="p-4"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -234,7 +234,7 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 overflow-hidden"
+              className="flex-1 overflow-hidden"
             >
               <BadgeWrapper
                 badge={
@@ -256,7 +256,7 @@ const WalletHome: React.FC = () => {
               </BadgeWrapper>
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="ml-4 flex-1 overflow-hidden"
+                className="ml-4 flex-1 overflow-hidden"
               >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
@@ -266,7 +266,7 @@ const WalletHome: React.FC = () => {
                   <Text
                     fontWeight={FontWeight.Medium}
                     numberOfLines={1}
-                    twClassName="mr-2"
+                    className="mr-2"
                   >
                     Ethereum •
                   </Text>
@@ -290,7 +290,7 @@ const WalletHome: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <Text>$8,509.44</Text>
               <Text
                 color={TextColor.TextAlternative}
@@ -313,7 +313,7 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 overflow-hidden"
+              className="flex-1 overflow-hidden"
             >
               <BadgeWrapper
                 badge={
@@ -335,7 +335,7 @@ const WalletHome: React.FC = () => {
               </BadgeWrapper>
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="ml-4 flex-1 overflow-hidden"
+                className="ml-4 flex-1 overflow-hidden"
               >
                 <Text fontWeight={FontWeight.Medium} numberOfLines={1}>
                   Unibright
@@ -358,7 +358,7 @@ const WalletHome: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <Text>$1,293.50</Text>
               <Text
                 color={TextColor.TextAlternative}
@@ -381,7 +381,7 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 overflow-hidden"
+              className="flex-1 overflow-hidden"
             >
               <BadgeWrapper
                 badge={
@@ -403,7 +403,7 @@ const WalletHome: React.FC = () => {
               </BadgeWrapper>
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="ml-4 flex-1 overflow-hidden"
+                className="ml-4 flex-1 overflow-hidden"
               >
                 <Text fontWeight={FontWeight.Medium} numberOfLines={1}>
                   Hopr
@@ -426,7 +426,7 @@ const WalletHome: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <Text>$550.00</Text>
               <Text
                 color={TextColor.TextAlternative}
@@ -449,7 +449,7 @@ const WalletHome: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 overflow-hidden"
+              className="flex-1 overflow-hidden"
             >
               <BadgeWrapper
                 badge={
@@ -471,7 +471,7 @@ const WalletHome: React.FC = () => {
               </BadgeWrapper>
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="ml-4 flex-1 overflow-hidden"
+                className="ml-4 flex-1 overflow-hidden"
               >
                 <Text fontWeight={FontWeight.Medium} numberOfLines={1}>
                   USDC Coin
@@ -494,7 +494,7 @@ const WalletHome: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <Text>$110.20</Text>
               <Text
                 color={TextColor.TextAlternative}

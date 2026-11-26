@@ -782,7 +782,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
             />
           </SocialTabFilterBar>
           {viewerRow ? (
-            <Box twClassName="pb-2">
+            <Box className="pb-2">
               <RowComponent
                 trader={viewerRow.trader}
                 metric={viewerRow.trader.displayMetric}
@@ -800,7 +800,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pt-4 pb-4"
+          className="px-4 pt-4 pb-4"
         >
           <Box flexDirection={BoxFlexDirection.Row} gap={2}>
             {showTypeFilter && (
@@ -846,7 +846,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {isLoading && traders.length === 0 && !isShowingSnapshot ? (
         <Animated.ScrollView
           ref={skeletonScrollRef}

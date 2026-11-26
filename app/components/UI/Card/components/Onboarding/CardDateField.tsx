@@ -185,7 +185,7 @@ const CardDateField = ({
                   >
                     {label}
                   </BottomSheetHeaderGlass>
-                  <Box twClassName="items-center px-4">
+                  <Box className="items-center px-4">
                     <DateTimePicker
                       value={pendingDate ?? valueAsDate ?? DEFAULT_DATE}
                       mode="date"

@@ -193,8 +193,8 @@ export const FeatureNotificationsGateSheet = () => {
       onClose={handleSheetClosed}
       testID={NotificationSettingsViewSelectorsIDs.FEATURE_GATE_SHEET}
     >
-      <Box twClassName="pb-5 pt-0">
-        <Box twClassName="mb-1 items-end pr-2">
+      <Box className="pb-5 pt-0">
+        <Box className="mb-1 items-end pr-2">
           <ButtonIcon
             iconName={IconName.Close}
             iconProps={{ color: IconColor.IconDefault }}
@@ -205,7 +205,7 @@ export const FeatureNotificationsGateSheet = () => {
           />
         </Box>
 
-        <Box twClassName="mb-2 px-6">
+        <Box className="mb-2 px-6">
           <NotifCard
             title={strings(copy.previewTitleKey)}
             message={strings(copy.previewMessageKey)}
@@ -213,13 +213,13 @@ export const FeatureNotificationsGateSheet = () => {
           />
         </Box>
 
-        <Box twClassName="px-4">
-          <Text variant={TextVariant.HeadingLg} twClassName="mb-2 text-center">
+        <Box className="px-4">
+          <Text variant={TextVariant.HeadingLg} className="mb-2 text-center">
             {strings(copy.titleKey)}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mb-7 text-center text-alternative"
+            className="mb-7 text-center text-alternative"
           >
             {strings(copy.descriptionKey)}
           </Text>
@@ -231,7 +231,7 @@ export const FeatureNotificationsGateSheet = () => {
             isLoading={isEnabling}
             isDisabled={isEnabling}
             onPress={handleTurnOn}
-            twClassName="rounded-xl"
+            className="rounded-xl"
             testID={
               NotificationSettingsViewSelectorsIDs.FEATURE_GATE_TURN_ON_BUTTON
             }

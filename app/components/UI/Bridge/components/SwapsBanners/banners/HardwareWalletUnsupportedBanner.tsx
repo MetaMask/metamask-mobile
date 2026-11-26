@@ -28,7 +28,7 @@ export const HardwareWalletUnsupportedBanner = () => {
 
   return (
     <BannerBase
-      twClassName={ERROR_BANNER_TW_CLASSNAME}
+      className={ERROR_BANNER_TW_CLASSNAME}
       startAccessory={
         <Icon
           name={IconName.Error}

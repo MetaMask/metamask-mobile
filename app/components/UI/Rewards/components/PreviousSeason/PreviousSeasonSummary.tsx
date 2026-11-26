@@ -29,13 +29,13 @@ const PreviousSeasonSummary = () => {
 
   return (
     <Box
-      twClassName="gap-4 p-4"
+      className="gap-4 p-4"
       testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY}
     >
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Medium}
-        twClassName="text-default"
+        className="text-default"
       >
         {strings('rewards.previous_season_summary.title', {
           seasonName: seasonName || '',
@@ -53,12 +53,12 @@ const PreviousSeasonSummary = () => {
         />
       ) : (
         <>
-          <Box twClassName="flex-row gap-4">
-            <Box twClassName="flex-1">
+          <Box className="flex-row gap-4">
+            <Box className="flex-1">
               <PreviousSeasonBalance />
             </Box>
 
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <PreviousSeasonLevel />
             </Box>
           </Box>

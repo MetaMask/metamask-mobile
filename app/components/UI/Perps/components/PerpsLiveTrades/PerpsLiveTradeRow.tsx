@@ -39,7 +39,7 @@ const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({
   return (
     <ListItem
       {...pressProps}
-      twClassName="py-2"
+      className="py-2"
       testID={getPerpsLiveTradeRowSelector(post.id)}
       avatar={
         <TraderAvatar

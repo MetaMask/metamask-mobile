@@ -184,14 +184,14 @@ const ComposerAttachmentCloseButton = ({
   // around the unchanged 32px disc. The offset keeps that disc where it was.
   <Box
     pointerEvents="box-none"
-    twClassName="absolute z-20 -top-3.5 -right-3.5 h-9 w-9 items-center justify-center rounded-full border-2 border-background-default"
+    className="absolute z-20 -top-3.5 -right-3.5 h-9 w-9 items-center justify-center rounded-full border-2 border-background-default"
   >
     <ButtonIcon
       iconName={IconName.Close}
       size={ButtonIconSize.Md}
       iconProps={{ color: IconColor.IconDefault, size: IconSize.Md }}
       hitSlop={ATTACHMENT_CLOSE_HIT_SLOP}
-      twClassName="bg-section"
+      className="bg-section"
       onPress={onPress}
       accessibilityLabel={accessibilityLabel}
       testID={testID}
@@ -354,7 +354,7 @@ const ComposerPostButton = ({
   const hasPostableText = blockReason == null;
 
   return (
-    <Box twClassName="relative">
+    <Box className="relative">
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Md}
@@ -438,7 +438,7 @@ const ComposerPreview = ({
   }
 
   return (
-    <Box twClassName="relative mt-12">
+    <Box className="relative mt-12">
       {isLivePreview ? (
         <SocialLivePricesProvider>
           <PositionCardBody item={previewItem} expanded showCopyTrade={false} />
@@ -826,9 +826,9 @@ const SocialPostComposerEditor: React.FC = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          twClassName="px-4"
+          className="px-4"
           startAccessory={
-            <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+            <SocialHeaderGlassSurface className="w-10 justify-center">
               <ButtonIcon
                 iconName={IconName.Close}
                 size={ButtonIconSize.Md}
@@ -876,7 +876,7 @@ const SocialPostComposerEditor: React.FC = () => {
             }
             testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
-            <Box gap={3} twClassName="w-full">
+            <Box gap={3} className="w-full">
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}
                 avatarPresetId={profile?.avatarPresetId}
@@ -901,8 +901,8 @@ const SocialPostComposerEditor: React.FC = () => {
             />
 
             {gifUri ? (
-              <Box twClassName="relative mt-4">
-                <Box twClassName="overflow-hidden rounded-2xl">
+              <Box className="relative mt-4">
+                <Box className="overflow-hidden rounded-2xl">
                   <SocialFeedGif
                     uri={gifUri}
                     testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
@@ -932,7 +932,7 @@ const SocialPostComposerEditor: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="px-4 pt-3"
+            className="px-4 pt-3"
             style={tw.style({
               paddingBottom: actionBarPaddingBottom,
             })}
@@ -956,7 +956,7 @@ const SocialPostComposerEditor: React.FC = () => {
               />
             )}
             {isKeyboardVisible ? (
-              <Box twClassName="ml-auto">
+              <Box className="ml-auto">
                 <ButtonIcon
                   iconName={IconName.ArrowDown}
                   size={ButtonIconSize.Md}

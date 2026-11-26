@@ -28,7 +28,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
+      className="gap-1"
     >
       {timeframes.map((timeframe) => (
         <Pressable

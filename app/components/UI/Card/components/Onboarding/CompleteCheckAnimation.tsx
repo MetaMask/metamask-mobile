@@ -105,12 +105,12 @@ const CompleteCheckAnimation = ({
   if (mode === 'static' || hasRiveError) {
     return (
       <Box
-        twClassName="h-[107px] w-[140px]"
+        className="h-[107px] w-[140px]"
         testID={CompleteSelectors.CHECK_IMAGE}
       >
         <KycIllustration
           source={KycIllustrationSource.checkmark}
-          twClassName="h-[107px] w-[140px]"
+          className="h-[107px] w-[140px]"
         />
       </Box>
     );
@@ -118,7 +118,7 @@ const CompleteCheckAnimation = ({
 
   return (
     <Box
-      twClassName="h-[107px] w-[140px] items-center justify-center"
+      className="h-[107px] w-[140px] items-center justify-center"
       pointerEvents="none"
     >
       {mode === 'animate' && riveFile ? (

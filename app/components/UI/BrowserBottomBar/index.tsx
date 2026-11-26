@@ -276,7 +276,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="bg-default border-t border-muted min-h-[60px] px-4 py-2"
+      className="bg-default border-t border-muted min-h-[60px] px-4 py-2"
       style={tw.style(
         Device.isAndroid() ? 'border-t-0' : '',
         bottomInset > 0 ? `pb-[${bottomInset}px]` : '',
@@ -285,7 +285,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-4"
+        className="gap-4"
       >
         {/* Back Button */}
         <MemoizedButtonIcon
@@ -317,7 +317,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-4"
+        className="gap-4"
       >
         {/* Bookmark Button */}
         <MemoizedButtonIcon

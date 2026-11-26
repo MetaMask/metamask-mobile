@@ -90,24 +90,24 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="bg-background-default"
+        className="bg-background-default"
         {...resolvedHeaderHandlers}
       />
-      <Box twClassName="flex-1 px-4">
-        <Box twClassName="gap-2 mt-2">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-default">
+      <Box className="flex-1 px-4">
+        <Box className="gap-2 mt-2">
+          <Text variant={TextVariant.HeadingLg} className="text-default">
             {title}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {description}
           </Text>
         </Box>
 
         <Box
-          twClassName="flex-1 mt-10"
+          className="flex-1 mt-10"
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Start}
           gap={4}
@@ -121,7 +121,7 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
             <Text
               variant={TextVariant.BodySm}
               testID={SetCardPinSelectors.INLINE_ERROR}
-              twClassName="text-error-default text-center"
+              className="text-error-default text-center"
             >
               {errorMessage}
             </Text>
@@ -129,7 +129,7 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
         </Box>
       </Box>
 
-      <Box twClassName="px-4 pb-2 gap-4">
+      <Box className="px-4 pb-2 gap-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

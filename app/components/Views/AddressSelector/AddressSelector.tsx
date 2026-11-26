@@ -132,7 +132,7 @@ const AddressSelector = () => {
           networkName={item.networkName}
           address={item.account.address}
           // @ts-expect-error MultichainAddressRow doesn't have twClassName in types
-          twClassName="p-0 gap-4"
+          className="p-0 gap-4"
         />
       </ListItemSelect>
     ),

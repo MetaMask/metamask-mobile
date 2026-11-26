@@ -57,7 +57,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="mx-4 mb-4 px-4 py-6 rounded-xl"
+      className="mx-4 mb-4 px-4 py-6 rounded-xl"
       style={tw.style('bg-background-section')}
       testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
     >
@@ -219,7 +219,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
+        className={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
         <Box
           onLayout={onTitleSectionLayout}
@@ -235,7 +235,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 keyLabel={statusText}
-                twClassName="mt-3 h-6"
+                className="mt-3 h-6"
                 value={
                   transactionAmountDisplay ? (
                     <SensitiveText
@@ -262,10 +262,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1 pb-3"
+                className="gap-3 px-4 pt-1 pb-3"
                 flexDirection={BoxFlexDirection.Row}
               >
-                <Box twClassName="flex-1">
+                <Box className="flex-1">
                   <ButtonGlass
                     isGlass={isGlass}
                     variant={ButtonVariant.Secondary}
@@ -279,7 +279,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     {strings('perps.withdraw')}
                   </ButtonGlass>
                 </Box>
-                <Box twClassName="flex-1">
+                <Box className="flex-1">
                   <ButtonGlass
                     isGlass={isGlass}
                     variant={ButtonVariant.Primary}
@@ -296,7 +296,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Box>
             )
           ) : (
-            <Box twClassName="px-4 pt-2 pb-4">
+            <Box className="px-4 pt-2 pb-4">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
                   variant={TextVariant.AmountDisplayLg}
@@ -313,12 +313,12 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 spendableBalance={spendableBalance}
                 isHidden={privacyMode}
                 variant={TextVariant.BodyMd}
-                twClassName="mt-1"
+                className="mt-1"
               />
               {/* Action Buttons */}
               {showActionButtons && (
                 <Box
-                  twClassName="gap-3 mt-4"
+                  className="gap-3 mt-4"
                   flexDirection={BoxFlexDirection.Row}
                   accessible={false}
                 >
@@ -326,7 +326,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
-                    twClassName="flex-1"
+                    className="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
                     }
@@ -337,7 +337,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
-                    twClassName="flex-1"
+                    className="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
                     }

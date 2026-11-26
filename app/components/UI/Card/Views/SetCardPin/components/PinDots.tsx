@@ -160,14 +160,14 @@ const PinDotSlot: React.FC<{
     >
       {showEmptyOutline ? (
         <Box
-          twClassName={`rounded-full border-2 ${borderClass}`}
+          className={`rounded-full border-2 ${borderClass}`}
           style={activeFade == null ? styles.dot : styles.emptyOutlineAbsolute}
         />
       ) : null}
 
       {showDigit ? (
         <Animated.View style={digitOverlayStyle}>
-          <Text variant={TextVariant.HeadingMd} twClassName={digitColorClass}>
+          <Text variant={TextVariant.HeadingMd} className={digitColorClass}>
             {revealedDigit ?? fadeDigit ?? lastDigit}
           </Text>
         </Animated.View>
@@ -175,7 +175,7 @@ const PinDotSlot: React.FC<{
 
       {showFill ? (
         <Animated.View style={fillOverlayStyle}>
-          <Box twClassName={`rounded-full ${colorClass}`} style={styles.dot} />
+          <Box className={`rounded-full ${colorClass}`} style={styles.dot} />
         </Animated.View>
       ) : null}
     </Box>

@@ -24,7 +24,7 @@ const PerpsProHiddenByFiltersCaption = ({
   messageKey,
 }: PerpsProHiddenByFiltersCaptionProps) => (
   <Box
-    twClassName="px-4 pt-3"
+    className="px-4 pt-3"
     testID={PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION}
   >
     <Text

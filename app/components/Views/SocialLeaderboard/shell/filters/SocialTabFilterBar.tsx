@@ -40,9 +40,9 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName={twClassName}
+    className={twClassName}
   >
-    <Box twClassName="flex-1 min-w-0">{children}</Box>
+    <Box className="flex-1 min-w-0">{children}</Box>
     <ButtonIcon
       iconName={IconName.Filter}
       size={ButtonIconSize.Lg}
@@ -62,7 +62,7 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
       testID={filterTestID}
       accessibilityLabel={strings('social_leaderboard.shell.filters.title')}
       accessibilityState={{ selected: isFilterActive }}
-      twClassName={
+      className={
         isFilterActive
           ? 'rounded-full bg-icon-default'
           : 'rounded-full bg-muted'

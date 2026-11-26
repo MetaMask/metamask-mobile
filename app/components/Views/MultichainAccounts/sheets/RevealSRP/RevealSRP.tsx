@@ -94,7 +94,7 @@ export const RevealSRP = () => {
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        twClassName="flex-row items-center px-4"
+        className="flex-row items-center px-4"
         startButtonIconProps={{
           testID: AccountDetailsIds.BACK_BUTTON,
           iconName: IconName.ArrowLeft,
@@ -107,10 +107,10 @@ export const RevealSRP = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="mb-auto grow justify-center gap-4 px-4"
+        className="mb-auto grow justify-center gap-4 px-4"
         testID={ExportCredentialsIds.CONTAINER}
       >
-        <Box twClassName="mx-[60px] my-[46px]">
+        <Box className="mx-[60px] my-[46px]">
           <SecurityQuizLockImage
             name="security-quiz-lock"
             height={200}
@@ -120,7 +120,7 @@ export const RevealSRP = () => {
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('multichain_accounts.reveal_srp.description')}
         </Text>

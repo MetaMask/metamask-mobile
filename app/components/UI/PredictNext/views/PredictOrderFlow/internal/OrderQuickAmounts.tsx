@@ -63,7 +63,7 @@ export const OrderQuickAmounts = ({
     fractionOfBalance(balance, fraction).lt(minimumAmount);
 
   return (
-    <Box twClassName="flex-row gap-2">
+    <Box className="flex-row gap-2">
       {QUICK_AMOUNT_FRACTIONS.map(({ key, label, fraction }) => (
         <Button
           key={key}
@@ -75,7 +75,7 @@ export const OrderQuickAmounts = ({
             balance !== undefined &&
             onSetAmount(fractionOfBalance(balance, fraction))
           }
-          twClassName="h-12 flex-1 min-w-0 rounded-full"
+          className="h-12 flex-1 min-w-0 rounded-full"
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {label}
@@ -88,7 +88,7 @@ export const OrderQuickAmounts = ({
         size={ButtonSize.Lg}
         isDisabled={isDisabled || isBelowMinimum(1)}
         onPress={onMax}
-        twClassName="h-12 flex-1 min-w-0 rounded-full"
+        className="h-12 flex-1 min-w-0 rounded-full"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('predict_next.order_preview.max')}

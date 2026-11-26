@@ -29,14 +29,14 @@ const TokenRowSkeleton = () => (
     testID={CashTokensFullViewSkeletonTestIds.TOKEN_ROW}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
+    className="px-4 py-3"
   >
-    <Skeleton height={40} width={40} twClassName="rounded-full" />
-    <Box twClassName="flex-1 ml-3 gap-1">
+    <Skeleton height={40} width={40} className="rounded-full" />
+    <Box className="flex-1 ml-3 gap-1">
       <Skeleton height={16} width={120} />
       <Skeleton height={12} width={80} />
     </Box>
-    <Box twClassName="items-end gap-1">
+    <Box className="items-end gap-1">
       <Skeleton height={16} width={60} />
       <Skeleton height={12} width={50} />
     </Box>
@@ -53,20 +53,20 @@ const EmptyStateRowSkeleton = () => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="px-4 py-1"
+    className="px-4 py-1"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 gap-5"
+      className="flex-1 gap-5"
     >
-      <Skeleton height={40} width={40} twClassName="rounded-full" />
-      <Box twClassName="gap-1">
+      <Skeleton height={40} width={40} className="rounded-full" />
+      <Box className="gap-1">
         <Skeleton height={16} width={100} />
         <Skeleton height={12} width={80} />
       </Box>
     </Box>
-    <Skeleton height={36} width={100} twClassName="rounded-lg" />
+    <Skeleton height={36} width={100} className="rounded-lg" />
   </Box>
 );
 

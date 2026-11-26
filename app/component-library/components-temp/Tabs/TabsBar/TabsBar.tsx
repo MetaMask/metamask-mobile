@@ -288,7 +288,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="relative gap-6"
+      className="relative gap-6"
     >
       {tabs.map((tab, index) => (
         <Tab
@@ -317,7 +317,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden ${twClassName || ''}`}
+      className={`relative overflow-hidden ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -334,7 +334,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           {tabRow}
         </ScrollView>
       ) : (
-        <Box twClassName="px-4">{tabRow}</Box>
+        <Box className="px-4">{tabRow}</Box>
       )}
     </Box>
   );

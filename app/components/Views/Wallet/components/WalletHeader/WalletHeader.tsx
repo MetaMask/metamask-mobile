@@ -133,7 +133,7 @@ const WalletHeader = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-12"
+      className="h-12"
     >
       <WalletHeaderMenuButton
         handleHamburgerPress={handleHamburgerPress}
@@ -200,7 +200,7 @@ const WalletHeader = ({
       accessibilityRole="button"
       accessibilityLabel={displayName}
       hitSlop={touchAreaSlop}
-      twClassName="h-10 w-10 rounded-full bg-transparent p-0"
+      className="h-10 w-10 rounded-full bg-transparent p-0"
     >
       <WalletHeaderProfileAvatar />
     </ButtonBase>
@@ -225,7 +225,7 @@ const WalletHeader = ({
   const socialAccountPicker = (
     <View style={accountPickerContainerStyle}>
       <CapsuleGlass
-        twClassName="mr-4 max-w-full self-start"
+        className="mr-4 max-w-full self-start"
         nonGlassClassName="px-1"
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
       >
@@ -240,13 +240,13 @@ const WalletHeader = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 pl-4 pr-3"
+            className="gap-1 pl-4 pr-3"
           >
             <Text
               variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Regular}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
               testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
             >
               {displayName}
@@ -265,7 +265,7 @@ const WalletHeader = ({
   if (isInterimLayout && isSocialLayout && !useSearchHeaderLayout) {
     const socialActions = (
       <CapsuleGlass
-        twClassName="shrink-0 px-2"
+        className="shrink-0 px-2"
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
       >
         <WalletHeaderInterimActions
@@ -286,7 +286,7 @@ const WalletHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="h-14 px-4"
+        className="h-14 px-4"
       >
         {socialAccountPicker}
         {socialActions}
@@ -310,18 +310,18 @@ const WalletHeader = ({
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
           <CapsuleGlass
-            twClassName="px-2"
+            className="px-2"
             nonGlassClassName="px-3"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
           >
             {interimActions}
           </CapsuleGlass>
         }
-        twClassName="px-4"
+        className="px-4"
       >
         <View style={accountPickerContainerStyle}>
           <CapsuleGlass
-            twClassName="mr-4 max-w-full self-start"
+            className="mr-4 max-w-full self-start"
             nonGlassClassName="px-1"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
           >
@@ -400,7 +400,7 @@ const WalletHeader = ({
             </BadgeWrapper>
           </View>
         }
-        twClassName="pl-1 pr-3"
+        className="pl-1 pr-3"
       >
         {accountPicker}
       </HeaderRoot>,
@@ -414,7 +414,7 @@ const WalletHeader = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-12 gap-2"
+          className="h-12 gap-2"
           accessible={false}
         >
           {isMoneyAccountVisible ? (
@@ -434,12 +434,12 @@ const WalletHeader = ({
           )}
         </Box>
       }
-      twClassName="pl-3 pr-3 gap-2"
+      className="pl-3 pr-3 gap-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-12 flex-1 gap-2"
+        className="h-12 flex-1 gap-2"
       >
         {menuButton}
         <View

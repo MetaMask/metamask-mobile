@@ -76,7 +76,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                 severity={
                   option.isTestnet ? TagSeverity.Warning : TagSeverity.Neutral
                 }
-                twClassName="self-center"
+                className="self-center"
                 testID={
                   testID ? `${testID}-option-${option.id}-tag` : undefined
                 }

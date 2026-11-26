@@ -74,13 +74,13 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full px-4"
+      className="w-full px-4"
       style={{ minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT }}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full flex-1 rounded-full"
+        className="w-full flex-1 rounded-full"
       >
         {ranges.map((range) => {
           const isSelected = selected === range;
@@ -102,7 +102,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                twClassName={
+                className={
                   isSelected
                     ? selectedColor
                       ? 'text-success-inverse'
@@ -139,7 +139,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               <Icon
                 name={IconName.Diagram}
                 size={IconSize.Lg}
-                twClassName={
+                className={
                   selectedColor
                     ? `text-[${selectedColor}]`
                     : 'text-icon-alternative'
@@ -149,7 +149,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               <Icon
                 name={IconName.Candlestick}
                 size={IconSize.Lg}
-                twClassName={
+                className={
                   selectedColor
                     ? `text-[${selectedColor}]`
                     : 'text-icon-alternative'

@@ -419,7 +419,7 @@ const MultichainPermissionsSummary = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            twClassName="w-full"
+            className="w-full"
           >
             <Text
               testID={
@@ -473,7 +473,7 @@ const MultichainPermissionsSummary = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            twClassName="w-full"
+            className="w-full"
           >
             {isSingleNetworkPermissionRequest ? (
               <>
@@ -688,7 +688,7 @@ const MultichainPermissionsSummary = ({
                 variant={ButtonVariant.Secondary}
                 onPress={cancel}
                 size={ButtonBaseSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
@@ -708,7 +708,7 @@ const MultichainPermissionsSummary = ({
                     networkAvatars.length === 0)
                 }
                 size={ButtonBaseSize.Lg}
-                twClassName="flex-1"
+                className="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}

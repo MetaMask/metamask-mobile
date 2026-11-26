@@ -151,17 +151,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           );
       return (
         <Box>
-          {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
+          {!item.isFirstHeader ? <SectionDivider className="-mx-4" /> : null}
           <MMDSSectionHeader
             title={item.title}
-            twClassName="px-0"
+            className="px-0"
             titleProps={{
               variant: TextVariant.HeadingSm,
               color: TextColor.TextAlternative,
             }}
             endAccessory={
               viewMoreLabel !== null ? (
-                <Box twClassName="flex-1 justify-end items-end">
+                <Box className="flex-1 justify-end items-end">
                   <Pressable
                     onPress={() => handleViewMore(section)}
                     hitSlop={8}
@@ -314,8 +314,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
     const showOtherResults = flatData.length > 0 && !isLoading;
     return (
-      <Box twClassName={showOtherResults ? 'mb-4' : ''}>
-        <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
+      <Box className={showOtherResults ? 'mb-4' : ''}>
+        <Box className="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
           <TabEmptyState
             description={
               emptyFeedTitle
@@ -344,7 +344,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-2 mt-2"
+                className="gap-2 mt-2"
               >
                 {POPULAR_SEARCH_ASSETS.map((token, index) => (
                   <CryptoMoversPillItem
@@ -376,7 +376,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   ]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <FlashList
         ref={flashListRef}
         data={flatData}

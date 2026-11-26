@@ -49,7 +49,7 @@ const PerpsTrendingCarousel = ({
       ))}
       <ViewMoreCard
         onPress={onPressViewMore}
-        twClassName="w-[180px] h-[180px] flex-1 self-center"
+        className="w-[180px] h-[180px] flex-1 self-center"
         testID="perps-view-more-card"
       />
     </ScrollView>

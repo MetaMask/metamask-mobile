@@ -328,7 +328,7 @@ const BridgeView = () => {
         endAccessory: showLimitTabNewDot ? (
           <BadgeStatus
             status={BadgeStatusStatus.Active}
-            twClassName="absolute top-0.5 -right-3"
+            className="absolute top-0.5 -right-3"
             testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT}
             accessibilityLabel={strings('bridge.tabs.new_badge')}
           />
@@ -345,7 +345,7 @@ const BridgeView = () => {
         endAccessory: showRecurringTabNewDot ? (
           <BadgeStatus
             status={BadgeStatusStatus.Active}
-            twClassName="absolute top-0.5 -right-3"
+            className="absolute top-0.5 -right-3"
             testID={BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT}
             accessibilityLabel={strings('bridge.tabs.new_badge')}
           />
@@ -437,7 +437,7 @@ const BridgeView = () => {
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}

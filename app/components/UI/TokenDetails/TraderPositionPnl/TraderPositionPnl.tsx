@@ -63,12 +63,12 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
   }
 
   const positionRows = (
-    <Box twClassName="gap-0.5">
+    <Box className="gap-0.5">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="min-h-6"
+        className="min-h-6"
       >
         <Text
           variant={TextVariant.BodyMd}
@@ -82,7 +82,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
             testID={`${testID}-value-loading`}
             height={20}
             width={72}
-            twClassName="rounded"
+            className="rounded"
           />
         ) : (
           <Text
@@ -129,7 +129,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      className="gap-2"
       style={{ marginBottom: POSITION_BLOCK_MARGIN }}
     >
       {isExpandable ? (
@@ -142,7 +142,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
           {positionRows}
         </Pressable>
       ) : (
-        <Box twClassName="flex-1">{positionRows}</Box>
+        <Box className="flex-1">{positionRows}</Box>
       )}
       {isExpandable && (
         <ButtonIcon

@@ -50,7 +50,7 @@ export const SelectSRPBottomSheet = () => {
       >
         {strings('secure_your_wallet.srp_list_selection')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="-mt-4">
+      <Box className="-mt-4">
         <SelectSRP onKeyringSelect={handleKeyringSelect} />
       </Box>
     </BottomSheet>

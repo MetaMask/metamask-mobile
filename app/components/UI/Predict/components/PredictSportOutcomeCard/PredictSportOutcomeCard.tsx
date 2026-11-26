@@ -58,17 +58,17 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
     onSelectLine !== undefined;
 
   return (
-    <Box testID={testID} twClassName="w-full bg-muted rounded-2xl p-4 mb-4">
+    <Box testID={testID} className="w-full bg-muted rounded-2xl p-4 mb-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="justify-between mb-3"
+        className="justify-between mb-3"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="flex-wrap gap-1"
+            className="flex-wrap gap-1"
           >
             <Text
               testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE}
@@ -100,9 +100,9 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
         </Box>
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
+      <Box flexDirection={BoxFlexDirection.Row} className="w-full gap-3">
         {buttons.map((button, index) => (
-          <Box key={`${button.label}-${button.variant}`} twClassName="flex-1">
+          <Box key={`${button.label}-${button.variant}`} className="flex-1">
             <PredictBetButton
               label={button.label}
               price={button.price}
@@ -118,7 +118,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
       </Box>
 
       {showLineSelector && (
-        <Box twClassName="mt-3">
+        <Box className="mt-3">
           <PredictSportLineSelector
             lines={lines}
             selectedLine={selectedLine}

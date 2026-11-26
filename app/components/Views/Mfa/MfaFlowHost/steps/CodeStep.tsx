@@ -256,8 +256,8 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     >
       {/* Keep this container and the code field at the screen's available
           width so entering digits cannot change the row's measurements. */}
-      <Box twClassName="w-full gap-2">
-        <Box twClassName="w-full">
+      <Box className="w-full gap-2">
+        <Box className="w-full">
           <CodeField
             ref={inputRef as React.RefObject<TextInput>}
             {...cellProps}
@@ -279,7 +279,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
                 onLayout={getCellOnLayoutHandler(index)}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName={`h-14 flex-1 rounded-xl border bg-muted ${getCellBorder(
+                className={`h-14 flex-1 rounded-xl border bg-muted ${getCellBorder(
                   isFocused,
                 )}`}
               >
@@ -301,7 +301,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         </Box>
         {isVerifying ? (
           <Box
-            twClassName="flex-row items-center justify-center gap-2 pt-2"
+            className="flex-row items-center justify-center gap-2 pt-2"
             accessibilityRole="progressbar"
             accessibilityLabel={strings('mfa.otp.verifying')}
             testID={MfaFlowSelectorsIDs.VERIFYING_INDICATOR}
@@ -330,7 +330,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
               // An unreadable clipboard leaves the boxes as they are.
               paste().catch(() => undefined);
             }}
-            twClassName="self-end"
+            className="self-end"
             testID={MfaFlowSelectorsIDs.PASTE_BUTTON}
           >
             {strings('mfa.otp.paste')}

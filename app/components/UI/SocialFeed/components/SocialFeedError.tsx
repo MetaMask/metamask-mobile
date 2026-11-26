@@ -27,21 +27,21 @@ const SocialFeedError: React.FC<SocialFeedErrorProps> = ({ onRetry }) => (
   <Box
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    twClassName="w-full px-4 py-16 gap-3"
+    className="w-full px-4 py-16 gap-3"
     testID={SOCIAL_FEED_ERROR_TEST_ID}
   >
     <Text
       variant={TextVariant.HeadingSm}
       fontWeight={FontWeight.Bold}
       color={TextColor.TextDefault}
-      twClassName="text-center"
+      className="text-center"
     >
       {strings('social_leaderboard.feed.error.title')}
     </Text>
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
     >
       {strings('social_leaderboard.feed.error.description')}
     </Text>
@@ -49,7 +49,7 @@ const SocialFeedError: React.FC<SocialFeedErrorProps> = ({ onRetry }) => (
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Sm}
       onPress={onRetry}
-      twClassName="self-center mt-1"
+      className="self-center mt-1"
       testID={SOCIAL_FEED_RETRY_TEST_ID}
     >
       {strings('social_leaderboard.feed.error.retry')}

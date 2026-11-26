@@ -465,7 +465,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
           />
         );
       return emptyClassName ? (
-        <Box twClassName={emptyClassName}>{empty}</Box>
+        <Box className={emptyClassName}>{empty}</Box>
       ) : (
         empty
       );
@@ -474,7 +474,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   };
 
   const titleNode = title ? (
-    <Text variant={TextVariant.HeadingSm} twClassName="px-4">
+    <Text variant={TextVariant.HeadingSm} className="px-4">
       {title}
     </Text>
   ) : null;
@@ -488,11 +488,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     return (
       <SocialFeedSurfaceProvider location={location}>
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           testID={SocialLeaderboardSelectorsIDs.CONTAINER}
         >
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             testID={
               rows.length > 0 ? SocialLeaderboardSelectorsIDs.ROWS : undefined
             }
@@ -522,7 +522,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
 
   return (
     <SocialFeedSurfaceProvider location={location}>
-      <Box twClassName="gap-2" testID={SocialLeaderboardSelectorsIDs.CONTAINER}>
+      <Box className="gap-2" testID={SocialLeaderboardSelectorsIDs.CONTAINER}>
         {titleNode}
         <Box>
           {renderViewerRow()}

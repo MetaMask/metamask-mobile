@@ -76,9 +76,9 @@ const PrivateComposerContent: React.FC = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
-        twClassName="px-4"
+        className="px-4"
         startAccessory={
-          <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+          <SocialHeaderGlassSurface className="w-10 justify-center">
             <ButtonIcon
               iconName={IconName.Close}
               size={ButtonIconSize.Md}
@@ -90,10 +90,10 @@ const PrivateComposerContent: React.FC = () => {
         }
         testID={SocialPostComposerViewSelectorsIDs.HEADER}
       />
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+      <Box alignItems={BoxAlignItems.Center} className="px-8 py-12">
         <TabEmptyState
           icon={
-            <Box alignItems={BoxAlignItems.Center} gap={4} twClassName="w-full">
+            <Box alignItems={BoxAlignItems.Center} gap={4} className="w-full">
               <Box
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
@@ -104,11 +104,11 @@ const PrivateComposerContent: React.FC = () => {
                   color={IconColor.IconDefault}
                 />
               </Box>
-              <Box gap={1} twClassName="w-full">
+              <Box gap={1} className="w-full">
                 <Text
                   variant={TextVariant.HeadingSm}
                   accessibilityRole="header"
-                  twClassName="text-center"
+                  className="text-center"
                 >
                   {strings(
                     'social_leaderboard.trader_profile.private_title_own',
@@ -117,7 +117,7 @@ const PrivateComposerContent: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
-                  twClassName="text-center"
+                  className="text-center"
                 >
                   {strings('social_leaderboard.composer.private_description')}
                 </Text>
@@ -132,7 +132,7 @@ const PrivateComposerContent: React.FC = () => {
             twClassName: 'self-center rounded-xl',
             testID: SocialPostComposerViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
           }}
-          twClassName="w-full max-w-none"
+          className="w-full max-w-none"
           testID={SocialPostComposerViewSelectorsIDs.PRIVATE_STATE}
         />
       </Box>

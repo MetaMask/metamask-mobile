@@ -44,7 +44,7 @@ const MoneyActionButtonRow = ({
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4 pt-8 pb-2 gap-2"
+    className="px-4 pt-8 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
     <MainActionButtonGlass
@@ -53,7 +53,7 @@ const MoneyActionButtonRow = ({
       onPress={add.onPress}
       isDisabled={add.disabled}
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
-      twClassName="py-3"
+      className="py-3"
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}
     />
@@ -63,7 +63,7 @@ const MoneyActionButtonRow = ({
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
-      twClassName="py-3"
+      className="py-3"
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}
     />
@@ -73,12 +73,12 @@ const MoneyActionButtonRow = ({
       onPress={card.onPress}
       isDisabled={card.disabled}
       testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
-      twClassName="py-3"
+      className="py-3"
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}
     />
     {details ? (
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <MainActionButtonGlass
           iconName={IconName.Bank}
           label={strings('money.action.details')}
@@ -92,7 +92,7 @@ const MoneyActionButtonRow = ({
           onPress={details.onPress}
           isDisabled={details.disabled}
           testID={MoneyActionButtonRowTestIds.DETAILS_BUTTON}
-          twClassName="py-3"
+          className="py-3"
           containerStyle={styles.buttonContainer}
           isGlass={isGlass}
         />
@@ -100,7 +100,7 @@ const MoneyActionButtonRow = ({
           <BadgeStatus
             status={BadgeStatusStatus.Active}
             pointerEvents="none"
-            twClassName="absolute top-2 right-2"
+            className="absolute top-2 right-2"
             testID={MoneyActionButtonRowTestIds.DETAILS_NEW_DOT}
           />
         ) : null}

@@ -89,7 +89,7 @@ const ProgressSegment: React.FC<{ filled: boolean; index: number }> = ({
 
   return (
     <Box
-      twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
+      className="flex-1 h-1 rounded-full bg-muted overflow-hidden"
       testID={`${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-${index}`}
     >
       <Animated.View

@@ -34,22 +34,22 @@ const LoadingSkeletons = () => {
 
   return (
     <Box
-      twClassName="gap-y-3"
+      className="gap-y-3"
       testID={MemberPricingOnTradesTestIds.LOADING_SKELETON}
     >
       <Skeleton
         height={72}
-        twClassName="w-full rounded-xl"
+        className="w-full rounded-xl"
         {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
       <Skeleton
         height={72}
-        twClassName="w-full rounded-xl"
+        className="w-full rounded-xl"
         {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
       <Skeleton
         height={72}
-        twClassName="w-full rounded-xl"
+        className="w-full rounded-xl"
         {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
     </Box>
@@ -78,7 +78,7 @@ const MemberPricingOnTrades = () => {
   }
 
   return (
-    <Box twClassName="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
+    <Box className="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
       <Text
         variant={TextVariant.SectionHeading}
         color={TextColor.TextDefault}
@@ -90,7 +90,7 @@ const MemberPricingOnTrades = () => {
       {showLoading ? <LoadingSkeletons /> : null}
 
       {showError ? (
-        <Box twClassName="gap-y-4" testID={MemberPricingOnTradesTestIds.ERROR}>
+        <Box className="gap-y-4" testID={MemberPricingOnTradesTestIds.ERROR}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('pro_hub.member_pricing.load_error')}
           </Text>
@@ -136,7 +136,7 @@ const MemberPricingOnTrades = () => {
       ) : null}
 
       {showRows ? (
-        <Box twClassName="gap-y-3">
+        <Box className="gap-y-3">
           {items.map((item) => (
             <TradeAllowanceRow key={item.id} item={item} />
           ))}

@@ -72,18 +72,18 @@ export function useFirstTimeInteractionSendAlert(): {
     <Box
       flexDirection={BoxFlexDirection.Row}
       flexWrap={BoxFlexWrap.Wrap}
-      twClassName="w-full justify-center"
+      className="w-full justify-center"
     >
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-center text-alternative"
+        className="text-center text-alternative"
       >
         {strings('send.new_address_message')}{' '}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="text-center break-words max-w-full"
+        className="text-center break-words max-w-full"
       >
         {to}
       </Text>

@@ -13,7 +13,7 @@ const TheMiracleFooter = () => {
   const { colors } = useTheme();
 
   return (
-    <Box twClassName="flex flex-row gap-1 items-center justify-center">
+    <Box className="flex flex-row gap-1 items-center justify-center">
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
         {strings('rewards.benefits.powered_by')}
       </Text>

@@ -34,7 +34,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={containerTwClassName}
+      className={containerTwClassName}
     >
       <Pressable
         style={({ pressed }) =>
@@ -52,7 +52,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
         <Icon
           name={IconName.Diagram}
           size={IconSize.Sm}
-          twClassName={
+          className={
             chartType === ChartType.Line
               ? 'text-icon-default'
               : 'text-icon-alternative'
@@ -75,7 +75,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
         <Icon
           name={IconName.Candlestick}
           size={IconSize.Sm}
-          twClassName={
+          className={
             chartType === ChartType.Candles
               ? 'text-icon-default'
               : 'text-icon-alternative'

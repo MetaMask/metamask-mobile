@@ -84,7 +84,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
       >
         {strings('perps.exchange_filter.title')}
       </BottomSheetHeaderGlass>
-      <Box accessible={false} twClassName="px-4 pb-3" gap={2}>
+      <Box accessible={false} className="px-4 pb-3" gap={2}>
         {PERPS_VENUE_IDS.map((providerId) => {
           const name = PROVIDER_DISPLAY_INFO[providerId].name;
           const isChecked = draftProviderIds.includes(providerId);
@@ -108,7 +108,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
               accessibilityRole="checkbox"
               accessibilityState={{ checked: isChecked }}
               accessibilityLabel={name}
-              twClassName={
+              className={
                 isChecked
                   ? 'rounded-2xl border border-default bg-muted'
                   : 'rounded-2xl border border-transparent bg-muted'
@@ -119,7 +119,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
         })}
       </Box>
       <BottomSheetFooter
-        twClassName="pt-2"
+        className="pt-2"
         primaryButtonProps={{
           children: strings('perps.selection_sheet.save'),
           onPress: handleSave,

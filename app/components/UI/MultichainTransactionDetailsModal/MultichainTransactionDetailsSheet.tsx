@@ -141,7 +141,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Center}
-      twClassName="py-3 border-b border-muted"
+      className="py-3 border-b border-muted"
     >
       <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {label}
@@ -190,7 +190,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
           {timestamp && toDateFormat(new Date(timestamp * 1000))}
         </Text>
       </BottomSheetHeader>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
         {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
         {from?.address &&
@@ -215,7 +215,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             `${priorityFee.amount} ${priorityFee.unit}`,
           )}
       </Box>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <Button
           variant={ButtonVariants.Link}
           width={ButtonWidthTypes.Full}

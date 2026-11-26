@@ -78,7 +78,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
             size={AvatarNetworkSize.Xs}
             name={label}
             shape={AvatarBaseShape.Square}
-            twClassName="rounded translate-y-px"
+            className="rounded translate-y-px"
             testID={
               chainId !== undefined
                 ? getNetworkFilterAvatarTestId(chainId)
@@ -161,7 +161,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   }
 
   return (
-    <Box twClassName="pl-4 py-2">
+    <Box className="pl-4 py-2">
       <ScrollView
         ref={scrollViewRef}
         horizontal

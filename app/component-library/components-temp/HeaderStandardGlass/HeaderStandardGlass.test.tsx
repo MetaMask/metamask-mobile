@@ -69,7 +69,7 @@ describe('HeaderStandardGlass', () => {
       <HeaderStandardGlass
         title="Accounts"
         testID="header"
-        twClassName="min-h-14 h-auto"
+        className="min-h-14 h-auto"
       />,
     );
 

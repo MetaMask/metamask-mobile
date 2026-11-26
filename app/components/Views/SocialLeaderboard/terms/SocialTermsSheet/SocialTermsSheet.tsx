@@ -295,7 +295,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           height: windowHeight * BODY_HEIGHT_RATIO,
           backgroundColor: termsBackground,
         }}
-        twClassName="relative border-b border-muted"
+        className="relative border-b border-muted"
       >
         {showsHostedTerms ? (
           <WebView
@@ -336,7 +336,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="px-4 py-3"
+              className="px-4 py-3"
             >
               {strings('social_leaderboard.terms.placeholder_body')}
             </Text>
@@ -354,13 +354,13 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             accessibilityRole="button"
             hitSlop={12}
             testID={SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON}
-            twClassName="absolute bottom-4 right-4 z-10"
+            className="absolute bottom-4 right-4 z-10"
             style={SCROLL_TO_BOTTOM_BUTTON_STYLE}
           />
         )}
       </Box>
       <Box
-        twClassName="px-4 pt-4 gap-2"
+        className="px-4 pt-4 gap-2"
         testID={SocialTermsSheetSelectorsIDs.FOOTER}
       >
         <Button
@@ -376,7 +376,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={SocialTermsSheetSelectorsIDs.SCROLL_HELPER}
         >
           {strings('social_leaderboard.terms.scroll_helper')}

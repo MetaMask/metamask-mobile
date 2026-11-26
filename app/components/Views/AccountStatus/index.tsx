@@ -406,7 +406,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full flex-1"
+          className="w-full flex-1"
         >
           {type === 'found' ? (
             <WalletExistsHero provider={provider} isDark={isDark} />
@@ -424,7 +424,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       </ScrollView>
 
       <FooterGlass
-        twClassName="py-2"
+        className="py-2"
         primaryButtonProps={{
           children:
             type === 'found'

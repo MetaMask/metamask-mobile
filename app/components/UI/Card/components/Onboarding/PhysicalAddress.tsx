@@ -696,7 +696,7 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings(
                 'card.card_onboarding.physical_address.electronic_consent_1',
@@ -716,7 +716,7 @@ const PhysicalAddress = () => {
           }
           // Top-align the box with multi-line legal copy (DS gap: Checkbox has
           // no top-align option).
-          twClassName="items-start"
+          className="items-start"
           testID="physical-address-electronic-consent-checkbox"
         />
       )}
@@ -730,7 +730,7 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings(
                 'card.card_onboarding.physical_address.coinme_terms_consent_1',
@@ -750,7 +750,7 @@ const PhysicalAddress = () => {
           }
           // Top-align the box with multi-line legal copy (DS gap: Checkbox has
           // no top-align option).
-          twClassName="items-start"
+          className="items-start"
           testID="physical-address-coinme-terms-checkbox"
         />
       )}
@@ -764,7 +764,7 @@ const PhysicalAddress = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               // A node label skips Checkbox's string-label ml-3, so mirror it.
-              twClassName="ml-3 flex-1"
+              className="ml-3 flex-1"
             >
               {strings('card.card_onboarding.physical_address.crb_consent_1')}
               <TextButton variant={TextVariant.BodySm} onPress={openCrbTerms}>
@@ -796,7 +796,7 @@ const PhysicalAddress = () => {
           }
           // Top-align the box with multi-line legal copy (DS gap: Checkbox has
           // no top-align option).
-          twClassName="items-start"
+          className="items-start"
           testID="physical-address-crb-consent-checkbox"
         />
       )}

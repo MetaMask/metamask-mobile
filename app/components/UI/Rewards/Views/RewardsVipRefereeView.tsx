@@ -195,7 +195,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
         />
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <ScrollView
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('py-4 gap-4')}
@@ -203,39 +203,39 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           >
             {showSkeleton ? (
               <Box
-                twClassName="gap-4 px-4"
+                className="gap-4 px-4"
                 testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON}
               >
                 <Skeleton style={tw.style('h-10 w-36 rounded-lg')} />
 
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="items-center justify-between rounded-2xl border px-4 py-3"
+                  className="items-center justify-between rounded-2xl border px-4 py-3"
                   style={referredByCardStyle}
                 >
                   <Skeleton style={tw.style('h-9 w-9 rounded-lg')} />
                   <Skeleton style={tw.style('h-5 w-40 rounded-lg')} />
                 </Box>
 
-                <Box twClassName="mt-4 -mx-4 border-b border-border-muted" />
+                <Box className="mt-4 -mx-4 border-b border-border-muted" />
 
-                <Box twClassName="gap-1">
+                <Box className="gap-1">
                   <Skeleton style={tw.style('h-8 w-32 rounded-lg')} />
                   <Skeleton style={tw.style('h-4 w-44 rounded-lg')} />
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-                  <Box twClassName="flex-1 gap-1">
+                <Box flexDirection={BoxFlexDirection.Row} className="gap-6">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
-                  <Box twClassName="flex-1 gap-1">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
                 </Box>
 
-                <Box twClassName="gap-1">
+                <Box className="gap-1">
                   <Skeleton style={tw.style('h-4 w-28 rounded-lg')} />
                   <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
                 </Box>
@@ -243,7 +243,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
               </Box>
             ) : showError ? (
-              <Box twClassName="px-4">
+              <Box className="px-4">
                 <RewardsErrorBanner
                   title={strings('rewards.vip.referee_error_title')}
                   description={strings('rewards.vip.referee_error_description')}
@@ -253,7 +253,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 />
               </Box>
             ) : dashboard ? (
-              <Box twClassName="px-4 gap-4">
+              <Box className="px-4 gap-4">
                 <Text
                   variant={TextVariant.HeadingLg}
                   fontWeight={FontWeight.Bold}
@@ -262,7 +262,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 </Text>
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="items-center justify-between rounded-2xl border px-4 py-3"
+                  className="items-center justify-between rounded-2xl border px-4 py-3"
                   style={referredByCardStyle}
                   testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD}
                 >
@@ -278,9 +278,9 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                   </Text>
                 </Box>
                 {/* Divider */}
-                <Box twClassName="mt-4 -mx-4 border-b border-border-muted" />
+                <Box className="mt-4 -mx-4 border-b border-border-muted" />
 
-                <Box twClassName="gap-1">
+                <Box className="gap-1">
                   <Text
                     variant={TextVariant.HeadingMd}
                     fontWeight={FontWeight.Bold}
@@ -295,15 +295,15 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                   </Text>
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+                <Box flexDirection={BoxFlexDirection.Row} className="gap-6">
                   <Box
-                    twClassName="flex-1"
+                    className="flex-1"
                     testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
                   >
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
-                      twClassName="gap-1"
+                      className="gap-1"
                     >
                       <Text
                         variant={TextVariant.BodySm}
@@ -332,7 +332,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                     </Text>
                   </Box>
                   <Box
-                    twClassName="flex-1"
+                    className="flex-1"
                     testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME}
                   >
                     <Text
@@ -351,7 +351,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 </Box>
 
                 <Box
-                  twClassName="flex-1"
+                  className="flex-1"
                   testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO}
                 >
                   <Text
@@ -388,17 +388,17 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           </ScrollView>
 
           {showSkeleton ? (
-            <Box twClassName="px-4 pb-4">
+            <Box className="px-4 pb-4">
               <Skeleton style={tw.style('h-12 w-full rounded-lg')} />
             </Box>
           ) : dashboard ? (
-            <Box twClassName="px-4 pb-4">
+            <Box className="px-4 pb-4">
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 disabled={!accountAddress}
                 onPress={handleContactPrioritySupport}
-                twClassName="w-full"
+                className="w-full"
                 testID={
                   REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON
                 }

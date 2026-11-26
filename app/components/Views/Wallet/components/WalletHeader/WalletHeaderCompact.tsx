@@ -83,7 +83,7 @@ const WalletHeaderCompact = ({
       title={
         useSearchHeaderLayout ? (
           <Box
-            twClassName={
+            className={
               isSearchReturnTransitionActive ? 'flex-1 opacity-0' : 'flex-1'
             }
             pointerEvents={isSearchReturnTransitionActive ? 'none' : 'auto'}
@@ -131,7 +131,7 @@ const WalletHeaderCompact = ({
           accessibilityRole="button"
           accessibilityLabel={displayName}
         >
-          <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-section">
+          <Box className="h-10 w-10 items-center justify-center rounded-full bg-section">
             <BadgeWrapper
               style={styles.badgeWrapperCenter}
               position={BadgeWrapperPosition.BottomRight}
@@ -161,7 +161,7 @@ const WalletHeaderCompact = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <ButtonIcon
             iconProps={{
@@ -189,7 +189,7 @@ const WalletHeaderCompact = ({
           ) : null}
         </Box>
       }
-      twClassName="pl-4 pr-3"
+      className="pl-4 pr-3"
     />
   );
 };

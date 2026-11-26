@@ -41,7 +41,7 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={`p-3 rounded-xl border ${
+      className={`p-3 rounded-xl border ${
         isSelected
           ? 'border-border-default bg-background-muted-hover'
           : 'border-border-muted bg-background-muted'
@@ -96,7 +96,7 @@ const CancelSurveyStep = ({
     isSubmitting={isSubmitting}
     errorMessage={errorMessage}
   >
-    <Box twClassName="gap-y-3" testID={CancelMembershipTestIds.REASONS_LIST}>
+    <Box className="gap-y-3" testID={CancelMembershipTestIds.REASONS_LIST}>
       {reasons.map((reason) => (
         <ReasonItem
           key={reason.id}

@@ -308,7 +308,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         {!isSheetMode && (
           <View style={styles.cashOutContainer}>
             {isPreviewLoading ? (
-              <Box twClassName="items-center gap-2">
+              <Box className="items-center gap-2">
                 <Skeleton
                   width={200}
                   height={74}
@@ -333,13 +333,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <Text
                   style={styles.currentValue}
                   variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
+                  className="font-medium"
                 >
                   {formatPrice(currentValue, { maximumDecimals: 2 })}
                 </Text>
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
+                  className="font-medium"
                   color={TextColor.TextAlternative}
                 >
                   {strings('predict.at_price_per_share', {
@@ -352,7 +352,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 </Text>
                 <Text
                   style={styles.percentPnl}
-                  twClassName="font-medium"
+                  className="font-medium"
                   color={
                     percentPnl > 0
                       ? TextColor.SuccessDefault
@@ -384,17 +384,17 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
             </Text>
           )}
           {!isSheetMode && (
-            <Box twClassName="flex-row items-center gap-4">
-              <Box twClassName="w-10 h-10 self-start mt-1">
+            <Box className="flex-row items-center gap-4">
+              <Box className="w-10 h-10 self-start mt-1">
                 <Image source={{ uri: icon }} style={styles.positionIcon} />
               </Box>
-              <Box twClassName="flex-col gap-1 flex-1">
+              <Box className="flex-col gap-1 flex-1">
                 <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
                 <Text
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   variant={TextVariant.BodySm}
-                  twClassName="font-medium"
+                  className="font-medium"
                   color={TextColor.TextAlternative}
                 >
                   {getCashoutInfoText({
@@ -410,7 +410,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           {isSheetMode && (
             // Fee summary below adds pt-4, so keep more space above than below
             // using spacing-scale tokens.
-            <Box twClassName="items-center gap-2 pt-6 pb-2">
+            <Box className="items-center gap-2 pt-6 pb-2">
               {isPreviewLoading ? (
                 <>
                   <Skeleton
@@ -439,7 +439,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                   </Text>
                   <Text
                     variant={TextVariant.BodyMd}
-                    twClassName="font-medium"
+                    className="font-medium"
                     color={TextColor.TextAlternative}
                   >
                     {strings('predict.at_price_per_share', {
@@ -452,7 +452,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                   </Text>
                   <Text
                     variant={TextVariant.BodyLg}
-                    twClassName="font-medium"
+                    className="font-medium"
                     color={
                       percentPnl > 0
                         ? TextColor.SuccessDefault
@@ -468,7 +468,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
             </Box>
           )}
           {/* Grouped so the container gap does not separate them, matching the buy sheet */}
-          <Box twClassName="w-full">
+          <Box className="w-full">
             {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
             <PredictFeeSummary
               disabled={!preview}

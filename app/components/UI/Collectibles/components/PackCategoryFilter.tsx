@@ -30,7 +30,7 @@ export function PackCategoryFilter({
     <FilterButtonGroup
       value={activeId}
       onChange={(value) => onSelect(value === allChipId ? undefined : value)}
-      twClassName="gap-2 px-4"
+      className="gap-2 px-4"
       style={tw.style('grow-0')}
       accessibilityLabel={strings('collectibles.packs.categories')}
     >

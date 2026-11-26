@@ -49,10 +49,10 @@ const PerpsClosePositionSheetHeader: React.FC<
   isOrderTypeToggleDisabled,
   onOrderTypeToggle,
 }) => (
-  <Box twClassName="flex-row items-center gap-3 px-4 pt-4 pb-4">
+  <Box className="flex-row items-center gap-3 px-4 pt-4 pb-4">
     <PerpsTokenLogo symbol={symbol} size={32} />
 
-    <Box twClassName="flex-1 min-w-0">
+    <Box className="flex-1 min-w-0">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -60,7 +60,7 @@ const PerpsClosePositionSheetHeader: React.FC<
       >
         <Text
           variant={TextVariant.HeadingSm}
-          twClassName="shrink"
+          className="shrink"
           numberOfLines={1}
           testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE}
         >
@@ -75,7 +75,7 @@ const PerpsClosePositionSheetHeader: React.FC<
         {leverage ? (
           <Tag
             severity={TagSeverity.Neutral}
-            twClassName="self-center"
+            className="self-center"
             testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_LEVERAGE}
           >
             {`${leverage}x`}

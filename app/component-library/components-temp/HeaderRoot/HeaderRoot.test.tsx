@@ -286,7 +286,7 @@ describe('HeaderRoot', () => {
         <HeaderRoot
           title="Title"
           testID={CONTAINER_TEST_ID}
-          twClassName="custom-class"
+          className="custom-class"
         />,
       );
 

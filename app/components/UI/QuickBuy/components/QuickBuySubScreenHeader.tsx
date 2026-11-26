@@ -28,7 +28,7 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="h-14 px-2"
+    className="h-14 px-2"
   >
     <ButtonIcon
       iconName={DsIconName.ArrowLeft}
@@ -44,7 +44,7 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
       {title}
     </Text>
     {/* Same size as the back button so the title stays centered. */}
-    <Box twClassName="h-8 w-8" />
+    <Box className="h-8 w-8" />
   </Box>
 );
 

@@ -29,7 +29,7 @@ const ProfileVerifiedBadge: React.FC<ProfileVerifiedBadgeProps> = ({
       'social_leaderboard.shell.filters.verification.verified',
     )}
     testID={testID}
-    twClassName="shrink-0"
+    className="shrink-0"
   />
 );
 

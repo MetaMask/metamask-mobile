@@ -46,7 +46,7 @@ const CompactGameCard = ({
     onOrder={onOrder}
   >
     <EventCard.Root
-      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      className="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <GameCard.Navigation>
@@ -71,7 +71,7 @@ const FeaturedGameCard = ({
     onOrder={onOrder}
   >
     <EventCard.Root
-      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      className="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <GameCard.Navigation>
@@ -108,14 +108,14 @@ const SmallGameCard = ({
       onOrder={onOrder}
     >
       <EventCard.Root
-        twClassName="w-[190px] rounded-2xl border border-muted bg-muted py-3"
+        className="w-[190px] rounded-2xl border border-muted bg-muted py-3"
         testID={`predict-next-event-${event.venueId}-${event.id}`}
       >
         <GameCard.Navigation>
           <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
             {/* Always rendered, so the start stays right without a Competition. */}
             <Box
-              twClassName="min-w-0 flex-1"
+              className="min-w-0 flex-1"
               testID={`predict-next-game-header-${event.id}-leading`}
             >
               {competition ? (
@@ -139,7 +139,7 @@ const SmallGameCard = ({
             ) : null}
           </EventCard.HeaderRow>
         </GameCard.Navigation>
-        <EventCard.Body twClassName="gap-2 px-4 pt-2">
+        <EventCard.Body className="gap-2 px-4 pt-2">
           <GameCard.SmallTeamRow selection={first} />
           <GameCard.SmallTeamRow selection={second} />
         </EventCard.Body>

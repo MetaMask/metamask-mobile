@@ -50,7 +50,7 @@ const BenefitsFullView = () => {
   const renderListFooter = hasBenefits ? <TheMiracleFooter /> : undefined;
 
   const renderListHeader = hasBenefits ? (
-    <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+    <Text className="py-3" variant={TextVariant.HeadingMd}>
       {strings('rewards.benefits.list_header')}
     </Text>
   ) : undefined;

@@ -50,7 +50,7 @@ const StatValue: React.FC<{
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
-      twClassName="shrink"
+      className="shrink"
     >
       {row.value || EM_DASH}
     </Text>
@@ -69,7 +69,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   return (
     // The divider takes no layout height and hangs in the gap above, so the
     // shell's gap below the header and this gap below the rule both stay 8px.
-    <Box twClassName="gap-2">
+    <Box className="gap-2">
       <PositionCardDivider
         testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}
       />
@@ -84,7 +84,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             // long value truncate instead of pushing its neighbours off-card.
             <Box
               key={row.key}
-              twClassName="flex-1 min-w-0 py-0.5"
+              className="flex-1 min-w-0 py-0.5"
               testID={row.testID}
             >
               <Text
@@ -108,7 +108,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               gap={1}
-              twClassName="py-0.5"
+              className="py-0.5"
               testID={row.testID}
             >
               <Text

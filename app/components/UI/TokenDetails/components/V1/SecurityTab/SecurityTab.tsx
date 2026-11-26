@@ -119,7 +119,7 @@ const SectionTitle = ({ titleKey }: { titleKey: string }) => (
   <SectionHeader
     title={strings(titleKey)}
     titleProps={{ accessibilityRole: 'header' }}
-    twClassName="px-0 pb-3 pt-0"
+    className="px-0 pb-3 pt-0"
   />
 );
 
@@ -139,7 +139,7 @@ const SectionTitle = ({ titleKey }: { titleKey: string }) => (
 const SectionRule = () => (
   <SectionDivider
     marginVertical={0}
-    twClassName="-mx-4"
+    className="-mx-4"
     testID={SecurityTabSelectors.SECTION_DIVIDER}
   />
 );
@@ -249,7 +249,7 @@ const RiskBanner = ({
         count: riskCount,
       })}
       titleProps={{ variant: TextVariant.BodySm }}
-      twClassName="mt-4"
+      className="mt-4"
     />
   </TouchableOpacity>
 );
@@ -298,7 +298,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
     ));
 
   return (
-    <Box twClassName="gap-6 px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
+    <Box className="gap-6 px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
       {/* ── Contract ────────────────────────────────────────────────────────
           The heading itself is the affordance for the detail screen rather than
           a trailing "See all" row.
@@ -327,7 +327,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             accessibilityLabel={strings(
               'token_details_v1.security_tab.contract_details_link',
             )}
-            twClassName="px-0 pb-3 pt-0"
+            className="px-0 pb-3 pt-0"
             testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
           />
         ) : (
@@ -355,7 +355,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         <SecurityAttribution
           fetchedMinutesAgo={fetchedMinutesAgo}
           testID={SecurityTabSelectors.SCAN_META}
-          twClassName="pt-2"
+          className="pt-2"
           onPress={handleExplainAttribution}
         />
       </Box>
@@ -369,7 +369,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       <Box testID={SecurityTabSelectors.SECTION_HOLDERS}>
         <SectionTitle titleKey="token_details_v1.security_tab.sections.holders" />
         <HoldersDistributionBar topTenPercentage={facts.topTenPercentage} />
-        <Box twClassName="pt-3">
+        <Box className="pt-3">
           {renderStatRows(SECURITY_SECTIONS.holders)}
         </Box>
       </Box>

@@ -138,7 +138,7 @@ const ImmersveAccountField = ({
   if (isMoneyAccountMode && immersveAddress) {
     return (
       <Box
-        twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+        className="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
         testID="signup-immersve-money-account-row"
       >
         <MoneyAccountIdentity testID="signup-immersve-money-account" />
@@ -737,8 +737,8 @@ const SignUp = () => {
             }
             errorTestID="signup-immersve-phone-number-error"
           >
-            <Box twClassName="flex-row items-center gap-2">
-              <Box twClassName="w-28">
+            <Box className="flex-row items-center gap-2">
+              <Box className="w-28">
                 <SelectField
                   value={`${phoneRegion?.emoji ?? ''} +${phoneRegion?.areaCode ?? ''}`}
                   onPress={handlePhoneRegionSelect}
@@ -746,7 +746,7 @@ const SignUp = () => {
                   testID="signup-immersve-phone-area-code-select"
                 />
               </Box>
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <TextField
                   onChangeText={handlePhoneNumberChange}
                   value={phoneNumber}

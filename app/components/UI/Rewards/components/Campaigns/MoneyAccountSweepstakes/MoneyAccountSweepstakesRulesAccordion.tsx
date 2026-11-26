@@ -117,9 +117,9 @@ const MoneyAccountSweepstakesRulesAccordion: React.FC<
   );
 
   return (
-    <Box twClassName="gap-4">
+    <Box className="gap-4">
       {(introTitle || introBlocks.length > 0) && (
-        <Box twClassName="gap-2 pb-2">
+        <Box className="gap-2 pb-2">
           {introTitle ? (
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {introTitle}
@@ -141,7 +141,7 @@ const MoneyAccountSweepstakesRulesAccordion: React.FC<
           return (
             <Box
               key={`${section.title}-${index}`}
-              twClassName={isLast ? undefined : 'border-b border-border-muted'}
+              className={isLast ? undefined : 'border-b border-border-muted'}
             >
               <Pressable
                 onPress={() => setExpandedIndex(isExpanded ? null : index)}
@@ -156,12 +156,12 @@ const MoneyAccountSweepstakesRulesAccordion: React.FC<
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   justifyContent={BoxJustifyContent.Between}
-                  twClassName="gap-3"
+                  className="gap-3"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    twClassName="min-w-0 flex-1"
+                    className="min-w-0 flex-1"
                   >
                     {section.title}
                   </Text>
@@ -172,7 +172,7 @@ const MoneyAccountSweepstakesRulesAccordion: React.FC<
                   />
                 </Box>
                 {isExpanded && section.blocks.length > 0 ? (
-                  <Box twClassName="pt-3">
+                  <Box className="pt-3">
                     <ContentfulRichText
                       document={asDocument(section.blocks)}
                       textVariant={TextVariant.BodySm}

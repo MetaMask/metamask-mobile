@@ -55,7 +55,7 @@ const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.End}
-              twClassName="mb-5 w-full"
+              className="mb-5 w-full"
               testID="kyc-failed-illustration"
             >
               <VbaAccountCreateFailure name="vba-account-create-failure" />
@@ -66,7 +66,7 @@ const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
+            className="mt-4 text-center"
             testID="kyc-failed-reason"
           >
             {reasonLine}

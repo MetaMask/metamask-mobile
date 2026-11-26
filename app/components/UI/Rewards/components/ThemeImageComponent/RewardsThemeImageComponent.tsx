@@ -41,9 +41,9 @@ const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
   );
 
   return (
-    <Box twClassName="relative">
+    <Box className="relative">
       {imgLoading === true && (
-        <Box twClassName="absolute inset-0 justify-center items-center">
+        <Box className="absolute inset-0 justify-center items-center">
           <ActivityIndicator
             size="small"
             color={theme.colors.primary.default}
@@ -55,7 +55,7 @@ const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
         <Icon
           name={IconName.Image}
           size={IconSize.Lg}
-          twClassName="text-icon-muted"
+          className="text-icon-muted"
           testID="fallback-icon"
         />
       ) : (

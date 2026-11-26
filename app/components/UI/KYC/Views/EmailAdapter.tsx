@@ -182,20 +182,20 @@ const KycEmailAdapter = () => {
           }}
           includesTopInset
         />
-        <Box paddingHorizontal={4} twClassName="flex-1">
-          <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+        <Box paddingHorizontal={4} className="flex-1">
+          <Text variant={TextVariant.HeadingLg} className="mt-2">
             {strings('kyc.kyc_email.error_title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-2"
+            className="mt-2"
             testID={KycEmailAdapterSelectorsIDs.ERROR_MESSAGE}
           >
             {errorMessage}
           </Text>
         </Box>
-        <Box twClassName="p-4">
+        <Box className="p-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -217,7 +217,7 @@ const KycEmailAdapter = () => {
       testID={KycEmailAdapterSelectorsIDs.CONTAINER}
     >
       <Box
-        twClassName="flex-1"
+        className="flex-1"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >

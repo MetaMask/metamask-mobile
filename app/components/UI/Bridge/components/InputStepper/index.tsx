@@ -76,7 +76,7 @@ export const InputStepper = ({
             numberOfLines={1}
             onLayout={handleMeasuredTextLayout}
             pointerEvents="none"
-            twClassName="absolute opacity-0"
+            className="absolute opacity-0"
             testID="input-stepper-measured-text"
           >
             {displayedAmount || placeholder}

@@ -71,7 +71,7 @@ const ProgressStepper = ({
             iconName={IconName.Check}
             iconProps={{ color: IconColor.PrimaryInverse }}
             size={AvatarIconSize.Sm}
-            twClassName="bg-primary-default"
+            className="bg-primary-default"
             testID={PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED}
           />
         );
