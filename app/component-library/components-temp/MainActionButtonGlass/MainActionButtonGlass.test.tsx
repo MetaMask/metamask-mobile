@@ -91,6 +91,22 @@ describe('MainActionButtonGlass', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('announces the custom-icon button as a disabled button', () => {
+    const { getByRole } = render(
+      <MainActionButtonGlass
+        customIcon={<></>}
+        label="Freeze"
+        onPress={jest.fn()}
+        isDisabled
+        isGlass={false}
+      />,
+    );
+
+    expect(
+      getByRole('button', { name: 'Freeze', disabled: true }),
+    ).toBeOnTheScreen();
+  });
+
   it('does not call onPress when the custom-icon button is disabled', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(

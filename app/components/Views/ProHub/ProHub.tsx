@@ -33,6 +33,7 @@ import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { useResumeMembership } from './hooks/useResumeMembership';
+import { useOpenMembershipAddFunds } from './hooks/useOpenMembershipAddFunds';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusEntry,
@@ -120,7 +121,8 @@ const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { model: membershipBanner } = useMembershipBannerModel();
+  const { model: membershipBanner, subscription } = useMembershipBannerModel();
+  const { openAddFunds, isCheckingBalance } = useOpenMembershipAddFunds();
   const {
     resumeMembership,
     isResuming,
@@ -217,9 +219,7 @@ const ProHub = () => {
     (action: MembershipAlertAction) => {
       switch (action) {
         case MembershipAlertAction.AddFunds:
-          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-          });
+          void openAddFunds(subscription);
           return;
         case MembershipAlertAction.Renew:
           navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
@@ -235,7 +235,7 @@ const ProHub = () => {
         }
       }
     },
-    [navigation, resumeMembership],
+    [navigation, openAddFunds, resumeMembership, subscription],
   );
 
   return (
@@ -277,7 +277,7 @@ const ProHub = () => {
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
               model={membershipBanner}
               onAction={handleMembershipAlertAction}
-              isActionBusy={isResuming}
+              isActionBusy={isResuming || isCheckingBalance}
               actionErrorMessage={resumeErrorMessage}
             />
 

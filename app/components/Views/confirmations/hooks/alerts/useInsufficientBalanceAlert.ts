@@ -28,6 +28,7 @@ import {
 const IGNORE_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictWithdraw,
 ];
 

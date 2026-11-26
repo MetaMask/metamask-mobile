@@ -64,6 +64,7 @@ jest.mock(
   }),
 );
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
+  ...jest.requireActual('../../../../UI/Money/utils/moneyAccountDepositIntent'),
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 jest.mock('../../../../../util/abTest', () => ({
@@ -1592,17 +1593,27 @@ describe('useTransactionCustomAmount', () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('addMusd');
     });
 
-    it('auto-fills with 100% of balance when intent is addMusd', async () => {
-      const { result } = runHook({
-        transactionMeta: addMusdTransactionMeta,
-      });
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(result.current.amountFiat).toBe('1234.56');
-    });
+    it.each(['addUsdc', 'addUsdt', 'addMusd'] as const)(
+      'prefills the max balance of the selected pay token when intent is %s',
+      async (intent) => {
+        jest.mocked(getMoneyAccountDepositIntent).mockReturnValue(intent);
+        const { result } = runHook({
+          transactionMeta: addMusdTransactionMeta,
+        });
+        await act(async () => {
+          jest.runAllTimers();
+        });
+        expect(result.current.amountFiat).toBe('1234.56');
+        expect(setConfirmationMetricMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              mm_pay_amount_input_type: 'prefilled_max',
+              mm_pay_amount_input_prefill_presented: true,
+            }),
+          }),
+        );
+      },
+    );
 
     it('does not auto-fill when intent is not addMusd', async () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');

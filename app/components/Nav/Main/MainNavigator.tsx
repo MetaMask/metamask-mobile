@@ -13,6 +13,8 @@ import {
 } from '@react-navigation/native-stack';
 import {
   getFocusedRouteNameFromRoute,
+  NavigationRouteContext,
+  type NavigationProp,
   type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
@@ -134,6 +136,7 @@ import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
+import { useHomeTabFlatParamsBridge } from './homeTabFlatParamsBridge';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -246,7 +249,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
-import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -276,6 +278,8 @@ import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDe
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
+const EMPTY_HOME_TAB_COMPAT_PARAMS = Object.freeze({});
+
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -305,6 +309,10 @@ const useDefaultStackScreenOptions = (): NativeStackNavigationOptions => {
  */
 interface ForwardedParamsHostProps {
   route: RouteProp<ParamListBase, string>;
+}
+
+interface HomeTabHostProps extends ForwardedParamsHostProps {
+  navigation: NavigationProp<ParamListBase>;
 }
 
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
@@ -367,6 +375,20 @@ const WalletTabStackFlow = () => {
         options={{ animation: 'none' }}
       />
     </NativeStack.Navigator>
+  );
+};
+
+const WalletTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.WALLET_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <WalletTabStackFlow />
+    </NavigationRouteContext.Provider>
   );
 };
 
@@ -540,6 +562,20 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
+const BrowserRootHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute, sourceRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.BROWSER_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <BrowserFlow route={sourceRoute} />
+    </NavigationRouteContext.Provider>
+  );
+};
+
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -704,12 +740,26 @@ const SettingsFlow = () => {
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 
+const BrowserTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute, sourceRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.BROWSER_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <BrowserFlowUnmountOnTabBlur route={sourceRoute} />
+    </NavigationRouteContext.Provider>
+  );
+};
+
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
 const HOME_TAB_COMPONENTS = {
-  home: WalletTabStackFlow,
+  home: WalletTabHomeHost,
   explore: ExploreFeed,
-  browser: BrowserFlowUnmountOnTabBlur,
+  browser: BrowserTabHomeHost,
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   // Rewards stays mounted. Leaving the tab used to throw the tree away, so
@@ -884,6 +934,11 @@ const HomeTabs = () => {
         isFloatingTabBar ? { trackBottomNavPress } : undefined,
       )}
       component={tabComponentFor(tab)}
+      initialParams={
+        tab.key === 'home' || tab.key === 'browser'
+          ? EMPTY_HOME_TAB_COMPAT_PARAMS
+          : tab.initialParams
+      }
     />
   );
 
@@ -898,7 +953,9 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
-      initialParams={tab.initialParams}
+      initialParams={
+        tab.key === 'home' ? EMPTY_HOME_TAB_COMPAT_PARAMS : tab.initialParams
+      }
       component={tabComponentFor(tab)}
     />
   );
@@ -1124,10 +1181,6 @@ const MainNavigator = () => {
        * included) from the bottom.
        */}
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}
@@ -1669,7 +1722,8 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.BROWSER.HOME}
-        component={BrowserFlow}
+        component={BrowserRootHomeHost}
+        initialParams={EMPTY_HOME_TAB_COMPAT_PARAMS}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen name="SetPasswordFlow" component={SetPasswordFlow} />

@@ -190,7 +190,6 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
-    REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_INFO_SHEET_MODAL: 'RewardsInfoSheetModal',
     REWARDS_MONEY_CLAIMS_PAUSED_MODAL: 'RewardsMoneyClaimsPausedModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',

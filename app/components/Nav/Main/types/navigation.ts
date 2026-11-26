@@ -61,10 +61,16 @@ export type AssetStackParamList = {
 /**
  * Param list for screens inside `WalletTabStackFlow`.
  */
+export interface WalletTabHomeParams {
+  openNetworkSelector?: boolean | null;
+  shouldSelectPerpsTab?: boolean | null;
+  initialTab?: string | null;
+}
+
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type WalletTabStackParamList = {
-  WalletView: undefined;
+  WalletView: WalletTabHomeParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
 };
 
@@ -80,6 +86,11 @@ export type WalletTabHomeParamList = WalletTabStackParamList & {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
 };
+
+export type WalletTabHomeRouteParams =
+  | WalletTabHomeParams
+  | NavigatorScreenParams<WalletTabHomeParamList>
+  | undefined;
 
 /**
  * Param list for screens inside `SettingsFlow` (`SettingsView`).
@@ -135,6 +146,11 @@ export type BrowserTabHomeParamList = {
   AssetLoader: AssetLoaderParams | undefined;
   AssetView: AssetViewParams | undefined;
 };
+
+export type BrowserTabHomeRouteParams =
+  | BrowserParams
+  | NavigatorScreenParams<BrowserTabHomeParamList>
+  | undefined;
 
 /**
  * Param list for screens inside the `Webview` stack.
@@ -216,9 +232,9 @@ export type RewardsHomeParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
-  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
+  WalletTabHome: WalletTabHomeRouteParams;
   TrendingView: ExploreFeedRouteParams | undefined;
-  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  BrowserTabHome: BrowserTabHomeRouteParams;
   SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>
