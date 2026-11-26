@@ -4,105 +4,15 @@ import {
   type QueryKey,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import {
-  getHardwareTier,
-  getNetworkTierSnapshot,
-} from '../../util/deviceCapability';
-import {
-  getLatencySnapshot,
-  getLatencyThresholds,
-} from '../../util/deviceCapability/latencyStore';
-import {
-  GC_TIME,
-  MAX_RETRIES,
-  RETRYABLE_CLIENT_STATUSES,
-  SLOW_CONNECTION_MAX_RETRIES,
-  SLOW_CONNECTION_POLL_FACTOR,
-} from './constants';
-import { HttpError, InvalidResponseError, NetworkTimeoutError } from './errors';
+import { resolveGcTime, resolvePollInterval, shouldRetry } from './policy';
+import { networkAttempt } from './networkAttempt';
 import type { NetworkQueryOptions } from './types';
-
-async function getJson<QueryFnData>(
-  url: string,
-  parse: (body: unknown) => QueryFnData,
-  signal: AbortSignal,
-): Promise<QueryFnData> {
-  // The query cache is the only cache, so a refetch always reaches the server.
-  const response = await fetch(url, { signal, cache: 'no-cache' });
-  if (!response.ok) throw new HttpError(response.status);
-  try {
-    return parse(await response.json());
-  } catch (error) {
-    throw new InvalidResponseError(error);
-  }
-}
-
-/**
- * One attempt; `retry` decides whether another follows. Aborts the request
- * after the device's hung threshold, the same one the latency signal uses,
- * and fails with `NetworkTimeoutError` even if the native request ignores the
- * abort, so a stall still reaches retry and the error state. Query
- * cancellation aborts the request too.
- */
-async function runAttempt<QueryFnData>(
-  url: string,
-  parse: (body: unknown) => QueryFnData,
-  querySignal: AbortSignal,
-): Promise<QueryFnData> {
-  const controller = new AbortController();
-  // TanStack makes one signal per fetch, so the listener does not outlive it.
-  querySignal.addEventListener('abort', () => controller.abort());
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timedOut = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
-      controller.abort();
-      reject(new NetworkTimeoutError());
-    }, getLatencyThresholds().hungMs);
-  });
-  try {
-    return await Promise.race([
-      getJson(url, parse, controller.signal),
-      timedOut,
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-function isSlowConnection(): boolean {
-  return (
-    getNetworkTierSnapshot() === 'SLOW_CELLULAR' ||
-    getLatencySnapshot() === 'SLOW'
-  );
-}
-
-function isRetryable(error: Error): boolean {
-  if (error instanceof InvalidResponseError) return false;
-  if (!(error instanceof HttpError)) return true;
-  if (error.status >= 500) return true;
-  return RETRYABLE_CLIENT_STATUSES.includes(error.status);
-}
-
-function shouldRetry(failureCount: number, error: Error): boolean {
-  if (!isRetryable(error)) return false;
-  if (isSlowConnection()) return failureCount < SLOW_CONNECTION_MAX_RETRIES;
-  return failureCount < MAX_RETRIES;
-}
-
-function resolvePollInterval(interval: number | undefined): number | false {
-  if (interval === undefined) return false;
-  if (isSlowConnection()) return interval * SLOW_CONNECTION_POLL_FACTOR;
-  return interval;
-}
 
 /**
  * The app's read hook: it GETs `url`, validates the body with `parse` and
- * caches the result. Every attempt times out (8 s to 30 s by hardware tier);
- * client errors and invalid bodies are not retried; a slow connection gets
- * one retry instead of two and slower polling; devices with less memory keep a shorter cache.
- * Offline, the query pauses and runs when the connection returns.
- * Retry and polling read the connection when they run, so the query does not
- * re-render when the connection changes.
+ * caches the result. Each attempt times out (`networkAttempt`); retries, polling
+ * and cache time adapt to the device and connection (`policy`). Offline, the
+ * query pauses and runs when the connection returns.
  */
 export function useNetworkQuery<
   QueryFnData,
@@ -115,12 +25,12 @@ export function useNetworkQuery<
   ...options
 }: NetworkQueryOptions<QueryFnData, Data, Key>): UseQueryResult<Data, Error> {
   // RAM does not change while the app runs.
-  const [gcTime] = useState(() => GC_TIME[getHardwareTier() ?? 'UNKNOWN']);
+  const [gcTime] = useState(resolveGcTime);
 
   return useQuery({
     ...options,
     queryFn: async ({ signal }): Promise<QueryFnData> =>
-      runAttempt(url, parse, signal),
+      networkAttempt(url, parse, signal),
     gcTime,
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),
