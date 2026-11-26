@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "à",
-        "market_cap_suffix": "Capitalisation boursière",
-        "size_at_price": "{{size}} à {{price}} ",
-        "size_at_market_cap": "{{size}} à {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Capitalisation boursière"
       },
       "trader_stats": {
         "pnl_30d": "Résultat net de {{pnl}} (30 jours)",
@@ -1993,22 +1991,6 @@
         "4": "Jeu",
         "5": "Ven",
         "6": "Sam"
-      },
-      "tooltip": {
-        "label": "{{action}} à {{price}}",
-        "bought": "Acheté",
-        "sold": "Vendu",
-        "perps_closed": "Fermé",
-        "perps_long_opened": "Position longue ouverte",
-        "perps_long_added": "A augmenté sa position longue",
-        "perps_long_reduced": "A réduit sa position longue",
-        "perps_short_opened": "Position courte ouverte",
-        "perps_short_added": "A augmenté sa position courte",
-        "perps_short_reduced": "A racheté",
-        "spot_opened": "Acheté",
-        "spot_added": "A acheté davantage",
-        "spot_reduced": "A vendu une partie",
-        "spot_closed": "A tout vendu"
       }
     },
     "trader_position": {
@@ -5480,19 +5462,6 @@
     "accounts": "comptes",
     "show_accounts": "Afficher",
     "hide_accounts": "Masquer",
-    "labels": {
-      "bitcoin_testnet_account_name": "Compte Bitcoin testnet",
-      "bitcoin_account_name": "Compte Bitcoin",
-      "bitcoin_signet_account_name": "Compte Bitcoin Signet",
-      "bitcoin_regtest_account_name": "Compte Bitcoin Regtest",
-      "solana_devnet_account_name": "Compte Solana devnet",
-      "solana_testnet_account_name": "Compte Solana testnet",
-      "solana_account_name": "Compte Solana",
-      "tron_account_name": "Compte Tron",
-      "tron_nile_account_name": "Compte Tron Nile",
-      "tron_shasta_account_name": "Compte Tron Shasta",
-      "stellar_account_name": "Compte Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "La création du compte {{clientType}} a échoué"
     },
@@ -7179,7 +7148,6 @@
     "gas_education_3": "MetaMask ne tire aucun profit des frais de gaz.",
     "gas_education_4": "Les frais de gaz fluctuent selon le trafic réseau et la complexité de la transaction.",
     "gas_education_learn_more": "En savoir plus sur les frais de gaz",
-    "confusable_title": "Vérifiez l’adresse du destinataire",
     "confusable_msg": "Nous avons détecté un caractère pouvant prêter à confusion dans le nom de l’ENS. Vérifiez le nom de l’ENS pour éviter toute fraude potentielle.",
     "similar_to": "est similaire à",
     "contains_zero_width": "contient un caractère sans chasse",
@@ -7197,8 +7165,7 @@
     "hex_data_copied": "Données hexadécimales copiées dans le presse-papiers",
     "invalid_recipient": "Destinataire non valide",
     "invalid_recipient_description": "Vérifiez l’adresse et assurez-vous qu’elle est valide",
-    "swap_tokens": "Échanger des jetons",
-    "fromWithColon": "De :"
+    "swap_tokens": "Échanger des jetons"
   },
   "custom_gas": {
     "total": "Total",
@@ -7476,8 +7443,6 @@
     "hash_copied_to_clipboard": "Hachage de la transaction copié dans le presse-papiers",
     "address_copied_to_clipboard": "Adresse copiée dans le presse-papiers",
     "transaction_error": "Erreur de transaction",
-    "address_to_placeholder": "Recherche, adresse publique (0x) ou ENS",
-    "address_from_balance": "Solde :",
     "status": "État",
     "date": "Date",
     "nonce": "Nonce",
@@ -7558,11 +7523,8 @@
     "delete_contact": "Supprimer le contact",
     "delete": "Supprimer",
     "cancel": "Annuler",
-    "add_to_address_book": "Ajouter au carnet d’adresses",
-    "enter_an_alias": "Saisissez un alias",
     "add_this_address": "Ajoutez cette adresse à votre carnet d’adresses",
     "next": "Suivant",
-    "enter_an_alias_placeholder": "p. ex., Vitalik B.",
     "add_contact_title": "Ajouter un contact",
     "add_contact": "Ajouter un contact",
     "edit_contact_title": "Modifier le contact",
@@ -8989,19 +8951,7 @@
     "contact_support": "Contacter l’assistance"
   },
   "whats_new": {
-    "title": "Nouveautés",
-    "remove_gns_new_ui_update": {
-      "title": "Nouvelle mise à jour de l’interface utilisateur",
-      "introduction": "Nous avons apporté des modifications à l’application pour améliorer l’expérience utilisateur.",
-      "descriptions": {
-        "description_1": "Le menu déroulant des réseaux a été déplacé vers vos actifs",
-        "description_2": "Échangez et établissez une passerelle en une seule étape simple",
-        "description_3": "Expérience d’envoi simplifiée",
-        "description_4": "Une nouvelle mise en page des comptes"
-      },
-      "more_information": "Vous pouvez désormais vous concentrer sur vos jetons et votre activité, et non sur les réseaux qui les sous-tendent.",
-      "got_it": "J’ai compris"
-    }
+    "title": "Nouveautés"
   },
   "invalid_network": {
     "title": "L'ID de chaîne du réseau personnalisé \n {{network}} \n doit être saisi à nouveau.",
@@ -9312,28 +9262,13 @@
     "nickname": "pseudonyme"
   },
   "network_information": {
-    "things_to_keep_in_mind": "À garder à l’esprit",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Le jeton natif de ce réseau est {{ticker}}. C'est le jeton utilisé pour les frais de réseau.",
-    "second_description": "Si vous essayez d’envoyer des actifs directement d’un réseau à un autre, une perte permanente des actifs pourrait en résulter. Assurez-vous d’utiliser une passerelle.",
-    "third_description": "Vos tokens n’apparaîtront peut-être pas automatiquement dans votre portefeuille.",
-    "private_network": "Ce réseau est inconnu et peut utiliser un jeton spécial pour les frais de réseau.",
     "unknown_network": "Réseau inconnu",
-    "switched_network": "Vous avez basculé sur",
-    "learn_more": "En savoir plus",
     "add_token": "Cliquez ici pour ajouter les jetons manuellement",
-    "add_token_manually": "Ajouter les jetons manuellement.",
     "got_it": "D’accord",
     "error_title": "Quelque chose a mal tourné",
     "error_message": "Une erreur s’est produite lors du chargement des informations réseau. Veuillez réessayer plus tard.",
-    "private_network_third_description": "Saisissez un nom pour ce réseau afin de faciliter son identification.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Activer la détection automatique des jetons",
-    "token_detection_mainnet_title": "La détection des jetons est activée, ce qui signifie que les jetons apparaîtront automatiquement dans votre portefeuille.",
-    "token_detection_mainnet_link": "Vous pouvez également ajouter des jetons manuellement.",
-    "or": "ou",
-    "non_evm_first_description": "L’actif natif de ce réseau est {{ticker}}. C’est l’actif utilisé pour les frais de gaz.",
-    "non_evm_second_description": "Vous perdrez vos actifs si vous tentez de les envoyer depuis ou vers un autre réseau."
+    "private_network_third_description": "Saisissez un nom pour ce réseau afin de faciliter son identification."
   },
   "download_files": {
     "error": "Échec du téléchargement de la pièce jointe.",
@@ -9912,7 +9847,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Générez des revenus, tradez et effectuez des paiements à partir d'un seul solde",
       "body_prefix": "MetaMask Money est un compte de stablecoins offrant jusqu’à ",
-      "body_suffix": "—et des fonctionnalités intégrées de trading, de transfert et de paiement.",
+      "body_suffix": "- et des fonctionnalités intégrées de trading, de transfert et de paiement.",
       "body_no_apy": "MetaMask Money est un compte de stablecoins offrant des fonctionnalités intégrées de trading, de transfert et de paiement.",
       "benefit_convert_title": "Convertit en MetaMask USD, à parité 1:1",
       "benefit_convert_body": "Les fonds que vous ajoutez sont convertis à parité 1:1 en MetaMask USD, sans frais.",

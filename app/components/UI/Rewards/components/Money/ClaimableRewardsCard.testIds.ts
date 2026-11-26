@@ -7,7 +7,6 @@ export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
   EARNED_ELSEWHERE_CAPTION: 'claimable-rewards-card-earned-elsewhere-caption',
   PAUSED_BUTTON: 'claimable-rewards-card-paused-button',
   CLAIMED_BUTTON: 'claimable-rewards-card-claimed-button',
-  LAST_7_DAYS: 'claimable-rewards-card-last-7-days',
-  RECORDED: 'claimable-rewards-card-recorded',
   SKELETON: 'claimable-rewards-card-skeleton',
+  SUBTEXT: 'claimable-rewards-card-subtext',
 } as const;

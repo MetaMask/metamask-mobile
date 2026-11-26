@@ -1,11 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collectiblesRoutes } from '../routeNames';
+import {
+  collectiblesRoutes,
+  type CollectiblesStackParamList,
+} from '../routeNames';
 import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
 
-type ParamList = Record<typeof collectiblesRoutes.home, undefined>;
-
-const Stack = createNativeStackNavigator<ParamList>();
+const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
 export function CollectiblesLayout() {
   return (

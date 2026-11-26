@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 
 const mockNavigate = jest.fn();
-const mockNavigateToSocialTab = jest.fn();
+const mockOpenComposer = jest.fn();
 let mockIsSocialV1Enabled = false;
 let mockProfile: { profileId?: string } | undefined;
 
@@ -24,10 +24,9 @@ jest.mock('../../../../../selectors/profileController', () => ({
 }));
 
 jest.mock(
-  '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
   () => ({
-    navigateToSocialTab: (...args: unknown[]) =>
-      mockNavigateToSocialTab(...args),
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
   }),
 );
 import {
@@ -330,7 +329,7 @@ describe('CampaignOptInCta', () => {
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
       expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
     });
 
@@ -346,7 +345,7 @@ describe('CampaignOptInCta', () => {
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
       expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-      expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
     });
 
     it('opens the Social tab and skips the sheet when a profile is required and missing', () => {
@@ -359,7 +358,7 @@ describe('CampaignOptInCta', () => {
 
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
-      expect(mockNavigateToSocialTab).toHaveBeenCalledWith(mockNavigate);
+      expect(mockOpenComposer).toHaveBeenCalledTimes(1);
       expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
     });
 
@@ -375,7 +374,7 @@ describe('CampaignOptInCta', () => {
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
       expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-      expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
     });
 
     it('labels the button Create a username when it opens Social onboarding', () => {
@@ -416,7 +415,7 @@ describe('CampaignOptInCta', () => {
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
       expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-      expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
     });
   });
 

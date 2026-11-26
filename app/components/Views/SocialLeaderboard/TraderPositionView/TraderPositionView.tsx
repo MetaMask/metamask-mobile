@@ -113,6 +113,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import { isProfileVerified } from '../../../UI/SocialFeed/utils/profileVerified';
 import {
   getPerpPositionDirection,
   isPerpPosition,
@@ -127,6 +128,9 @@ import {
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
+import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import {
   buildSocialTradeOgImageRequest,
   fetchPerpOgSeries,
@@ -162,6 +166,9 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const hasSocialV1Access = useSelector(selectHasSocialV1Access);
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
@@ -228,6 +235,7 @@ const TraderPositionView = () => {
     authorParams.imageUrl ?? authorProfile?.profile?.imageUrl ?? undefined;
   const traderAddress =
     authorParams.address ?? authorProfile?.profile?.address ?? '';
+  const isTraderVerified = isProfileVerified(authorProfile?.profile);
 
   const positionData = useTraderPositionData(
     displayPosition,
@@ -559,7 +567,14 @@ const TraderPositionView = () => {
   // PerpsMarketDetailsView enriches it from usePerpsMarkets (same pattern as
   // PerpsPositionTransactionView).
   const handlePerpTrade = useCallback(
-    (targetSymbol: string) => {
+    function perpTrade(targetSymbol: string): void {
+      if (
+        hasSocialV1Access &&
+        (!ensureSocialTermsAccepted(() => perpTrade(targetSymbol)) ||
+          !ensureSocialProfileOnboarding())
+      ) {
+        return;
+      }
       playImpact(ImpactMoment.PrimaryCTA);
       ctaClickedRef.current = true;
       trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.TRADE);
@@ -579,7 +594,14 @@ const TraderPositionView = () => {
         },
       });
     },
-    [navigation, sourceParam, trackFollowTradingCtaClicked],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      hasSocialV1Access,
+      navigation,
+      sourceParam,
+      trackFollowTradingCtaClicked,
+    ],
   );
 
   // Tapping a trade row slides the chart to center that trade. The nonce changes
@@ -847,6 +869,7 @@ const TraderPositionView = () => {
         isTraderPositionClosed={isClosed}
         onBuyCtaClicked={handleBuyCtaClicked}
         postTradeShare={isSocialV1 === true}
+        requireSocialProfile={hasSocialV1Access}
         buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
       />
     );
@@ -1037,6 +1060,7 @@ const TraderPositionView = () => {
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={authorProfileId}
+            isTraderVerified={isTraderVerified}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={
@@ -1057,6 +1081,7 @@ const TraderPositionView = () => {
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={authorProfileId}
+            isTraderVerified={isTraderVerified}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
             activeTimePeriodLabel={periodLabel}

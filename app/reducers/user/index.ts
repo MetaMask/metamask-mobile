@@ -30,7 +30,6 @@ export const userInitialState: UserState = {
   multichainAccountsIntroModalSeen: false,
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
-  moneyOnboardingSeen: false,
   moneySplashSeen: false,
   moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
@@ -165,11 +164,6 @@ const userReducer = (
       return {
         ...state,
         musdConversionAssetDetailCtasSeen: {},
-      };
-    case UserActionType.SET_MONEY_ONBOARDING_SEEN:
-      return {
-        ...state,
-        moneyOnboardingSeen: action.payload.seen,
       };
     case UserActionType.SET_MONEY_SPLASH_SEEN:
       return {

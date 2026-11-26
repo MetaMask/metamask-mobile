@@ -12,15 +12,6 @@ import {
 } from '../../types';
 import Logger from '../../../../../../util/Logger';
 
-/** Card status values from react-native-wallet library */
-export type RNWalletCardStatus =
-  | 'not found'
-  | 'active'
-  | 'pending'
-  | 'suspended'
-  | 'deactivated'
-  | 'requireActivation';
-
 /** Tokenization status values from react-native-wallet library */
 export type TokenizationStatus = 'success' | 'canceled' | 'error';
 

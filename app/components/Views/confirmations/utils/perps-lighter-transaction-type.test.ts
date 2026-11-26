@@ -1,5 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  getPerpsWithdrawType,
   perpsProviderSelectionForType,
   perpsTransactionTypeForSelection,
 } from './perps-lighter-transaction-type';
@@ -100,5 +101,41 @@ describe('perpsProviderSelectionForType', () => {
       'hyperliquid',
     );
     expect(perpsProviderSelectionForType(undefined)).toBe('hyperliquid');
+  });
+});
+
+describe('getPerpsWithdrawType', () => {
+  it('reads the type from a batch whose nested transaction is the withdraw', () => {
+    expect(
+      getPerpsWithdrawType({
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
+      }),
+    ).toBe(TransactionType.perpsWithdraw);
+    expect(
+      getPerpsWithdrawType({
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: TransactionType.perpsLighterWithdraw }],
+      }),
+    ).toBe(TransactionType.perpsLighterWithdraw);
+  });
+
+  it('reads the type from the confirmation itself', () => {
+    expect(
+      getPerpsWithdrawType({ type: TransactionType.perpsLighterWithdraw }),
+    ).toBe(TransactionType.perpsLighterWithdraw);
+  });
+
+  it('returns undefined for anything that is not a withdraw', () => {
+    expect(
+      getPerpsWithdrawType({ type: TransactionType.perpsDeposit }),
+    ).toBeUndefined();
+    expect(
+      getPerpsWithdrawType({
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: TransactionType.perpsDeposit }],
+      }),
+    ).toBeUndefined();
+    expect(getPerpsWithdrawType(undefined)).toBeUndefined();
   });
 });

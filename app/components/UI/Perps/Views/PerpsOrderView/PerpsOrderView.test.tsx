@@ -100,6 +100,7 @@ import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import { buildPaymentTokenMock } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -167,14 +168,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
 // Mock the context. `usePerpsOrderContext` is stubbed, so the balance the view
 // feeds into the order form is only observable on the provider — capture it.
 let mockProviderEffectiveAvailableBalance: number | undefined;
+let mockProviderProviderId: string | undefined;
+let mockOrderProvider: string | null = null;
 jest.mock('../../contexts/PerpsOrderContext', () => {
   const ReactActual = jest.requireActual('react');
   const actual = jest.requireActual('../../contexts/PerpsOrderContext');
   return {
     ...actual,
     usePerpsOrderContext: jest.fn(),
-    PerpsOrderProvider: (props: { effectiveAvailableBalance?: number }) => {
+    PerpsOrderProvider: (props: {
+      effectiveAvailableBalance?: number;
+      providerId?: string;
+    }) => {
       mockProviderEffectiveAvailableBalance = props.effectiveAvailableBalance;
+      mockProviderProviderId = props.providerId;
       return ReactActual.createElement(actual.PerpsOrderProvider, props);
     },
   };
@@ -712,9 +719,11 @@ jest.mock('react-redux', () => {
       const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
         '../../selectors/featureFlags',
       );
-      const { selectPerpsOrderBookPreferences } = jest.requireActual(
-        '../../selectors/perpsController',
-      );
+      const { selectPerpsOrderBookPreferences, selectPerpsOrderProvider } =
+        jest.requireActual('../../selectors/perpsController');
+      if (selector === selectPerpsOrderProvider) {
+        return mockOrderProvider;
+      }
       if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
         return mockTradeWithAnyTokenEnabled;
       }
@@ -800,6 +809,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       subscribeToPrices: jest.fn(() => jest.fn()),
+      subscribeToAvailableToTrade: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
         spendableBalance: '1000',
@@ -1238,6 +1248,8 @@ const defaultMockHooks = {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
   },
 };
 
@@ -1329,6 +1341,7 @@ const createMockStreamManager = () => {
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
     },
   };
@@ -1427,6 +1440,8 @@ describe('PerpsOrderView', () => {
     mockIsPaySubmitReady = true;
     mockPayTokenAccountBalanceUsd = '0';
     mockProviderEffectiveAvailableBalance = undefined;
+    mockProviderProviderId = undefined;
+    mockOrderProvider = null;
     mockIsPayQuoteLoading = false;
     mockPayTotals = undefined;
     mockPayRequiredTokens = [];
@@ -1554,6 +1569,8 @@ describe('PerpsOrderView', () => {
       maxPossibleAmount: 1000,
       setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
+      perpsAvailableToTrade: 1000,
+      isAvailableToTradeLoading: false,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1989,7 +2006,11 @@ describe('PerpsOrderView', () => {
 
   it('tracks a dismissed payment token selector when the inline picker is left without a selection', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' },
+      payToken: buildPaymentTokenMock({
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+      }),
       setPayToken: jest.fn(),
       isNative: undefined,
     });
@@ -3515,6 +3536,8 @@ describe('PerpsOrderView', () => {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
     ...overrides,
   });
 
@@ -6409,16 +6432,6 @@ describe('PerpsOrderView', () => {
         disable: true,
       });
     });
-
-    it('allows money account selection once the Perps balance is known to be empty', () => {
-      mockEmptyPerpsBalance(false);
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
-        disable: false,
-      });
-    });
   });
 
   describe('Insufficient funds handling', () => {
@@ -6789,7 +6802,11 @@ describe('PerpsOrderView', () => {
       mockNoQuotesAlert.mockReturnValue([]);
 
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: { balanceUsd: '0.01', address: '0xusdc', chainId: '0xa4b1' },
+        payToken: buildPaymentTokenMock({
+          balanceUsd: '0.01',
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -6824,11 +6841,11 @@ describe('PerpsOrderView', () => {
       mockNoQuotesAlert.mockReturnValue([]);
 
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           balanceUsd: '999999999',
           address: '0xusdc',
           chainId: '0xa4b1',
-        },
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -6873,11 +6890,11 @@ describe('PerpsOrderView', () => {
       mockInsufficientAlert.mockReturnValue([]);
       mockNoQuotesAlert.mockReturnValue([]);
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           balanceUsd: '999999999',
           address: '0xusdc',
           chainId: '0xa4b1',
-        },
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -7005,11 +7022,11 @@ describe('PerpsOrderView', () => {
   });
 
   describe('pay-token available balance', () => {
-    const PAY_TOKEN = {
+    const PAY_TOKEN = buildPaymentTokenMock({
       address: '0xusdc',
       chainId: '0xa4b1',
       symbol: 'mUSD',
-    };
+    });
 
     // `payToken.balanceUsd` is captured once when the token is selected, so it
     // reads 0 whenever the token's balance was not tracked yet. Sizing must use
@@ -7127,6 +7144,58 @@ describe('PerpsOrderView', () => {
       });
 
       expect(warningCalls).toHaveLength(0);
+    });
+  });
+
+  describe('venue routing', () => {
+    it('pins the form, top of book and slippage book to the order venue when the route names none', async () => {
+      mockOrderProvider = 'lighter';
+      (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+      expect(mockProviderProviderId).toBe('lighter');
+      expect(usePerpsTopOfBook).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
+      expect(usePerpsEstimatedSlippage).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
+    });
+
+    it('keeps an existing position venue over the order venue', async () => {
+      mockOrderProvider = 'hyperliquid';
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          ...defaultMockRoute.params,
+          existingPosition: { symbol: 'ETH', providerId: 'lighter' },
+        },
+      });
+      const streamManager = createMockStreamManager();
+      const Wrapper = ({ children }: { children: React.ReactNode }) => (
+        <PerpsStreamProvider
+          testStreamManager={streamManager as unknown as PerpsStreamManager}
+        >
+          {children}
+        </PerpsStreamProvider>
+      );
+
+      render(<PerpsOrderView />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+      expect(mockProviderProviderId).toBe('lighter');
+      // The OI cap and books follow the same venue as the form.
+      expect(streamManager.oiCaps.subscribeToSymbol).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
+      expect(usePerpsTopOfBook).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
     });
   });
 

@@ -27,12 +27,6 @@ export const getFundingAmountRange = (amount: number): FundingAmountRange => {
 };
 
 /**
- * Fetch budget retained for API compatibility with callers that reference
- * it; the fetch itself is currently a no-op (see below).
- */
-export const FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS = 20000;
-
-/**
  * Resolves the funding range of the selected account group (Account 1 at
  * import time) for the `funding_amount_range` prop on `Wallet Setup
  * Completed`.

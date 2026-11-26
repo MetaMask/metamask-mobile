@@ -35,6 +35,7 @@ const fixtureFollowing = {
       address: '0x1111111111111111111111111111111111111111',
       name: 'Signal Scout',
       imageUrl: 'https://example.com/scout.png',
+      verified: true,
     },
     {
       profileId: 'trader-2',
@@ -112,12 +113,14 @@ describe('useTraderFollowing', () => {
           username: 'Signal Scout',
           address: '0x1111111111111111111111111111111111111111',
           avatarUri: 'https://example.com/scout.png',
+          verified: true,
         },
         {
           id: 'trader-2',
           username: 'Quiet Conviction',
           address: '0x2222222222222222222222222222222222222222',
           avatarUri: undefined,
+          verified: false,
         },
       ]);
     });

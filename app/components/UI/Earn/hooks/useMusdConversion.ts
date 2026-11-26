@@ -26,6 +26,7 @@ import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -199,6 +200,7 @@ export const useMusdConversion = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   /**
    * Initiates a max-amount mUSD conversion.
@@ -242,7 +244,7 @@ export const useMusdConversion = () => {
          */
         if (existingPendingMusdConversion?.id) {
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
             params: {
               forceBottomSheet: true,
               token,
@@ -307,8 +309,12 @@ export const useMusdConversion = () => {
             // Set payment token - this triggers automatic Relay quote fetching
             TransactionPayController.updatePaymentToken({
               transactionId,
-              tokenAddress,
-              chainId: tokenChainId,
+              assetId:
+                token.caipAssetId ??
+                encodeAssetId({
+                  address: tokenAddress,
+                  chainId: tokenChainId,
+                }),
             });
 
             EngineService.flushState();
@@ -345,7 +351,7 @@ export const useMusdConversion = () => {
           // Navigate to modal stack AFTER transaction is created
           // This ensures approvalRequest exists when the confirmation screen renders
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
             params: {
               forceBottomSheet: true,
               token,
@@ -378,7 +384,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, pendingTransactionMetas, selectedAddress],
+    [navigation, pendingTransactionMetas, encodeAssetId, selectedAddress],
   );
 
   /**
@@ -401,7 +407,7 @@ export const useMusdConversion = () => {
       navigateWithDetails(navigation, [
         navigationStack,
         {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           params: {
             loader: ConfirmationLoader.CustomAmount,
             preferredPaymentToken,

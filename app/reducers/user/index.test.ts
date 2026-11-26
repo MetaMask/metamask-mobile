@@ -4,7 +4,6 @@ import {
   type SetTokenOverviewChartTypeAction,
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
-  type SetMoneyOnboardingSeenAction,
   type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
@@ -19,10 +18,6 @@ describe('user reducer', () => {
   describe('initial state', () => {
     it('has ChartType.Line as default tokenOverviewChartType', () => {
       expect(userInitialState.tokenOverviewChartType).toBe(ChartType.Line);
-    });
-
-    it('has moneyOnboardingSeen as false', () => {
-      expect(userInitialState.moneyOnboardingSeen).toBe(false);
     });
 
     it('has moneySplashSeen as false', () => {
@@ -53,50 +48,6 @@ describe('user reducer', () => {
       expect(userInitialState.tokenOverviewChartInterval).toBe(
         DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
       );
-    });
-  });
-
-  describe('SET_MONEY_ONBOARDING_SEEN', () => {
-    it('sets moneyOnboardingSeen to true', () => {
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
-        payload: { seen: true },
-      };
-
-      const newState = userReducer(userInitialState, action);
-
-      expect(newState.moneyOnboardingSeen).toBe(true);
-    });
-
-    it('sets moneyOnboardingSeen back to false', () => {
-      const currentState = {
-        ...userInitialState,
-        moneyOnboardingSeen: true,
-      };
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
-        payload: { seen: false },
-      };
-
-      const newState = userReducer(currentState, action);
-
-      expect(newState.moneyOnboardingSeen).toBe(false);
-    });
-
-    it('does not modify other state properties', () => {
-      const currentState = {
-        ...userInitialState,
-        userLoggedIn: true,
-      };
-      const action: SetMoneyOnboardingSeenAction = {
-        type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
-        payload: { seen: true },
-      };
-
-      const newState = userReducer(currentState, action);
-
-      expect(newState.moneyOnboardingSeen).toBe(true);
-      expect(newState.userLoggedIn).toBe(true);
     });
   });
 

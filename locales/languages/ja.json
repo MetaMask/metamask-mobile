@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "at",
-        "market_cap_suffix": "時価総額",
-        "size_at_price": "{{price}}で{{size}}",
-        "size_at_market_cap": "{{size}} / {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "時価総額"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}}の損益 (30日)",
@@ -1993,22 +1991,6 @@
         "4": "木",
         "5": "金",
         "6": "土"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "購入しました",
-        "sold": "売却しました",
-        "perps_closed": "クローズ済み",
-        "perps_long_opened": "ロングをオープンしました",
-        "perps_long_added": "ロングに追加されました",
-        "perps_long_reduced": "ロングを減らしました",
-        "perps_short_opened": "ショートをオープンしました",
-        "perps_short_added": "ショートに追加されました",
-        "perps_short_reduced": "買い戻しました",
-        "spot_opened": "購入しました",
-        "spot_added": "追加購入しました",
-        "spot_reduced": "一部売却しました",
-        "spot_closed": "すべて売却しました"
       }
     },
     "trader_position": {
@@ -5480,19 +5462,6 @@
     "accounts": "アカウント",
     "show_accounts": "表示",
     "hide_accounts": "非表示",
-    "labels": {
-      "bitcoin_testnet_account_name": "ビットコインテストネットアカウント",
-      "bitcoin_account_name": "ビットコインアカウント",
-      "bitcoin_signet_account_name": "ビットコインSignetアカウント",
-      "bitcoin_regtest_account_name": "ビットコインRegtestアカウント",
-      "solana_devnet_account_name": "Solana Devnetアカウント",
-      "solana_testnet_account_name": "Solanaテストネットアカウント",
-      "solana_account_name": "Solanaアカウント",
-      "tron_account_name": "Tronアカウント",
-      "tron_nile_account_name": "Tron Nileアカウント",
-      "tron_shasta_account_name": "Tron Shastaアカウント",
-      "stellar_account_name": "Stellarアカウント"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
     },
@@ -7179,7 +7148,6 @@
     "gas_education_3": "MetaMaskはガス代で利益を得ることはありません。",
     "gas_education_4": "ガス代は、ネットワークトラフィックとトランザクションの複雑さに応じて変動します。",
     "gas_education_learn_more": "ガス代の詳細をご覧ください",
-    "confusable_title": "受取人のアドレスを確認してください",
     "confusable_msg": "ENS名に紛らわしい文字が検出されました。詐欺防止のため、ENS名を確認してください。",
     "similar_to": "類似するもの:",
     "contains_zero_width": "ゼロ幅文字が含まれています",
@@ -7197,8 +7165,7 @@
     "hex_data_copied": "16進データがクリップボードにコピーされました",
     "invalid_recipient": "無効な受取人",
     "invalid_recipient_description": "アドレスが有効であることを確認してください",
-    "swap_tokens": "トークンをスワップ",
-    "fromWithColon": "送金元:"
+    "swap_tokens": "トークンをスワップ"
   },
   "custom_gas": {
     "total": "合計",
@@ -7476,8 +7443,6 @@
     "hash_copied_to_clipboard": "トランザクションハッシュがクリップボードにコピーされました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
     "transaction_error": "トランザクションエラー",
-    "address_to_placeholder": "パブリックアドレス (0x) またはENSを検索",
-    "address_from_balance": "残高:",
     "status": "ステータス",
     "date": "日付",
     "nonce": "ナンス",
@@ -7558,11 +7523,8 @@
     "delete_contact": "連絡先を削除",
     "delete": "削除",
     "cancel": "キャンセル",
-    "add_to_address_book": "アドレス帳に追加",
-    "enter_an_alias": "エイリアスを入力してください",
     "add_this_address": "このアドレスをアドレス帳に追加",
     "next": "次へ",
-    "enter_an_alias_placeholder": "例: Vitalik B。",
     "add_contact_title": "連絡先を追加",
     "add_contact": "連絡先を追加",
     "edit_contact_title": "連絡先を編集",
@@ -8989,19 +8951,7 @@
     "contact_support": "サポートへのお問い合わせ"
   },
   "whats_new": {
-    "title": "新機能",
-    "remove_gns_new_ui_update": {
-      "title": "UIの最新アップデート",
-      "introduction": "アプリのエクスペリエンス向上のため、アップデートを行いました。",
-      "descriptions": {
-        "description_1": "ネットワークのドロップダウンをアセットに移動",
-        "description_2": "スワップとブリッジが1つのシンプルなフローで完結",
-        "description_3": "送金エクスペリエンスを効率化",
-        "description_4": "アカウントの表示を刷新"
-      },
-      "more_information": "これで、ネットワークを気にすることなく、トークンや取引に集中できるようになりました。",
-      "got_it": "了解"
-    }
+    "title": "新機能"
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n{{network}}\n のチェーンIDの再入力が必要です。",
@@ -9312,28 +9262,13 @@
     "nickname": "ニックネーム"
   },
   "network_information": {
-    "things_to_keep_in_mind": "留意点",
     "testnet_network": "{{type}}テストネット",
-    "first_description": "このネットワークのネイティブトークンは{{ticker}}です。このトークンがネットワーク手数料に使用されます。",
-    "second_description": "あるネットワークから別のネットワークに直接アセットを送信しようとすると、アセットが永久に失われるおそれがあります。必ずブリッジを使用してください。",
-    "third_description": "トークンはウォレットに自動的に表示されない可能性があります。",
-    "private_network": "これは不明なネットワークであり、ネットワーク手数料に特殊なトークンを使用する可能性があります。",
     "unknown_network": "不明なネットワーク",
-    "switched_network": "次のネットワークに切替済み",
-    "learn_more": "詳細",
     "add_token": "ここをクリックしてトークンを手動で追加",
-    "add_token_manually": "手動で追加してください。",
     "got_it": "了解",
     "error_title": "問題が発生しました",
     "error_message": "ネットワーク情報の読み込み中にエラーが発生しました。後でもう一度お試しください。",
-    "private_network_third_description": "識別しやすいように、このネットワークの名前を入力してください。",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "自動トークン検出を有効にする",
-    "token_detection_mainnet_title": "トークン検出が有効になっているため、トークンが自動的にウォレットに表示されます。",
-    "token_detection_mainnet_link": "手動でトークンを追加することもできます。",
-    "or": "または",
-    "non_evm_first_description": "このネットワーク上のネイティブ資産は{{ticker}}です。この資産がトランザクション手数料に使用されます。",
-    "non_evm_second_description": "別のネットワークから、または別のネットワークに送ろうとすると、資産が失われてしまいます。"
+    "private_network_third_description": "識別しやすいように、このネットワークの名前を入力してください。"
   },
   "download_files": {
     "error": "添付ファイルのダウンロードに失敗しました。",

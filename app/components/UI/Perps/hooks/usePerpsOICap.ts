@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 
 /**
@@ -63,7 +64,10 @@ export interface UsePerpsOICapReturn {
  * }
  * ```
  */
-export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
+export const usePerpsOICap = (
+  symbol?: string,
+  providerId?: PerpsProviderType,
+): UsePerpsOICapReturn => {
   const streamManager = usePerpsStream();
   const [oiCaps, setOICaps] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -71,8 +75,11 @@ export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
   useEffect(() => {
     if (!symbol) return;
 
-    // Subscribe through stream manager (single shared subscription)
-    const unsubscribe = streamManager.oiCaps.subscribe({
+    // Subscribe through stream manager, scoped to the venue the user is
+    // trading on (TAT-4407) so the cap answer is for (providerId, symbol).
+    const unsubscribe = streamManager.oiCaps.subscribeToSymbol({
+      symbol,
+      providerId,
       callback: (caps: string[]) => {
         setOICaps(caps);
         setIsInitialized(true);
@@ -81,7 +88,7 @@ export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
     });
 
     return unsubscribe;
-  }, [streamManager, symbol]);
+  }, [streamManager, symbol, providerId]);
 
   // Check if the current symbol is in the OI caps list
   const isAtCap = useMemo(() => {

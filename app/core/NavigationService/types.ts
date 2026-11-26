@@ -695,9 +695,6 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal:
-    | RewardsNavigationParamList['RewardsBottomSheetModal']
-    | undefined;
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
@@ -717,9 +714,6 @@ export type RootStackParamList = {
     | undefined;
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
-    | undefined;
-  RewardsMoneyTermsSheet:
-    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
   RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
   RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
@@ -911,9 +905,9 @@ export type RootStackParamList = {
   MoneyHome: MoneyNavigationParamList['MoneyHome'];
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
-  MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
@@ -980,6 +974,9 @@ export type RootStackParamList = {
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
   SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
+  RecurringDefaultPriceToleranceModal: BridgeModalsNavigationParamList['RecurringDefaultPriceToleranceModal'];
+  RecurringCustomPriceToleranceModal: BridgeModalsNavigationParamList['RecurringCustomPriceToleranceModal'];
+  RecurringConfirmOrderModal: BridgeModalsNavigationParamList['RecurringConfirmOrderModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
@@ -1171,7 +1168,7 @@ export type RootStackParamList = {
   // Full screen confirmation routes
   // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
   // covers Perps deposit+order navigation that reuses the same root route key.
-  RedesignedConfirmations:
+  Confirmations:
     | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;
