@@ -227,7 +227,7 @@ describe('Predict order notifications across Active Venue changes', () => {
 
     // Nothing is observed or notified again: flush the pending one-shot
     // chains (zero-delay) and assert the toast and commit counts stay put.
-    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
     expect(view.showToast).toHaveBeenCalledTimes(1);
     expect(routes.commitCount()).toBe(1);
   });

@@ -166,7 +166,7 @@ const stubBalance = (
   venueStatus?: { termsUrl?: string },
   available = '123.12',
 ) =>
-  mockPredictNextMessenger((action: string) => {
+  mockPredictNextMessenger(async (action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
@@ -786,7 +786,7 @@ describe('PredictOrderFlow', () => {
   it('discards an in-flight quote when the amount stops being quotable', async () => {
     let resolveQuote: (reply: FetchReply) => void = () => undefined;
     fetchMock.mockImplementation(
-      () =>
+      async () =>
         new Promise<Response>((resolve) => {
           resolveQuote = (reply) =>
             resolve({
@@ -973,7 +973,7 @@ describe('PredictOrderFlow', () => {
       // same amount without another request. The zero-delay flush drains
       // any pending one-shot chains before the negative assertion.
       pressQuickAmount('max');
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(requestedAmounts()).toEqual(['123.12']);
 
       // Refresh asks once more for the same amount, never a smaller one.
@@ -981,7 +981,7 @@ describe('PredictOrderFlow', () => {
       await waitFor(() =>
         expect(requestedAmounts()).toEqual(['123.12', '123.12']),
       );
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(requestedAmounts()).toEqual(['123.12', '123.12']);
     });
 
@@ -1017,7 +1017,7 @@ describe('PredictOrderFlow', () => {
     });
 
     it('disables every chip while the balance is unknown', async () => {
-      mockPredictNextMessenger((action: string) =>
+      mockPredictNextMessenger(async (action: string) =>
         action === 'PredictPortfolioService:getBalance'
           ? new Promise(() => undefined)
           : Promise.resolve(undefined),
@@ -1072,7 +1072,7 @@ describe('PredictOrderFlow', () => {
     // a zero-delay flush drains pending chains before asserting that no
     // quote was requested.
     await screen.findByText(/Enter at least \$1/);
-    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
 
     expect(previewCalls()).toHaveLength(0);
   });
@@ -1602,7 +1602,7 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD),
       ).not.toBeOnTheScreen();
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(previewCalls()).toHaveLength(quotes);
       expect(commitCalls()).toHaveLength(0);
     });
@@ -1670,7 +1670,7 @@ describe('PredictOrderFlow', () => {
       );
       // The disabled button cannot dispatch; a zero-delay flush drains any
       // pending one-shot chains before the negative call-count assertion.
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
       expect(commitCalls()).toHaveLength(1);
     });
   });
@@ -1711,7 +1711,7 @@ describe('PredictOrderFlow', () => {
     // Armed after the sheet's expiry timer and due later, so that timer has
     // fired and re-rendered the expired quote before this resolves.
     await act(
-      () =>
+      async () =>
         new Promise((resolve) =>
           setTimeout(resolve, Math.max(0, quoteExpiresAt - Date.now()) + 500),
         ),
