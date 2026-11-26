@@ -3499,27 +3499,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               )
             }
-          /><Skeleton height={16} width={60} />
-              ) : (
-                <PerpsFeesDisplay
-                  feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                  feeDiscountKind={rewardsState.feeDiscountKind}
-                  fee={hasValidAmount ? feesToDisplay : undefined}
-                  originalFee={
-                    hasValidAmount ? undiscountedFeesToDisplay : undefined
-                  }
-                  placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
-                  testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
-                  feeDisplayMode={feeDisplayMode}
-                  takerFeeRate={
-                    hasValidAmount ? feeResults.takerFeeRate : undefined
-                  }
-                  makerFeeRate={
-                    hasValidAmount ? feeResults.makerFeeRate : undefined
-                  }
-                />
-              )
-            }
           />
 
           {/* Rewards Points Estimation */}
@@ -3583,7 +3562,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
-              className="flex-1 min-w-0 h-12 rounded-xl"
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               25%
             </Button>
@@ -3592,7 +3571,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
-              className="flex-1 min-w-0 h-12 rounded-xl"
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               50%
             </Button>
@@ -3601,7 +3580,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
-              className="flex-1 min-w-0 h-12 rounded-xl"
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -3610,7 +3589,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
-              className="flex-1 min-w-0 h-12 rounded-xl"
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.done_button')}
             </Button>

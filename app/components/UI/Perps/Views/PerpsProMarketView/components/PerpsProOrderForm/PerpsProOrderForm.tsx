@@ -353,30 +353,6 @@ const OrderSummary = ({
       className={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
-    /><PerpsFeesDisplay
-          fee={fee}
-          originalFee={originalFee}
-          feeDiscountPercentage={feeDiscountPercentage}
-          feeDiscountKind={feeDiscountKind}
-          testID={ids.SUMMARY_FEES_VALUE}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-          feeDisplayMode={feeDisplayMode}
-          takerFeeRate={takerFeeRate}
-          makerFeeRate={makerFeeRate}
-        />
-      }
-      keyEndButtonIconProps={buttonIcon(
-        IconName.Info,
-        ids.SUMMARY_FEES_BUTTON,
-        onFeesInfoPress,
-      )}
-      keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryFeesRowClassName}
-      style={summaryRowStyle}
-      testID={ids.SUMMARY_FEES}
     />
   </Box>
 );
@@ -832,29 +808,6 @@ const PerpsProOrderForm = ({
               textProps={{ variant: TextVariant.BodySm }}
               endAccessory={
                 <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  accessible={false}
-                >
-                  {marginModeTag ? (
-                    <Tag
-                      severity={marginModeTag.severity}
-                      testID={ids.MARGIN_MODE_TAG}
-                    >
-                      {marginModeTag.label}
-                    </Tag>
-                  ) : null}
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={IconColor.IconDefault}
-                    testID={`${ids.MARGIN_MODE_BUTTON}-chevron`}
-                  />
-                </Box>
-              }
-              testID={ids.MARGIN_MODE_BUTTON}
-            ><Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}

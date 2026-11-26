@@ -114,23 +114,6 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
                   : 'rounded-2xl border border-transparent bg-muted'
               }
               testID={rowTestID}
-            /><PerpsProviderLogos
-                  providerIds={[providerId]}
-                  size={40}
-                  isDecorative
-                  testID={`${rowTestID}-logo`}
-                />
-              }
-              accessoryGap={4}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: isChecked }}
-              accessibilityLabel={name}
-              twClassName={
-                isChecked
-                  ? 'rounded-2xl border border-default bg-muted'
-                  : 'rounded-2xl border border-transparent bg-muted'
-              }
-              testID={rowTestID}
             />
           );
         })}

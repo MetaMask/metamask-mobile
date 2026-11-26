@@ -502,7 +502,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Sm}
                 onPress={handleAutoCloseButtonPress}
-                className="self-center"
+                twClassName="self-center"
               >
                 {resolvedTPSL.hasTPSLConfigured
                   ? strings('perps.auto_close.edit_button')
@@ -553,19 +553,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 })}
               </SensitiveText>
             }
-          /><SensitiveText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
-              >
-                {formatPerpsFiat(position.entryPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
-              </SensitiveText>
-            }
           />
 
           <KeyValueRow
@@ -588,16 +575,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               ) : undefined
             }
             value={liquidationValue}
-          /><PerpsCrossMarginInfoButton
-                  hasLiquidationPrice={position.liquidationPrice != null}
-                  testID={getPerpsCrossLiquidationInfoSelector(
-                    'lite',
-                    position.symbol,
-                  )}
-                />
-              ) : undefined
-            }
-            value={liquidationValue}
           />
 
           <KeyValueRow
@@ -606,17 +583,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             keyLabel={strings('perps.position.card.funding_payments_label')}
             value={
               <SensitiveText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={privacyMode ? TextColor.TextDefault : fundingColor}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
-              >
-                {fundingDisplay}
-              </SensitiveText>
-            }
-          /><SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={privacyMode ? TextColor.TextDefault : fundingColor}

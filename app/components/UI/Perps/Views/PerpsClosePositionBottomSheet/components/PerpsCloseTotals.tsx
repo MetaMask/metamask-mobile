@@ -94,15 +94,6 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
           valueTextProps={{
             testID: marginValueTestID,
           }}
-        /><PerpsMarginModeTag
-              marginMode={marginMode}
-              testID={PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG}
-            />
-          }
-          value={formatCloseSummaryFiat(margin)}
-          valueTextProps={{
-            testID: marginValueTestID,
-          }}
         />
       ) : null}
 

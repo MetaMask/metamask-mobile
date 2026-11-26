@@ -557,65 +557,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                             }
                             size={IconSize.Sm}
                             color={IconColor.IconAlternative}
-                            className="ml-1"
-                            testID={
-                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
-                            }
-                          />
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
-                            testID={
-                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                            }
-                          >
-                            {displayLiquidationPercentage}
-                          </Text>
-                        </>
-                      )}
-                  </Box>
-                )
-              }
-            /><Skeleton
-                    width={112}
-                    height={16}
-                    testID={
-                      PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON
-                    }
-                  />
-                ) : (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    accessible={false}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextDefault}
-                      testID={
-                        PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE
-                      }
-                    >
-                      {displayLiquidationPrice
-                        ? formatPerpsFiat(displayLiquidationPrice, {
-                            ranges: PRICE_RANGES_UNIVERSAL,
-                          })
-                        : PERPS_CONSTANTS.FallbackDataDisplay}
-                    </Text>
-                    {marginMode !== 'cross' &&
-                      (tempLeverage === 1 ||
-                        displayLiquidationPrice !== null) &&
-                      displayLiquidationPercentage && (
-                        <>
-                          <Icon
-                            name={
-                              direction === 'long'
-                                ? IconName.TrendDown
-                                : IconName.TrendUp
-                            }
-                            size={IconSize.Sm}
-                            color={IconColor.IconAlternative}
                             twClassName="ml-1"
                             testID={
                               PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON

@@ -110,10 +110,6 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
             {title}
           </Text>
         }
-      /><Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {title}
-          </Text>
-        }
       />
 
       <Box paddingHorizontal={4} gap={2}>

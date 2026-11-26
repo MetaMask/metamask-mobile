@@ -49,16 +49,6 @@ const PerpsMarketListEmptyState: React.FC<PerpsMarketListEmptyStateProps> = ({
       actionButtonText={ctaLabel}
       onAction={onCtaPress}
       actionButtonProps={ctaTestID ? { testID: ctaTestID } : undefined}
-    /><Icon
-          name={IconName.Search}
-          size={IconSize.Xl}
-          color={IconColor.IconMuted}
-        />
-      }
-      description={description}
-      actionButtonText={ctaLabel}
-      onAction={onCtaPress}
-      actionButtonProps={ctaTestID ? { testID: ctaTestID } : undefined}
     />
   </Box>
 );

@@ -249,16 +249,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           inputProps={{
             showSoftInputOnFocus: false,
           }}
-        /><Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              USD
-            </Text>
-          }
-          inputProps={{
-            showSoftInputOnFocus: false,
-          }}
         />
         {hasInputError ? (
           <HelpText severity={HelpTextSeverity.Danger} showIcon>
@@ -282,7 +272,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               testID={preset.testID}
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              className="flex-1"
+              twClassName="flex-1"
               onPress={preset.onPress}
             >
               {preset.label}

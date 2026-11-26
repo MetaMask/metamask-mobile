@@ -251,38 +251,6 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       subvalue={subvalueNode}
       onPress={handlePress}
       testID={testID}
-    /><PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
-      }
-      title={title}
-      titleEndAccessory={
-        positionDisplay ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-            accessible={false}
-          >
-            <Tag
-              severity={positionDisplay.directionSeverity}
-              testID={testID ? `${testID}-direction-tag` : undefined}
-            >
-              {positionDisplay.directionLabel}
-            </Tag>
-            {showMarginModeTag &&
-              isCrossMarginEnabled &&
-              position?.leverage.type === 'cross' && (
-                <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
-                  {strings('perps.cross_position.badge')}
-                </Tag>
-              )}
-          </Box>
-        ) : undefined
-      }
-      description={descriptionNode}
-      value={valueNode}
-      subvalue={subvalueNode}
-      onPress={handlePress}
-      testID={testID}
     />
   );
 };

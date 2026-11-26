@@ -1144,7 +1144,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               size={ButtonSize.Sm}
               // ButtonBase hardcodes px-4, which clips these labels once five
               // buttons share the row. Trim the padding so the text governs.
-              className="flex-1 px-2"
+              twClassName="flex-1 px-2"
               onPress={preset.onPress}
               testID={preset.testID}
               isDisabled={inputsDisabled}
@@ -1155,7 +1155,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            className="px-3"
+            twClassName="px-3"
             onPress={dismissKeypad}
             testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
           >
@@ -1265,37 +1265,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               }
               keyTextProps={keyTextProps}
               valueTextProps={valueTextProps}
-            /><Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={1}
-                    accessible={false}
-                    testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE}
-                  >
-                    <Text {...valueTextProps}>{liquidationPriceDisplay}</Text>
-                    <Icon
-                      name={
-                        actualDirection === 'long'
-                          ? IconName.TrendDown
-                          : IconName.TrendUp
-                      }
-                      size={IconSize.Sm}
-                      color={IconColor.IconAlternative}
-                    />
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                    >
-                      {liquidationDistanceDisplay}
-                    </Text>
-                  </Box>
-                ) : (
-                  liquidationPriceDisplay
-                )
-              }
-              keyTextProps={keyTextProps}
-              valueTextProps={valueTextProps}
             />
           </Box>
 
@@ -1341,7 +1310,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                       key={percentage}
                       variant={ButtonVariant.Secondary}
                       size={ButtonSize.Md}
-                      className="flex-1"
+                      twClassName="flex-1"
                       onPress={() => handleTakeProfitPresetPress(percentage)}
                       testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                         percentage,
@@ -1386,17 +1355,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
                     showSoftInputOnFocus: false,
                   }}
-                /><Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.tpsl.usd_label')}
-                    </Text>
-                  }
-                  inputProps={{
-                    testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
                 />
                 <TextField
                   className="flex-1"
@@ -1416,32 +1374,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   onBlur={() => handleInputBlur('takeProfitPercentage')}
                   startAccessory={
                     <RoeSignBadge
-                      sign={takeProfitSign}
-                      onPress={handleTakeProfitSignPress}
-                      testID={
-                        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
-                      }
-                      accessibilityLabel={strings(
-                        'perps.tpsl.toggle_take_profit_sign',
-                      )}
-                      isDisabled={inputsDisabled}
-                      isNeutral={isSheet}
-                    />
-                  }
-                  endAccessory={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      %
-                    </Text>
-                  }
-                  inputProps={{
-                    testID:
-                      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
-                /><RoeSignBadge
                       sign={takeProfitSign}
                       onPress={handleTakeProfitSignPress}
                       testID={
@@ -1525,7 +1457,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                       key={percentage}
                       variant={ButtonVariant.Secondary}
                       size={ButtonSize.Md}
-                      className="flex-1"
+                      twClassName="flex-1"
                       onPress={() => handleStopLossPresetPress(percentage)}
                       testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                         percentage,
@@ -1570,17 +1502,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
                     showSoftInputOnFocus: false,
                   }}
-                /><Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.tpsl.usd_label')}
-                    </Text>
-                  }
-                  inputProps={{
-                    testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
                 />
                 <TextField
                   className="flex-1"
@@ -1600,32 +1521,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   onBlur={() => handleInputBlur('stopLossPercentage')}
                   startAccessory={
                     <RoeSignBadge
-                      sign={stopLossSign}
-                      onPress={handleStopLossSignPress}
-                      testID={
-                        PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
-                      }
-                      accessibilityLabel={strings(
-                        'perps.tpsl.toggle_stop_loss_sign',
-                      )}
-                      isDisabled={inputsDisabled}
-                      isNeutral={isSheet}
-                    />
-                  }
-                  endAccessory={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      %
-                    </Text>
-                  }
-                  inputProps={{
-                    testID:
-                      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
-                /><RoeSignBadge
                       sign={stopLossSign}
                       onPress={handleStopLossSignPress}
                       testID={

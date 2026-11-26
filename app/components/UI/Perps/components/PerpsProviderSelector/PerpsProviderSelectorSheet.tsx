@@ -76,25 +76,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                 severity={
                   option.isTestnet ? TagSeverity.Warning : TagSeverity.Neutral
                 }
-                className="self-center"
-                testID={
-                  testID ? `${testID}-option-${option.id}-tag` : undefined
-                }
-              >
-                {option.network}
-              </Tag>
-            }
-            isSelected={isSelected}
-            showSelectedIcon
-            onPress={() => handleOptionPress(option)}
-            testID={testID ? `${testID}-option-${option.id}` : undefined}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: isSelected }}
-          /><Tag
-                severity={
-                  option.isTestnet ? TagSeverity.Warning : TagSeverity.Neutral
-                }
-                className="self-center"
+                twClassName="self-center"
                 testID={
                   testID ? `${testID}-option-${option.id}-tag` : undefined
                 }

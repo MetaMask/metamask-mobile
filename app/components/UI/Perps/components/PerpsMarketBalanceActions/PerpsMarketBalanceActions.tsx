@@ -249,17 +249,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     </SensitiveText>
                   ) : undefined
                 }
-              /><SensitiveText
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextDefault}
-                      isHidden={privacyMode}
-                      length={SensitiveTextLength.Short}
-                    >
-                      {transactionAmountDisplay}
-                    </SensitiveText>
-                  ) : undefined
-                }
               />
               <SectionDivider marginVertical={3} />
             </>
@@ -337,7 +326,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
-                    className="flex-1"
+                    twClassName="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
                     }
@@ -348,7 +337,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
-                    className="flex-1"
+                    twClassName="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
                     }

@@ -59,10 +59,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
       className="self-center"
       startAccessory={
         isTestnet ? (
-          <Box className="w-1.5 h-1.5 rounded-full bg-warning-default" />
-        ) : undefined
-      }
-    /><Box className="w-1.5 h-1.5 rounded-full bg-warning-default" />
+          <Box twClassName="w-1.5 h-1.5 rounded-full bg-warning-default" />
         ) : undefined
       }
     />

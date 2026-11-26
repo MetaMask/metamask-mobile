@@ -1404,17 +1404,6 @@ const PerpsProPositionsPanel = ({
                 ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
                 : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
           }
-        /><ProPositionSideFilterIcon sideFilter={activeSideFilter} />
-            )
-          }
-          onPress={() => setIsSideFilterSheetOpen(true)}
-          testID={
-            isChaseTab
-              ? PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON
-              : isTwapTab
-                ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
-                : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
-          }
         />
         <Box className="bg-muted rounded-full px-2 py-1">
           {renderTickerOnlyCheckbox()}

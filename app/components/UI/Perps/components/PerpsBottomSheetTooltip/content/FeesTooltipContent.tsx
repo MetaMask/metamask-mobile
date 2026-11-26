@@ -75,15 +75,6 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
               percentage: discountPercentage.toString(),
             })}
             titleProps={{ color: TextColor.TextDefault }}
-          /><SealPercentIcon
-                size={SEAL_PERCENT_ICON_SIZE.banner}
-                testID={PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL}
-              />
-            }
-            title={strings(discountMessage, {
-              percentage: discountPercentage.toString(),
-            })}
-            titleProps={{ color: TextColor.TextDefault }}
           />
         </Box>
       ) : null}

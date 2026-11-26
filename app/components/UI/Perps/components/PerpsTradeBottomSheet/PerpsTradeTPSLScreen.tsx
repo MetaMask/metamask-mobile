@@ -692,19 +692,6 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                     testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
                     showSoftInputOnFocus: false,
                   }}
-                /><Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.tpsl.usd_label')}
-                    </Text>
-                  }
-                  inputProps={{
-                    keyboardType: 'decimal-pad',
-                    accessibilityLabel: strings('perps.order.take_profit'),
-                    testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
                 />
                 <TextField
                   className="flex-1"
@@ -721,30 +708,6 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   isError={Boolean(takeProfitErrorMessage)}
                   startAccessory={
                     <RoeSign
-                      sign={takeProfitSign}
-                      testID={
-                        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
-                      }
-                    />
-                  }
-                  endAccessory={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      %
-                    </Text>
-                  }
-                  inputProps={{
-                    keyboardType: 'decimal-pad',
-                    accessibilityLabel: `${strings(
-                      'perps.order.take_profit',
-                    )} ${takeProfitSign}%`,
-                    testID:
-                      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
-                /><RoeSign
                       sign={takeProfitSign}
                       testID={
                         PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
@@ -844,19 +807,6 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                     testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
                     showSoftInputOnFocus: false,
                   }}
-                /><Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.tpsl.usd_label')}
-                    </Text>
-                  }
-                  inputProps={{
-                    keyboardType: 'decimal-pad',
-                    accessibilityLabel: strings('perps.order.stop_loss'),
-                    testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
                 />
                 <TextField
                   className="flex-1"
@@ -873,30 +823,6 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   isError={Boolean(stopLossErrorMessage)}
                   startAccessory={
                     <RoeSign
-                      sign={stopLossSign}
-                      testID={
-                        PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
-                      }
-                    />
-                  }
-                  endAccessory={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      %
-                    </Text>
-                  }
-                  inputProps={{
-                    keyboardType: 'decimal-pad',
-                    accessibilityLabel: `${strings(
-                      'perps.order.stop_loss',
-                    )} ${stopLossSign}%`,
-                    testID:
-                      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
-                    showSoftInputOnFocus: false,
-                  }}
-                /><RoeSign
                       sign={stopLossSign}
                       testID={
                         PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
@@ -971,7 +897,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   key={percentage}
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  className="flex-1 px-1"
+                  twClassName="flex-1 px-1"
                   onPress={() => handlePresetPress(percentage)}
                   isDisabled={inputsDisabled}
                   testID={
@@ -990,7 +916,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                className="flex-1 px-1"
+                twClassName="flex-1 px-1"
                 onPress={handleDonePillPress}
                 testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
               >

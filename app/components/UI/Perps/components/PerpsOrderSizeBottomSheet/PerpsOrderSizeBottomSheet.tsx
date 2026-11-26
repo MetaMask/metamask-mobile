@@ -270,16 +270,6 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
           inputProps={{
             showSoftInputOnFocus: false,
           }}
-        /><Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {displaySymbol}
-            </Text>
-          }
-          inputProps={{
-            showSoftInputOnFocus: false,
-          }}
         />
         {sizeError ? (
           <HelpText severity={HelpTextSeverity.Danger} showIcon>

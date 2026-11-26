@@ -455,42 +455,7 @@ const PerpsWithdrawView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  className="gap-2"
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('perps.withdrawal.provider_fee')}
-                  </Text>
-                  <Pressable
-                    onPress={() => handleTooltipPress('withdrawal_fees')}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Md}
-                      color={IconColor.IconAlternative}
-                    />
-                  </Pressable>
-                </Box>
-              ),
-            }}
-            value={{
-              label: (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
-                >
-                  {formattedQuoteData?.networkFee || '$1.00'}
-                </Text>
-              ),
-            }}
-          /><Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  className="gap-2"
+                  twClassName="gap-2"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -533,32 +498,7 @@ const PerpsWithdrawView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  className="gap-2"
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('perps.withdrawal.estimated_time')}
-                  </Text>
-                </Box>
-              ),
-            }}
-            value={{
-              label: (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
-                >
-                  {formattedQuoteData?.estimatedTime}
-                </Text>
-              ),
-            }}
-          /><Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  className="gap-2"
+                  twClassName="gap-2"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -589,21 +529,6 @@ const PerpsWithdrawView: React.FC = () => {
             field={{
               label: (
                 <Text variant={TextVariant.BodyMd}>
-                  {strings('perps.withdrawal.you_will_receive')}
-                </Text>
-              ),
-            }}
-            value={{
-              label: (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
-                >
-                  {formatReceiveAmount}
-                </Text>
-              ),
-            }}
-          /><Text variant={TextVariant.BodyMd}>
                   {strings('perps.withdrawal.you_will_receive')}
                 </Text>
               ),
