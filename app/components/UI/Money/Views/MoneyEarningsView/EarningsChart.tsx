@@ -20,9 +20,7 @@ import {
   getBucketPoints,
   isAvailableBucket,
 } from './earningsHistory';
-import EarningsChartPlot, {
-  EARNINGS_CHART_HEIGHT,
-} from './EarningsChartPlot';
+import EarningsChartPlot, { EARNINGS_CHART_HEIGHT } from './EarningsChartPlot';
 import EarningsChartRangeSelector from './EarningsChartRangeSelector';
 import {
   clampUsdToCents,

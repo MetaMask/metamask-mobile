@@ -150,12 +150,8 @@ describe('MoneyEarningsView', () => {
   });
 
   it('shows loading skeletons before historical earnings resolve', async () => {
-    const {
-      findByTestId,
-      getByTestId,
-      getByText,
-      queryByTestId,
-    } = renderMoneyEarningsView();
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderMoneyEarningsView();
 
     expect(getByTestId(MoneyEarningsViewTestIds.LOADING)).toBeOnTheScreen();
     expect(
@@ -170,9 +166,7 @@ describe('MoneyEarningsView', () => {
     expect(
       getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_SKELETON(4)),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.earnings.total_earned')),
-    ).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings.total_earned'))).toBeOnTheScreen();
     expect(
       getByText(strings('money.earnings.payouts_disclaimer')),
     ).toBeOnTheScreen();
