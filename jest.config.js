@@ -323,3 +323,5 @@ const config = {
 
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = config;
+
+// related-jest scope probe: jest config change
