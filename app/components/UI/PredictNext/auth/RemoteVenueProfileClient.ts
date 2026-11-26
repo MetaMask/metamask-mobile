@@ -169,8 +169,39 @@ export class RemoteVenueProfileClient {
     }
     let bytes: Uint8Array;
     try {
-      bytes = new Uint8Array(await response.arrayBuffer());
-    } catch {
+      if (response.body) {
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let length = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          length += value.byteLength;
+          if (length > VENUE_PROFILE_MAX_BYTES) {
+            try {
+              void reader.cancel().catch(() => undefined);
+            } catch {
+              // Cancellation must not replace the size error.
+            }
+            throw new VenueProfileFetchError('oversize');
+          }
+          chunks.push(value);
+        }
+        bytes = new Uint8Array(length);
+        let offset = 0;
+        for (const chunk of chunks) {
+          bytes.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+      } else {
+        bytes = new Uint8Array(await response.arrayBuffer());
+      }
+    } catch (error) {
+      if (error instanceof VenueProfileFetchError) {
+        throw error;
+      }
       throw new VenueProfileFetchError('invalid_body');
     }
     if (bytes.byteLength > VENUE_PROFILE_MAX_BYTES) {

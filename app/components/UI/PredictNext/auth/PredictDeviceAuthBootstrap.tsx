@@ -57,7 +57,7 @@ export const PredictDeviceAuthBootstrap = ({
     if (!isUnlocked || !isPredictEnabled || !canRefresh) {
       return;
     }
-    refreshVenueProfile().catch((error: unknown) => {
+    refreshVenueProfile(true).catch((error: unknown) => {
       Logger.error(
         error instanceof Error
           ? error

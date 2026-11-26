@@ -110,6 +110,30 @@ const build = (
 };
 
 describe('VenueProfileResolver', () => {
+  it('reports snapshot changes, including revocation, to refresh callers', async () => {
+    const { resolver, client } = build();
+    await expect(resolver.refresh()).resolves.toBe(true);
+    await expect(resolver.refresh()).resolves.toBe(false);
+    client.result = { status: 'modified', raw: revoked([1]) };
+    await expect(resolver.refreshAfterRefusal()).resolves.toBe(true);
+    await expect(resolver.refreshAfterRefusal()).resolves.toBe(false);
+  });
+
+  it('logs an unavailable target once until the target changes', async () => {
+    const { resolver, getSigningProfile, log } = build({ target: 4 });
+    await resolver.refresh();
+    await resolver.resolve();
+    await resolver.resolve();
+    expect(log.mock.calls.filter(([message]) =>
+      message === 'PredictNext: venue profile unavailable',
+    )).toHaveLength(1);
+    getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 5 });
+    await resolver.refresh();
+    expect(log.mock.calls.filter(([message]) =>
+      message === 'PredictNext: venue profile unavailable',
+    )).toHaveLength(2);
+  });
+
   it('returns no profile from a fresh cache without making network requests', async () => {
     const { resolver, client, getSigningProfile } = build();
 
@@ -145,7 +169,7 @@ describe('VenueProfileResolver', () => {
       targetVersion: 1,
       revokedRaw: TEST_VENUE_REVOKED_RAW,
       profiles: { 1: TEST_VENUE_PROFILE_RAW },
-      floor: 1,
+      floor: 0,
     });
   });
 
@@ -199,7 +223,7 @@ describe('VenueProfileResolver', () => {
     },
   );
 
-  it('gets a newer target, downloads it, and persists the floor', async () => {
+  it('downloads a newer target without raising the persisted floor', async () => {
     const { resolver, client, storage, getSigningProfile } = build({
       target: 4,
     });
@@ -214,7 +238,7 @@ describe('VenueProfileResolver', () => {
     });
     expect(JSON.parse(String(storage.value))).toMatchObject({
       targetVersion: 4,
-      floor: 4,
+      floor: 0,
       revokedRaw: TEST_VENUE_REVOKED_RAW,
       revokedEtag: '"revoked"',
     });
@@ -488,6 +512,8 @@ describe('VenueProfileResolver', () => {
     client.bodies.set(4, profileWith(4));
 
     await resolver.refresh();
+    expect(resolver.isSnapshotEligible(snapshot)).toBe(true);
+    await resolver.confirmVenueProfileVersion(4);
 
     expect(resolver.isSnapshotEligible(snapshot)).toBe(false);
     const current = await resolver.resolve();
@@ -589,7 +615,7 @@ describe('VenueProfileResolver', () => {
         VENUE_PROFILE_ACQUISITION_TIMEOUT_MS + 1,
       );
 
-      await expect(refreshing).resolves.toBeUndefined();
+      await expect(refreshing).resolves.toBe(false);
       expect(signal?.aborted).toBe(true);
       getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 1 });
 

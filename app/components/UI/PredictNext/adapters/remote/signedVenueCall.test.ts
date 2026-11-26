@@ -14,7 +14,8 @@ jest.mock('../../../../../util/Logger', () => ({
 
 jest.mock('../../auth/venueSigningProfiles', () => ({
   resolveVenueProfile: jest.fn().mockResolvedValue({}),
-  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(undefined),
+  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(false),
+  confirmVenueProfileVersion: jest.fn().mockResolvedValue(undefined),
 }));
 
 const HEADER = { name: 'Venue-Authorization', value: 'envelope' };

@@ -242,6 +242,7 @@ describe('PredictDeviceAuthBootstrap', () => {
 
     await waitFor(() => {
       expect(refreshVenueProfile).toHaveBeenCalledTimes(1);
+      expect(refreshVenueProfile).toHaveBeenCalledWith(true);
     });
     result.unmount();
   });
@@ -299,6 +300,7 @@ describe('PredictDeviceAuthBootstrap', () => {
     listener('active');
     await waitFor(() => {
       expect(refreshVenueProfile).toHaveBeenCalledTimes(2);
+      expect(refreshVenueProfile).toHaveBeenLastCalledWith();
     });
 
     result.unmount();

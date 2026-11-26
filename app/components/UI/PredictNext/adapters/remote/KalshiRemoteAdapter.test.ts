@@ -12,6 +12,7 @@ import type {
   VenueOperationPreview,
 } from '../../auth/signing/signOperationTypes';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
+import { VenueProfilePreviewExpiredError } from './signedVenueCall';
 import {
   setVenueProfileResolverForTesting,
   VenueProfileResolver,
@@ -1289,6 +1290,21 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
         profile: REVIEW_PROFILE,
       });
+    });
+
+    it('maps a changed signing profile to another preview review', async () => {
+      await adapter.trading.previewOrder(previewParams);
+      await adapter.trading.reviewOrder(previewPayload.previewId);
+      client.commitOrder.mockRejectedValue(new VenueProfilePreviewExpiredError());
+
+      await expect(adapter.trading.commitOrder(
+        previewPayload.previewId,
+        USER_APPROVAL,
+      )).rejects.toMatchObject({
+        code: PredictErrorCode.PREVIEW_EXPIRED,
+        metadata: { phase: 'commit', requestSent: true, outcome: 'not_placed' },
+      });
+      expect(client.commitOrder).toHaveBeenCalledTimes(1);
     });
 
     it('recovers buy sizing after an initially unavailable profile without trusting returned-preview drift', async () => {

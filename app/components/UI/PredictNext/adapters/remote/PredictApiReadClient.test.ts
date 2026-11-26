@@ -32,7 +32,7 @@ jest.mock('../../../../../util/Logger', () => ({
 jest.mock('../../auth/venueSigningProfiles', () => ({
   VENUE_READ_HEADER: 'venue-read',
   resolveVenueProfile: jest.fn().mockResolvedValue({}),
-  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(undefined),
+  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(false),
 }));
 
 const mockLoggerError = jest.mocked(Logger.error);
@@ -1230,13 +1230,11 @@ describe('PredictApiReadClient', () => {
       },
     );
 
-    it('preserves the server not_placed outcome when refreshed signing refuses the reviewed profile', async () => {
+    it('preserves the server not_placed outcome when refresh leaves the reviewed profile unchanged', async () => {
       const profile = { version: 1, sha256: 'reviewed-profile-hash' };
+      jest.mocked(resolveVenueProfile).mockResolvedValueOnce(profile as never);
       const pinnedSigning = { ...signing, profile };
-      const signOperation = jest
-        .fn()
-        .mockResolvedValueOnce(SIGNED_OPERATION)
-        .mockRejectedValueOnce(new TemplateError('input'));
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
       client = new PredictApiReadClient({
         baseUrl: 'https://predict.example/api/',
         clientVersion: '7.0.0',
@@ -1259,10 +1257,8 @@ describe('PredictApiReadClient', () => {
         bodyCode: 'venue_profile_update_required',
         outcome: 'not_placed',
       });
-      expect(signOperation).toHaveBeenLastCalledWith('order.place', {
-        ...pinnedSigning,
-        confirmed: false,
-      });
+      expect(signOperation).toHaveBeenCalledTimes(1);
+      expect(signOperation).toHaveBeenLastCalledWith('order.place', pinnedSigning);
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(refreshVenueProfileAfterRefusal).toHaveBeenCalledTimes(1);
     });

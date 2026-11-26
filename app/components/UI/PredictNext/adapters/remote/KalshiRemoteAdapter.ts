@@ -60,6 +60,7 @@ import {
   type PredictApiReadTransport,
   PredictHttpError,
 } from './PredictApiReadClient';
+import { VenueProfilePreviewExpiredError } from './signedVenueCall';
 
 /** Canonical codes win over HTTP status, including authorization 403s. */
 const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
@@ -209,6 +210,11 @@ const mapError = (
 ): never => {
   if (isAbortError(error) || error instanceof PredictError) {
     throw error;
+  }
+  if (error instanceof VenueProfilePreviewExpiredError) {
+    throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
+      metadata: { phase, requestSent: true, outcome: 'not_placed' },
+    });
   }
 
   if (error instanceof TypeError) {

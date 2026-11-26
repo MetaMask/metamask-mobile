@@ -1,5 +1,6 @@
 import Logger from '../../../../../util/Logger';
 import {
+  confirmVenueProfileVersion,
   refreshVenueProfileAfterRefusal,
   resolveVenueProfile,
   type VenueIntentName,
@@ -67,29 +68,20 @@ export class VenueSigningUnavailableError extends Error {
   }
 }
 
-/** A profile refetch in a signing path cannot outlive this. */
-const VENUE_PROFILE_REFRESH_TIMEOUT_MS = 10_000;
+/** The reviewed profile changed. The user must review before signing again. */
+export class VenueProfilePreviewExpiredError extends Error {
+  readonly requestSent = true;
 
-/** A hung registry or target request must not hold a user's order open.
- * On timeout the caller retains any response already received. */
-const refreshProfileOnce = async (requestSent: boolean): Promise<void> => {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    await Promise.race([
-      refreshVenueProfileAfterRefusal(),
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(
-          () => reject(new VenueSigningUnavailableError(requestSent)),
-          VENUE_PROFILE_REFRESH_TIMEOUT_MS,
-        );
-      }),
-    ]);
-  } finally {
-    if (timer !== undefined) {
-      clearTimeout(timer);
-    }
+  constructor() {
+    super('Venue profile changed after preview.');
+    this.name = 'VenueProfilePreviewExpiredError';
   }
-};
+}
+
+/** The resolver owns the acquisition deadline and reports admission changes. */
+const refreshProfileOnce = async (): Promise<{ changed: boolean }> => ({
+  changed: await refreshVenueProfileAfterRefusal(),
+});
 
 /** Read work paused after the bounded signed calls; server scan progress
  * remains authoritative and a later observation can continue it. */
@@ -164,7 +156,7 @@ export const sendSigned = async <Response>(
       let signed = await deps.signOperation(intent, signInput);
       if (!signed && !(await resolveVenueProfile())) {
         // A missing profile can be fixed by one bounded refresh.
-        await refreshProfileOnce(requestSent);
+        await refreshProfileOnce();
         signed = await deps.signOperation(intent, signInput);
       }
       if (!signed) {
@@ -185,11 +177,20 @@ export const sendSigned = async <Response>(
   const renewed = input && { ...input, confirmed: false };
 
   const signed = await sign(input);
+  let profileVersion =
+    input?.profile?.version ?? (await resolveVenueProfile())?.version;
   requestSent = true;
   const response = await send(signed);
   const described = await readAttempt(response);
   const stale = isProfileStale(described);
   if (!stale && !isRenewable(described)) {
+    if (
+      described.status >= 200 &&
+      described.status < 300 &&
+      profileVersion !== undefined
+    ) {
+      await confirmVenueProfileVersion(profileVersion);
+    }
     return response;
   }
   if (described.code === 'venue_authorization_invalid') {
@@ -199,14 +200,46 @@ export const sendSigned = async <Response>(
   let retrySigned: SignedOperation;
   try {
     if (stale) {
-      await refreshProfileOnce(requestSent);
+      const { changed } = await refreshProfileOnce();
+      const snapshot = await resolveVenueProfile();
+      if (described.code === 'venue_profile_not_ready') {
+        if (!snapshot) {
+          return response;
+        }
+      } else if (input?.profile) {
+        if (
+          snapshot?.version === input.profile.version &&
+          snapshot.sha256 === input.profile.sha256
+        ) {
+          return response;
+        }
+        throw new VenueProfilePreviewExpiredError();
+      } else if (!changed) {
+        return response;
+      }
     }
     retrySigned = await sign(renewed);
-  } catch {
+    profileVersion =
+      input?.profile?.version ?? (await resolveVenueProfile())?.version;
+  } catch (error) {
+    if (error instanceof VenueProfilePreviewExpiredError) {
+      throw error;
+    }
     // No second request was sent, so the first response remains authoritative.
     return response;
   }
-  return send(retrySigned);
+  const retriedResponse = await send(retrySigned);
+  const retriedAttempt = await readAttempt(retriedResponse);
+  if (
+    !isProfileStale(retriedAttempt) &&
+    !isRenewable(retriedAttempt) &&
+    retriedAttempt.status >= 200 &&
+    retriedAttempt.status < 300 &&
+    profileVersion !== undefined
+  ) {
+    await confirmVenueProfileVersion(profileVersion);
+  }
+  return retriedResponse;
 };
 
 /**
@@ -238,7 +271,7 @@ export const sendSignedRead = async <Response>(
     try {
       let header = await deps.signRead(proposed);
       if (!header && !(await resolveVenueProfile())) {
-        await refreshProfileOnce(requestSent);
+        await refreshProfileOnce();
         header = await deps.signRead(proposed);
       }
       if (!header) {
@@ -298,7 +331,7 @@ export const sendSignedRead = async <Response>(
       const action = await retryAction(first, retried, false);
       if (action === 'refresh') {
         try {
-          await refreshProfileOnce(requestSent);
+          await refreshProfileOnce();
         } catch {
           return first;
         }
@@ -317,7 +350,7 @@ export const sendSignedRead = async <Response>(
         const action = await retryAction(response, retried, true);
         if (action === 'refresh') {
           try {
-            await refreshProfileOnce(requestSent);
+            await refreshProfileOnce();
           } catch {
             return response;
           }

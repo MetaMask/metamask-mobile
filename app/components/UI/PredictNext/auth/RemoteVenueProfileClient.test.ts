@@ -160,6 +160,54 @@ describe('RemoteVenueProfileClient', () => {
     ).resolves.toBe('oversize');
   });
 
+  it('cancels an oversized stream without reading the remaining chunks', async () => {
+    const read = jest
+      .fn()
+      .mockResolvedValueOnce({
+        done: false,
+        value: new Uint8Array(VENUE_PROFILE_MAX_BYTES),
+      })
+      .mockResolvedValueOnce({ done: false, value: new Uint8Array(1) });
+    const cancel = jest.fn().mockResolvedValue(undefined);
+    const streamedResponse = response('');
+    Object.defineProperty(streamedResponse, 'body', {
+      value: { getReader: () => ({ read, cancel }) },
+    });
+    const client = makeClient(async () => streamedResponse);
+
+    await expect(
+      reason(client.fetchProfile({ id: 'p', version: 1 })),
+    ).resolves.toBe('oversize');
+    expect(read).toHaveBeenCalledTimes(2);
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves streamed bytes across chunk boundaries', async () => {
+    const raw = '\uFEFF{"name":"café"}\n';
+    const bytes = new TextEncoder().encode(raw);
+    const read = jest
+      .fn()
+      .mockResolvedValueOnce({ done: false, value: bytes.subarray(0, 2) })
+      .mockResolvedValueOnce({
+        done: false,
+        value: bytes.subarray(2, bytes.length - 3),
+      })
+      .mockResolvedValueOnce({
+        done: false,
+        value: bytes.subarray(bytes.length - 3),
+      })
+      .mockResolvedValueOnce({ done: true });
+    const streamedResponse = response('');
+    Object.defineProperty(streamedResponse, 'body', {
+      value: { getReader: () => ({ read }) },
+    });
+    const client = makeClient(async () => streamedResponse);
+
+    const result = await client.fetchProfile({ id: 'p', version: 1 });
+    expect(result).toBe(raw);
+    expect(new TextEncoder().encode(result)).toEqual(bytes);
+  });
+
   it('keeps a leading BOM in the decoded bytes', async () => {
     const raw = '\uFEFF{"version":1}';
     const client = makeClient(async () => response(raw));

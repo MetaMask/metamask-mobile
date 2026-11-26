@@ -10,6 +10,8 @@
  * delivered profile can make this binary sign. The SHA-256 of the exact bytes
  * used travels in `Venue-Authorization.service` so predict-api can compare it
  * with its own registry copy.
+ * The persisted version floor advances only after predict-api accepts a signed
+ * mutation, not when a higher registry profile is downloaded or selected.
  */
 
 import { sha256 } from '@noble/hashes/sha2';
@@ -591,7 +593,7 @@ export class VenueProfileResolver {
   readonly #log: VenueProfileLog;
 
   #loading: Promise<void> | undefined;
-  #refreshing: Promise<void> | undefined;
+  #refreshing: Promise<boolean> | undefined;
   #loaded = false;
   #targetVersion: number | undefined;
   #revoked: ReadonlySet<number> | undefined;
@@ -601,6 +603,8 @@ export class VenueProfileResolver {
   #floor = 0;
   #documents = new Map<number, LoadedProfile>();
   #snapshot: VenueProfileSnapshot | undefined;
+  #unavailableTarget: number | undefined;
+  #unavailableLogged = false;
 
   constructor({
     profileId = VENUE_PROFILE_ID,
@@ -665,25 +669,33 @@ export class VenueProfileResolver {
   }
 
   /**
-   * Refresh failures preserve the last answer and downloaded bytes. Callers
-   * that arrive while a refresh is running share it, so two answers can
-   * never land out of order.
+   * Reports changes to the admitted version/hash, including admission/removal.
+   * Failures preserve downloaded bytes. Concurrent callers share one refresh,
+   * so answers cannot land out of order.
    */
-  async refresh(): Promise<void> {
+  async refresh(): Promise<boolean> {
     if (!this.#client || !this.#getSigningProfile) {
-      return;
+      return false;
     }
-    this.#refreshing ??= withDeadline(
-      async (signal) => this.#refreshOnce(signal),
-      VENUE_PROFILE_ACQUISITION_TIMEOUT_MS,
-    )
-      .catch(() => {
+    this.#refreshing ??= (async () => {
+      let before = this.#snapshot;
+      try {
+        await withDeadline(async (signal) => {
+          await this.#load();
+          before = this.#pick();
+          await this.#refreshOnce(signal);
+        }, VENUE_PROFILE_ACQUISITION_TIMEOUT_MS);
+      } catch {
         this.#log('PredictNext: venue profile refresh timed out');
-      })
-      .finally(() => {
-        this.#refreshing = undefined;
-      });
-    await this.#refreshing;
+      }
+      const after = this.#pick();
+      return (
+        before?.version !== after?.version || before?.sha256 !== after?.sha256
+      );
+    })().finally(() => {
+      this.#refreshing = undefined;
+    });
+    return this.#refreshing;
   }
 
   async #refreshOnce(signal: AbortSignal): Promise<void> {
@@ -778,10 +790,16 @@ export class VenueProfileResolver {
     await this.#persist();
   }
 
-  /** One refetch after predict-api answered a profile code, then retry. */
-  async refreshAfterRefusal(): Promise<void> {
+  /** One refetch after predict-api answered a profile code. */
+  async refreshAfterRefusal(): Promise<boolean> {
     this.#fetchedAt = undefined;
-    await this.refresh();
+    return this.refresh();
+  }
+
+  /** Only an accepted signed mutation confirms the persisted version floor. */
+  async confirmVenueProfileVersion(version: number): Promise<void> {
+    await this.#load();
+    await this.#raiseFloor(version);
   }
 
   /** Test seam: forget in-memory state, keep the persisted cache. */
@@ -797,6 +815,8 @@ export class VenueProfileResolver {
     this.#floor = 0;
     this.#documents = new Map();
     this.#snapshot = undefined;
+    this.#unavailableTarget = undefined;
+    this.#unavailableLogged = false;
   }
 
   async #load(): Promise<void> {
@@ -921,22 +941,23 @@ export class VenueProfileResolver {
         version,
         sha256: parsed.sha256,
       };
-      this.#raiseFloor(version);
       return this.#snapshot;
     }
     this.#snapshot = undefined;
-    this.#log('PredictNext: venue profile unavailable', target);
+    if (!this.#unavailableLogged || this.#unavailableTarget !== target) {
+      this.#unavailableLogged = true;
+      this.#unavailableTarget = target;
+      this.#log('PredictNext: venue profile unavailable', target);
+    }
     return undefined;
   }
 
-  #raiseFloor(version: number): void {
-    if (version <= this.#floor) {
+  async #raiseFloor(version: number): Promise<void> {
+    if (!Number.isSafeInteger(version) || version <= this.#floor) {
       return;
     }
     this.#floor = version;
-    if (this.#store) {
-      this.#persist().catch(() => undefined);
-    }
+    await this.#persist();
   }
 
   async #persist(): Promise<void> {
@@ -966,81 +987,102 @@ export class VenueProfileResolver {
 /* App-wide instance                                                   */
 /* ------------------------------------------------------------------ */
 
-const registryUrl = getVenueProfileRegistryUrl();
-const environment = resolvePredictCluster({
-  rawApiEnv: process.env.MM_API_ENV,
-  apiEnv: getApiEnv(),
-  isDevelopment: __DEV__,
-});
+let defaultResolver: VenueProfileResolver | undefined;
+let activeResolver: VenueProfileResolver | undefined;
 
-const defaultResolver = new VenueProfileResolver({
-  getSigningProfile: registryUrl
-    ? async (options) =>
-        new PredictApiReadClient({
-          baseUrl: getPredictApiUrl(),
-          clientVersion: packageJSON.version,
-          getBearerToken: async () => undefined,
-        }).getSigningProfile('kalshi' as PredictVenueId, {
-          signal: options?.signal,
-        })
-    : undefined,
-  client: registryUrl
-    ? new RemoteVenueProfileClient({
-        baseUrl: registryUrl,
-        clientVersion: packageJSON.version,
-      })
-    : undefined,
-  store: environment
-    ? new VenueProfileStore({
-        environment,
-        profileId: VENUE_PROFILE_ID,
-        registryUrl,
-      })
-    : undefined,
-});
+const getDefaultResolver = (): VenueProfileResolver => {
+  if (!defaultResolver) {
+    const registryUrl = getVenueProfileRegistryUrl();
+    const environment = resolvePredictCluster({
+      rawApiEnv: process.env.MM_API_ENV,
+      apiEnv: getApiEnv(),
+      isDevelopment: __DEV__,
+    });
+    // A local API override uses its own registry target and must not raise the
+    // persisted official floor, so keep its cache in memory only.
+    const storageEnvironment =
+      environment !== undefined && !process.env.MM_PREDICT_API_URL
+        ? environment
+        : undefined;
+    defaultResolver = new VenueProfileResolver({
+      getSigningProfile: registryUrl
+        ? async (options) =>
+            new PredictApiReadClient({
+              baseUrl: getPredictApiUrl(),
+              clientVersion: packageJSON.version,
+              getBearerToken: async () => undefined,
+              fetch: (...args) => globalThis.fetch(...args),
+            }).getSigningProfile('kalshi' as PredictVenueId, {
+              signal: options?.signal,
+            })
+        : undefined,
+      client: registryUrl
+        ? new RemoteVenueProfileClient({
+            baseUrl: registryUrl,
+            clientVersion: packageJSON.version,
+            fetch: (...args) => globalThis.fetch(...args),
+          })
+        : undefined,
+      store: storageEnvironment
+        ? new VenueProfileStore({
+            environment: storageEnvironment,
+            profileId: VENUE_PROFILE_ID,
+            registryUrl,
+          })
+        : undefined,
+    });
+  }
+  return defaultResolver;
+};
 
-let activeResolver = defaultResolver;
+const getResolver = (): VenueProfileResolver =>
+  activeResolver ?? getDefaultResolver();
 
 /** The resolved profile snapshot, or undefined when nothing is admitted. */
 export const resolveVenueProfile = async (): Promise<
   VenueProfileSnapshot | undefined
-> => activeResolver.resolve();
+> => getResolver().resolve();
 
 /** Uses cached downloads first, then acquires a missing profile once. */
 export const ensureVenueProfile = async (): Promise<
   VenueProfileSnapshot | undefined
-> => activeResolver.ensure();
+> => getResolver().ensure();
 
 /** Synchronous signing guard for a previously captured snapshot. */
 export const isVenueProfileSnapshotEligible = (
   snapshot: VenueProfileSnapshot,
-): boolean => activeResolver.isSnapshotEligible(snapshot);
+): boolean => getResolver().isSnapshotEligible(snapshot);
 
 /** The resolved profile. Callers that need the hash use
  * `resolveVenueProfile()` and pin that object. */
 export const loadVenueProfile = async (): Promise<SigningProfile | undefined> =>
-  (await activeResolver.resolve())?.profile;
+  (await getResolver().resolve())?.profile;
 
 /** Fetches the registry unless the 15-minute cadence says it is not due. */
 export const refreshVenueProfile = async (force = false): Promise<void> => {
-  if (!force && !activeResolver.isRefreshDue()) {
+  const resolver = getResolver();
+  if (!force && !resolver.isRefreshDue()) {
     return;
   }
-  await activeResolver.refresh();
+  await resolver.refresh();
 };
 
 /** One refetch after predict-api answers `venue_profile_*`. */
-export const refreshVenueProfileAfterRefusal = async (): Promise<void> =>
-  activeResolver.refreshAfterRefusal();
+export const refreshVenueProfileAfterRefusal = async (): Promise<boolean> =>
+  getResolver().refreshAfterRefusal();
+
+/** Records the profile version accepted for a signed mutation. */
+export const confirmVenueProfileVersion = async (version: number): Promise<void> =>
+  getResolver().confirmVenueProfileVersion(version);
 
 /** Test seam: forget the memoized snapshot. */
 export const resetVenueProfile = (): void => {
-  activeResolver.reset();
+  getResolver().reset();
 };
 
 /** Test seam: replace the app-wide resolver. */
 export const setVenueProfileResolverForTesting = (
   resolver: VenueProfileResolver | undefined,
 ): void => {
-  activeResolver = resolver ?? defaultResolver;
+  activeResolver = resolver;
 };
