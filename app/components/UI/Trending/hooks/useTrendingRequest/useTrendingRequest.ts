@@ -174,7 +174,12 @@ export const useTrendingRequest = (
      */
     filterLowQuality?: boolean;
   } & TrendingTokensQueryParams,
-) => {
+): {
+  results: Awaited<ReturnType<typeof getTrendingTokens>>;
+  isLoading: boolean;
+  error: Error | null;
+  fetch: (fetchOptions?: FetchOptions) => Promise<void>;
+} => {
   const {
     chainIds: providedChainIds = [],
     enabled = true,
@@ -299,7 +304,7 @@ export const useTrendingRequest = (
 
   // Automatically trigger fetch when options change
   useEffect(() => {
-    fetchTrendingTokens();
+    fetchTrendingTokens().catch(() => undefined);
   }, [fetchTrendingTokens]);
 
   const isEnabling = enabled && !previousEnabledRef.current;
@@ -332,11 +337,11 @@ export const useTrendingRequest = (
       return;
     }
 
-    const pollingInterval = setInterval(() => {
-      fetchTrendingTokens({ isSilentUpdate: true });
+    const pollingInterval = setInterval((): void => {
+      fetchTrendingTokens({ isSilentUpdate: true }).catch(() => undefined);
     }, POLLING_INTERVAL_MS);
 
-    return () => {
+    return (): void => {
       clearInterval(pollingInterval);
     };
   }, [enabled, error, fetchTrendingTokens, isLoading, results.length]);

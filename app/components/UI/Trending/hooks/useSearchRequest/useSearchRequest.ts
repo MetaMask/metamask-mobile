@@ -40,7 +40,16 @@ export const useSearchRequest = (options: {
   /** Whether to debounce the query (default: false). */
   enableDebounce?: boolean;
   performance?: SearchRequestPerformance;
-}) => {
+}): {
+  results: SearchResult[];
+  isLoading: boolean;
+  error: Error | null;
+  search: () => Promise<void>;
+  loadMore: () => Promise<void>;
+  isLoadingMore: boolean;
+  hasNextPage: boolean;
+  totalCount: number | undefined;
+} => {
   const {
     chainIds: providedChainIds = [],
     query,
@@ -62,8 +71,8 @@ export const useSearchRequest = (options: {
       setDebouncedQuery(query);
       return;
     }
-    const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    const timer = setTimeout((): void => setDebouncedQuery(query), DEBOUNCE_MS);
+    return (): void => clearTimeout(timer);
   }, [query, enableDebounce]);
 
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -85,7 +94,7 @@ export const useSearchRequest = (options: {
   const performanceRef = useRef(performance);
   performanceRef.current = performance;
 
-  const searchTokensRequest = useCallback(async () => {
+  const searchTokensRequest = useCallback(async (): Promise<void> => {
     if (!enabled || !debouncedQuery) {
       requestIdRef.current += 1;
       isLoadingMoreRef.current = false;
@@ -198,7 +207,7 @@ export const useSearchRequest = (options: {
 
   // Automatically trigger search when debounced query changes
   useEffect(() => {
-    searchTokensRequest();
+    searchTokensRequest().catch(() => undefined);
   }, [searchTokensRequest]);
 
   // Track whether debouncedQuery has been processed by the effect yet.

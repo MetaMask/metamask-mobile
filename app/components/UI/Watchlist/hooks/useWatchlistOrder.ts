@@ -61,8 +61,7 @@ const areOrdersEqual = (
   left: readonly string[] | undefined,
   right: readonly string[],
 ): boolean =>
-  left !== undefined &&
-  left.length === right.length &&
+  left?.length === right.length &&
   left.every((key, index) => key === right[index]);
 
 export const useWatchlistOrder = (

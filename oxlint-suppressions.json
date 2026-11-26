@@ -14185,11 +14185,6 @@
       "count": 13
     }
   },
-  "app/components/UI/Trending/hooks/useSearchRequest/useSearchRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Trending/hooks/useTokenListFilters/useTokenListFilters.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
@@ -14206,9 +14201,6 @@
     }
   },
   "app/components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
     }
@@ -20141,11 +20133,6 @@
   "app/components/hooks/useAnalytics/useAnalytics.ts": {
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/components/hooks/useAsyncResult.test.ts": {

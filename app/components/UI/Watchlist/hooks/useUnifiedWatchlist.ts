@@ -194,19 +194,22 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     retryOrder,
   ]);
 
+  const offlineTokenError = isTokenHydrationUnavailable
+    ? 'Watchlist metadata is unavailable offline'
+    : null;
+  const resolvedTokenError = isTokenWatchlistEnabled
+    ? (tokenMembershipError?.message ??
+      tokenError?.message ??
+      offlineTokenError)
+    : null;
+
   return {
     items,
     isOrderReady,
     orderError,
     tokens: {
       items: tokens,
-      error: isTokenWatchlistEnabled
-        ? (tokenMembershipError?.message ??
-          tokenError?.message ??
-          (isTokenHydrationUnavailable
-            ? 'Watchlist metadata is unavailable offline'
-            : null))
-        : null,
+      error: resolvedTokenError,
     },
     perps: {
       items: perps,

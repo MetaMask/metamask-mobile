@@ -53,35 +53,43 @@ const WatchlistReorderableRow = ({
         isDragEnabled && position < itemCount - 1 ? handleMoveDown : undefined,
     });
 
-  const rowContent =
-    item.kind === 'token' ? (
-      <WatchlistTokenRowItem
-        token={item.token}
-        position={position}
-        onLongPress={isDragEnabled ? handleLongPress : undefined}
-        onWatchlistPress={handleRemove}
-        isWatchlisted
-        showTypeTag
-        twClassName="px-4"
-        accessibilityActions={accessibilityActions}
-        onAccessibilityAction={handleAccessibilityAction}
-      />
-    ) : item.status === 'resolved' ? (
-      <PerpsMarketRowItem
-        market={item.market}
-        compact
-        showBadge={false}
-        showTypeTag
-        twClassName="px-4"
-        enableLivePrices={canUseLivePerpsPrices}
-        onLongPress={isDragEnabled ? handleLongPress : undefined}
-        onWatchlistPress={handleRemove}
-        isWatchlisted
-        accessibilityActions={accessibilityActions}
-        onAccessibilityAction={handleAccessibilityAction}
-        onPress={onPerpPress}
-      />
-    ) : (
+  const renderRowContent = (): React.JSX.Element => {
+    if (item.kind === 'token') {
+      return (
+        <WatchlistTokenRowItem
+          token={item.token}
+          position={position}
+          onLongPress={isDragEnabled ? handleLongPress : undefined}
+          onWatchlistPress={handleRemove}
+          isWatchlisted
+          showTypeTag
+          twClassName="px-4"
+          accessibilityActions={accessibilityActions}
+          onAccessibilityAction={handleAccessibilityAction}
+        />
+      );
+    }
+
+    if (item.status === 'resolved') {
+      return (
+        <PerpsMarketRowItem
+          market={item.market}
+          compact
+          showBadge={false}
+          showTypeTag
+          twClassName="px-4"
+          enableLivePrices={canUseLivePerpsPrices}
+          onLongPress={isDragEnabled ? handleLongPress : undefined}
+          onWatchlistPress={handleRemove}
+          isWatchlisted
+          accessibilityActions={accessibilityActions}
+          onAccessibilityAction={handleAccessibilityAction}
+          onPress={onPerpPress}
+        />
+      );
+    }
+
+    return (
       <WatchlistUnavailablePerpRow
         item={item}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
@@ -92,6 +100,7 @@ const WatchlistReorderableRow = ({
         onAccessibilityAction={handleAccessibilityAction}
       />
     );
+  };
 
   return (
     <View
@@ -99,7 +108,7 @@ const WatchlistReorderableRow = ({
       testID={WatchlistFullScreenViewSelectorsIDs.ROW}
     >
       <View style={tw.style('min-w-0 flex-1 flex-row items-center')}>
-        {rowContent}
+        {renderRowContent()}
       </View>
     </View>
   );

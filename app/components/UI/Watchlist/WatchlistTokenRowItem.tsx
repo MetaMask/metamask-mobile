@@ -55,6 +55,36 @@ const getPriceChangeColor = (priceChange: number): TextColor => {
   return priceChange > 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 };
 
+const getPriceChangeDisplay = (
+  price: TrendingAsset['price'],
+  rawPriceChange: string | number | null | undefined,
+): { subvalue: string | undefined; color: TextColor } => {
+  if (Number(price) === 0) {
+    return { subvalue: '—', color: TextColor.TextAlternative };
+  }
+
+  if (rawPriceChange == null || rawPriceChange === '') {
+    return { subvalue: undefined, color: TextColor.TextAlternative };
+  }
+
+  const priceChange = Number(rawPriceChange);
+  if (!Number.isFinite(priceChange)) {
+    return { subvalue: undefined, color: TextColor.TextAlternative };
+  }
+
+  let sign = '';
+  if (priceChange > 0) {
+    sign = '+';
+  } else if (priceChange < 0) {
+    sign = '-';
+  }
+
+  return {
+    subvalue: `${sign}${Math.abs(priceChange).toFixed(2)}%`,
+    color: getPriceChangeColor(priceChange),
+  };
+};
+
 const WatchlistTokenRowItem = ({
   token,
   position,
@@ -69,7 +99,7 @@ const WatchlistTokenRowItem = ({
   accessibilityActions,
   onAccessibilityAction,
 }: WatchlistTokenRowItemProps): React.JSX.Element => {
-  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
+  const currentCurrency = useSelector(selectCurrentCurrency) ?? 'usd';
   const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
     index: position,
@@ -85,27 +115,18 @@ const WatchlistTokenRowItem = ({
     [caipChainId],
   );
 
-  const rawPriceChange = token.priceChangePct?.h24;
-  const priceChange =
-    rawPriceChange != null && rawPriceChange !== ''
-      ? Number(rawPriceChange)
-      : Number.NaN;
-  const hasPriceChange = Number.isFinite(priceChange);
-  const subvalue =
-    Number(token.price) === 0
-      ? '—'
-      : hasPriceChange
-        ? `${priceChange > 0 ? '+' : priceChange < 0 ? '-' : ''}${Math.abs(
-            priceChange,
-          ).toFixed(2)}%`
-        : undefined;
+  const { subvalue, color: subvalueColor } = getPriceChangeDisplay(
+    token.price,
+    token.priceChangePct?.h24,
+  );
+  const hasStarAction = Boolean(onAddPress ?? onWatchlistPress);
 
-  const handlePress = useCallback(() => {
+  const handlePress = useCallback((): void => {
     if (onPress) {
       onPress(token);
       return;
     }
-    void defaultOnPress();
+    defaultOnPress().catch(() => undefined);
   }, [defaultOnPress, onPress, token]);
 
   return (
@@ -159,14 +180,9 @@ const WatchlistTokenRowItem = ({
       }}
       value={formatPriceWithSubscriptNotation(token.price, currentCurrency)}
       subvalue={subvalue}
-      subvalueProps={{
-        color:
-          subvalue === undefined || subvalue === '—'
-            ? TextColor.TextAlternative
-            : getPriceChangeColor(priceChange),
-      }}
+      subvalueProps={{ color: subvalueColor }}
       endAccessory={
-        onAddPress || onWatchlistPress ? (
+        hasStarAction ? (
           <ButtonIcon
             iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
@@ -180,7 +196,7 @@ const WatchlistTokenRowItem = ({
           />
         ) : undefined
       }
-      accessoryGap={onAddPress || onWatchlistPress ? 3 : undefined}
+      accessoryGap={hasStarAction ? 3 : undefined}
       twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
     />
   );

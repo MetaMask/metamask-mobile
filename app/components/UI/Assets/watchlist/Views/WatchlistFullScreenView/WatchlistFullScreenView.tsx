@@ -352,12 +352,12 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
           onRemoveFromDraft={onRemoveFromDraft}
           onMoveUp={
             isEditMode && index > 0
-              ? () => handleReorder({ from: index, to: index - 1 })
+              ? (): void => handleReorder({ from: index, to: index - 1 })
               : undefined
           }
           onMoveDown={
             isEditMode && index < displayTokens.length - 1
-              ? () => handleReorder({ from: index, to: index + 1 })
+              ? (): void => handleReorder({ from: index, to: index + 1 })
               : undefined
           }
         />
@@ -476,14 +476,15 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     [activeFilter, displayOrderedItems],
   );
   const hasItems = visibleItems.length > 0;
-  const hasActiveError = Boolean(
-    orderError ??
-      (activeFilter === 'tokens'
-        ? tokens.error
-        : activeFilter === 'perps'
-          ? perps.error
-          : (tokens.error ?? perps.error)),
-  );
+  let domainError: string | null;
+  if (activeFilter === 'tokens') {
+    domainError = tokens.error;
+  } else if (activeFilter === 'perps') {
+    domainError = perps.error;
+  } else {
+    domainError = tokens.error ?? perps.error;
+  }
+  const hasActiveError = Boolean(orderError ?? domainError);
 
   const displayedPerpsCount = watchlistedPerpSymbols.length;
   const watchedItemCount = displayOrderedItems.length;
