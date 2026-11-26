@@ -14,6 +14,20 @@ import {
 import { getLatencySnapshot } from '../../util/deviceCapability/latencyStore';
 import { LATENCY_THRESHOLDS } from '../../util/deviceCapability/thresholds';
 
+export type NetworkQueryOptions<
+  QueryFnData,
+  Data = QueryFnData,
+  Key extends QueryKey = QueryKey,
+> = Omit<
+  UseQueryOptions<QueryFnData, Error, Data, Key>,
+  'queryFn' | 'retry' | 'gcTime' | 'refetchInterval'
+> & {
+  /** Pass `signal` to `fetch` so a timeout or cancellation stops the request. */
+  queryFn: QueryFunction<QueryFnData, Key>;
+  /** Poll interval in ms on a good connection. Tripled on a slow one. */
+  refetchInterval?: number;
+};
+
 const MINUTE = 60 * 1000;
 
 // The timeout is the tier's hung threshold (production `http.client` p99).
@@ -38,19 +52,51 @@ export class NetworkTimeoutError extends Error {
   }
 }
 
-export type NetworkQueryOptions<
-  QueryFnData,
-  Data = QueryFnData,
-  Key extends QueryKey = QueryKey,
-> = Omit<
-  UseQueryOptions<QueryFnData, Error, Data, Key>,
-  'queryFn' | 'retry' | 'gcTime' | 'refetchInterval'
-> & {
-  /** Pass `signal` to `fetch` so a timeout or cancellation stops the request. */
-  queryFn: QueryFunction<QueryFnData, Key>;
-  /** Poll interval in ms on a good connection. Tripled on a slow one. */
-  refetchInterval?: number;
-};
+/**
+ * Fails the attempt with `NetworkTimeoutError` even when the fetcher ignores
+ * the abort, so a stalled request still reaches retry and the error state.
+ */
+function withTimeout<QueryFnData, Key extends QueryKey>(
+  queryFn: QueryFunction<QueryFnData, Key>,
+  timeoutMs: number,
+): QueryFunction<QueryFnData, Key> {
+  return async (context) => {
+    const controller = new AbortController();
+    // TanStack makes one signal per fetch, so the listener does not outlive it.
+    context.signal.addEventListener('abort', () => controller.abort());
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timedOut = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        reject(new NetworkTimeoutError());
+      }, timeoutMs);
+    });
+    try {
+      const request = queryFn({ ...context, signal: controller.signal });
+      return await Promise.race([request, timedOut]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+}
+
+function isSlowConnection(): boolean {
+  return (
+    getNetworkTierSnapshot() === 'SLOW_CELLULAR' ||
+    getLatencySnapshot() === 'SLOW'
+  );
+}
+
+function shouldRetry(failureCount: number): boolean {
+  if (isSlowConnection()) return failureCount < 1;
+  return failureCount < 2;
+}
+
+function resolvePollInterval(interval: number | undefined): number | false {
+  if (interval === undefined) return false;
+  if (isSlowConnection()) return interval * 3;
+  return interval;
+}
 
 /**
  * `useQuery` that adapts to the device and connection: every attempt times
@@ -80,51 +126,4 @@ export function useNetworkQuery<
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),
   });
-}
-
-/**
- * Fails the attempt with `NetworkTimeoutError` even when the fetcher ignores
- * the abort, so a stalled request still reaches retry and the error state.
- */
-function withTimeout<QueryFnData, Key extends QueryKey>(
-  queryFn: QueryFunction<QueryFnData, Key>,
-  timeoutMs: number,
-): QueryFunction<QueryFnData, Key> {
-  return async (context) => {
-    const controller = new AbortController();
-    const abort = (): void => controller.abort();
-    context.signal.addEventListener('abort', abort);
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timedOut = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => {
-        abort();
-        reject(new NetworkTimeoutError());
-      }, timeoutMs);
-    });
-    try {
-      const request = queryFn({ ...context, signal: controller.signal });
-      return await Promise.race([request, timedOut]);
-    } finally {
-      clearTimeout(timer);
-      context.signal.removeEventListener('abort', abort);
-    }
-  };
-}
-
-function isSlowConnection(): boolean {
-  return (
-    getNetworkTierSnapshot() === 'SLOW_CELLULAR' ||
-    getLatencySnapshot() === 'SLOW'
-  );
-}
-
-function shouldRetry(failureCount: number): boolean {
-  if (isSlowConnection()) return failureCount < 1;
-  return failureCount < 2;
-}
-
-function resolvePollInterval(interval: number | undefined): number | false {
-  if (interval === undefined) return false;
-  if (isSlowConnection()) return interval * 3;
-  return interval;
 }
