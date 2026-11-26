@@ -125,6 +125,32 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     });
 
+  const renderAtStep = ({
+    stepIndex = 0,
+    onReceivePress,
+    isAwaitingBalance = false,
+  }: {
+    stepIndex?: number;
+    onReceivePress?: () => void;
+    isAwaitingBalance?: boolean;
+  } = {}) =>
+    renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onReceivePress={onReceivePress}
+        isAwaitingBalance={isAwaitingBalance}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
   it('does not render Skip on the fund step', () => {
     const { queryByTestId } = renderSteps();
 
@@ -953,34 +979,8 @@ describe('WalletHomeOnboardingSteps', () => {
   describe('fund step Receive button', () => {
     const receiveTestId = WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON;
 
-    const renderFundStep = ({
-      stepIndex = 0,
-      onReceivePress,
-      isAwaitingBalance = false,
-    }: {
-      stepIndex?: number;
-      onReceivePress?: () => void;
-      isAwaitingBalance?: boolean;
-    } = {}) =>
-      renderWithProvider(
-        <WalletHomeOnboardingSteps
-          testID="steps-root"
-          onReceivePress={onReceivePress}
-          isAwaitingBalance={isAwaitingBalance}
-        />,
-        {
-          state: {
-            onboarding: {
-              ...baseOnboarding,
-              walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
-            },
-            engine: { backgroundState },
-          },
-        },
-      );
-
     it('shows Receive next to Add funds on the fund step', () => {
-      const { getByTestId, getByText, queryByTestId } = renderFundStep({
+      const { getByTestId, getByText, queryByTestId } = renderAtStep({
         onReceivePress: jest.fn(),
       });
 
@@ -996,7 +996,7 @@ describe('WalletHomeOnboardingSteps', () => {
 
     it('calls onReceivePress without advancing or deferring the fund step', async () => {
       const onReceivePress = jest.fn();
-      const { getByTestId, store } = renderFundStep({ onReceivePress });
+      const { getByTestId, store } = renderAtStep({ onReceivePress });
 
       fireEvent.press(getByTestId(receiveTestId));
       await flushWalletHomeStepTransition();
@@ -1012,7 +1012,7 @@ describe('WalletHomeOnboardingSteps', () => {
     });
 
     it('keeps Receive visible but disabled while the balance shell is loading', () => {
-      const { getByTestId } = renderFundStep({
+      const { getByTestId } = renderAtStep({
         onReceivePress: jest.fn(),
         isAwaitingBalance: true,
       });
@@ -1022,14 +1022,14 @@ describe('WalletHomeOnboardingSteps', () => {
     });
 
     it('falls back to the single Add funds button when no receive handler is provided', () => {
-      const { getByTestId, queryByTestId } = renderFundStep();
+      const { getByTestId, queryByTestId } = renderAtStep();
 
       expect(queryByTestId(receiveTestId)).toBeNull();
       expect(getByTestId(primaryTestId)).toBeOnTheScreen();
     });
 
     it('keeps Skip on the trade step', () => {
-      const { getByTestId, queryByTestId } = renderFundStep({
+      const { getByTestId, queryByTestId } = renderAtStep({
         stepIndex: 1,
         onReceivePress: jest.fn(),
       });
@@ -1044,23 +1044,6 @@ describe('WalletHomeOnboardingSteps', () => {
   describe('two-button row equal width slots', () => {
     const secondarySlotId = `steps-root-${WalletHomeOnboardingStepsSelectors.SECONDARY_BUTTON_SLOT}`;
     const primarySlotId = `steps-root-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON_SLOT}`;
-
-    const renderStep = (stepIndex: number, onReceivePress?: () => void) =>
-      renderWithProvider(
-        <WalletHomeOnboardingSteps
-          testID="steps-root"
-          onReceivePress={onReceivePress}
-        />,
-        {
-          state: {
-            onboarding: {
-              ...baseOnboarding,
-              walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
-            },
-            engine: { backgroundState },
-          },
-        },
-      );
 
     afterEach(() => {
       mockIsGlass = false;
@@ -1096,7 +1079,7 @@ describe('WalletHomeOnboardingSteps', () => {
       ])(
         'wraps both buttons in equal flex-1 min-w-0 slots on the %s',
         (_step, stepIndex, onReceivePress, secondaryTestId) => {
-          const { getByTestId } = renderStep(stepIndex, onReceivePress);
+          const { getByTestId } = renderAtStep({ stepIndex, onReceivePress });
 
           const secondarySlot = getByTestId(secondarySlotId);
           const primarySlot = getByTestId(primarySlotId);
