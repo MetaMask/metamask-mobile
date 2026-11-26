@@ -15,6 +15,21 @@ function createError(overrides?: Partial<QuoteErrorInfo>): QuoteErrorInfo {
   } as QuoteErrorInfo;
 }
 
+/**
+ * Builds an `amount-too-low` error.
+ *
+ * TODO: The reason is not in the published `@metamask/transaction-pay-controller`
+ * until MetaMask/core#11779 is released. Use `createError({ reason })` then.
+ *
+ * @returns A quote error with the `amount-too-low` reason.
+ */
+function createAmountTooLowError(): QuoteErrorInfo {
+  return {
+    ...createError(),
+    reason: 'amount-too-low',
+  } as unknown as QuoteErrorInfo;
+}
+
 function tap(target: Parameters<typeof fireEvent.press>[0], times: number) {
   for (let i = 0; i < times; i++) {
     fireEvent.press(target);
@@ -54,7 +69,7 @@ describe('NoQuoteAlert', () => {
     );
 
     const { getByText, queryByText } = render(
-      <NoQuoteAlert error={createError({ reason: 'amount-too-low' })} />,
+      <NoQuoteAlert error={createAmountTooLowError()} />,
     );
 
     expect(getByText(amountTooLowMessage)).toBeDefined();

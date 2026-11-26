@@ -43,7 +43,17 @@ export function NoQuoteAlert({ error }: Props) {
   );
 }
 
-function getCollapsedMessageKey(reason: QuoteErrorInfo['reason']): string {
+/**
+ * Maps a quote error reason to its collapsed message key.
+ *
+ * TODO: The `amount-too-low` reason is not in the published
+ * `@metamask/transaction-pay-controller` until MetaMask/core#11779 is released.
+ * Type `reason` as `QuoteErrorInfo['reason']` once it is.
+ *
+ * @param reason - Machine-readable reason of the quote error, if any.
+ * @returns The i18n key of the collapsed message.
+ */
+function getCollapsedMessageKey(reason: string | undefined): string {
   switch (reason) {
     case 'insufficient-source-balance':
       return 'alert_system.insufficient_pay_method_balance.message';
