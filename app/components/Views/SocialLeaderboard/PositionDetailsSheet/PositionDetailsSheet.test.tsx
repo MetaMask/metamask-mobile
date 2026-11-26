@@ -876,7 +876,7 @@ describe('PositionDetailsSheet', () => {
   });
 
   describe('back button', () => {
-    it('is hidden without an onBack param', () => {
+    it('is hidden unless showBackButton is set', () => {
       render(<PositionDetailsSheet />);
 
       expect(
@@ -884,19 +884,16 @@ describe('PositionDetailsSheet', () => {
       ).toBeNull();
     });
 
-    it('dismisses the sheet, then calls onBack', () => {
-      const calls: string[] = [];
-      mockGoBack.mockImplementationOnce(() => calls.push('goBack'));
-      const onBack = jest.fn(() => calls.push('onBack'));
-      mockParams = { ...mockParams, onBack };
+    it('pops this sheet without navigating anywhere else', () => {
+      mockParams = { ...mockParams, showBackButton: true };
       render(<PositionDetailsSheet />);
 
       fireEvent.press(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.BACK_BUTTON),
       );
 
-      expect(calls).toEqual(['goBack', 'onBack']);
-      expect(onBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

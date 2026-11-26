@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
+import { selectIsChartSocialMarkersAvailable } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import type { AvatarMarker } from '../AdvancedChart/AdvancedChart.types';
 import { useFollowingTokenPositions } from './useFollowingTokenPositions';
 import {
@@ -21,18 +21,19 @@ export interface FollowingTokenCandleAvatarMarkers {
 /**
  * Candlestick-chart entry point: resolves the followed-traders avatar markers
  * for a token as timestamp-anchored {@link AvatarMarker}s, gated behind the
- * Chart Social Markers feature flag. Every trade is returned (no global cap):
- * the WebView groups per candle and draws at most 3 faces per group, so the
- * on-screen element count depends on groups, not trades. Also returns a `byId`
- * lookup from marker id to its originating trade so a marker/cluster tap can
- * open a bottom sheet listing every member. Returns empty values when the flag
- * is off, the user is locked, or no followed trader holds the token. Memoized
+ * Chart Social Markers flag AND Social access (the sheets a marker opens only
+ * exist then). Every trade is returned (no global cap): the WebView groups per
+ * candle and draws at most 3 faces per group, so the on-screen element count
+ * depends on groups, not trades. Also returns a `byId` lookup from marker id to
+ * its originating trade so a marker/cluster tap can open a bottom sheet listing
+ * every member. Returns empty values when gated off, the user is locked, or no
+ * followed trader holds the token. Memoized
  * so chart pan/zoom re-renders don't re-map.
  */
 export const useFollowingTokenCandleAvatarMarkers = (
   assetId: string,
 ): FollowingTokenCandleAvatarMarkers => {
-  const isEnabled = useSelector(selectChartSocialMarkersEnabled);
+  const isEnabled = useSelector(selectIsChartSocialMarkersAvailable);
   const { data } = useFollowingTokenPositions(assetId, { enabled: isEnabled });
 
   const { markers, byId } = useMemo(() => {

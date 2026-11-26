@@ -25,9 +25,9 @@ export interface PositionDetailsSheetParams {
   /** Shows the share button and attributes shares to this source. */
   shareSource?: SocialEventSource;
   /**
-   * Shows a back button in the header. Pressing it dismisses this sheet, then
-   * calls this so the opener can restore what it showed before (e.g. the
-   * chart's social markers sheet). Swipe / overlay dismiss does not call it.
+   * Shows a back button in the header, for a sheet stacked on another sheet
+   * (e.g. the chart's social markers sheet). Back dismisses this sheet, which
+   * pops its route and reveals the sheet underneath.
    */
-  onBack?: () => void;
+  showBackButton?: boolean;
 }

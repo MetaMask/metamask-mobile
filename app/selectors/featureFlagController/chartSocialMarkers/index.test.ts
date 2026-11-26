@@ -1,4 +1,7 @@
-import { selectChartSocialMarkersEnabled } from '.';
+import {
+  selectChartSocialMarkersEnabled,
+  selectIsChartSocialMarkersAvailable,
+} from '.';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -70,6 +73,26 @@ describe('selectChartSocialMarkersEnabled', () => {
     'falls back to the local default (off) when the flag is %s',
     (_case, flags) => {
       expect(selectChartSocialMarkersEnabled.resultFunc(flags)).toBe(false);
+    },
+  );
+});
+
+describe('selectIsChartSocialMarkersAvailable', () => {
+  it.each([
+    [true, true, false, true],
+    [true, false, true, true],
+    [true, false, false, false],
+    [false, true, true, false],
+  ])(
+    'markers=%s socialV1=%s leaderboard=%s -> %s',
+    (markers, socialV1, leaderboard, expected) => {
+      expect(
+        selectIsChartSocialMarkersAvailable.resultFunc(
+          markers,
+          socialV1,
+          leaderboard,
+        ),
+      ).toBe(expected);
     },
   );
 });

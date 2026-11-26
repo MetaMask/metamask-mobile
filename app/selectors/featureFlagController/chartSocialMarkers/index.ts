@@ -2,6 +2,8 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
+import { selectHasSocialV1Access } from '../socialV1';
+import { selectSocialLeaderboardEnabled } from '../socialLeaderboard';
 
 /**
  * Chart Social Markers (ASSETS-4102): render follower avatar markers on the
@@ -23,4 +25,17 @@ export const selectChartSocialMarkersEnabled = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
+);
+
+/**
+ * Chart social markers are usable: the markers flag is on AND the Social
+ * experience is on (the routes the markers open are only registered then).
+ * Gates both the chart markers and the markers sheet route.
+ */
+export const selectIsChartSocialMarkersAvailable = createSelector(
+  selectChartSocialMarkersEnabled,
+  selectHasSocialV1Access,
+  selectSocialLeaderboardEnabled,
+  (isMarkersEnabled, hasSocialV1Access, isSocialLeaderboardEnabled): boolean =>
+    isMarkersEnabled && (hasSocialV1Access || isSocialLeaderboardEnabled),
 );

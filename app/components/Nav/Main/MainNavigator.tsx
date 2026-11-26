@@ -232,6 +232,8 @@ import {
   TraderPreviewSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsChartSocialMarkersAvailable } from '../../../selectors/featureFlagController/chartSocialMarkers';
+import SocialMarkersBottomSheet from '../../UI/Charts/socialMarkers/SocialMarkersBottomSheet';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -1082,6 +1084,9 @@ const MainNavigator = () => {
   const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
   const isSocialExperienceEnabled =
     isSocialV1Enabled || isSocialLeaderboardEnabled;
+  const isChartSocialMarkersAvailable = useSelector(
+    selectIsChartSocialMarkersAvailable,
+  );
   return (
     <NativeStack.Navigator
       screenOptions={defaultScreenOptions}
@@ -1637,6 +1642,13 @@ const MainNavigator = () => {
             options={transparentModalStackOptions}
           />
         </>
+      )}
+      {isChartSocialMarkersAvailable && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.CHART_MARKERS_SHEET}
+          component={SocialMarkersBottomSheet}
+          options={transparentModalStackOptions}
+        />
       )}
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen

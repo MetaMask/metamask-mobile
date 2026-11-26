@@ -1,6 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
 import { View, Platform } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
@@ -10,14 +9,10 @@ import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
 import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
-import SocialMarkersBottomSheet from '../../Charts/socialMarkers/SocialMarkersBottomSheet';
 import type { CandleAvatarMarkerEntry } from '../../Charts/socialMarkers/mapFollowingPositionsToCandleAvatarMarkers';
-import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
-import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import type { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
 import {
@@ -242,66 +237,20 @@ export const PriceChartSection = ({
     byId: avatarMarkerLookup,
   } = useFollowingTokenCandleAvatarMarkers(assetId);
 
-  // Marker ids of the avatar group the user last tapped — drives the bottom
-  // sheet. A lone avatar yields one id; a cluster yields all its members.
-  const [selectedAvatarIds, setSelectedAvatarIds] = useState<string[] | null>(
-    null,
-  );
-  // Last group shown in the sheet, so the position sheet's back button can
-  // reopen it after the markers sheet closed to make way for it.
-  const lastAvatarIdsRef = useRef<string[] | null>(null);
-  const handleAvatarMarkerPress = useCallback((ids: string[]) => {
-    if (!ids.length) {
-      setSelectedAvatarIds(null);
-      return;
-    }
-    // Light "entry" haptic, in sync with the sheet starting to open.
-    playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
-    lastAvatarIdsRef.current = ids;
-    setSelectedAvatarIds(ids);
-  }, []);
-  const reopenAvatarSheet = useCallback(() => {
-    if (lastAvatarIdsRef.current) {
-      setSelectedAvatarIds(lastAvatarIdsRef.current);
-    }
-  }, []);
-  const handleAvatarSheetClose = useCallback(
-    () => setSelectedAvatarIds(null),
-    [],
-  );
-
-  // Row tap -> Social position sheet. That route is only registered when the
-  // Social experience is on (MainNavigator), so rows stay non-interactive
-  // otherwise.
+  // Tapping a lone avatar (one id) or a cluster (all member ids) opens the
+  // markers sheet route listing those trades. The hook only yields markers
+  // when that route is registered (see selectIsChartSocialMarkersAvailable).
   const navigation = useNavigation<AppNavigationProp>();
-  const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
-  const isSocialLeaderboardEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
-  const canOpenPositionSheet = isSocialV1Enabled || isSocialLeaderboardEnabled;
-  const handleTradePress = useCallback(
-    (entry: CandleAvatarMarkerEntry) => {
-      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
-        positionId: entry.position.positionId,
-        position: entry.position,
-        author: {
-          id: entry.actor.profileId,
-          username: entry.actor.name,
-          address: entry.actor.address,
-          avatarUri: entry.actor.imageUrl ?? null,
-          // Not on the followed-by-me actor; the sheet omits the badge.
-          winRatePercent: null,
-        },
-        // followed-by-me only returns open positions.
-        isClosed: false,
-        // Not streamed here, so the sheet refetches the position on open.
-        isSnapshotLive: false,
-        analyticsSource: SocialEvent.Source.TOKEN_DETAILS_CHART,
-        // Back button: dismiss the position sheet and return to this group.
-        onBack: reopenAvatarSheet,
-      });
+  const handleAvatarMarkerPress = useCallback(
+    (ids: string[]) => {
+      const entries = ids
+        .map((id) => avatarMarkerLookup[id])
+        .filter((entry): entry is CandleAvatarMarkerEntry => Boolean(entry));
+      if (!entries.length) return;
+      playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL.CHART_MARKERS_SHEET, { entries });
     },
-    [navigation, reopenAvatarSheet],
+    [avatarMarkerLookup, navigation],
   );
 
   // The interval bar above the chart already adds 8px of bottom padding.
@@ -416,16 +365,6 @@ export const PriceChartSection = ({
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
       <BottomChrome uniformSpacing={uniformSpacing} isGlass={isGlass} />
-
-      {/* Trades behind the tapped avatar marker / cluster (ASSETS-4102). */}
-      {selectedAvatarIds && (
-        <SocialMarkersBottomSheet
-          ids={selectedAvatarIds}
-          byId={avatarMarkerLookup}
-          onClose={handleAvatarSheetClose}
-          onTradePress={canOpenPositionSheet ? handleTradePress : undefined}
-        />
-      )}
     </>
   );
 };

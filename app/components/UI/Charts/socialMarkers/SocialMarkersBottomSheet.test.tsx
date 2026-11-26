@@ -2,56 +2,56 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Trade } from '@metamask/social-controllers';
 import SocialMarkersBottomSheet, {
-  SOCIAL_MARKERS_SHEET_ROW_TEST_ID,
+  SocialMarkersBottomSheetTestIds,
 } from './SocialMarkersBottomSheet';
-import type {
-  CandleAvatarMarkerEntry,
-  CandleAvatarMarkerLookup,
-} from './mapFollowingPositionsToCandleAvatarMarkers';
+import type { CandleAvatarMarkerEntry } from './mapFollowingPositionsToCandleAvatarMarkers';
+import type { SocialMarkersBottomSheetParams } from './SocialMarkersBottomSheet.types';
+import Routes from '../../../../constants/navigation/Routes';
 import { playSelection } from '../../../../util/haptics';
+import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+let mockParams: SocialMarkersBottomSheetParams;
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+}));
+
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockParams,
+}));
 
 jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(async () => undefined),
 }));
 
-// Shell mock: closing "animates" synchronously by invoking onClose.
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactActual.forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: { children: React.ReactNode; onClose?: () => void },
-          ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-        ) => {
-          ReactActual.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: () => onClose?.(),
-          }));
-          return <View>{children}</View>;
-        },
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ children }: { children: React.ReactNode }) => (
-        <View>{children}</View>
-      ),
-    };
-  },
-);
+// Renders children and closes synchronously (no animation), calling goBack
+// like the real sheet does once its close animation ends.
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+          goBack,
+        }: { children: React.ReactNode; testID?: string; goBack?: () => void },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: () => goBack?.(),
+        }));
+        return <View testID={testID}>{children}</View>;
+      },
+    ),
+  };
+});
 
 jest.mock('../../SocialFeed/components/TraderAvatar', () => {
   const { View } = jest.requireActual('react-native');
@@ -81,35 +81,30 @@ const makeEntry = (
     position: { positionId: `pos-${name}`, tokenSymbol: 'ETH' },
   }) as unknown as CandleAvatarMarkerEntry;
 
-const byId: CandleAvatarMarkerLookup = {
-  a: makeEntry('Alice', 'buy', 2),
-  b: makeEntry('Bob', 'sell', 1),
-};
+const alice = makeEntry('Alice', 'buy', 2);
+const bob = makeEntry('Bob', 'sell', 1);
 
 describe('SocialMarkersBottomSheet', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockParams = { entries: [bob, alice] };
+  });
 
-  it('renders a Buy and a Sell tag for a mixed cluster', () => {
-    render(
-      <SocialMarkersBottomSheet
-        ids={['a', 'b']}
-        byId={byId}
-        onClose={jest.fn()}
-      />,
-    );
+  it('lists trades newest first with Buy and Sell tags', () => {
+    render(<SocialMarkersBottomSheet />);
 
+    const rows = screen.getAllByTestId(SocialMarkersBottomSheetTestIds.ROW);
+    expect(rows).toHaveLength(2);
+    expect(screen.getByText('Trader activity')).toBeOnTheScreen();
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.getByText('Sell')).toBeOnTheScreen();
+    expect(
+      screen.getAllByText(/Alice|Bob/).map((n) => n.props.children),
+    ).toEqual(['Alice', 'Bob']);
   });
 
   it('filters rows to sells and plays a selection haptic', () => {
-    render(
-      <SocialMarkersBottomSheet
-        ids={['a', 'b']}
-        byId={byId}
-        onClose={jest.fn()}
-      />,
-    );
+    render(<SocialMarkersBottomSheet />);
 
     fireEvent.press(screen.getByText('Sells'));
 
@@ -118,58 +113,52 @@ describe('SocialMarkersBottomSheet', () => {
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps only the All tab when every trade is a buy', () => {
-    const allBuys: CandleAvatarMarkerLookup = {
-      a: makeEntry('Alice', 'buy', 2),
-      c: makeEntry('Carol', 'buy', 1),
-    };
-    render(
-      <SocialMarkersBottomSheet
-        ids={['a', 'c']}
-        byId={allBuys}
-        onClose={jest.fn()}
-      />,
-    );
+  it('keeps only the All filter when every trade is a buy', () => {
+    mockParams = { entries: [alice, makeEntry('Carol', 'buy', 1)] };
+    render(<SocialMarkersBottomSheet />);
 
     expect(screen.getByText('All')).toBeOnTheScreen();
     expect(screen.queryByText('Buys')).toBeNull();
     expect(screen.queryByText('Sells')).toBeNull();
   });
 
-  it('hides filter tabs for a single trade', () => {
-    render(
-      <SocialMarkersBottomSheet ids={['a']} byId={byId} onClose={jest.fn()} />,
-    );
+  it('hides filters for a single trade', () => {
+    mockParams = { entries: [alice] };
+    render(<SocialMarkersBottomSheet />);
 
-    expect(screen.queryByText('Sells')).toBeNull();
+    expect(screen.queryByText('All')).toBeNull();
   });
 
-  it('closes the sheet, then hands the tapped trade to onTradePress', () => {
-    const calls: string[] = [];
-    const onClose = jest.fn(() => calls.push('close'));
-    const onTradePress = jest.fn(() => calls.push('trade'));
-    render(
-      <SocialMarkersBottomSheet
-        ids={['a', 'b']}
-        byId={byId}
-        onClose={onClose}
-        onTradePress={onTradePress}
-      />,
+  it('pushes the position sheet with a back button on row press', () => {
+    render(<SocialMarkersBottomSheet />);
+
+    fireEvent.press(
+      screen.getAllByTestId(SocialMarkersBottomSheetTestIds.ROW)[1],
     );
 
-    fireEvent.press(screen.getAllByTestId(SOCIAL_MARKERS_SHEET_ROW_TEST_ID)[1]);
-
-    expect(calls).toEqual(['close', 'trade']);
-    expect(onTradePress).toHaveBeenCalledWith(byId.b);
     expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({
+        positionId: 'pos-Bob',
+        position: bob.position,
+        author: expect.objectContaining({ id: 'id-Bob', username: 'Bob' }),
+        isClosed: false,
+        isSnapshotLive: false,
+        analyticsSource: SocialEvent.Source.TOKEN_DETAILS_CHART,
+        showBackButton: true,
+      }),
+    );
   });
 
-  it('renders non-interactive rows when onTradePress is omitted', () => {
-    render(
-      <SocialMarkersBottomSheet ids={['a']} byId={byId} onClose={jest.fn()} />,
+  it('closes the sheet from the header close button', () => {
+    render(<SocialMarkersBottomSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialMarkersBottomSheetTestIds.CLOSE_BUTTON),
     );
 
-    const row = screen.getByTestId(SOCIAL_MARKERS_SHEET_ROW_TEST_ID);
-    expect(row.props.accessibilityRole).toBeUndefined();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
