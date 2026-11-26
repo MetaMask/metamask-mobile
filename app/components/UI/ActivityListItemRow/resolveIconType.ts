@@ -84,3 +84,5 @@ const FALLBACK_ICON_NAME: Partial<Record<string, IconName>> = {
 export function resolveTransactionIconName(type: ActivityKind): IconName {
   return FALLBACK_ICON_NAME[resolveIconType(type)] ?? IconName.SwapHorizontal;
 }
+
+// related-jest scope probe: app change next to a docs change
