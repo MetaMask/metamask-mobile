@@ -461,7 +461,7 @@ export function restoreRewardsDashboardStore(): void {
 
 /**
  * Rewards dashboard on the Money preset. Social V1 and the referral copy come
- * from Redux. The Social profile-onboarding route is a probe.
+ * from Redux. The Social profile-onboarding route and the home tabs are probes.
  */
 export function renderRewardsDashboard(
   options: RenderRewardsMoneyOptions = {},
@@ -474,7 +474,13 @@ export function renderRewardsDashboard(
   const result = renderScreenWithRoutes(
     RewardsDashboard,
     { name: Routes.REWARDS_DASHBOARD },
-    [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }],
+    [
+      { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+      {
+        name: Routes.HOME_TABS,
+        Component: createRouteParamsProbe(Routes.HOME_TABS),
+      },
+    ],
     { state },
   );
 
