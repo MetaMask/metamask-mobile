@@ -42,7 +42,10 @@ import {
 } from '../../constants';
 import { KycPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
-import { trackIdentityTerms } from '../../utils/identityTermsAnalytics';
+import {
+  trackIdentityTerms,
+  type KycIdentityTermsStatus,
+} from '../../utils/identityTermsAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_ID,
@@ -62,8 +65,14 @@ import {
   isListedIdosDocument,
 } from './partnerDisclaimers';
 
-/** Pages the identity-verification terms are split across ("2 of 2"). */
-const TOTAL_PAGES = 2;
+/** This page's place in the identity-verification terms ("2 of 2"). */
+const PAGE_NUMBER = 2;
+
+/**
+ * Pages the identity-verification terms are split across. A flow that adds
+ * its own terms page after them passes a larger total.
+ */
+const DEFAULT_TOTAL_PAGES = 2;
 
 /**
  * How much of the consent row must be on screen to count as seen: the
@@ -119,6 +128,14 @@ interface KycPartnerTermsProps {
   disclaimers: KycCatalogDisclaimerLink[];
   onAgree: () => void | Promise<void>;
   onBack: () => void;
+  /** The step indicator's total ("2 of 2"). Kalshi passes 3. */
+  totalSteps?: number;
+  /**
+   * Reports terms progress. Defaults to the VBA identity-terms event, whose
+   * properties are Iron's. Another product passes its own reporter so that
+   * event stays on the VBA funnel.
+   */
+  onTermsProgress?: (status: KycIdentityTermsStatus) => void;
 }
 
 /**
@@ -135,6 +152,8 @@ const KycPartnerTerms = ({
   disclaimers,
   onAgree,
   onBack,
+  totalSteps = DEFAULT_TOTAL_PAGES,
+  onTermsProgress = trackIdentityTerms,
 }: KycPartnerTermsProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isUsResident = isUnitedStatesLocation(
@@ -151,11 +170,14 @@ const KycPartnerTerms = ({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
     screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
     contentReady: true,
+    // That trace is the VBA funnel's. A longer flow does not report it
+    // until that flow has its own trace config.
+    enabled: totalSteps === DEFAULT_TOTAL_PAGES,
   });
 
   useEffect(() => {
-    trackIdentityTerms('page2_viewed');
-  }, []);
+    onTermsProgress('page2_viewed');
+  }, [onTermsProgress]);
 
   const { idos, kycProvider } = useMemo(
     () => groupDisclaimers(disclaimers),
@@ -212,9 +234,9 @@ const KycPartnerTerms = ({
 
   const handleAgree = useCallback(async () => {
     fireImpact(ImpactMoment.PrimaryCTA);
-    trackIdentityTerms('page2_accepted');
+    onTermsProgress('page2_accepted');
     await onAgree();
-  }, [onAgree]);
+  }, [onAgree, onTermsProgress]);
 
   const handleViewportLayout = useCallback(
     (event: LayoutChangeEvent) =>
@@ -251,15 +273,15 @@ const KycPartnerTerms = ({
       accessibilityLabel={strings(
         'wallet.home_onboarding_steps.progress_a11y',
         {
-          current: TOTAL_PAGES,
-          total: TOTAL_PAGES,
+          current: PAGE_NUMBER,
+          total: totalSteps,
         },
       )}
       testID={KycPartnerTermsSelectorsIDs.STEP_INDICATOR}
     >
       {strings('kyc.verify_identity.step_indicator', {
-        current: TOTAL_PAGES,
-        total: TOTAL_PAGES,
+        current: PAGE_NUMBER,
+        total: totalSteps,
       })}
     </Text>
   );
@@ -274,6 +296,7 @@ const KycPartnerTerms = ({
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={onBack}
+          title={stepIndicator}
           backButtonProps={{
             testID: KycPartnerTermsSelectorsIDs.BACK_BUTTON,
           }}
@@ -286,11 +309,10 @@ const KycPartnerTerms = ({
           onLayout={handleViewportLayout}
           testID={KycPartnerTermsSelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.partner_terms.title')}
             bottomLabel={strings('kyc.partner_terms.description')}
-            twClassName="px-4 pb-4"
+            twClassName="px-4 pt-2 pb-4"
           />
 
           <Text

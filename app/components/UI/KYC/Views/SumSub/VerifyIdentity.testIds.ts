@@ -4,6 +4,7 @@ export const KycVerifyIdentitySelectorsIDs = {
   STEP_INDICATOR: 'kyc-verify-identity-step-indicator',
   STEP: 'kyc-verify-identity-step',
   BENEFIT: 'kyc-verify-identity-benefit',
+  PARTNER_DIVIDER: 'kyc-verify-identity-partner-divider',
   AGREEMENT: 'kyc-verify-identity-agreement',
   METAMASK_TERMS_LINK: 'kyc-verify-identity-metamask-terms-link',
   METAMASK_PRIVACY_POLICY_LINK:

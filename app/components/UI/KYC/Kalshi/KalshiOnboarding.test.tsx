@@ -9,7 +9,12 @@ import {
 import Engine from '../../../../core/Engine';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { trackKycEvent } from '../utils/trackKycEvent';
 import KalshiOnboarding, { KalshiOnboardingTestIds } from './KalshiOnboarding';
+import {
+  KycPartnerTermsSelectorsIDs,
+  KycVerifyIdentitySelectorsIDs,
+} from '../Views/SumSub/VerifyIdentity.testIds';
 
 const mockGoBack = jest.fn();
 const mockVerifyOrEnroll = jest.fn();
@@ -32,6 +37,10 @@ jest.mock('../utils/toSumSubLocale', () => ({
   toSumSubLocale: () => 'en',
 }));
 
+jest.mock('../utils/trackKycEvent', () => ({
+  trackKycEvent: jest.fn(),
+}));
+
 jest.mock('../../../../core/Engine', () => {
   const engine = {
     controllerMessenger: { call: jest.fn() },
@@ -52,7 +61,10 @@ jest.mock('../../../../core/Engine', () => {
       KycService: {
         getGeoCountry: jest.fn(),
         fetchVendorDisclaimers: jest.fn(),
-        fetchSessionDisclaimersByCountry: jest.fn(),
+      },
+      KycController: {
+        state: { geoCountry: 'USA' },
+        fetchSessionDisclaimers: jest.fn(),
       },
     },
   };
@@ -67,6 +79,9 @@ const service = Engine.context.KycService as unknown as Record<
   string,
   jest.Mock
 >;
+const kycController = Engine.context.KycController as unknown as {
+  fetchSessionDisclaimers: jest.Mock;
+};
 
 const KALSHI_TERMS = [
   { id: 'tos-v1', url: 'https://kalshi.example/tos', display_name: 'Terms' },
@@ -104,6 +119,37 @@ const render = (
 
 const primary = (screen: ReturnType<typeof render>) =>
   screen.getByTestId(KalshiOnboardingTestIds.PRIMARY);
+
+/**
+ * Accepts the shared MetaMask consent page. The document pages come after it.
+ *
+ * @param screen - The rendered Kalshi flow, on the terms step.
+ */
+async function agreeToMetaMaskTerms(screen: ReturnType<typeof render>) {
+  expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
+  const button = await screen.findByTestId(
+    KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,
+  );
+  await waitFor(() => expect(button).toBeEnabled());
+  fireEvent.press(button);
+}
+
+/**
+ * Accepts the shared partner-terms page. The Kalshi page comes after it.
+ *
+ * @param screen - The rendered Kalshi flow, on the partner-terms page.
+ */
+async function agreeToPartnerTerms(screen: ReturnType<typeof render>) {
+  expect(
+    await screen.findByText('Our verification partners'),
+  ).toBeOnTheScreen();
+  fireEvent(
+    screen.getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
+    'change',
+    true,
+  );
+  fireEvent.press(screen.getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON));
+}
 
 const typeInto = (screen: ReturnType<typeof render>, value: string) =>
   fireEvent.changeText(
@@ -166,14 +212,15 @@ describe('KalshiOnboarding', () => {
       flow[name].mockResolvedValue('sumsub');
     }
     flow.launchProviderFlow.mockResolvedValue('submitted');
-    service.fetchSessionDisclaimersByCountry.mockResolvedValue({
+    service.getGeoCountry.mockResolvedValue('USA');
+    service.fetchVendorDisclaimers.mockResolvedValue(KALSHI_TERMS);
+    kycController.fetchSessionDisclaimers.mockResolvedValue({
       idOS: [
         {
           key: 'idos',
           version: '1',
           title: 'idOS Terms of Use',
           url: 'https://idos.example/t',
-          consented: false,
         },
       ],
       kycProvider: [
@@ -182,13 +229,9 @@ describe('KalshiOnboarding', () => {
           version: '2',
           title: 'SumSub Terms of Use',
           url: 'https://sumsub.example/t',
-          consented: false,
         },
       ],
-      credentialReusabilityConsentGiven: false,
     });
-    service.getGeoCountry.mockResolvedValue('USA');
-    service.fetchVendorDisclaimers.mockResolvedValue(KALSHI_TERMS);
     mockVerifyOrEnroll.mockResolvedValue({
       token: { accessToken: 'aal2' },
       credentials: [],
@@ -219,10 +262,8 @@ describe('KalshiOnboarding', () => {
 
   describe('terms', () => {
     const acceptAllPages = async (screen: ReturnType<typeof render>) => {
-      await screen.findByText('idOS terms');
-      fireEvent.press(primary(screen));
-      await screen.findByText('SumSub terms');
-      fireEvent.press(primary(screen));
+      await agreeToMetaMaskTerms(screen);
+      await agreeToPartnerTerms(screen);
       await screen.findByText('Kalshi terms');
       fireEvent.press(primary(screen));
     };
@@ -251,7 +292,7 @@ describe('KalshiOnboarding', () => {
       expect(screen.queryByText('Confirm with MetaMask')).toBeNull();
     });
 
-    it('stays on one screen until the terms pages are ready', async () => {
+    it('shows the MetaMask consent page while the later terms are still loading', async () => {
       let resolveTerms: (value: unknown) => void = () => undefined;
       service.fetchVendorDisclaimers.mockReturnValue(
         new Promise((resolve) => {
@@ -260,51 +301,88 @@ describe('KalshiOnboarding', () => {
       );
       const screen = render('terms');
 
+      expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
+      expect(
+        screen.getByText(/transferring my information to idOS and Kalshi/u),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.LOADER)).toBeNull();
+      expect(screen.queryByText('Kalshi terms')).toBeNull();
+
+      await agreeToMetaMaskTerms(screen);
+      expect(
+        await screen.findByText('Our verification partners'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Step 2 of 3')).toBeOnTheScreen();
+
+      await agreeToPartnerTerms(screen);
+
       expect(
         await screen.findByTestId(KalshiOnboardingTestIds.LOADER),
       ).toBeOnTheScreen();
-      expect(screen.queryByText('Terms')).toBeNull();
-      expect(screen.queryByText('idOS terms')).toBeNull();
 
       await act(async () => {
         resolveTerms(KALSHI_TERMS);
       });
 
-      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
+      expect(await screen.findByText('Kalshi terms')).toBeOnTheScreen();
+      expect(screen.getByText('Step 3 of 3')).toBeOnTheScreen();
       expect(screen.queryByTestId(KalshiOnboardingTestIds.LOADER)).toBeNull();
     });
 
-    it('shows the idOS, SumSub and Kalshi terms one page at a time', async () => {
+    it('shows MetaMask, partner, and Kalshi terms as three pages', async () => {
       const screen = render('terms');
 
-      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
-      fireEvent.press(primary(screen));
-      expect(await screen.findByText('SumSub terms')).toBeOnTheScreen();
-      fireEvent.press(primary(screen));
+      expect(await screen.findByText('Step 1 of 3')).toBeOnTheScreen();
+      await agreeToMetaMaskTerms(screen);
+      expect(await screen.findByText('Step 2 of 3')).toBeOnTheScreen();
+      await agreeToPartnerTerms(screen);
       expect(await screen.findByText('Kalshi terms')).toBeOnTheScreen();
+      expect(screen.getByText('Step 3 of 3')).toBeOnTheScreen();
       expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
         vendor: 'kalshi',
         country: 'USA',
       });
     });
 
-    it('links to the documents on the page', async () => {
+    it('links to the Kalshi documents on the last page', async () => {
       const screen = render('terms');
-      await screen.findByText('idOS terms');
+      await agreeToMetaMaskTerms(screen);
+      await agreeToPartnerTerms(screen);
+      await screen.findByText('Kalshi terms');
 
-      fireEvent.press(screen.getByText('idOS Terms of Use'));
-      expect(Linking.openURL).toHaveBeenCalledWith('https://idos.example/t');
+      fireEvent.press(screen.getByText('Terms'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://kalshi.example/tos',
+      );
+    });
+
+    it('keeps the VBA identity-terms event off the Kalshi consent pages', async () => {
+      const screen = render('terms');
+      await acceptAllPages(screen);
+
+      await waitFor(() => expect(flow.submitTerms).toHaveBeenCalledTimes(1));
+      expect(trackKycEvent).not.toHaveBeenCalled();
     });
 
     it('goes back a page without sending anything', async () => {
       const screen = render('terms');
-      await screen.findByText('idOS terms');
-      fireEvent.press(primary(screen));
-      await screen.findByText('SumSub terms');
+      await agreeToMetaMaskTerms(screen);
+      await screen.findByText('Our verification partners');
+
+      fireEvent.press(
+        screen.getByTestId(KycPartnerTermsSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
+      await agreeToMetaMaskTerms(screen);
+      await agreeToPartnerTerms(screen);
+      await screen.findByText('Kalshi terms');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
 
-      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
+      expect(
+        await screen.findByText('Our verification partners'),
+      ).toBeOnTheScreen();
       expect(flow.submitTerms).not.toHaveBeenCalled();
     });
 
@@ -655,7 +733,6 @@ describe('KalshiOnboarding', () => {
           locale: 'en',
         }),
       );
-      expect(service.fetchSessionDisclaimersByCountry).not.toHaveBeenCalled();
     });
 
     it('says so when SumSub could not finish', async () => {

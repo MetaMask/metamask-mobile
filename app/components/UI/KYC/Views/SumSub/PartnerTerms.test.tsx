@@ -141,6 +141,7 @@ describe('KycPartnerTerms', () => {
       config: KYC_SCREEN_PERFORMANCE_CONFIG,
       screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
       contentReady: true,
+      enabled: true,
     });
   });
 
@@ -150,6 +151,24 @@ describe('KycPartnerTerms', () => {
     const indicator = getByTestId(KycPartnerTermsSelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 2 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 2 of 2');
+  });
+
+  it('counts this page against the total a longer flow passes', () => {
+    const { getByTestId } = renderWithProvider(
+      <KycPartnerTerms
+        disclaimers={DISCLAIMERS}
+        onAgree={mockOnAgree}
+        onBack={mockOnBack}
+        totalSteps={3}
+      />,
+    );
+
+    const indicator = getByTestId(KycPartnerTermsSelectorsIDs.STEP_INDICATOR);
+    expect(indicator).toHaveTextContent('Step 2 of 3');
+    expect(indicator.props.accessibilityLabel).toBe('Step 2 of 3');
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   it('lists the idOS privacy policy and transparency document', () => {

@@ -106,6 +106,7 @@ describe('KycVerifyIdentity', () => {
       screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
       contentReady: true,
       contentState: KYC_SCREEN_CONTENT_STATE.POPULATED,
+      enabled: true,
     });
   });
 
@@ -115,6 +116,44 @@ describe('KycVerifyIdentity', () => {
     const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 1 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 1 of 2');
+  });
+
+  it('counts against the total a longer flow passes', () => {
+    const { getByTestId } = renderWithProvider(
+      <KycVerifyIdentity
+        onContinue={mockOnContinue}
+        onExit={mockOnExit}
+        totalSteps={3}
+      />,
+    );
+
+    const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
+    expect(indicator).toHaveTextContent('Step 1 of 3');
+    expect(indicator.props.accessibilityLabel).toBe('Step 1 of 3');
+  });
+
+  it('names Kalshi in the consent sentence and keeps the VBA terms event off that funnel', () => {
+    const onTermsProgress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <KycVerifyIdentity
+        onContinue={mockOnContinue}
+        onExit={mockOnExit}
+        dataRecipient="kalshi"
+        totalSteps={3}
+        onTermsProgress={onTermsProgress}
+      />,
+    );
+
+    expect(
+      getByTestId(KycVerifyIdentitySelectorsIDs.AGREEMENT),
+    ).toHaveTextContent(
+      'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask storing and transferring my information to idOS and Kalshi.',
+    );
+    expect(onTermsProgress).toHaveBeenCalledWith('page1_viewed');
+    expect(trackKycEvent).not.toHaveBeenCalled();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   it('renders the agreement sentence with both MetaMask links inline', () => {
@@ -195,6 +234,7 @@ describe('KycVerifyIdentity', () => {
       screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
       contentReady: false,
       contentState: KYC_SCREEN_CONTENT_STATE.EMPTY,
+      enabled: true,
     });
   });
 
@@ -219,6 +259,7 @@ describe('KycVerifyIdentity', () => {
       screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
       contentReady: true,
       contentState: KYC_SCREEN_CONTENT_STATE.ERROR,
+      enabled: true,
     });
 
     fireEvent.press(
