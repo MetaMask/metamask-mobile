@@ -293,6 +293,7 @@
     "fast-xml-parser@npm:^4.4.1": "4.5.7",
     "handlebars": "4.7.9",
     "immutable": "4.3.9",
+    "joi@npm:17.11.0": "17.13.9",
     "lodash-es": "4.18.1",
     "path-to-regexp@npm:~0.1.12": "0.1.13",
     "socket.io-parser": "4.2.7",
