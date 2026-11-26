@@ -64,11 +64,11 @@ export const HomeSportsSection = ({
   }
 
   return (
-    <Box testID={testIds.ROW} twClassName="-mx-4 gap-4" onLayout={onLayout}>
+    <Box testID={testIds.ROW} className="-mx-4 gap-4" onLayout={onLayout}>
       <SectionHeader
         testID={testIds.HEADER}
         title={title}
-        twClassName="py-0"
+        className="py-0"
         {...(onOpen
           ? {
               isInteractive: true,

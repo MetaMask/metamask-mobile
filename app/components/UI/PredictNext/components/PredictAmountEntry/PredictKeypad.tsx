@@ -92,9 +92,9 @@ export const PredictKeypad = ({
   disabled = false,
   testID = PredictAmountEntryTestIds.KEYPAD,
 }: PredictKeypadProps) => (
-  <Box testID={testID} twClassName="gap-3 px-4 py-4">
+  <Box testID={testID} className="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
-      <Box key={row.join('')} twClassName="flex-row gap-3">
+      <Box key={row.join('')} className="flex-row gap-3">
         {row.map((digit) => (
           <Key
             key={digit}
@@ -112,7 +112,7 @@ export const PredictKeypad = ({
         ))}
       </Box>
     ))}
-    <Box twClassName="flex-row gap-3">
+    <Box className="flex-row gap-3">
       {showsDecimalKey ? (
         <Key
           isPlain={!hasFilledActionKeys}
@@ -126,7 +126,7 @@ export const PredictKeypad = ({
         </Key>
       ) : (
         // Keeps the grid positions of the remaining keys unchanged.
-        <Box twClassName="h-12 flex-1" />
+        <Box className="h-12 flex-1" />
       )}
       <Key
         testID={`${testID}-key-0`}

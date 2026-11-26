@@ -73,7 +73,7 @@ export const ChoiceMarketGroupCard = React.memo(
             {title}
           </MarketCard.Title>
         ) : null}
-        <Box twClassName="gap-3">
+        <Box className="gap-3">
           {rows.map(({ market, yes }) => {
             const { label, color, leading } = describeRow(market, yes);
             const price = formatAskPrice(yes.askPrice);

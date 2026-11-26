@@ -69,7 +69,7 @@ const PredictMarketDetailsHeader = memo(
           />
         }
         avatar={
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          <Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
             {imageUri ? (
               <Image
                 source={{ uri: imageUri }}
@@ -77,7 +77,7 @@ const PredictMarketDetailsHeader = memo(
                 contentFit="cover"
               />
             ) : (
-              <Box twClassName="w-full h-full bg-muted" />
+              <Box className="w-full h-full bg-muted" />
             )}
           </Box>
         }

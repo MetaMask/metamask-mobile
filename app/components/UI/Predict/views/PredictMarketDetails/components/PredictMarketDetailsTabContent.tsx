@@ -67,7 +67,7 @@ const PredictMarketDetailsTabContent = memo(
     if (currentKey === 'about') {
       return (
         <Box
-          twClassName="px-3 pt-4 pb-8"
+          className="px-3 pt-4 pb-8"
           testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT}
         >
           <PredictMarketDetailsAbout
@@ -80,7 +80,7 @@ const PredictMarketDetailsTabContent = memo(
     if (currentKey === 'positions') {
       return (
         <Box
-          twClassName="px-3 pt-4 pb-8"
+          className="px-3 pt-4 pb-8"
           testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT}
         >
           <PredictMarketDetailsPositions
@@ -94,7 +94,7 @@ const PredictMarketDetailsTabContent = memo(
     if (currentKey === 'outcomes') {
       return (
         <Box
-          twClassName="px-3 pt-4 pb-8"
+          className="px-3 pt-4 pb-8"
           testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT}
         >
           <PredictMarketDetailsOutcomes

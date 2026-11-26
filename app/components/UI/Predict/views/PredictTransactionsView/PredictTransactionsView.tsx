@@ -141,7 +141,7 @@ const ClaimPendingPositionRow = ({
         position.id,
       )}
     >
-      <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
+      <Box className="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
         {position.icon ? (
           <Image
             source={{ uri: position.icon }}
@@ -151,7 +151,7 @@ const ClaimPendingPositionRow = ({
         ) : null}
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
@@ -159,12 +159,12 @@ const ClaimPendingPositionRow = ({
         >
           {positionTitle}
         </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-alternative">
           {position.title}
         </Text>
       </Box>
 
-      <Box twClassName="items-end ml-3">
+      <Box className="items-end ml-3">
         <SensitiveText
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -459,7 +459,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     ({ item }: { item: HistoryItem }) => {
       if (item.kind === 'claimPending') {
         return (
-          <Box twClassName="py-1">
+          <Box className="py-1">
             <ClaimPendingPositionRow
               containerStyle={activityContainerStyle}
               isPrivacyMode={isPrivacyMode}
@@ -470,7 +470,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       }
 
       return (
-        <Box twClassName="py-1">
+        <Box className="py-1">
           <PredictActivity
             item={item.activity}
             containerStyle={activityContainerStyle}
@@ -521,7 +521,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       (hasFooterError && isRefetching)
     ) {
       return (
-        <Box twClassName="items-center justify-center py-4">
+        <Box className="items-center justify-center py-4">
           <ActivityIndicator
             size="small"
             testID={
@@ -538,10 +538,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
     return (
       <Box
-        twClassName="items-center justify-center gap-2 py-4"
+        className="items-center justify-center gap-2 py-4"
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
       >
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-alternative">
           {strings('predict.error.description_short')}
         </Text>
         <Pressable
@@ -549,7 +549,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
           onPress={handleRetry}
           testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON}
         >
-          <Text variant={TextVariant.BodyMd} twClassName="text-primary-default">
+          <Text variant={TextVariant.BodyMd} className="text-primary-default">
             {strings('predict.error.retry')}
           </Text>
         </Pressable>
@@ -568,7 +568,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const shouldShowErrorState = Boolean(error) && !hasContentSections;
 
   const renderContent = shouldShowLoadingState ? (
-    <Box twClassName="items-center justify-center h-full">
+    <Box className="items-center justify-center h-full">
       <ActivityIndicator
         size="small"
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
@@ -581,7 +581,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     />
   ) : sections.length === 0 ? (
     (emptyState ?? (
-      <Box twClassName="items-center justify-center py-10">
+      <Box className="items-center justify-center py-10">
         <TabEmptyState
           description={strings('predict.transactions.no_transactions')}
         />
@@ -610,7 +610,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     />
   );
 
-  return <Box twClassName="flex-1">{renderContent}</Box>;
+  return <Box className="flex-1">{renderContent}</Box>;
 };
 
 export default PredictTransactionsView;

@@ -76,7 +76,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
 
   if (isLoading) {
     return (
-      <Box testID={PREDICT_PORTFOLIO_TEST_IDS.SUMMARY} twClassName="gap-1">
+      <Box testID={PREDICT_PORTFOLIO_TEST_IDS.SUMMARY} className="gap-1">
         <Skeleton
           height={PRIMARY_SKELETON_HEIGHT}
           style={tw.style('rounded-md')}
@@ -94,7 +94,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
   }
 
   return (
-    <Box testID={PREDICT_PORTFOLIO_TEST_IDS.SUMMARY} twClassName="gap-1">
+    <Box testID={PREDICT_PORTFOLIO_TEST_IDS.SUMMARY} className="gap-1">
       <Box
         accessibilityLabel={
           hasError
@@ -122,7 +122,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           testID={PREDICT_PORTFOLIO_TEST_IDS.SECONDARY_LINE}
-          twClassName="flex-row"
+          className="flex-row"
         >
           <SensitiveText
             color={

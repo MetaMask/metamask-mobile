@@ -100,7 +100,7 @@ const PredictMarketDetailsActions = memo(
     }) => {
       if (useStackedLabels) {
         return (
-          <Box twClassName="w-full items-center py-0.5">
+          <Box className="w-full items-center py-0.5">
             <Text
               style={tw.style('font-bold text-center')}
               color={color}
@@ -175,7 +175,7 @@ const PredictMarketDetailsActions = memo(
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={color}
-              twClassName="text-center"
+              className="text-center"
             >
               {formatPayoutEstimate(getDisplayBuyPrice(token))}
             </Text>
@@ -185,9 +185,9 @@ const PredictMarketDetailsActions = memo(
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             alignItems={BoxAlignItems.Center}
-            twClassName="w-full mt-4 gap-3"
+            className="w-full mt-4 gap-3"
           >
-            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
+            <Box className="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -207,7 +207,7 @@ const PredictMarketDetailsActions = memo(
               />
               {renderPayoutEstimate(yesToken, TextColor.SuccessDefault)}
             </Box>
-            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
+            <Box className="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -242,7 +242,7 @@ const PredictMarketDetailsActions = memo(
     if (!content) return null;
 
     return (
-      <Box twClassName="px-3 bg-default border-t border-muted">{content}</Box>
+      <Box className="px-3 bg-default border-t border-muted">{content}</Box>
     );
   },
 );

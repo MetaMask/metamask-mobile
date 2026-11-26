@@ -107,7 +107,7 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
 }> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="pb-4">
+  <Box className="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
     />
@@ -214,7 +214,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
           containerClassName="px-4 pb-3"
         />
         {isFeaturedCarouselEnabled && (
-          <Box twClassName="pb-3">
+          <Box className="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
@@ -388,7 +388,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   const renderFooter = useCallback(() => {
     if (!isFetchingMore) return null;
     return (
-      <Box twClassName="py-2">
+      <Box className="py-2">
         <PredictMarketSkeleton
           testID={getPredictFeedSelector.skeletonFooter(category, 1)}
         />
@@ -416,7 +416,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   if (isShowingInitialSkeleton) {
     return (
-      <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
+      <Box className="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton
           testID={getPredictFeedSelector.skeletonLoading(category, 1)}
         />
@@ -445,7 +445,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     return (
       <Box
         testID={getPredictFeedSelector.emptyState(category)}
-        twClassName="flex-1 justify-center items-center p-8"
+        className="flex-1 justify-center items-center p-8"
         style={{ paddingTop: currentPaddingTop }}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryAlternative}>
@@ -693,7 +693,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     >
       <Box
         testID={PredictMarketListSelectorsIDs.CONTAINER}
-        twClassName="flex-1"
+        className="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
         <Box
@@ -739,7 +739,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           />
         </Box>
 
-        <Box twClassName="flex-1 relative overflow-hidden">
+        <Box className="flex-1 relative overflow-hidden">
           <AnimatedHeader
             headerTranslateY={headerTranslateY}
             headerHeight={headerHeight}
@@ -780,7 +780,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           entryPoint={listEntryPoint}
         />
       </Box>
-      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+      <Box pointerEvents="box-none" className="absolute inset-0 z-50">
         <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>

@@ -38,11 +38,11 @@ const EmphasizedTotalRow = ({
   value: string;
   testID: string;
 }) => (
-  <Box twClassName="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
+  <Box className="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Bold}
-      twClassName="flex-1"
+      className="flex-1"
     >
       {label}
     </Text>
@@ -98,7 +98,7 @@ const BuyPreviewRows = ({
           }
         />
       ) : null}
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         <QuoteRow
           label={strings('predict_next.order_preview.fee')}
           value={formatUsd(preview.fee)}
@@ -161,7 +161,7 @@ const SellPreviewRows = ({
         testID={PredictOrderFlowTestIds.PROCEEDS}
         valueColor={TextColor.SuccessDefault}
       />
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         <QuoteRow
           label={strings('predict_next.order_preview.fee')}
           value={formatUsd(preview.fee)}
@@ -241,14 +241,14 @@ export const OrderPreviewRows = ({
 }) => {
   if (preview.action === 'buy') {
     return (
-      <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+      <Box className="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
         <BuyPreviewRows preview={preview} withTotal={display === undefined} />
         {display ? <BuySignedTail display={display} /> : null}
       </Box>
     );
   }
   return (
-    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+    <Box className="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
       <SellPreviewRows preview={preview} withTotal={display === undefined} />
       {display ? <SellSignedTail display={display} /> : null}
     </Box>

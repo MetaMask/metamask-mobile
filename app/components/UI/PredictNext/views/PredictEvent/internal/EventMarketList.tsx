@@ -709,7 +709,7 @@ const EventMarketListContent = ({
 
       if (projection.type === 'sectionViewAll') {
         return (
-          <Box twClassName="pt-3">
+          <Box className="pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -734,7 +734,7 @@ const EventMarketListContent = ({
         // A card can render several standard cards; gap spaces them.
         return (
           <Box
-            twClassName={projection.spaced ? 'gap-3 pt-3' : 'gap-3'}
+            className={projection.spaced ? 'gap-3 pt-3' : 'gap-3'}
             testID={EventMarketLayoutSectionTestIds.card(
               projection.sectionKey,
               card.key,

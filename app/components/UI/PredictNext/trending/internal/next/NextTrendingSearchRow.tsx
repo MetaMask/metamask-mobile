@@ -77,7 +77,7 @@ export const NextTrendingSearchRow = ({
       accessibilityLabel={chance ? `${event.title}, ${chance}` : event.title}
       testID={PredictTrendingTestIds.searchRow(event.id)}
     >
-      <Box twClassName="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
+      <Box className="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
         {leading}
       </Box>
       <View style={tw.style('flex-1 pl-4')}>

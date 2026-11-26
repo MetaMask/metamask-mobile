@@ -105,7 +105,7 @@ export const MarketStandardCard = React.memo(
         >
           {title}
         </MarketCard.Title>
-        <Box twClassName="gap-3">
+        <Box className="gap-3">
           <SideRow
             market={market}
             title={title}

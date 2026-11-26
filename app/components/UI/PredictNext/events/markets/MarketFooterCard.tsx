@@ -77,7 +77,7 @@ const FooterButton = ({
         }
       }}
       style={[{ backgroundColor }]}
-      twClassName="h-12 min-w-0 flex-1 rounded-xl px-2"
+      className="h-12 min-w-0 flex-1 rounded-xl px-2"
     >
       <Text
         variant={TextVariant.BodyMd}
@@ -120,7 +120,7 @@ export const MarketFooterCard = ({
   return (
     <Box
       testID={MarketFooterCardTestIds.ROOT}
-      twClassName="flex-row gap-2 px-4 pt-2"
+      className="flex-row gap-2 px-4 pt-2"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
       {getGameTeamOrder(game).map((selection) => {

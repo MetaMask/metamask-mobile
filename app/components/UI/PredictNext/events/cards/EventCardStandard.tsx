@@ -140,11 +140,11 @@ const getTrendingRows = (markets: readonly PredictMarket[]): TrendingRow[] =>
 
 const LiveMarker = ({ eventId }: { eventId: string }) => (
   <Box
-    twClassName="flex-row items-center gap-1"
+    className="flex-row items-center gap-1"
     testID={`predict-next-event-live-${eventId}`}
   >
     <Box
-      twClassName="h-2 w-2 rounded-full bg-success-default"
+      className="h-2 w-2 rounded-full bg-success-default"
       testID={`predict-next-event-live-dot-${eventId}`}
     />
     <Text
@@ -182,7 +182,7 @@ const TrendingMarketRow = ({
     <SharedOutcomeRow.Root
       testID={`predict-next-outcome-row-${event.id}-${market.id}`}
     >
-      <Box twClassName="min-w-0 flex-1">
+      <Box className="min-w-0 flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
@@ -244,7 +244,7 @@ const TrendingStandardCard = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
           testID={`predict-next-event-category-${event.id}`}
         >
           {category}

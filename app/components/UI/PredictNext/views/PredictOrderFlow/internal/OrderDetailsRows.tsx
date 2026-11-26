@@ -39,7 +39,7 @@ const DetailsRow = ({
   testID,
   valueColor = TextColor.TextDefault,
 }: DetailsRowProps) => (
-  <Box twClassName="h-14 flex-row items-center justify-between gap-4">
+  <Box className="h-14 flex-row items-center justify-between gap-4">
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {label}
     </Text>

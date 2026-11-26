@@ -30,10 +30,10 @@ export const DepositProcessing = ({
   onDone: () => void;
 }): React.JSX.Element => (
   <Box
-    twClassName="flex-1 justify-between px-4 pb-4"
+    className="flex-1 justify-between px-4 pb-4"
     testID={PredictDepositScreenTestIds.PROCESSING}
   >
-    <Box twClassName="flex-1 items-center justify-center gap-3">
+    <Box className="flex-1 items-center justify-center gap-3">
       <Icon
         name={IconName.Clock}
         size={IconSize.Xl}
@@ -45,7 +45,7 @@ export const DepositProcessing = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('predict_next.deposit.processing_description', {
           amount: formatUsd(amount),

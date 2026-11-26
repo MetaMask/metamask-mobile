@@ -32,10 +32,10 @@ export const EventLoadingHeader = () => (
   <Box
     testID={PredictEventScreenTestIds.LOADING}
     accessibilityLabel={strings('predict.event.loading_accessibility_label')}
-    twClassName="gap-3"
+    className="gap-3"
   >
-    <Box twClassName="h-24 rounded-xl bg-muted" />
-    <Box twClassName="h-4 w-2/3 rounded bg-muted" />
+    <Box className="h-24 rounded-xl bg-muted" />
+    <Box className="h-4 w-2/3 rounded bg-muted" />
   </Box>
 );
 
@@ -172,7 +172,7 @@ const GameTeam = ({
     accessibilityLabel={
       score === undefined ? team.name : `${team.name}, ${score}`
     }
-    twClassName="w-14 items-center gap-2"
+    className="w-14 items-center gap-2"
   >
     <TeamLogo
       team={team}
@@ -207,7 +207,7 @@ const GameScore = ({
       testID={PredictEventScreenTestIds.teamScore(selection)}
       variant={TextVariant.DisplayMd}
       fontWeight={FontWeight.Bold}
-      twClassName="shrink-0"
+      className="shrink-0"
       accessibilityElementsHidden
       importantForAccessibility="no"
     >
@@ -224,12 +224,12 @@ const GameStatus = ({
 }) => (
   // Takes the width the Teams and scores leave, and wraps inside it, so the
   // row never pushes the right Team past the screen padding.
-  <Box twClassName="min-w-0 flex-1 items-center">
-    <Box twClassName="max-w-full flex-row items-center gap-2">
+  <Box className="min-w-0 flex-1 items-center">
+    <Box className="max-w-full flex-row items-center gap-2">
       {isLive ? (
         <Box
           testID={PredictEventScreenTestIds.LIVE_DOT}
-          twClassName="h-2.5 w-2.5 rounded-full bg-success-default"
+          className="h-2.5 w-2.5 rounded-full bg-success-default"
         />
       ) : null}
       <Text
@@ -237,7 +237,7 @@ const GameStatus = ({
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Bold}
         color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
-        twClassName="shrink text-center"
+        className="shrink text-center"
       >
         {line.label}
       </Text>
@@ -248,7 +248,7 @@ const GameStatus = ({
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {line.metadata}
       </Text>
@@ -280,7 +280,7 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   return (
     <Box
       testID={PredictEventScreenTestIds.GAME_HEADER}
-      twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
+      className="flex-row items-center justify-between gap-6 px-4 py-4"
     >
       <GameTeam {...teamProps(order[0])} />
       <GameScore score={game.score?.[order[0]]} selection={order[0]} />
