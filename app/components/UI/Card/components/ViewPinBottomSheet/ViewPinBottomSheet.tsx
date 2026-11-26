@@ -48,9 +48,9 @@ const ViewPinBottomSheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-6 items-center">
+      <Box className="px-4 pb-6 items-center">
         <Box
-          twClassName="w-full rounded-lg overflow-hidden"
+          className="w-full rounded-lg overflow-hidden"
           style={{ aspectRatio: 3 / 1 }}
         >
           {isImageLoading && (
