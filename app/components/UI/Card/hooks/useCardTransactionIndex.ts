@@ -154,7 +154,7 @@ export function useCardTransactionIndex({
 
   useEffect(() => {
     if (wantsMore) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [wantsMore, fetchNextPage]);
 

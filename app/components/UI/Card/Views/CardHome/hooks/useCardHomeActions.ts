@@ -561,9 +561,10 @@ export function useCardHomeActions({
   const transactionHistoryAction = useCallback(
     (destination: 'card' | 'money') => {
       if (destination === 'money') {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.ACTIVITY },
+        // The top-level Money stack, so back returns to Card Home and the
+        // Money tab keeps its own state.
+        navigation.navigate(Routes.MONEY.ROOT, {
+          screen: Routes.MONEY.ACTIVITY,
         });
         return;
       }
