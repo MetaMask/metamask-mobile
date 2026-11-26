@@ -11,7 +11,7 @@ import { describeForPlatforms } from '../../../../tests/component-view/platform'
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { TransactionsViewSelectorsIDs } from './TransactionsView.testIds';
+import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
 
 const getSwitchValue = (switchElement: ReactTestInstance) =>
   switchElement.props.value ?? switchElement.props.on;

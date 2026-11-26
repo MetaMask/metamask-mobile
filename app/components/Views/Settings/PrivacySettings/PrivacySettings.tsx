@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, View, InteractionManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { MAINNET } from '../../../constants/network';
-import ActionModal from '../../UI/ActionModal';
-import { clearHistory } from '../../../actions/browser';
-import { strings } from '../../../../locales/i18n';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MAINNET } from '../../../../constants/network';
+import ActionModal from '../../../UI/ActionModal';
+import { clearHistory } from '../../../../actions/browser';
+import { strings } from '../../../../../locales/i18n';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -14,12 +14,12 @@ import {
   ClearPrivacy,
   SupportConsentPreferenceSection,
   DeleteIdentityData,
-} from './SecuritySettings/Sections';
-import { selectProviderType } from '../../../selectors/networkController';
+} from '../SecuritySettings/Sections';
+import { selectProviderType } from '../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import { useParams } from '../../../util/navigation/navUtils';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { useParams } from '../../../../util/navigation/navUtils';
 import {
   Button,
   ButtonVariant,
@@ -30,24 +30,24 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
-import BasicFunctionalityComponent from '../../UI/BasicFunctionality/BasicFunctionality';
-import Routes from '../../../constants/navigation/Routes';
-import MetaMetricsAndDataCollectionSection from './SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import TopTradersSection from './SecuritySettings/Sections/TopTradersSection';
-import { RootState } from '../../../reducers';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
-import SwitchLoadingModal from '../../UI/Notification/SwitchLoadingModal';
-import { useDisableNotifications } from '../../../util/notifications/hooks/useNotifications';
-import NetworkDetailsCheckSettings from './NetworkDetailsCheckSettings';
-import DisplayNFTMediaSettings from './DisplayNFTMediaSettings';
-import AutoDetectNFTSettings from './AutoDetectNFTSettings';
-import IPFSGatewaySettings from './IPFSGatewaySettings';
+import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import Routes from '../../../../constants/navigation/Routes';
+import MetaMetricsAndDataCollectionSection from '../SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import TopTradersSection from '../SecuritySettings/Sections/TopTradersSection';
+import { RootState } from '../../../../reducers';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import NetworkDetailsCheckSettings from '../NetworkDetailsCheckSettings';
+import DisplayNFTMediaSettings from '../DisplayNFTMediaSettings';
+import AutoDetectNFTSettings from '../AutoDetectNFTSettings';
+import IPFSGatewaySettings from '../IPFSGatewaySettings';
 import {
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsSocialLoginBasicFunctionalityLocked,
-} from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+} from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const CLEAR_BROWSER_HISTORY_SECTION = 'clear-browser-history-section';
 
@@ -153,7 +153,7 @@ function PrivacySettings() {
 
   function renderClearBrowserHistorySection() {
     return (
-      <Box twClassName="mt-6" testID={CLEAR_BROWSER_HISTORY_SECTION}>
+      <Box className="mt-6" testID={CLEAR_BROWSER_HISTORY_SECTION}>
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('app_settings.clear_browser_history_desc')}
         </Text>
@@ -161,11 +161,11 @@ function PrivacySettings() {
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {strings('app_settings.clear_history_desc')}
         </Text>
-        <Box twClassName="mt-4">
+        <Box className="mt-4">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
@@ -197,11 +197,11 @@ function PrivacySettings() {
         onRequestClose={toggleClearBrowserHistoryModal}
         onConfirmPress={clearBrowserHistory}
       >
-        <Box twClassName="flex-1 items-center justify-center p-5">
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-5">
+        <Box className="flex-1 items-center justify-center p-5">
+          <Text variant={TextVariant.HeadingMd} className="text-center mb-5">
             {strings('app_settings.clear_browser_history_modal_title')}
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Text variant={TextVariant.BodyMd} className="text-center">
             {strings('app_settings.clear_browser_history_modal_message')}
           </Text>
         </Box>
@@ -233,11 +233,11 @@ function PrivacySettings() {
         contentContainerStyle={tw`grow pb-12 pt-4`}
         ref={scrollViewRef}
       >
-        <Box twClassName="pb-28 px-4">
-          <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
+        <Box className="pb-28 px-4">
+          <Text variant={TextVariant.HeadingMd} className="mb-4">
             {strings('app_settings.privacy_heading')}
           </Text>
-          <Box twClassName="mt-6">
+          <Box className="mt-6">
             <BasicFunctionalityComponent
               flushTop
               disabled={isSocialLoginBasicFunctionalityLocked}
@@ -251,7 +251,7 @@ function PrivacySettings() {
             <>
               <Text
                 variant={TextVariant.HeadingMd}
-                twClassName="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+                className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
               >
                 {strings('app_settings.network_provider')}
               </Text>
@@ -262,7 +262,7 @@ function PrivacySettings() {
             <>
               <Text
                 variant={TextVariant.HeadingMd}
-                twClassName="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+                className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
               >
                 {strings('app_settings.token_nft_ens_subheading')}
               </Text>
@@ -273,7 +273,7 @@ function PrivacySettings() {
           <IPFSGatewaySettings />
           <Text
             variant={TextVariant.HeadingMd}
-            twClassName="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+            className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
           >
             {strings('app_settings.analytics_subheading')}
           </Text>
@@ -282,7 +282,7 @@ function PrivacySettings() {
             dataCollectionRef={dataCollectionSectionRef}
           />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
-          <Box twClassName="mt-6">
+          <Box className="mt-6">
             <SupportConsentPreferenceSection />
           </Box>
           <DeleteWalletData />

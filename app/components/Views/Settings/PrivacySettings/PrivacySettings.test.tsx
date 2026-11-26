@@ -6,24 +6,24 @@ import {
   type HostInstance,
 } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import PrivacySettings from './PrivacySettings';
-import { META_METRICS_SECTION } from './SecuritySettings/SecuritySettings.constants';
+import { META_METRICS_SECTION } from '../SecuritySettings/SecuritySettings.constants';
 
 let mockUseParamsValues: {
   scrollToSection?: 'metametrics' | 'data-collection';
 } = {};
 
-jest.mock('../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../util/navigation/navUtils'),
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
 const mockDisableNotifications = jest.fn();
 let mockIsNotificationEnabled = true;
 
-jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
+jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
   useDisableNotifications: () => ({
     disableNotifications: mockDisableNotifications,
     loading: false,
@@ -31,8 +31,8 @@ jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
   }),
 }));
 
-jest.mock('../../../selectors/notifications', () => ({
-  ...jest.requireActual('../../../selectors/notifications'),
+jest.mock('../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../selectors/notifications'),
   selectIsMetamaskNotificationsEnabled: () => mockIsNotificationEnabled,
 }));
 

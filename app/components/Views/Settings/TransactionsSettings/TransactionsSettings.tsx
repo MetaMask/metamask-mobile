@@ -3,14 +3,14 @@ import { Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Engine from '../../../core/Engine';
-import { setShowHexData } from '../../../actions/settings';
-import { strings } from '../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+import { setShowHexData } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectSmartTransactionsOptInStatus,
   selectUseTransactionSimulations,
-} from '../../../selectors/preferencesController';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '../../../../selectors/preferencesController';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   FontWeight,
   Text,
@@ -18,25 +18,25 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import AppConstants from '../../../../app/core/AppConstants';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import { SettingsToggleRow } from './components/SettingsToggleRow';
-import { TransactionsViewSelectorsIDs } from './TransactionsView.testIds';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import AppConstants from '../../../../../app/core/AppConstants';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { SettingsToggleRow } from '../../components/SettingsToggleRow';
+import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { useNavigation } from '@react-navigation/native';
-import { SIMULATION_DETALS_ARTICLE_URL } from '../../../constants/urls';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../component-library/components/Texts/Text';
-import BatchAccountBalanceSettings from './BatchAccountBalanceSettings';
+} from '../../../../component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text';
+import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
 
 function TransactionsSettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
@@ -98,12 +98,12 @@ function TransactionsSettings() {
 
   function renderUseTransactionSimulations() {
     return (
-      <Box twClassName="mt-6">
-        <Box twClassName="flex-row items-center">
+      <Box className="mt-6">
+        <Box className="flex-row items-center">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings('app_settings.simulation_details')}
           </Text>
@@ -112,7 +112,7 @@ function TransactionsSettings() {
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {strings('app_settings.simulation_details_description')}
           <OldButton
@@ -153,8 +153,8 @@ function TransactionsSettings() {
         style={tw`flex-1`}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <Box twClassName="pb-28 px-4">
-          <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
+        <Box className="pb-28 px-4">
+          <Text variant={TextVariant.HeadingMd} className="mb-4">
             {strings('app_settings.transactions_subheading')}
           </Text>
 
