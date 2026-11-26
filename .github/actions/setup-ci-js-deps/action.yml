@@ -1,10 +1,12 @@
 name: 'Setup CI JS dependencies'
 description: >
   Sets up node_modules and project build outputs for CI jobs.
-  On Namespace runners, mounts the shared cache volume then runs
-  yarn install --immutable to sync with the current yarn.lock.
-  On non-Namespace runners, skips install when node_modules is
-  already present from a same-run artifact; otherwise installs from scratch.
+  On Namespace runners, restores the shared cache volume and skips
+  yarn install and setup when the cached install was produced from the
+  same lockfile, patches and Node version; otherwise runs
+  yarn install --immutable and the GitHub CI setup.
+  On non-Namespace runners, installs from scratch unless node_modules is
+  already present from a same-run artifact.
 
 inputs:
   runner_provider:
@@ -21,23 +23,46 @@ runs:
       with:
         path: |
           ~/.cache/yarn
+          ~/.cache/metamask-ci-install
           .metamask
           node_modules
           .yarn/cache
 
     # Run before setup-node so yarn cache is only enabled when this job installs deps.
-    # When node_modules comes from the ci-js-deps artifact, skipping cache avoids a
-    # post-job "Path Validation Error" from actions/setup-node trying to save a
-    # cache path that was never populated.
     - name: Determine if install is needed
       id: check-deps
       shell: bash
       env:
         RUNNER_PROVIDER: ${{ inputs.runner_provider }}
+        INSTALL_STATE_KEY: ${{ hashFiles('yarn.lock', 'package.json', '.yarnrc.yml', '.nvmrc', '.yarn/patches/**') }}
       run: |
-        if [ "${RUNNER_PROVIDER}" != "namespace" ] && \
-           [ -d node_modules ] && \
-           [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
+        set -euo pipefail
+        install_state_dir="$HOME/.cache/metamask-ci-install"
+
+        if [ "${RUNNER_PROVIDER}" = "namespace" ]; then
+          # The Namespace volume is shared across runs, so node_modules is only
+          # reusable when the install recorded in this state dir matches the
+          # current lockfile. Jobs that do not write the state dir can still
+          # reinstall node_modules, so the state also records a hash of yarn's own
+          # install state and must match what is on disk now.
+          if [ -f node_modules/.yarn-state.yml ] \
+            && [ -f "$install_state_dir/key" ] \
+            && [ "$(cat "$install_state_dir/key")" = "$INSTALL_STATE_KEY" ] \
+            && [ -f "$install_state_dir/node-modules-state" ] \
+            && [ "$(cat "$install_state_dir/node-modules-state")" = "$(sha256sum node_modules/.yarn-state.yml | cut -d' ' -f1)" ] \
+            && [ -f "$install_state_dir/termsOfUseContent.ts" ] \
+            && [ -f "$install_state_dir/termsOfUse.html" ]; then
+            cp "$install_state_dir/termsOfUseContent.ts" app/util/termsOfUse/termsOfUseContent.ts
+            cp "$install_state_dir/termsOfUse.html" docs/assets/termsOfUse.html
+            echo "needs-install=false" >> "$GITHUB_OUTPUT"
+          else
+            # The state dir is a Namespace cache mount point, so clear its contents
+            # instead of removing the directory itself.
+            mkdir -p "$install_state_dir"
+            find "$install_state_dir" -mindepth 1 -delete
+            echo "needs-install=true" >> "$GITHUB_OUTPUT"
+          fi
+        elif [ -d node_modules ] && [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
           echo "needs-install=false" >> "$GITHUB_OUTPUT"
         else
           echo "needs-install=true" >> "$GITHUB_OUTPUT"
@@ -48,7 +73,7 @@ runs:
         node-version-file: '.nvmrc'
         cache: ${{ inputs.runner_provider != 'namespace' && steps.check-deps.outputs.needs-install == 'true' && 'yarn' || '' }}
 
-    # Namespace: always run install so the shared volume stays in sync with yarn.lock.
+    # Namespace: install only when the cached volume does not match the lockfile.
     # Non-Namespace: skip install when node_modules was extracted from a same-run
     # artifact; run install when starting from a clean workspace.
     - name: Install Yarn dependencies with retry
@@ -64,3 +89,17 @@ runs:
       if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
       shell: bash
       run: yarn setup:github-ci --node
+
+    - name: Record install state (Namespace)
+      if: ${{ inputs.runner_provider == 'namespace' && steps.check-deps.outputs.needs-install == 'true' }}
+      shell: bash
+      env:
+        INSTALL_STATE_KEY: ${{ hashFiles('yarn.lock', 'package.json', '.yarnrc.yml', '.nvmrc', '.yarn/patches/**') }}
+      run: |
+        set -euo pipefail
+        install_state_dir="$HOME/.cache/metamask-ci-install"
+        mkdir -p "$install_state_dir"
+        cp app/util/termsOfUse/termsOfUseContent.ts "$install_state_dir/termsOfUseContent.ts"
+        cp docs/assets/termsOfUse.html "$install_state_dir/termsOfUse.html"
+        sha256sum node_modules/.yarn-state.yml | cut -d' ' -f1 > "$install_state_dir/node-modules-state"
+        printf '%s' "$INSTALL_STATE_KEY" > "$install_state_dir/key"
