@@ -844,6 +844,116 @@ describe('PerformanceReporter', () => {
         });
       });
 
+      describe('session selection for retried tests', () => {
+        const startTime = new Date('2026-07-22T14:10:00.000Z');
+        const start = startTime.getTime();
+        const timedStep = {
+          name: 'tap Add Funds',
+          duration: 2000,
+          baseThreshold: null,
+          threshold: null,
+          startedAt: start + 400_000,
+          endedAt: start + 402_000,
+        };
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+        const earlierHar = [callAt(0), callAt(30_000)];
+        const stepHar = [callAt(399_000), callAt(401_000), callAt(401_500)];
+
+        const recordAttempt = (
+          sessionId: string | null,
+          networkLogsEntries: unknown[],
+        ): void => {
+          const args = [
+            makeTest(),
+            makeResult({
+              startTime,
+              duration: 500_000,
+              attachments: [
+                ...(sessionId
+                  ? [
+                      makeSessionAttachment({
+                        sessionId,
+                        projectName: 'testmu-android',
+                        networkLogsEntries,
+                      }),
+                    ]
+                  : []),
+                makeMetricsAttachment({ steps: [timedStep] }),
+              ],
+            }),
+          ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+          reporter.onTestEnd(...args);
+        };
+
+        const setSessions = (
+          sessions: { sessionId: string; networkLogsEntries: unknown[] }[],
+        ): void => {
+          Reflect.set(
+            reporter,
+            'sessions',
+            sessions.map((session) => ({
+              ...session,
+              testTitle: 'Login Test',
+            })),
+          );
+        };
+
+        const publishedTotal = (): number =>
+          (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0].summary
+            .total;
+
+        it('uses the session of the attempt that produced the metrics, not an earlier one', async () => {
+          recordAttempt('sess-early', earlierHar);
+          recordAttempt('sess-final', stepHar);
+          expect(
+            Reflect.get(reporter, 'sessions').map(
+              (session: { sessionId: string }) => session.sessionId,
+            ),
+          ).toEqual(['sess-early', 'sess-final']);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(stepHar.length);
+        });
+
+        it('without a metric session id, picks the session whose network log overlaps the steps', async () => {
+          recordAttempt(null, []);
+          setSessions([
+            { sessionId: 'sess-early', networkLogsEntries: earlierHar },
+            { sessionId: 'sess-overlap', networkLogsEntries: stepHar },
+            {
+              sessionId: 'sess-later-no-overlap',
+              networkLogsEntries: earlierHar,
+            },
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(stepHar.length);
+        });
+
+        it('without a metric session id or overlap, falls back to the latest session', async () => {
+          recordAttempt(null, []);
+          setSessions([
+            { sessionId: 'sess-first', networkLogsEntries: earlierHar },
+            { sessionId: 'sess-last', networkLogsEntries: [callAt(1)] },
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(1);
+          expect(
+            (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0]
+              .summary.stepAttribution.status,
+          ).toBe('no_overlap');
+        });
+      });
+
       it('keeps generating reports when publishing throws', async () => {
         (publishApiCallsSummaryToSentry as jest.Mock).mockRejectedValueOnce(
           new Error('sentry down'),

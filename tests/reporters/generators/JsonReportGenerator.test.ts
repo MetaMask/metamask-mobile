@@ -388,9 +388,22 @@ describe('JsonReportGenerator', () => {
           duplicates: 1,
           failed: 1,
           byHost: { 'api.example.com': 2, 'other.example.com': 1 },
+          app: { total: 3, unique: 2, duplicates: 1, failed: 1 },
           topEndpoints: [
-            { method: 'GET', url: 'api.example.com/v1/a', count: 2, failed: 0 },
-            { method: 'GET', url: 'other.example.com/b', count: 1, failed: 1 },
+            {
+              method: 'GET',
+              kind: 'app',
+              url: 'api.example.com/v1/a',
+              count: 2,
+              failed: 0,
+            },
+            {
+              method: 'GET',
+              kind: 'app',
+              url: 'other.example.com/b',
+              count: 1,
+              failed: 1,
+            },
           ],
           steps: [],
           stepAttribution: {

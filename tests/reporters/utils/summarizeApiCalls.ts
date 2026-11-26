@@ -3,6 +3,7 @@ import type {
   ApiEndpointSummary,
   NetworkLogEntry,
 } from '../types';
+import { classifyApiCall } from './classifyApiCall';
 import { sanitizeApiCallUrl } from './sanitizeApiCallUrl';
 
 export const DEFAULT_TOP_ENDPOINTS = 10;
@@ -28,6 +29,9 @@ function getHost(sanitizedUrl: string): string {
  * there is no error, capture was not attempted: returns `null`. When
  * `apiCalls` is an array (including empty): returns `status: 'captured'`.
  *
+ * Top endpoints list `app` requests first so noise (local mock server polls,
+ * telemetry) cannot crowd them out of the cap.
+ *
  * A call counts as failed when its status is >= 400 or is missing / 0 (HAR
  * reports aborted or blocked requests without a real status).
  */
@@ -46,7 +50,10 @@ export function summarizeApiCalls(
 
   const endpoints = new Map<string, ApiEndpointSummary>();
   const byHost = new Map<string, number>();
+  const appEndpoints = new Set<string>();
   let failed = 0;
+  let appTotal = 0;
+  let appFailed = 0;
 
   for (const call of apiCalls) {
     const method = (call.method || 'GET').toUpperCase();
@@ -54,8 +61,11 @@ export function summarizeApiCalls(
     const key = `${method} ${url}`;
     const callFailed = isFailedCall(call);
 
+    const kind = classifyApiCall(method, url);
+
     const endpoint = endpoints.get(key) ?? {
       method,
+      kind,
       url,
       count: 0,
       failed: 0,
@@ -66,6 +76,14 @@ export function summarizeApiCalls(
       failed += 1;
     }
     endpoints.set(key, endpoint);
+
+    if (kind === 'app') {
+      appTotal += 1;
+      appEndpoints.add(key);
+      if (callFailed) {
+        appFailed += 1;
+      }
+    }
 
     const host = getHost(url);
     byHost.set(host, (byHost.get(host) ?? 0) + 1);
@@ -79,6 +97,7 @@ export function summarizeApiCalls(
   const topEndpoints = [...endpoints.values()]
     .sort(
       (a, b) =>
+        Number(b.kind === 'app') - Number(a.kind === 'app') ||
         b.count - a.count ||
         a.url.localeCompare(b.url) ||
         a.method.localeCompare(b.method),
@@ -92,6 +111,12 @@ export function summarizeApiCalls(
     duplicates: apiCalls.length - endpoints.size,
     failed,
     byHost: Object.fromEntries(sortedHosts),
+    app: {
+      total: appTotal,
+      unique: appEndpoints.size,
+      duplicates: appTotal - appEndpoints.size,
+      failed: appFailed,
+    },
     topEndpoints,
   };
 }

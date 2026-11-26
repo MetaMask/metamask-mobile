@@ -18,7 +18,10 @@ import {
   publishApiCallsSummaryToSentry,
   publishPerformanceScenarioToSentry,
 } from './providers/sentry/PerformanceSentryPublisher';
-import { summarizeApiCallsByStep } from './utils/attributeApiCallsToSteps';
+import {
+  networkLogOverlapsSteps,
+  summarizeApiCallsByStep,
+} from './utils/attributeApiCallsToSteps';
 import type {
   MetricsEntry,
   SessionData,
@@ -62,6 +65,24 @@ const getTestWindowFields = (
   return startedAt !== undefined && Number.isFinite(startedAt)
     ? { testStartedAt: startedAt, testEndedAt: startedAt + result.duration }
     : {};
+};
+
+/** Session of this attempt: the session-data attachment, else the annotation. */
+const getAttemptSessionId = (
+  result: PlaywrightTestResult,
+): string | undefined => {
+  const body = result.attachments
+    .find((att) => att.name === 'session-data')
+    ?.body?.toString();
+  try {
+    const fromAttachment = body ? JSON.parse(body).sessionId : undefined;
+    if (typeof fromAttachment === 'string' && fromAttachment) {
+      return fromAttachment;
+    }
+  } catch {
+    // Unparseable attachment: fall back to the annotation below.
+  }
+  return result.annotations?.find((a) => a.type === 'sessionId')?.description;
 };
 
 const isTestFailureStatus = (status: string): boolean =>
@@ -360,6 +381,10 @@ class PerformanceReporter {
           projectName,
           ...getTestWindowFields(result),
         };
+        const attemptSessionId = getAttemptSessionId(result);
+        if (attemptSessionId) {
+          metricsEntry.sessionId = attemptSessionId;
+        }
 
         // Mark actual failures
         if (isTestFailureStatus(result.status)) {
@@ -768,11 +793,34 @@ class PerformanceReporter {
     }
   }
 
+  /**
+   * Retried tests leave one session per attempt. Prefer the session of the
+   * attempt that produced the metrics; otherwise, among the test's sessions,
+   * the one whose network log overlaps the measured steps, else the latest.
+   */
+  private findSessionForMetric(metric: MetricsEntry): SessionData | undefined {
+    const byId = metric.sessionId
+      ? this.sessions.find((session) => session.sessionId === metric.sessionId)
+      : undefined;
+    if (byId) {
+      return byId;
+    }
+    const sameTest = this.sessions.filter(
+      (session) => session.testTitle === metric.testName,
+    );
+    if (sameTest.length <= 1) {
+      return sameTest[0];
+    }
+    return (
+      sameTest.find((session) =>
+        networkLogOverlapsSteps(session.networkLogsEntries, metric.steps),
+      ) ?? sameTest[sameTest.length - 1]
+    );
+  }
+
   private mergeSessionDataIntoMetrics(): MetricsEntry[] {
     return this.metrics.map((metric) => {
-      const matchingSession = this.sessions.find(
-        (session) => session.testTitle === metric.testName,
-      );
+      const matchingSession = this.findSessionForMetric(metric);
       const apiCalls =
         matchingSession?.networkLogsEntries != null
           ? matchingSession.networkLogsEntries

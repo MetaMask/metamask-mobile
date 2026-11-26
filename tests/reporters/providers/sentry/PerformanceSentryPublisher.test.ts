@@ -709,15 +709,18 @@ describe('PerformanceSentryPublisher', () => {
       duplicates: 4,
       failed: 2,
       byHost: { 'api.example.com': 9, 'mainnet.infura.io': 3 },
+      app: { total: 9, unique: 6, duplicates: 3, failed: 2 },
       topEndpoints: [
         {
           method: 'GET',
+          kind: 'app',
           url: 'api.example.com/v1/accounts',
           count: 4,
           failed: 1,
         },
         {
           method: 'POST',
+          kind: 'app',
           url: 'mainnet.infura.io/v3/***',
           count: 3,
           failed: 0,
@@ -834,6 +837,10 @@ describe('PerformanceSentryPublisher', () => {
         'api.requests.unique': 8,
         'api.requests.duplicates': 4,
         'api.requests.failed': 2,
+        'api.requests.app.total': 9,
+        'api.requests.app.unique': 6,
+        'api.requests.app.duplicates': 3,
+        'api.requests.app.failed': 2,
         'api.hosts.count': 2,
         project_name: 'testmu-android',
         build_variant: 'exp',
@@ -851,6 +858,7 @@ describe('PerformanceSentryPublisher', () => {
         api_requests_unique: { value: 8, unit: 'none' },
         api_requests_duplicates: { value: 4, unit: 'none' },
         api_requests_failed: { value: 2, unit: 'none' },
+        api_requests_app_total: { value: 9, unit: 'none' },
       });
     });
 
@@ -881,6 +889,7 @@ describe('PerformanceSentryPublisher', () => {
       );
       expect(endpointSpans[0].data).toMatchObject({
         'api.method': 'GET',
+        'api.kind': 'app',
         'api.endpoint': 'api.example.com/v1/accounts',
         'api.endpoint.requests': 4,
         'api.endpoint.failed': 1,
@@ -933,6 +942,10 @@ describe('PerformanceSentryPublisher', () => {
             'api.requests.unique',
             'api.requests.duplicates',
             'api.requests.failed',
+            'api.requests.app.total',
+            'api.requests.app.unique',
+            'api.requests.app.duplicates',
+            'api.requests.app.failed',
             'api.hosts.count',
             'api.host.requests',
             'api.host.requests',
@@ -979,7 +992,7 @@ describe('PerformanceSentryPublisher', () => {
           Object.values<{ unit: string }>(payload.measurements).map(
             ({ unit }) => unit,
           ),
-        ).toEqual(['none', 'none', 'none', 'none']);
+        ).toEqual(['none', 'none', 'none', 'none', 'none']);
       });
 
       it('keeps api attribute names free of duration-like tokens', async () => {
@@ -1013,6 +1026,7 @@ describe('PerformanceSentryPublisher', () => {
         duplicates: 0,
         failed: 0,
         byHost: {},
+        app: { total: 0, unique: 0, duplicates: 0, failed: 0 },
         topEndpoints: [],
       });
 
@@ -1046,18 +1060,51 @@ describe('PerformanceSentryPublisher', () => {
         steps: [
           {
             step: 'open Token Details Page',
-            total: 3,
+            phase: 'during',
+            total: 4,
+            appTotal: 3,
             failed: 0,
             topEndpoints: [
               {
                 method: 'POST',
+                kind: 'app',
                 url: 'mainnet.infura.io/v3/***',
                 count: 3,
                 failed: 0,
               },
+              {
+                method: 'OPTIONS',
+                kind: 'preflight',
+                url: 'mainnet.infura.io/v3/***',
+                count: 1,
+                failed: 0,
+              },
             ],
           },
-          { step: 'unattributed', total: 1, failed: 1, topEndpoints: [] },
+          {
+            step: 'open Token Details Page',
+            phase: 'after',
+            total: 2,
+            appTotal: 2,
+            failed: 0,
+            topEndpoints: [
+              {
+                method: 'GET',
+                kind: 'app',
+                url: 'api.example.com/v1/accounts',
+                count: 2,
+                failed: 0,
+              },
+            ],
+          },
+          {
+            step: 'unattributed',
+            phase: 'none',
+            total: 1,
+            appTotal: 0,
+            failed: 1,
+            topEndpoints: [],
+          },
         ],
         stepAttribution: {
           status: 'ok',
@@ -1077,11 +1124,19 @@ describe('PerformanceSentryPublisher', () => {
         expect(stepSpans.map((span: { data: unknown }) => span.data)).toEqual([
           expect.objectContaining({
             'api.step': 'open Token Details Page',
-            'api.step.requests': 3,
+            'api.step.phase': 'during',
+            'api.step.requests': 4,
+            'api.step.requests.app': 3,
             'api.step.failed': 0,
           }),
           expect.objectContaining({
+            'api.step': 'open Token Details Page',
+            'api.step.phase': 'after',
+            'api.step.requests': 2,
+          }),
+          expect.objectContaining({
             'api.step': 'unattributed',
+            'api.step.phase': 'none',
             'api.step.requests': 1,
             'api.step.failed': 1,
           }),
@@ -1095,19 +1150,39 @@ describe('PerformanceSentryPublisher', () => {
           (span: { op: string }) =>
             span.op === 'e2e.performance.network.step_endpoint',
         );
-        expect(endpointSpans).toHaveLength(1);
+        expect(endpointSpans).toHaveLength(3);
         expect(endpointSpans[0].description).toBe(
           '[open Token Details Page] POST mainnet.infura.io/v3/***',
         );
         expect(endpointSpans[0].data).toMatchObject({
           'api.step': 'open Token Details Page',
+          'api.step.phase': 'during',
           'api.step_endpoint':
             'open Token Details Page | POST mainnet.infura.io/v3/***',
           'api.method': 'POST',
+          'api.kind': 'app',
           'api.endpoint': 'mainnet.infura.io/v3/***',
           'api.endpoint.requests': 3,
           'api.endpoint.failed': 0,
         });
+        expect(endpointSpans[1].data['api.kind']).toBe('preflight');
+      });
+
+      it('labels the after phase in descriptions and the combined attribute only', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const afterSpan = payload.spans.find(
+          (span: { op: string; data: Record<string, unknown> }) =>
+            span.op === 'e2e.performance.network.step_endpoint' &&
+            span.data['api.step.phase'] === 'after',
+        );
+        expect(afterSpan.description).toBe(
+          '[open Token Details Page (after)] GET api.example.com/v1/accounts',
+        );
+        expect(afterSpan.data['api.step']).toBe('open Token Details Page');
+        expect(afterSpan.data['api.step_endpoint']).toBe(
+          'open Token Details Page (after) | GET api.example.com/v1/accounts',
+        );
       });
 
       it('tags the attribution status and mirrors it on the network span', async () => {

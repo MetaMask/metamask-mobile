@@ -657,12 +657,17 @@ export const API_COUNT_ATTRIBUTES = {
   unique: 'api.requests.unique',
   duplicates: 'api.requests.duplicates',
   failed: 'api.requests.failed',
+  appTotal: 'api.requests.app.total',
+  appUnique: 'api.requests.app.unique',
+  appDuplicates: 'api.requests.app.duplicates',
+  appFailed: 'api.requests.app.failed',
   hostsCount: 'api.hosts.count',
   hostRequests: 'api.host.requests',
   endpointRequests: 'api.endpoint.requests',
   endpointFailed: 'api.endpoint.failed',
   unattributed: 'api.requests.unattributed',
   stepRequests: 'api.step.requests',
+  stepAppRequests: 'api.step.requests.app',
   stepFailed: 'api.step.failed',
 } as const;
 const MAX_CAPTURE_ERROR_LENGTH = 200;
@@ -695,7 +700,11 @@ interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
  * step). The latter carries `api.step`, `api.endpoint` and the combined
  * `api.step_endpoint` ("<step> | <METHOD> <endpoint>") and puts the step in
  * the span description, so grouping by one field shows both in a chart
- * legend. The `api_step_attribution` tag (ok | skewed | no_overlap | unavailable) says
+ * legend. `api.step.phase` is `during` (incl. pre-roll), `after` (calls just
+ * after the step, labelled "<step> (after)" in descriptions and
+ * `api.step_endpoint`) or `none` (`unattributed`). Endpoint spans carry
+ * `api.kind` (app | preflight | test_infra | telemetry). The
+ * `api_step_attribution` tag (ok | skewed | no_overlap | unavailable) says
  * whether the HAR and test-runner clocks line up.
  *
  * A failed capture sends `api.capture.status = "error"` with no counts, so a
@@ -749,6 +758,10 @@ export async function publishApiCallsSummaryToSentry(
       unit: 'none',
     };
     measurements.api_requests_failed = { value: summary.failed, unit: 'none' };
+    measurements.api_requests_app_total = {
+      value: summary.app.total,
+      unit: 'none',
+    };
 
     spans.push(
       createSpan(NETWORK_SPAN_OP, 'API requests', {
@@ -757,6 +770,10 @@ export async function publishApiCallsSummaryToSentry(
         [API_COUNT_ATTRIBUTES.unique]: summary.unique,
         [API_COUNT_ATTRIBUTES.duplicates]: summary.duplicates,
         [API_COUNT_ATTRIBUTES.failed]: summary.failed,
+        [API_COUNT_ATTRIBUTES.appTotal]: summary.app.total,
+        [API_COUNT_ATTRIBUTES.appUnique]: summary.app.unique,
+        [API_COUNT_ATTRIBUTES.appDuplicates]: summary.app.duplicates,
+        [API_COUNT_ATTRIBUTES.appFailed]: summary.app.failed,
         [API_COUNT_ATTRIBUTES.hostsCount]: hosts.length,
         ...(summary.stepAttribution && {
           'api.step.attribution': summary.stepAttribution.status,
@@ -780,6 +797,7 @@ export async function publishApiCallsSummaryToSentry(
       spans.push(
         createSpan(NETWORK_ENDPOINT_SPAN_OP, endpointKey, {
           'api.method': endpoint.method,
+          'api.kind': endpoint.kind,
           'api.endpoint': endpoint.url,
           [API_COUNT_ATTRIBUTES.endpointRequests]: endpoint.count,
           [API_COUNT_ATTRIBUTES.endpointFailed]: endpoint.failed,
@@ -788,11 +806,14 @@ export async function publishApiCallsSummaryToSentry(
     }
 
     for (const stepSummary of (summary.steps ?? []).slice(0, MAX_STEP_SPANS)) {
-      const { step } = stepSummary;
+      const { step, phase } = stepSummary;
+      const stepLabel = phase === 'after' ? `${step} (after)` : step;
       spans.push(
-        createSpan(NETWORK_STEP_SPAN_OP, step, {
+        createSpan(NETWORK_STEP_SPAN_OP, stepLabel, {
           'api.step': step,
+          'api.step.phase': phase,
           [API_COUNT_ATTRIBUTES.stepRequests]: stepSummary.total,
+          [API_COUNT_ATTRIBUTES.stepAppRequests]: stepSummary.appTotal,
           [API_COUNT_ATTRIBUTES.stepFailed]: stepSummary.failed,
         }),
       );
@@ -801,11 +822,13 @@ export async function publishApiCallsSummaryToSentry(
         spans.push(
           createSpan(
             NETWORK_STEP_ENDPOINT_SPAN_OP,
-            `[${step}] ${endpointKey}`,
+            `[${stepLabel}] ${endpointKey}`,
             {
               'api.step': step,
-              'api.step_endpoint': `${step} | ${endpointKey}`,
+              'api.step.phase': phase,
+              'api.step_endpoint': `${stepLabel} | ${endpointKey}`,
               'api.method': endpoint.method,
+              'api.kind': endpoint.kind,
               'api.endpoint': endpoint.url,
               [API_COUNT_ATTRIBUTES.endpointRequests]: endpoint.count,
               [API_COUNT_ATTRIBUTES.endpointFailed]: endpoint.failed,

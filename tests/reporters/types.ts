@@ -178,8 +178,16 @@ export interface NetworkLogEntry {
   startedAt?: number;
 }
 
+/**
+ * What produced a request, so test and telemetry noise can be filtered out:
+ * `app` (default), `preflight` (CORS OPTIONS), `test_infra` (local mock
+ * server, health checks) or `telemetry` (obvious Sentry/Google beacons).
+ */
+export type ApiKind = 'app' | 'preflight' | 'test_infra' | 'telemetry';
+
 export interface ApiEndpointSummary {
   method: string;
+  kind: ApiKind;
   /** Sanitized `host/path` (no protocol, query or key-like segments). */
   url: string;
   count: number;
@@ -202,6 +210,8 @@ export type ApiCallsSummary =
       /** Requests with status >= 400, or a missing / zero status. */
       failed: number;
       byHost: Record<string, number>;
+      /** Same counts as above, restricted to `api.kind: app` requests. */
+      app: ApiCountSummary;
       topEndpoints: ApiEndpointSummary[];
       /** Per measured step; present only when step windows were provided. */
       steps?: ApiStepSummary[];
@@ -209,10 +219,25 @@ export type ApiCallsSummary =
     }
   | { status: 'error'; error: string };
 
-/** Request counts for one measured step (or `unattributed`). */
+export interface ApiCountSummary {
+  total: number;
+  unique: number;
+  duplicates: number;
+  failed: number;
+}
+
+/**
+ * Request counts for one measured step (or `unattributed`). `during` also
+ * covers the short pre-roll before the timer started; `after` holds calls
+ * shortly after the timer stopped, kept apart so `during` stays clean;
+ * `none` is the `unattributed` bucket.
+ */
 export interface ApiStepSummary {
   step: string;
+  phase: 'during' | 'after' | 'none';
   total: number;
+  /** Requests with `api.kind: app`. */
+  appTotal: number;
   failed: number;
   topEndpoints: ApiEndpointSummary[];
 }

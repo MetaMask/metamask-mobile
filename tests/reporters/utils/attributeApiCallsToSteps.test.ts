@@ -1,7 +1,10 @@
 import type { MetricStep, NetworkLogEntry } from '../types';
 import {
+  AFTER_MAX_MS,
   attributeApiCallsToSteps,
   getTestWindow,
+  networkLogOverlapsSteps,
+  PRE_ROLL_MS,
   summarizeApiCallsByStep,
   TEST_WINDOW_TOLERANCE_MS,
   UNATTRIBUTED_STEP,
@@ -46,7 +49,7 @@ describe('attributeApiCallsToSteps', () => {
 
   it('puts calls outside every step, or without a timestamp, in unattributed', () => {
     const { steps, attribution } = attributeApiCallsToSteps(
-      [call(1_500), call(5_000), call(undefined)],
+      [call(1_500), call(20_000), call(undefined)],
       [step('open TDP', 1_000, 2_000)],
     );
 
@@ -58,6 +61,99 @@ describe('attributeApiCallsToSteps', () => {
       attributed: 1,
       unattributed: 2,
       missingTimestamp: 1,
+    });
+  });
+
+  describe('pre-roll and after phases', () => {
+    const phaseTotals = (
+      calls: NetworkLogEntry[],
+      steps: MetricStep[],
+    ): Record<string, number> =>
+      Object.fromEntries(
+        attributeApiCallsToSteps(calls, steps).steps.map((summary) => [
+          `${summary.step}:${summary.phase}`,
+          summary.total,
+        ]),
+      );
+
+    it('counts calls up to the pre-roll before a step start as during', () => {
+      const steps = [step('tap Add Funds', 10_000, 11_000)];
+
+      expect(
+        phaseTotals(
+          [call(10_000 - PRE_ROLL_MS), call(10_000 - PRE_ROLL_MS - 1)],
+          steps,
+        ),
+      ).toEqual({ 'tap Add Funds:during': 1, 'unattributed:none': 1 });
+    });
+
+    it('keeps calls after a step end in a separate after bucket, capped at AFTER_MAX_MS', () => {
+      const steps = [step('tap Add Funds', 10_000, 11_000)];
+
+      expect(
+        phaseTotals(
+          [
+            call(11_001),
+            call(11_000 + AFTER_MAX_MS),
+            call(11_000 + AFTER_MAX_MS + 1),
+          ],
+          steps,
+        ),
+      ).toEqual({ 'tap Add Funds:after': 2, 'unattributed:none': 1 });
+    });
+
+    it('resolves during > pre-roll > after without double counting', () => {
+      const steps = [step('A', 1_000, 2_000), step('B', 3_000, 4_000)];
+      const calls = [
+        call(1_500), // A during
+        call(2_100), // A after (B pre-roll starts at 2_250)
+        call(2_300), // B pre-roll beats A after
+        call(3_500), // B during
+        call(4_500), // B after
+      ];
+
+      const totals = phaseTotals(calls, steps);
+
+      expect(totals).toEqual({
+        'A:during': 1,
+        'B:during': 2,
+        'A:after': 1,
+        'B:after': 1,
+      });
+      expect(Object.values(totals).reduce((sum, n) => sum + n, 0)).toBe(
+        calls.length,
+      );
+    });
+
+    it('lets an enclosing step own its inner step after phase', () => {
+      const steps = [step('outer', 0, 10_000), step('inner', 4_000, 5_000)];
+
+      expect(phaseTotals([call(5_500)], steps)).toEqual({
+        'outer:during': 1,
+      });
+    });
+
+    it('gives an after call to the most recently ended step, independent of order', () => {
+      const first = step('first', 1_000, 2_000);
+      const second = step('second', 1_500, 2_500);
+
+      for (const ordered of [
+        [first, second],
+        [second, first],
+      ]) {
+        expect(phaseTotals([call(3_000)], ordered)).toEqual({
+          'second:after': 1,
+        });
+      }
+    });
+
+    it('counts after-only calls as attributed', () => {
+      const { attribution } = attributeApiCallsToSteps(
+        [call(11_500)],
+        [step('tap', 10_000, 11_000)],
+      );
+
+      expect(attribution).toMatchObject({ status: 'ok', attributed: 1 });
     });
   });
 
@@ -220,6 +316,23 @@ describe('attributeApiCallsToSteps', () => {
         attributeApiCallsToSteps(calls, steps, testWin).attribution,
       ).toMatchObject({ status: 'ok', attributed: 0 });
     });
+  });
+});
+
+describe('networkLogOverlapsSteps', () => {
+  const steps = [step('s', 100_000, 110_000)];
+
+  it('is true when the HAR timespan intersects the steps', () => {
+    expect(networkLogOverlapsSteps([call(50_000), call(105_000)], steps)).toBe(
+      true,
+    );
+  });
+
+  it('is false for a HAR entirely before the steps or without data', () => {
+    expect(networkLogOverlapsSteps([call(10_000)], steps)).toBe(false);
+    expect(networkLogOverlapsSteps([], steps)).toBe(false);
+    expect(networkLogOverlapsSteps(null, steps)).toBe(false);
+    expect(networkLogOverlapsSteps([call(105_000)], undefined)).toBe(false);
   });
 });
 

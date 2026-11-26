@@ -38,6 +38,7 @@ describe('summarizeApiCalls', () => {
       duplicates: 0,
       failed: 0,
       byHost: {},
+      app: { total: 0, unique: 0, duplicates: 0, failed: 0 },
       topEndpoints: [],
     });
   });
@@ -112,8 +113,43 @@ describe('summarizeApiCalls', () => {
       throw new Error('Expected a captured summary');
     }
     expect(summary.topEndpoints).toEqual([
-      { method: 'GET', url: 'a.test/hot', count: 3, failed: 1 },
-      { method: 'GET', url: 'a.test/warm', count: 2, failed: 0 },
+      { method: 'GET', kind: 'app', url: 'a.test/hot', count: 3, failed: 1 },
+      { method: 'GET', kind: 'app', url: 'a.test/warm', count: 2, failed: 0 },
+    ]);
+  });
+
+  it('labels noise by kind, totals app requests separately and lists app endpoints first', () => {
+    const summary = summarizeApiCalls(
+      [
+        okCall('http://localhost:8000/mock'),
+        okCall('http://localhost:8000/mock'),
+        okCall('http://localhost:8000/mock'),
+        { method: 'OPTIONS', url: 'https://a.test/x', status: 204 },
+        okCall('https://o1.ingest.sentry.io/api/1/envelope/'),
+        okCall('https://a.test/x'),
+        call('https://a.test/x', 500),
+        okCall('https://a.test/y'),
+      ],
+      null,
+      3,
+    );
+
+    if (summary?.status !== 'captured') {
+      throw new Error('Expected a captured summary');
+    }
+    expect(summary.total).toBe(8);
+    expect(summary.app).toEqual({
+      total: 3,
+      unique: 2,
+      duplicates: 1,
+      failed: 1,
+    });
+    expect(
+      summary.topEndpoints.map(({ method, kind, url }) => [method, kind, url]),
+    ).toEqual([
+      ['GET', 'app', 'a.test/x'],
+      ['GET', 'app', 'a.test/y'],
+      ['GET', 'test_infra', 'localhost:8000/mock'],
     ]);
   });
 
