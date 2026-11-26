@@ -1959,6 +1959,15 @@ describe('PredictPortfolioScreen', () => {
         `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
       expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
+
+      fireEvent.press(statusLine);
+      // Flush microtasks and the next macrotask turn so an async sheet open would surface.
+      await act(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      });
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictDepositScreenTestIds.RETRY),
       ).not.toBeOnTheScreen();
@@ -1968,11 +1977,7 @@ describe('PredictPortfolioScreen', () => {
       expect(
         view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
       ).not.toBeOnTheScreen();
-
-      fireEvent.press(statusLine);
-      expect(
-        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
-      ).not.toBeOnTheScreen();
+      expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
 
       const copyButton = view.getByTestId(
         `${PredictPortfolioScreenTestIds.DEPOSIT_STATUS}-copy`,

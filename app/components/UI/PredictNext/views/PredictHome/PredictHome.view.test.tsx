@@ -4,6 +4,10 @@ import {
   createComponentViewQueryClient,
   getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
+import {
+  restoreFetchPath,
+  stubFetchPath,
+} from '../../../../../../tests/component-view/api-mocking/fetchStub';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -2230,6 +2234,15 @@ describe('PredictHome', () => {
         `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
       expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
+
+      fireEvent.press(statusLine);
+      // Flush microtasks and the next macrotask turn so an async sheet open would surface.
+      await act(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      });
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictDepositScreenTestIds.RETRY),
       ).not.toBeOnTheScreen();
@@ -2239,11 +2252,7 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
       ).not.toBeOnTheScreen();
-
-      fireEvent.press(statusLine);
-      expect(
-        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
-      ).not.toBeOnTheScreen();
+      expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
 
       const copyButton = view.getByTestId(
         `${PredictHomeTestIds.DEPOSIT_STATUS}-copy`,
@@ -2262,66 +2271,36 @@ describe('PredictHome', () => {
     });
 
     it('refreshes Balance and Summary without refetching or changing Activity when a deposit completes', async () => {
-      const originalFetch = globalThis.fetch;
-      let balance = '10.00';
-      let depositState: unknown = transferReportedDeposit;
+      const PREDICT_ORIGIN = 'https://predict.example';
+      const balancePath = '/v1/venues/kalshi/balance';
+      const summaryPath = '/v1/venues/kalshi/portfolio/summary';
+      const positionsPath = '/v1/venues/kalshi/positions';
+      const activityPath = '/v1/venues/kalshi/activity';
+      const depositsPath = '/v1/venues/kalshi/deposits';
+      const depositDetailPath = `/v1/venues/kalshi/deposits/${transferReportedDeposit.operationId}`;
+      const stubbedPaths = [
+        balancePath,
+        summaryPath,
+        positionsPath,
+        activityPath,
+        depositsPath,
+        depositDetailPath,
+      ] as const;
+
       let activityFetchCount = 0;
       const existingTrade = makePredictNextTrade({
         id: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e99',
         amount: '15.00',
       });
+      const summaryFor = (available: string) =>
+        makePredictNextSummary({
+          availableBalance: available,
+          positionsValue: '0.00',
+          totalValue: available,
+          unrealizedPnl: '0.00',
+          unrealizedPnlPercent: '0.00',
+        });
 
-      globalThis.fetch = jest.fn(async (input) => {
-        const requestUrl =
-          typeof input === 'string'
-            ? input
-            : input instanceof URL
-              ? input.toString()
-              : input.url;
-        const pathname = new URL(requestUrl).pathname;
-        let body: unknown = {};
-        if (pathname === '/v1/venues/kalshi/balance') {
-          body = { venueId: 'kalshi', currency: 'USD', available: balance };
-        } else if (pathname === '/v1/venues/kalshi/portfolio/summary') {
-          body = makePredictNextSummary({
-            availableBalance: balance,
-            positionsValue: '0.00',
-            totalValue: balance,
-            unrealizedPnl: '0.00',
-            unrealizedPnlPercent: '0.00',
-          });
-        } else if (pathname === '/v1/venues/kalshi/positions') {
-          body = { venueId: 'kalshi', positions: [] };
-        } else if (pathname === '/v1/venues/kalshi/activity') {
-          activityFetchCount += 1;
-          body = { venueId: 'kalshi', activity: [existingTrade] };
-        } else if (pathname === '/v1/venues/kalshi/deposits') {
-          body = {
-            deposits:
-              depositState === transferReportedDeposit ? [depositState] : [],
-          };
-        } else if (
-          pathname ===
-          `/v1/venues/kalshi/deposits/${transferReportedDeposit.operationId}`
-        ) {
-          body = depositState;
-        }
-        const response = {
-          ok: true,
-          status: 200,
-          json: async () => body,
-          clone: () => response,
-        } as Response;
-        return response;
-      }) as typeof fetch;
-
-      const trading = composePredictNextPortfolioTrading();
-      const fundingService = composePredictNextFundingService(
-        trading.rootMessenger,
-      );
-      const restorePortfolio = routePredictPortfolioServicesTo(
-        trading.rootMessenger,
-      );
       const controllerMessenger = Engine.controllerMessenger as unknown as {
         call: (action: string, ...params: unknown[]) => unknown;
         subscribe: (
@@ -2333,47 +2312,110 @@ describe('PredictHome', () => {
           callback: (...args: unknown[]) => void,
         ) => void;
       };
-      const prevCall = controllerMessenger.call;
-      const prevSubscribe = controllerMessenger.subscribe;
-      const prevUnsubscribe = controllerMessenger.unsubscribe;
-      controllerMessenger.call = (action: string, ...params: unknown[]) => {
-        if (action.startsWith('PredictFundingService:')) {
-          return (
-            trading.rootMessenger.call as unknown as (
-              name: string,
-              ...args: unknown[]
-            ) => unknown
-          )(action, ...params);
-        }
-        return prevCall(action, ...params);
-      };
-      controllerMessenger.subscribe = (event, callback) => {
-        if (event.startsWith('PredictFundingService:')) {
-          (
-            trading.rootMessenger.subscribe as unknown as (
-              name: string,
-              cb: (...args: unknown[]) => void,
-            ) => void
-          )(event, callback);
-          return;
-        }
-        prevSubscribe(event, callback);
-      };
-      controllerMessenger.unsubscribe = (event, callback) => {
-        if (event.startsWith('PredictFundingService:')) {
-          (
-            trading.rootMessenger.unsubscribe as unknown as (
-              name: string,
-              cb: (...args: unknown[]) => void,
-            ) => void
-          )(event, callback);
-          return;
-        }
-        prevUnsubscribe(event, callback);
-      };
+      const baseCall = controllerMessenger.call;
+      const baseSubscribe = controllerMessenger.subscribe;
+      const baseUnsubscribe = controllerMessenger.unsubscribe;
 
-      const queryClient = createComponentViewQueryClient();
+      let trading:
+        | ReturnType<typeof composePredictNextPortfolioTrading>
+        | undefined;
+      let fundingService:
+        | ReturnType<typeof composePredictNextFundingService>
+        | undefined;
+      let restorePortfolio: (() => void) | undefined;
+      let queryClient:
+        | ReturnType<typeof createComponentViewQueryClient>
+        | undefined;
+
       try {
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          balancePath,
+          { venueId: 'kalshi', currency: 'USD', available: '10.00' },
+          200,
+          { method: 'GET' },
+        );
+        stubFetchPath(PREDICT_ORIGIN, summaryPath, summaryFor('10.00'), 200, {
+          method: 'GET',
+        });
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          positionsPath,
+          { venueId: 'kalshi', positions: [] },
+          200,
+          { method: 'GET' },
+        );
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          activityPath,
+          { venueId: 'kalshi', activity: [existingTrade] },
+          200,
+          {
+            method: 'GET',
+            onRequest: () => {
+              activityFetchCount += 1;
+            },
+          },
+        );
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          depositsPath,
+          { deposits: [transferReportedDeposit] },
+          200,
+          { method: 'GET' },
+        );
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          depositDetailPath,
+          transferReportedDeposit,
+          200,
+          { method: 'GET' },
+        );
+
+        trading = composePredictNextPortfolioTrading();
+        const rootMessenger = trading.rootMessenger;
+        fundingService = composePredictNextFundingService(rootMessenger);
+        restorePortfolio = routePredictPortfolioServicesTo(rootMessenger);
+        const prevCall = controllerMessenger.call;
+        const prevSubscribe = controllerMessenger.subscribe;
+        const prevUnsubscribe = controllerMessenger.unsubscribe;
+        controllerMessenger.call = (action: string, ...params: unknown[]) => {
+          if (action.startsWith('PredictFundingService:')) {
+            return (
+              rootMessenger.call as unknown as (
+                name: string,
+                ...args: unknown[]
+              ) => unknown
+            )(action, ...params);
+          }
+          return prevCall(action, ...params);
+        };
+        controllerMessenger.subscribe = (event, callback) => {
+          if (event.startsWith('PredictFundingService:')) {
+            (
+              rootMessenger.subscribe as unknown as (
+                name: string,
+                cb: (...args: unknown[]) => void,
+              ) => void
+            )(event, callback);
+            return;
+          }
+          prevSubscribe(event, callback);
+        };
+        controllerMessenger.unsubscribe = (event, callback) => {
+          if (event.startsWith('PredictFundingService:')) {
+            (
+              rootMessenger.unsubscribe as unknown as (
+                name: string,
+                cb: (...args: unknown[]) => void,
+              ) => void
+            )(event, callback);
+            return;
+          }
+          prevUnsubscribe(event, callback);
+        };
+
+        queryClient = createComponentViewQueryClient();
         await fundingService.listOpenDeposits(KALSHI_VENUE_ID);
         const view = renderPredictNext(false, { queryClient });
 
@@ -2410,10 +2452,24 @@ describe('PredictHome', () => {
         expect(activityFetchCount).toBe(1);
 
         // Backend credits the deposit (+25.50 -> 35.50).
-        balance = '35.50';
-        depositState = creditedDeposit;
+        stubFetchPath(
+          PREDICT_ORIGIN,
+          balancePath,
+          { venueId: 'kalshi', currency: 'USD', available: '35.50' },
+          200,
+          { method: 'GET' },
+        );
+        stubFetchPath(PREDICT_ORIGIN, summaryPath, summaryFor('35.50'), 200, {
+          method: 'GET',
+        });
+        stubFetchPath(PREDICT_ORIGIN, depositsPath, { deposits: [] }, 200, {
+          method: 'GET',
+        });
+        stubFetchPath(PREDICT_ORIGIN, depositDetailPath, creditedDeposit, 200, {
+          method: 'GET',
+        });
         await act(async () => {
-          await fundingService.getDeposit(
+          await fundingService?.getDeposit(
             KALSHI_VENUE_ID,
             transferReportedDeposit.operationId,
           );
@@ -2447,14 +2503,16 @@ describe('PredictHome', () => {
           view.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
         ).not.toBeOnTheScreen();
       } finally {
-        queryClient.clear();
-        controllerMessenger.call = prevCall;
-        controllerMessenger.subscribe = prevSubscribe;
-        controllerMessenger.unsubscribe = prevUnsubscribe;
-        restorePortfolio();
-        fundingService.destroy();
-        trading.destroy();
-        globalThis.fetch = originalFetch;
+        queryClient?.clear();
+        restorePortfolio?.();
+        controllerMessenger.call = baseCall;
+        controllerMessenger.subscribe = baseSubscribe;
+        controllerMessenger.unsubscribe = baseUnsubscribe;
+        fundingService?.destroy();
+        trading?.destroy();
+        for (const path of stubbedPaths) {
+          restoreFetchPath(PREDICT_ORIGIN, path, { method: 'GET' });
+        }
       }
     });
 
