@@ -1,9 +1,6 @@
-import { API_URLS } from '@metamask/core-backend';
 import { startSpan } from '@sentry/core';
 import { assert, type Struct } from '@metamask/superstruct';
 import { getNetworkConditions } from '../../util/deviceCapability/conditions';
-import { getBackendBearerToken } from '../backendBearerToken';
-import { isBackendAuthDisabled } from '../coreBackendApiUrls';
 import {
   HttpError,
   NetworkError,
@@ -24,8 +21,6 @@ export interface RequestOptions {
   /** JSON-encoded. */
   body?: unknown;
   headers?: HeadersInit;
-  /** Adds the backend bearer token. Only allowed for MetaMask API origins. */
-  auth?: 'bearer';
   /** Static feature identifier, never user or request data. */
   feature?: string;
   /** Static operation identifier, never user or request data. */
@@ -36,8 +31,6 @@ type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 type Options<Data, Schema> = RequestOptions & {
   responseStruct?: Struct<Data, Schema>;
 };
-
-const bearerOrigins = new Set<string>(Object.values(API_URLS));
 
 function cancelled(): Error {
   const error = new Error('Network request cancelled');
@@ -86,7 +79,7 @@ async function request<Data, Schema>(
   );
   const cancel = () => controller.abort();
   options.signal?.addEventListener('abort', cancel);
-  // Settles even when the bearer lookup or fetch ignores the signal.
+  // Settles even when fetch ignores the signal.
   const stopped = new Promise<never>((_, reject) => {
     controller.signal.addEventListener('abort', () =>
       reject(timedOut ? new TimeoutError() : cancelled()),
@@ -113,28 +106,17 @@ async function send<Data, Schema>(
   options: Options<Data, Schema>,
   { signal }: AbortController,
 ): Promise<unknown> {
-  let headers: Headers;
+  const headers = new Headers(options.headers);
   let body: string | undefined;
-  try {
-    headers = new Headers(options.headers);
-    if (options.body !== undefined) {
-      body = JSON.stringify(options.body);
-      if (!headers.has('content-type'))
-        headers.set('content-type', 'application/json');
-    }
-  } catch {
-    throw new TypeError('Invalid HTTP request options');
+  if (options.body !== undefined) {
+    body = JSON.stringify(options.body);
+    if (!headers.has('content-type'))
+      headers.set('content-type', 'application/json');
   }
+  // shortcut: no credentials, add a bearer option when a feature hook needs one.
   if (headers.has('authorization')) {
-    throw new TypeError('Authorization must use the bearer option');
+    throw new TypeError('httpClient does not send credentials');
   }
-  if (options.auth === 'bearer' && !isBackendAuthDisabled()) {
-    if (!bearerOrigins.has(url.origin))
-      throw new TypeError('Unsupported backend bearer origin');
-    const token = await getBackendBearerToken();
-    if (token) headers.set('authorization', `Bearer ${token}`);
-  }
-  if (signal.aborted) return undefined;
 
   let response: Response;
   try {
@@ -143,7 +125,6 @@ async function send<Data, Schema>(
       headers,
       body,
       signal,
-      redirect: headers.has('authorization') ? 'error' : undefined,
     });
   } catch {
     throw new NetworkError();

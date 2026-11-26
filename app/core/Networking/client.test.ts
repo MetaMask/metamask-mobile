@@ -1,12 +1,8 @@
 import { object, string } from '@metamask/superstruct';
-import { getBackendBearerToken } from '../backendBearerToken';
 import { getNetworkConditions } from '../../util/deviceCapability/conditions';
 import { httpClient } from './client';
 import { isTierPolicyEnabled } from './killSwitch';
 
-jest.mock('../backendBearerToken', () => ({
-  getBackendBearerToken: jest.fn(),
-}));
 jest.mock('../../util/deviceCapability/conditions', () => ({
   getNetworkConditions: jest.fn(),
 }));
@@ -30,7 +26,6 @@ describe('httpClient', () => {
       latency: 'SLOW',
     });
     jest.mocked(isTierPolicyEnabled).mockReturnValue(true);
-    jest.mocked(getBackendBearerToken).mockResolvedValue('fixture-token');
   });
 
   afterEach(() => {
@@ -50,38 +45,23 @@ describe('httpClient', () => {
     );
   });
 
-  it('encodes JSON and sends bearer auth without following redirects', async () => {
-    await httpClient.post(url, { body: { value: 'ok' }, auth: 'bearer' });
+  it('encodes a JSON body', async () => {
+    await httpClient.post(url, { body: { value: 'ok' } });
     const init = fetchMock.mock.calls[0]?.[1];
     expect(init).toEqual(
-      expect.objectContaining({
-        method: 'POST',
-        body: '{"value":"ok"}',
-        redirect: 'error',
-      }),
+      expect.objectContaining({ method: 'POST', body: '{"value":"ok"}' }),
     );
-    expect(new Headers(init?.headers).get('authorization')).toBe(
-      'Bearer fixture-token',
+    expect(new Headers(init?.headers).get('content-type')).toBe(
+      'application/json',
     );
   });
 
-  it('rejects credentials supplied outside the bearer option', async () => {
+  it('rejects caller-supplied credentials', async () => {
     await expect(
       httpClient.get(url, {
         headers: { Authorization: 'Bearer fixture-token' },
       }),
-    ).rejects.toThrow('Authorization must use the bearer option');
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('does not obtain or send bearer credentials to an untrusted origin', async () => {
-    jest.mocked(getBackendBearerToken).mockClear();
-    await expect(
-      httpClient.get('https://accounts.api.cx.metamask.io.example.org', {
-        auth: 'bearer',
-      }),
-    ).rejects.toThrow('Unsupported backend bearer origin');
-    expect(getBackendBearerToken).not.toHaveBeenCalled();
+    ).rejects.toThrow('httpClient does not send credentials');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -133,26 +113,6 @@ describe('httpClient', () => {
     await expect(httpClient.delete(url)).resolves.toBeUndefined();
   });
 
-  it('does not start fetch after a cancelled token lookup finishes', async () => {
-    let complete: ((token: string) => void) | undefined;
-    jest.mocked(getBackendBearerToken).mockImplementation(
-      async () =>
-        new Promise((resolve) => {
-          complete = resolve;
-        }),
-    );
-    const caller = new AbortController();
-    const result = httpClient.get(url, {
-      auth: 'bearer',
-      signal: caller.signal,
-    });
-    caller.abort();
-    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
-    complete?.('fixture-token');
-    await Promise.resolve();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
   it.each([
     [true, undefined, 30000],
     [false, undefined, 15000],
@@ -172,26 +132,6 @@ describe('httpClient', () => {
       ]);
     },
   );
-
-  it('times out during bearer lookup without starting fetch afterwards', async () => {
-    jest.useFakeTimers();
-    let complete: ((token: string) => void) | undefined;
-    jest.mocked(getBackendBearerToken).mockImplementation(
-      async () =>
-        new Promise((resolve) => {
-          complete = resolve;
-        }),
-    );
-    const result = httpClient.get(url, { auth: 'bearer', timeoutMs: 50 });
-
-    await Promise.all([
-      expect(result).rejects.toMatchObject({ name: 'TimeoutError' }),
-      jest.advanceTimersByTimeAsync(50),
-    ]);
-    complete?.('fixture-token');
-    await Promise.resolve();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
 
   it('stops before fetch when tier policies report no transport', async () => {
     jest

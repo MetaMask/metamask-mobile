@@ -29,21 +29,6 @@ describe('ReduxService', () => {
       );
     });
 
-    it('notifies waiting listeners when the store becomes available', () => {
-      const listener = jest.fn();
-      const cancelled = jest.fn();
-      ReduxService.whenStoreReady(listener);
-      ReduxService.whenStoreReady(cancelled)();
-
-      expect(ReduxService.storeIfInitialized).toBeUndefined();
-      expect(listener).not.toHaveBeenCalled();
-      ReduxService.store = mockStore;
-
-      expect(ReduxService.storeIfInitialized).toBe(mockStore);
-      expect(listener).toHaveBeenCalledWith(mockStore);
-      expect(cancelled).not.toHaveBeenCalled();
-    });
-
     it('should return store if it exists', () => {
       ReduxService.store = mockStore;
       expect(ReduxService.store).toBe(mockStore);

@@ -1,11 +1,23 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
-import { getBackendApiUrlsOption } from './coreBackendApiUrls';
-import { getBackendBearerToken } from './backendBearerToken';
+import {
+  getBackendApiUrlsOption,
+  isBackendAuthDisabled,
+} from './coreBackendApiUrls';
+import Engine from './Engine';
 
 export const apiClient = createApiPlatformClient({
   clientProduct: 'metamask-mobile',
   clientVersion: getVersion(),
-  getBearerToken: getBackendBearerToken,
+  getBearerToken: async () => {
+    if (isBackendAuthDisabled()) {
+      return undefined;
+    }
+    try {
+      return await Engine.context.AuthenticationController.getBearerToken();
+    } catch {
+      return undefined;
+    }
+  },
   ...getBackendApiUrlsOption(),
 });

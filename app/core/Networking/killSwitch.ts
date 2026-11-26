@@ -1,34 +1,15 @@
 import ReduxService from '../redux';
 import {
-  resolveTierPolicyEnabled,
+  TIER_POLICY_BUILD_DEFAULT,
   selectTierPolicyEnabled,
 } from '../../selectors/featureFlagController/networking';
 
-/** Reads the same effective flag as React, including persisted remote flags. */
+/** Reads the flag outside React. */
 export function isTierPolicyEnabled(): boolean {
-  const store = ReduxService.storeIfInitialized;
-  return store
-    ? selectTierPolicyEnabled(store.getState())
-    : resolveTierPolicyEnabled();
-}
-
-/** Notifies on flag changes, not on unrelated Redux updates. */
-export function subscribeTierPolicyEnabled(listener: () => void): () => void {
-  let previous = isTierPolicyEnabled();
-  let unsubscribe: (() => void) | undefined;
-  const cancel = ReduxService.whenStoreReady((store) => {
-    const update = () => {
-      const current = selectTierPolicyEnabled(store.getState());
-      if (previous !== current) {
-        previous = current;
-        listener();
-      }
-    };
-    unsubscribe = store.subscribe(update);
-    update();
-  });
-  return () => {
-    cancel();
-    unsubscribe?.();
-  };
+  try {
+    return selectTierPolicyEnabled(ReduxService.store.getState());
+  } catch {
+    // No store yet, or a malformed remote flag: use the build default.
+    return TIER_POLICY_BUILD_DEFAULT;
+  }
 }
