@@ -248,8 +248,10 @@ describe('useNetworkOperations', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('returns false and skips token filter and enableNetwork when addNetwork rejects', async () => {
-    mockAddNetwork.mockRejectedValueOnce(new Error('persist failed'));
+  it('returns false and skips token filter and enableNetwork when addNetwork throws', async () => {
+    mockAddNetwork.mockImplementationOnce(() => {
+      throw new Error('persist failed');
+    });
 
     const { result } = renderHook(() => useNetworkOperations());
 
