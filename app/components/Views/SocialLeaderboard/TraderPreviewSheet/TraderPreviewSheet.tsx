@@ -52,6 +52,7 @@ import type { InviteTermsLink as InviteTermsLinkValue } from '../../../UI/Reward
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import { traderProfileResponseToMySocialProfile } from '../MyProfileView/utils/traderProfileResponseToMySocialProfile';
 import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import {
   getPendingSocialPreviewTarget,
   setPendingSocialPreviewTarget,
@@ -307,6 +308,7 @@ const ReferralCodeRow = ({
  */
 const TraderPreviewSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
@@ -418,10 +420,13 @@ const TraderPreviewSheet = () => {
     }
     sheetRef.current?.onCloseBottomSheet(() => {
       // Opens onboarding, or the terms alone for an existing profile.
-      ensureSocialTermsAccepted(navigation.navigate);
+      if (ensureSocialTermsAccepted(navigation.navigate)) {
+        ensureSocialProfileOnboarding();
+      }
     });
   }, [
     dispatch,
+    ensureSocialProfileOnboarding,
     navigation,
     offeredReferralCode,
     referralOffer.pendingReferralCode,

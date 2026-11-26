@@ -1,6 +1,4 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
   BannerAlert,
   BannerAlertSeverity,
   Box,
@@ -39,6 +37,7 @@ import Animated, {
 import { TabView } from 'react-native-tab-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import UserCirclePlusIcon from '../../../../images/user-circle-plus.svg';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
@@ -81,12 +80,10 @@ import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePric
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
-import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { toSpotCopyTradeTarget } from '../../../UI/SocialFeed/utils/copyTrade';
@@ -176,6 +173,9 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
 
+/** Matches the icons of the header's Md `ButtonIcon`s (`IconSize.Lg`). */
+const ANON_AVATAR_ICON_SIZE = 24;
+
 const SocialFeedPageProviders: React.FC<{
   isActive: boolean;
   rotatesTraderStats: boolean;
@@ -203,11 +203,8 @@ const SocialV1ViewContent: React.FC = () => {
     >();
   const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
-  const accountAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { track } = useSocialLeaderboardAnalytics();
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
@@ -494,8 +491,11 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenMyProfile = useCallback(() => {
     playSelection().catch(() => undefined);
+    if (!ensureSocialProfileOnboarding()) {
+      return;
+    }
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
-  }, [navigation]);
+  }, [ensureSocialProfileOnboarding, navigation]);
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
@@ -937,11 +937,12 @@ const SocialV1ViewContent: React.FC = () => {
                     size="sm"
                   />
                 ) : (
-                  <AvatarAccount
-                    address={accountAddress ?? ''}
-                    variant={getAvatarAccountVariant(avatarAccountType)}
-                    size={AvatarAccountSize.Sm}
-                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                  <UserCirclePlusIcon
+                    width={ANON_AVATAR_ICON_SIZE}
+                    height={ANON_AVATAR_ICON_SIZE}
+                    color={tw.color('icon-default')}
+                    name="user-circle-plus"
+                    testID={SocialV1ViewSelectorsIDs.ANON_AVATAR}
                   />
                 )}
               </SocialHeaderGlassSurface>

@@ -11,7 +11,7 @@ export const SocialV1ViewSelectorsIDs = {
   LIVE_PAGE: 'social-v1-view-live-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
-  ACCOUNT_AVATAR: 'social-v1-view-account-avatar',
+  ANON_AVATAR: 'social-v1-view-anon-avatar',
   PLUS_BUTTON: 'social-v1-view-plus-button',
   REWARDS_BUTTON: 'social-v1-view-rewards-button',
   TRENDING_FILTER_BUTTON: 'social-v1-trending-filter-button',

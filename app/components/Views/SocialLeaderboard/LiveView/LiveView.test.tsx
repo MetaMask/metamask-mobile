@@ -189,7 +189,6 @@ describe('LiveView', () => {
         realtime: true,
         enabled: true,
         paused: false,
-        requireSocialProfile: true,
         testID: LiveViewSelectorsIDs.CONTAINER,
         scrollTestID: LiveViewSelectorsIDs.SCROLL_VIEW,
       }),
