@@ -11,8 +11,10 @@ import {
   getNetworkTierSnapshot,
   type HardwareTier,
 } from '../../util/deviceCapability';
-import { getLatencySnapshot } from '../../util/deviceCapability/latencyStore';
-import { LATENCY_THRESHOLDS } from '../../util/deviceCapability/thresholds';
+import {
+  getLatencySnapshot,
+  getLatencyThresholds,
+} from '../../util/deviceCapability/latencyStore';
 
 export type NetworkQueryOptions<
   QueryFnData,
@@ -30,19 +32,12 @@ export type NetworkQueryOptions<
 
 const MINUTE = 60 * 1000;
 
-// The timeout is the tier's hung threshold (production `http.client` p99).
-// Unknown hardware gets the MID timeout and the app's 24 h cache.
-const HARDWARE_LIMITS: Record<
-  HardwareTier | 'UNKNOWN',
-  { timeoutMs: number; gcTime: number }
-> = {
-  LOW: { timeoutMs: LATENCY_THRESHOLDS.LOW.hungMs, gcTime: 5 * MINUTE },
-  MID: { timeoutMs: LATENCY_THRESHOLDS.MID.hungMs, gcTime: 60 * MINUTE },
-  HIGH: { timeoutMs: LATENCY_THRESHOLDS.HIGH.hungMs, gcTime: 24 * 60 * MINUTE },
-  UNKNOWN: {
-    timeoutMs: LATENCY_THRESHOLDS.MID.hungMs,
-    gcTime: 24 * 60 * MINUTE,
-  },
+// Unknown hardware keeps the app's 24 h default.
+const GC_TIME: Record<HardwareTier | 'UNKNOWN', number> = {
+  LOW: 5 * MINUTE,
+  MID: 60 * MINUTE,
+  HIGH: 24 * 60 * MINUTE,
+  UNKNOWN: 24 * 60 * MINUTE,
 };
 
 export class NetworkTimeoutError extends Error {
@@ -53,12 +48,12 @@ export class NetworkTimeoutError extends Error {
 }
 
 /**
- * Fails the attempt with `NetworkTimeoutError` even when the fetcher ignores
+ * Times out after the device's hung threshold, the same one the latency
+ * signal uses. Fails with `NetworkTimeoutError` even when the fetcher ignores
  * the abort, so a stalled request still reaches retry and the error state.
  */
 function withTimeout<QueryFnData, Key extends QueryKey>(
   queryFn: QueryFunction<QueryFnData, Key>,
-  timeoutMs: number,
 ): QueryFunction<QueryFnData, Key> {
   return async (context) => {
     const controller = new AbortController();
@@ -69,7 +64,7 @@ function withTimeout<QueryFnData, Key extends QueryKey>(
       timer = setTimeout(() => {
         controller.abort();
         reject(new NetworkTimeoutError());
-      }, timeoutMs);
+      }, getLatencyThresholds().hungMs);
     });
     try {
       const request = queryFn({ ...context, signal: controller.signal });
@@ -115,13 +110,11 @@ export function useNetworkQuery<
   ...options
 }: NetworkQueryOptions<QueryFnData, Data, Key>): UseQueryResult<Data, Error> {
   // RAM does not change while the app runs.
-  const [{ timeoutMs, gcTime }] = useState(
-    () => HARDWARE_LIMITS[getHardwareTier() ?? 'UNKNOWN'],
-  );
+  const [gcTime] = useState(() => GC_TIME[getHardwareTier() ?? 'UNKNOWN']);
 
   return useQuery({
     ...options,
-    queryFn: withTimeout(queryFn, timeoutMs),
+    queryFn: withTimeout(queryFn),
     gcTime,
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),

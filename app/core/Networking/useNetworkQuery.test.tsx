@@ -5,7 +5,10 @@ import {
   getHardwareTier,
   getNetworkTierSnapshot,
 } from '../../util/deviceCapability';
-import { getLatencySnapshot } from '../../util/deviceCapability/latencyStore';
+import {
+  getLatencySnapshot,
+  getLatencyThresholds,
+} from '../../util/deviceCapability/latencyStore';
 import { NetworkTimeoutError, useNetworkQuery } from './useNetworkQuery';
 
 jest.mock('../../util/deviceCapability', () => ({
@@ -14,9 +17,11 @@ jest.mock('../../util/deviceCapability', () => ({
 }));
 jest.mock('../../util/deviceCapability/latencyStore', () => ({
   getLatencySnapshot: jest.fn(),
+  getLatencyThresholds: jest.fn(),
 }));
 
 const queryKey = ['prices'];
+const HUNG_MS = 8_000;
 let client: QueryClient;
 const wrapper = ({ children }: React.PropsWithChildren): React.JSX.Element => (
   <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -30,6 +35,9 @@ function givenDevice(
   jest.mocked(getHardwareTier).mockReturnValue(hardware);
   jest.mocked(getNetworkTierSnapshot).mockReturnValue(network);
   jest.mocked(getLatencySnapshot).mockReturnValue(latency);
+  jest
+    .mocked(getLatencyThresholds)
+    .mockReturnValue({ hungMs: HUNG_MS, slowMs: 2_500 });
 }
 
 beforeEach(() => {
@@ -130,26 +138,18 @@ describe('useNetworkQuery', () => {
       return { queryFn, signals };
     }
 
-    it.each([
-      ['LOW', 30_000],
-      ['MID', 15_000],
-      ['HIGH', 8_000],
-      [null, 15_000],
-    ] as const)(
-      'aborts a request on %s hardware after %i ms',
-      async (hardware, timeoutMs) => {
-        givenDevice(hardware, 'WIFI');
-        const { queryFn, signals } = stalledQuery();
+    it("aborts a request after the device's hung threshold", async () => {
+      givenDevice('HIGH', 'WIFI');
+      const { queryFn, signals } = stalledQuery();
 
-        renderHook(() => useNetworkQuery({ queryKey, queryFn }), { wrapper });
-        await waitFor(() => expect(signals).toHaveLength(1));
+      renderHook(() => useNetworkQuery({ queryKey, queryFn }), { wrapper });
+      await waitFor(() => expect(signals).toHaveLength(1));
 
-        act(() => jest.advanceTimersByTime(timeoutMs - 1));
-        expect(signals[0].aborted).toBe(false);
-        act(() => jest.advanceTimersByTime(1));
-        expect(signals[0].aborted).toBe(true);
-      },
-    );
+      act(() => jest.advanceTimersByTime(HUNG_MS - 1));
+      expect(signals[0].aborted).toBe(false);
+      act(() => jest.advanceTimersByTime(1));
+      expect(signals[0].aborted).toBe(true);
+    });
 
     it('fails with NetworkTimeoutError when the request ignores the abort', async () => {
       givenDevice('HIGH', 'SLOW_CELLULAR');
@@ -160,7 +160,7 @@ describe('useNetworkQuery', () => {
         { wrapper },
       );
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(2 * 8_000);
+        await jest.advanceTimersByTimeAsync(2 * HUNG_MS);
       });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
