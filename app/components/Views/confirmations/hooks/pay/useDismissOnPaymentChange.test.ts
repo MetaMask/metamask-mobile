@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { useDismissOnPaymentChange } from './useDismissOnPaymentChange';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -13,23 +12,21 @@ jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayToken');
 
 const TOKEN_A: TransactionPaymentToken = {
-  address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
   balanceRaw: '12340000',
   balanceUsd: '12.34',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'USDC',
 };
 
 const TOKEN_B: TransactionPaymentToken = {
-  address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   balanceFiat: '$20.00',
   balanceHuman: '20',
   balanceRaw: '20000000',
   balanceUsd: '20',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'POL',
 };

@@ -85,6 +85,22 @@ describe('recurring order validators', () => {
     });
   });
 
+  it('requires a numeric price tolerance in order responses', () => {
+    const { priceTolerance: _priceTolerance, ...orderWithoutPriceTolerance } =
+      apiOrder;
+
+    expect(() =>
+      parseGetRecurringOrderResponse({
+        order: orderWithoutPriceTolerance,
+      }),
+    ).toThrow('Invalid recurring order response');
+    expect(() =>
+      parseGetRecurringOrderResponse({
+        order: { ...apiOrder, priceTolerance: '3' },
+      }),
+    ).toThrow('Invalid recurring order response');
+  });
+
   it('accepts the documented limit-order delegation response', () => {
     const response = createMockPrepareRecurringDelegationResponse(
       MOCK_RECURRING_PREPARE_QUERY,

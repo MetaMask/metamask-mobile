@@ -81,8 +81,6 @@ export const LEADERBOARD_COHORT_LABEL_KEY: Record<
   kol: 'social_leaderboard.shell.filters.trader_cohort.kol',
 };
 
-export const DEFAULT_LEADERBOARD_COHORT: LeaderboardTraderCohort = 'all';
-
 export {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,

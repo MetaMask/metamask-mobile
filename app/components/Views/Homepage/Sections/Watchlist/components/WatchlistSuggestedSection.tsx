@@ -1,5 +1,6 @@
 import React from 'react';
 import Animated, { LinearTransition } from 'react-native-reanimated';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 import {
   Box,
   Text,
@@ -14,43 +15,117 @@ import { mapWatchlistTokenToTrendingAsset } from '../utils/mapWatchlistTokenToTr
 import WatchlistAnimatedRow, {
   WATCHLIST_ROW_ANIMATION_DURATION_MS,
 } from './WatchlistAnimatedRow';
+import type { SuggestedWatchlistRow } from '../../../../../UI/Watchlist/utils';
+import PerpsMarketRowItem from '../../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
+import WatchlistTokenRowItem from '../../../../../UI/Watchlist/WatchlistTokenRowItem';
 
 interface WatchlistSuggestedSectionProps {
-  tokens: WatchlistTokenWithBalance[];
+  tokens?: WatchlistTokenWithBalance[];
+  rows?: SuggestedWatchlistRow[];
   hasWatchlist: boolean;
   onAddPress: (token: WatchlistTokenWithBalance) => void;
+  tokenDetailsSource?: TokenDetailsSource;
+  rowTwClassName?: string;
+  headerTwClassName?: string;
+  onPerpPress?: (market: PerpsMarketData) => void;
+  onAddPerpPress?: (market: PerpsMarketData) => void;
+  canUseLivePerpsPrices?: boolean;
+  enableMotion?: boolean;
+  showTypeTag?: boolean;
 }
 
 const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   tokens,
+  rows,
   hasWatchlist,
   onAddPress,
-}) => (
-  <Box testID="watchlist-suggested-section">
-    {hasWatchlist && (
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        twClassName="mb-1"
-        testID="watchlist-suggested-header"
+  tokenDetailsSource = TokenDetailsSource.WatchlistHomepage,
+  rowTwClassName = '-mx-4 w-auto px-4',
+  headerTwClassName = 'mb-1',
+  onPerpPress,
+  onAddPerpPress,
+  canUseLivePerpsPrices = false,
+  enableMotion = true,
+  showTypeTag = false,
+}) => {
+  const suggestedRows: SuggestedWatchlistRow[] =
+    rows ??
+    (tokens ?? []).map((token) => ({
+      kind: 'token' as const,
+      key: String(token.assetId),
+      token,
+    }));
+
+  const renderSuggestionRow = (
+    suggestion: SuggestedWatchlistRow,
+  ): React.JSX.Element => {
+    if (suggestion.kind === 'perp') {
+      return (
+        <PerpsMarketRowItem
+          market={suggestion.market}
+          compact
+          showBadge={false}
+          showTypeTag={showTypeTag}
+          enableLivePrices={canUseLivePerpsPrices}
+          twClassName={rowTwClassName}
+          onPress={onPerpPress}
+          onAddPress={onAddPerpPress}
+        />
+      );
+    }
+
+    const token = mapWatchlistTokenToTrendingAsset(suggestion.token);
+    if (showTypeTag) {
+      return (
+        <WatchlistTokenRowItem
+          token={token}
+          tokenDetailsSource={tokenDetailsSource}
+          twClassName={rowTwClassName}
+          showTypeTag
+          onAddPress={() => onAddPress(suggestion.token)}
+        />
+      );
+    }
+
+    return (
+      <TrendingTokenRowItem
+        token={token}
+        tokenDetailsSource={tokenDetailsSource}
+        twClassName={rowTwClassName}
+        endAction={{
+          type: 'watchlist',
+          onPress: () => onAddPress(suggestion.token),
+        }}
+      />
+    );
+  };
+
+  return (
+    <Box testID="watchlist-suggested-section">
+      {hasWatchlist && (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName={headerTwClassName}
+          testID="watchlist-suggested-header"
+        >
+          {strings('token_watchlist.suggested')}
+        </Text>
+      )}
+      <Animated.View
+        layout={LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
       >
-        {strings('token_watchlist.suggested')}
-      </Text>
-    )}
-    <Animated.View
-      layout={LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
-    >
-      {tokens.map((token) => (
-        <WatchlistAnimatedRow key={String(token.assetId)}>
-          <TrendingTokenRowItem
-            token={mapWatchlistTokenToTrendingAsset(token)}
-            tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-            endAction={{ type: 'watchlist', onPress: () => onAddPress(token) }}
-          />
-        </WatchlistAnimatedRow>
-      ))}
-    </Animated.View>
-  </Box>
-);
+        {suggestedRows.map((suggestion) => (
+          <WatchlistAnimatedRow
+            key={suggestion.key}
+            enableMotion={enableMotion}
+          >
+            {renderSuggestionRow(suggestion)}
+          </WatchlistAnimatedRow>
+        ))}
+      </Animated.View>
+    </Box>
+  );
+};
 
 export default WatchlistSuggestedSection;

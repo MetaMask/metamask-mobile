@@ -20,6 +20,7 @@ import type {
   ClaimDto,
   ClaimRouteSlug,
   ClaimVoucherDto,
+  EarningClaimFamily,
   EarningsSummaryDto,
   InitiateClaimBody,
   InitiateClaimResult,
@@ -149,6 +150,7 @@ export type ClaimToastKey = Extract<
   | 'claimFailureNoEligibleBalanceToast'
   | 'claimFailureUnavailableToast'
   | 'claimFailureContactSupportToast'
+  | 'claimFailurePayoutMigratedToast'
 >;
 
 export interface ClaimRouteOutcome {
@@ -484,6 +486,44 @@ export function displayClaimTotals(
     pending: (
       (readBaseUnits(summary?.pending) ?? 0n) + belowMinimum
     ).toString(),
+  };
+}
+
+/** One claim family's amounts, in mUSD base units, as the family page shows them. */
+export interface FamilyDisplayTotals {
+  claimable: string;
+  pending: string;
+  held: string;
+  blocked: string;
+  voided: string;
+  claimed: string;
+}
+
+/**
+ * Display totals for one claim family. Same rule as `displayClaimTotals`: a
+ * family claimable under the claim minimum is not offered as claimable, so it
+ * counts as pending. A missing family or field reads as zero.
+ */
+export function familyDisplayTotals(
+  summary: EarningsSummaryDto | null | undefined,
+  branch: 'self_earned' | 'earned_by_others',
+  family: EarningClaimFamily,
+): FamilyDisplayTotals {
+  const totals = summary?.[branch]?.by_claim_family?.[family];
+  const minimum = readBaseUnits(summary?.minimum_musd_base_units);
+  const claimable = readBaseUnits(totals?.claimable) ?? 0n;
+  const belowMinimum =
+    claimable > 0n && minimum !== null && claimable < minimum;
+
+  return {
+    claimable: (belowMinimum ? 0n : claimable).toString(),
+    pending: (
+      (readBaseUnits(totals?.pending) ?? 0n) + (belowMinimum ? claimable : 0n)
+    ).toString(),
+    held: (readBaseUnits(totals?.held) ?? 0n).toString(),
+    blocked: (readBaseUnits(totals?.blocked) ?? 0n).toString(),
+    voided: (readBaseUnits(totals?.voided) ?? 0n).toString(),
+    claimed: (readBaseUnits(totals?.claimed) ?? 0n).toString(),
   };
 }
 
@@ -923,6 +963,9 @@ function toastKeyForReason(
   if (reason === 'EARNING_ADDRESS_MISSING') {
     return 'claimFailureContactSupportToast';
   }
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
+    return 'claimFailurePayoutMigratedToast';
+  }
   if (TERMINAL_REASONS.has(reason)) {
     return 'claimFailureToast';
   }
@@ -978,7 +1021,8 @@ export function claimToastText(
 ): string {
   const key = claimToastKey(outcomes);
   if (key !== 'claimFailureWaitMinutesToast') {
-    return localizedText[key];
+    // A server older than a key does not send it. The generic sentence stands in.
+    return localizedText[key] || localizedText.claimFailureToast;
   }
   const template = localizedText.claimFailureWaitMinutesToast;
   if (!template?.includes('{minutes}')) {
@@ -1038,6 +1082,9 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'NO_ELIGIBLE_BALANCE') {
     return 'nothing_to_claim';
   }
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
+    return 'payout_migrated';
+  }
   if (WAIT_REASONS.has(reason)) {
     return 'wait';
   }
@@ -1066,15 +1113,25 @@ export interface RunEarningsClaimDeps {
    */
   canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;
-  submitVoucher: (voucher: ClaimVoucherDto) => Promise<void>;
+  /**
+   * The primary Money Account address right now, read fresh from the store. A
+   * route refused with `PAYOUT_ADDRESS_MIGRATED` retries once with it, when it
+   * differs from the address the press started with.
+   */
+  getMoneyAccountAddress: () => string | undefined;
+  /** Redeems the voucher from the address it was issued for. */
+  submitVoucher: (
+    voucher: ClaimVoucherDto,
+    moneyAccountAddress: string,
+  ) => Promise<void>;
 }
 
 async function claimOneRoute(
   route: ClaimRouteSlug,
+  moneyAccountAddress: string,
   deps: RunEarningsClaimDeps,
 ): Promise<ClaimRouteOutcome> {
-  const { moneyAccountAddress, initiateClaim, signMessage, submitVoucher } =
-    deps;
+  const { initiateClaim, signMessage, submitVoucher } = deps;
   let result = await initiateClaim(route, {
     money_account_address: moneyAccountAddress,
   });
@@ -1168,7 +1225,7 @@ async function claimOneRoute(
   }
 
   try {
-    await submitVoucher(voucher);
+    await submitVoucher(voucher, moneyAccountAddress);
   } catch (error) {
     return {
       route,
@@ -1506,32 +1563,66 @@ async function awaitClaimBatchConfirmed({
   return resultPromise;
 }
 
+/** One attempt at a route from one address. A throw becomes its refusal. */
+async function attemptClaimRoute(
+  route: ClaimRouteSlug,
+  moneyAccountAddress: string,
+  deps: RunEarningsClaimDeps,
+): Promise<ClaimRouteOutcome> {
+  try {
+    return await claimOneRoute(route, moneyAccountAddress, deps);
+  } catch (error) {
+    const reason =
+      error instanceof RewardsMoneyClaimRefusalError
+        ? error.reason
+        : error instanceof Error && error.message === 'SIGN_FAILED'
+          ? 'SIGN_FAILED'
+          : 'UNKNOWN';
+    return {
+      route,
+      submitted: false,
+      opened: false,
+      reason,
+      retryAfterSeconds:
+        error instanceof RewardsMoneyClaimRefusalError
+          ? error.retryAfterSeconds
+          : undefined,
+    };
+  }
+}
+
+/**
+ * Money Account addresses are compared without case: the store and the claim
+ * route can return the same EVM address in different casing.
+ */
+function isSameMoneyAccountAddress(left: string, right: string): boolean {
+  return left.toLowerCase() === right.toLowerCase();
+}
+
 export async function runEarningsClaim(
   deps: RunEarningsClaimDeps,
 ): Promise<ClaimRouteOutcome[]> {
   const outcomes: ClaimRouteOutcome[] = [];
 
   for (const route of deps.routes) {
-    try {
-      outcomes.push(await claimOneRoute(route, deps));
-    } catch (error) {
-      const reason =
-        error instanceof RewardsMoneyClaimRefusalError
-          ? error.reason
-          : error instanceof Error && error.message === 'SIGN_FAILED'
-            ? 'SIGN_FAILED'
-            : 'UNKNOWN';
-      outcomes.push({
-        route,
-        submitted: false,
-        opened: false,
-        reason,
-        retryAfterSeconds:
-          error instanceof RewardsMoneyClaimRefusalError
-            ? error.retryAfterSeconds
-            : undefined,
-      });
+    let outcome = await attemptClaimRoute(
+      route,
+      deps.moneyAccountAddress,
+      deps,
+    );
+    // The payee moved to a new Money Account since this press started. Retry
+    // this route once with the account the store now names. A second refusal,
+    // or the same address again, stays as it is.
+    if (outcome.reason === 'PAYOUT_ADDRESS_MIGRATED') {
+      const current = deps.getMoneyAccountAddress();
+      if (
+        current &&
+        !isSameMoneyAccountAddress(current, deps.moneyAccountAddress)
+      ) {
+        outcome = await attemptClaimRoute(route, current, deps);
+      }
     }
+    outcomes.push(outcome);
   }
 
   return outcomes;

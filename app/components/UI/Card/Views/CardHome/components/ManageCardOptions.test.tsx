@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import ManageCardOptions from './ManageCardOptions';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
 import {
@@ -13,10 +14,18 @@ import {
 
 jest.mock('../../../components/ManageCardListItem', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
-  return (props: { testID?: string; title?: string; onPress?: () => void }) => (
-    <Pressable testID={props.testID} onPress={props.onPress}>
-      <Text>{props.title}</Text>
-    </Pressable>
+  return (props: {
+    testID?: string;
+    title?: string;
+    description?: React.ReactNode;
+    onPress?: () => void;
+  }) => (
+    <>
+      <Pressable testID={props.testID} onPress={props.onPress}>
+        <Text>{props.title}</Text>
+      </Pressable>
+      {props.description}
+    </>
   );
 });
 
@@ -78,6 +87,16 @@ const renderComponent = (
     showHowToUseApplePay?: boolean;
     providerId?: string;
     account?: { verificationStatus: string | null };
+    hiddenQuickActionRows?: CardHomeActionVisibility;
+    spendingLimitReadOnly?: boolean;
+    spendingLimitOnly?: boolean;
+    privacyMode?: boolean;
+    isSpendingLimitActive?: boolean;
+    showLimitedSpendingAmounts?: boolean;
+    spendingLimitRemaining?: string;
+    spendingLimitTotal?: string;
+    spendingLimitSymbol?: string;
+    onManageSpendingLimit?: () => void;
   } = {},
 ) =>
   render(
@@ -102,7 +121,15 @@ const renderComponent = (
       onViewPin={jest.fn()}
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
-      onManageSpendingLimit={jest.fn()}
+      onManageSpendingLimit={overrides.onManageSpendingLimit ?? jest.fn()}
+      spendingLimitReadOnly={overrides.spendingLimitReadOnly}
+      spendingLimitOnly={overrides.spendingLimitOnly}
+      privacyMode={overrides.privacyMode}
+      isSpendingLimitActive={overrides.isSpendingLimitActive ?? true}
+      showLimitedSpendingAmounts={overrides.showLimitedSpendingAmounts}
+      spendingLimitRemaining={overrides.spendingLimitRemaining}
+      spendingLimitTotal={overrides.spendingLimitTotal}
+      spendingLimitSymbol={overrides.spendingLimitSymbol}
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
@@ -113,9 +140,9 @@ const renderComponent = (
       onRevokeAllowance={overrides.onRevokeAllowance}
       fundingAccountName={overrides.fundingAccountName}
       onOrderMetalCard={jest.fn()}
-      isSpendingLimitActive
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
+      hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
       providerId={overrides.providerId}
       onTravel={jest.fn()}
@@ -168,6 +195,56 @@ describe('ManageCardOptions contact details gating', () => {
 });
 
 describe('ManageCardOptions funding-limit gating', () => {
+  it('shows a blocked card spending limit without opening the limit screen', () => {
+    const onManageSpendingLimit = jest.fn();
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      {
+        spendingLimitReadOnly: true,
+        spendingLimitOnly: true,
+        onManageSpendingLimit,
+      },
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM));
+    expect(onManageSpendingLimit).not.toHaveBeenCalled();
+  });
+
+  describe('spending limit amounts', () => {
+    const amountProps = {
+      isSpendingLimitActive: false,
+      showLimitedSpendingAmounts: true,
+      spendingLimitRemaining: '40',
+      spendingLimitTotal: '100',
+      spendingLimitSymbol: 'USDC',
+      spendingLimitOnly: true,
+    };
+    const amounts = () =>
+      strings(
+        'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
+        { remaining: '40', total: '100', symbol: 'USDC' },
+      );
+
+    it('shows the amounts outside privacy mode', () => {
+      const { getByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        amountProps,
+      );
+
+      expect(getByText(amounts())).toBeOnTheScreen();
+    });
+
+    it('masks the amounts in privacy mode', () => {
+      const { getByText, queryByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        { ...amountProps, privacyMode: true },
+      );
+
+      expect(queryByText(amounts())).toBeNull();
+      expect(getByText('••••••')).toBeOnTheScreen();
+    });
+  });
+
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: true }),
@@ -508,18 +585,61 @@ describe('ManageCardOptions view PIN gating', () => {
   });
 });
 
+describe('ManageCardOptions quick-action row seam', () => {
+  it('hides the View details, View PIN and Freeze rows when the quick-action row covers them', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: true } },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    // The freeze row mock drops the toggle's rightElement, so assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeNull();
+  });
+
+  it('hides only the rows whose tile is showing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: false } },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    expect(getByTestId('freeze-card-list-item')).toBeOnTheScreen();
+  });
+
+  it('keeps the rows when the quick-action row is not showing them', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: false, pin: false, freeze: false } },
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+    // The toggle testID is not exposed by the row mock; assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeOnTheScreen();
+  });
+});
+
 describe('ManageCardOptions transaction history gating', () => {
-  it('shows transaction history when fully set up and a destination is available', () => {
+  it('hides transaction history when fully set up because history lives in the Activity segment', () => {
     const onTransactionHistory = jest.fn();
 
-    const { getByTestId } = renderComponent(
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: false }),
       { onTransactionHistory },
     );
 
     expect(
-      getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
-    ).toBeOnTheScreen();
+      queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+    ).toBeNull();
   });
 
   it('hides transaction history during setup without the Immersve override', () => {

@@ -67,11 +67,15 @@ jest.mock('../../services/PerpsConnectionManager', () => ({
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectHip3ConfigVersion: () => 1,
+  // Read by usePerpsProvider (the venue mark gate on the header token).
+  selectPerpsLighterProviderEnabledFlag: () => false,
 }));
 
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsNetwork: () => 'mainnet',
   selectPerpsProvider: () => 'hyperliquid',
+  // Read by usePerpsProvider (the venue mark gate on the header token).
+  selectPerpsInitializationState: () => 'initialized',
 }));
 
 jest.mock('@react-navigation/native', () => {

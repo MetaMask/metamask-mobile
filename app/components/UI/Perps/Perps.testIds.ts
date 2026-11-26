@@ -114,6 +114,9 @@ export const getPerpsMarketDetailsTabSelector = (tab: string) =>
 export const getPerpsLiveTradeRowSelector = (postId: string) =>
   `perps-home-live-trade-${postId}`;
 
+export const getPerpsLiveTradeVerifiedBadgeSelector = (postId: string) =>
+  `perps-home-live-trade-verified-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -294,6 +297,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
 
 export const PerpsHomeViewSelectorsIDs = {
   AVAILABLE_BALANCE_BUTTON: 'perps-home-available-balance-button',
+  AVAILABLE_BALANCE_CHEVRON: 'perps-home-available-balance-chevron',
   CROSS_MARGIN_RATIO_BANNER: 'perps-home-cross-margin-ratio-banner',
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
@@ -1026,7 +1030,6 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
   ACCOUNT_LEVERAGE_VALUE: 'perps-balance-bottom-sheet-account-leverage-value',
   CROSS_MARGIN_USAGE_VALUE:
     'perps-balance-bottom-sheet-cross-margin-usage-value',
-  CROSS_MARGIN_TOOLTIP: 'perps-balance-bottom-sheet-cross-margin-tooltip',
 };
 
 /** Tappable label of a cross margin summary row, keyed by its tooltip key. */
@@ -1279,7 +1282,6 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
   MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
   MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
-  MARGIN_INFO_BUTTON: 'close-position-bottom-sheet-margin-info-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_PNL_ROW: 'close-position-bottom-sheet-total-pnl-row',
@@ -1609,4 +1611,15 @@ export const PerpsRecentActivityListSelectorsIDs = {
 } as const;
 export const PerpsRecoveryPanelTestIds = {
   PANEL: 'perps-recovery-panel',
+} as const;
+
+// ========================================
+// PERPS TRADE ON SELECTOR SELECTORS
+// ========================================
+
+export const PerpsTradeOnSelectorsIDs = {
+  /** "Trade on" trigger row on the Lite market page. */
+  ROW: 'perps-trade-on-row',
+  SHEET: 'perps-trade-on-sheet',
+  SHEET_OPTION: 'perps-trade-on-sheet-option',
 } as const;

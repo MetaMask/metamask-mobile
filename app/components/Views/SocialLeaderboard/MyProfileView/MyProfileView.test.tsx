@@ -928,6 +928,10 @@ describe('MyProfileView', () => {
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'my_profile',
+      analyticsSource: 'my_profile',
+    });
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 

@@ -6,14 +6,24 @@ import {
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 import Engine from '../Engine';
-import { dismissAuthSession, openAuthSessionAsync } from 'expo-web-browser';
-import { Linking } from 'react-native';
+import { UnavailabilityError } from 'expo-modules-core';
+import {
+  dismissAuthSession,
+  getCustomTabsSupportingBrowsersAsync,
+  openAuthSessionAsync,
+} from 'expo-web-browser';
+import { Linking, Platform } from 'react-native';
 import type { XProfile } from '@metamask/profile-controller';
+import {
+  openWebviewAuthSession,
+  WebviewAuthMountTimeoutError,
+} from '../../util/webviewAuthSession';
 
 jest.mock('expo-web-browser', () => ({
   __esModule: true,
   openAuthSessionAsync: jest.fn(),
   dismissAuthSession: jest.fn(),
+  getCustomTabsSupportingBrowsersAsync: jest.fn(),
 }));
 
 jest.mock('react-native', () => ({
@@ -21,6 +31,14 @@ jest.mock('react-native', () => ({
     addEventListener: jest.fn(() => ({ remove: jest.fn() })),
     getInitialURL: jest.fn(),
   },
+  Platform: {
+    OS: 'ios',
+  },
+}));
+
+jest.mock('../../util/webviewAuthSession', () => ({
+  ...jest.requireActual('../../util/webviewAuthSession'),
+  openWebviewAuthSession: jest.fn(),
 }));
 
 jest.mock('../Engine', () => ({
@@ -69,11 +87,16 @@ function getLinkingHandler() {
   return () => handler;
 }
 
-const flushPromises = () => new Promise(setImmediate);
+const NO_BROWSER_ACTIVITY_ERROR = new Error(
+  "Call to function 'ExpoWebBrowser.openBrowserAsync' has been rejected.\n→ Caused by: No matching browser activity found",
+);
+
+const flushPromises = async () => await new Promise(setImmediate);
 
 describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios';
     ProfileController.state.profile.profileId = 'profile-1';
     jest.mocked(ProfileController.getXAuthorizationUrl).mockResolvedValue({
       authorizationUrl: AUTHORIZATION_URL,
@@ -109,8 +132,8 @@ describe('XAuthService (app-relay flow)', () => {
       const getHandler = getLinkingHandler();
       let resolveOpenAuth!: (result: unknown) => void;
       (openAuthSessionAsync as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveOpenAuth = resolve;
           }),
       );
@@ -307,8 +330,8 @@ describe('XAuthService (app-relay flow)', () => {
         state: string;
       }) => void = () => undefined;
       jest.mocked(ProfileController.getXAuthorizationUrl).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveUrl = resolve;
           }),
       );
@@ -333,8 +356,8 @@ describe('XAuthService (app-relay flow)', () => {
       let resolveOpen: (result: { type: string; url: string }) => void = () =>
         undefined;
       (openAuthSessionAsync as jest.Mock).mockImplementation(
-        () =>
-          new Promise((resolve) => {
+        async () =>
+          await new Promise((resolve) => {
             resolveOpen = resolve;
           }),
       );
@@ -391,13 +414,365 @@ describe('XAuthService (app-relay flow)', () => {
       });
     });
 
-    it('throws a network failure error when the auth session cannot be opened', async () => {
-      (openAuthSessionAsync as jest.Mock).mockRejectedValue(
-        new Error('Cannot open the auth session'),
+    describe('in-app WebView fallback', () => {
+      beforeEach(() => {
+        Platform.OS = 'android';
+        (getCustomTabsSupportingBrowsersAsync as jest.Mock).mockResolvedValue({
+          preferredBrowserPackage: 'com.android.chrome',
+          browserPackages: ['com.android.chrome'],
+          servicePackages: ['com.android.chrome'],
+        });
+      });
+
+      it('throws a network failure error with safe reason codes when both the auth session and in-app WebView fallback fail to open', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          NO_BROWSER_ACTIVITY_ERROR,
+        );
+        jest
+          .mocked(openWebviewAuthSession)
+          .mockRejectedValue(new Error('Navigation reference does not exist!'));
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.NetworkFailure,
+          message:
+            'Failed to open X authorization session (no_matching_browser_activity; webview_fallback=navigation_unavailable)',
+        });
+        expect(openWebviewAuthSession).toHaveBeenCalledWith({
+          url: AUTHORIZATION_URL,
+          redirectUri: X_REDIRECT_URI,
+          signal: undefined,
+        });
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+
+      it('maps a WebView mount timeout error to a safe mount_timeout code', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          NO_BROWSER_ACTIVITY_ERROR,
+        );
+        jest
+          .mocked(openWebviewAuthSession)
+          .mockRejectedValue(new WebviewAuthMountTimeoutError());
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.NetworkFailure,
+          message:
+            'Failed to open X authorization session (no_matching_browser_activity; webview_fallback=mount_timeout)',
+        });
+      });
+
+      it('does not propagate URLs, OAuth codes, state, or tokens from launch or fallback errors', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          new Error(
+            'No matching browser activity found for https://x.com/i/oauth2/authorize?code=secret-code-1&state=secret-state-1&access_token=tok_123',
+          ),
+        );
+        jest
+          .mocked(openWebviewAuthSession)
+          .mockRejectedValue(
+            new Error(
+              'Failed to open https://link.metamask.io/x-oauth-redirect?code=secret-code-2&state=secret-state-2&token=tok_456',
+            ),
+          );
+
+        const error = await connectX().catch((caught) => caught);
+
+        expect(error).toBeInstanceOf(XAuthError);
+        expect(error.type).toBe(XAuthErrorType.NetworkFailure);
+        expect(error.message).toBe(
+          'Failed to open X authorization session (no_matching_browser_activity; webview_fallback=unknown_webview_error)',
+        );
+        expect(error.message).not.toContain('secret-code');
+        expect(error.message).not.toContain('secret-state');
+        expect(error.message).not.toContain('tok_');
+        expect(error.message).not.toContain('https://');
+      });
+
+      it('falls back to the in-app WebView and completes when openAuthSessionAsync rejects with no matching browser activity', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          NO_BROWSER_ACTIVITY_ERROR,
+        );
+        jest
+          .mocked(openWebviewAuthSession)
+          .mockResolvedValue(
+            REDIRECT_WITH(`code=fallback-code&state=${SESSION_STATE}`),
+          );
+
+        await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+        expect(openWebviewAuthSession).toHaveBeenCalledWith({
+          url: AUTHORIZATION_URL,
+          redirectUri: X_REDIRECT_URI,
+          signal: undefined,
+        });
+        expect(ProfileController.connectX).toHaveBeenCalledWith({
+          code: 'fallback-code',
+          state: SESSION_STATE,
+        });
+      });
+
+      it.each([
+        [
+          'NoPreferredPackageFound',
+          new Error('Cannot determine preferred package without satisfying it'),
+        ],
+        [
+          'ActivityNotFoundException',
+          new Error(
+            'android.content.ActivityNotFoundException: No Activity found to handle Intent',
+          ),
+        ],
+        [
+          'UnavailabilityError',
+          new UnavailabilityError('WebBrowser', 'openBrowserAsync'),
+        ],
+      ])(
+        'falls back to the in-app WebView on recoverable Android launch failure (%s)',
+        async (_label, launchError) => {
+          (openAuthSessionAsync as jest.Mock).mockRejectedValue(launchError);
+          jest
+            .mocked(openWebviewAuthSession)
+            .mockResolvedValue(
+              REDIRECT_WITH(`code=recoverable-code&state=${SESSION_STATE}`),
+            );
+
+          await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+          expect(openWebviewAuthSession).toHaveBeenCalledTimes(1);
+        },
       );
 
-      await expect(connectX()).rejects.toMatchObject({
-        type: XAuthErrorType.NetworkFailure,
+      it('does not fall back when another browser session is already open', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          new Error(
+            'WebBrowser is already open, only one can be open at a time',
+          ),
+        );
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.NetworkFailure,
+          message:
+            'Failed to open X authorization session (browser_already_open)',
+        });
+        expect(openWebviewAuthSession).not.toHaveBeenCalled();
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+
+      it('does not fall back when Expo WebBrowser reports an invalid internal auth session state', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          new Error(
+            "The WebBrowser's auth session is in an invalid state with a redirect handler set when it should not be",
+          ),
+        );
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.NetworkFailure,
+          message:
+            'Failed to open X authorization session (invalid_auth_session_state)',
+        });
+        expect(openWebviewAuthSession).not.toHaveBeenCalled();
+      });
+
+      it('does not fall back on unknown browser launch errors and sanitizes sensitive error text', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          new Error(
+            'Unexpected error for https://x.com/i/oauth2/authorize?code=leak&state=leak&token=leak',
+          ),
+        );
+
+        const error = await connectX().catch((caught) => caught);
+
+        expect(error).toBeInstanceOf(XAuthError);
+        expect(error.type).toBe(XAuthErrorType.NetworkFailure);
+        expect(error.message).toBe(
+          'Failed to open X authorization session (unknown_browser_error)',
+        );
+        expect(error.message).not.toContain('leak');
+        expect(error.message).not.toContain('https://');
+        expect(openWebviewAuthSession).not.toHaveBeenCalled();
+      });
+
+      it('does not fall back to the in-app WebView on iOS', async () => {
+        Platform.OS = 'ios';
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          new Error('The authentication session could not be started.'),
+        );
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.NetworkFailure,
+          message:
+            'Failed to open X authorization session (auth_session_failed_to_start)',
+        });
+        expect(openWebviewAuthSession).not.toHaveBeenCalled();
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+
+      it('throws a cancel error when the user dismisses the in-app WebView fallback', async () => {
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          NO_BROWSER_ACTIVITY_ERROR,
+        );
+        jest.mocked(openWebviewAuthSession).mockResolvedValue(undefined);
+
+        await expect(connectX()).rejects.toMatchObject({
+          type: XAuthErrorType.UserCancelled,
+        });
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+
+      it('does not open the in-app WebView fallback when aborted before openAuthSessionAsync rejects', async () => {
+        let rejectOpen!: (error: Error) => void;
+        (openAuthSessionAsync as jest.Mock).mockImplementation(
+          async () =>
+            await new Promise((_resolve, reject) => {
+              rejectOpen = reject;
+            }),
+        );
+        const controller = new AbortController();
+
+        const promise = connectX({ signal: controller.signal });
+        await flushPromises();
+
+        controller.abort();
+        rejectOpen(NO_BROWSER_ACTIVITY_ERROR);
+
+        await expect(promise).rejects.toMatchObject({
+          type: XAuthErrorType.UserCancelled,
+        });
+        expect(openWebviewAuthSession).not.toHaveBeenCalled();
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+
+      it('cancels when aborted while the in-app WebView fallback is open', async () => {
+        let resolveWebview!: (url: string | undefined) => void;
+        (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+          NO_BROWSER_ACTIVITY_ERROR,
+        );
+        jest.mocked(openWebviewAuthSession).mockImplementation(
+          async ({ signal }) =>
+            await new Promise((resolve) => {
+              resolveWebview = resolve;
+              signal?.addEventListener('abort', () => resolve(undefined), {
+                once: true,
+              });
+            }),
+        );
+        const controller = new AbortController();
+
+        const promise = connectX({ signal: controller.signal });
+        await flushPromises();
+
+        expect(openWebviewAuthSession).toHaveBeenCalledWith({
+          url: AUTHORIZATION_URL,
+          redirectUri: X_REDIRECT_URI,
+          signal: controller.signal,
+        });
+        controller.abort();
+        resolveWebview(undefined);
+
+        await expect(promise).rejects.toMatchObject({
+          type: XAuthErrorType.UserCancelled,
+        });
+        expect(ProfileController.connectX).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Android Custom Tabs browser selection', () => {
+      beforeEach(() => {
+        Platform.OS = 'android';
+      });
+
+      it('passes preferredBrowserPackage when it supports Custom Tabs', async () => {
+        (getCustomTabsSupportingBrowsersAsync as jest.Mock).mockResolvedValue({
+          preferredBrowserPackage: 'com.android.chrome',
+          browserPackages: [
+            'com.android.chrome',
+            'com.sec.android.app.sbrowser',
+          ],
+          servicePackages: [
+            'com.android.chrome',
+            'com.sec.android.app.sbrowser',
+          ],
+        });
+        (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+          type: 'success',
+          url: REDIRECT_WITH(`code=android-code&state=${SESSION_STATE}`),
+        });
+
+        await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+        expect(openAuthSessionAsync).toHaveBeenCalledWith(
+          AUTHORIZATION_URL,
+          X_REDIRECT_URI,
+          {
+            createTask: false,
+            preferUniversalLinks: true,
+            browserPackage: 'com.android.chrome',
+          },
+        );
+      });
+
+      it('falls back to the first servicePackage when preferredBrowserPackage is unavailable', async () => {
+        (getCustomTabsSupportingBrowsersAsync as jest.Mock).mockResolvedValue({
+          preferredBrowserPackage: undefined,
+          browserPackages: ['io.metamask', 'com.android.chrome'],
+          servicePackages: ['com.android.chrome'],
+        });
+        (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+          type: 'success',
+          url: REDIRECT_WITH(`code=service-pkg-code&state=${SESSION_STATE}`),
+        });
+
+        await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+        expect(openAuthSessionAsync).toHaveBeenCalledWith(
+          AUTHORIZATION_URL,
+          X_REDIRECT_URI,
+          {
+            createTask: false,
+            preferUniversalLinks: true,
+            browserPackage: 'com.android.chrome',
+          },
+        );
+      });
+
+      it('opens the in-app WebView directly when Android reports no Custom Tabs browsers', async () => {
+        (getCustomTabsSupportingBrowsersAsync as jest.Mock).mockResolvedValue({
+          preferredBrowserPackage: undefined,
+          browserPackages: ['io.metamask'],
+          servicePackages: [],
+        });
+        jest
+          .mocked(openWebviewAuthSession)
+          .mockResolvedValue(
+            REDIRECT_WITH(`code=webview-direct-code&state=${SESSION_STATE}`),
+          );
+
+        await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+        expect(openAuthSessionAsync).not.toHaveBeenCalled();
+        expect(openWebviewAuthSession).toHaveBeenCalledWith({
+          url: AUTHORIZATION_URL,
+          redirectUri: X_REDIRECT_URI,
+          signal: undefined,
+        });
+        expect(ProfileController.connectX).toHaveBeenCalledWith({
+          code: 'webview-direct-code',
+          state: SESSION_STATE,
+        });
+      });
+
+      it('still attempts openAuthSessionAsync when getCustomTabsSupportingBrowsersAsync throws', async () => {
+        (getCustomTabsSupportingBrowsersAsync as jest.Mock).mockRejectedValue(
+          new Error('Query failed'),
+        );
+        (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+          type: 'success',
+          url: REDIRECT_WITH(`code=query-err-code&state=${SESSION_STATE}`),
+        });
+
+        await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+        expect(openAuthSessionAsync).toHaveBeenCalledWith(
+          AUTHORIZATION_URL,
+          X_REDIRECT_URI,
+          {
+            createTask: false,
+            preferUniversalLinks: true,
+          },
+        );
       });
     });
 

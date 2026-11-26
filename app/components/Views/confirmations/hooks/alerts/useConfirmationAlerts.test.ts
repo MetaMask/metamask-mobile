@@ -18,6 +18,8 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
+import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
+import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -47,6 +49,8 @@ jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useFiatBuyLimitAlert');
 jest.mock('./useTransactionDepositLimitAlert');
+jest.mock('./useLighterDepositMinimumAlert');
+jest.mock('./useLighterWithdrawMinimumAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -221,6 +225,8 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
     (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue([]);
+    (useLighterDepositMinimumAlert as jest.Mock).mockReturnValue([]);
+    (useLighterWithdrawMinimumAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -374,5 +380,43 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockDepositLimitAlert);
+  });
+
+  it('returns the Lighter deposit minimum alert', () => {
+    const mockLighterMinimumAlert: Alert[] = [
+      {
+        key: AlertKeys.FiatBuyAmountLimit,
+        title: 'Amount out of range',
+        message: 'Minimum purchase is $1',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useLighterDepositMinimumAlert as jest.Mock).mockReturnValue(
+      mockLighterMinimumAlert,
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockLighterMinimumAlert);
+  });
+
+  it('returns the Lighter withdraw minimum alert', () => {
+    const mockLighterWithdrawMinimumAlert: Alert[] = [
+      {
+        key: AlertKeys.FiatBuyAmountLimit,
+        title: 'Amount out of range',
+        message: 'Minimum withdrawal is $2.00',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useLighterWithdrawMinimumAlert as jest.Mock).mockReturnValue(
+      mockLighterWithdrawMinimumAlert,
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockLighterWithdrawMinimumAlert);
   });
 });

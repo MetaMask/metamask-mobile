@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   getTrendingTokenRowAddButtonTestId,
   getTrendingTokenRowItemTestId,
@@ -96,6 +97,8 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** Optional trailing action button rendered on the right of the row. */
   endAction?: QuickActionButton;
+  /** Optional utility classes applied to the interactive row root. */
+  twClassName?: string;
   /**
    * Subtitle layout. `marketStats` is market cap and volume.
    * `search` is the token symbol and market cap.
@@ -165,9 +168,11 @@ const TrendingTokenRowItem = ({
   onCardPress,
   testIdInstanceKey,
   endAction,
+  twClassName,
   subtitle: subtitleVariant = 'marketStats',
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   const caipChainId = useMemo(
@@ -228,7 +233,10 @@ const TrendingTokenRowItem = ({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        twClassName ? tw.style(twClassName) : undefined,
+      ]}
       onPress={handlePress}
       testID={rowTestId}
     >

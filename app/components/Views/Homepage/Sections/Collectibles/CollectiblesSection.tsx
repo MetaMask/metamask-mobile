@@ -1,13 +1,22 @@
 import React, {
   ComponentRef,
+  useCallback,
   useImperativeHandle,
   useRef,
   type Ref,
 } from 'react';
-import { useLinkProps } from '@react-navigation/native';
+import { useFocusEffect, useLinkProps } from '@react-navigation/native';
 import {
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   SectionDivider,
   SectionHeader,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from '../../../../UI/primitives/View';
 import { strings } from '../../../../../../locales/i18n';
@@ -50,7 +59,19 @@ export function CollectiblesSection({
   });
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
-  const isHidden = !isPending && isEmpty;
+  const isFirstFocus = useRef(true);
+
+  // Refetch when Home regains focus, so a pack that reopened shows again.
+  // useFocusEffect needs a stable callback.
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      void refetch();
+    }, [refetch]),
+  );
 
   // Pull-to-refresh on Home refetches the packs.
   useImperativeHandle(ref, () => ({
@@ -60,7 +81,7 @@ export function CollectiblesSection({
   }));
 
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: isHidden ? null : sectionViewRef,
+    sectionRef: sectionViewRef,
     isLoading: isPending,
     sectionName: HomeSectionNames.COLLECTIBLES,
     sectionIndex,
@@ -74,12 +95,9 @@ export function CollectiblesSection({
     sectionId: HomeSectionNames.COLLECTIBLES,
     contentReady: !isPending,
     isEmpty,
+    demandStarted: isPending || Boolean(packs?.length),
     isLoading: isPending,
   });
-
-  if (isHidden) {
-    return null;
-  }
 
   return (
     <View
@@ -95,10 +113,36 @@ export function CollectiblesSection({
         {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      {packs ? (
-        <CollectiblesCarousel packs={packs} />
-      ) : (
+      {isPending ? (
         <CollectiblesCarouselSkeleton />
+      ) : isEmpty ? (
+        // Same placeholder for an API failure and for no available packs.
+        <View
+          className="items-center gap-2 px-6 py-10"
+          testID={collectiblesTestIds.empty}
+        >
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Xl}
+            color={IconColor.IconAlternative}
+          />
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
+            className="text-center"
+          >
+            {strings('collectibles.home.empty')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            className="text-center"
+          >
+            {strings('collectibles.home.empty_description')}
+          </Text>
+        </View>
+      ) : (
+        <CollectiblesCarousel packs={packs} />
       )}
     </View>
   );

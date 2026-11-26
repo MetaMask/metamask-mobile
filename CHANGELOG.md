@@ -10,18 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added mUSD back for Immersve cards and a wallet proof on the card link (#40338)
-
-### Changed
-
-- Updated the copy on the Add funds from your bank screen to align with the content guidelines
-- Updated the MetaMask Money FAQ wording to align with the content guidelines
-- Updated the copy on the identity verification screen to align with the content guidelines
-- Updated the identity verification partner terms wording to align with the content guidelines
+- Added a Max button for native TRX sends that asks the Tron Snap for the largest amount that still leaves room for network fees
+- Added Gold and Silver 15-minute Up/Down markets under a 15m filter on the Predict Finance feed (#40313)
 
 ### Fixed
 
 - Fixed every TransactionController update throwing "No metadata found for 'swapsTransactions'" after creating or importing a wallet, by no longer writing the legacy swapsTransactions key when resetting state (#40207)
-- Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
+- Show the existing post-only messages for Hyperliquid order rejections, and report a cancelled original when a post-only edit would cross the spread
+- Show "Something went wrong. Please try again." instead of raw exchange text for unrecognized Perps errors, and "Order validation failed" for unrecognized order validation errors
+
+## [8.21.1]
+
+### Changed
+
+- Changed generated social profile usernames to remove underscores and capitalize each word (#40368)
 
 ## [8.21.0]
 
@@ -15438,7 +15440,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...HEAD
+[8.21.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.21.1
 [8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
 [8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2
 [8.20.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.20.1

@@ -14,7 +14,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuoteError,
@@ -39,6 +38,7 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 const CRYPTO_ACCOUNT_TYPES = new Set<string>(
   Object.values(OnboardingCompletedAccountType),
@@ -58,8 +58,11 @@ export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
+  const automaticPayToken = useRef<
+    { chainId: Hex; symbol: string } | undefined
+  >(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quoteErrorsRef = useRef<Json[]>([]);
   const wasQuoteLoadingRef = useRef(false);
@@ -87,7 +90,16 @@ export function useTransactionPayMetrics() {
   const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
     ? CRYPTO_PAY_SECTION_ID
     : source.selected;
-  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
+  const storedRecipientSwitchCount =
+    typeof storedMetrics?.properties
+      ?.mm_pay_recipient_mm_account_switch_count === 'number'
+      ? storedMetrics.properties.mm_pay_recipient_mm_account_switch_count
+      : 0;
+  const recipient = usePaySectionRecipientMetrics(
+    recipientSource,
+    hasPayToken,
+    storedRecipientSwitchCount,
+  );
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
@@ -167,8 +179,8 @@ export function useTransactionPayMetrics() {
       {
         pay_token: {
           symbol: payToken?.symbol ?? null,
-          chainId: payToken?.chainId ?? null,
-          address: payToken?.address ?? null,
+          chainId: payTokenAsset?.chainId ?? null,
+          address: payTokenAsset?.address ?? null,
         },
         amount: sendingValue,
         amount_input_type: inputType ?? null,
@@ -180,8 +192,11 @@ export function useTransactionPayMetrics() {
   }
   wasQuoteLoadingRef.current = isQuoteLoading;
 
-  if (!automaticPayToken.current && payToken) {
-    automaticPayToken.current = payToken;
+  if (!automaticPayToken.current && payToken && payTokenAsset) {
+    automaticPayToken.current = {
+      chainId: payTokenAsset.chainId,
+      symbol: payToken.symbol,
+    };
   }
 
   const needsAccountSelect = hasTransactionType(transactionMeta, [
