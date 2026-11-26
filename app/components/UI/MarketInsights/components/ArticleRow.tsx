@@ -55,16 +55,16 @@ const ArticleRow: React.FC<ArticleRowProps> = ({
         )
       }
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
-          twClassName="pr-1"
+          className="pr-1"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
-            twClassName="flex-1 pr-2"
+            className="flex-1 pr-2"
           >
             {article.title}
           </Text>
@@ -80,9 +80,9 @@ const ArticleRow: React.FC<ArticleRowProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="pt-3"
+          className="pt-3"
         >
-          <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
+          <Box className="w-4 h-4 rounded-full overflow-hidden mr-2">
             <Image
               source={{ uri: getFaviconUrl(article.url || article.source) }}
               style={tw.style('w-4 h-4 rounded-full')}

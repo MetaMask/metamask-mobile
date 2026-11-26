@@ -85,7 +85,7 @@ export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-32"
+      className="h-32"
     >
       {riveFile && (
         <RiveView

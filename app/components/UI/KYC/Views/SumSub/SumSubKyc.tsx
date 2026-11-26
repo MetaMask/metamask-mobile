@@ -100,16 +100,16 @@ const KycSumSub = ({ onSubmitted, onExit }: KycSumSubProps) => {
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 gap-3"
+          className="flex-1 px-6 gap-3"
           testID={KycSumSubSelectorsIDs.ERROR}
         >
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+          <Text variant={TextVariant.HeadingMd} className="text-center">
             {strings('kyc.sumsub_kyc.error_title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('kyc.sumsub_kyc.error_description')}
           </Text>
@@ -122,14 +122,14 @@ const KycSumSub = ({ onSubmitted, onExit }: KycSumSubProps) => {
               retry();
             }}
             testID={KycSumSubSelectorsIDs.RETRY_BUTTON}
-            twClassName="mt-2"
+            className="mt-2"
           >
             {strings('kyc.sumsub_kyc.retry')}
           </Button>
         </Box>
       ) : (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
         >

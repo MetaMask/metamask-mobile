@@ -30,7 +30,7 @@ export function PackCategoryFilter({
     <FilterButtonGroup
       value={activeId}
       onChange={(value) => onSelect(value === allChipId ? undefined : value)}
-      twClassName="gap-2 px-4"
+      className="gap-2 px-4"
       style={tw.style('grow-0')}
       accessibilityLabel={strings('collectibles.packs.categories')}
     >
@@ -51,6 +51,13 @@ export function PackCategoryFilter({
           startAccessory={
             category.iconUrl && (
               <Image
+                source={{ uri: category.iconUrl }}
+                className="size-4 rounded-full"
+              />
+            )
+          }
+          testID={collectiblesTestIds.packsCategoryChip(category.id)}
+        ><Image
                 source={{ uri: category.iconUrl }}
                 className="size-4 rounded-full"
               />

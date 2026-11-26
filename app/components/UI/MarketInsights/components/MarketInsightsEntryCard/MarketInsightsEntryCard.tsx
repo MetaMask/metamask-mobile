@@ -286,13 +286,13 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="mt-0.5"
+        className="mt-0.5"
       >
         <GradientSparkleIcon />
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="shrink"
+          className="shrink"
         >
           {strings('market_insights.card_footer_disclaimer')}
           {' • '}
@@ -332,7 +332,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             </BoxGlass>
           ) : (
             <Box
-              twClassName="bg-background-muted rounded-xl"
+              className="bg-background-muted rounded-xl"
               padding={4}
               gap={1}
               onLayout={handleLayout}

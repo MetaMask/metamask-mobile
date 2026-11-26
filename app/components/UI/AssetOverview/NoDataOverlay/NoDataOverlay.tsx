@@ -49,20 +49,20 @@ const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
       </Svg>
 
       <Box
-        twClassName="absolute inset-0 justify-center items-center z-[2]"
+        className="absolute inset-0 justify-center items-center z-[2]"
         testID={
           hasInsufficientData
             ? 'price-chart-insufficient-data'
             : 'price-chart-no-data'
         }
       >
-        <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+        <Text variant={TextVariant.HeadingSm} className="text-center">
           {strings('asset_overview.no_chart_data.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('asset_overview.no_chart_data.description')}
         </Text>

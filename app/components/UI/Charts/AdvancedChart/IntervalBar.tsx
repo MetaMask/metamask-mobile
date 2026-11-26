@@ -39,7 +39,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full px-4"
+      className="w-full px-4"
     >
       <ScrollView
         testID="interval-bar-scroll"
@@ -68,7 +68,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
-                twClassName={
+                className={
                   isSelected ? 'text-text-default' : 'text-text-alternative'
                 }
               >

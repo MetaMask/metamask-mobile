@@ -461,7 +461,7 @@ const ManagePriceAlertsView: React.FC = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3 border-b border-muted"
+        className="px-4 py-3 border-b border-muted"
         testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
       >
         <TouchableOpacity
@@ -521,7 +521,7 @@ const ManagePriceAlertsView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ManagePriceAlertsTestIds.CONTAINER}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
@@ -533,7 +533,7 @@ const ManagePriceAlertsView: React.FC = () => {
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="flex-1"
+            className="flex-1"
           >
             <ActivityIndicator
               testID={ManagePriceAlertsTestIds.LOADING}
@@ -541,7 +541,7 @@ const ManagePriceAlertsView: React.FC = () => {
             />
           </Box>
         ) : (
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <FlatList
               data={alerts}
               keyExtractor={(item) => item.id}
@@ -559,7 +559,7 @@ const ManagePriceAlertsView: React.FC = () => {
                 variant={ButtonVariant.Primary}
                 onPress={() => handleNavigateToCreate()}
                 testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
-                twClassName="w-full"
+                className="w-full"
               >
                 {strings('price_alerts.add_alert')}
               </Button>

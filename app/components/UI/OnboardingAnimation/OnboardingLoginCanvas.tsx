@@ -40,7 +40,7 @@ const OnboardingLoginCanvas = ({
 
   return (
     <Box
-      twClassName="flex-1"
+      className="flex-1"
       style={tw.style({ backgroundColor: canvasColor })}
     >
       <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
@@ -55,13 +55,13 @@ const OnboardingLoginCanvas = ({
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="flex-1 py-4"
+            className="flex-1 py-4"
           >
             <Box
               testID={containerTestID}
               justifyContent={BoxJustifyContent.Between}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 w-full px-5"
+              className="flex-1 w-full px-5"
             >
               <OnboardingAnimation
                 startOnboardingAnimation

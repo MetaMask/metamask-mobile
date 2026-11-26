@@ -175,7 +175,7 @@ const ChartFrame = ({ testID, plot, yAxis, volume, time }: ChartFrameProps) => (
     <Box testID={testID && `${testID}-panes`} style={layout.panes}>
       <Box
         testID={testID && `${testID}-price`}
-        twClassName="flex-row"
+        className="flex-row"
         style={layout.pricePane}
       >
         <Box style={layout.plot}>{plot}</Box>
@@ -185,10 +185,10 @@ const ChartFrame = ({ testID, plot, yAxis, volume, time }: ChartFrameProps) => (
       </Box>
       <Box
         testID={testID && `${testID}-volume-band`}
-        twClassName="flex-row items-end"
+        className="flex-row items-end"
         style={layout.volumeBand}
       >
-        <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
+        <Box className="flex-row items-end" style={layout.volumeTrack}>
           {volume}
         </Box>
         <Box style={layout.axisSpacer} />
@@ -196,10 +196,10 @@ const ChartFrame = ({ testID, plot, yAxis, volume, time }: ChartFrameProps) => (
     </Box>
     <Box
       testID={testID && `${testID}-time-axis`}
-      twClassName="flex-row items-center"
+      className="flex-row items-center"
       style={layout.timeAxis}
     >
-      <Box twClassName="flex-row items-center" style={layout.timeTrack}>
+      <Box className="flex-row items-center" style={layout.timeTrack}>
         {time}
       </Box>
       <Box style={layout.timeSpacer} />
@@ -244,7 +244,7 @@ const ChartCandleSkeleton = ({
   return (
     <Box
       testID={testID}
-      twClassName="w-full flex-1 overflow-hidden bg-default"
+      className="w-full flex-1 overflow-hidden bg-default"
       style={{ height }}
     >
       <Box style={layout.fill}>
@@ -255,21 +255,21 @@ const ChartCandleSkeleton = ({
                 <Box
                   key={`grid-h-${index}`}
                   testID={`${testID}-grid-h-${index}`}
-                  twClassName="bg-border-muted"
+                  className="bg-border-muted"
                   style={grid.line}
                 />
               ))}
-              <Box twClassName="flex-row" style={layout.fill}>
+              <Box className="flex-row" style={layout.fill}>
                 <Box style={layout.flex1} />
                 {VERTICAL_GRID.map((index) => (
                   <Box
                     key={`grid-v-slot-${index}`}
-                    twClassName="flex-row"
+                    className="flex-row"
                     style={layout.flex1}
                   >
                     <Box
                       testID={`${testID}-grid-v-${index}`}
-                      twClassName="bg-border-muted"
+                      className="bg-border-muted"
                       style={layout.verticalGrid}
                     />
                     <Box style={layout.flex1} />
@@ -288,22 +288,22 @@ const ChartCandleSkeleton = ({
         <ChartFrame
           testID={testID}
           plot={
-            <Box twClassName="flex-row" style={layout.fill}>
+            <Box className="flex-row" style={layout.fill}>
               {candleMarks.map((mark, index) => (
                 <Box
                   key={`candle-slot-${index}`}
-                  twClassName="flex-1 items-center"
+                  className="flex-1 items-center"
                   style={layout.candleSlot}
                 >
-                  <Box twClassName="items-center" style={layout.candleColumn}>
+                  <Box className="items-center" style={layout.candleColumn}>
                     <Box
                       testID={`${testID}-wick-${index}`}
-                      twClassName={MARK_CLASS}
+                      className={MARK_CLASS}
                       style={mark.wick}
                     />
                     <Box
                       testID={`${testID}-candle-${index}`}
-                      twClassName={MARK_CLASS}
+                      className={MARK_CLASS}
                       style={mark.body}
                     />
                   </Box>
@@ -315,28 +315,28 @@ const ChartCandleSkeleton = ({
             <Box
               key={`y-pill-${index}`}
               testID={`${testID}-y-pill-${index}`}
-              twClassName={MARK_CLASS}
+              className={MARK_CLASS}
               style={grid.pill}
             />
           ))}
           volume={candleMarks.map((mark, index) => (
             <Box
               key={`volume-slot-${index}`}
-              twClassName="flex-1 items-center justify-end"
+              className="flex-1 items-center justify-end"
               style={layout.volumeSlot}
             >
               <Box
                 testID={`${testID}-volume-${index}`}
-                twClassName={MARK_CLASS}
+                className={MARK_CLASS}
                 style={mark.volume}
               />
             </Box>
           ))}
           time={TIME_PILLS.map((index) => (
-            <Box key={`x-pill-slot-${index}`} twClassName="flex-1 items-center">
+            <Box key={`x-pill-slot-${index}`} className="flex-1 items-center">
               <Box
                 testID={`${testID}-x-pill-${index}`}
-                twClassName={MARK_CLASS}
+                className={MARK_CLASS}
                 style={layout.xPill}
               />
             </Box>

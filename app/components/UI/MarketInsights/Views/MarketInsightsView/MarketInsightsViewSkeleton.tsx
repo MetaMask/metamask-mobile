@@ -19,7 +19,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
 
   return (
     <Box
-      twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
+      className={`flex-1 bg-default pt-[${insets.top}px]`}
       testID={MarketInsightsSelectorsIDs.VIEW_SKELETON}
     >
       <MarketInsightsViewHeader onBackPress={onBackPress} />
@@ -33,32 +33,32 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
           style={tw.style('w-full', { aspectRatio: 786 / 340 })}
         />
 
-        <Box twClassName="px-4 pt-4 pb-3" gap={2}>
+        <Box className="px-4 pt-4 pb-3" gap={2}>
           <Skeleton height={28} width="90%" />
           <Skeleton height={28} width="62%" />
         </Box>
 
-        <Box twClassName="px-4 pb-6" gap={2}>
+        <Box className="px-4 pb-6" gap={2}>
           <Skeleton height={16} width="94%" />
           <Skeleton height={16} width="85%" />
           <Skeleton height={16} width="88%" />
           <Skeleton height={16} width="56%" />
         </Box>
 
-        <Box twClassName="pb-6">
-          <Box twClassName="px-4" gap={3}>
+        <Box className="pb-6">
+          <Box className="px-4" gap={3}>
             <Skeleton height={64} width="100%" style={tw.style('rounded-xl')} />
             <Skeleton height={64} width="100%" style={tw.style('rounded-xl')} />
             <Skeleton height={64} width="100%" style={tw.style('rounded-xl')} />
           </Box>
         </Box>
 
-        <Box twClassName="pb-6">
-          <Box twClassName="px-4 py-4">
+        <Box className="pb-6">
+          <Box className="px-4 py-4">
             <Skeleton height={16} width={150} />
           </Box>
 
-          <Box twClassName="px-4" gap={3}>
+          <Box className="px-4" gap={3}>
             <Skeleton
               height={120}
               width="100%"

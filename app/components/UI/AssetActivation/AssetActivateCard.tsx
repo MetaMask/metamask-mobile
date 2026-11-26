@@ -64,19 +64,19 @@ export const AssetActivateCard = ({
   return (
     <Box
       testID={AssetActivateCardTestIds.CONTAINER}
-      twClassName="px-4 mt-3 mb-4"
+      className="px-4 mt-3 mb-4"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
-        twClassName="rounded-xl bg-warning-muted p-4 gap-3"
+        className="rounded-xl bg-warning-muted p-4 gap-3"
       >
         <Icon
           name={IconName.Danger}
           size={IconSize.Lg}
           color={IconColor.WarningDefault}
         />
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-2">
+        <Box flexDirection={BoxFlexDirection.Column} className="flex-1 gap-2">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Regular}>
             {strings('asset_activation.activate_description', {
               symbol: token.symbol,

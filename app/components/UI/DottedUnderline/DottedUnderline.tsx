@@ -44,7 +44,7 @@ const DottedUnderline = ({
   return (
     <Box
       alignItems={BoxAlignItems.Start}
-      twClassName={`relative${twClassName ? ` ${twClassName}` : ''}`}
+      className={`relative${twClassName ? ` ${twClassName}` : ''}`}
       onLayout={handleContentLayout}
       testID={testID}
     >
