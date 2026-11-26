@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import type { ViewStyle } from 'react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import WalletHomeOnboardingSteps from './WalletHomeOnboardingSteps';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -123,6 +124,32 @@ describe('WalletHomeOnboardingSteps', () => {
         },
       },
     });
+
+  const renderAtStep = ({
+    stepIndex = 0,
+    onReceivePress,
+    isAwaitingBalance = false,
+  }: {
+    stepIndex?: number;
+    onReceivePress?: () => void;
+    isAwaitingBalance?: boolean;
+  } = {}) =>
+    renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onReceivePress={onReceivePress}
+        isAwaitingBalance={isAwaitingBalance}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
 
   it('does not render Skip on the fund step', () => {
     const { queryByTestId } = renderSteps();
@@ -946,6 +973,133 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(
         store.getState().onboarding.walletHomeOnboardingSteps?.suppressedReason,
       ).toBeNull();
+    });
+  });
+
+  describe('fund step Receive button', () => {
+    const receiveTestId = WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON;
+
+    it('shows Receive next to Add funds on the fund step', () => {
+      const { getByTestId, getByText, queryByTestId } = renderAtStep({
+        onReceivePress: jest.fn(),
+      });
+
+      expect(getByTestId(receiveTestId)).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.receive_button')),
+      ).toBeOnTheScreen();
+      expect(getByTestId(primaryTestId)).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      ).toBeNull();
+    });
+
+    it('calls onReceivePress without advancing or deferring the fund step', async () => {
+      const onReceivePress = jest.fn();
+      const { getByTestId, store } = renderAtStep({ onReceivePress });
+
+      fireEvent.press(getByTestId(receiveTestId));
+      await flushWalletHomeStepTransition();
+
+      expect(onReceivePress).toHaveBeenCalledTimes(1);
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalledWith(
+        WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+      );
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 0 }),
+      );
+      expect(getByTestId(primaryTestId)).not.toBeDisabled();
+    });
+
+    it('keeps Receive visible but disabled while the balance shell is loading', () => {
+      const { getByTestId } = renderAtStep({
+        onReceivePress: jest.fn(),
+        isAwaitingBalance: true,
+      });
+
+      expect(getByTestId(receiveTestId)).toBeDisabled();
+      expect(getByTestId(primaryTestId)).toBeDisabled();
+    });
+
+    it('falls back to the single Add funds button when no receive handler is provided', () => {
+      const { getByTestId, queryByTestId } = renderAtStep();
+
+      expect(queryByTestId(receiveTestId)).toBeNull();
+      expect(getByTestId(primaryTestId)).toBeOnTheScreen();
+    });
+
+    it('keeps Skip on the trade step', () => {
+      const { getByTestId, queryByTestId } = renderAtStep({
+        stepIndex: 1,
+        onReceivePress: jest.fn(),
+      });
+
+      expect(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(receiveTestId)).toBeNull();
+    });
+  });
+
+  describe('two-button row equal width slots', () => {
+    const secondarySlotId = `steps-root-${WalletHomeOnboardingStepsSelectors.SECONDARY_BUTTON_SLOT}`;
+    const primarySlotId = `steps-root-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON_SLOT}`;
+
+    afterEach(() => {
+      mockIsGlass = false;
+    });
+
+    describe.each([
+      ['plain', false],
+      ['glass', true],
+    ])('in %s rendering', (_label, isGlass) => {
+      beforeEach(() => {
+        mockIsGlass = isGlass;
+      });
+
+      it.each([
+        [
+          'fund step (Receive + Add funds)',
+          0,
+          jest.fn(),
+          WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON,
+        ],
+        [
+          'trade step (Skip + primary)',
+          1,
+          undefined,
+          WalletHomeOnboardingStepsSelectors.SKIP_BUTTON,
+        ],
+        [
+          'notifications step (Skip + primary)',
+          2,
+          undefined,
+          WalletHomeOnboardingStepsSelectors.SKIP_BUTTON,
+        ],
+      ])(
+        'wraps both buttons in equal flex-1 min-w-0 slots on the %s',
+        (_step, stepIndex, onReceivePress, secondaryTestId) => {
+          const { getByTestId } = renderAtStep({ stepIndex, onReceivePress });
+
+          const secondarySlot = getByTestId(secondarySlotId);
+          const primarySlot = getByTestId(primarySlotId);
+
+          const equalSlotStyle: ViewStyle = {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '0%',
+            minWidth: 0,
+          };
+          expect(secondarySlot).toHaveStyle(equalSlotStyle);
+          expect(primarySlot).toHaveStyle(equalSlotStyle);
+          expect(
+            within(secondarySlot).getByTestId(secondaryTestId),
+          ).toBeOnTheScreen();
+          expect(
+            within(primarySlot).getByTestId(primaryTestId),
+          ).toBeOnTheScreen();
+        },
+      );
     });
   });
 });
