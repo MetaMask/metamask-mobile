@@ -668,22 +668,22 @@ describe('PredictHome', () => {
         PredictHomeTestIds.HOME_TRENDING,
       );
       const drawQuote = await within(trending).findByTestId(
-        `predict-next-game-quote-${threeWayGame.id}-draw`,
+        PredictHomeTestIds.gameQuote(threeWayGame.id, 'draw'),
       );
       expect(drawQuote).toHaveTextContent('25%');
       expect(
         within(trending).getByTestId(
-          `predict-next-game-team-${threeWayGame.id}-away`,
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'away'),
         ),
       ).toBeOnTheScreen();
       expect(
         within(trending).getByTestId(
-          `predict-next-game-team-${threeWayGame.id}-draw`,
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'draw'),
         ),
       ).toBeOnTheScreen();
       expect(
         within(trending).getByTestId(
-          `predict-next-game-team-${threeWayGame.id}-home`,
+          PredictHomeTestIds.gameTeam(threeWayGame.id, 'home'),
         ),
       ).toBeOnTheScreen();
       expect(

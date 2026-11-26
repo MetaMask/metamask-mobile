@@ -73,6 +73,12 @@ export function Carousel<T>({
 }: CarouselProps<T>) {
   const tw = useTailwind();
   const [visiblePage, setVisiblePage] = useState(0);
+  const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+
+  if (isLoading !== prevIsLoading) {
+    setPrevIsLoading(isLoading);
+    setVisiblePage(0);
+  }
 
   const skeletonData = useMemo(
     () => Array.from<T | undefined>({ length: skeletonCount }),

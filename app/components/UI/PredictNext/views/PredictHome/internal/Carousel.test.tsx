@@ -280,4 +280,68 @@ describe('Carousel', () => {
     expect(cellStyle(0).height).toBeUndefined();
     expect(screen.getByTestId('footer-page')).toHaveTextContent('0/3');
   });
+
+  it('resets the active page to the first card when loading finishes after swiping skeletons', () => {
+    const renderFooter = ({
+      activePage,
+      totalPages,
+    }: {
+      activePage: number;
+      totalPages: number;
+    }) => <Text testID="footer-page">{`${activePage}/${totalPages}`}</Text>;
+    const { rerender } = renderCarousel({ isLoading: true, renderFooter });
+    act(() => {
+      lastFlashListProps().onViewableItemsChanged({
+        viewableItems: [viewToken(2)],
+        changed: [],
+      });
+    });
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('2/3');
+
+    rerender(
+      <Carousel<Card>
+        data={CARDS}
+        isLoading={false}
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="test"
+        cardWidth={CARD_WIDTH}
+        renderFooter={renderFooter}
+      />,
+    );
+
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('0/3');
+  });
+
+  it('resets the active page to the first skeleton when loading restarts after swiping cards', () => {
+    const renderFooter = ({
+      activePage,
+      totalPages,
+    }: {
+      activePage: number;
+      totalPages: number;
+    }) => <Text testID="footer-page">{`${activePage}/${totalPages}`}</Text>;
+    const { rerender } = renderCarousel({ isLoading: false, renderFooter });
+    act(() => {
+      lastFlashListProps().onViewableItemsChanged({
+        viewableItems: [viewToken(2)],
+        changed: [],
+      });
+    });
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('2/3');
+
+    rerender(
+      <Carousel<Card>
+        data={CARDS}
+        isLoading
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="test"
+        cardWidth={CARD_WIDTH}
+        renderFooter={renderFooter}
+      />,
+    );
+
+    expect(screen.getByTestId('footer-page')).toHaveTextContent('0/3');
+  });
 });

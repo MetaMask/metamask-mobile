@@ -114,7 +114,7 @@ describe('HomeTrendingSection', () => {
     ).toEqual(GAMES.map(({ id }) => PredictHomeTestIds.event('kalshi', id)));
     // The featured composition: stacked Team rows with percentage pills.
     expect(
-      carousel().getByTestId('predict-next-game-team-nfl-1-away'),
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('nfl-1', 'away')),
     ).toBeOnTheScreen();
     expect(
       carousel().getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
@@ -134,16 +134,16 @@ describe('HomeTrendingSection', () => {
     renderSection({ events: [threeWayGame, ...GAMES] });
 
     expect(
-      carousel().getByTestId('predict-next-game-team-epl-1-away'),
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'away')),
     ).toBeOnTheScreen();
     expect(
-      carousel().getByTestId('predict-next-game-team-epl-1-draw'),
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'draw')),
     ).toBeOnTheScreen();
     expect(
-      carousel().getByTestId('predict-next-game-team-epl-1-home'),
+      carousel().getByTestId(PredictHomeTestIds.gameTeam('epl-1', 'home')),
     ).toBeOnTheScreen();
     expect(
-      carousel().getByTestId('predict-next-game-quote-epl-1-draw'),
+      carousel().getByTestId(PredictHomeTestIds.gameQuote('epl-1', 'draw')),
     ).toHaveTextContent('25%');
     const slotStyle = StyleSheet.flatten(
       screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-0`).props
