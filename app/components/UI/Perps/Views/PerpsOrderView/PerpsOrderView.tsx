@@ -607,6 +607,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handleMaxAmount,
     maxPossibleAmount,
     balanceForValidation: spendableBalance,
+    perpsAvailableToTrade,
+    isAvailableToTradeLoading,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
   // Live slider display value for immediate UI feedback while dragging. The
@@ -1634,7 +1636,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isInputFocused || isLimitPriceFocused,
+    skipValidation:
+      isInputFocused || isLimitPriceFocused || isAvailableToTradeLoading,
     originalUsdAmount: orderForm.amount,
     maxLeverage: maxLeverage ?? undefined,
   });
@@ -2613,15 +2616,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // defaulting, so opt this flow into the shared money-account selection.
   // A funded Perps balance is this view's default funding source and the
   // shared selection only reads the EOA token balance, so hold it back until
-  // the live account proves the Perps balance cannot cover the order.
-  const perpsSpendableBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() ?? '0',
-  );
+  // the live account proves the Perps balance cannot cover the order. An
+  // unknown Perps balance is not a zero one, so it also holds the selection
+  // back, even when a pay-token balance stops `isAvailableToTradeLoading`.
+  const isPerpsBalanceUnknown = perpsAvailableToTrade === undefined;
   useMoneyAccountDepositAndOrder({
     disable:
       !isOpenComplete ||
       isLoadingAccount ||
-      perpsSpendableBalance >= PERPS_MIN_BALANCE_THRESHOLD,
+      isAvailableToTradeLoading ||
+      isPerpsBalanceUnknown ||
+      perpsAvailableToTrade >= PERPS_MIN_BALANCE_THRESHOLD,
   });
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
@@ -2635,7 +2640,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
   const isInsufficientFunds =
-    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
+    !isLoadingAccount &&
+    !isAvailableToTradeLoading &&
+    amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel =
     isInsufficientFunds && !hasInsufficientFundsError
       ? strings('perps.order.validation.insufficient_funds')
@@ -2724,7 +2731,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : orderForm.amount;
       const currentAmount = parseFloat(effectiveAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
         commitAmount(Math.floor(newMaxAmount).toString());
       } else if (isDraggingSlider) {
         commitAmount(effectiveAmount);
@@ -2757,6 +2764,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
     [
       commitAmount,
+      isAvailableToTradeLoading,
       isDraggingSlider,
       liveDragAmount,
       orderForm.amount,
@@ -2824,14 +2832,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isMoneyAccountSelected) {
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
-    // The picker and margin checks use spendable balance. totalBalance still
-    // includes margin locked by open positions and orders.
-    const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.spendableBalance ?? '0')
-        : payTokenBalanceUsd,
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
+    // Perps balance on the order form is the venue's available to trade for
+    // this market and side. While that figure is unknown, show the
+    // placeholder instead of a zero.
+    // Withdraw surfaces keep the venue withdrawable amount.
+    const payWithBalanceUsd = isPayTokenPerpsBalance
+      ? perpsAvailableToTrade
+      : payTokenBalanceUsd;
+    const payWithBalance =
+      payWithBalanceUsd === undefined
+        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        : formatPerpsFiat(payWithBalanceUsd, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          });
     const marginDisplay =
       marginRequired !== undefined && marginRequired !== null
         ? formatPerpsFiat(marginRequired, {
@@ -2888,7 +2901,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const isTradeSheetHeaderLoading = tradeSheetHeaderPrice <= 0;
     // Keep the selected pay token visible while its quote refreshes after form
     // changes. The token and balance are still valid during that refetch.
-    const isTradeSheetPayWithLoading = isLoadingAccount;
+    const isTradeSheetPayWithLoading =
+      isLoadingAccount || (isPayTokenPerpsBalance && isAvailableToTradeLoading);
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
     const parsedLiquidationPrice =
@@ -3058,7 +3072,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasAmountError={
                   spendableBalance > 0 && filteredErrors.length > 0
                 }
-                showAmountWarning={!isLoadingAccount && spendableBalance === 0}
+                showAmountWarning={
+                  !isLoadingAccount &&
+                  !isAvailableToTradeLoading &&
+                  spendableBalance === 0
+                }
                 amountWarningMessage={strings(
                   'perps.order.validation.insufficient_funds_to_cover_trade',
                 )}
@@ -3168,7 +3186,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
+          showWarning={
+            !isLoadingAccount &&
+            !isAvailableToTradeLoading &&
+            spendableBalance === 0
+          }
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
@@ -3622,7 +3644,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             // Check if current amount exceeds new maximum value and adjust if needed
             const currentAmount = parseFloat(effectiveAmount || '0');
             const newMaxAmount = spendableBalance * leverage;
-            if (currentAmount > newMaxAmount) {
+            if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
               commitAmount(Math.floor(newMaxAmount).toString());
             } else if (isDraggingSlider) {
               commitAmount(effectiveAmount);

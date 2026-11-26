@@ -7660,7 +7660,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/UI/Perps/hooks/usePerpsPositionForAsset.ts": {

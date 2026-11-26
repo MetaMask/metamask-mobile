@@ -622,6 +622,25 @@ jest.mock('../../app/core/Engine', () => {
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToAvailableToTrade: jest.fn(
+          (params: {
+            symbol: string;
+            callback: (update: {
+              providerId: string;
+              symbol: string;
+              long: string;
+              short: string;
+            }) => void;
+          }) => {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: '100000',
+              short: '100000',
+            });
+            return () => undefined;
+          },
+        ),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
