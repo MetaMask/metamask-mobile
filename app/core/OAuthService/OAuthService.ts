@@ -189,6 +189,12 @@ export class OAuthService {
 
       await whenEngineReady();
 
+      // The controller rejects authenticating a different user or verifier
+      // while a previous identity is still in state (e.g. after "Use different
+      // login method"). Social login only starts from onboarding, so any
+      // leftover state is stale and must be cleared first.
+      await Engine.context.SeedlessOnboardingController.clearState();
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],

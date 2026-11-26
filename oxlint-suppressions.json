@@ -20580,19 +20580,16 @@
       "count": 3
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 31
+      "count": 16
     },
     "typescript/only-throw-error": {
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 8
+      "count": 6
     }
   },
   "app/core/Authentication/Authentication.ts": {
-    "typescript/await-thenable": {
-      "count": 1
-    },
     "typescript/no-floating-promises": {
       "count": 6
     },

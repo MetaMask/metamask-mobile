@@ -9,15 +9,22 @@
  */
 export {
   getDefaultSeedlessOnboardingControllerState,
+  getEnvelopeStatus,
   Web3AuthNetwork,
   SeedlessOnboardingControllerErrorMessage,
   SeedlessOnboardingMigrationVersion,
+  SeedlessOnboardingOperation,
+  SeedlessOnboardingCheckpoint,
+  PasswordSyncInstruction,
   AuthConnection,
+  AUTH_CONNECTION_BY_NAMESPACE,
   SecretType,
   SecretMetadata,
+  InvalidPrimarySecretDataTypeError,
   RecoveryError,
   SeedlessOnboardingError,
   EncAccountDataType,
+  parseSeedlessAuthData,
 } from '@metamask/seedless-onboarding-controller';
 
 export {
