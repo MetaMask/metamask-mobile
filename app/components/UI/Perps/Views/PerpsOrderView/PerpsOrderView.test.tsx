@@ -46,8 +46,13 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+const mockGoToBuy = jest.fn();
 jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
+const mockComplianceGate = jest.fn();
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockComplianceGate }),
 }));
 jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
   virtual: true,
@@ -3001,6 +3006,76 @@ describe('PerpsOrderView', () => {
 
     expect(getMockTradeScreenProps().closesSheetOnSubmit).toBe(false);
     expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+  });
+
+  describe('Add funds', () => {
+    const mockInsufficientFundsValidation = (): void => {
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: ['Insufficient margin'],
+        warnings: [],
+        fieldIssues: [],
+        isValidating: false,
+        insufficientBalanceErrors: ['Insufficient margin'],
+        validateNow: jest.fn(),
+      });
+    };
+
+    beforeEach(() => {
+      mockGoToBuy.mockReset();
+      mockComplianceGate.mockReset();
+      mockComplianceGate.mockImplementation(
+        async (action: () => Promise<unknown>) => action(),
+      );
+    });
+
+    it('opens Ramp after the sheet closes when the compliance gate allows it', async () => {
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        void getMockTradeScreenProps().onSubmit();
+      });
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open Ramp when the compliance gate blocks the wallet', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        void getMockTradeScreenProps().onSubmit();
+      });
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
+
+    it('does not open Ramp when the sheet is dismissed without tapping Add funds', async () => {
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).not.toHaveBeenCalled();
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
   });
 
   it('awaits pending validation before submitting from the Trade sheet', async () => {

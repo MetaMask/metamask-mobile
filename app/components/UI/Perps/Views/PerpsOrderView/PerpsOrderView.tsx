@@ -64,6 +64,7 @@ import {
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useComplianceGate } from '../../../Compliance';
 import {
   useIsTransactionPayQuoteLoading,
   useIsTransactionPaySubmitReady,
@@ -2802,14 +2803,31 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Add funds closes the sheet first: iOS would present Ramp from the bottom
   // over a modal, so Ramp opens as a normal page once the sheet is gone.
   const { goToBuy } = useRampNavigation();
+  const { gate: complianceGate } = useComplianceGate(
+    getSelectedAccountByScope('eip155:1')?.address,
+  );
   const isAddFundsPendingRef = useRef(false);
+  const handleAddFundsPress = useCallback(() => {
+    isAddFundsPendingRef.current = true;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+    });
+  }, [track]);
   const handleTradeSheetClosed = useCallback(() => {
     handleTradeSheetClose();
     if (isAddFundsPendingRef.current) {
       isAddFundsPendingRef.current = false;
-      void goToBuy();
+      // Same compliance check as the other Perps add-funds entry points.
+      complianceGate(async () => {
+        await goToBuy();
+      }).catch(logRejection('addFunds'));
     }
-  }, [goToBuy, handleTradeSheetClose]);
+  }, [complianceGate, goToBuy, handleTradeSheetClose]);
 
   const handleTradeSheetInteractive = useCallback(() => {
     completePerpsTradeSheetInteractiveTrace();
@@ -3137,9 +3155,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 closesSheetOnSubmit={isAddFundsMode}
                 onSubmit={
                   isAddFundsMode
-                    ? () => {
-                        isAddFundsPendingRef.current = true;
-                      }
+                    ? handleAddFundsPress
                     : () => handlePlaceOrder()
                 }
               />
