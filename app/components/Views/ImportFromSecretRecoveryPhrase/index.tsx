@@ -864,25 +864,6 @@ const ImportFromSecretRecoveryPhrase = () => {
                     autoCapitalize: 'none',
                     keyboardAppearance: themeAppearance,
                   }}
-                /><PasswordVisibilityToggle
-                      isVisible={showPasswordIndex.includes(0)}
-                      onToggle={() => toggleShowPassword(0)}
-                      testID={
-                        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
-                      }
-                    />
-                  }
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(0),
-                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    onSubmitEditing: jumpToConfirmPassword,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'next',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
                 />
                 <HelpText
                   severity={
@@ -912,27 +893,6 @@ const ImportFromSecretRecoveryPhrase = () => {
                   isError={isError}
                   endAccessory={
                     <PasswordVisibilityToggle
-                      isVisible={showPasswordIndex.includes(1)}
-                      onToggle={() => toggleShowPassword(1)}
-                      testID={
-                        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
-                      }
-                    />
-                  }
-                  isDisabled={password === ''}
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(1),
-                    testID:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    onSubmitEditing: Keyboard.dismiss,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'done',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                /><PasswordVisibilityToggle
                       isVisible={showPasswordIndex.includes(1)}
                       onToggle={() => toggleShowPassword(1)}
                       testID={

@@ -82,26 +82,7 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
             key={method}
             variant={ListItemVariant.TwoLines}
             avatar={
-              <Box className="-mr-1">
-                <AvatarIcon
-                  iconName={METHOD_ICONS[method]}
-                  severity={AvatarIconSeverity.Neutral}
-                  size={AvatarIconSize.Lg}
-                  iconProps={{ size: IconSize.Md }}
-                />
-              </Box>
-            }
-            endAccessory={
-              isDone ? (
-                <Icon name={IconName.Check} color={IconColor.SuccessDefault} />
-              ) : undefined
-            }
-            title={getMethodLabel(method)}
-            description={getDescription(method, isDone, step.email)}
-            testID={`${MfaFlowSelectorsIDs.INTRO_METHOD}-${method}${
-              isDone ? '-done' : ''
-            }`}
-          /><Box className="-mr-1">
+              <Box twClassName="-mr-1">
                 <AvatarIcon
                   iconName={METHOD_ICONS[method]}
                   severity={AvatarIconSeverity.Neutral}

@@ -397,27 +397,7 @@ const ManualBackupStep1 = () => {
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
                       maxFontSizeMultiplier={1}
-                      className="flex-1"
-                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                    >
-                      {item}
-                    </Text>
-                  }
-                /><Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                      maxFontSizeMultiplier={1}
-                    >
-                      {index + 1}.
-                    </Text>
-                  }
-                  inputElement={
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                      maxFontSizeMultiplier={1}
-                      className="flex-1"
+                      twClassName="flex-1"
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                     >
                       {item}

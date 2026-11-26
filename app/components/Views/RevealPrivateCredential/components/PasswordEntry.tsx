@@ -53,21 +53,6 @@ const PasswordEntry = ({
           returnKeyType: 'done',
           autoComplete: 'password',
         }}
-      /><ButtonIcon
-            iconName={showPassword ? IconName.Eye : IconName.EyeSlash}
-            onPress={onToggleShowPassword}
-          />
-        }
-        inputProps={{
-          secureTextEntry: !showPassword,
-          autoCapitalize: 'none',
-          onSubmitEditing: onSubmit,
-          keyboardAppearance: themeAppearance,
-          testID: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-          accessibilityLabel: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-          returnKeyType: 'done',
-          autoComplete: 'password',
-        }}
       />
       <Text
         className="mt-2"

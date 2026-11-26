@@ -183,15 +183,6 @@ const MfaSettings = () => {
             accessoryGap={2}
             onPress={() => open(method, isSetUp)}
             testID={ROW_TEST_IDS[method]}
-          /><Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            }
-            accessoryGap={2}
-            onPress={() => open(method, isSetUp)}
-            testID={ROW_TEST_IDS[method]}
           />
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}

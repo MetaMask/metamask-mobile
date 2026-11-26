@@ -236,20 +236,6 @@ const AddDeviceToWallet = () => {
                 <SettingsPathDescription />
               )
             }
-          /><AvatarIcon
-                iconName={instruction.iconName}
-                severity={AvatarIconSeverity.Neutral}
-                size={AvatarIconSize.Lg}
-              />
-            }
-            title={strings(instruction.titleKey)}
-            description={
-              instruction.descriptionKey ? (
-                strings(instruction.descriptionKey)
-              ) : (
-                <SettingsPathDescription />
-              )
-            }
           />
         ))}
 
@@ -286,7 +272,7 @@ const AddDeviceToWallet = () => {
               }}
             />
             <Button
-              className="w-full"
+              twClassName="w-full"
               onPress={triggerManualQrSubmit}
               isDisabled={!manualQrPayload.trim() || isBusy}
               isLoading={isBusy}

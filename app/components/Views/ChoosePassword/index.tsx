@@ -996,36 +996,6 @@ const ChoosePassword = () => {
                         : IconName.EyeSlash
                     }
                     size={ButtonIconSize.Md}
-                    className="-mr-1"
-                    onPress={() => toggleShowPassword(0)}
-                    accessibilityLabel={strings(
-                      showPasswordIndex.includes(0)
-                        ? 'choose_password.show'
-                        : 'choose_password.hide',
-                    )}
-                  />
-                }
-                inputProps={{
-                  secureTextEntry: showPasswordIndex.includes(0),
-                  testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                  accessibilityLabel:
-                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                  onSubmitEditing: jumpToConfirmPassword,
-                  autoComplete: 'password-new',
-                  returnKeyType: 'next',
-                  autoCapitalize: 'none',
-                  keyboardAppearance: themeAppearance,
-                }}
-              /><ButtonIcon
-                    testID={
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
-                    }
-                    iconName={
-                      showPasswordIndex.includes(0)
-                        ? IconName.Eye
-                        : IconName.EyeSlash
-                    }
-                    size={ButtonIconSize.Md}
                     twClassName="-mr-1"
                     onPress={() => toggleShowPassword(0)}
                     accessibilityLabel={strings(
@@ -1074,39 +1044,6 @@ const ChoosePassword = () => {
                 )}
                 endAccessory={
                   <ButtonIcon
-                    testID={
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
-                    }
-                    iconName={
-                      showPasswordIndex.includes(1)
-                        ? IconName.Eye
-                        : IconName.EyeSlash
-                    }
-                    size={ButtonIconSize.Md}
-                    className="-mr-1"
-                    isDisabled={password === ''}
-                    onPress={() => toggleShowPassword(1)}
-                    accessibilityLabel={strings(
-                      showPasswordIndex.includes(1)
-                        ? 'choose_password.show'
-                        : 'choose_password.hide',
-                    )}
-                  />
-                }
-                isDisabled={password === ''}
-                isError={Boolean(confirmPasswordStatusMessage)}
-                inputProps={{
-                  secureTextEntry: showPasswordIndex.includes(1),
-                  testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                  accessibilityLabel:
-                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                  autoComplete: 'password-new',
-                  onSubmitEditing: submitConfirmPassword,
-                  returnKeyType: 'done',
-                  autoCapitalize: 'none',
-                  keyboardAppearance: themeAppearance,
-                }}
-              /><ButtonIcon
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
                     }

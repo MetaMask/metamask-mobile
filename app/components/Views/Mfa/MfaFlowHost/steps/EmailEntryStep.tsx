@@ -75,25 +75,6 @@ const EmailEntryStep = ({ step, state, onAction }: StepProps<'emailEntry'>) => {
             onSubmitEditing: submit,
             testID: MfaFlowSelectorsIDs.EMAIL_INPUT,
           }}
-        /><Icon name={IconName.Mail} color={IconColor.IconAlternative} />
-          }
-          onChangeText={(text) => {
-            setEmail(text);
-            setShowInvalid(false);
-          }}
-          placeholder={strings('mfa.email_entry.placeholder')}
-          isError={showInvalid || state.error !== undefined}
-          autoFocus
-          inputProps={{
-            keyboardType: 'email-address',
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            autoComplete: 'email',
-            textContentType: 'emailAddress',
-            returnKeyType: 'done',
-            onSubmitEditing: submit,
-            testID: MfaFlowSelectorsIDs.EMAIL_INPUT,
-          }}
         />
         {showInvalid ? (
           <HelpText

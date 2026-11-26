@@ -137,30 +137,6 @@ const WalletRecoveryPassword = ({
                 onSubmitEditing: submitDisabled ? undefined : onSubmit,
                 keyboardAppearance,
               }}
-            /><ButtonIcon
-                  iconName={
-                    isPasswordVisible ? IconName.EyeSlash : IconName.Eye
-                  }
-                  iconProps={{ color: IconColor.IconAlternative }}
-                  onPress={() => setIsPasswordVisible((visible) => !visible)}
-                  isDisabled={inputDisabled}
-                  accessibilityLabel={strings(
-                    isPasswordVisible
-                      ? 'wallet_recovery_mfa.hide_password'
-                      : 'wallet_recovery_mfa.show_password',
-                  )}
-                  testID={WalletRecoverySelectorsIDs.PASSWORD_VISIBILITY}
-                />
-              }
-              inputProps={{
-                testID: LoginViewSelectors.PASSWORD_INPUT,
-                accessibilityLabel: placeholder,
-                returnKeyType: 'done',
-                autoCapitalize: 'none',
-                secureTextEntry: !isPasswordVisible,
-                onSubmitEditing: submitDisabled ? undefined : onSubmit,
-                keyboardAppearance,
-              }}
             />
             {error ? (
               <HelpText
