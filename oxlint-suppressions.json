@@ -16946,7 +16946,7 @@
       "count": 1
     },
     "typescript/unbound-method": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/Views/Settings/NotificationsSettings/PushNotificationToggle.hooks.test.tsx": {
