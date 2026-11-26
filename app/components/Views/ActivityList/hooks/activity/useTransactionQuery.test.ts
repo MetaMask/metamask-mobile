@@ -59,10 +59,12 @@ describe('useTransactionQuery', () => {
       defaultOptions: { queries: { retry: false } },
     });
     queryFnMock = jest.fn();
-    getV5TransactionByIdQueryOptionsMock.mockImplementation(() => ({
-      queryKey: ['accounts', 'transactions', 'v5ById'],
-      queryFn: queryFnMock,
-    }));
+    getV5TransactionByIdQueryOptionsMock.mockImplementation(
+      (accountId, txHash, options) => ({
+        queryKey: ['v5ById', accountId, txHash],
+        queryFn: () => queryFnMock(accountId, txHash, options),
+      }),
+    );
   });
 
   function createWrapper() {
@@ -144,7 +146,9 @@ describe('useTransactionQuery', () => {
   });
 
   it('enables the query and returns data for valid EVM inputs', async () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234567890abcdef' });
+    useSelectorMock.mockReturnValue({
+      address: '0x1234567890AbCdEf1234567890AbCdEf12345678',
+    });
     queryFnMock.mockResolvedValue({ data: mockTransaction });
 
     const { result, waitForNextUpdate } = renderHook(
@@ -160,6 +164,14 @@ describe('useTransactionQuery', () => {
     await waitForNextUpdate();
 
     expect(result.current.data).toEqual(mockTransaction);
-    expect(queryFnMock).toHaveBeenCalled();
+    expect(queryFnMock).toHaveBeenCalledWith(
+      'eip155:8453:0x1234567890abcdef1234567890abcdef12345678',
+      '0xabc',
+      expect.objectContaining({
+        includeLogs: false,
+        includeMiscOperations: false,
+        includeTxMetadata: true,
+      }),
+    );
   });
 });
