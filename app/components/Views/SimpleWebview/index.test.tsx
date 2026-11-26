@@ -181,6 +181,12 @@ describe('SimpleWebview', () => {
     ]);
   });
 
+  it('preserves domStorageEnabled for non-auth webviews', () => {
+    const { getByTestId } = render(<SimpleWebview />);
+
+    expect(getByTestId('simple-webview').props.domStorageEnabled).toBe(true);
+  });
+
   describe('authSessionId mode', () => {
     const AUTH_URL = 'https://x.com/i/oauth2/authorize';
     const AUTH_REDIRECT_URL =

@@ -1,9 +1,25 @@
 import NavigationService from '../core/NavigationService';
 import Routes from '../constants/navigation/Routes';
 
+/**
+ * Maximum time to wait for `SimpleWebview` to mount and attach its close
+ * handler after deferred navigation is requested. Bounds session cleanup if
+ * `NavigationService`'s `requestAnimationFrame`-deferred dispatch fails or is
+ * dropped.
+ */
+export const WEBVIEW_AUTH_MOUNT_TIMEOUT_MS = 5000;
+
+export class WebviewAuthMountTimeoutError extends Error {
+  constructor() {
+    super('WebView auth session timed out waiting for screen to mount');
+    this.name = 'WebviewAuthMountTimeoutError';
+  }
+}
+
 interface ActiveWebviewAuthSession {
   redirectUri: string;
   finish: (redirectUrl?: string) => void;
+  clearMountTimeout: () => void;
   close?: () => void;
   settled: boolean;
 }
@@ -11,10 +27,28 @@ interface ActiveWebviewAuthSession {
 const activeSessions = new Map<string, ActiveWebviewAuthSession>();
 let nextSessionId = 0;
 
+function matchesRedirectUri(
+  candidateUrl: string,
+  redirectUri: string,
+): boolean {
+  try {
+    const candidate = new URL(candidateUrl);
+    const expected = new URL(redirectUri);
+    return (
+      candidate.protocol === expected.protocol &&
+      candidate.host === expected.host &&
+      candidate.pathname === expected.pathname
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Attaches the WebView screen's close callback to an active auth session.
- * Returns `false` if the session was already resolved or aborted before the
- * screen mounted, signaling the screen to dismiss itself immediately.
+ * Returns `false` if the session was already resolved, timed out, or aborted
+ * before the screen mounted, signaling the screen to dismiss itself
+ * immediately.
  */
 export function attachWebviewAuthSessionClose(
   sessionId: string,
@@ -24,6 +58,7 @@ export function attachWebviewAuthSessionClose(
   if (!session || session.settled) {
     return false;
   }
+  session.clearMountTimeout();
   session.close = close;
   return true;
 }
@@ -43,7 +78,7 @@ export function handleWebviewAuthRedirect(
   url: string,
 ): boolean {
   const session = activeSessions.get(sessionId);
-  if (!session || !url.startsWith(session.redirectUri)) {
+  if (!session || !matchesRedirectUri(url, session.redirectUri)) {
     return false;
   }
   session.finish(url);
@@ -81,15 +116,25 @@ export async function openWebviewAuthSession(options: {
 
   return await new Promise<string | undefined>((resolve, reject) => {
     let onAbort: (() => void) | undefined;
+    let mountTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const clearMountTimeout = (): void => {
+      if (mountTimeout !== undefined) {
+        clearTimeout(mountTimeout);
+        mountTimeout = undefined;
+      }
+    };
 
     const session: ActiveWebviewAuthSession = {
       redirectUri,
       settled: false,
+      clearMountTimeout,
       finish: (redirectUrl?: string) => {
         if (session.settled) {
           return;
         }
         session.settled = true;
+        clearMountTimeout();
         if (signal && onAbort) {
           signal.removeEventListener('abort', onAbort);
         }
@@ -121,12 +166,27 @@ export async function openWebviewAuthSession(options: {
         },
       });
     } catch (error) {
+      clearMountTimeout();
       activeSessions.delete(sessionId);
       if (signal && onAbort) {
         signal.removeEventListener('abort', onAbort);
       }
       session.settled = true;
       reject(error);
+      return;
     }
+
+    mountTimeout = setTimeout(() => {
+      if (session.settled) {
+        return;
+      }
+      session.settled = true;
+      mountTimeout = undefined;
+      activeSessions.delete(sessionId);
+      if (signal && onAbort) {
+        signal.removeEventListener('abort', onAbort);
+      }
+      reject(new WebviewAuthMountTimeoutError());
+    }, WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
   });
 }

@@ -172,7 +172,7 @@ const SimpleWebView = () => {
         containerStyle={tw.style('flex-1')}
         source={{ uri: url }}
         testID="simple-webview"
-        domStorageEnabled={Boolean(authSessionId)}
+        domStorageEnabled
         onShouldStartLoadWithRequest={
           authSessionId ? handleShouldStartLoadWithRequest : undefined
         }

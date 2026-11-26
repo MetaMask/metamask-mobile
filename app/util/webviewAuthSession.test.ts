@@ -4,6 +4,8 @@ import {
   dismissWebviewAuthSession,
   handleWebviewAuthRedirect,
   openWebviewAuthSession,
+  WEBVIEW_AUTH_MOUNT_TIMEOUT_MS,
+  WebviewAuthMountTimeoutError,
 } from './webviewAuthSession';
 
 const mockNavigate = jest.fn();
@@ -178,5 +180,113 @@ describe('webviewAuthSession', () => {
         redirectUri: REDIRECT_URI,
       }),
     ).rejects.toThrow('Navigation reference does not exist!');
+  });
+
+  it('rejects and cleans up the session when deferred navigation never mounts the screen', async () => {
+    jest.useFakeTimers();
+    try {
+      mockNavigate.mockImplementationOnce(() => {
+        // Simulates NavigationService deferring dispatch via requestAnimationFrame
+        // where the deferred navigation fails or drops without mounting SimpleWebview.
+        setTimeout(() => {
+          // Deferred dispatch never mounts the screen.
+        }, 0);
+      });
+
+      const controller = new AbortController();
+      const removeEventListenerSpy = jest.spyOn(
+        controller.signal,
+        'removeEventListener',
+      );
+      const promise = openWebviewAuthSession({
+        url: AUTH_URL,
+        redirectUri: REDIRECT_URI,
+        signal: controller.signal,
+      });
+      const sessionId = getLastAuthSessionId();
+
+      const caughtErrorPromise = promise.catch((caught: unknown) => caught);
+
+      jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
+
+      await expect(caughtErrorPromise).resolves.toBeInstanceOf(
+        WebviewAuthMountTimeoutError,
+      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'abort',
+        expect.any(Function),
+      );
+      // Session was removed from the registry so a late mount immediately closes
+      // and redirects are not intercepted.
+      expect(attachWebviewAuthSessionClose(sessionId, jest.fn())).toBe(false);
+      expect(
+        handleWebviewAuthRedirect(sessionId, `${REDIRECT_URI}?code=123`),
+      ).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('clears the mount timeout once the WebView screen attaches', async () => {
+    jest.useFakeTimers();
+    try {
+      const promise = openWebviewAuthSession({
+        url: AUTH_URL,
+        redirectUri: REDIRECT_URI,
+      });
+      const sessionId = getLastAuthSessionId();
+      expect(attachWebviewAuthSessionClose(sessionId, jest.fn())).toBe(true);
+
+      // Users may take longer than the mount timeout to complete login.
+      jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS * 10);
+
+      const redirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+      expect(handleWebviewAuthRedirect(sessionId, redirectUrl)).toBe(true);
+      dismissWebviewAuthSession(sessionId);
+
+      await expect(promise).resolves.toBe(redirectUrl);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('requires exact protocol, host, and pathname match for redirect URIs', async () => {
+    const promise = openWebviewAuthSession({
+      url: AUTH_URL,
+      redirectUri: REDIRECT_URI,
+    });
+    const sessionId = getLastAuthSessionId();
+
+    expect(
+      handleWebviewAuthRedirect(
+        sessionId,
+        `${REDIRECT_URI}-other?code=123&state=abc`,
+      ),
+    ).toBe(false);
+    expect(
+      handleWebviewAuthRedirect(
+        sessionId,
+        `${REDIRECT_URI}/subpath?code=123&state=abc`,
+      ),
+    ).toBe(false);
+    expect(
+      handleWebviewAuthRedirect(
+        sessionId,
+        'https://link.metamask.io.evil.com/x-oauth-redirect?code=123&state=abc',
+      ),
+    ).toBe(false);
+    expect(
+      handleWebviewAuthRedirect(
+        sessionId,
+        'http://link.metamask.io/x-oauth-redirect?code=123&state=abc',
+      ),
+    ).toBe(false);
+    expect(handleWebviewAuthRedirect(sessionId, 'not-a-valid-url')).toBe(false);
+
+    const exactRedirectUrl = `${REDIRECT_URI}?code=123&state=abc`;
+    expect(handleWebviewAuthRedirect(sessionId, exactRedirectUrl)).toBe(true);
+    dismissWebviewAuthSession(sessionId);
+
+    await expect(promise).resolves.toBe(exactRedirectUrl);
   });
 });
