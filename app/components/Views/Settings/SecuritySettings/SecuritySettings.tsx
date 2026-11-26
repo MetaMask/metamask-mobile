@@ -451,8 +451,9 @@ const Settings: React.FC = () => {
           <MetaMetricsAndDataCollectionSection
             metaMetricsRef={metaMetricsSectionRef}
             dataCollectionRef={dataCollectionSectionRef}
-          />
-          <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          >
+            <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          </MetaMetricsAndDataCollectionSection>
           <View style={styles.setting}>
             <SupportConsentPreferenceSection />
           </View>
