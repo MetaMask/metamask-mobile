@@ -43,9 +43,17 @@ interface RootProps {
   twClassName?: string;
 }
 
-const Root = ({ children, testID, twClassName }: RootProps) => (
+const CARD_OUTLINE_CLASS_NAME = 'rounded-[20px] border border-muted';
+const DEFAULT_CARD_SURFACE_CLASS_NAME = 'bg-section';
+const DEFAULT_CARD_LAYOUT_CLASS_NAME = 'gap-3 p-4 pt-3';
+
+const Root = ({
+  children,
+  testID,
+  twClassName = DEFAULT_CARD_LAYOUT_CLASS_NAME,
+}: RootProps) => (
   <Box
-    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-section p-4 pt-3'}
+    twClassName={`${DEFAULT_CARD_SURFACE_CLASS_NAME} ${twClassName} ${CARD_OUTLINE_CLASS_NAME}`}
     testID={testID}
   >
     {children}

@@ -208,10 +208,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false], // Account not opted in
             sids: [null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true; // Link succeeds
@@ -259,10 +260,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false, false], // Both accounts not opted in
             sids: [null, null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         return null;
       });
@@ -348,10 +350,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [true], // Account already opted in
             sids: ['subscription-id'],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         return null;
       });
@@ -399,10 +402,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false], // Account not opted in
             sids: [null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true; // Link succeeds
@@ -467,10 +471,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false, false], // Both accounts not opted in
             sids: [null, null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true; // Link succeeds
@@ -520,10 +525,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false, false], // Both accounts not opted in
             sids: [null, null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           linkCallCount++;
@@ -579,10 +585,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: new Array(10).fill(false), // All accounts not opted in
             sids: new Array(10).fill(null),
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           // All accounts fail
@@ -644,10 +651,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return isOptInSupportedCallCount === 1; // Only first account supported
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false], // Only one account (the supported one) not opted in
             sids: [null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true;
@@ -736,10 +744,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false, false, false], // All accounts not opted in
             sids: [null, null, null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true;
@@ -806,10 +815,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false, false, false], // All accounts not opted in
             sids: [null, null, null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true;
@@ -874,10 +884,11 @@ describe('rewardsBulkLinkAccountGroups', () => {
           return true;
         }
         if (method === 'RewardsController:getOptInStatus') {
-          return {
+          const optInStatus: OptInStatusDto = {
             ois: [false], // Only one account (from group-1)
             sids: [null],
-          } as OptInStatusDto;
+          };
+          return optInStatus;
         }
         if (method === 'RewardsController:linkAccountToSubscriptionCandidate') {
           return true;

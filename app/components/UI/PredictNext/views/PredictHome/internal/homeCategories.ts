@@ -1,3 +1,4 @@
+import { IconName } from '@metamask/design-system-react-native';
 import type { PredictVenueCapabilities } from '../../../capabilities';
 import {
   getFeedScreen,
@@ -6,10 +7,31 @@ import {
 import type { PredictFeedKey } from '../../../types';
 import { strings } from '../../../../../../../locales/i18n';
 
+const CATEGORY_ICONS: Readonly<Record<string, IconName>> = {
+  politics: IconName.Global,
+  sports: IconName.Trophy,
+  crypto: IconName.MoneyBag,
+  esports: IconName.GameController,
+  culture: IconName.StarFilled,
+  finance: IconName.Bank,
+  tech: IconName.Data,
+  economics: IconName.Chart,
+};
+
+/**
+ * Icon for a Home Category chip by its Feed key, falling back to
+ * {@link IconName.Explore} for unknown server-added Categories.
+ */
+export const getHomeCategoryIcon = (categoryId: string): IconName =>
+  Object.prototype.hasOwnProperty.call(CATEGORY_ICONS, categoryId)
+    ? CATEGORY_ICONS[categoryId]
+    : IconName.Explore;
+
 /** A Category chip the Active Venue can open. */
 export interface HomeCategory {
   id: PredictFeedKey;
   label: string;
+  iconName: IconName;
   /** The Feed Screen whose ID is the Category's Feed key. */
   feedScreenId: FeedScreenId;
   /** The tab showing the Category's Feed. Undefined opens the first tab. */
@@ -41,6 +63,7 @@ export const resolveHomeCategories = (
         label: strings(`predict_next.home_categories.${id}`, {
           defaultValue: feedScreen.title,
         }),
+        iconName: getHomeCategoryIcon(id),
         feedScreenId: feedScreen.id,
         tabId: feedScreen.tabs.find(({ feedId }) => feedId === feeds[id])?.id,
       },
