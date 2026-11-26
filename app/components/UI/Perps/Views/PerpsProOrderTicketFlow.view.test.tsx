@@ -337,8 +337,10 @@ const expectPlaceOrderCalledWith = async (expected: Record<string, unknown>) =>
   );
 
 /**
- * Join fire-and-forget toast/haptic work so mutations cannot finish after Jest
- * tears down the environment.
+ * Teardown settle, not an assertion race: fire-and-forget toast/haptic work
+ * must finish before Jest tears down the test environment, and there is no
+ * observable signal for "no more completions pending". Drain a macrotask turn
+ * so those completions cannot surface after teardown.
  */
 const flushAsyncSideEffects = async (delayMs = 50) => {
   await act(async () => {
