@@ -46,6 +46,9 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
 jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
   virtual: true,
 });
@@ -2954,7 +2957,8 @@ describe('PerpsOrderView', () => {
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+    // Insufficient funds turns the submit button into an enabled Add funds CTA.
+    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(false);
     expect(
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
     ).toEqual(

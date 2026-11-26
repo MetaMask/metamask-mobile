@@ -113,7 +113,6 @@ interface PerpsTradeScreenProps {
   areLimitPricePresetsDisabled: boolean;
   hasAmountError: boolean;
   showAmountWarning: boolean;
-  amountWarningMessage?: string;
   isInputFocused: boolean;
   isLimitPriceFocused: boolean;
   payWithName: string;
@@ -167,6 +166,8 @@ interface PerpsTradeScreenProps {
    */
   onPayWithPress: () => void;
   onSubmit: () => void;
+  /** Closes the sheet right after `onSubmit`. */
+  closesSheetOnSubmit?: boolean;
 }
 
 export interface PerpsTradeError {
@@ -323,7 +324,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   areLimitPricePresetsDisabled,
   hasAmountError,
   showAmountWarning,
-  amountWarningMessage,
   isInputFocused,
   isLimitPriceFocused,
   payWithName,
@@ -356,9 +356,16 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onLimitPriceDonePress,
   onPayWithPress,
   onSubmit,
+  closesSheetOnSubmit = false,
 }) => {
-  const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { navigateTo, close, title, banner } = usePerpsTradeSheet();
   const marginModeLabel = getPerpsMarginModeLabel(marginMode);
+  const handleSubmitPress = () => {
+    onSubmit();
+    if (closesSheetOnSubmit) {
+      close();
+    }
+  };
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
@@ -518,7 +525,20 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />
 
       <Box accessible={false} paddingVertical={3} gap={4}>
-        <Box accessible={false} paddingHorizontal={4} gap={4}>
+        <Box
+          accessible={false}
+          paddingHorizontal={4}
+          gap={4}
+          // Nothing to size without funds: dim and block the amount input,
+          // leaving the Add funds CTA as the way forward.
+          {...(showAmountWarning
+            ? {
+                twClassName: 'opacity-50',
+                pointerEvents: 'none' as const,
+                testID: PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+              }
+            : {})}
+        >
           <PerpsAmountDisplay
             amount={amount}
             tokenAmount={
@@ -544,8 +564,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             isActive={isInputFocused}
             isLoading={isAmountLoading}
             hasError={hasAmountError}
-            showWarning={showAmountWarning}
-            warningMessage={amountWarningMessage}
           />
           {isInputFocused ? (
             <Box accessible={false} gap={2}>
@@ -949,17 +967,31 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
-            <PerpsDirectionButton
-              direction={direction}
-              size={ButtonBaseSize.Lg}
-              isFullWidth
-              isDisabled={isSubmitDisabled}
-              isLoading={isSubmitting}
-              onPress={onSubmit}
-              testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {submitLabel ?? directionLabel}
-            </PerpsDirectionButton>
+            {closesSheetOnSubmit ? (
+              // Add funds is not a trade, so it skips the Long/Short colors.
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled={isSubmitDisabled}
+                onPress={handleSubmitPress}
+                testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
+              >
+                {submitLabel ?? directionLabel}
+              </Button>
+            ) : (
+              <PerpsDirectionButton
+                direction={direction}
+                size={ButtonBaseSize.Lg}
+                isFullWidth
+                isDisabled={isSubmitDisabled}
+                isLoading={isSubmitting}
+                onPress={handleSubmitPress}
+                testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
+              >
+                {submitLabel ?? directionLabel}
+              </PerpsDirectionButton>
+            )}
             {isFeeLoading ? (
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}

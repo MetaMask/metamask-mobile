@@ -1187,6 +1187,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   AMOUNT_KEYPAD_DONE_BUTTON: 'perps-trade-sheet-amount-keypad-done-button',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
+  AMOUNT_SECTION_DISABLED: 'perps-trade-sheet-amount-section-disabled',
 };
 
 export const PerpsFeeDiscountLabelSelectorsIDs = {

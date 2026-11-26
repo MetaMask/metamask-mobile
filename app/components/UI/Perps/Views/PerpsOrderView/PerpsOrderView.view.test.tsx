@@ -3,6 +3,7 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  */
 import '../../../../../../tests/component-view/mocks';
+import { createRouteParamsProbe } from '../../../../../../tests/component-view/render';
 
 import { Text } from 'react-native';
 import {
@@ -11,6 +12,7 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import {
   calculatePositionSize,
@@ -1101,6 +1103,64 @@ describe('PerpsOrderView', () => {
       waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
       );
+
+    it('turns the order button into Add funds that opens the Ramp token picker when the balance is zero', async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              // A known location lets goToBuy skip the eligibility modal.
+              GeolocationController: { location: 'US', status: 'complete' },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: accountWithBalance('0'),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [
+          marketDetailsRoute,
+          {
+            name: Routes.RAMP.TOKEN_SELECTION,
+            Component: createRouteParamsProbe(Routes.RAMP.TOKEN_SELECTION),
+            mount: 'root',
+          },
+        ],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const addFunds = await findEnabledSubmitButton();
+      expect(within(addFunds).getByText('Add funds')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED),
+      ).toBeOnTheScreen();
+
+      // Only the bottom error is shown, not a second warning under the amount.
+      expect(
+        screen.getAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+
+      await act(async () => {
+        fireEvent.press(addFunds);
+      });
+
+      const rampParams = await screen.findByTestId(
+        `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      // No preset asset: Ramp opens its token picker first.
+      expect(rampParams).not.toHaveTextContent('assetId', { exact: false });
+    });
 
     it('shows promotional pricing when Core returns a grant fee quote', async () => {
       const calculateFees = Engine.context.PerpsController

@@ -63,6 +63,7 @@ import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import {
   useIsTransactionPayQuoteLoading,
   useIsTransactionPaySubmitReady,
@@ -2744,6 +2745,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     navigation.goBack();
   }, [fromTokenDetails, navigation]);
 
+  // Add funds closes the sheet first: iOS would present Ramp from the bottom
+  // over a modal, so Ramp opens as a normal page once the sheet is gone.
+  const { goToBuy } = useRampNavigation();
+  const isAddFundsPendingRef = useRef(false);
+  const handleTradeSheetClosed = useCallback(() => {
+    handleTradeSheetClose();
+    if (isAddFundsPendingRef.current) {
+      isAddFundsPendingRef.current = false;
+      void goToBuy();
+    }
+  }, [goToBuy, handleTradeSheetClose]);
+
   const handleTradeSheetInteractive = useCallback(() => {
     completePerpsTradeSheetInteractiveTrace();
   }, []);
@@ -2870,12 +2883,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const tradeSheetLiquidationDistance = hasLiquidationPrice
       ? formatLiquidationDistance(effectivePrice, liquidationPrice)
       : undefined;
+    // No funds to trade with: the submit button becomes an Add funds CTA.
+    const isAddFundsMode =
+      !isLoadingAccount &&
+      (spendableBalance === 0 || hasInsufficientFundsError);
     const submitDisabled =
-      isOrderSubmissionBlocked ||
-      isLoadingAccount ||
-      isLoadingMarketData ||
-      isMarketDataUnavailable ||
-      isFeesLoading;
+      !isAddFundsMode &&
+      (isOrderSubmissionBlocked ||
+        isLoadingAccount ||
+        isLoadingMarketData ||
+        isMarketDataUnavailable ||
+        isFeesLoading);
     const bottomSheetErrors = [
       ...(isMarketDataUnavailable && !isMarketDataLoading
         ? [
@@ -2957,7 +2975,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return (
       <>
         <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
-          onClose={handleTradeSheetClose}
+          onClose={handleTradeSheetClosed}
           onOpen={handleTradeSheetOpen}
           onInteractive={handleTradeSheetInteractive}
           onCancelBeforeInteractive={handleTradeSheetCancelBeforeInteractive}
@@ -3011,9 +3029,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   spendableBalance > 0 && filteredErrors.length > 0
                 }
                 showAmountWarning={!isLoadingAccount && spendableBalance === 0}
-                amountWarningMessage={strings(
-                  'perps.order.validation.insufficient_funds_to_cover_trade',
-                )}
                 isInputFocused={isInputFocused}
                 isLimitPriceFocused={isLimitPriceFocused}
                 payWithName={payWithName}
@@ -3028,7 +3043,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feeDiscountKind={rewardsState.feeDiscountKind}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
-                submitLabel={placeOrderLabel}
+                submitLabel={
+                  isAddFundsMode ? strings('perps.add_funds') : placeOrderLabel
+                }
                 errorMessages={bottomSheetErrors}
                 isAtOICap={isAtOICap}
                 showServiceInterruptionBanner={
@@ -3047,7 +3064,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onPayWithPress={handlePayWithPress}
-                onSubmit={() => handlePlaceOrder()}
+                closesSheetOnSubmit={isAddFundsMode}
+                onSubmit={
+                  isAddFundsMode
+                    ? () => {
+                        isAddFundsPendingRef.current = true;
+                      }
+                    : () => handlePlaceOrder()
+                }
               />
             ),
             leverage: (
@@ -3122,7 +3146,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
