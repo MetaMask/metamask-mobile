@@ -94,14 +94,6 @@ const SignalRow = ({
         <LoadingValue />
       )
     }
-  /><StatusTag
-          severity={SIGNAL_SEVERITY[status]}
-          label={strings(`money.account_status.signal.${status}`)}
-        />
-      ) : (
-        <LoadingValue />
-      )
-    }
   />
 );
 
@@ -294,14 +286,6 @@ const MoneyAccountStatusContent = () => {
                     <LoadingValue />
                   )
                 }
-              /><StatusTag
-                      severity={SUMMARY_SEVERITY[summary]}
-                      label={strings(`money.account_status.summary.${summary}`)}
-                    />
-                  ) : (
-                    <LoadingValue />
-                  )
-                }
               />
             </Box>
 
@@ -372,15 +356,6 @@ const MoneyAccountStatusContent = () => {
                           label={upgrade.status}
                         />
                       }
-                    /><StatusTag
-                          severity={
-                            upgrade.status === 'upgraded'
-                              ? TagSeverity.Success
-                              : TagSeverity.Warning
-                          }
-                          label={upgrade.status}
-                        />
-                      }
                     />
                   ))}
                 </Box>
@@ -399,15 +374,6 @@ const MoneyAccountStatusContent = () => {
                       keyLabel={`${intent.metadata.tokenSymbol} · ${intent.metadata.type}`}
                       value={
                         <StatusTag
-                          severity={
-                            intent.status === 'active'
-                              ? TagSeverity.Success
-                              : TagSeverity.Neutral
-                          }
-                          label={intent.status}
-                        />
-                      }
-                    /><StatusTag
                           severity={
                             intent.status === 'active'
                               ? TagSeverity.Success

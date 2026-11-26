@@ -75,13 +75,6 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
           />
         ) : undefined
       }
-    /><AvatarAccount
-            address={selectedAddress}
-            size={AvatarAccountSize.Xs}
-            variant={accountAvatarVariant}
-          />
-        ) : undefined
-      }
     />
   );
 };

@@ -88,10 +88,6 @@ const FeatureRow = ({
     }
     title={title}
     description={description}
-  /><AvatarIcon iconName={icon} severity={AvatarIconSeverity.Neutral} />
-    }
-    title={title}
-    description={description}
   />
 );
 

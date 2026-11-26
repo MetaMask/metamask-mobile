@@ -434,13 +434,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
         keyLabel={strings('ramps_order_details.status')}
         value={
           isLoading ? (
-            <Box className="h-[18px] w-24 rounded bg-muted" />
+            <Box twClassName="h-[18px] w-24 rounded bg-muted" />
           ) : (
-            <Box className="items-end">
+            <Box twClassName="items-end">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                className={getStatusColor()}
+                twClassName={getStatusColor()}
               >
                 {getStatusText()}
               </Text>
@@ -451,40 +451,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 >
                   <Text
                     variant={TextVariant.BodySm}
-                    className="mr-1 text-primary-default"
-                  >
-                    {strings('ramps_order_details.view_on_provider', {
-                      provider: providerName,
-                    })}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowSquareOut}
-                    size={IconSize.Sm}
-                    className="text-primary-default"
-                  />
-                </TouchableOpacity>
-              ) : null}
-            </Box>
-          )
-        }
-      /><Box className="h-[18px] w-24 rounded bg-muted" />
-          ) : (
-            <Box className="items-end">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                className={getStatusColor()}
-              >
-                {getStatusText()}
-              </Text>
-              {providerOrderLink ? (
-                <TouchableOpacity
-                  onPress={handleProviderLinkPress}
-                  style={localStyles.providerLink}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    className="mr-1 text-primary-default"
+                    twClassName="mr-1 text-primary-default"
                   >
                     {strings('ramps_order_details.view_on_provider', {
                       provider: providerName,
@@ -507,21 +474,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         keyLabel={strings('ramps_order_details.order_id')}
         value={
           isLoading ? (
-            <Box className="h-[18px] w-32 rounded bg-muted" />
-          ) : (
-            shortOrderId
-          )
-        }
-        valueEndButtonIconProps={
-          isLoading
-            ? undefined
-            : {
-                iconName: IconName.Copy,
-                accessibilityLabel: strings('ramps_order_details.order_id'),
-                onPress: handleCopyOrderId,
-              }
-        }
-      /><Box className="h-[18px] w-32 rounded bg-muted" />
+            <Box twClassName="h-[18px] w-32 rounded bg-muted" />
           ) : (
             shortOrderId
           )

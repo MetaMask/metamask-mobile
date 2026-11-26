@@ -110,31 +110,6 @@ const RecipientRow = ({
           </SensitiveText>
         ) : undefined
       }
-    /><AvatarAccount
-          address={address}
-          size={AvatarAccountSize.Md}
-          variant={avatarVariant}
-        />
-      }
-      title={
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {groupName || name || address}
-        </Text>
-      }
-      description={undefined}
-      value={
-        totalBalance ? (
-          <SensitiveText
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-          >
-            {displayBalance}
-          </SensitiveText>
-        ) : undefined
-      }
     />
   );
 };

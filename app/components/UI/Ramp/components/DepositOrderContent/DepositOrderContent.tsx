@@ -205,13 +205,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               />
             ) : undefined
           }
-        /><AvatarAccount
-                address={selectedAddress}
-                size={AvatarAccountSize.Xs}
-                variant={getAvatarAccountVariant(accountAvatarType)}
-              />
-            ) : undefined
-          }
         />
         <KeyValueRow
           keyLabel={strings('deposit.order_processing.network')}
@@ -219,13 +212,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           valueStartAccessory={
             networkImageSource ? (
               <AvatarNetwork
-                name={networkName}
-                size={AvatarNetworkSize.Xs}
-                src={networkImageSource}
-              />
-            ) : undefined
-          }
-        /><AvatarNetwork
                 name={networkName}
                 size={AvatarNetworkSize.Xs}
                 src={networkImageSource}
