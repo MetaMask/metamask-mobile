@@ -12,6 +12,10 @@ export interface MetricStep {
   duration: number;
   baseThreshold: number | null;
   threshold: number | null;
+  /** Wall-clock epoch ms when the timer started (test-runner clock). */
+  startedAt?: number;
+  /** Wall-clock epoch ms when the timer stopped (test-runner clock). */
+  endedAt?: number;
   validation?: {
     passed: boolean;
     exceeded: number | null;
@@ -166,6 +170,8 @@ export interface NetworkLogEntry {
   url: string;
   status?: number;
   time?: number;
+  /** Request start, epoch ms (HAR `startedDateTime`, TestMu clock). */
+  startedAt?: number;
 }
 
 export interface ApiEndpointSummary {
@@ -193,8 +199,35 @@ export type ApiCallsSummary =
       failed: number;
       byHost: Record<string, number>;
       topEndpoints: ApiEndpointSummary[];
+      /** Per measured step; present only when step windows were provided. */
+      steps?: ApiStepSummary[];
+      stepAttribution?: ApiStepAttribution;
     }
   | { status: 'error'; error: string };
+
+/** Request counts for one measured step (or `unattributed`). */
+export interface ApiStepSummary {
+  step: string;
+  total: number;
+  failed: number;
+  topEndpoints: ApiEndpointSummary[];
+}
+
+export interface ApiStepAttribution {
+  /**
+   * `ok`: usable. `skewed`: many calls fall outside the test window or no
+   * step, so HAR and test-runner clocks probably disagree. `unavailable`:
+   * no step windows or no request timestamps to attribute with.
+   */
+  status: 'ok' | 'skewed' | 'unavailable';
+  attributed: number;
+  unattributed: number;
+  /** Calls starting outside the test window (+ tolerance). */
+  outsideTestWindow: number;
+  /** Calls without a start timestamp (always unattributed). */
+  missingTimestamp: number;
+  reason?: string;
+}
 
 /**
  * Per-scenario artifact written under `reports/app-profiling/`.

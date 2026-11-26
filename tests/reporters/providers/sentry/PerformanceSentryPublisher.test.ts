@@ -1040,6 +1040,110 @@ describe('PerformanceSentryPublisher', () => {
       expect(payload.spans[0].data['api.requests.total']).toBeUndefined();
     });
 
+    describe('per-step attribution', () => {
+      const stepSummary: ApiCallsSummary = {
+        ...capturedSummary,
+        steps: [
+          {
+            step: 'open Token Details Page',
+            total: 3,
+            failed: 0,
+            topEndpoints: [
+              {
+                method: 'POST',
+                url: 'mainnet.infura.io/v3/***',
+                count: 3,
+                failed: 0,
+              },
+            ],
+          },
+          { step: 'unattributed', total: 1, failed: 1, topEndpoints: [] },
+        ],
+        stepAttribution: {
+          status: 'ok',
+          attributed: 3,
+          unattributed: 1,
+          outsideTestWindow: 0,
+          missingTimestamp: 0,
+        },
+      };
+
+      it('publishes step spans with api.step and request counts', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const stepSpans = payload.spans.filter(
+          (span: { op: string }) => span.op === 'e2e.performance.network.step',
+        );
+        expect(stepSpans.map((span: { data: unknown }) => span.data)).toEqual([
+          expect.objectContaining({
+            'api.step': 'open Token Details Page',
+            'api.step.requests': 3,
+            'api.step.failed': 0,
+          }),
+          expect.objectContaining({
+            'api.step': 'unattributed',
+            'api.step.requests': 1,
+            'api.step.failed': 1,
+          }),
+        ]);
+      });
+
+      it('puts the step in the description and a combined attribute on step endpoint spans', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const endpointSpans = payload.spans.filter(
+          (span: { op: string }) =>
+            span.op === 'e2e.performance.network.step_endpoint',
+        );
+        expect(endpointSpans).toHaveLength(1);
+        expect(endpointSpans[0].description).toBe(
+          '[open Token Details Page] POST mainnet.infura.io/v3/***',
+        );
+        expect(endpointSpans[0].data).toMatchObject({
+          'api.step': 'open Token Details Page',
+          'api.step_endpoint':
+            'open Token Details Page | POST mainnet.infura.io/v3/***',
+          'api.method': 'POST',
+          'api.endpoint': 'mainnet.infura.io/v3/***',
+          'api.endpoint.requests': 3,
+          'api.endpoint.failed': 0,
+        });
+      });
+
+      it('tags the attribution status and mirrors it on the network span', async () => {
+        const { payload } = await publish({
+          ...stepSummary,
+          stepAttribution: {
+            ...(stepSummary.status === 'captured' &&
+              stepSummary.stepAttribution),
+            status: 'skewed',
+            attributed: 0,
+            unattributed: 4,
+            outsideTestWindow: 4,
+            missingTimestamp: 0,
+          },
+        });
+
+        expect(payload.tags.api_step_attribution).toBe('skewed');
+        const networkSpan = payload.spans.find(
+          (span: { op: string }) => span.op === 'e2e.performance.network',
+        );
+        expect(networkSpan.data['api.step.attribution']).toBe('skewed');
+        expect(networkSpan.data['api.requests.unattributed']).toBe(4);
+      });
+
+      it('omits step spans and the attribution tag without step data', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        expect(payload.tags.api_step_attribution).toBeUndefined();
+        expect(
+          payload.spans.some((span: { op: string }) =>
+            span.op.startsWith('e2e.performance.network.step'),
+          ),
+        ).toBe(false);
+      });
+    });
+
     it('returns false when Sentry rejects the envelope', async () => {
       fetchMock.mockResolvedValue({ ok: false, status: 429 } as Response);
 

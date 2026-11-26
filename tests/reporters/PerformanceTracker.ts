@@ -11,6 +11,8 @@ interface Timer {
   /** Defaults to true when omitted. */
   includeInTotal?: boolean;
   getDuration(): number | null;
+  /** Epoch-ms start/end of the stopped timer; null when unavailable. */
+  getWindow?(): { start: number; end: number } | null;
   getDurationInSeconds(): number;
   hasThreshold(): boolean;
 }
@@ -104,9 +106,14 @@ export class PerformanceTracker {
             ? ((exceeded / threshold) * 100).toFixed(1)
             : null;
 
+        const timerWindow = timer.getWindow?.();
         const stepObject: MetricStep = {
           name: timer.id,
           duration,
+          ...(timerWindow && {
+            startedAt: timerWindow.start,
+            endedAt: timerWindow.end,
+          }),
           baseThreshold: timer.baseThreshold,
           threshold: timer.threshold,
           validation: hasThreshold

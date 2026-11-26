@@ -18,7 +18,7 @@ import {
   publishApiCallsSummaryToSentry,
   publishPerformanceScenarioToSentry,
 } from './providers/sentry/PerformanceSentryPublisher';
-import { summarizeApiCalls } from './utils/summarizeApiCalls';
+import { summarizeApiCallsByStep } from './utils/attributeApiCallsToSteps';
 import type {
   MetricsEntry,
   SessionData,
@@ -712,8 +712,17 @@ class PerformanceReporter {
     metrics: MetricsEntry[],
   ): Promise<void> {
     for (const metric of metrics) {
-      const summary = summarizeApiCalls(metric.apiCalls, metric.apiCallsError);
+      const summary = summarizeApiCallsByStep(metric);
       if (!summary) continue;
+
+      if (
+        summary.status === 'captured' &&
+        summary.stepAttribution?.status === 'skewed'
+      ) {
+        logger.warn(
+          `API step attribution looks skewed for "${metric.testName}": ${summary.stepAttribution.reason}. HAR (TestMu) and test-runner clocks may differ.`,
+        );
+      }
 
       try {
         const sent = await publishApiCallsSummaryToSentry({

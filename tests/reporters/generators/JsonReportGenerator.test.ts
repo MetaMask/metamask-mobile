@@ -392,8 +392,56 @@ describe('JsonReportGenerator', () => {
             { method: 'GET', url: 'api.example.com/v1/a', count: 2, failed: 0 },
             { method: 'GET', url: 'other.example.com/b', count: 1, failed: 1 },
           ],
+          steps: [],
+          stepAttribution: {
+            status: 'unavailable',
+            attributed: 0,
+            unattributed: 3,
+            outsideTestWindow: 0,
+            missingTimestamp: 3,
+            reason: 'no timer windows recorded',
+          },
         });
         expect(artifact.apiCalls).toHaveLength(3);
+      });
+
+      it('includes the per-step breakdown when timers and request starts are known', () => {
+        const artifact = writeArtifact({
+          steps: [
+            {
+              name: 'open Token Details Page',
+              duration: 900,
+              baseThreshold: null,
+              threshold: null,
+              startedAt: 1_000,
+              endedAt: 2_000,
+            },
+          ],
+          apiCalls: [
+            {
+              method: 'GET',
+              url: 'https://a.test/x',
+              status: 200,
+              startedAt: 1_500,
+            },
+            {
+              method: 'GET',
+              url: 'https://a.test/y',
+              status: 200,
+              startedAt: 9_000,
+            },
+          ],
+        });
+
+        expect(artifact.apiCallsSummary.stepAttribution.status).toBe('ok');
+        expect(
+          artifact.apiCallsSummary.steps.map(
+            (s: { step: string; total: number }) => [s.step, s.total],
+          ),
+        ).toEqual([
+          ['open Token Details Page', 1],
+          ['unattributed', 1],
+        ]);
       });
 
       it('writes zero requests as a captured summary', () => {

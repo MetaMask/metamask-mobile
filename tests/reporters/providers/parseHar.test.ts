@@ -24,6 +24,26 @@ describe('parseHarToEntries', () => {
     ]);
   });
 
+  it('keeps the request start as epoch ms and ignores invalid timestamps', () => {
+    const result = parseHarToEntries({
+      log: {
+        entries: [
+          {
+            startedDateTime: '2026-11-26T11:00:00.250Z',
+            request: { method: 'GET', url: 'https://api.example.com/a' },
+          },
+          {
+            startedDateTime: 'not-a-date',
+            request: { method: 'GET', url: 'https://api.example.com/b' },
+          },
+        ],
+      },
+    });
+
+    expect(result[0].startedAt).toBe(Date.parse('2026-11-26T11:00:00.250Z'));
+    expect(result[1].startedAt).toBeUndefined();
+  });
+
   it('accepts a bare { entries } object and defaults a missing method to GET', () => {
     const result = parseHarToEntries({
       entries: [{ request: { url: 'https://api.example.com/b' } }],

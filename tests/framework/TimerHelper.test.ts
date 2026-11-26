@@ -30,3 +30,32 @@ describe('TimerHelper threshold margin', () => {
     expect(THRESHOLD_MARGIN).toBeCloseTo(THRESHOLD_MARGIN_PERCENT / 100);
   });
 });
+
+describe('TimerHelper getWindow', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns null until the timer has been started and stopped', () => {
+    const timer = new TimerHelper('window timer pending');
+    expect(timer.getWindow()).toBeNull();
+
+    timer.start();
+    expect(timer.getWindow()).toBeNull();
+  });
+
+  it('returns absolute epoch start/end and is unaffected by subtractOverhead', () => {
+    jest
+      .spyOn(Date, 'now')
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_600);
+    const timer = new TimerHelper('window timer done');
+
+    timer.start();
+    timer.stop();
+    timer.subtractOverhead(200);
+
+    expect(timer.getWindow()).toEqual({ start: 1_000, end: 1_600 });
+    expect(timer.getDuration()).toBe(400);
+  });
+});

@@ -4,6 +4,7 @@ interface HarEntry {
   request?: { method?: string; url?: string };
   response?: { status?: number };
   time?: number;
+  startedDateTime?: string;
 }
 
 export function parseHarToEntries(har: unknown): NetworkLogEntry[] {
@@ -16,10 +17,14 @@ export function parseHarToEntries(har: unknown): NetworkLogEntry[] {
     return [];
   }
 
-  return (harEntries as HarEntry[]).map((entry) => ({
-    method: entry.request?.method ?? 'GET',
-    url: entry.request?.url ?? '',
-    status: entry.response?.status,
-    time: entry.time != null ? Math.round(entry.time) : undefined,
-  }));
+  return (harEntries as HarEntry[]).map((entry) => {
+    const startedAt = Date.parse(entry.startedDateTime ?? '');
+    return {
+      method: entry.request?.method ?? 'GET',
+      url: entry.request?.url ?? '',
+      status: entry.response?.status,
+      time: entry.time != null ? Math.round(entry.time) : undefined,
+      startedAt: Number.isNaN(startedAt) ? undefined : startedAt,
+    };
+  });
 }

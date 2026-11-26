@@ -106,6 +106,16 @@ class TimerHelper {
   }
 
   /**
+   * Absolute wall-clock window (epoch ms) of the stopped timer, or null while
+   * it never started or is still running. Unlike `getDuration()`, it is not
+   * reduced by `subtractOverhead`, so it reflects when requests could happen.
+   */
+  getWindow(): { start: number; end: number } | null {
+    const { start, end } = TimerStore.getTimer(this.id);
+    return start !== null && end !== null ? { start, end } : null;
+  }
+
+  /**
    * Records an externally measured duration (e.g. in-app Sentry-equivalent TTC)
    * without using wall-clock start/stop.
    */

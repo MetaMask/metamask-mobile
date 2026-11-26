@@ -639,7 +639,10 @@ const NETWORK_SUMMARY_TRANSACTION_OP = 'e2e.performance.network_summary';
 const NETWORK_SPAN_OP = 'e2e.performance.network';
 const NETWORK_HOST_SPAN_OP = 'e2e.performance.network.host';
 const NETWORK_ENDPOINT_SPAN_OP = 'e2e.performance.network.endpoint';
+const NETWORK_STEP_SPAN_OP = 'e2e.performance.network.step';
+const NETWORK_STEP_ENDPOINT_SPAN_OP = 'e2e.performance.network.step_endpoint';
 const MAX_HOST_SPANS = 20;
+const MAX_STEP_SPANS = 30;
 
 /**
  * Span `data` keys that hold request counts. They are sent as plain JSON
@@ -658,6 +661,9 @@ export const API_COUNT_ATTRIBUTES = {
   hostRequests: 'api.host.requests',
   endpointRequests: 'api.endpoint.requests',
   endpointFailed: 'api.endpoint.failed',
+  unattributed: 'api.requests.unattributed',
+  stepRequests: 'api.step.requests',
+  stepFailed: 'api.step.failed',
 } as const;
 const MAX_CAPTURE_ERROR_LENGTH = 200;
 
@@ -683,6 +689,14 @@ interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
  * Span ops: `e2e.performance.network` (one per scenario: totals, or capture
  * error), `e2e.performance.network.host` (one per top host) and
  * `e2e.performance.network.endpoint` (one per top endpoint).
+ *
+ * With step windows, also `e2e.performance.network.step` (one per step, with
+ * `api.step`) and `e2e.performance.network.step_endpoint` (top endpoints per
+ * step). The latter carries `api.step`, `api.endpoint` and the combined
+ * `api.step_endpoint` ("<step> | <METHOD> <endpoint>") and puts the step in
+ * the span description, so grouping by one field shows both in a chart
+ * legend. The `api_step_attribution` tag (ok | skewed | unavailable) says
+ * whether the HAR and test-runner clocks line up.
  *
  * A failed capture sends `api.capture.status = "error"` with no counts, so a
  * missing capture is never charted as 0 requests.
@@ -744,6 +758,11 @@ export async function publishApiCallsSummaryToSentry(
         [API_COUNT_ATTRIBUTES.duplicates]: summary.duplicates,
         [API_COUNT_ATTRIBUTES.failed]: summary.failed,
         [API_COUNT_ATTRIBUTES.hostsCount]: hosts.length,
+        ...(summary.stepAttribution && {
+          'api.step.attribution': summary.stepAttribution.status,
+          [API_COUNT_ATTRIBUTES.unattributed]:
+            summary.stepAttribution.unattributed,
+        }),
       }),
     );
 
@@ -766,6 +785,34 @@ export async function publishApiCallsSummaryToSentry(
           [API_COUNT_ATTRIBUTES.endpointFailed]: endpoint.failed,
         }),
       );
+    }
+
+    for (const stepSummary of (summary.steps ?? []).slice(0, MAX_STEP_SPANS)) {
+      const { step } = stepSummary;
+      spans.push(
+        createSpan(NETWORK_STEP_SPAN_OP, step, {
+          'api.step': step,
+          [API_COUNT_ATTRIBUTES.stepRequests]: stepSummary.total,
+          [API_COUNT_ATTRIBUTES.stepFailed]: stepSummary.failed,
+        }),
+      );
+      for (const endpoint of stepSummary.topEndpoints) {
+        const endpointKey = `${endpoint.method} ${endpoint.url}`;
+        spans.push(
+          createSpan(
+            NETWORK_STEP_ENDPOINT_SPAN_OP,
+            `[${step}] ${endpointKey}`,
+            {
+              'api.step': step,
+              'api.step_endpoint': `${step} | ${endpointKey}`,
+              'api.method': endpoint.method,
+              'api.endpoint': endpoint.url,
+              [API_COUNT_ATTRIBUTES.endpointRequests]: endpoint.count,
+              [API_COUNT_ATTRIBUTES.endpointFailed]: endpoint.failed,
+            },
+          ),
+        );
+      }
     }
   } else {
     spans.push(
@@ -806,6 +853,10 @@ export async function publishApiCallsSummaryToSentry(
     tags: {
       ...buildScenarioTags(mirroredScenarioAttributes),
       api_capture_status: summary.status,
+      ...(summary.status === 'captured' &&
+        summary.stepAttribution && {
+          api_step_attribution: summary.stepAttribution.status,
+        }),
     },
     measurements,
     spans,

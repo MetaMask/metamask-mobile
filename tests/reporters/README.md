@@ -20,7 +20,8 @@ tests/reporters/
 └── utils/
     ├── DeviceInfoExtractor.ts          # Device info extraction helper
     ├── sanitizeApiCallUrl.ts           # Secret-free, low-cardinality request URL key
-    └── summarizeApiCalls.ts            # Per-scenario request counts from the network log
+    ├── summarizeApiCalls.ts            # Per-scenario request counts from the network log
+    └── attributeApiCallsToSteps.ts     # Per-timer-step request counts + clock-skew check
 ```
 
 ## Module Responsibilities
@@ -52,6 +53,10 @@ Each generator takes a `ReportData` object and produces output in a specific for
 ### utils/summarizeApiCalls.ts
 
 Turns a scenario's captured network log into `ApiCallsSummary`: `total`, `unique` (method + sanitized URL), `duplicates`, `failed` (status >= 400, missing or 0), `byHost` and `topEndpoints`. A failed capture (`apiCallsError`) yields `{ status: 'error' }` and no capture yields `null`, so neither is mistaken for 0 requests. The summary is written to `apiCallsSummary` in each `app-profiling-*.json` and sent to Sentry by `publishApiCallsSummaryToSentry` as its own transaction (op `e2e.performance.network_summary`, same transaction name as the scenario). Query it in Sentry Explore (spans) with `span.op:e2e.performance.network` and the numeric attributes `api.requests.total`, `api.requests.unique`, `api.requests.duplicates` and `api.requests.failed`; per-host (`e2e.performance.network.host`) and per-endpoint (`e2e.performance.network.endpoint`) spans carry `api.host` / `api.endpoint` breakdowns.
+
+#### Per-step attribution
+
+Each call is assigned to the timer step whose `[startedAt, endedAt]` window (epoch ms, from `TimerHelper.getWindow()`) contains the call's HAR `startedDateTime`; others go to `unattributed`. Overlapping or nested timers resolve to the shortest window (then the latest start, then step order). The summary gains `steps[]` and `stepAttribution` (`ok` | `skewed` | `unavailable`); `skewed` means at least 30% of calls start outside the test window (+30s) or at least 80% match no step, so the TestMu and test-runner clocks probably disagree. Sentry gets `e2e.performance.network.step` (`api.step`, `api.step.requests`, `api.step.failed`) and `e2e.performance.network.step_endpoint` (top 10 per step: `api.step`, `api.step_endpoint` = `<step> | <METHOD> <endpoint>`, `api.method`, `api.endpoint`, `api.endpoint.requests`, description `[<step>] <METHOD> <endpoint>`), plus the `api_step_attribution` tag.
 
 ### utils/DeviceInfoExtractor.ts
 

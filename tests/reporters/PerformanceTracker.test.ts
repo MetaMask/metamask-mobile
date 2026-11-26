@@ -146,6 +146,25 @@ describe('PerformanceTracker', () => {
       });
     });
 
+    it('records absolute start/end on steps when the timer exposes a window', async () => {
+      tracker.addTimer({
+        ...makeTimer({ id: 'windowed' }),
+        getWindow: jest.fn(() => ({ start: 1_000, end: 1_500 })),
+      });
+      tracker.addTimer(makeTimer({ id: 'no-window' }));
+
+      const result = await tracker.attachToTest(makeTestInfo());
+
+      expect(result.steps[0]).toMatchObject({
+        name: 'windowed',
+        duration: 500,
+        startedAt: 1_000,
+        endedAt: 1_500,
+      });
+      expect(result.steps[1]).not.toHaveProperty('startedAt');
+      expect(result.steps[1]).not.toHaveProperty('endedAt');
+    });
+
     it('excludes timers with includeInTotal=false from scenario total', async () => {
       tracker.addTimer(
         makeTimer({
