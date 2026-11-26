@@ -152,9 +152,13 @@ const CardFreezeUnfreezeAnimation = ({
   // available — not at mount, which races the async view model load.
 
   const hasFiredRef = useRef(false);
-  // The overlay is wider than the card and can draw a frame before it is
-  // sized, so an unfrozen card shows the static art until a trigger plays.
-  const [hasPlayed, setHasPlayed] = useState(isFrozen);
+  // Native Rive draws before its frame is applied (at the artboard's own
+  // size, and hiding the view does not stop it), so the view only mounts
+  // once the card has been frozen. An unfrozen card opens on the static art.
+  const [needsRive, setNeedsRive] = useState(isFrozen);
+  if (isFrozen && !needsRive) {
+    setNeedsRive(true);
+  }
 
   const { setValue: setFrozen } = useRiveBoolean(
     FROZEN_PATH,
@@ -197,7 +201,6 @@ const CardFreezeUnfreezeAnimation = ({
       }
       return;
     }
-    setHasPlayed(true);
     if (isFrozenRef.current) {
       fireFreezeRef.current?.();
     } else {
@@ -249,7 +252,7 @@ const CardFreezeUnfreezeAnimation = ({
       style={[{ width, height: cardHeight }, styles.overflowVisible]}
       testID={testID}
     >
-      {(!isRiveReady || !hasLaidOut || !hasPlayed) && (
+      {(!needsRive || !isRiveReady || !hasLaidOut) && (
         <Image
           source={animate ? cardFrontFullRes : fallbackSource}
           // The static art has no ice, so dim a frozen card like CardImage.
@@ -261,7 +264,7 @@ const CardFreezeUnfreezeAnimation = ({
       {/* Nitro binds the view model when the native view is created, so the
           view mounts only once the instance exists (as the Money card views
           do); a later dataBind would leave the triggers unbound. */}
-      {animate && riveFile && viewModelInstance && (
+      {needsRive && animate && riveFile && viewModelInstance && (
         <View
           style={[
             styles.absolute,
@@ -272,7 +275,7 @@ const CardFreezeUnfreezeAnimation = ({
               left: (width - riveWidth) / 2,
               top: (cardHeight - riveHeight) / 2,
             },
-            (!hasLaidOut || !hasPlayed) && styles.hidden,
+            !hasLaidOut && styles.hidden,
           ]}
           pointerEvents="none"
         >
