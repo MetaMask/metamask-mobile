@@ -124,7 +124,14 @@ function TransactionFeeRow({
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
-  const hasFeeTooltip = Boolean(!paidByMetaMask && hasQuotes && totals);
+  // Only offer the fee tooltip when there is copy to show, so the sheet never
+  // opens with an empty body.
+  const hasFeeTooltip = Boolean(
+    !paidByMetaMask &&
+      hasQuotes &&
+      totals &&
+      getTooltipMessageKey(transactionMeta),
+  );
   const useDottedFeeTooltip = isMoneyAccountDeposit && hasFeeTooltip;
 
   const handleOpenFeeTooltip = useCallback(() => {
@@ -292,6 +299,8 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
     'confirm.tooltip.money_account_deposit.transaction_fee',
+  [TransactionType.membershipSubscription]:
+    'confirm.tooltip.money_account_deposit.transaction_fee',
   [TransactionType.perpsDeposit]:
     'confirm.tooltip.perps_deposit.transaction_fee',
   [TransactionType.perpsLighterDeposit]:
@@ -299,6 +308,19 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
   [TransactionType.perpsLighterWithdraw]:
     'confirm.tooltip.perps_withdraw.swap_to_token',
 };
+
+function getTooltipMessageKey(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
+
+  return transactionType !== undefined
+    ? TOOLTIP_MESSAGE_KEY[transactionType]
+    : undefined;
+}
 
 function Tooltip({
   quotes,
@@ -309,15 +331,7 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  const transactionType = resolveTransactionType(
-    transactionMeta,
-    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
-  );
-
-  const key =
-    transactionType !== undefined
-      ? TOOLTIP_MESSAGE_KEY[transactionType]
-      : undefined;
+  const key = getTooltipMessageKey(transactionMeta);
 
   if (!key) return null;
 
