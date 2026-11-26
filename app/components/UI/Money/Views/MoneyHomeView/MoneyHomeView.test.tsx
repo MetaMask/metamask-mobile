@@ -180,6 +180,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     setParams: jest.fn(),
+    isFocused: () => true,
   }),
   useFocusEffect: (callback: () => void) => callback(),
   useRoute: () => ({ params: mockRouteParams }),

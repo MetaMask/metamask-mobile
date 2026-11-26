@@ -198,10 +198,10 @@ const MoneyVbaHomeCard = ({
     onRoutingChange?.(true);
     try {
       const resolved = await resolveVbaOnboarding(config.source);
-      // Resolving can update the KYC and abilities state that picks this card,
-      // so the card may unmount first. Still navigate while Money home is in
-      // front, or the tap ends with the card gone and nothing opened.
-      if (!isMountedRef.current && !navigation.isFocused()) {
+      // Navigate only while Money home is in front. The card may have
+      // unmounted (resolving can change the state that picks it), or the user
+      // may have switched tabs while it stayed mounted.
+      if (!navigation.isFocused()) {
         return;
       }
       if (resolved.status === 'error') {
@@ -239,7 +239,7 @@ const MoneyVbaHomeCard = ({
           data: { source: config.source },
         },
       });
-      if (isMountedRef.current || navigation.isFocused()) {
+      if (navigation.isFocused()) {
         endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
         navigateToVbaOnboardingDestination(navigation, 'error');
       }

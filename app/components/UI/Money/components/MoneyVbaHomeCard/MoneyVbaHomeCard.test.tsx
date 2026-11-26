@@ -628,6 +628,36 @@ describe('MoneyVbaHomeCard', () => {
     );
   });
 
+  it('does not navigate when the user leaves Money home while the card stays mounted', async () => {
+    let resolveOnboarding!: (
+      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+    ) => void;
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        (resolve) => {
+          resolveOnboarding = resolve;
+        },
+      ),
+    );
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="finish_verification" />,
+    );
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CTA_BUTTON),
+    );
+
+    mockIsFocused.mockReturnValue(false);
+    await act(async () => {
+      resolveOnboarding({
+        status: 'ready',
+        destinationId: 'accountCreateUnavailable',
+        snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+      });
+    });
+
+    expect(mockNavigateToDestination).not.toHaveBeenCalled();
+  });
+
   it('does not navigate after the card unmounts and the user has left Money home', async () => {
     mockIsFocused.mockReturnValue(false);
 
