@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 });
 
 // Stable across renders: Nitro installs the asset loader when the file loads,
-// so a new options object would reload the ~4.4 MB file.
+// so a new options object would reload the ~1.8 MB file.
 const RIVE_FILE_OPTIONS = {
   referencedAssets: {
     [CARD_FRONT_ASSET_NAME]: { source: cardFrontFullRes as number },
