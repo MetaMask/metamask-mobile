@@ -110,23 +110,16 @@ describe('moneyAccountMigration', () => {
     expect(moneyAccountMigration.getStatus()).toBe('done');
   });
 
-  it('waits for a resumed run that CHOMP is still migrating', async () => {
-    jest.useFakeTimers();
+  it('resumes a partial migration through the lifecycle controller', async () => {
     setMoneyAccountType('migrating');
-    mockRefresh
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(undefined)
-      .mockImplementationOnce(async () => {
-        setMoneyAccountType('mfa');
-      });
+    mockStartMigration.mockImplementationOnce(async () => {
+      setMoneyAccountType('mfa');
+    });
 
-    const run = moneyAccountMigration.start('resume');
-    await jest.advanceTimersByTimeAsync(MIGRATION_POLL_INTERVAL_MS);
-    await run;
+    await moneyAccountMigration.start('resume');
 
-    expect(mockStartMigration).not.toHaveBeenCalled();
+    expect(mockStartMigration).toHaveBeenCalledTimes(1);
     expect(moneyAccountMigration.getStatus()).toBe('done');
-    jest.useRealTimers();
   });
 
   it('starts a resumed run that CHOMP has not started', async () => {

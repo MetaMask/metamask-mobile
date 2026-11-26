@@ -58,11 +58,11 @@ const hasMigratedMoneyAccount = () =>
     Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
   ).some((lifecycle) => lifecycle.type === 'mfa');
 
-// A resumed or retried run may find CHOMP already migrating or done, e.g. after the app was killed mid-run.
-const startMigrationUnlessUnderway = async (trigger: MoneyMfaSetupTrigger) => {
+// A resumed or retried run may find CHOMP already done, e.g. after the app was killed mid-run; startMigration resumes a partial one.
+const startMigrationUnlessDone = async (trigger: MoneyMfaSetupTrigger) => {
   if (trigger !== 'turn_on') {
     await Engine.context.MoneyAccountLifecycleController.refresh();
-    if (hasMigratedMoneyAccount() || isAnyMoneyAccountMigrating()) {
+    if (hasMigratedMoneyAccount()) {
       return;
     }
   }
@@ -133,7 +133,7 @@ export const moneyAccountMigration = {
           op: TraceOperation.MoneyMfaSetup,
           parentContext: setupTrace,
         },
-        async () => startMigrationUnlessUnderway(trigger),
+        async () => startMigrationUnlessDone(trigger),
       );
       phase = 'funds_transfer_status';
       await trace(
