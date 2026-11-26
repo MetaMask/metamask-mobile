@@ -214,7 +214,7 @@ describe('useMusdConversion', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken: {
@@ -498,7 +498,7 @@ describe('useMusdConversion', () => {
 
       expect(transactionId).toEqual({ transactionId: 'tx-123' });
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken: {
@@ -555,7 +555,7 @@ describe('useMusdConversion', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith('CustomStack', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
           preferredPaymentToken: {
@@ -690,7 +690,7 @@ describe('useMusdConversion', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.EARN.MODALS.ROOT,
         {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           params: {
             forceBottomSheet: true,
             token: mockToken,
@@ -875,7 +875,7 @@ describe('useMusdConversion', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.EARN.MODALS.ROOT,
         {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           params: {
             forceBottomSheet: true,
             token: mockToken,

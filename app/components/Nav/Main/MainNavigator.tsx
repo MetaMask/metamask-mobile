@@ -130,7 +130,6 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
-import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
 import {
   TAB_BAR_VISIBLE_STYLE,
@@ -243,7 +242,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
-import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -750,8 +748,6 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
-  const canOpenSocialTabDirectly =
-    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -776,7 +772,6 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
-      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -1116,10 +1111,6 @@ const MainNavigator = () => {
        * included) from the bottom.
        */}
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}

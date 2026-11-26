@@ -576,7 +576,50 @@ describe('PerpsSection', () => {
     );
   });
 
+  it('classifies unresolved sources as unknown for a non-fresh lifecycle', () => {
+    mockResolvePerpsMarketSource.mockReturnValue('unknown');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'unknown',
+      accountSource: 'unknown',
+      lifecycle: 'navigate_return',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'unknown' }),
+    );
+  });
+
   it('uses the account source cache state for account-backed content', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ cacheState: 'warm' }),
+    );
+  });
+
+  it('treats provider_snapshot as warm for account-backed content', () => {
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'provider',
+      accountSource: 'provider_snapshot',
+      lifecycle: 'cold_no_cache',
+      accountGeneration: 1,
+      contextGeneration: 1,
+    });
     usePerpsLivePositions.mockReturnValue({
       positions: [makePosition()],
       isInitialLoading: false,

@@ -7,6 +7,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { isMusdToken } from '../../Earn/constants/musd';
 import {
+  isFiatMoneyDeposit,
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
 } from './moneyTransactionGuards';
@@ -67,11 +68,6 @@ function resolveMoneyTransactionType(
   return tx.type;
 }
 
-/** A `moneyAccountDeposit` funded by a fiat on-ramp (e.g. Transak), not crypto. */
-function isFiatDeposit(tx: TransactionMeta): boolean {
-  return Boolean(tx.metamaskPay?.fiat);
-}
-
 /** A `moneyAccountDeposit` paid with mUSD itself. */
 function isMusdPayToken(tx: TransactionMeta): boolean {
   return isMusdToken(tx.metamaskPay?.tokenAddress);
@@ -99,7 +95,7 @@ export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
 
   switch (type) {
     case TransactionType.moneyAccountDeposit:
-      if (isFiatDeposit(tx) || isMusdPayToken(tx)) {
+      if (isFiatMoneyDeposit(tx) || isMusdPayToken(tx)) {
         return 'deposited';
       }
       return 'converted';

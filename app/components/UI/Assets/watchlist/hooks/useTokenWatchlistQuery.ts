@@ -25,6 +25,10 @@ export interface UseTokenWatchlistQueryOptions {
   suggestedTokens?: readonly string[];
   /** When hydrating suggested tokens, vary the cache key if SpaceX is included. */
   suggestedIncludeSpaceX?: boolean;
+  /** When true, use existing query cache without starting remote hydration. */
+  skipRemoteFetch?: boolean;
+  /** When false, do not fetch or subscribe to the query. */
+  enabled?: boolean;
 }
 
 /**
@@ -35,7 +39,12 @@ export interface UseTokenWatchlistQueryOptions {
 export const useTokenWatchlistQuery = (
   options: UseTokenWatchlistQueryOptions = {},
 ): UseQueryResult<WatchlistTokenWithBalance[], Error> => {
-  const { suggestedTokens, suggestedIncludeSpaceX = false } = options;
+  const {
+    suggestedTokens,
+    suggestedIncludeSpaceX = false,
+    skipRemoteFetch = false,
+    enabled = true,
+  } = options;
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
@@ -55,7 +64,7 @@ export const useTokenWatchlistQuery = (
       ? tokenWatchlistQueryKeys.suggested(suggestedIncludeSpaceX)
       : tokenWatchlistQueryKeys.hydrated,
     staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
-    enabled: isWatchlistEnabled,
+    enabled: isWatchlistEnabled && enabled && !skipRemoteFetch,
     queryFn: async (): Promise<WatchlistTokenMetadata[]> => {
       if (suggestedTokens) {
         return getTokens(suggestedTokens);

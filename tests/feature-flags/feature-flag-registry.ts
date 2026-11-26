@@ -8229,6 +8229,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  assetsUnifiedWatchlistV1: {
+    name: 'assetsUnifiedWatchlistV1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   explorePageV2Enabled: {
     name: 'explorePageV2Enabled',
     type: FeatureFlagType.Remote,

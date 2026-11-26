@@ -159,6 +159,10 @@ const MoneyBalanceSummary = ({
     onBalancePress ? (
       <TouchableOpacity
         onPress={onBalancePress}
+        accessibilityRole="button"
+        accessibilityHint={strings(
+          privacyMode ? 'money.balance_show_hint' : 'money.balance_hide_hint',
+        )}
         testID={MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE}
       >
         {content}

@@ -343,6 +343,28 @@ jest.mock(
   }),
 );
 
+const mockHasSocialV1Access = jest.fn(() => false);
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual('../../../../selectors/featureFlagController/socialV1'),
+  selectHasSocialV1Access: () => mockHasSocialV1Access(),
+}));
+
+const mockEnsureSocialTermsAccepted = jest.fn(
+  (_onAccepted?: () => void) => true,
+);
+jest.mock('../terms/useSocialTermsGate', () => ({
+  useSocialTermsGate: () => ({
+    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  }),
+}));
+
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
 
@@ -383,6 +405,9 @@ describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialV1Treatment.mockReturnValue(false);
+    mockHasSocialV1Access.mockReturnValue(false);
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockUseSocialPerpsChartAdapter.mockReturnValue({
       ohlcvData: makePerpAdapterBars(),
       realtimeBar: undefined,
@@ -991,6 +1016,45 @@ describe('TraderPositionView', () => {
       // Perps has no long/short preselect on the market page, so the single
       // Trade CTA lands the user on that market's Perps page with a minimal
       // market object — it never opens the spot QuickBuy sheet.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: 'ETH', name: 'ETH' },
+          source: 'social_leaderboard',
+        },
+      });
+    });
+
+    it('opens profile onboarding instead of the Perps market without a linked social wallet in Social V1', () => {
+      mockHasSocialV1Access.mockReturnValue(true);
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+
+      expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.anything(),
+      );
+    });
+
+    it('opens the Perps market once the Social terms are accepted in Social V1', () => {
+      mockHasSocialV1Access.mockReturnValue(true);
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.anything(),
+      );
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
