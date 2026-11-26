@@ -32,6 +32,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+jest.mock(
   '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
   () => ({
     navigateToSocialTab: jest.fn(),

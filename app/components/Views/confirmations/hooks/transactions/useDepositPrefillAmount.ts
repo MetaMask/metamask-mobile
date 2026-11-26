@@ -20,7 +20,10 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
@@ -137,13 +140,17 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
+    // Full-balance intents own their 100% prefill in useTransactionCustomAmount.
+    if (isFullBalanceDepositIntent(depositIntent)) {
+      return false;
+    }
+
     // Explicit amounts use the same quote preparation flow without opting into
-    // balance-based prefill or changing card/add-mUSD funding behavior.
+    // balance-based prefill or changing card funding behavior.
     if (amount !== undefined) {
       const explicitAmount = new BigNumber(amount);
       return (
         depositIntent !== 'card' &&
-        depositIntent !== 'addMusd' &&
         explicitAmount.isFinite() &&
         explicitAmount.gt(0)
       );

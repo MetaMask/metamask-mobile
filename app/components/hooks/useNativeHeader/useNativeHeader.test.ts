@@ -62,6 +62,37 @@ describe('useNativeHeader', () => {
     );
   });
 
+  it('shows a title and hides the system back button when asked', () => {
+    renderHook(() =>
+      useNativeHeader({
+        leftItems,
+        title: 'Settings',
+        titleStyle: { fontFamily: 'Geist-Bold', fontSize: 16 },
+        hidesBackButton: true,
+      }),
+    );
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerBackVisible: false,
+        title: 'Settings',
+        headerTitleStyle: {
+          fontFamily: 'Geist-Bold',
+          fontSize: 16,
+          color: expect.any(String),
+        },
+      }),
+    );
+  });
+
+  it('leaves the system back button setting alone by default', () => {
+    renderHook(() => useNativeHeader({ leftItems }));
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ headerBackVisible: undefined }),
+    );
+  });
+
   it('keeps the UIKit scroll edge effect by default', () => {
     renderHook(() => useNativeHeader({ leftItems, rightItems }));
 

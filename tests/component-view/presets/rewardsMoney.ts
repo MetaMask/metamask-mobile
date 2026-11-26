@@ -43,6 +43,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  earnEligibleFeesDescription:
+    'When friends join with your code and trade, you earn a share of their trading fees.',
   referFriends: 'Refer friends',
   tradeAndEarn: 'Trade and earn',
   postTrades: 'Post trades',
@@ -75,6 +77,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
+  claimFailurePayoutMigratedToast: 'Set up 2-step verification to claim',
   earnedOnOtherAccounts:
     'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
@@ -111,9 +114,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   tradingCommissionsSection: 'Trading commissions',
   copyTradingEmptyDescription:
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
-  copyTradingEmptyAction: 'Start sharing',
+  copyTradingEmptyAction: 'Post a trade',
   copyTradingInfoDescription:
     'Earn 15% from fees when someone copies your trade',
+  copyTradingDescription:
+    'Post a trade with a take. When others copy it, you earn a share of their trading fees.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -139,6 +144,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteAcceptedViewRewards: 'View rewards',
   inviteAcceptedStartTrading: 'Start trading',
   invitedBenefitTitle: 'Invited benefit',
+  invitedBenefitDescription:
+    'Every eligible trade you make returns 10% of its trading fee to your rewards balance.',
   offerEndsIn: 'Offer ends in',
   offerDurationDay: 'day',
   offerDurationDays: 'days',
@@ -164,6 +171,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   rewardsPausedDescription: 'These rewards are paused while they are reviewed.',
   rewardsPausedBanner: '{amount} of rewards paused.',
   rewardsPausedLearnMore: 'Learn more',
+  rewardsHeldTitle: 'Rewards held',
+  rewardsHeldDescription:
+    'These rewards are held until your tax determination is cleared.',
+  rewardsHeldBanner: '{heldAmount} of rewards held.',
+  rewardsHeldLearnMore: 'Learn more',
   settingsReferralTitle: 'Referral Code',
   settingsReferralLinkedDescription:
     'You are all set. Start trading to earn rewards.',
@@ -267,10 +279,14 @@ export interface EarningsSummaryFixtureOptions {
   pending?: string;
   cashbackClaimable?: string;
   cashbackBlocked?: string;
+  cashbackHeld?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
   /** Follow-trade claimable base units. Omitted leaves that family out. */
   followTradeClaimable?: string;
+  /** Follow-trade held base units, with the reason the family reports. */
+  followTradeHeld?: string;
+  followTradeBlockingReason?: SummaryTotalsDto['blocking_reason'];
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -302,6 +318,9 @@ export function earningsSummaryFixture(
             ...(options.cashbackBlocked === undefined
               ? {}
               : { blocked: options.cashbackBlocked }),
+            ...(options.cashbackHeld === undefined
+              ? {}
+              : { held: options.cashbackHeld }),
             ...(options.cashbackBlockingReason === undefined
               ? {}
               : { blocking_reason: options.cashbackBlockingReason }),
@@ -319,6 +338,12 @@ export function earningsSummaryFixture(
           : {
               SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
                 claimable: followTradeClaimable,
+                ...(options.followTradeHeld === undefined
+                  ? {}
+                  : { held: options.followTradeHeld }),
+                ...(options.followTradeBlockingReason === undefined
+                  ? {}
+                  : { blocking_reason: options.followTradeBlockingReason }),
               }),
             }),
       },
@@ -374,6 +399,20 @@ export const UNDER_REVIEW_EARNINGS_SUMMARY = earningsSummaryFixture({
   cashbackClaimable: '0',
   cashbackBlocked: '12000000',
   cashbackBlockingReason: 'UNDER_REVIEW',
+});
+
+/**
+ * $9.15 of follow-trade income held for tax, while cashback and revenue share
+ * hold nothing. Only the copy-trading family reads `TAX_DETERMINATION_REQUIRED`.
+ */
+export const TAX_HELD_EARNINGS_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '9150000',
+  claimable: '0',
+  held: '9150000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '0',
+  followTradeHeld: '9150000',
+  followTradeBlockingReason: 'TAX_DETERMINATION_REQUIRED',
 });
 
 /** Summary a refusal refresh returns, with the hold that opens the sheet. */

@@ -4,8 +4,11 @@
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/EarningsTab.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
+import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { lightTheme } from '@metamask/design-tokens';
+import { getRouteProbeTestId } from '../../../../../../../tests/component-view/render';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   earningsSummaryFixture,
@@ -216,4 +219,26 @@ describe('EarningsTab', () => {
       getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER),
     ).toBeOnTheScreen();
   });
+
+  it.each([
+    ['referrer', 'referrals', Routes.REWARDS_MONEY_REFERRALS_VIEW],
+    ['referrer', 'social', Routes.REWARDS_COPY_TRADING_VIEW],
+    ['referee', 'trading', Routes.REWARDS_TRADING_REBATES_VIEW],
+  ] as const)(
+    'opens the %s %s page from its Ways to earn row',
+    async (persona, rowKey, route) => {
+      const { findByTestId } = renderEarningsTab({
+        persona,
+        summary: BREAKDOWN_SUMMARY,
+      });
+
+      fireEvent.press(
+        await findByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-${rowKey}`,
+        ),
+      );
+
+      expect(await findByTestId(getRouteProbeTestId(route))).toBeOnTheScreen();
+    },
+  );
 });

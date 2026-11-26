@@ -53,6 +53,7 @@ import type { PriceRangeSheetProps } from './PriceRangeSheet.types';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { playSelection } from '../../../../../util/haptics';
 
 type PriceRangeField = 'min' | 'max';
 
@@ -226,6 +227,7 @@ const PriceRangeSheet = ({
       if (nextSide === pendingTokenSide) {
         return;
       }
+      playSelection().catch(() => undefined);
       closeKeypad();
       setPendingTokenSide(nextSide);
       setPendingMin('');
@@ -239,11 +241,18 @@ const PriceRangeSheet = ({
       if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMin(
-        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      const nextMin = applyPercentToPrice(
+        selectedFiatRate,
+        percent,
+        priceDecimals,
       );
+      if (nextMin === pendingMin) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setPendingMin(nextMin);
     },
-    [priceDecimals, selectedFiatRate],
+    [pendingMin, priceDecimals, selectedFiatRate],
   );
 
   const handleMaxPercentPress = useCallback(
@@ -251,11 +260,18 @@ const PriceRangeSheet = ({
       if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMax(
-        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      const nextMax = applyPercentToPrice(
+        selectedFiatRate,
+        percent,
+        priceDecimals,
       );
+      if (nextMax === pendingMax) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setPendingMax(nextMax);
     },
-    [priceDecimals, selectedFiatRate],
+    [pendingMax, priceDecimals, selectedFiatRate],
   );
 
   const handleKeypadChange = useCallback(
