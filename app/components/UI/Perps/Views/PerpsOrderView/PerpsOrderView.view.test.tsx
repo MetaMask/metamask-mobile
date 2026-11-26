@@ -20,6 +20,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type CandleData,
+  type CrossLiquidationEstimate,
   type PriceUpdate,
   type OrderBookData,
   type OrderBookLevel,
@@ -31,6 +32,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { crossMarginMarketInfo } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import {
   wirePerpsControllerForStore,
   withLighterBuildEnabled,
@@ -53,6 +55,7 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
+  createCrossMarginAccountForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
   createLongPositionForViews,
@@ -169,6 +172,17 @@ describe('PerpsOrderView', () => {
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
       .mockReset()
       .mockResolvedValue('0.00');
+    jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockReset()
+      .mockResolvedValue({ status: 'unavailable', reason: 'provider' });
+    jest
+      .mocked(Engine.context.PerpsController.getMarginModeLock)
+      .mockReset()
+      .mockResolvedValue({
+        status: 'unlocked',
+        providerId: 'hyperliquid',
+      });
     jest
       .mocked(Engine.context.PerpsController.updatePositionTPSL)
       .mockReset()
@@ -694,7 +708,7 @@ describe('PerpsOrderView', () => {
       expect(calculateLiquidationPrice).toHaveBeenCalled();
       expect(
         screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
-      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
     });
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
@@ -1806,19 +1820,43 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  const crossAccount = createCrossMarginAccountForViews({
+    balance: '1000',
+    maintenanceMargin: '200',
+    marginUsed: '500',
+    notional: '6250',
+  });
+  const expectedCrossLiquidationPrice = '$2,183.6';
+  const mockCrossLiquidationEstimate = (
+    estimate: CrossLiquidationEstimate = {
+      status: 'price',
+      price: '2183.6007130124776',
+    },
+  ) =>
+    jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockResolvedValue(estimate);
   const existingCrossPositionStream = {
-    account,
+    account: crossAccount,
     positions: [
       {
         ...defaultPositionForViews,
-        // The venue reports a liquidation price; the order form still
-        // withholds its own isolated estimate.
         liquidationPrice: '1900',
         leverage: { value: 10, type: 'cross' as const },
       },
     ],
     orders: [],
     marketData: [ethMarket],
+  };
+  const installCrossMarginMarket = () => {
+    const getMarkets = jest.mocked(Engine.context.PerpsController.getMarkets);
+    const previous = getMarkets.getMockImplementation();
+    getMarkets.mockResolvedValue([crossMarginMarketInfo]);
+    return () => {
+      if (previous) {
+        getMarkets.mockImplementation(previous);
+      }
+    };
   };
   const existingCrossOrderParams = {
     asset: 'ETH',
@@ -1862,114 +1900,289 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
-  it('places an order on an existing cross position when cross margin is enabled', async () => {
-    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
-    const { stream } = renderPerpsOrderView({
-      overrides: eligibleOverrides,
-      crossMarginEnabled: true,
-      initialParams: existingCrossOrderParams,
-      streamOverrides: existingCrossPositionStream,
-      extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+  describe('cross liquidation estimate', () => {
+    let restoreMarkets: () => void = () => undefined;
+
+    beforeEach(() => {
+      restoreMarkets = installCrossMarginMarket();
+      mockCrossLiquidationEstimate();
     });
 
-    await waitForDeferredOrderData();
-    emitEthPrice(stream);
+    afterEach(() => {
+      restoreMarkets();
+    });
 
-    // The isolated formula does not describe an order against a cross position.
-    expect(
-      await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-      ),
-    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    it('places an order on an existing cross position when cross margin is enabled', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const estimateCrossLiquidation = jest.mocked(
+        Engine.context.PerpsController.estimateCrossLiquidation,
+      );
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: existingCrossPositionStream,
+        extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+      });
 
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
-      ),
-    );
-    expect(
-      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toHaveTextContent(
-      strings('perps.tooltips.cross_liquidation_estimate_unavailable.content'),
-    );
-    expect(
-      screen.queryByText(
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(expectedCrossLiquidationPrice);
+      });
+      expect(estimateCrossLiquidation).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'long',
+          leverage: 10,
+          providerId: 'hyperliquid',
+        }),
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+      ).toHaveTextContent(
+        strings('perps.tooltips.cross_liquidation_price.content'),
+      );
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.cross_no_liquidation_price.content'),
+        ),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+      );
+
+      const placeOrderButton = await waitForEnabledPlaceOrderButton();
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH', isBuy: true }),
+        );
+      });
+      expect(
+        screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+      ).not.toBeOnTheScreen();
+      await waitForDeferredOrderData();
+    });
+
+    it('shows the cross liquidation estimate on a lite cross order', async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(expectedCrossLiquidationPrice);
+      });
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
+      );
+      expect(
+        await screen.findByText(
+          strings('perps.tooltips.cross_liquidation_price.content'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.cross_no_liquidation_price.content'),
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      );
+      fireEvent.press(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent(expectedCrossLiquidationPrice);
+    });
+
+    it('omits the remaining liquidation price from auto close when a cross reduce does not flip', async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: {
+          ...existingCrossOrderParams,
+          direction: 'short',
+          useBottomSheet: true,
+        },
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(/\$/);
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('--');
+    });
+
+    it('shows no liquidation price when a cross order cannot be liquidated', async () => {
+      mockCrossLiquidationEstimate({
+        status: 'none',
+        reason: 'covered_by_account',
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(
+          strings('perps.cross_position.no_liquidation_price'),
+        );
+      });
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+      ).toHaveTextContent(
         strings('perps.tooltips.cross_no_liquidation_price.content'),
-      ),
-    ).not.toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
-    );
-
-    const placeOrderButton = await waitForEnabledPlaceOrderButton();
-    await act(async () => {
-      fireEvent.press(placeOrderButton);
-    });
-
-    await waitFor(() => {
-      expect(placeOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: 'ETH', isBuy: true }),
       );
     });
-    expect(
-      screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
-    ).not.toBeOnTheScreen();
-    await waitForDeferredOrderData();
-  });
 
-  it('keeps the isolated liquidation price out of a lite cross order', async () => {
-    const { stream } = renderPerpsOrderView({
-      overrides: eligibleOverrides,
-      crossMarginEnabled: true,
-      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
-      streamOverrides: existingCrossPositionStream,
-    });
+    it('shows the unavailable explainer when the cross estimate cannot be priced', async () => {
+      const estimateCrossLiquidation = mockCrossLiquidationEstimate({
+        status: 'unavailable',
+        reason: 'provider',
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: existingCrossPositionStream,
+      });
 
-    await waitForDeferredOrderData();
-    emitEthPrice(stream);
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
 
-    expect(
-      await screen.findByTestId(
-        PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-      ),
-    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
-    expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
-    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+      await waitFor(() => {
+        expect(estimateCrossLiquidation).toHaveBeenCalled();
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+      });
 
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
-    );
-    expect(
-      await screen.findByText(
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+      ).toHaveTextContent(
         strings(
           'perps.tooltips.cross_liquidation_estimate_unavailable.content',
         ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(
-        strings('perps.tooltips.cross_no_liquidation_price.content'),
-      ),
-    ).not.toBeOnTheScreen();
+      );
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.cross_no_liquidation_price.content'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
 
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
-    );
-    fireEvent.press(
-      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
-    );
+    it('shows the cross estimate when the market is locked to cross without a position', async () => {
+      const estimateCrossLiquidation = jest.mocked(
+        Engine.context.PerpsController.estimateCrossLiquidation,
+      );
+      jest
+        .mocked(Engine.context.PerpsController.getMarginModeLock)
+        .mockResolvedValue({
+          status: 'locked',
+          providerId: 'hyperliquid',
+          marginMode: 'cross',
+          reason: 'open_order',
+        });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: {
+          ...existingCrossPositionStream,
+          positions: [],
+        },
+      });
 
-    expect(
-      await screen.findByTestId(
-        PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-      ),
-    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
-    expect(
-      screen.queryByTestId(
-        PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-      ),
-    ).not.toBeOnTheScreen();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(expectedCrossLiquidationPrice);
+      });
+      expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'long',
+          providerId: 'hyperliquid',
+        }),
+      );
+    });
   });
 
   it('labels the lite trade sheet Isolated for an isolated position', async () => {
@@ -2148,6 +2361,33 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
       ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    });
+
+    it('estimates the cross liquidation against the live venue, not the saved default', async () => {
+      const estimateCrossLiquidation = mockCrossLiquidationEstimate();
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'lighter',
+          defaultProvider: 'hyperliquid',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+        );
+      });
+      expect(estimateCrossLiquidation).not.toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: 'hyperliquid' }),
+      );
     });
 
     it('labels an aggregated order from the saved default before the live venue resolves', async () => {

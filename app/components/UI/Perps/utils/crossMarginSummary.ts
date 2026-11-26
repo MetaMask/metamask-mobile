@@ -1,11 +1,13 @@
 import {
   calculateAccountSummary,
-  getCrossCollateral,
+  formatPerpsFiat,
+  PERPS_CONSTANTS,
+  PRICE_RANGES_UNIVERSAL,
   type AccountState,
-  type CrossMarginSummary,
+  type CrossLiquidationEstimate,
   type PerpsAccountSummary,
-  type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import type {
   HardwareTier,
   NetworkTier,
@@ -49,14 +51,6 @@ export const calculateCrossMarginAccountSummaryFromAccount = (
       })
     : EMPTY_ACCOUNT_SUMMARY;
 
-const toFiniteNumber = (value: string | undefined): number | undefined => {
-  if (value === undefined || value === '') {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
 /**
  * Stream throttle for the cross margin summary from the UX matrix in
  * `app/util/deviceCapability/README.md`. Only a 2G or 3G connection changes
@@ -83,64 +77,198 @@ export const getCrossMarginSummaryThrottleMs = ({
   );
 };
 
+export type CrossLiquidationContentKey =
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable';
+
+export interface PresentedCrossLiquidation {
+  /** Row text: a price, N/A, or the fallback dash. */
+  display: string;
+  /** Unformatted price for TP/SL checks. Empty when the row has no price. */
+  rawPrice: string;
+  contentKey: CrossLiquidationContentKey;
+}
+
 /**
- * Estimates where a new cross position liquidates: the price at which the
- * cross collateral, after the position's P&L, falls to the maintenance margin
- * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage, which is Hyperliquid's
- * rule, so other venues get no estimate. TAT-4668 moves this to
- * perps-controller.
- *
- * @returns The liquidation price, or undefined when an input is missing (the
- * spot collateral included) or the position cannot be liquidated at a
- * positive price.
+ * Key that changes with the account figures and open position behind a cross
+ * liquidation estimate, so an unchanged order is re-estimated when they move.
  */
-export const estimateCrossLiquidationPrice = ({
-  entryPrice,
-  size,
-  isLong,
-  maxLeverage,
-  crossMarginSummary,
-  spotCollateral,
-  providerId,
+export const getCrossLiquidationRefreshKey = ({
+  account,
+  positionSize,
 }: {
-  entryPrice: number;
+  account: AccountState | null | undefined;
+  /** Signed size open on the market, if any. */
+  positionSize: string | undefined;
+}): string =>
+  [
+    account?.crossMarginSummary?.accountValue,
+    account?.crossMarginSummary?.maintenanceMargin,
+    account?.spotCollateral,
+    positionSize,
+  ].join('|');
+
+/**
+ * Liquidation price to compare with a stop loss.
+ *
+ * The cross estimate prices the position left after the order. The check has
+ * to use that same side. A reduce that does not flip, or a full close, leaves
+ * the opposite side (or nothing). Feeding that price to the order side marks
+ * every stop unsafe; the check used to see an empty price and skip. Increasing
+ * or flipping keeps the price, because the remaining side is the order side.
+ * Callers that already validate against the remaining side pass that side as
+ * `checkIsLong` and keep the price.
+ */
+export const liquidationPriceForOrderSide = ({
+  liquidationPrice,
+  existingSignedSize,
+  orderSize,
+  orderIsLong,
+  checkIsLong = orderIsLong,
+}: {
+  liquidationPrice: string;
+  /** Signed size already open. Positive is long. */
+  existingSignedSize: number;
   /** Unsigned order size in base units. */
-  size: number;
-  isLong: boolean;
-  maxLeverage: number;
-  crossMarginSummary: CrossMarginSummary | undefined;
-  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
-  spotCollateral: string | undefined;
-  /** Venue that takes the order. */
-  providerId: PerpsProviderType;
-}): number | undefined => {
-  if (providerId !== 'hyperliquid') {
-    return undefined;
-  }
-  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
-  const maintenanceMargin = toFiniteNumber(
-    crossMarginSummary?.maintenanceMargin,
-  );
+  orderSize: number;
+  /** Direction of the order, not of the position it leaves. */
+  orderIsLong: boolean;
+  /** Direction the stop-loss check will use. Defaults to the order. */
+  checkIsLong?: boolean;
+}): string => {
   if (
-    collateral === undefined ||
-    maintenanceMargin === undefined ||
-    !(entryPrice > 0) ||
-    !(size > 0) ||
-    !(maxLeverage > 0)
+    !liquidationPrice ||
+    !Number.isFinite(existingSignedSize) ||
+    !(orderSize > 0)
   ) {
-    return undefined;
+    return liquidationPrice;
   }
-  const side = isLong ? 1 : -1;
-  const maintenanceFraction = 1 / (2 * maxLeverage);
-  const marginAvailable =
-    collateral - maintenanceMargin - size * entryPrice * maintenanceFraction;
-  const liquidationPrice =
-    entryPrice -
-    (side * marginAvailable) / size / (1 - maintenanceFraction * side);
-  return Number.isFinite(liquidationPrice) && liquidationPrice > 0
-    ? liquidationPrice
-    : undefined;
+  const signedOrder = (orderIsLong ? 1 : -1) * orderSize;
+  const signedResult = existingSignedSize + signedOrder;
+  if (signedResult === 0 || signedResult > 0 !== checkIsLong) {
+    return '';
+  }
+  return liquidationPrice;
+};
+
+/**
+ * A controller estimate, or the client-side failure of the request itself.
+ * `estimateCrossLiquidation` never rejects, so `request_failed` means the call
+ * could not run (for example the Engine context was unavailable). It is kept
+ * apart from the controller's `account_unknown`.
+ */
+export type CrossLiquidationEstimateResult =
+  | CrossLiquidationEstimate
+  | { status: 'unavailable'; reason: 'request_failed' };
+
+/**
+ * Turns a `PerpsController.estimateCrossLiquidation` result into the
+ * order-row value. Callers that are not placing a cross order should keep
+ * their isolated price instead.
+ *
+ * @param params - The estimate and whether the form has a valid amount.
+ * @param params.estimate - Controller estimate; `undefined` until the first one
+ * resolves.
+ * @param params.hasValidAmount - Whether the order has a usable size.
+ * @returns The row text, raw price and explainer key.
+ */
+export const presentCrossLiquidationEstimate = ({
+  estimate,
+  hasValidAmount,
+}: {
+  estimate: CrossLiquidationEstimateResult | undefined;
+  hasValidAmount: boolean;
+}): PresentedCrossLiquidation => {
+  if (hasValidAmount && estimate?.status === 'price') {
+    return {
+      display: formatPerpsFiat(estimate.price, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      }),
+      rawPrice: estimate.price,
+      contentKey: 'cross_liquidation_price',
+    };
+  }
+  if (hasValidAmount && estimate?.status === 'none') {
+    return {
+      display: strings('perps.cross_position.no_liquidation_price'),
+      rawPrice: '',
+      contentKey: 'cross_no_liquidation_price',
+    };
+  }
+  return {
+    display: PERPS_CONSTANTS.FallbackDataDisplay,
+    rawPrice: '',
+    contentKey: 'cross_liquidation_estimate_unavailable',
+  };
+};
+
+export type OrderLiquidationContentKey =
+  | 'liquidation_price'
+  | CrossLiquidationContentKey;
+
+export interface OrderLiquidationRow {
+  display: string;
+  contentKey: OrderLiquidationContentKey;
+  /** Price string for TP/SL. Empty when the row has no price. */
+  rawPrice: string;
+  /** Numeric price for the distance label, when the row shows a price. */
+  distancePrice?: number;
+}
+
+/**
+ * Picks the order-row liquidation value. Cross uses the controller's
+ * pre-trade estimate. Isolated keeps the controller's isolated price.
+ *
+ * @param params - Order margin mode, estimates and amount state.
+ * @param params.isCrossOrder - Whether the order liquidates against the
+ * cross account.
+ * @param params.crossEstimate - Cross estimate, `undefined` until resolved.
+ * @param params.hasValidAmount - Whether the order has a usable size.
+ * @param params.isolatedPrice - Isolated estimate, `undefined` when
+ * unavailable.
+ * @returns The row to render.
+ */
+export const selectOrderLiquidationRow = ({
+  isCrossOrder,
+  crossEstimate,
+  hasValidAmount,
+  isolatedPrice,
+}: {
+  isCrossOrder: boolean;
+  crossEstimate: CrossLiquidationEstimateResult | undefined;
+  hasValidAmount: boolean;
+  isolatedPrice: string | undefined;
+}): OrderLiquidationRow => {
+  if (isCrossOrder) {
+    const presented = presentCrossLiquidationEstimate({
+      estimate: crossEstimate,
+      hasValidAmount,
+    });
+    const parsedCrossPrice = Number.parseFloat(presented.rawPrice);
+    return {
+      ...presented,
+      distancePrice: Number.isFinite(parsedCrossPrice)
+        ? parsedCrossPrice
+        : undefined,
+    };
+  }
+  const parsedIsolatedPrice =
+    isolatedPrice === undefined ? Number.NaN : Number.parseFloat(isolatedPrice);
+  const hasIsolatedPrice =
+    hasValidAmount &&
+    Number.isFinite(parsedIsolatedPrice) &&
+    parsedIsolatedPrice > 0;
+  return {
+    display: hasIsolatedPrice
+      ? formatPerpsFiat(parsedIsolatedPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        })
+      : PERPS_CONSTANTS.FallbackDataDisplay,
+    contentKey: 'liquidation_price',
+    rawPrice: isolatedPrice ?? '',
+    distancePrice: hasIsolatedPrice ? parsedIsolatedPrice : undefined,
+  };
 };
 
 export const getCrossMarginRatioTone = (
