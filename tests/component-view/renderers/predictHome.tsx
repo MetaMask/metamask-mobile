@@ -1,11 +1,9 @@
 import '../mocks';
 import React from 'react';
-import { Text } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   NavigationContext,
   NavigationRouteContext,
-  useRoute,
 } from '@react-navigation/native';
 import renderWithProvider, {
   type DeepPartial,
@@ -18,8 +16,7 @@ import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/
 import PredictPositionsView from '../../../app/components/UI/Predict/views/PredictPositionsView';
 import { initialStatePredict } from '../presets/predict';
 import {
-  getRouteParamsProbeTestId,
-  getRouteProbeTestId,
+  createRouteNameAndParamsProbe,
   renderScreenWithRoutes,
 } from '../render';
 import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
@@ -38,20 +35,7 @@ interface RenderPredictHomeWithRoutesOptions
   }[];
 }
 
-const WalletHomeProbe = () => {
-  const route = useRoute();
-
-  return (
-    <>
-      <Text testID={getRouteProbeTestId(Routes.WALLET.HOME)}>
-        {Routes.WALLET.HOME}
-      </Text>
-      <Text testID={getRouteParamsProbeTestId(Routes.WALLET.HOME)}>
-        {JSON.stringify(route.params)}
-      </Text>
-    </>
-  );
-};
+const WalletHomeProbe = createRouteNameAndParamsProbe(Routes.WALLET.HOME);
 
 function createNavigationContextValue(
   setParams: (params: PredictMarketListRouteParams) => void = () => undefined,
