@@ -17,6 +17,8 @@ import {
   getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
+import { CardHomeStatusViewSelectors } from './components/CardHomeStatusView';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Cashback from '../Cashback/Cashback';
 import ChooseYourCard from '../ChooseYourCard/ChooseYourCard';
@@ -893,6 +895,120 @@ describe('CardHome', () => {
         await view.findByTestId(CardHomeSelectors.CARD_ART),
       ).toBeOnTheScreen();
       expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+  });
+
+  describe('Waiting view', () => {
+    const identityReviewOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          CardController: {
+            // Nothing actionable, so identity review owns the screen.
+            cardHomeData: {
+              actions: [],
+              alerts: [{ type: 'kyc_pending', dismissable: false }],
+            },
+          },
+        },
+      },
+    };
+    const signedOutPendingOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          CardController: { isAuthenticated: false },
+        },
+      },
+    };
+
+    it('shows the identity review copy while identity is in review', async () => {
+      const view = renderCardHomeView({ overrides: identityReviewOverrides });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CardHomeStatusViewSelectors.TITLE),
+      ).toHaveTextContent(
+        strings('card.card_home.setup_pending.reviewing.title'),
+      );
+    });
+
+    it('refetches card data when the waiting view is pulled to refresh', async () => {
+      const fetchMock = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      const view = renderCardHomeView({ overrides: identityReviewOverrides });
+      const scrollView = await view.findByTestId(
+        CardHomeStatusViewSelectors.SCROLL_VIEW,
+      );
+      const callsBeforeRefresh = fetchMock.mock.calls.length;
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+      await waitFor(() =>
+        expect(
+          view.getByTestId(CardHomeStatusViewSelectors.SCROLL_VIEW).props
+            .refreshControl.props.refreshing,
+        ).toBe(false),
+      );
+
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBeforeRefresh),
+      );
+    });
+
+    it('shows the signed-out pending copy without card actions', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+      });
+
+      expect(
+        await view.findByTestId(CardHomeStatusViewSelectors.TITLE),
+      ).toHaveTextContent(
+        strings('card.card_home.setup_pending.signed_out_pending.title'),
+      );
+      expect(
+        view.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dims the card art while signed out during identity review', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+      });
+
+      expect(await view.findByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
+        opacity: 0.5,
+      });
+    });
+
+    it('opens Card login from the signed-out waiting view', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+        extraRoutes: [
+          {
+            name: Routes.CARD.AUTHENTICATION,
+            Component: CardAuthentication,
+          },
+        ],
+      });
+
+      const logIn = await view.findByTestId(
+        CardHomeSelectors.SETUP_PENDING_LOG_IN_BUTTON,
+      );
+      // The button takes presses once its entrance step has played.
+      await waitFor(() => expect(logIn).toBeEnabled());
+      fireEvent.press(logIn);
+
+      expect(
+        await view.findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -36,15 +36,26 @@ export const useSearchRequest = (options: {
   query: string;
   limit: number;
   includeMarketData?: boolean;
+  enabled?: boolean;
   /** Whether to debounce the query (default: false). */
   enableDebounce?: boolean;
   performance?: SearchRequestPerformance;
-}) => {
+}): {
+  results: SearchResult[];
+  isLoading: boolean;
+  error: Error | null;
+  search: () => Promise<void>;
+  loadMore: () => Promise<void>;
+  isLoadingMore: boolean;
+  hasNextPage: boolean;
+  totalCount: number | undefined;
+} => {
   const {
     chainIds: providedChainIds = [],
     query,
     limit,
     includeMarketData,
+    enabled = true,
     enableDebounce = false,
     performance,
   } = options;
@@ -60,12 +71,12 @@ export const useSearchRequest = (options: {
       setDebouncedQuery(query);
       return;
     }
-    const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    const timer = setTimeout((): void => setDebouncedQuery(query), DEBOUNCE_MS);
+    return (): void => clearTimeout(timer);
   }, [query, enableDebounce]);
 
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [isFetching, setIsFetching] = useState(true);
+  const [isFetching, setIsFetching] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
   const [endCursor, setEndCursor] = useState<string | undefined>();
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -83,23 +94,28 @@ export const useSearchRequest = (options: {
   const performanceRef = useRef(performance);
   performanceRef.current = performance;
 
-  const searchTokensRequest = useCallback(async () => {
-    if (!debouncedQuery) {
+  const searchTokensRequest = useCallback(async (): Promise<void> => {
+    if (!enabled || !debouncedQuery) {
+      requestIdRef.current += 1;
+      isLoadingMoreRef.current = false;
       setResults([]);
       setError(null);
       setIsFetching(false);
       setEndCursor(undefined);
       setHasNextPage(false);
+      setIsLoadingMore(false);
       setTotalCount(undefined);
       return;
     }
 
     // Increment request ID to mark this as the current request
     const currentRequestId = ++requestIdRef.current;
+    isLoadingMoreRef.current = false;
     setIsFetching(true);
     setError(null);
     setEndCursor(undefined);
     setHasNextPage(false);
+    setIsLoadingMore(false);
     setTotalCount(undefined);
 
     const requestHandle = performanceRef.current?.startRequest(debouncedQuery);
@@ -140,14 +156,21 @@ export const useSearchRequest = (options: {
       }
       requestHandle?.end(outcome);
     }
-  }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
+  }, [debouncedQuery, enabled, includeMarketData, limit, stableChainIds]);
 
   const loadMore = useCallback(async () => {
-    if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)
+    if (
+      !enabled ||
+      !hasNextPage ||
+      !endCursor ||
+      isLoadingMoreRef.current ||
+      isFetching
+    )
       return;
 
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
+    const currentRequestId = requestIdRef.current;
     try {
       const more = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
@@ -155,6 +178,9 @@ export const useSearchRequest = (options: {
         includeTokenSecurityData: true,
         after: endCursor,
       });
+      if (currentRequestId !== requestIdRef.current || !enabled) {
+        return;
+      }
       if (more?.data) {
         setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
       }
@@ -164,7 +190,9 @@ export const useSearchRequest = (options: {
       // Pagination errors are silent; existing results stay intact
     } finally {
       isLoadingMoreRef.current = false;
-      setIsLoadingMore(false);
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoadingMore(false);
+      }
     }
   }, [
     hasNextPage,
@@ -174,11 +202,12 @@ export const useSearchRequest = (options: {
     debouncedQuery,
     limit,
     includeMarketData,
+    enabled,
   ]);
 
   // Automatically trigger search when debounced query changes
   useEffect(() => {
-    searchTokensRequest();
+    searchTokensRequest().catch(() => undefined);
   }, [searchTokensRequest]);
 
   // Track whether debouncedQuery has been processed by the effect yet.
@@ -186,23 +215,30 @@ export const useSearchRequest = (options: {
   // holds the old value, so the check covers the one-frame gap before
   // the effect fires the request.
   const prevDebouncedQuery = useRef(debouncedQuery);
+  const prevEnabled = useRef(enabled);
   useEffect(() => {
     prevDebouncedQuery.current = debouncedQuery;
   });
+  const isEnabling = enabled && !prevEnabled.current && Boolean(debouncedQuery);
+  useEffect(() => {
+    prevEnabled.current = enabled;
+  }, [enabled]);
 
   const isLoading =
-    query !== debouncedQuery ||
-    prevDebouncedQuery.current !== debouncedQuery ||
-    isFetching;
+    enabled &&
+    (isEnabling ||
+      query !== debouncedQuery ||
+      prevDebouncedQuery.current !== debouncedQuery ||
+      isFetching);
 
   return {
-    results,
+    results: enabled ? results : [],
     isLoading,
-    error,
+    error: enabled ? error : null,
     search: searchTokensRequest,
     loadMore,
-    isLoadingMore,
-    hasNextPage,
-    totalCount,
+    isLoadingMore: enabled && isLoadingMore,
+    hasNextPage: enabled && hasNextPage,
+    totalCount: enabled ? totalCount : undefined,
   };
 };
