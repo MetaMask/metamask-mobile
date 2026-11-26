@@ -10627,8 +10627,7 @@
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
       "predict_withdraw": "Çek",
-      "money_account_deposit_header": "MetaMask Money'ye ekle",
-      "money_account_send": "Gönder"
+      "money_account_deposit_header": "MetaMask Money'ye ekle"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -10785,7 +10784,6 @@
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_convert_token": "{{symbol}}'e dönüştür",
     "deposit_edit_amount_predict_withdraw": "Çek",
-    "deposit_edit_amount_money_account_send": "Gönder",
     "deposit_edit_amount_musd_conversion": "mUSD'ye dönüştür",
     "preparing_order": "Emir hazırlanıyor"
   },
