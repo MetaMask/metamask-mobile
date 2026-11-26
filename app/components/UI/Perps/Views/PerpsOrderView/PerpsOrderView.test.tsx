@@ -3023,6 +3023,7 @@ describe('PerpsOrderView', () => {
 
     beforeEach(() => {
       mockGoToBuy.mockReset();
+      mockCreateEventBuilder.mockClear();
       mockComplianceGate.mockReset();
       mockComplianceGate.mockImplementation(
         async (action: () => Promise<unknown>) => action(),
@@ -3045,6 +3046,16 @@ describe('PerpsOrderView', () => {
 
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
       expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+      const depositClicks = mockCreateEventBuilder.mock.results
+        .map(({ value }) => value.addProperties as jest.Mock)
+        .filter((addProperties) =>
+          addProperties.mock.calls.some(
+            ([props]) =>
+              props?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+              PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          ),
+        );
+      expect(depositClicks).toHaveLength(1);
     });
 
     it('does not open Ramp when the compliance gate blocks the wallet', async () => {
@@ -3062,6 +3073,15 @@ describe('PerpsOrderView', () => {
 
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
       expect(mockGoToBuy).not.toHaveBeenCalled();
+      expect(
+        mockCreateEventBuilder.mock.results.some(({ value }) =>
+          (value.addProperties as jest.Mock).mock.calls.some(
+            ([props]) =>
+              props?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+              PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          ),
+        ),
+      ).toBe(false);
     });
 
     it('does not open Ramp when the sheet is dismissed without tapping Add funds', async () => {

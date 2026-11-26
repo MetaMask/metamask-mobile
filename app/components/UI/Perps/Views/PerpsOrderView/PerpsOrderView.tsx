@@ -2809,25 +2809,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isAddFundsPendingRef = useRef(false);
   const handleAddFundsPress = useCallback(() => {
     isAddFundsPendingRef.current = true;
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
-    });
-  }, [track]);
+  }, []);
   const handleTradeSheetClosed = useCallback(() => {
     handleTradeSheetClose();
     if (isAddFundsPendingRef.current) {
       isAddFundsPendingRef.current = false;
-      // Same compliance check as the other Perps add-funds entry points.
+      // Same compliance check as the other Perps add-funds entry points. The
+      // click is tracked inside the gate so blocked wallets do not emit it.
       complianceGate(async () => {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        });
         await goToBuy();
       }).catch(logRejection('addFunds'));
     }
-  }, [complianceGate, goToBuy, handleTradeSheetClose]);
+  }, [complianceGate, goToBuy, handleTradeSheetClose, track]);
 
   const handleTradeSheetInteractive = useCallback(() => {
     completePerpsTradeSheetInteractiveTrace();
