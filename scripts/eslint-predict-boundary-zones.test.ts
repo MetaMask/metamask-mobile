@@ -340,7 +340,7 @@ describe('Predict boundary allowlists', () => {
 
   it('names every composition file in exactly one documented group', () => {
     const doc = fs.readFileSync(
-      path.join(__dirname, '__fixtures__', 'composition-allowlist.md'),
+      path.join(__dirname, '__fixtures__', 'composition-allowlist.txt'),
       'utf8',
     );
     const grouped = Object.values(
