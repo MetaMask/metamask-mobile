@@ -2979,6 +2979,24 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('notifies subscribers when the initial market fetch fails', async () => {
+      const fetchError = new Error('Market fetch failed');
+      const onError = jest.fn();
+      mockGetMarketDataWithPrices.mockRejectedValue(fetchError);
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback: jest.fn(),
+        onError,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(fetchError);
+      });
+
+      unsubscribe();
+    });
+
     it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
       const callback = jest.fn();
 
