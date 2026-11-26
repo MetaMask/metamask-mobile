@@ -41,12 +41,6 @@ export const WithTitleAccessory = {
         <Icon
           name={IconName.Info}
           color={IconColor.IconAlternative}
-          className="ml-1"
-        />
-      }
-    /><Icon
-          name={IconName.Info}
-          color={IconColor.IconAlternative}
           twClassName="ml-1"
         />
       }
@@ -77,7 +71,6 @@ export const WithEndAccessory = {
     <HeaderRoot
       title="Page title"
       endAccessory={<Text variant={TextVariant.BodyMd}>Custom end</Text>}
-    /><Text variant={TextVariant.BodyMd}>Custom end</Text>}
     />
   ),
 };

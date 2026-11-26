@@ -50,7 +50,6 @@ describe('HeaderRoot', () => {
         <HeaderRoot
           title="Title"
           titleAccessory={<Text testID={LEFT_CHILDREN_TEST_ID}>Accessory</Text>}
-        /><Text testID={LEFT_CHILDREN_TEST_ID}>Accessory</Text>}
         />,
       );
 
@@ -65,8 +64,6 @@ describe('HeaderRoot', () => {
           titleAccessory={
             <Text testID={LEFT_CHILDREN_TEST_ID}>Only Accessory</Text>
           }
-        /><Text testID={LEFT_CHILDREN_TEST_ID}>Only Accessory</Text>
-          }
         />,
       );
 
@@ -78,8 +75,6 @@ describe('HeaderRoot', () => {
         <HeaderRoot
           titleAccessory={
             <Text testID={LEFT_CHILDREN_TEST_ID}>Accessory Only</Text>
-          }
-        /><Text testID={LEFT_CHILDREN_TEST_ID}>Accessory Only</Text>
           }
         />,
       );
@@ -134,7 +129,6 @@ describe('HeaderRoot', () => {
         <HeaderRoot
           title="Title"
           endAccessory={<Text testID={END_ACCESSORY_TEST_ID}>End Content</Text>}
-        /><Text testID={END_ACCESSORY_TEST_ID}>End Content</Text>}
         />,
       );
 
@@ -222,14 +216,6 @@ describe('HeaderRoot', () => {
         <HeaderRoot
           title="Title"
           endAccessory={<Text testID={END_ACCESSORY_TEST_ID}>Custom End</Text>}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Close,
-              onPress: jest.fn(),
-              testID: END_BUTTON_TEST_ID,
-            },
-          ]}
-        /><Text testID={END_ACCESSORY_TEST_ID}>Custom End</Text>}
           endButtonIconProps={[
             {
               iconName: IconName.Close,
