@@ -1021,16 +1021,19 @@ describe('PredictBuyWithAnyToken — Money Account selection and confirmation', 
 
     await waitFor(
       () => {
-        const payWithRow = view.getByText(strings('confirm.label.pay_with'));
-        fireEvent.press(payWithRow);
-        expect(
-          view.getByTestId(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW),
-        ).toBeOnTheScreen();
+        const payWithLabel = view.getByText(strings('confirm.label.pay_with'));
+        let touchable = payWithLabel.parent;
+        while (touchable && !touchable.props.accessible) {
+          touchable = touchable.parent;
+        }
+        expect(touchable?.props.accessibilityState?.disabled).toBe(false);
       },
       { timeout: PAYMENT_SELECTOR_UNLOCK_TIMEOUT_MS },
     );
+
+    fireEvent.press(view.getByText(strings('confirm.label.pay_with')));
     fireEvent.press(
-      view.getByTestId(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW),
+      await view.findByTestId(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW),
     );
 
     await waitFor(() => {

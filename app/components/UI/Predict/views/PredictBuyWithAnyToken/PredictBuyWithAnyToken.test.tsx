@@ -1255,7 +1255,7 @@ describe('PredictBuyWithAnyToken', () => {
       });
     });
 
-    it('calls enterPayWithAnyToken when Money Account becomes selected and when activeOrder reaches PREVIEW while selected', () => {
+    it('calls enterPayWithAnyToken with clearError true when Money Account becomes selected', () => {
       mockIsMoneyAccountSelected = false;
       mockActiveOrder = { state: 'preview' };
 
@@ -1277,6 +1277,49 @@ describe('PredictBuyWithAnyToken', () => {
       rerender(<PredictBuyWithAnyToken {...sheetProps} />);
 
       expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+    });
+
+    it('calls enterPayWithAnyToken with clearError false when activeOrder reaches PREVIEW while Money Account is already selected', () => {
+      mockIsMoneyAccountSelected = true;
+      mockActiveOrder = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: true,
+      });
+      mockEnterPayWithAnyToken.mockClear();
+
+      mockActiveOrder = { state: 'preview' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: false,
+      });
+    });
+
+    it('does not re-enter PAY_WITH_ANY_TOKEN while an activeOrder error is shown in PREVIEW, and re-enters once cleared', () => {
+      mockIsMoneyAccountSelected = true;
+      mockActiveOrder = { state: 'pay_with_any_token' };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+      mockEnterPayWithAnyToken.mockClear();
+
+      mockActiveOrder = { state: 'preview', error: 'Order not filled' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+
+      mockActiveOrder = { state: 'preview' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: false,
+      });
     });
 
     it('closes the keypad once when an error banner appears in sheet mode, but allows re-opening the keypad while the banner is visible', () => {

@@ -297,13 +297,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
     if (
       didSelectMoneyAccount ||
-      activeOrder?.state === ActiveOrderState.PREVIEW
+      (activeOrder?.state === ActiveOrderState.PREVIEW && !activeOrder.error)
     ) {
       Engine.context.PredictController.enterPayWithAnyToken({
         clearError: didSelectMoneyAccount,
       });
     }
-  }, [isMoneyAccountSelected, activeOrder?.state]);
+  }, [isMoneyAccountSelected, activeOrder?.state, activeOrder?.error]);
   const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
     preview,
     side: Side.BUY,
