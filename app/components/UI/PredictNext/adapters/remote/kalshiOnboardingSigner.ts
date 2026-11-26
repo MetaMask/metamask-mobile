@@ -165,6 +165,41 @@ export const signOnboardingRequest = async (
 };
 
 /**
+ * The signed call in the shape the idOS relay takes: the upstream path, the
+ * headers Kalshi verifies and the exact signed body. The relay drops any other
+ * header, and refuses a body that was not signed as it is.
+ */
+export interface OnboardingRelayRequest {
+  path: string;
+  headers: Record<string, string>;
+  body: string;
+}
+
+/** Builds the relay's `SignedRequest` from one signed onboarding call. */
+export const buildOnboardingRelayRequest = (input: {
+  request: OnboardingSignedRequest & { idempotencyKey: string };
+  context: OnboardingSigningContext;
+  signature: OnboardingDeviceSignature;
+}): OnboardingRelayRequest => {
+  const { request, context, signature } = input;
+  return {
+    path: request.path,
+    headers: {
+      Authorization: `${TOKEN_SCHEME} ${context.a2t}`,
+      'Kalshi-Device-Key': context.deviceKey,
+      'Kalshi-Device-Key-Salt': context.salt,
+      'Kalshi-Device-Request-Id': signature.requestId,
+      'Content-Type': 'application/json',
+      'Content-Digest': onboardingContentDigest(request.body),
+      'Idempotency-Key': request.idempotencyKey,
+      'Signature-Input': signature.signatureInput,
+      Signature: signature.signature,
+    },
+    body: request.body,
+  };
+};
+
+/**
  * `Venue-Authorization` header value: unpadded base64url of the JSON
  * envelope `{ v, signingProfileId, step, credential, values, signatures }`.
  */

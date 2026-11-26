@@ -105,6 +105,14 @@ Outside the fence, `Routes.PREDICT.*` (`app/constants/navigation/Routes.ts`) and
 | `app/components/UI/UiSlots/contractRegistry.ts` | `Predict/uiSlots/contracts/v1`                           | Point at the contracts' new home if they move under PredictNext. Engine init loads this file, so it must never import the entry point: the entry point loads the legacy routes, which load confirmations, which load the Engine. |
 | `app/components/UI/UiSlots/registry.ts`         | `PredictNext/homeSection/PredictDiscoveryListSlotWidget` | Unchanged. The widget already switches on the Active Venue.                                                                                                                                                                      |
 
+### `kalshiKycSigning`: Kalshi KYC request signer
+
+| File                                                        | Imports                                                                                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `app/components/UI/KYC/Kalshi/kalshiVendorRequestSigner.ts` | `PredictNext/adapters/remote/kalshiOnboardingSigner`, `PredictNext/auth/p256DeviceKey`, `PredictNext/auth/venueAuthProfiles` |
+
+`VendorOnboardingController` asks this signer for the `Venue-Authorization` values kyc-api forwards to the relay. Engine init injects it, so the file imports the signing modules directly. The PredictNext entry point loads the Predict UI and would cycle through Engine init.
+
 ### `predictNextEngine`: PredictNext Engine services and their messengers
 
 | File                                                                  | Wires                                                                          |

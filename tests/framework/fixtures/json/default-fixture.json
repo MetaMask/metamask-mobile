@@ -747,7 +747,10 @@
           "enabled": false,
           "screenConfigurations": {}
         },
-        "UserStorageController": {}
+        "UserStorageController": {},
+        "VendorOnboardingController": {
+          "vendors": {}
+        }
       }
     },
     "experimentalSettings": {

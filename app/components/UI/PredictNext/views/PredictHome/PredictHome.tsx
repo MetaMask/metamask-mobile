@@ -72,6 +72,7 @@ import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { GetStartedBanner } from './internal/GetStartedBanner';
 
 const NO_SECTIONS: readonly PredictHomeSection[] = [];
 
@@ -442,6 +443,7 @@ const PredictHomeView = ({
               />
             }
           />
+          <GetStartedBanner />
           <PortfolioActions
             onPositionsPress={openPortfolio}
             onAddFundsPress={canDeposit ? openDeposit : undefined}

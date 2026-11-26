@@ -122,6 +122,15 @@ const predictCompositionGroups = {
     'app/components/UI/UiSlots/contractRegistry.ts',
     'app/components/UI/UiSlots/registry.ts',
   ],
+  /**
+   * Kalshi KYC signs enrollment and email-link calls with Predict's device
+   * key. Engine init injects the signer, so it imports the signing modules
+   * directly. The PredictNext entry point loads the Predict UI and would
+   * cycle through Engine init.
+   */
+  kalshiKycSigning: [
+    'app/components/UI/KYC/Kalshi/kalshiVendorRequestSigner.ts',
+  ],
   /** PredictNext Engine services and controller: init and messengers. */
   predictNextEngine: [
     'app/core/Engine/controllers/predict-device-auth-service-init.test.ts',

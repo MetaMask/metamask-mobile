@@ -4003,8 +4003,30 @@
       "open_section": "View {{title}}"
     },
     "get_started_banner": {
-      "title": "Get started in a few steps",
-      "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
+      "get_started": {
+        "title": "Get started in a few steps",
+        "description": "Verify your identity and sign in with Kalshi to trade prediction markets.",
+        "action": "Get started"
+      },
+      "need_more_info": {
+        "title": "Finish verifying your identity",
+        "description": "Pick up where you left off. Kalshi still needs a few details from you.",
+        "action": "Continue"
+      },
+      "step_up": {
+        "title": "Verify ID to keep trading",
+        "description": "Kalshi needs to confirm your identity before you can continue. It takes a few minutes.",
+        "action": "Continue"
+      },
+      "verifying": {
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete."
+      },
+      "cant_verify": {
+        "title": "We can’t verify your identity",
+        "description": "Prediction markets aren’t available to you right now.",
+        "action": "Learn more"
+      }
     },
     "event": {
       "your_positions": "Your positions",
