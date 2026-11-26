@@ -31,10 +31,6 @@ const KycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'kyc-pending-open-from-previous-screen',
 } as const;
 
-// The redirect resumes the KYC session, hydrates, runs the funnel, and resets
-// the stack, so allow more than the 1 s default.
-const REDIRECT_TIMEOUT_MS = 5000;
-
 const OnboardingStack = createNativeStackNavigator();
 const RampStack = createNativeStackNavigator();
 const LeaveStack = createNativeStackNavigator();
@@ -163,12 +159,12 @@ interface KycSession {
 }
 
 const engineContext = Engine.context as unknown as {
-  RampsController: {
+  ['RampsController']: {
     hydrateVbaOnboarding?: jest.Mock;
     registerMoneyAccountWallet?: jest.Mock;
     createAutoramp?: jest.Mock;
   };
-  KycController?: {
+  ['KycController']?: {
     state: { email: string | null };
     readSessionStatus: jest.Mock;
     startSession: jest.Mock;
@@ -318,13 +314,7 @@ describeForPlatforms('KycPending', () => {
         kycStatus,
       });
 
-      expect(
-        await findByTestId(
-          getRouteProbeTestId(route),
-          {},
-          { timeout: REDIRECT_TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
+      expect(await findByTestId(getRouteProbeTestId(route))).toBeOnTheScreen();
     },
   );
 
@@ -338,11 +328,7 @@ describeForPlatforms('KycPending', () => {
     });
 
     expect(
-      await findByTestId(
-        KycIdentityVerifiedSelectorsIDs.CONTAINER,
-        {},
-        { timeout: REDIRECT_TIMEOUT_MS },
-      ),
+      await findByTestId(KycIdentityVerifiedSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),

@@ -270,11 +270,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     fireEvent.press(continueButton);
 
     expect(
-      await findByTestId(
-        getRouteProbeTestId(VbaOnboardingRoutes.EMAIL),
-        {},
-        { timeout: 3000 },
-      ),
+      await findByTestId(getRouteProbeTestId(VbaOnboardingRoutes.EMAIL)),
     ).toBeOnTheScreen();
     expect(mockHydrateVbaOnboarding).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -295,11 +291,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     fireEvent.press(continueButton);
 
     expect(
-      await findByTestId(
-        getRouteProbeTestId(VbaOnboardingRoutes.ERROR),
-        {},
-        { timeout: 3000 },
-      ),
+      await findByTestId(getRouteProbeTestId(VbaOnboardingRoutes.ERROR)),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),

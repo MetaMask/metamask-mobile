@@ -108,6 +108,7 @@ const dropDefaultOnboardingAccount = (store: {
   getState: () => {
     engine: {
       backgroundState: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         AccountTreeController: {
           accountTree: {
             wallets: Record<string, { groups: Record<string, unknown> }>;
@@ -370,7 +371,6 @@ const renderOnboarding = async (
     // The intro actions stay disabled until the existing-profile lookup query
     // (session read, then ProfileController fetch) settles and the screen
     // re-renders, which can exceed the 1s default on a loaded CV shard.
-    { timeout: 5000 },
   );
   return result;
 };

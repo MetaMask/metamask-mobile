@@ -181,9 +181,11 @@ const typeAmount = (amount: string) => {
 /** `Engine.context` types stateless services as optional, so the composed
  * instance is read through one named narrowing rather than an inline cast. */
 const fundingServiceContext = (): {
-  PredictFundingService: PredictFundingService;
+  ['PredictFundingService']: PredictFundingService;
 } =>
-  Engine.context as unknown as { PredictFundingService: PredictFundingService };
+  Engine.context as unknown as {
+    ['PredictFundingService']: PredictFundingService;
+  };
 
 const withdrawService = (): PredictFundingService =>
   fundingServiceContext().PredictFundingService;
@@ -492,6 +494,8 @@ describe('PredictWithdrawFlow', () => {
       await screen.findByTestId(
         PredictWithdrawFlowTestIds.status('settled'),
         {},
+        // The settled status arrives through the deposit polling backoff,
+        // which can outlast the 5s default on a loaded CV shard.
         { timeout: 6_000 },
       ),
     ).toBeOnTheScreen();

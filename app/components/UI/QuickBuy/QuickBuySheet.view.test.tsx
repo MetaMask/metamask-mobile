@@ -91,6 +91,8 @@ const expectSlippageModal = async (
   });
 };
 
+// The quick-buy sheet chains its popular-tokens and quote reads before the
+// confirm row settles, so its waits run longer than the 5s default.
 const WAIT_MS = 8000;
 
 const mockFetchQuotes = (
