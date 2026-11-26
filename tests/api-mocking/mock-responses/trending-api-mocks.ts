@@ -24,6 +24,85 @@ const TRENDING_TOKENS_RESPONSE = [
   },
 ];
 
+const TOP_GAINERS_TOKENS_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0x514910771af9ca656af840dff83e8264ecf986ca',
+    symbol: 'LINK',
+    name: 'Chainlink',
+    decimals: 18,
+    price: '14.50',
+    aggregatedUsdVolume: 250000000,
+    marketCap: 8500000000,
+    priceChangePct: { h24: '12.34' },
+  },
+  {
+    assetId: 'eip155:1/erc20:0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    symbol: 'UNI',
+    name: 'Uniswap',
+    decimals: 18,
+    price: '9.80',
+    aggregatedUsdVolume: 180000000,
+    marketCap: 5900000000,
+    priceChangePct: { h24: '8.42' },
+  },
+];
+
+const TOP_LOSERS_TOKENS_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
+    symbol: 'SHIB',
+    name: 'Shiba Inu',
+    decimals: 18,
+    price: '0.000017',
+    aggregatedUsdVolume: 320000000,
+    marketCap: 10000000000,
+    priceChangePct: { h24: '-9.12' },
+  },
+  {
+    assetId: 'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933',
+    symbol: 'PEPE',
+    name: 'Pepe',
+    decimals: 18,
+    price: '0.0000085',
+    aggregatedUsdVolume: 410000000,
+    marketCap: 3600000000,
+    priceChangePct: { h24: '-7.85' },
+  },
+  {
+    assetId: 'eip155:1/erc20:0x5a98fcbea516cf11d164f31e19c99b5e9a9dee49',
+    symbol: 'LDO',
+    name: 'Lido DAO',
+    decimals: 18,
+    price: '1.72',
+    aggregatedUsdVolume: 95000000,
+    marketCap: 1550000000,
+    priceChangePct: { h24: '-4.30' },
+  },
+];
+
+const POPULAR_TOKENS_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    symbol: 'WBTC',
+    name: 'Wrapped BTC',
+    decimals: 8,
+    price: '67250.00',
+    aggregatedUsdVolume: 520000000,
+    marketCap: 132000000000,
+    priceChangePct: { h24: '1.15' },
+  },
+  {
+    assetId: 'eip155:1/erc20:0x514910771af9ca656af840dff83e8264ecf986ca',
+    symbol: 'LINK',
+    name: 'Chainlink',
+    decimals: 18,
+    price: '14.50',
+    aggregatedUsdVolume: 250000000,
+    marketCap: 8500000000,
+    priceChangePct: { h24: '12.34' },
+  },
+];
+
 export const RWA_STOCK_ASSET_ID =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c';
 
@@ -91,6 +170,26 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       urlEndpoint: /\/v3\/tokens\/trending.*/,
       responseCode: 200,
       response: TRENDING_TOKENS_RESPONSE,
+      priority: 1000,
+    },
+    {
+      urlEndpoint:
+        /\/v3\/tokens\/top-gainers\?.*sort=h24_price_change_percentage_desc/,
+      responseCode: 200,
+      response: TOP_GAINERS_TOKENS_RESPONSE,
+      priority: 1000,
+    },
+    {
+      urlEndpoint:
+        /\/v3\/tokens\/top-gainers\?.*sort=h24_price_change_percentage_asc/,
+      responseCode: 200,
+      response: TOP_LOSERS_TOKENS_RESPONSE,
+      priority: 1000,
+    },
+    {
+      urlEndpoint: /\/v3\/tokens\/popular\?.*/,
+      responseCode: 200,
+      response: POPULAR_TOKENS_RESPONSE,
       priority: 1000,
     },
     {

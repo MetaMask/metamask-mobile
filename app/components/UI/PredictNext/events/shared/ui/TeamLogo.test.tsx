@@ -97,6 +97,7 @@ describe('TeamLogo', () => {
   });
 
   it.each([
+    ['xs', 28],
     ['small', 32],
     ['medium', 40],
     ['large', 48],

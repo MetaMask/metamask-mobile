@@ -29,7 +29,7 @@ export type EarnScreensStackParamList = {
   EarnMusdConversionEducation:
     | EarnMusdConversionEducationViewRouteParams
     | undefined;
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  Confirmations: ConfirmationParams | undefined;
 };
 
 /**
@@ -41,9 +41,7 @@ export type EarnModalsNavigationParamList = {
   EarnStrategySelectionModal: EarnStrategySelectionModalRouteParams;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
   EarnLendingLearnMoreModal: { asset?: EarnTokenDetails } | undefined;
-  RedesignedConfirmations:
-    | (ConfirmationParams & { token?: AssetType })
-    | undefined;
+  Confirmations: (ConfirmationParams & { token?: AssetType }) | undefined;
 };
 
 /**

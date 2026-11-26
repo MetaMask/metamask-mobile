@@ -200,5 +200,3 @@ export const ShareAddressQR = () => {
     </BottomSheet>
   );
 };
-
-export default ShareAddressQR;

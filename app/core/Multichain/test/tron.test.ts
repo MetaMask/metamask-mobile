@@ -4,7 +4,7 @@ import { CaipAssetType } from '@metamask/snaps-sdk';
 
 import Engine from '../../Engine';
 import { handleSnapRequest } from '../../Snaps/utils';
-import { validateTronTransferAmount } from '../tron';
+import { getTronMaxSendableAmount, validateTronTransferAmount } from '../tron';
 
 jest.mock('../../Engine', () => ({
   controllerMessenger: { call: jest.fn() },
@@ -89,5 +89,53 @@ describe('validateTronTransferAmount', () => {
     await expect(
       validateTronTransferAmount(mockAccount, params),
     ).rejects.toThrow('Snap crashed');
+  });
+
+  it('calls the Snap without toAddress for balance-only validation', async () => {
+    mockHandleSnapRequest.mockResolvedValueOnce({ valid: true, errors: [] });
+
+    const paramsWithoutTo = {
+      accountId: 'tron-account-id',
+      assetId:
+        'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' as CaipAssetType,
+      value: '10',
+    };
+
+    await validateTronTransferAmount(mockAccount, paramsWithoutTo);
+
+    expect(mockHandleSnapRequest).toHaveBeenCalledWith(
+      Engine.controllerMessenger,
+      {
+        snapId: SNAP_ID,
+        origin: 'metamask',
+        handler: HandlerType.OnClientRequest,
+        request: { method: 'onAmountInput', params: paramsWithoutTo },
+      },
+    );
+  });
+});
+
+describe('getTronMaxSendableAmount', () => {
+  it('calls the Snap getMaxSendableAmount handler for the transfer', async () => {
+    mockHandleSnapRequest.mockResolvedValueOnce({ amount: '9.5' });
+
+    const maxParams = {
+      accountId: 'tron-account-id',
+      assetId: 'tron:728126428/slip44:195' as CaipAssetType,
+      toAddress: 'TDepositWallet1234567890abcdefghij',
+    };
+
+    const result = await getTronMaxSendableAmount(mockAccount, maxParams);
+
+    expect(result).toEqual({ amount: '9.5' });
+    expect(mockHandleSnapRequest).toHaveBeenCalledWith(
+      Engine.controllerMessenger,
+      {
+        snapId: SNAP_ID,
+        origin: 'metamask',
+        handler: HandlerType.OnClientRequest,
+        request: { method: 'getMaxSendableAmount', params: maxParams },
+      },
+    );
   });
 });

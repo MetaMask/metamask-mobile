@@ -41,8 +41,15 @@ export interface PerpsMarketRowItemProps {
    */
   compact?: boolean;
   /**
+   * Whether this row subscribes to live price updates.
+   * @default true
+   */
+  enableLivePrices?: boolean;
+  /**
    * When provided, renders a trailing outline star button (e.g. add to watchlist).
    * The callback receives the current displayMarket (with live price merged in).
    */
   onAddPress?: (market: PerpsMarketData) => void;
+  /** Optional utility classes when embedding the row in another list. */
+  twClassName?: string;
 }

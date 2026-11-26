@@ -17,10 +17,12 @@ import {
 import { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 
 const PERPS_TOKEN_DECIMALS = 8;
+const LIGHTER_TOKEN_DECIMALS = 6;
 
 const ZERO: TransactionPayBalance = {
   balanceRaw: '0',
@@ -42,6 +44,7 @@ export interface TransactionPayBalance {
  * Resolves the correct source for every Pay flow whose balance is not the plain
  * pay-token wallet balance:
  * - Perps withdraw — HyperLiquid withdrawable balance (USDC, 1:1 USD).
+ * - Lighter perps withdraw — Lighter withdrawable balance (USDC, 1:1 USD).
  * - Money-account withdraw — mUSD + vmUSD redeemable.
  * - Predict withdraw — Polymarket balance (USDC).
  * - MoneyAccount payment override — mUSD + vmUSD redeemable.
@@ -68,11 +71,22 @@ export function useTransactionPayBalance({
 
   const moneyAccountBalance = useMoneyAccountPayBalance();
   const perpsBalance = usePerpsBalance();
+  const isLighterWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsLighterWithdraw,
+  ]);
+  const lighterBalance = useLighterBalance(
+    transactionMeta?.txParams?.from,
+    isLighterWithdraw,
+  );
   const predictBalance = usePredictBalance();
   const tokenBalance = useTokenBalance();
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     return perpsBalance;
+  }
+
+  if (isLighterWithdraw) {
+    return lighterBalance;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
@@ -127,6 +141,23 @@ function usePerpsBalance(): TransactionPayBalance {
   // HyperLiquid balance is USDC, so USD equals the human balance 1:1.
   return {
     balanceRaw: toRaw(withdrawableBalance, PERPS_TOKEN_DECIMALS),
+    balanceUsd: new BigNumber(withdrawableBalance).toNumber(),
+  };
+}
+
+function useLighterBalance(
+  address: string | undefined,
+  enabled: boolean,
+): TransactionPayBalance {
+  const withdrawableBalance = useLighterWithdrawableBalance(address, enabled);
+
+  if (!withdrawableBalance) {
+    return ZERO;
+  }
+
+  // Lighter balance is USDC, so USD equals the human balance 1:1.
+  return {
+    balanceRaw: toRaw(withdrawableBalance, LIGHTER_TOKEN_DECIMALS),
     balanceUsd: new BigNumber(withdrawableBalance).toNumber(),
   };
 }
