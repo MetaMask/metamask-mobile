@@ -20,7 +20,9 @@ import {
   getBucketPoints,
   isAvailableBucket,
 } from './earningsHistory';
-import EarningsChartPlot from './EarningsChartPlot';
+import EarningsChartPlot, {
+  EARNINGS_CHART_HEIGHT,
+} from './EarningsChartPlot';
 import EarningsChartRangeSelector from './EarningsChartRangeSelector';
 import {
   clampUsdToCents,
@@ -112,9 +114,10 @@ const EarningsChart = ({
     if (isLoading) {
       return (
         <Skeleton
-          height={160}
+          height={EARNINGS_CHART_HEIGHT}
           width="100%"
           testID={MoneyEarningsViewTestIds.LOADING}
+          twClassName="mb-6"
         />
       );
     }

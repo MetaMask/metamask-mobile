@@ -19,7 +19,7 @@ import {
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
-const CHART_CONTAINER_HEIGHT = 200;
+export const EARNINGS_CHART_HEIGHT = 200;
 const CHART_LEVEL_IDS = ['maximum', 'midpoint'] as const;
 
 interface EarningsChartPlotProps {
@@ -56,7 +56,7 @@ const EarningsChartPlot = ({
   return (
     <Box
       twClassName="relative"
-      style={{ height: CHART_CONTAINER_HEIGHT }}
+      style={{ height: EARNINGS_CHART_HEIGHT }}
       testID={MoneyEarningsViewTestIds.CHART}
     >
       <Box

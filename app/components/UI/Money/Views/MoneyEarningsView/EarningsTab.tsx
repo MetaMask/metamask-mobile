@@ -26,10 +26,11 @@ const EarningsTab = (): React.ReactElement => {
   const locale = I18n.locale;
   const {
     data,
-    isLoading,
+    // isLoading,
     isError,
     refetch: refetchHistoricalEarnings,
   } = useMoneyHistoricalEarnings();
+  const isLoading = true;
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -95,7 +96,9 @@ const EarningsTab = (): React.ReactElement => {
       contentContainerStyle={tw.style('gap-6 px-4 py-2')}
       showsVerticalScrollIndicator={false}
     >
-      {hasHistoricalEarnings && selectedRangeData ? (
+      {isLoading ? (
+        <EarningsHero isLoading />
+      ) : hasHistoricalEarnings && selectedRangeData ? (
         <EarningsHero
           totalEarnedUsd={activePoint?.amountUsd ?? selectedRangeTotalUsd}
           periodStart={activePoint?.start ?? selectedRangeData.range_start}
@@ -119,7 +122,9 @@ const EarningsTab = (): React.ReactElement => {
         onActiveIndexChange={setActivePointIndex}
         setScrollEnabled={setScrollEnabled}
       />
-      {hasHistoricalEarnings && selectedRangeData ? (
+      {isLoading ? (
+        <EarningsSummary isLoading />
+      ) : hasHistoricalEarnings && selectedRangeData ? (
         <Box twClassName="pb-4">
           <EarningsSummary
             points={chartPoints}
