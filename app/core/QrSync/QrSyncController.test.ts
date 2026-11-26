@@ -35,7 +35,7 @@ jest.mock('@metamask/account-tree-controller', () => {
     ...actual,
     AccountTreeSnapshot: {
       ...actual.AccountTreeSnapshot,
-      deserialize: jest.fn((payload: unknown) => {
+      deserialize: jest.fn(async (payload: unknown) => {
         const typedPayload = payload as {
           version?: number;
           wallets?: {
@@ -61,7 +61,7 @@ jest.mock('@metamask/account-tree-controller', () => {
           ...typedPayload,
           wallets: metadataStrippedWallets,
         };
-        const snapshot = {
+        return {
           ...(payload as object),
           stripSecrets: jest.fn().mockReturnValue({
             ...secretsStripped,
@@ -74,7 +74,6 @@ jest.mock('@metamask/account-tree-controller', () => {
           filterWallets: jest.fn().mockReturnThis(),
           serialize: jest.fn().mockReturnValue(payload),
         };
-        return Promise.resolve(snapshot);
       }),
     },
   };
@@ -100,9 +99,6 @@ const FIXED_NOW = 1_800_000_000_000;
 
 type WalletClientListener = (...args: unknown[]) => void;
 
-const encodeSecret = (plaintext: string): string =>
-  Buffer.from(plaintext, 'utf-8').toString('base64');
-
 const encodeBase64Json = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
 
@@ -121,7 +117,7 @@ const createSessionRequest = (
 });
 
 const createSyncReadyWireMessage = (
-  options: { privateKeyOnly?: boolean } = {},
+  options: { privateKeyOnly?: boolean; includeImportSummary?: boolean } = {},
 ): QrSyncSyncReadyMessage => {
   if (options.privateKeyOnly) {
     return {
@@ -176,6 +172,27 @@ const createSyncReadyWireMessage = (
           ],
         },
       ],
+      ...(options.includeImportSummary
+        ? {
+            qrSyncImportSummary: {
+              wallets: [
+                {
+                  id: 'demo-wallet-1',
+                  name: 'Wallet 1',
+                  accounts: [
+                    { id: 'demo-wallet-1/0', name: 'Account 1' },
+                    { id: 'demo-wallet-1/1', name: 'Account 2' },
+                  ],
+                },
+                {
+                  id: 'demo-wallet-2',
+                  name: 'Wallet 2',
+                  accounts: [{ id: 'demo-wallet-2/0', name: 'Account 3' }],
+                },
+              ],
+            },
+          }
+        : {}),
     },
   };
 };
@@ -542,7 +559,10 @@ describe('QrSyncController', () => {
 
       await startSession(controller, walletClient);
 
-      walletClient.emit('message', createSyncReadyWireMessage());
+      walletClient.emit(
+        'message',
+        createSyncReadyWireMessage({ includeImportSummary: true }),
+      );
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
@@ -571,6 +591,18 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
+      expect(controller.state.importSummary?.wallets).toEqual([
+        expect.objectContaining({
+          name: 'Wallet 1',
+          accounts: expect.arrayContaining([
+            expect.objectContaining({ name: 'Account 1' }),
+          ]),
+        }),
+        expect.objectContaining({
+          name: 'Wallet 2',
+          accounts: [expect.objectContaining({ name: 'Account 3' })],
+        }),
+      ]);
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_COMPLETED,
         version: QrSyncMessageVersion.V1,
@@ -783,6 +815,24 @@ describe('QrSyncController', () => {
       await flushPromises();
 
       expect(controller.state.connectionStatus).toBe('errored');
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'SYNC_FAILED',
+        message: 'Handshake failed',
+      });
+    });
+
+    it('marks the session failed without waiting for peer notification', async () => {
+      const controller = buildController();
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.client.sendResponse.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+
+      walletClient.emit('error', new Error('Handshake failed'));
+
       expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
       expect(controller.state.error).toEqual({
         code: 'SYNC_FAILED',

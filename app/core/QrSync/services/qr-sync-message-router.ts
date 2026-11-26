@@ -1,8 +1,7 @@
-import type { AccountTreePayload } from '@metamask/account-tree-controller';
-
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
   QrSyncError,
+  QrSyncReadyData,
   QrSyncServiceEvent,
   QrSyncSyncCancelledEvent,
   QrSyncSyncCompletedEvent,
@@ -14,7 +13,7 @@ import { parseQrSyncSyncReadyMessage } from './qr-sync-validation';
 export interface QrSyncRoutedMessageResult {
   handled: boolean;
   event: QrSyncServiceEvent;
-  pendingPayload?: AccountTreePayload;
+  pendingPayload?: QrSyncReadyData;
 }
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>

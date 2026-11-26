@@ -9,6 +9,7 @@ import {
   selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncImportMnemonic,
+  selectQrSyncImportSummary,
   selectQrSyncShouldNavigateToImport,
 } from './index';
 
@@ -102,6 +103,93 @@ describe('qrSyncController selectors', () => {
           buildState({ pendingSecretImports: payloadWithoutValue }),
         ),
       ).toBeNull();
+    });
+  });
+
+  describe('selectQrSyncImportSummary', () => {
+    it('uses the extension picker wallet grouping when provided', () => {
+      const result = selectQrSyncImportSummary(
+        buildState({
+          pendingSecretImports,
+          provisioningMetadata,
+          importSummary: {
+            wallets: [
+              {
+                id: 'demo-wallet-1',
+                name: 'Wallet 1',
+                accounts: [
+                  { id: 'demo-wallet-1/0', name: 'Account 1' },
+                  { id: 'demo-wallet-1/1', name: 'Account 2' },
+                ],
+              },
+              {
+                id: 'demo-wallet-2',
+                name: 'Wallet 2',
+                accounts: [{ id: 'demo-wallet-2/0', name: 'Account 3' }],
+              },
+            ],
+          },
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        accountCount: 3,
+        walletCount: 2,
+        wallets: [
+          {
+            id: 'demo-wallet-1',
+            name: 'Wallet 1',
+            accounts: [
+              { id: 'demo-wallet-1/0', name: 'Account 1' },
+              { id: 'demo-wallet-1/1', name: 'Account 2' },
+            ],
+          },
+          {
+            id: 'demo-wallet-2',
+            name: 'Wallet 2',
+            accounts: [{ id: 'demo-wallet-2/0', name: 'Account 3' }],
+          },
+        ],
+      });
+    });
+
+    it('returns wallet and account metadata from provisioning state', () => {
+      const result = selectQrSyncImportSummary(
+        buildState({
+          pendingSecretImports,
+          provisioningMetadata,
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        accountCount: 1,
+        walletCount: 1,
+        wallets: [
+          {
+            id: 'wallet:test',
+            name: 'Wallet 1',
+            accounts: [
+              {
+                id: 'wallet:test/0',
+                name: 'Account 1',
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('falls back to pending secrets when provisioning metadata is absent', () => {
+      const result = selectQrSyncImportSummary(
+        buildState({
+          pendingSecretImports,
+          provisioningMetadata: null,
+        }),
+      );
+
+      expect(result.accountCount).toBe(1);
+      expect(result.walletCount).toBe(1);
+      expect(result.wallets[0]?.name).toBe('Wallet 1');
     });
   });
 
