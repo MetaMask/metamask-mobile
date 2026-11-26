@@ -13,7 +13,10 @@ import {
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  VBA_TEST_APPROVED_SNAPSHOT,
+  VBA_TEST_BRL_CURRENCY,
   VBA_TEST_MONEY_ADDRESS,
+  vbaTestBrlAbilities,
   type VbaMarketsOption,
 } from '../../../../../../tests/component-view/presets/vba';
 import {
@@ -240,23 +243,11 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('opens the unavailable screen for a verified customer who is not offered mUSD', async () => {
-    mockHydrateVbaOnboarding.mockResolvedValue({
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'submitted',
-      kycStatus: 'approved',
-      autorampStatus: 'needs_source_currency',
-    });
+    mockHydrateVbaOnboarding.mockResolvedValue(VBA_TEST_APPROVED_SNAPSHOT);
     rampsController.createAutoramp = jest.fn();
-    rampsController.refreshCustomerAbilities = jest.fn().mockResolvedValue({
-      fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
-      fiat_payout: {},
-      currencies: [
-        { currency: { type: 'Fiat', code: 'BRL' }, flows: ['Onramp'] },
-      ],
-      blocking_abilities: {},
-    });
+    rampsController.refreshCustomerAbilities = jest
+      .fn()
+      .mockResolvedValue(vbaTestBrlAbilities([VBA_TEST_BRL_CURRENCY]));
     const { findByTestId, getByText, queryByTestId } = renderVbaMoneyEntry();
 
     await openVbaBankAccountFromMoney(findByTestId);

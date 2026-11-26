@@ -19,6 +19,12 @@ import {
   renderVbaHomeCard,
   restoreVbaReduxServiceStore,
 } from '../../../../../../tests/component-view/renderers/vba';
+import {
+  VBA_TEST_APPROVED_SNAPSHOT,
+  VBA_TEST_BRL_CURRENCY,
+  VBA_TEST_MUSD_ON_MONAD,
+  vbaTestBrlAbilities,
+} from '../../../../../../tests/component-view/presets/vba';
 import { VBA_KYC_VENDOR } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
@@ -76,22 +82,6 @@ const accountCreateErrorProbe = getRouteParamsProbeTestId(
 );
 const detailsProbe = getRouteProbeTestId(Routes.RAMP.VBA_DETAILS);
 
-const brlAbilities = (currencies: unknown[]) => ({
-  fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
-  fiat_payout: {},
-  currencies,
-  blocking_abilities: {},
-});
-
-const approvedSnapshot: RampsVbaOnboardingSnapshot = {
-  sessionExists: true,
-  vendorDisclaimersComplete: true,
-  sessionDisclaimersComplete: true,
-  providerFlowStatus: 'submitted',
-  kycStatus: 'approved',
-  autorampStatus: 'needs_source_currency',
-};
-
 const notSubmittedSnapshot: RampsVbaOnboardingSnapshot = {
   sessionExists: true,
   vendorDisclaimersComplete: true,
@@ -118,14 +108,10 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
   it('opens the unavailable screen from the identity verified card when mUSD is not offered', async () => {
     const session = kycSession('approved', 'approved');
     mockReadSessionStatus.mockReturnValue(session);
-    mockHydrateVbaOnboarding.mockResolvedValue(approvedSnapshot);
+    mockHydrateVbaOnboarding.mockResolvedValue(VBA_TEST_APPROVED_SNAPSHOT);
     rampsController.refreshCustomerAbilities = jest
       .fn()
-      .mockResolvedValue(
-        brlAbilities([
-          { currency: { type: 'Fiat', code: 'BRL' }, flows: ['Onramp'] },
-        ]),
-      );
+      .mockResolvedValue(vbaTestBrlAbilities([VBA_TEST_BRL_CURRENCY]));
     const view = renderVbaHomeCard({ overrides: withKycSession(session) });
 
     fireEvent.press(await view.findByTestId(IDENTITY_VERIFIED.CTA_BUTTON));
@@ -139,15 +125,10 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
   it('opens account details from the identity verified card when mUSD is offered', async () => {
     const session = kycSession('approved', 'approved');
     mockReadSessionStatus.mockReturnValue(session);
-    mockHydrateVbaOnboarding.mockResolvedValue(approvedSnapshot);
-    rampsController.refreshCustomerAbilities = jest.fn().mockResolvedValue(
-      brlAbilities([
-        {
-          currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
-          flows: ['Onramp'],
-        },
-      ]),
-    );
+    mockHydrateVbaOnboarding.mockResolvedValue(VBA_TEST_APPROVED_SNAPSHOT);
+    rampsController.refreshCustomerAbilities = jest
+      .fn()
+      .mockResolvedValue(vbaTestBrlAbilities([VBA_TEST_MUSD_ON_MONAD]));
     const view = renderVbaHomeCard({ overrides: withKycSession(session) });
 
     fireEvent.press(await view.findByTestId(IDENTITY_VERIFIED.CTA_BUTTON));

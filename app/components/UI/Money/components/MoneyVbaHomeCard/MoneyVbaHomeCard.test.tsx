@@ -174,6 +174,23 @@ const mockNavigateToDestination = jest.mocked(
   navigateToVbaOnboardingDestination,
 );
 const mockResolve = jest.mocked(resolveVbaOnboarding);
+
+type ResolvedOnboarding = Awaited<ReturnType<typeof resolveVbaOnboarding>>;
+
+/**
+ * Holds `resolveVbaOnboarding` open until the test settles it.
+ *
+ * @returns Settles the pending resolution with a result.
+ */
+const deferResolveOnboarding = (): ((result: ResolvedOnboarding) => void) => {
+  let settle!: (result: ResolvedOnboarding) => void;
+  mockResolve.mockReturnValue(
+    new Promise<ResolvedOnboarding>((resolve) => {
+      settle = resolve;
+    }),
+  );
+  return (result) => settle(result);
+};
 const mockOpenVbaAccountSetup = jest.mocked(openVbaAccountSetup);
 const mockOpenVbaEntry = jest.mocked(openVbaEntry);
 const mockCanOpenPersistedVbaDetails = jest.mocked(canOpenPersistedVbaDetails);
@@ -557,16 +574,7 @@ describe('MoneyVbaHomeCard', () => {
   });
 
   it('reports routing while the CTA resolves its destination', async () => {
-    let resolveOnboarding!: (
-      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
-    ) => void;
-    mockResolve.mockReturnValue(
-      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
-        (resolve) => {
-          resolveOnboarding = resolve;
-        },
-      ),
-    );
+    const resolveOnboarding = deferResolveOnboarding();
     const onRoutingChange = jest.fn();
     const { getByTestId } = render(
       <MoneyVbaHomeCard
@@ -594,16 +602,7 @@ describe('MoneyVbaHomeCard', () => {
   });
 
   it('opens the resolved destination when the card unmounts while Money home stays in front', async () => {
-    let resolveOnboarding!: (
-      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
-    ) => void;
-    mockResolve.mockReturnValue(
-      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
-        (resolve) => {
-          resolveOnboarding = resolve;
-        },
-      ),
-    );
+    const resolveOnboarding = deferResolveOnboarding();
     const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
     const { getByTestId, unmount } = render(
       <MoneyVbaHomeCard variant="finish_verification" />,
@@ -629,16 +628,7 @@ describe('MoneyVbaHomeCard', () => {
   });
 
   it('does not navigate when the user leaves Money home while the card stays mounted', async () => {
-    let resolveOnboarding!: (
-      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
-    ) => void;
-    mockResolve.mockReturnValue(
-      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
-        (resolve) => {
-          resolveOnboarding = resolve;
-        },
-      ),
-    );
+    const resolveOnboarding = deferResolveOnboarding();
     const { getByTestId } = render(
       <MoneyVbaHomeCard variant="finish_verification" />,
     );
@@ -656,21 +646,16 @@ describe('MoneyVbaHomeCard', () => {
     });
 
     expect(mockNavigateToDestination).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
   });
 
   it('does not navigate after the card unmounts and the user has left Money home', async () => {
     mockIsFocused.mockReturnValue(false);
 
-    let resolveOnboarding!: (
-      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
-    ) => void;
-    mockResolve.mockReturnValue(
-      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
-        (resolve) => {
-          resolveOnboarding = resolve;
-        },
-      ),
-    );
+    const resolveOnboarding = deferResolveOnboarding();
     const { getByTestId, unmount } = render(
       <MoneyVbaHomeCard variant="get_started" />,
     );

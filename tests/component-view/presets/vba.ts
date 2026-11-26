@@ -1,4 +1,5 @@
 import type { KycSessionStatus } from '@metamask/kyc-controller';
+import type { VbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
@@ -53,6 +54,48 @@ export const VBA_TEST_KYC_SESSION = {
   vendor: 'moonpay',
   vendorStatus: 'approved',
 } as const satisfies KycSessionStatus;
+
+/** Customer abilities entry for BRL, the fiat side of a Pix deposit. */
+export const VBA_TEST_BRL_CURRENCY = {
+  currency: { type: 'Fiat', code: 'BRL' },
+  flows: ['Onramp'],
+};
+
+/** Customer abilities entry for mUSD on Monad, the token the account buys. */
+export const VBA_TEST_MUSD_ON_MONAD = {
+  currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
+  flows: ['Onramp'],
+};
+
+/** Customer abilities entry for a token other than mUSD on Monad. */
+export const VBA_TEST_USDC_ON_ETHEREUM = {
+  currency: { type: 'Crypto', token: 'USDC', blockchain: 'Ethereum' },
+  flows: ['Onramp'],
+};
+
+/**
+ * MoonPay customer abilities with an Active Pix rail, listing `currencies`.
+ * Leave mUSD on Monad out to model a customer who is not offered it.
+ *
+ * @param currencies - Abilities `currencies` entries.
+ * @returns Customer abilities for a BRL customer.
+ */
+export const vbaTestBrlAbilities = (currencies: unknown[]) => ({
+  fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
+  fiat_payout: {},
+  currencies,
+  blocking_abilities: {},
+});
+
+/** Onboarding snapshot for a KYC-approved customer with account setup next. */
+export const VBA_TEST_APPROVED_SNAPSHOT: VbaOnboardingSnapshot = {
+  sessionExists: true,
+  vendorDisclaimersComplete: true,
+  sessionDisclaimersComplete: true,
+  providerFlowStatus: 'submitted',
+  kycStatus: 'approved',
+  autorampStatus: 'needs_source_currency',
+};
 
 /**
  * State shared by VBA entry points and onboarding screens.

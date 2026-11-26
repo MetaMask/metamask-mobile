@@ -7,6 +7,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderMoneyHomeVbaCard } from '../../../../../../tests/component-view/renderers/moneyHome';
 import {
+  VBA_TEST_MUSD_ON_MONAD,
+  VBA_TEST_USDC_ON_ETHEREUM,
+  vbaTestBrlAbilities,
+} from '../../../../../../tests/component-view/presets/vba';
+import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
@@ -146,13 +151,6 @@ const rampsController = Engine.context.RampsController as unknown as {
   refreshCustomerAbilities?: jest.Mock;
 };
 
-const brlAbilities = (currencies: unknown[]) => ({
-  fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
-  fiat_payout: {},
-  currencies,
-  blocking_abilities: {},
-});
-
 // Publishes RampsController state the way an Engine state change reaches Redux.
 const setRampsControllerState = (
   store: ReturnType<typeof renderMoneyHomeVbaCard>['store'],
@@ -171,15 +169,6 @@ const setRampsControllerState = (
   store.dispatch(updateBgState({ key: 'RampsController' }));
 };
 
-const MUSD_ON_MONAD = {
-  currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
-  flows: ['Onramp'],
-};
-const USDC_ON_ETHEREUM = {
-  currency: { type: 'Crypto', token: 'USDC', blockchain: 'Ethereum' },
-  flows: ['Onramp'],
-};
-
 describeForPlatforms('MoneyHomeView Identity verified card', () => {
   beforeEach(() => {
     // The abilities fetch is skipped offline, and view tests start offline.
@@ -194,7 +183,7 @@ describeForPlatforms('MoneyHomeView Identity verified card', () => {
 
   it('shows the Identity verified card when MoonPay offers mUSD', async () => {
     const { findByTestId } = renderMoneyHomeVbaCard('approved', {
-      vbaCustomerAbilities: brlAbilities([MUSD_ON_MONAD]),
+      vbaCustomerAbilities: vbaTestBrlAbilities([VBA_TEST_MUSD_ON_MONAD]),
     });
 
     expect(
@@ -205,7 +194,7 @@ describeForPlatforms('MoneyHomeView Identity verified card', () => {
 
   it('hides the Identity verified card once abilities show mUSD is not offered', async () => {
     const view = renderMoneyHomeVbaCard('approved', {
-      vbaCustomerAbilities: brlAbilities([MUSD_ON_MONAD]),
+      vbaCustomerAbilities: vbaTestBrlAbilities([VBA_TEST_MUSD_ON_MONAD]),
     });
     expect(
       await view.findByTestId(
@@ -215,7 +204,7 @@ describeForPlatforms('MoneyHomeView Identity verified card', () => {
 
     act(() => {
       setRampsControllerState(view.store, {
-        vbaCustomerAbilities: brlAbilities([USDC_ON_ETHEREUM]),
+        vbaCustomerAbilities: vbaTestBrlAbilities([VBA_TEST_USDC_ON_ETHEREUM]),
       });
     });
 
