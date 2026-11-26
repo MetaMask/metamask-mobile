@@ -9,13 +9,9 @@ import {
   getLatencySnapshot,
   getLatencyThresholds,
 } from '../../util/deviceCapability/latencyStore';
-import {
-  HttpError,
-  InvalidResponseError,
-  NetworkTimeoutError,
-  useNetworkQuery,
-  type NetworkQueryOptions,
-} from './useNetworkQuery';
+import { HttpError, InvalidResponseError, NetworkTimeoutError } from './errors';
+import type { NetworkQueryOptions } from './types';
+import { useNetworkQuery } from './useNetworkQuery';
 
 jest.mock('../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(),
