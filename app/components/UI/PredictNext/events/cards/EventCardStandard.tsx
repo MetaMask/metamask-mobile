@@ -235,7 +235,7 @@ const TrendingStandardCard = ({
 
   return (
     <EventCard.Root
-      twClassName="gap-3 rounded-2xl bg-section py-4"
+      twClassName="gap-3 py-4"
       testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
       <EventCard.HeaderRow testID={`predict-next-event-header-${event.id}`}>
