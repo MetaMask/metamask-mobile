@@ -107,19 +107,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           ) : undefined
         }
         testID={testID ? `${testID}-${category.id}` : undefined}
-      ><PerpsSentimentSatisfiedIcon
-              size={PERPS_SENTIMENT_ICON_SIZE_SM}
-              // FilterButton recolours `startIconName` but passes
-              // `startAccessory` through untouched, so mirror its variants:
-              // selected renders ButtonPrimary (`text-primary-inverse`),
-              // unselected renders ButtonTertiary (`IconColor.IconAlternative`).
-              color={
-                isSelected ? colors.primary.inverse : colors.icon.alternative
-              }
-            />
-          ) : undefined
-        }
-        testID={testID ? `${testID}-${category.id}` : undefined}
       >
         {category.label}
       </FilterButton>

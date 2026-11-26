@@ -166,27 +166,3 @@ const PerpsProTwapFields = ({
 );
 
 export default PerpsProTwapFields;
-<Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
-            className="flex-1"
-          >
-            {strings('perps.pro_order_form.twap.randomize')}
-          </Text>
-        }
-        isSelected={twap.randomize}
-        onChange={twap.onRandomizeChange}
-        testID={ids.TWAP_RANDOMIZE}
-        accessibilityLabel={strings('perps.pro_order_form.twap.randomize')}
-        accessibilityHint={strings(
-          'perps.pro_order_form.twap.randomize_description',
-          PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
-        )}
-        twClassName="w-full flex-row-reverse justify-between"
-      />
-    </Box>
-  </Box>
-);
-
-export default PerpsProTwapFields;
