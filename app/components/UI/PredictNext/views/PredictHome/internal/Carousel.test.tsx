@@ -72,7 +72,7 @@ describe('Carousel', () => {
         width: CARD_WIDTH + 12,
         minHeight: 220,
         paddingRight: 12,
-        borderRadius: 16,
+        borderRadius: 20,
         overflow: 'hidden',
       });
       expect(cellStyle(1)).toMatchObject({
