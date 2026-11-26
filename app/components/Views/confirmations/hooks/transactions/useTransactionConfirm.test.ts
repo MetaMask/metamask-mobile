@@ -1234,6 +1234,35 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    const buildStateWithAccountOverride = (
+      accountId: string,
+      address: string,
+      keyringType: string,
+    ) =>
+      merge({}, moneyKeyringState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [accountId]: {
+                    address,
+                    id: accountId,
+                    metadata: { keyring: { type: keyringType }, name: 'HW' },
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+            TransactionPayController: {
+              transactionData: {
+                [transactionIdMock]: { accountOverride: accountId },
+              },
+            },
+          },
+        },
+      });
+
     it.each([
       {
         accountId: 'ledger-recipient-id',
@@ -1271,36 +1300,9 @@ describe('useTransactionConfirm', () => {
           type: TransactionType.moneyAccountWithdraw,
         });
 
-        const stateWithHardwareRecipient = merge({}, moneyKeyringState, {
-          engine: {
-            backgroundState: {
-              AccountsController: {
-                internalAccounts: {
-                  accounts: {
-                    [accountId]: {
-                      address,
-                      id: accountId,
-                      metadata: {
-                        keyring: { type: keyringType },
-                        name: 'Hardware Recipient',
-                      },
-                      type: 'eip155:eoa',
-                    },
-                  },
-                },
-              },
-              TransactionPayController: {
-                transactionData: {
-                  [transactionIdMock]: {
-                    accountOverride: accountId,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        const { result } = renderHook(stateWithHardwareRecipient);
+        const { result } = renderHook(
+          buildStateWithAccountOverride(accountId, address, keyringType),
+        );
 
         await act(async () => {
           await result.current.onConfirm();
@@ -1312,9 +1314,7 @@ describe('useTransactionConfirm', () => {
         expect(isHardwareAccountMock).not.toHaveBeenCalledWith(address);
         expect(deferSpy).not.toHaveBeenCalled();
         expect(onApprovalConfirm).toHaveBeenCalledWith(
-          expect.objectContaining({
-            waitForResult: false,
-          }),
+          expect.objectContaining({ waitForResult: false }),
           {
             txMeta: expect.objectContaining({
               isExternalSign: true,
@@ -1327,7 +1327,6 @@ describe('useTransactionConfirm', () => {
     );
 
     it('treats hardware accountOverride as hardware payer for money account deposit', async () => {
-      const ledgerPayerId = 'ledger-payer-id';
       const ledgerPayerAddress = '0x3333333333333333333333333333333333333333';
       isHardwareAccountMock.mockImplementation(
         (addr) => addr.toLowerCase() === ledgerPayerAddress.toLowerCase(),
@@ -1339,36 +1338,13 @@ describe('useTransactionConfirm', () => {
         type: TransactionType.moneyAccountDeposit,
       });
 
-      const stateWithLedgerPayer = merge({}, moneyKeyringState, {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [ledgerPayerId]: {
-                    address: ledgerPayerAddress,
-                    id: ledgerPayerId,
-                    metadata: {
-                      keyring: { type: 'Ledger Hardware' },
-                      name: 'Ledger Payer',
-                    },
-                    type: 'eip155:eoa',
-                  },
-                },
-              },
-            },
-            TransactionPayController: {
-              transactionData: {
-                [transactionIdMock]: {
-                  accountOverride: ledgerPayerId,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const { result } = renderHook(stateWithLedgerPayer);
+      const { result } = renderHook(
+        buildStateWithAccountOverride(
+          'ledger-payer-id',
+          ledgerPayerAddress,
+          'Ledger Hardware',
+        ),
+      );
 
       await act(async () => {
         await result.current.onConfirm();
@@ -1376,9 +1352,7 @@ describe('useTransactionConfirm', () => {
 
       expect(isHardwareAccountMock).toHaveBeenCalledWith(ledgerPayerAddress);
       expect(onApprovalConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          waitForResult: true,
-        }),
+        expect.objectContaining({ waitForResult: true }),
         expect.anything(),
       );
     });

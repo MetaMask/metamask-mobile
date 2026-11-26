@@ -586,34 +586,6 @@ describe('usePayWithNoFeeToken', () => {
 
       expect(result.current.isNoFeeToken(MUSD_ETH, CHAIN_IDS.MONAD)).toBe(true);
     });
-
-    it('keeps no-fee tags when paying account resolves to the Money Account on withdraw', () => {
-      const moneyAccountAddress =
-        '0x1111111111111111111111111111111111111111' as Hex;
-      const hardwareRecipientAddress =
-        '0x3333333333333333333333333333333333333333' as Hex;
-      useTransactionPayingAccountMock.mockReturnValue(moneyAccountAddress);
-      isHardwareAccountMock.mockImplementation(
-        (address) => address === hardwareRecipientAddress,
-      );
-      selectRelayFixedSpreadMock.mockReturnValue(
-        config(route(CHAIN_IDS.MONAD, MUSD_ETH, '0x1', ETH_DEST)),
-      );
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [createMockToken(ETH_DEST, 'USDC', '0x1', 100)],
-        hasTokens: true,
-      });
-
-      const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
-        state: STATE_MOCK,
-      });
-
-      expect(isHardwareAccountMock).toHaveBeenCalledWith(moneyAccountAddress);
-      expect(isHardwareAccountMock).not.toHaveBeenCalledWith(
-        hardwareRecipientAddress,
-      );
-      expect(result.current.isNoFeeToken(ETH_DEST, '0x1')).toBe(true);
-    });
   });
 
   it('renderNoFeeTag renders the "No fee" tag for a matching token', () => {

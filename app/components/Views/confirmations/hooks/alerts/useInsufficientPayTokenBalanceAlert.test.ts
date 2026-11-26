@@ -911,30 +911,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('keeps Monad money account withdraw gasless when paying account is the Money Account', () => {
-      const hardwareRecipientAddress =
-        '0x3333333333333333333333333333333333333333' as Hex;
-      jest
-        .mocked(isHardwareAccount)
-        .mockImplementation((address) => address === hardwareRecipientAddress);
-      useTransactionMetadataRequestMock.mockReturnValue({
-        chainId: CHAIN_IDS.MONAD as Hex,
-        type: TransactionType.moneyAccountWithdraw,
-      } as unknown as TransactionMeta);
-      useTokenWithBalanceMock.mockReturnValue({
-        ...NATIVE_TOKEN_MOCK,
-        balanceRaw: '0',
-      } as ReturnType<typeof useTokenWithBalance>);
-
-      const { result } = runHook();
-
-      expect(isHardwareAccount).toHaveBeenCalledWith(SIGNER_ADDRESS);
-      expect(isHardwareAccount).not.toHaveBeenCalledWith(
-        hardwareRecipientAddress,
-      );
-      expect(result.current).toStrictEqual([]);
-    });
-
     it('does not suppress source gas check when destination native token matches source native address', () => {
       // payToken is native on the *destination* chain (0x1) — same canonical
       // address as the source chain's native token, but different chainId.

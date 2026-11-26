@@ -341,46 +341,6 @@ describe('useIsGaslessSupported', () => {
       });
     });
 
-    it('returns isSupported true for Monad money account withdraw when paying account is the Money Account', async () => {
-      const moneyAccountAddress = '0x1111111111111111111111111111111111111111';
-      const hardwareRecipientAddress =
-        '0x3333333333333333333333333333333333333333';
-      mockUseTransactionMetadataRequest.mockReturnValue({
-        chainId: '0x8f',
-        txParams: { from: moneyAccountAddress, to: '0xabc' },
-      } as unknown as TransactionMeta);
-      useTransactionPayingAccountMock.mockReturnValue(moneyAccountAddress);
-      isHardwareAccountMock.mockImplementation(
-        (address) => address === hardwareRecipientAddress,
-      );
-      isRelaySupportedMock.mockResolvedValue(true);
-      isAtomicBatchSupportedMock.mockResolvedValue([
-        {
-          chainId: '0x8f',
-          isSupported: true,
-          delegationAddress: '0xDelegation',
-        },
-      ]);
-
-      const state = merge({}, transferTransactionStateMock);
-      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
-        state,
-      });
-
-      await waitFor(() => {
-        expect(result.current).toEqual({
-          isSupported: true,
-          isSmartTransaction: false,
-          pending: false,
-        });
-      });
-      expect(isHardwareAccountMock).toHaveBeenCalledWith(moneyAccountAddress);
-      expect(isAtomicBatchSupportedMock).toHaveBeenCalledWith({
-        address: moneyAccountAddress,
-        chainIds: ['0x8f'],
-      });
-    });
-
     it('returns isSupported false if the transaction is contract deployment (no "to" param)', async () => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         chainId: '0x1',

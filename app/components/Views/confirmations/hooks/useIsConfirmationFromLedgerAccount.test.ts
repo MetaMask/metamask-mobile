@@ -14,20 +14,14 @@ const SOFTWARE_RECIPIENT_ADDRESS = '0x2222222222222222222222222222222222222222';
 const LEDGER_RECIPIENT_ADDRESS = '0x3333333333333333333333333333333333333333';
 const QR_RECIPIENT_ADDRESS = '0x4444444444444444444444444444444444444444';
 const ONEKEY_RECIPIENT_ADDRESS = '0x5555555555555555555555555555555555555555';
-
 const MONEY_TX_ID = 'money-tx-id';
 
-function buildMoneyAccountConfirmationState({
-  overrideAccountId,
-  overrideAddress,
-  overrideKeyringType,
-  type,
-}: {
-  overrideAccountId: string;
-  overrideAddress: string;
-  overrideKeyringType: ExtendedKeyringTypes;
-  type: TransactionType;
-}) {
+function buildMoneyAccountState(
+  overrideAccountId: string,
+  overrideAddress: string,
+  overrideKeyringType: ExtendedKeyringTypes,
+  type: TransactionType,
+) {
   return {
     ...stakingDepositConfirmationState,
     engine: {
@@ -41,7 +35,7 @@ function buildMoneyAccountConfirmationState({
                 id: overrideAccountId,
                 metadata: {
                   keyring: { type: overrideKeyringType },
-                  name: 'Recipient Account',
+                  name: 'Recipient',
                 },
                 type: EthAccountType.Eoa,
               },
@@ -76,9 +70,7 @@ function buildMoneyAccountConfirmationState({
         },
         TransactionPayController: {
           transactionData: {
-            [MONEY_TX_ID]: {
-              accountOverride: overrideAccountId,
-            },
+            [MONEY_TX_ID]: { accountOverride: overrideAccountId },
           },
         },
       },
@@ -156,39 +148,34 @@ describe('useIsConfirmationFromLedgerAccount', () => {
   });
 
   it.each([
-    {
-      label: 'Ledger',
-      overrideAccountId: 'ledger-account-id',
-      overrideAddress: LEDGER_RECIPIENT_ADDRESS,
-      overrideKeyringType: ExtendedKeyringTypes.ledger,
-    },
-    {
-      label: 'QR',
-      overrideAccountId: 'qr-account-id',
-      overrideAddress: QR_RECIPIENT_ADDRESS,
-      overrideKeyringType: ExtendedKeyringTypes.qr,
-    },
-    {
-      label: 'OneKey',
-      overrideAccountId: 'onekey-account-id',
-      overrideAddress: ONEKEY_RECIPIENT_ADDRESS,
-      overrideKeyringType: ExtendedKeyringTypes.oneKey,
-    },
-    {
-      label: 'non-hardware',
-      overrideAccountId: 'software-account-id',
-      overrideAddress: SOFTWARE_RECIPIENT_ADDRESS,
-      overrideKeyringType: ExtendedKeyringTypes.hd,
-    },
+    [
+      'Ledger',
+      'ledger-account-id',
+      LEDGER_RECIPIENT_ADDRESS,
+      ExtendedKeyringTypes.ledger,
+    ],
+    ['QR', 'qr-account-id', QR_RECIPIENT_ADDRESS, ExtendedKeyringTypes.qr],
+    [
+      'OneKey',
+      'onekey-account-id',
+      ONEKEY_RECIPIENT_ADDRESS,
+      ExtendedKeyringTypes.oneKey,
+    ],
+    [
+      'non-hardware',
+      'software-account-id',
+      SOFTWARE_RECIPIENT_ADDRESS,
+      ExtendedKeyringTypes.hd,
+    ],
   ])(
-    'returns false for money account withdraw with a $label recipient override',
-    ({ overrideAccountId, overrideAddress, overrideKeyringType }) => {
-      const state = buildMoneyAccountConfirmationState({
+    'returns false for money account withdraw with a %s recipient override',
+    (_label, overrideAccountId, overrideAddress, overrideKeyringType) => {
+      const state = buildMoneyAccountState(
         overrideAccountId,
         overrideAddress,
         overrideKeyringType,
-        type: TransactionType.moneyAccountWithdraw,
-      });
+        TransactionType.moneyAccountWithdraw,
+      );
 
       const { result } = renderHookWithProvider(
         () => useIsConfirmationFromLedgerAccount(),
@@ -200,12 +187,12 @@ describe('useIsConfirmationFromLedgerAccount', () => {
   );
 
   it('returns true for money account deposit when account override is a Ledger payer', () => {
-    const state = buildMoneyAccountConfirmationState({
-      overrideAccountId: 'ledger-account-id',
-      overrideAddress: LEDGER_RECIPIENT_ADDRESS,
-      overrideKeyringType: ExtendedKeyringTypes.ledger,
-      type: TransactionType.moneyAccountDeposit,
-    });
+    const state = buildMoneyAccountState(
+      'ledger-account-id',
+      LEDGER_RECIPIENT_ADDRESS,
+      ExtendedKeyringTypes.ledger,
+      TransactionType.moneyAccountDeposit,
+    );
 
     const { result } = renderHookWithProvider(
       () => useIsConfirmationFromLedgerAccount(),

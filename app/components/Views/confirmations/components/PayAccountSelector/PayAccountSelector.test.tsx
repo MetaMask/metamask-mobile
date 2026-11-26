@@ -28,38 +28,13 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const SELECTED_ACCOUNT_ID_MOCK = 'selected-account-id';
-const SELECTED_ADDRESS_MOCK =
-  '0x2222222222222222222222222222222222222222' as Hex;
-const LEDGER_ADDRESS_MOCK = '0x3333333333333333333333333333333333333333' as Hex;
-const QR_ADDRESS_MOCK = '0x4444444444444444444444444444444444444444' as Hex;
-const ONEKEY_ADDRESS_MOCK = '0x5555555555555555555555555555555555555555' as Hex;
-const MONEY_ACCOUNT_ADDRESS_MOCK =
-  '0x1111111111111111111111111111111111111111' as Hex;
-
-const HARDWARE_RECIPIENT_ACCOUNTS = [
-  {
-    address: LEDGER_ADDRESS_MOCK,
-    id: 'ledger-account-id',
-    label: 'Ledger',
-    testId: 'select-ledger-account',
-  },
-  {
-    address: QR_ADDRESS_MOCK,
-    id: 'qr-account-id',
-    label: 'QR',
-    testId: 'select-qr-account',
-  },
-  {
-    address: ONEKEY_ADDRESS_MOCK,
-    id: 'onekey-account-id',
-    label: 'OneKey',
-    testId: 'select-onekey-account',
-  },
-];
+let mockAccountToSelect = {
+  id: 'selected-account-id',
+  address: '0xSelectedAddress',
+};
 
 jest.mock('../AccountSelector', () => {
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -71,49 +46,15 @@ jest.mock('../AccountSelector', () => {
       selectedAddress?: string;
       label?: string;
     }) => (
-      <View>
-        <TouchableOpacity
-          testID="account-selector"
-          onPress={() =>
-            onAccountSelected({
-              id: 'selected-account-id',
-              address: '0x2222222222222222222222222222222222222222',
-            })
-          }
-        >
-          <Text testID="account-selector-label">{label ?? 'To'}</Text>
-          <Text testID="account-selector-address">
-            {selectedAddress ?? 'No selection'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="select-ledger-account"
-          onPress={() =>
-            onAccountSelected({
-              id: 'ledger-account-id',
-              address: '0x3333333333333333333333333333333333333333',
-            })
-          }
-        />
-        <TouchableOpacity
-          testID="select-qr-account"
-          onPress={() =>
-            onAccountSelected({
-              id: 'qr-account-id',
-              address: '0x4444444444444444444444444444444444444444',
-            })
-          }
-        />
-        <TouchableOpacity
-          testID="select-onekey-account"
-          onPress={() =>
-            onAccountSelected({
-              id: 'onekey-account-id',
-              address: '0x5555555555555555555555555555555555555555',
-            })
-          }
-        />
-      </View>
+      <TouchableOpacity
+        testID="account-selector"
+        onPress={() => onAccountSelected(mockAccountToSelect)}
+      >
+        <Text testID="account-selector-label">{label ?? 'To'}</Text>
+        <Text testID="account-selector-address">
+          {selectedAddress ?? 'No selection'}
+        </Text>
+      </TouchableOpacity>
     ),
   };
 });
@@ -129,6 +70,24 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
 );
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
+const SELECTED_ACCOUNT_ID_MOCK = 'selected-account-id';
+const HARDWARE_RECIPIENT_ACCOUNTS = [
+  {
+    address: '0x3333333333333333333333333333333333333333' as Hex,
+    id: 'ledger-account-id',
+    label: 'Ledger',
+  },
+  {
+    address: '0x4444444444444444444444444444444444444444' as Hex,
+    id: 'qr-account-id',
+    label: 'QR',
+  },
+  {
+    address: '0x5555555555555555555555555555555555555555' as Hex,
+    id: 'onekey-account-id',
+    label: 'OneKey',
+  },
+];
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
@@ -148,11 +107,15 @@ function render() {
 describe('PayAccountSelector', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockAccountToSelect = {
+      id: SELECTED_ACCOUNT_ID_MOCK,
+      address: '0xSelectedAddress',
+    };
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountDeposit,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
@@ -162,7 +125,7 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.simpleSend,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     const { queryByTestId } = render();
@@ -178,12 +141,12 @@ describe('PayAccountSelector', () => {
   });
 
   it('renders with pre-selected address from accountOverride', () => {
-    useTransactionAccountOverrideMock.mockReturnValue(SELECTED_ADDRESS_MOCK);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideAddress');
 
     const { getByTestId } = render();
 
     expect(getByTestId('account-selector-address')).toHaveTextContent(
-      SELECTED_ADDRESS_MOCK,
+      '0xOverrideAddress',
     );
   });
 
@@ -197,7 +160,7 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render();
@@ -209,7 +172,7 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render();
@@ -223,7 +186,7 @@ describe('PayAccountSelector', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'mock-tx-id',
         type: TransactionType.moneyAccountWithdraw,
-        txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+        txParams: { from: '0x1111111111111111111111111111111111111111' },
         nestedTransactions: [{ data: '0xabcd' }],
       } as never);
       useTransactionAccountOverrideMock.mockReturnValue(address);
@@ -240,32 +203,32 @@ describe('PayAccountSelector', () => {
 
   it.each(HARDWARE_RECIPIENT_ACCOUNTS)(
     'sets accountOverride and rewrites nested transactions when selecting a $label recipient for withdraw',
-    async ({ address, id, testId }) => {
+    async ({ address, id }) => {
       const nestedTransactions = [{ data: '0xabcd' }];
+      mockAccountToSelect = { id, address };
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'mock-tx-id',
         type: TransactionType.moneyAccountWithdraw,
-        txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+        txParams: { from: '0x1111111111111111111111111111111111111111' },
         nestedTransactions,
       } as never);
-      useTransactionAccountOverrideMock.mockReturnValue(SELECTED_ADDRESS_MOCK);
+      useTransactionAccountOverrideMock.mockReturnValue('0xOverrideAddress');
 
       const { getByTestId } = render();
 
       await act(async () => {
-        fireEvent.press(getByTestId(testId));
+        fireEvent.press(getByTestId('account-selector'));
       });
 
       expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
         transactionId: 'mock-tx-id',
         nestedTransactions,
-        oldAddress: SELECTED_ADDRESS_MOCK,
+        oldAddress: '0xOverrideAddress',
         newAddress: address,
       });
 
-      const configCallback = setTransactionConfigMock.mock.calls[0][1];
       const config = {} as { accountOverride?: string };
-      configCallback(config);
+      setTransactionConfigMock.mock.calls[0][1](config);
 
       expect(config.accountOverride).toBe(id);
     },
@@ -273,13 +236,14 @@ describe('PayAccountSelector', () => {
 
   it('rewrites nested transactions when switching withdraw recipient from hardware to software', async () => {
     const nestedTransactions = [{ data: '0xabcd' }];
+    const ledgerAddress = HARDWARE_RECIPIENT_ACCOUNTS[0].address;
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x1111111111111111111111111111111111111111' },
       nestedTransactions,
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue(LEDGER_ADDRESS_MOCK);
+    useTransactionAccountOverrideMock.mockReturnValue(ledgerAddress);
 
     const { getByTestId } = render();
 
@@ -290,13 +254,12 @@ describe('PayAccountSelector', () => {
     expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
       transactionId: 'mock-tx-id',
       nestedTransactions,
-      oldAddress: LEDGER_ADDRESS_MOCK,
-      newAddress: SELECTED_ADDRESS_MOCK,
+      oldAddress: ledgerAddress,
+      newAddress: '0xSelectedAddress',
     });
 
-    const configCallback = setTransactionConfigMock.mock.calls[0][1];
     const config = {} as { accountOverride?: string };
-    configCallback(config);
+    setTransactionConfigMock.mock.calls[0][1](config);
 
     expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
   });
@@ -324,7 +287,7 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render();
@@ -359,7 +322,7 @@ describe('PayAccountSelector', () => {
   it('does not call setTransactionConfig when transactionId is missing', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render();
@@ -377,10 +340,10 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountDeposit,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0xFromAddress' },
       nestedTransactions,
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue(LEDGER_ADDRESS_MOCK);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideAddress');
 
     const { getByTestId } = render();
 
@@ -391,8 +354,8 @@ describe('PayAccountSelector', () => {
     expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
       transactionId: 'mock-tx-id',
       nestedTransactions,
-      oldAddress: LEDGER_ADDRESS_MOCK,
-      newAddress: SELECTED_ADDRESS_MOCK,
+      oldAddress: '0xOverrideAddress',
+      newAddress: '0xSelectedAddress',
     });
   });
 
@@ -401,7 +364,7 @@ describe('PayAccountSelector', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountDeposit,
-      txParams: { from: MONEY_ACCOUNT_ADDRESS_MOCK },
+      txParams: { from: '0xFromAddress' },
       nestedTransactions,
     } as never);
 
@@ -414,8 +377,8 @@ describe('PayAccountSelector', () => {
     expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
       transactionId: 'mock-tx-id',
       nestedTransactions,
-      oldAddress: MONEY_ACCOUNT_ADDRESS_MOCK,
-      newAddress: SELECTED_ADDRESS_MOCK,
+      oldAddress: '0xFromAddress',
+      newAddress: '0xSelectedAddress',
     });
   });
 });
