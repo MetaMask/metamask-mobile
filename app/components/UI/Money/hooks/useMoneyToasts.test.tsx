@@ -131,6 +131,20 @@ describe('useMoneyToasts', () => {
       expect(toastOptions.description).toBe('This may take a few minutes.');
     });
 
+    it.each(['addUsdc', 'addUsdt'] as const)(
+      'uses the conversion toast when intent is %s',
+      (intent) => {
+        const { result } = renderHook(() => useMoneyToasts());
+
+        expect(
+          result.current.MoneyToastOptions.deposit.inProgress({ intent }).title,
+        ).toBe('Converting crypto');
+        expect(
+          result.current.MoneyToastOptions.deposit.success({ intent }).title,
+        ).toBe('Conversion complete');
+      },
+    );
+
     it('inProgress title is "Adding funds" when intent is addMusd', () => {
       const { result } = renderHook(() => useMoneyToasts());
 

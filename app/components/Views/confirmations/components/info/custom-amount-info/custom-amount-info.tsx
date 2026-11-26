@@ -84,7 +84,10 @@ import {
 } from '../../../hooks/custom-amount/useSnapAmountToMax';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
-import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
   CustomAmountBuy,
@@ -151,9 +154,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isAddMusdIntent =
+    const isFullBalanceMoneyDeposit =
       isMoneyAccountDeposit &&
-      getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+      isFullBalanceDepositIntent(
+        getMoneyAccountDepositIntent(transactionMeta?.batchId),
+      );
 
     useClearConfirmationOnBackSwipe();
 
@@ -215,7 +220,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       disablePay,
       hasAccountNoFunds,
       hasPrefetchedQuote,
-      isAddMusdIntent,
+      isFullBalanceMoneyDeposit,
       isDepositPrefillEnabled,
       isDepositPrefillLoading,
       skipDepositPrefill,
@@ -579,37 +584,38 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               // does not cover From or Pay with.
               <MembershipInfo amountFiat={amountFiat} />
             )}
-          {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
-            <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
-                )}
-              <PerpsAccountPickerRow />
-              <PredictAccountPickerRow />
-              <PerpsWithdrawFromRow
-                source={perpsWithdrawSource}
-                onSourceChange={setPerpsWithdrawSource}
-              />
-              {disablePay !== true &&
-                (isPayAccountLoading ? (
-                  <PayWithRowSkeleton />
-                ) : (
-                  (hasPaymentOption || hasAccountNoFunds) && (
-                    <>
-                      <PayWithRow />
-                      <DepositToRow />
-                    </>
-                  )
-                ))}
-              <MoneyDepositToRow />
-              <PerpsReceiveToRow
-                destination={perpsReceiveDestination}
-                onDestinationChange={setPerpsReceiveDestination}
-              />
-            </>
-          )}
+          {stage === CustomAmountStage.AmountInput &&
+            !isFullBalanceMoneyDeposit && (
+              <>
+                {supportAccountSelection &&
+                  !selectedFiatPaymentMethodId &&
+                  !shouldHideAccountSelector && (
+                    <PayAccountSelector style={styles.separator} />
+                  )}
+                <PerpsAccountPickerRow />
+                <PredictAccountPickerRow />
+                <PerpsWithdrawFromRow
+                  source={perpsWithdrawSource}
+                  onSourceChange={setPerpsWithdrawSource}
+                />
+                {disablePay !== true &&
+                  (isPayAccountLoading ? (
+                    <PayWithRowSkeleton />
+                  ) : (
+                    (hasPaymentOption || hasAccountNoFunds) && (
+                      <>
+                        <PayWithRow />
+                        <DepositToRow />
+                      </>
+                    )
+                  ))}
+                <MoneyDepositToRow />
+                <PerpsReceiveToRow
+                  destination={perpsReceiveDestination}
+                  onDestinationChange={setPerpsReceiveDestination}
+                />
+              </>
+            )}
           {stage !== CustomAmountStage.AmountInput && (
             <View
               pointerEvents={shouldBlockReviewRows ? 'none' : 'auto'}

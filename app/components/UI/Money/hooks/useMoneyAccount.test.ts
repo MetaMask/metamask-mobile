@@ -28,6 +28,7 @@ import {
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -165,16 +166,16 @@ const mockUseMoneyAccountAvailability = jest.mocked(
 );
 const mockAssertMoneyAccountAccessible = jest.fn();
 const mockIsDepositPrefillEnabled = jest.fn(
-  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+  (intent?: MoneyAccountDepositIntent) => intent === 'addMusd',
 );
 
 function mockDepositPrefillEnabled(
-  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+  isEnabled: boolean | ((intent?: MoneyAccountDepositIntent) => boolean),
 ) {
   mockIsDepositPrefillEnabled.mockImplementation(
     typeof isEnabled === 'function'
       ? isEnabled
-      : (intent?: 'convert' | 'addMusd' | 'card') =>
+      : (intent?: MoneyAccountDepositIntent) =>
           intent === 'addMusd' ? true : isEnabled,
   );
   mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
@@ -560,6 +561,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'addMusd',
       loader: ConfirmationLoader.PrefillCustomAmount,
       preferredPaymentToken,
       replace: undefined,
@@ -672,6 +674,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'card',
       loader: ConfirmationLoader.AdvancedCustomAmount,
       preferredPaymentToken: undefined,
       replace: undefined,
