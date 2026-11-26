@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -21,6 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
+  getFontFamily,
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -54,7 +54,6 @@ import {
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
-import { Theme } from '../../../../../util/theme/models';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -67,15 +66,15 @@ import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import Engine from '../../../../../core/Engine';
+import DottedUnderline from '../../../DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 
 export const MAX_INPUT_LENGTH = 36;
 
 const createStyles = ({
   vars,
-  theme,
 }: {
   vars: { fontSize: number; hidden: boolean };
-  theme: Theme;
 }) =>
   StyleSheet.create({
     content: {
@@ -100,6 +99,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       backgroundColor: importedColors.transparent,
       flex: 1,
@@ -109,6 +109,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       transform: [{ translateY: -vars.fontSize * 0.08 }],
       ...(Platform.OS === 'android' && {
@@ -126,17 +127,8 @@ const createStyles = ({
       paddingVertical: 4,
       paddingHorizontal: 4,
     },
-    destinationGasFeeLabel: {
-      backgroundColor: theme.colors.info.muted,
-      borderRadius: 6,
-      paddingHorizontal: 6,
-      marginLeft: 4,
-    },
     currencyContainer: {
       flex: 1,
-    },
-    maxButton: {
-      color: theme.colors.text.default,
     },
     hidden: {
       opacity: vars.hidden ? 0 : 1,
@@ -179,15 +171,14 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
   isQuoteSponsored?: boolean;
   inputPrefix?: string;
   secondaryValue?: string | null;
+  tokenFiatRate?: number;
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
@@ -211,7 +202,7 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
-  destinationGasFeeLabel?: string;
+  subtitle?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -241,6 +232,7 @@ export const TokenInputArea = forwardRef<
       isQuoteSponsored = false,
       inputPrefix,
       secondaryValue,
+      tokenFiatRate: tokenFiatRateOverride,
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
@@ -249,7 +241,7 @@ export const TokenInputArea = forwardRef<
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
-      destinationGasFeeLabel,
+      subtitle: subtitleOverride,
     },
     ref,
   ) => {
@@ -315,8 +307,13 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
     });
 
-    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const tokenFiatRate = useTokenFiatRate(token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(
+      tokenAmount,
+      token,
+      tokenFiatRateOverride,
+    );
+    const polledTokenFiatRate = useTokenFiatRate(token);
+    const tokenFiatRate = tokenFiatRateOverride ?? polledTokenFiatRate;
     // Without a rate the currency value is formatted as a bare "$0.00", which
     // reads as the token being worthless rather than unpriced.
     const shouldHideFiatValue =
@@ -354,16 +351,15 @@ export const TokenInputArea = forwardRef<
       tokenBalance,
       token,
     );
+    const { colors } = useTheme();
 
     const tokenAddress = useTokenAddress(token);
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    const shouldShowMaxButton = useShouldRenderMaxOption(
-      token,
-      tokenBalance,
-      isQuoteSponsored,
-    );
+    const shouldShowMaxButton =
+      useShouldRenderMaxOption(token, tokenBalance, isQuoteSponsored) &&
+      !token?.isMoneyToken;
 
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
@@ -389,10 +385,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
@@ -477,6 +485,7 @@ export const TokenInputArea = forwardRef<
                 testID={testID}
                 onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
+                isMoneyToken={token?.isMoneyToken}
               />
             ) : (
               <Button
@@ -506,25 +515,9 @@ export const TokenInputArea = forwardRef<
                       }
                     >
                       {shouldShowSecondaryAmount ? (
-                        <>
-                          <Text color={TextColor.Alternative}>
-                            {secondaryAmountDisplayValue}
-                          </Text>
-                          {tokenType === TokenInputAreaType.Destination &&
-                          destinationGasFeeLabel ? (
-                            <Box
-                              style={styles.destinationGasFeeLabel}
-                              testID="destination-gas-fee-label"
-                            >
-                              <Text
-                                variant={TextVariant.BodyXS}
-                                color={TextColor.Primary}
-                              >
-                                {destinationGasFeeLabel}
-                              </Text>
-                            </Box>
-                          ) : null}
-                        </>
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
                       ) : null}
                       {onAmountTypeTogglePress ? (
                         <Icon
@@ -546,16 +539,27 @@ export const TokenInputArea = forwardRef<
                     gap={4}
                     style={styles.hidden}
                   >
-                    <Text
-                      color={
-                        isInsufficientBalance &&
-                        tokenType === TokenInputAreaType.Source
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
+                    {token?.isMoneyToken && subtitleOverride ? (
+                      <DottedUnderline
+                        color={colors.success.default}
+                        testID="subtitle-underline"
+                      >
+                        <Text color={colors.success.default}>
+                          {subtitleOverride}
+                        </Text>
+                      </DottedUnderline>
+                    ) : (
+                      <Text
+                        color={
+                          isInsufficientBalance &&
+                          tokenType === TokenInputAreaType.Source
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                    )}
                     {tokenType === TokenInputAreaType.Source &&
                       tokenBalance &&
                       onMaxPress &&

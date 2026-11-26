@@ -13,19 +13,15 @@ import type { CardAction } from '../../../../../../core/Engine/controllers/card-
 interface CardActionsButtonsProps {
   actions: CardAction[];
   isLoading: boolean;
-  isSwapEnabled: boolean;
-  isMoneyAccountEntry?: boolean;
-  onAddFunds: () => void;
   onEnableCard: () => void;
+  isEnableCardDisabled?: boolean;
 }
 
 const CardActionsButtons = ({
   actions,
   isLoading,
-  isSwapEnabled,
-  isMoneyAccountEntry = false,
-  onAddFunds,
   onEnableCard,
+  isEnableCardDisabled = false,
 }: CardActionsButtonsProps) => {
   const tw = useTailwind();
 
@@ -40,36 +36,20 @@ const CardActionsButtons = ({
     );
   }
 
-  if (actions.length === 0) return null;
-
+  // Add funds lives in CardHomeActionButtonRow under the card panel.
   const enableAction = actions.find((a) => a.type === 'enable_card');
-  if (enableAction) {
-    return (
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={onEnableCard}
-        isFullWidth
-        testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-      >
-        {strings('card.card_home.enable_card_button_label')}
-      </Button>
-    );
-  }
-
-  const addFundsAction = actions.find((a) => a.type === 'add_funds');
-  if (!addFundsAction) return null;
+  if (!enableAction) return null;
 
   return (
     <Button
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
-      onPress={onAddFunds}
+      onPress={onEnableCard}
       isFullWidth
-      isDisabled={!isSwapEnabled && !isMoneyAccountEntry}
-      testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+      isDisabled={isEnableCardDisabled}
+      testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
     >
-      {strings('card.card_home.add_funds')}
+      {strings('card.card_home.enable_card_button_label')}
     </Button>
   );
 };

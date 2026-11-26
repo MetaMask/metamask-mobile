@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput } from 'react-native';
+import { AccessibilityInfo, TextInput } from 'react-native';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { setAvatarAccountType } from '../../../../../actions/settings';
@@ -15,6 +15,7 @@ import {
   CardProviderError,
   CardProviderErrorCode,
   CardProviderIds,
+  type CardAuthStep,
   type CardSignInResolution,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
@@ -79,22 +80,57 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useCardAuth');
 jest.mock('../../hooks/useCardSignIn');
 
+let mockIsMoneyAccountCountry = false;
+jest.mock('../../hooks/useImmersveFundingChannel', () => {
+  const actual = jest.requireActual('../../hooks/useImmersveFundingChannel');
+  return {
+    ...actual,
+    useIsImmersveMoneyAccountCountry: () => mockIsMoneyAccountCountry,
+  };
+});
+
+let mockPrimaryMoneyAccount: { address: string } | undefined;
+jest.mock('../../../../../selectors/moneyAccountController', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/moneyAccountController',
+  );
+  return {
+    ...actual,
+    selectPrimaryMoneyAccount: () => mockPrimaryMoneyAccount,
+  };
+});
+
 const GB_REGION = {
   key: 'GB',
   name: 'United Kingdom',
   code: 'GB',
   currency: 'GBP',
   flag: '🇬🇧',
+  canSignUp: false,
 };
+
+const US_REGION = {
+  key: 'US',
+  name: 'United States',
+  code: 'US',
+  canSignUp: true,
+};
+
+const FR_REGION = {
+  key: 'FR',
+  name: 'France',
+  code: 'FR',
+  canSignUp: false,
+};
+
+const MOCK_REGIONS = [GB_REGION, US_REGION, FR_REGION];
 
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: () => ({
-    allRegions: [GB_REGION, { key: 'US', name: 'United States', code: 'US' }],
+    allRegions: MOCK_REGIONS,
     getRegionByCode: (code: string) =>
-      code === 'GB'
-        ? GB_REGION
-        : { key: 'US', name: 'United States', code: 'US' },
+      MOCK_REGIONS.find((region) => region.key === code) ?? null,
     isLoading: false,
   }),
 }));
@@ -111,9 +147,11 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
   }),
 }));
 
+const mockPasswordlessFlag = { enabled: false };
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
   selectCardForgotPasswordFeatureEnabled: () => true,
+  selectCardBaanxPasswordlessLoginEnabled: () => mockPasswordlessFlag.enabled,
 }));
 
 let mockGeoLocation = 'GB';
@@ -162,10 +200,13 @@ jest.mock('../../../../Views/AccountSelector', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   navigateWithDetails: jest.fn(),
-  createNavigationDetails: jest.fn((a: string, b: string) => () => [
-    { name: a },
-    { screen: b },
-  ]),
+  createNavigationDetails: jest.fn(
+    (name: string, screenName?: string) =>
+      (params?: Record<string, unknown>) => [
+        name,
+        screenName ? { screen: screenName, params } : params,
+      ],
+  ),
 }));
 
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
@@ -174,6 +215,7 @@ const mockUseCardSignIn = useCardSignIn as jest.MockedFunction<
 >;
 
 const mockInitiateMutateAsync = jest.fn();
+const mockRequestEmailCode = jest.fn();
 const mockSubmitMutateAsync = jest.fn();
 const mockStepActionMutate = jest.fn();
 const mockResetToLogin = jest.fn();
@@ -263,6 +305,12 @@ function makeAuthReturn() {
       error: null,
       reset: jest.fn(),
     },
+    requestEmailCode: {
+      mutateAsync: mockRequestEmailCode,
+      isPending: false,
+      error: null,
+      reset: jest.fn(),
+    },
     resetToLogin: mockResetToLogin,
     getErrorMessage: (err: unknown) =>
       (err as Error)?.message ?? 'Unknown error',
@@ -306,20 +354,28 @@ function render(controllerState?: Record<string, unknown>) {
 
 jest.useFakeTimers({ advanceTimers: true });
 
+jest
+  .spyOn(AccessibilityInfo, 'announceForAccessibility')
+  .mockReturnValue(undefined);
+
 describe('CardAuthentication', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPasswordlessFlag.enabled = false;
     mockGeoLocation = 'GB';
     mockOnRegionChange = null;
     mockUkMigrationPhase = 'soft';
     mockSelectedAccount = { address: ADDR, id: 'acct-selected' };
     mockUseCardAuth.mockReturnValue(makeAuthReturn());
     mockInitiateMutateAsync.mockResolvedValue(undefined);
+    mockRequestEmailCode.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
     mockVerifyAccount.mockResolvedValue('found');
     mockSignInWithWallet.mockResolvedValue(undefined);
     mockGetSignInLink.mockReturnValue(null);
     mockLogout.mockResolvedValue(undefined);
+    mockIsMoneyAccountCountry = false;
+    mockPrimaryMoneyAccount = undefined;
     setResolution({ kind: 'email', option: emailOption });
   });
 
@@ -338,6 +394,41 @@ describe('CardAuthentication', () => {
   });
 
   describe('R1 Wallet', () => {
+    it('locks the account row to the Money account', () => {
+      mockIsMoneyAccountCountry = true;
+      mockPrimaryMoneyAccount = { address: ADDR };
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-identity')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.ACCOUNT_SELECT),
+      ).toBeOnTheScreen();
+    });
+
+    it('asks for a Money account without an email link on wallet sign-in', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-required')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
+        ),
+      ).toBeNull();
+    });
+
     it('shows the linked account and SIWE CTA', () => {
       setResolution({
         kind: 'wallet',
@@ -353,6 +444,7 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
+      expect(screen.getByText('Sign in')).toBeOnTheScreen();
       expect(screen.queryByText(/isn't the account your card/i)).toBeNull();
       expect(
         screen.queryByText(/this is the account you set your card up with/i),
@@ -723,6 +815,679 @@ describe('CardAuthentication', () => {
       expect(
         screen.queryByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
       ).toBeNull();
+      expect(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      ).toHaveProp('accessibilityLabel', 'Show password');
+
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      ).toHaveProp('accessibilityLabel', 'Hide password');
+    });
+
+    it('requests and submits an email code when passwordless login is enabled', async () => {
+      mockPasswordlessFlag.enabled = true;
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        ' user@example.com ',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('international');
+      });
+      expect(mockRequestEmailCode).toHaveBeenCalledWith('user@example.com');
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_RESEND),
+      ).toBeOnTheScreen();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '12345',
+      );
+      expect(mockSubmitMutateAsync).not.toHaveBeenCalled();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      expect(screen.getByText('Sign in')).toBeOnTheScreen();
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
+    });
+
+    it('asks for a new email code after going back to login', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const auth = makeAuthReturn();
+      let step: { type: 'otp' | 'email_password'; destination?: string } = {
+        type: 'email_password',
+      };
+      mockUseCardAuth.mockImplementation(
+        () =>
+          ({
+            ...auth,
+            currentStep: step,
+          }) as ReturnType<typeof useCardAuth>,
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
+
+      step = { type: 'otp', destination: '+1555****90' };
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1000);
+      });
+      step = { type: 'email_password' };
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON,
+        ),
+      );
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      expect(mockRequestEmailCode).toHaveBeenCalledTimes(2);
+      expect(mockRequestEmailCode).toHaveBeenLastCalledWith('user@example.com');
+    });
+
+    it('does not show the code field when the email changes before the request finishes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      let finishRequest: () => void = () => undefined;
+      mockRequestEmailCode.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishRequest = () => {
+              resolve();
+            };
+          }),
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockRequestEmailCode).toHaveBeenCalledWith('user@example.com');
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'other@example.com',
+      );
+      await act(async () => {
+        finishRequest();
+      });
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+    });
+
+    it('clears a sent email code when the country changes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({ key: 'US', name: 'United States', code: 'US' });
+      });
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+    });
+
+    it('drops a code request error that arrives after the email changes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const networkError = new CardProviderError(
+        CardProviderErrorCode.Network,
+        'Network error. Check your connection and try again.',
+      );
+      const requestError = { current: null as CardProviderError | null };
+      const resetRequest = jest.fn(() => {
+        requestError.current = null;
+      });
+      let failRequest: () => void = () => undefined;
+      mockRequestEmailCode.mockImplementation(
+        () =>
+          new Promise((_resolve, reject) => {
+            failRequest = () => {
+              requestError.current = networkError;
+              reject(networkError);
+            };
+          }),
+      );
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        requestEmailCode: {
+          mutateAsync: mockRequestEmailCode,
+          isPending: false,
+          get error() {
+            return requestError.current;
+          },
+          reset: resetRequest,
+        },
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+      await waitFor(() => {
+        expect(mockRequestEmailCode).toHaveBeenCalledWith('user@example.com');
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'other@example.com',
+      );
+      await act(async () => {
+        failRequest();
+      });
+
+      expect(resetRequest).toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.LOGIN_ERROR_TEXT),
+      ).toBeNull();
+    });
+
+    it('clears a rejected code error when the country changes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const invalidCredentials = new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid login details',
+      );
+      const authError = { current: null as CardProviderError | null };
+      mockSubmitMutateAsync.mockImplementation(async () => {
+        authError.current = invalidCredentials;
+        throw invalidCredentials;
+      });
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        submit: {
+          mutateAsync: mockSubmitMutateAsync,
+          isPending: false,
+          get error() {
+            return authError.current;
+          },
+          reset: jest.fn(() => {
+            authError.current = null;
+          }),
+        },
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(screen.getByText('Incorrect code, try again')).toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.LOGIN_ERROR_TEXT),
+      ).toHaveProp('accessibilityLiveRegion', 'polite');
+      expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+        'Incorrect code, try again',
+      );
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({ key: 'US', name: 'United States', code: 'US' });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Incorrect code, try again')).toBeNull();
+      });
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+    });
+
+    it('clears the used email code after a resend succeeds', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const invalidCredentials = new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid login details',
+      );
+      mockSubmitMutateAsync
+        .mockRejectedValueOnce(invalidCredentials)
+        .mockResolvedValueOnce({ done: true });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+      });
+
+      for (let second = 0; second < 60; second += 1) {
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1000);
+        });
+      }
+      fireEvent.press(screen.getByText('Resend it'));
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD).props
+            .value,
+        ).toBe('');
+      });
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenLastCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for an in-flight email-code sign-in before submitting an edited code', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const invalidCredentials = new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid login details',
+      );
+      let rejectFirstLogin: () => void = () => undefined;
+      mockSubmitMutateAsync.mockImplementation(() => {
+        if (mockSubmitMutateAsync.mock.calls.length === 1) {
+          return new Promise((_resolve, reject) => {
+            rejectFirstLogin = () => {
+              reject(invalidCredentials);
+            };
+          });
+        }
+        return Promise.resolve({ done: true });
+      });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '654321',
+      );
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        rejectFirstLogin();
+      });
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenLastCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '654321',
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the original email code when authenticator sign-in follows an edited attempt', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const auth = makeAuthReturn();
+      let setAuthStep: (step: CardAuthStep) => void = () => undefined;
+      mockUseCardAuth.mockImplementation(() => {
+        const [step, setStep] = React.useState<CardAuthStep>(auth.currentStep);
+        setAuthStep = setStep;
+        return {
+          ...auth,
+          currentStep: step,
+        } as ReturnType<typeof useCardAuth>;
+      });
+      let finishFirstLogin: (value: unknown) => void = () => undefined;
+      mockSubmitMutateAsync.mockImplementation(() => {
+        if (mockSubmitMutateAsync.mock.calls.length === 1) {
+          return new Promise((resolve) => {
+            finishFirstLogin = resolve;
+          });
+        }
+        return Promise.resolve({ done: true });
+      });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '654321',
+      );
+
+      await act(async () => {
+        finishFirstLogin({
+          nextStep: {
+            type: 'otp',
+            destination: 'user@example.com',
+            mode: 'TOTP',
+          },
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        setAuthStep({
+          type: 'otp',
+          destination: 'user@example.com',
+          mode: 'TOTP',
+        });
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.OTP_CODE_FIELD),
+        '111111',
+      );
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenLastCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+          otpCode: '111111',
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('submits a code typed while a resend fails', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const networkError = new CardProviderError(
+        CardProviderErrorCode.Network,
+        'Network error. Check your connection and try again.',
+      );
+      let failResend: () => void = () => undefined;
+      mockRequestEmailCode.mockImplementation(() => {
+        if (mockRequestEmailCode.mock.calls.length === 1) {
+          return Promise.resolve();
+        }
+        return new Promise((_resolve, reject) => {
+          failResend = () => {
+            reject(networkError);
+          };
+        });
+      });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      for (let second = 0; second < 60; second += 1) {
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1000);
+        });
+      }
+      fireEvent.press(screen.getByText('Resend it'));
+      await waitFor(() => {
+        expect(mockRequestEmailCode).toHaveBeenCalledTimes(2);
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      expect(mockSubmitMutateAsync).not.toHaveBeenCalled();
+
+      await act(async () => {
+        failResend();
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
+    });
+
+    it('keeps sign in enabled after a rejected email code', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const invalidCredentials = new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid login details',
+      );
+      const authError = { current: null as CardProviderError | null };
+      mockSubmitMutateAsync.mockImplementation(async () => {
+        authError.current = invalidCredentials;
+        throw invalidCredentials;
+      });
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        submit: {
+          mutateAsync: mockSubmitMutateAsync,
+          isPending: false,
+          get error() {
+            return authError.current;
+          },
+          reset: jest.fn(() => {
+            authError.current = null;
+          }),
+        },
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(CardAuthenticationSelectors.BANNER),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Incorrect code, try again')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Check the code and try again.'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(/password/i)).toBeNull();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).not.toBeDisabled();
+
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '113702',
+      );
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenLastCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '113702',
+        });
+      });
+    });
+
+    it('shows an error when requesting an email code fails', () => {
+      mockPasswordlessFlag.enabled = true;
+      const requestError = new CardProviderError(
+        CardProviderErrorCode.Network,
+        'Network error. Check your connection and try again.',
+      );
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        requestEmailCode: {
+          mutateAsync: mockRequestEmailCode,
+          isPending: false,
+          error: requestError,
+          reset: jest.fn(),
+        },
+        getErrorMessage: () => requestError.message,
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.LOGIN_ERROR_TEXT),
+      ).toHaveTextContent(requestError.message);
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).not.toBeDisabled();
     });
 
     it('shows bad_creds banner for InvalidCredentials', async () => {
@@ -756,6 +1521,11 @@ describe('CardAuthentication', () => {
         ).toBeOnTheScreen();
       });
       expect(screen.getByText(/couldn.t sign you in/i)).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Check your email address and password and try again.',
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('does not show bad_creds banner for Network failures', async () => {
@@ -815,6 +1585,29 @@ describe('CardAuthentication', () => {
       expect(
         screen.queryByTestId(CardAuthenticationSelectors.BANNER),
       ).toBeNull();
+    });
+
+    it('shows authenticator instructions without sending an SMS code', () => {
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        currentStep: {
+          type: 'otp' as const,
+          destination: '+502*******8',
+          mode: 'TOTP' as const,
+        },
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(
+        screen.getByText('Enter the code from your authenticator app.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.OTP_RESEND_VERIFICATION,
+        ),
+      ).toBeNull();
+      expect(mockStepActionMutate).not.toHaveBeenCalled();
     });
 
     it('submits the verification code when the step is OTP', async () => {
@@ -925,6 +1718,61 @@ describe('CardAuthentication', () => {
   });
 
   describe('R5 Unresolved', () => {
+    it('replaces the fork with the Money account setup CTA when none exists', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-required')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Continue with email' }),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens email sign-in from the Money account setup screen', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('money-account-required')).toBeNull();
+    });
+
+    it('keeps the fork when a Money account already exists', () => {
+      mockIsMoneyAccountCountry = true;
+      mockPrimaryMoneyAccount = { address: ADDR };
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('money-account-required')).toBeNull();
+    });
+
     it('shows the email/wallet fork', () => {
       setResolution({
         kind: 'unresolved',
@@ -1228,6 +2076,69 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
       ).toBeOnTheScreen();
+    });
+
+    it('offers only live countries in the country picker', () => {
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+
+      expect(navigateWithDetails).toHaveBeenCalledWith(expect.anything(), [
+        Routes.CARD.MODALS.ID,
+        {
+          screen: Routes.CARD.MODALS.REGION_SELECTION,
+          params: {
+            regions: [GB_REGION, US_REGION],
+            selectedRegionKey: 'GB',
+          },
+        },
+      ]);
+    });
+
+    it('pre-selects a live geolocation country', () => {
+      mockGeoLocation = 'US';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.getByText(/United States/)).toBeOnTheScreen();
+      expect(mockUseCardSignIn).toHaveBeenCalledWith('US');
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
+    });
+
+    it('does not commit a picked country to the controller before sign-in', () => {
+      mockGeoLocation = 'UNKNOWN';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({
+          key: 'GB',
+          name: 'United Kingdom',
+          code: 'GB',
+        });
+      });
+
+      expect(screen.getByText(/United Kingdom/)).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
+    });
+
+    it('does not pre-select a country that is not live', () => {
+      mockGeoLocation = 'FR';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.queryByText(/France/)).toBeNull();
+      expect(mockUseCardSignIn).toHaveBeenCalledWith(null);
+      expect(mockUseCardSignIn).not.toHaveBeenCalledWith('FR');
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('keeps a manually chosen country when geolocation arrives later', () => {

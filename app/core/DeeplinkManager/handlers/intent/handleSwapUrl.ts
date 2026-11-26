@@ -30,6 +30,8 @@ import {
 import { ethers } from 'ethers';
 import Engine from '../../../Engine';
 import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
+import ReduxService from '../../../redux/ReduxService';
+import { setDestToken, setSourceToken } from '../../../redux/slices/bridge';
 import { isHex } from 'viem';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import {
@@ -38,8 +40,19 @@ import {
 } from '../../../../util/networks/networkToastSuppression';
 
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
+import { getDeeplinkProcessedAppStartType } from '../../../Performance/DeeplinkPerformance';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
+import {
+  DEFAULT_RECURRING_EVERY_UNIT,
+  DEFAULT_RECURRING_EVERY_VALUE,
+  DEFAULT_RECURRING_REPEAT_COUNT,
+  RECURRING_EVERY_MAX_BY_UNIT,
+  RECURRING_INTERVAL_UNITS,
+  type RecurringIntervalUnit,
+  parsePositiveInteger,
+  validateRecurringSchedule,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 /**
  * Validates and looks up a token from the bridge token list
@@ -130,7 +143,6 @@ const addEvmNetworkFromPopularList = async (chainId: Hex) => {
       rpcEndpoints: [
         {
           url: popularNetwork.rpcUrl,
-          failoverUrls: popularNetwork.failoverRpcUrls,
           name: popularNetwork.nickname,
           type: RpcEndpointType.Custom,
         },
@@ -176,10 +188,14 @@ function getSwapUrlParams(swapPath: string) {
   return new URLSearchParams(cleanPath);
 }
 
-function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
-  return urlParams.get('tab') === BridgeTabKey.Limit
-    ? BridgeTabKey.Limit
-    : undefined;
+function getInitialTab(urlParams: URLSearchParams): BridgeTabKey {
+  const tab = urlParams.get('tab');
+
+  if (tab === BridgeTabKey.Limit || tab === BridgeTabKey.Recurring) {
+    return tab;
+  }
+
+  return BridgeTabKey.Market;
 }
 
 function parseLimitOrderExpirationMinutes(
@@ -195,6 +211,70 @@ function parseLimitOrderExpirationMinutes(
     : undefined;
 }
 
+function isRecurringIntervalUnit(
+  value: string,
+): value is RecurringIntervalUnit {
+  return RECURRING_INTERVAL_UNITS.some((unit) => unit === value);
+}
+
+function parseRecurringInterval(
+  everyValue: string | null,
+  everyUnit: string | null,
+) {
+  if (!everyValue || !everyUnit || !isRecurringIntervalUnit(everyUnit)) {
+    return {
+      everyValue: DEFAULT_RECURRING_EVERY_VALUE,
+      everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
+    };
+  }
+
+  const parsedEveryValue = parsePositiveInteger(everyValue);
+  if (
+    parsedEveryValue === undefined ||
+    parsedEveryValue > RECURRING_EVERY_MAX_BY_UNIT[everyUnit]
+  ) {
+    return {
+      everyValue: DEFAULT_RECURRING_EVERY_VALUE,
+      everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
+    };
+  }
+
+  return { everyValue, everyUnit };
+}
+
+function parseRecurringSchedule(
+  urlParams: URLSearchParams,
+): BridgeRouteParams['initialRecurringSchedule'] {
+  const everyValue = urlParams.get('every');
+  const everyUnit = urlParams.get('unit');
+  const repeatCountParam = urlParams.get('repeatCount');
+
+  if (
+    !urlParams.has('every') &&
+    !urlParams.has('unit') &&
+    !urlParams.has('repeatCount')
+  ) {
+    return undefined;
+  }
+
+  const recurringInterval = parseRecurringInterval(everyValue, everyUnit);
+  const repeatCount =
+    repeatCountParam && parsePositiveInteger(repeatCountParam) !== undefined
+      ? repeatCountParam
+      : DEFAULT_RECURRING_REPEAT_COUNT;
+  const recurringSchedule = {
+    ...recurringInterval,
+    repeatCount,
+  };
+
+  return validateRecurringSchedule({
+    ...recurringSchedule,
+    priceRange: undefined,
+  }).isValid
+    ? recurringSchedule
+    : undefined;
+}
+
 function getInitialRouteParams(
   urlParams: URLSearchParams,
 ): Partial<
@@ -203,29 +283,40 @@ function getInitialRouteParams(
     | 'initialTab'
     | 'initialLimitOrderExpirationMinutes'
     | 'initialLimitOrderPriceTolerance'
+    | 'initialRecurringSchedule'
   >
 > {
   const initialTab = getInitialTab(urlParams);
-  if (initialTab !== BridgeTabKey.Limit) {
-    return {};
+
+  if (initialTab === BridgeTabKey.Recurring) {
+    const initialRecurringSchedule = parseRecurringSchedule(urlParams);
+
+    return {
+      initialTab,
+      ...(initialRecurringSchedule && { initialRecurringSchedule }),
+    };
   }
 
-  const initialLimitOrderExpirationMinutes = parseLimitOrderExpirationMinutes(
-    urlParams.get('expiresInMinutes'),
-  );
-  const initialLimitOrderPriceTolerance = parseLimitOrderCostTolerance(
-    urlParams.get('priceTolerance'),
-  );
+  if (initialTab === BridgeTabKey.Limit) {
+    const initialLimitOrderExpirationMinutes = parseLimitOrderExpirationMinutes(
+      urlParams.get('expiresInMinutes'),
+    );
+    const initialLimitOrderPriceTolerance = parseLimitOrderCostTolerance(
+      urlParams.get('priceTolerance'),
+    );
 
-  return {
-    initialTab,
-    ...(initialLimitOrderExpirationMinutes && {
-      initialLimitOrderExpirationMinutes,
-    }),
-    ...(initialLimitOrderPriceTolerance && {
-      initialLimitOrderPriceTolerance,
-    }),
-  };
+    return {
+      initialTab,
+      ...(initialLimitOrderExpirationMinutes && {
+        initialLimitOrderExpirationMinutes,
+      }),
+      ...(initialLimitOrderPriceTolerance && {
+        initialLimitOrderPriceTolerance,
+      }),
+    };
+  }
+
+  return { initialTab };
 }
 
 /**
@@ -235,39 +326,38 @@ function getInitialRouteParams(
  * @param params.swapPath - The swap URL path containing the parameters
  *
  * @example
- * URL format: ?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000
+ * URL format: ?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&every=2&unit=week&repeatCount=8
  *
  * Parameters:
- * - tab: Optional order type. "limit" opens the Limit Order form.
+ * - tab: Optional order type. "limit" or "recurring".
  * - from: CAIP-19 asset identifier for source token
  * - to: CAIP-19 asset identifier for destination token
  * - amount: Amount in minimal divisible units (e.g., 1000000 for 1.00 USDC)
  * - expiresInMinutes: Optional Limit Order expiration preset, in minutes
  * - priceTolerance: Optional Limit Order price tolerance percentage
+ * - every: Optional Recurring Buy interval value
+ * - unit: Optional Recurring Buy interval unit
+ * - repeatCount: Optional Recurring Buy repeat count
  *
  * All parameters are optional, allows partial deep linking
  */
-const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => {
-  const tracedParams = startSwapBridgePageLoadTrace(params);
-
-  return {
-    type: 'main-stack',
-    routeName: Routes.BRIDGE.ROOT,
-    params: {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: tracedParams,
-    },
-  };
-};
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
+  type: 'main-stack',
+  routeName: Routes.BRIDGE.ROOT,
+  params: {
+    screen: Routes.BRIDGE.BRIDGE_VIEW,
+    params,
+  },
+});
 
 /**
- * Resolve the navigation target for a swap deeplink. Token metadata lookup and
+ * Resolve the Bridge params for a swap deeplink. Token metadata lookup and
  * chain enabling must complete before navigation, so this builder is async and
  * fully resolves the Bridge params up front.
  */
-const resolveSwapTarget = async (
+const resolveSwapRouteParams = async (
   swapPath: string,
-): Promise<DeeplinkIntent['target']> => {
+): Promise<BridgeRouteParams> => {
   // Parse URL parameters
   const urlParams = getSwapUrlParams(swapPath);
 
@@ -308,7 +398,7 @@ const resolveSwapTarget = async (
       ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
       : undefined;
 
-  return bridgeTarget({
+  return {
     sourceToken: sourceToken ?? undefined,
     destToken: destToken ?? undefined,
     sourceAmount: sourceAmount ?? undefined,
@@ -316,15 +406,36 @@ const resolveSwapTarget = async (
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
     ...initialRouteParams,
-  });
+  };
 };
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-}: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
-  target: await resolveSwapTarget(swapPath),
-  prepare: resetSwapSessionBeforeDeeplink,
-});
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
+  const routeParams = await resolveSwapRouteParams(swapPath);
+  const { sourceToken, destToken } = routeParams;
+  const intent: DeeplinkIntent = {
+    target: bridgeTarget(routeParams),
+    // Executors read `target` after `prepare`. Seeding tokens and starting the
+    // trace here, right before navigation, matches in-app opens.
+    prepare: () => {
+      resetSwapSessionBeforeDeeplink();
+      const { dispatch } = ReduxService.store;
+      if (sourceToken) {
+        dispatch(setSourceToken(sourceToken));
+      }
+      if (destToken) {
+        dispatch(setDestToken(destToken));
+      }
+      intent.target = bridgeTarget(
+        startSwapBridgePageLoadTrace(routeParams, {
+          appStartType: getDeeplinkProcessedAppStartType(),
+        }),
+      );
+    },
+  };
+  return intent;
+};
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));
@@ -335,12 +446,15 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
     resetSwapSessionBeforeDeeplink();
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'deeplink',
-      bridgeViewMode: BridgeViewMode.Unified,
-      location: MetaMetricsSwapsEventSource.MainView,
-      ...initialRouteParams,
-    });
+    const params = startSwapBridgePageLoadTrace(
+      {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        ...initialRouteParams,
+      },
+      { appStartType: getDeeplinkProcessedAppStartType() },
+    );
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,

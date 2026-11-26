@@ -228,6 +228,7 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+  MARKET_BREAK: 'predict-crypto-up-down-details-market-break',
   TWAP_INFO_BUTTON: 'predict-crypto-up-down-details-twap-info-button',
   TWAP_INFO_SHEET: 'predict-crypto-up-down-details-twap-info-sheet',
 } as const;

@@ -220,52 +220,7 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.received');
   });
 
-  it('formats a confirmed allowlisted incoming mUSD transfer as a VBA deposit', () => {
-    const sender = '0x000000000000000000000000000000000000000a';
-    const recipient = '0x000000000000000000000000000000000000000b';
-    const tx = makeTx(TransactionType.incoming, {
-      status: TransactionStatus.confirmed,
-      chainId: '0x8f',
-      txParams: { from: sender, to: recipient },
-      transferInformation: {
-        amount: '12345678',
-        symbol: 'mUSD',
-        decimals: 6,
-        contractAddress: MUSD_TOKEN_ADDRESS,
-      },
-    });
-    const remoteFeatureFlagController = {
-      remoteFeatureFlags: {
-        moneyVbaActivityDepositFromAddresses: [sender],
-      },
-    };
-    const state = makeState({
-      remoteFeatureFlags: remoteFeatureFlagController.remoteFeatureFlags,
-    });
-    const engineWithState = Engine as unknown as {
-      state: Record<string, unknown>;
-    };
-    engineWithState.state = {
-      ...(engineWithState.state ?? {}),
-      RemoteFeatureFlagController: remoteFeatureFlagController,
-    };
-
-    const { result, store } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, recipient),
-      { state },
-    );
-    act(() => {
-      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
-    });
-
-    expect(result.current.label).toBe('money.transaction.deposited');
-    expect(result.current.description).toBe('money.transaction.bank_transfer');
-    expect(result.current.primaryAmount).toBe('+12.35 mUSD');
-    expect(result.current.fiatAmount).toBe('+$12.35');
-    expect(result.current.showPrimaryAmount).toBe(true);
-  });
-
-  it('keeps an incoming mUSD transfer as received when the sender list is empty', () => {
+  it('keeps an incoming mUSD transfer as received with ordinary sender details', () => {
     const sender = '0x000000000000000000000000000000000000000a';
     const recipient = '0x000000000000000000000000000000000000000b';
     const tx = makeTx(TransactionType.incoming, {
@@ -286,52 +241,7 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     );
 
     expect(result.current.label).toBe('money.transaction.received');
-    expect(result.current.showPrimaryAmount).toBeUndefined();
-  });
-
-  it('updates classification when the remote sender list changes', () => {
-    const sender = '0x000000000000000000000000000000000000000a';
-    const recipient = '0x000000000000000000000000000000000000000b';
-    const tx = makeTx(TransactionType.incoming, {
-      status: TransactionStatus.confirmed,
-      chainId: '0x8f',
-      txParams: { from: sender, to: recipient },
-      transferInformation: {
-        amount: '12345678',
-        symbol: 'mUSD',
-        decimals: 6,
-        contractAddress: MUSD_TOKEN_ADDRESS,
-      },
-    });
-    const remoteFeatureFlagController = {
-      remoteFeatureFlags: {
-        moneyVbaActivityDepositFromAddresses: [sender],
-      },
-    };
-    const state = makeState({
-      remoteFeatureFlags: remoteFeatureFlagController.remoteFeatureFlags,
-    });
-    const engineWithState = Engine as unknown as {
-      state: Record<string, unknown>;
-    };
-    engineWithState.state = {
-      ...(engineWithState.state ?? {}),
-      RemoteFeatureFlagController: remoteFeatureFlagController,
-    };
-    const { result, store } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, recipient),
-      { state },
-    );
-
-    engineWithState.state = {
-      ...engineWithState.state,
-      RemoteFeatureFlagController: { remoteFeatureFlags: {} },
-    };
-    act(() => {
-      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
-    });
-
-    expect(result.current.label).toBe('money.transaction.received');
+    expect(result.current.description).toBe('money.transaction.received_from');
     expect(result.current.showPrimaryAmount).toBeUndefined();
   });
 
@@ -1193,6 +1103,37 @@ describe('useMoneyTransactionDisplayInfo — failed amount', () => {
     );
     expect(result.current.primaryAmount).toBe('-0.00 mUSD');
     expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+
+  it('shows the attempted amount without a sign for a failed fiat deposit', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: {
+        strategy: 'fiat',
+        totalFiat: '6.14',
+        bridgeFeeFiat: '1.14',
+        targetFiat: '4.96',
+      },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposit_failed');
+    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.fiatAmount).toBe('$5.00');
+  });
+
+  it('keeps the signed zero for a failed fiat deposit without a quote total', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: { strategy: 'fiat' },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.fiatAmount).toBe('+$0.00');
   });
 });
 

@@ -22,6 +22,19 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for the Collectibles development fallback. A valid remote
+ * `collectiblesEnabled` flag always wins; this flag only decides what a
+ * development build does when the remote flag is missing or invalid.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Read it through this function so callers stay testable: an
+ * inlined `process.env` lookup cannot be changed at runtime.
+ */
+export function isCollectiblesBuildEnabled(): boolean {
+  return process.env.MM_COLLECTIBLES_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
@@ -44,13 +57,19 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  rampsProvidersAheadOfHistory = 'rampsProvidersAheadOfHistory',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',
+  moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
+  moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
+  mfaUiKit = 'mfaUiKit',
+  slowNetworkBanner = 'slowNetworkBanner',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -78,4 +97,12 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.moneyVbaPendingActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
 };

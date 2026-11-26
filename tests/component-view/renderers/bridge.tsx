@@ -58,7 +58,19 @@ const RecurringSwapDetailsViewWithSession = withBridgeSession(
 
 const ScreensStack = createNativeStackNavigator();
 const BridgeProbeStack = createNativeStackNavigator();
+const LimitOrderActivityStack = createNativeStackNavigator();
 const BridgeViewParamsProbe = createRouteParamsProbe(Routes.BRIDGE.BRIDGE_VIEW);
+
+export function BridgeLimitOrderActivityNavigator() {
+  return (
+    <LimitOrderActivityStack.Navigator screenOptions={{ headerShown: false }}>
+      <LimitOrderActivityStack.Screen
+        name={Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY}
+        component={SwapsLimitOrderActivityPage}
+      />
+    </LimitOrderActivityStack.Navigator>
+  );
+}
 
 function BridgeNavigatorProbe() {
   return (
@@ -101,6 +113,12 @@ interface RenderBridgeViewOptions {
   deterministicFiat?: boolean;
 }
 
+interface RenderBridgeViewForMoneySwapOptions extends RenderBridgeViewOptions {
+  srcTokenAddress?: string;
+  destTokenAddress?: string;
+  srcAmount?: string;
+}
+
 interface RenderRecurringOrderDetailsViewOptions
   extends RenderBridgeViewOptions,
     RecurringOrderDetailsRouteParams {}
@@ -129,11 +147,71 @@ export function renderBridgeView(
   const state = builder.build();
 
   return renderComponentViewScreen(
-    BridgeViewWithSession as unknown as React.ComponentType,
+    BridgeViewWithSession,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     { state },
   );
 }
+
+const HomeTabsParamsProbe = createRouteParamsProbe(Routes.HOME_TABS);
+
+/**
+ * Home sits under Bridge, matching production. Confirm uses
+ * `navigate(HOME_TABS, ..., { pop: true })`. Starting on Bridge alone lets iOS
+ * native-stack pop the only screen and never mount Home.
+ */
+const MoneySwapHomeHost = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  React.useEffect(() => {
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+  }, [navigation]);
+
+  return <HomeTabsParamsProbe />;
+};
+
+/**
+ * BridgeView plus probes for Money home and the post-trade sheet so a confirm
+ * press can assert which destination the swap actually took.
+ */
+export const renderBridgeViewForMoneySwap = (
+  options: RenderBridgeViewForMoneySwapOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> => {
+  const {
+    overrides,
+    deterministicFiat,
+    srcTokenAddress,
+    destTokenAddress,
+    srcAmount,
+  } = options;
+
+  const builder = initialStateBridge({
+    deterministicFiat,
+  }).withBridgeRecommendedQuoteEvmSimple({
+    srcTokenAddress,
+    destTokenAddress,
+    srcAmount,
+  });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+
+  return renderScreenWithRoutes(
+    MoneySwapHomeHost,
+    { name: Routes.HOME_TABS },
+    [
+      {
+        name: Routes.BRIDGE.BRIDGE_VIEW,
+        Component: BridgeViewWithSession,
+      },
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+      },
+    ],
+    { state: builder.build() },
+  );
+};
 
 export function renderBridgeViewWithModals(
   options: RenderBridgeViewOptions = {},
@@ -170,13 +248,11 @@ export function renderBridgeViewWithRecurringOrderDetails(
     [
       {
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
-        Component:
-          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringOrderDetailsView,
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
-        Component:
-          RecurringSwapDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringSwapDetailsView,
       },
     ],
     state,
@@ -190,8 +266,7 @@ export const renderBridgeViewWithTokenSelector = (
     [
       {
         name: Routes.BRIDGE.TOKEN_SELECTOR,
-        Component:
-          BridgeTokenSelector as unknown as React.ComponentType<object>,
+        Component: BridgeTokenSelector,
       },
     ],
     state,
@@ -236,18 +311,22 @@ export function renderRecurringOrderDetailsView({
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
-        Component:
-          RecurringSwapDetailsViewWithSession as unknown as React.ComponentType<object>,
+        Component: RecurringSwapDetailsViewWithSession,
       },
       {
         name: Routes.BRIDGE.ROOT,
-        Component:
-          BridgeNavigatorProbe as unknown as React.ComponentType<object>,
+        Component: BridgeNavigatorProbe,
       },
       {
         name: Routes.WEBVIEW.MAIN,
         Component: createRouteParamsProbe(
           Routes.WEBVIEW.MAIN,
+        ) as React.ComponentType<object>,
+      },
+      {
+        name: Routes.RAMP.TOKEN_SELECTION,
+        Component: createRouteParamsProbe(
+          Routes.RAMP.TOKEN_SELECTION,
         ) as React.ComponentType<object>,
       },
     ],
@@ -279,7 +358,7 @@ export function renderOpenLimitOrderDetailsModal({
     [
       {
         name: Routes.BRIDGE.MODALS.ROOT,
-        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+        Component: BridgeModalStack,
       },
     ],
     { state },
@@ -308,12 +387,11 @@ export function renderLimitOrderTabRow({
     [
       {
         name: Routes.BRIDGE.MODALS.ROOT,
-        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+        Component: BridgeModalStack,
       },
       {
-        name: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
-        Component:
-          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>,
+        name: Routes.BRIDGE.ROOT,
+        Component: BridgeLimitOrderActivityNavigator,
       },
       {
         name: Routes.WEBVIEW.MAIN,
@@ -334,7 +412,7 @@ export function renderBlockExplorersModal(
   options: RenderBlockExplorersModalOptions,
 ): ReturnType<typeof renderScreenWithRoutes> {
   return renderScreenWithRoutes(
-    BlockExplorersModal as unknown as React.ComponentType,
+    BlockExplorersModal,
     { name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER },
     [
       {
@@ -343,6 +421,6 @@ export function renderBlockExplorersModal(
       },
     ],
     { state: options.state },
-    options.params as unknown as Record<string, unknown>,
+    options.params,
   );
 }

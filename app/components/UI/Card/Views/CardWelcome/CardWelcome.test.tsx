@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -9,23 +9,15 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
-import {
-  __fireRiveViewError,
-  __resetRiveMocks,
-  RiveErrorType,
-} from '../../../../../__mocks__/rive-app-react-native';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '10.0.0'),
+}));
 const mockUseCardPostAuthRedirect = jest.fn();
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   ...jest.requireActual('../../hooks/useCardPostAuthRedirect'),
   useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
-}));
-
-const mockUseCardEducationAnimationState = jest.fn();
-
-jest.mock('./useCardEducationAnimationState', () => ({
-  useCardEducationAnimationState: () => mockUseCardEducationAnimationState(),
 }));
 
 // Mocks
@@ -79,8 +71,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const createTestStore = (
   initialState: {
-    cardholderAccounts?: string[];
     signInLink?: Record<string, unknown> | null;
+    cardLinks?: Record<string, unknown>[] | null;
+    cardLinkApiEnabled?: boolean;
   } = {},
 ) =>
   configureStore({
@@ -89,8 +82,16 @@ const createTestStore = (
         state = {
           backgroundState: {
             CardController: {
-              cardholderAccounts: initialState.cardholderAccounts ?? [],
               signInLink: initialState.signInLink ?? null,
+              cardLinks: initialState.cardLinks ?? null,
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardLinkApi: {
+                  enabled: initialState.cardLinkApiEnabled ?? false,
+                  minimumVersion: '0.0.0',
+                },
+              },
             },
           },
         },
@@ -98,15 +99,26 @@ const createTestStore = (
     },
   });
 
+const cardLinkRow = (
+  provider: 'baanx' | 'immersve',
+  status: 'onboarding' | 'active' | 'closed',
+) => ({
+  provider,
+  status,
+  linkedAccountRef: null,
+  closedReason: null,
+  migratedToProvider: null,
+  linkedAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z',
+});
+
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
   let setBarStyleSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    __resetRiveMocks();
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
-    mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockAddListener.mockClear();
@@ -137,7 +149,7 @@ describe('CardWelcome', () => {
 
   describe('Render', () => {
     beforeEach(() => {
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
     });
 
     it('renders required UI elements', () => {
@@ -197,107 +209,6 @@ describe('CardWelcome', () => {
     });
   });
 
-  describe('Cards animation states', () => {
-    beforeEach(() => {
-      store = createTestStore({ cardholderAccounts: [] });
-    });
-
-    it("renders neither the Rive animation nor the static image while 'pending'", () => {
-      mockUseCardEducationAnimationState.mockReturnValue('pending');
-
-      const { queryByTestId } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(
-        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it("renders the Rive animation when the state is 'animate'", () => {
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-
-      const { getByTestId, queryByTestId } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(
-        getByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it("renders the static image when the state is 'static'", () => {
-      mockUseCardEducationAnimationState.mockReturnValue('static');
-
-      const { getByTestId, queryByTestId } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
-      expect(
-        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders the title and description in every animation state', () => {
-      (['pending', 'animate', 'static'] as const).forEach((state) => {
-        mockUseCardEducationAnimationState.mockReturnValue(state);
-
-        const { getByTestId, unmount } = render(
-          <Provider store={store}>
-            <CardWelcome />
-          </Provider>,
-        );
-
-        expect(
-          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
-        ).toBeOnTheScreen();
-
-        unmount();
-      });
-    });
-  });
-
-  describe('Rive fallback', () => {
-    it('swaps to the static card image when the cards animation reports a Rive error', () => {
-      store = createTestStore({ cardholderAccounts: [] });
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-
-      const { getByTestId, queryByTestId } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      act(() => {
-        __fireRiveViewError({
-          message: 'failed to load',
-          type: RiveErrorType.MalformedFile,
-        });
-      });
-
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
-      expect(
-        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('Interactions', () => {
     it('navigates back when "Not Now" is pressed', () => {
       store = createTestStore();
@@ -315,7 +226,7 @@ describe('CardWelcome', () => {
 
   describe('Navigation Flow', () => {
     it('navigates to onboarding root when verify account button pressed (Non-cardholder)', () => {
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
           <CardWelcome />
@@ -335,7 +246,8 @@ describe('CardWelcome', () => {
 
     it('navigates to authentication when verify account button pressed (Cardholder)', () => {
       store = createTestStore({
-        cardholderAccounts: ['0x1234567890abcdef'],
+        cardLinkApiEnabled: true,
+        cardLinks: [cardLinkRow('baanx', 'active')],
       });
       const { getByTestId } = render(
         <Provider store={store}>
@@ -354,9 +266,73 @@ describe('CardWelcome', () => {
       );
     });
 
+    describe('when cardLinkApi is on', () => {
+      it('navigates to authentication for a stored active link', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardLinks: [cardLinkRow('immersve', 'active')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          undefined,
+        );
+      });
+
+      it('sends a user whose only link is closed to onboarding', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardLinks: [cardLinkRow('baanx', 'closed')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          undefined,
+        );
+      });
+
+      it('sends a user with no stored links to onboarding', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardLinks: [],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          undefined,
+        );
+      });
+    });
+
     it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
       store = createTestStore({
-        cardholderAccounts: [],
         signInLink: {
           providerId: 'immersve',
           status: 'linked',
@@ -380,7 +356,7 @@ describe('CardWelcome', () => {
 
     it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
           <CardWelcome />
@@ -397,7 +373,8 @@ describe('CardWelcome', () => {
     it('forwards postAuthRedirect to authentication when opened from Money (cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
       store = createTestStore({
-        cardholderAccounts: ['0x1234567890abcdef'],
+        cardLinkApiEnabled: true,
+        cardLinks: [cardLinkRow('baanx', 'active')],
       });
       const { getByTestId } = render(
         <Provider store={store}>
@@ -418,21 +395,21 @@ describe('CardWelcome', () => {
       store = createTestStore();
     });
 
-    it('applies light status bar and registers a transitionEnd listener on focus', () => {
+    it('applies a dark status bar and registers a transitionEnd listener on focus', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
       expect(mockAddListener).toHaveBeenCalledWith(
         'transitionEnd',
         expect.any(Function),
       );
     });
 
-    it('reapplies the light status bar when a non-closing transition ends', () => {
+    it('reapplies the dark status bar when a non-closing transition ends', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
@@ -444,10 +421,10 @@ describe('CardWelcome', () => {
 
       handleTransitionEnd({ data: { closing: false } });
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
 
-    it('reapplies the light status bar when transition event has no data', () => {
+    it('reapplies the dark status bar when transition event has no data', () => {
       render(
         <Provider store={store}>
           <CardWelcome />
@@ -459,10 +436,10 @@ describe('CardWelcome', () => {
 
       handleTransitionEnd();
 
-      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
 
-    it('does not reapply the light status bar when the transition is closing', () => {
+    it('does not reapply the dark status bar when the transition is closing', () => {
       render(
         <Provider store={store}>
           <CardWelcome />

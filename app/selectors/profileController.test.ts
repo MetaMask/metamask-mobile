@@ -3,6 +3,7 @@ import {
   selectProfileControllerState,
   selectProfileControllerProfile,
   selectProfileControllerLinkedEvmAddress,
+  selectIsProfileTradingActivityPrivate,
   selectProfileControllerXProfile,
   selectIsConnectedToX,
 } from './profileController';
@@ -92,6 +93,11 @@ describe('profileController selectors', () => {
 
       expect(result).toBeNull();
     });
+
+    it('returns null when linkedAddresses is missing', () => {
+      expect(getLinkedEvmAddress(undefined)).toBeNull();
+      expect(getLinkedEvmAddress(null)).toBeNull();
+    });
   });
 
   describe('selectProfileControllerLinkedEvmAddress', () => {
@@ -116,10 +122,41 @@ describe('profileController selectors', () => {
       expect(selectProfileControllerLinkedEvmAddress(state)).toBeNull();
     });
 
+    it('returns null when a persisted profile omits linkedAddresses', () => {
+      expect(
+        selectProfileControllerLinkedEvmAddress(
+          buildState({
+            profile: { ...COMPLETE_PROFILE, linkedAddresses: undefined },
+          }),
+        ),
+      ).toBeNull();
+    });
+
     it('returns null when no profile has been created', () => {
       expect(
         selectProfileControllerLinkedEvmAddress(buildState(null)),
       ).toBeNull();
+    });
+  });
+
+  describe('selectIsProfileTradingActivityPrivate', () => {
+    it('returns true for an existing private profile', () => {
+      const state = buildState({
+        profile: { ...COMPLETE_PROFILE, tradingPrivacy: 'private' },
+      });
+
+      expect(selectIsProfileTradingActivityPrivate(state)).toBe(true);
+    });
+
+    it('returns false for a public or missing profile', () => {
+      expect(
+        selectIsProfileTradingActivityPrivate(
+          buildState({ profile: COMPLETE_PROFILE }),
+        ),
+      ).toBe(false);
+      expect(selectIsProfileTradingActivityPrivate(buildState(null))).toBe(
+        false,
+      );
     });
   });
 

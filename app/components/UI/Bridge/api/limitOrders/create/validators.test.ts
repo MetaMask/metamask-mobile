@@ -5,7 +5,7 @@ import {
 
 const ASSET = {
   assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   decimals: 18,
 };
 
@@ -80,6 +80,22 @@ describe('parseCreateLimitOrderResponse', () => {
     };
 
     expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
+  it('accepts the price tolerance the order was placed with', () => {
+    const response = {
+      order: { ...MINIMAL_RESPONSE.order, priceTolerance: 2.5 },
+    };
+
+    expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
+  it('rejects a price tolerance that is not a number', () => {
+    expect(() =>
+      parseCreateLimitOrderResponse({
+        order: { ...MINIMAL_RESPONSE.order, priceTolerance: '2.5' },
+      }),
+    ).toThrow(/Invalid create limit order response/u);
   });
 
   it('rejects a transaction hash that is not hex', () => {

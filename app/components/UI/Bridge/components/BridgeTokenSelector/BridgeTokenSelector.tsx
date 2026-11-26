@@ -43,7 +43,6 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  FeatureId,
   formatChainIdToCaip,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
@@ -52,7 +51,6 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -67,6 +65,7 @@ import WatchlistEmptyDark from '../../../../../images/watchlist-empty-dark.svg';
 import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
+import { TokenSelectorMoneyItem } from '../TokenSelectorMoneyItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { type BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
@@ -83,7 +82,7 @@ import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
-import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { getBridgeTokenBadgeLabel } from '../../utils/getBridgeTokenBadgeLabel';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -100,6 +99,13 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useMoneyToken } from '../../hooks/useBridgeMoneyToken';
+import {
+  getBridgeTokenSelectorRowKey,
+  isBridgeTokenSelectorRowSelected,
+} from './bridgeTokenSelectorRow';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -130,6 +136,12 @@ export interface BridgeTokenSelectorContentProps {
    */
   hostManagesNetworkFilter?: boolean;
   /**
+   * Seeds the search query on mount, for hosts that unmount the picker while
+   * the user changes network and want the query restored.
+   */
+  initialSearchString?: string;
+  onSearchStringChange?: (searchString: string) => void;
+  /**
    * Scroll component for the token list. Hosts that render the picker inside a
    * bottom sheet pass a gesture-handler ScrollView so list scrolling does not
    * fight the sheet's drag-to-dismiss gesture.
@@ -145,7 +157,7 @@ interface BridgeTokenSelectorRowProps {
   token: BridgeToken;
   isSelected: boolean;
   isNoFeeAsset: boolean;
-  showStockBadge: boolean;
+  badgeLabel?: string;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -155,7 +167,7 @@ const BridgeTokenSelectorRow = React.memo(
     token,
     isSelected,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -171,6 +183,23 @@ const BridgeTokenSelectorRow = React.memo(
       [token.chainId],
     );
 
+    if (token.isMoneyToken) {
+      return (
+        <TokenSelectorMoneyItem
+          token={token}
+          isSelected={isSelected}
+          onPress={onTokenPress}
+        >
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            onPress={handleInfoPress}
+            iconProps={{ color: IconColor.IconAlternative }}
+          />
+        </TokenSelectorMoneyItem>
+      );
+    }
+
     return (
       <TokenSelectorItem
         token={token}
@@ -178,7 +207,7 @@ const BridgeTokenSelectorRow = React.memo(
         onPress={onTokenPress}
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
-        showStockBadge={showStockBadge}
+        badgeLabel={badgeLabel}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -253,15 +282,21 @@ export const BridgeTokenSelectorContent: React.FC<
   onOpenNetworkList,
   renderScrollComponent,
   hostManagesNetworkFilter = false,
+  initialSearchString = '',
+  onSearchStringChange,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [searchString, setSearchString] = useState<string>('');
+  const [searchString, setSearchString] = useState<string>(initialSearchString);
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  useEffect(() => {
+    onSearchStringChange?.(searchString);
+  }, [searchString, onSearchStringChange]);
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
@@ -364,7 +399,9 @@ export const BridgeTokenSelectorContent: React.FC<
   }, [hostManagesNetworkFilter, dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
-  const shouldResearchAfterChainChange = useRef(false);
+  const shouldResearchAfterChainChange = useRef(
+    initialSearchString.trim().length >= MIN_SEARCH_LENGTH,
+  );
 
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
@@ -496,6 +533,8 @@ export const BridgeTokenSelectorContent: React.FC<
     includeAssets: searchIncludeAssets,
     enabled: !balanceOnly,
   });
+
+  const moneyToken = useMoneyToken({ type });
 
   const balanceOnlyTokens = useMemo(
     () =>
@@ -681,7 +720,7 @@ export const BridgeTokenSelectorContent: React.FC<
     ],
   );
 
-  const displayData = useMemo(() => {
+  const assetDisplayData = useMemo(() => {
     if (isWatchlistListMode && isWatchlistLoading) {
       return Array(8).fill(null);
     }
@@ -739,6 +778,21 @@ export const BridgeTokenSelectorContent: React.FC<
     watchlistMergedSearchResults,
     validTokens,
   ]);
+
+  const displayData = useMemo(() => {
+    const query = searchString.trim().toLowerCase();
+    const moneyMatchesSearch =
+      moneyToken &&
+      [moneyToken.name, moneyToken.symbol, moneyToken.address].some((value) =>
+        value?.toLowerCase().includes(query),
+      );
+
+    if (!moneyMatchesSearch) {
+      return assetDisplayData;
+    }
+
+    return [moneyToken, ...assetDisplayData];
+  }, [moneyToken, assetDisplayData, searchString]);
 
   const showWatchlistEmptyCta =
     isWatchlistListMode &&
@@ -941,9 +995,7 @@ export const BridgeTokenSelectorContent: React.FC<
         return <SkeletonItem />;
       }
 
-      const isSelected =
-        selectedToken?.address === item.address &&
-        selectedToken?.chainId === item.chainId;
+      const isSelected = isBridgeTokenSelectorRowSelected(selectedToken, item);
 
       return (
         <BridgeTokenSelectorRow
@@ -952,7 +1004,7 @@ export const BridgeTokenSelectorContent: React.FC<
           onTokenPress={(token) => handleWatchlistTokenPress(token, index)}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
-          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          badgeLabel={getBridgeTokenBadgeLabel(item, isRWAEnabled)}
         />
       );
     },
@@ -963,12 +1015,6 @@ export const BridgeTokenSelectorContent: React.FC<
       getIsNoFeeAsset,
       isRWAEnabled,
     ],
-  );
-
-  const keyExtractor = useCallback(
-    (item: BridgeToken | null, index: number) =>
-      item ? `${item.chainId}-${item.address}` : `skeleton-${index}`,
-    [],
   );
 
   // Load more results when user scrolls to the bottom
@@ -1097,7 +1143,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}
@@ -1131,7 +1177,7 @@ export const BridgeTokenSelectorContent: React.FC<
           contentContainerStyle={styles.tokensListContainer}
           data={displayData}
           renderItem={renderToken}
-          keyExtractor={keyExtractor}
+          keyExtractor={getBridgeTokenSelectorRowKey}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
           showsHorizontalScrollIndicator={false}
@@ -1149,6 +1195,7 @@ export const BridgeTokenSelectorContent: React.FC<
 };
 
 export const BridgeTokenSelector: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
@@ -1169,7 +1216,9 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
         includesTopInset

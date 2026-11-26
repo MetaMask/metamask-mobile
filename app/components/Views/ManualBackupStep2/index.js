@@ -6,10 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { Pressable } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -26,7 +23,6 @@ import {
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { connect } from 'react-redux';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
@@ -69,11 +65,6 @@ const ManualBackupStep2 = ({
   const settingsBackup = route?.params?.settingsBackup;
 
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -413,8 +404,8 @@ const ManualBackupStep2 = ({
       style={tw.style('flex-1 bg-default')}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         onBack={() => navigation.goBack()}
         backButtonProps={{
@@ -422,14 +413,12 @@ const ManualBackupStep2 = ({
         }}
       />
       <Box
-        twClassName="flex-1 px-4 gap-4"
-        style={{ marginTop: headerInset }}
+        twClassName="flex-1 px-4 gap-6"
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <TitleStandard
           title={strings('manual_backup_step_2.action')}
           bottomLabel={strings('manual_backup_step_2.info')}
-          twClassName="mb-2"
         />
         <Box twClassName="flex-1 gap-4">
           {renderGrid()}

@@ -43,11 +43,13 @@ import {
   PERPS_EVENT_VALUE,
   OrderDirection,
   getPerpsDisplaySymbol,
+  type MarginModeLockReason,
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
+  type OrderEditRejection,
   type PerpsErrorInput,
 } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
@@ -149,7 +151,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      editFailed: (error?: string) => PerpsToastOptions;
+      editFailed: (rejection?: OrderEditRejection) => PerpsToastOptions;
     };
     chase: {
       submitted: (
@@ -246,6 +248,7 @@ export interface PerpsToastOptionsConfig {
     orderForm: {
       validationError: (error: string) => PerpsToastOptions;
       limitPriceRequired: PerpsToastOptions;
+      marginModeLocked: (reason: MarginModeLockReason) => PerpsToastOptions;
     };
   };
   dataFetching: {
@@ -718,16 +721,19 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          editFailed: (error?: string) => ({
+          editFailed: (rejection?: OrderEditRejection) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_update_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.order_update_failed_subtitle',
-                ),
-              }),
+              rejection?.reason === 'post_only_would_cross' &&
+                rejection.originalOrder === 'cancelled'
+                ? strings('perps.order.order_update_post_only_would_cross')
+                : handlePerpsError({
+                    error: rejection?.error,
+                    fallbackMessage: strings(
+                      'perps.order.order_update_failed_subtitle',
+                    ),
+                  }),
             ),
           }),
         },
@@ -1227,6 +1233,16 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
               error, // Pass through directly - validation errors are already localized
+            ),
+          }),
+          marginModeLocked: (reason: MarginModeLockReason) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings(
+                reason === 'open_order'
+                  ? 'perps.margin_mode.locked_by_open_order'
+                  : 'perps.margin_mode.locked_by_position',
+              ),
             ),
           }),
           limitPriceRequired: {

@@ -466,6 +466,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       pnlPerChain: {},
       followerCount: myProfile.followerCount ?? 0,
       isFollowing: false,
+      xHandle: myProfile.xHandle ?? null,
+      verified: myProfile.verified === true,
       displayMetric: getTraderMetricDisplay(
         {
           id: myProfile.profileId,

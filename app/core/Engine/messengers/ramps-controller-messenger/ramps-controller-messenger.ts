@@ -13,6 +13,11 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
 import { RootMessenger } from '../../types';
 
 type AllowedActions = MessengerActions<RampsControllerMessenger>;
@@ -60,8 +65,10 @@ export type RampsControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the init messenger for the RampsController. Scoped to actions
- * needed during initialization (reading feature flags).
+ * Get the init messenger for the RampsController. Scoped to what is needed
+ * during initialization and by the init wiring: reading feature flags,
+ * reading the keyring lock state, and the keyring lock and unlock events that
+ * gate order polling.
  *
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.
@@ -69,9 +76,11 @@ export type RampsControllerInitMessenger = ReturnType<
 export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
+    RemoteFeatureFlagControllerGetStateAction | KeyringControllerGetStateAction,
     | RampsControllerOrderStatusChangedEvent
-    | RemoteFeatureFlagControllerStateChangeEvent,
+    | RemoteFeatureFlagControllerStateChangeEvent
+    | KeyringControllerLockEvent
+    | KeyringControllerUnlockEvent,
     RootMessenger
   >({
     namespace: 'RampsControllerInit',
@@ -79,9 +88,15 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   });
 
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'KeyringController:getState',
+    ],
     events: [
       'RampsController:orderStatusChanged',
+      // Order polling only runs while the wallet is unlocked.
+      'KeyringController:lock',
+      'KeyringController:unlock',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
     ],
     messenger,

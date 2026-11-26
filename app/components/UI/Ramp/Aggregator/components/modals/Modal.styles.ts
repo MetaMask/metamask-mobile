@@ -44,7 +44,7 @@ const createModalStyles = (colors: Colors) =>
     },
     emptyList: {
       marginVertical: 10,
-      marginHorizontal: 30,
+      marginHorizontal: 32,
     },
     listItem: {
       paddingHorizontal: 24,

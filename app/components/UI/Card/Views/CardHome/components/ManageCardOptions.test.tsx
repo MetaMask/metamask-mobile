@@ -1,6 +1,8 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import ManageCardOptions from './ManageCardOptions';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
 import {
@@ -72,6 +74,9 @@ const renderComponent = (
     showTransactionHistoryDuringSetup?: boolean;
     hasPriorityTokenBalance?: boolean;
     hasAlertOnlyState?: boolean;
+    isAuthenticated?: boolean;
+    showHowToUseApplePay?: boolean;
+    hiddenQuickActionRows?: CardHomeActionVisibility;
   } = {},
 ) =>
   render(
@@ -80,7 +85,7 @@ const renderComponent = (
       account={{ verificationStatus: 'VERIFIED' } as never}
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
-      isAuthenticated
+      isAuthenticated={overrides.isAuthenticated ?? true}
       isLoading={false}
       hasSetupActions={overrides.hasSetupActions ?? false}
       hasAlertOnlyState={overrides.hasAlertOnlyState ?? false}
@@ -98,6 +103,7 @@ const renderComponent = (
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
+      showHowToUseApplePay={overrides.showHowToUseApplePay}
       showUnlinkMoneyAccount={overrides.showUnlinkMoneyAccount ?? false}
       onUnlinkMoneyAccount={jest.fn()}
       showRevokeAllowance={overrides.showRevokeAllowance ?? false}
@@ -107,6 +113,7 @@ const renderComponent = (
       isSpendingLimitActive
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
+      hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
@@ -294,6 +301,110 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
       queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
     ).not.toBeOnTheScreen();
   });
+
+  it('shows How to use Apple Pay first when the card is on every device', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+    const onHowToUseApplePay = jest.fn();
+    const { getByTestId, toJSON } = render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: true })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="international"
+        isFrozen={false}
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showDigitalWalletInstructions={false}
+        onDigitalWalletInstructions={jest.fn()}
+        showHowToUseApplePay
+        onHowToUseApplePay={onHowToUseApplePay}
+        onContactDetails={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance={false}
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    const rendered = JSON.stringify(toJSON());
+    expect(
+      rendered.indexOf(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+    ).toBeLessThan(rendered.indexOf(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+    fireEvent.press(getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM));
+    expect(onHowToUseApplePay).toHaveBeenCalledTimes(1);
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it('hides how to use Apple Wallet when the card is not in the wallet', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: false },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it('hides how to use Apple Wallet on Android', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'android', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: true },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it.each([
+    ['setup is still in progress', { hasSetupActions: true }],
+    ['the user is unauthenticated', { isAuthenticated: false }],
+  ])('hides how to use Apple Wallet when %s', (_label, overrides) => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: true, ...overrides },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
 });
 
 describe('ManageCardOptions view/hide card details label', () => {
@@ -394,18 +505,61 @@ describe('ManageCardOptions view PIN gating', () => {
   });
 });
 
+describe('ManageCardOptions quick-action row seam', () => {
+  it('hides the View details, View PIN and Freeze rows when the quick-action row covers them', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: true } },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    // The freeze row mock drops the toggle's rightElement, so assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeNull();
+  });
+
+  it('hides only the rows whose tile is showing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: false } },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    expect(getByTestId('freeze-card-list-item')).toBeOnTheScreen();
+  });
+
+  it('keeps the rows when the quick-action row is not showing them', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: false, pin: false, freeze: false } },
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+    // The toggle testID is not exposed by the row mock; assert the row.
+    expect(queryByTestId('freeze-card-list-item')).toBeOnTheScreen();
+  });
+});
+
 describe('ManageCardOptions transaction history gating', () => {
-  it('shows transaction history when fully set up and a destination is available', () => {
+  it('hides transaction history when fully set up because history lives in the Activity segment', () => {
     const onTransactionHistory = jest.fn();
 
-    const { getByTestId } = renderComponent(
+    const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: false }),
       { onTransactionHistory },
     );
 
     expect(
-      getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
-    ).toBeOnTheScreen();
+      queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+    ).toBeNull();
   });
 
   it('hides transaction history during setup without the Immersve override', () => {

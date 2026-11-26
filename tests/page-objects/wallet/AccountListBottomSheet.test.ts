@@ -2,10 +2,16 @@ jest.mock('../../framework/Gestures', () => ({
   __esModule: true,
   default: {
     scrollIntoView: jest.fn(),
+    scrollIntoViewFullyVisible: jest.fn(),
     waitAndTap: jest.fn(),
     swipe: jest.fn(),
     longPress: jest.fn(),
   },
+}));
+
+jest.mock('../../framework/AppiumUtilities', () => ({
+  ...jest.requireActual('../../framework/AppiumUtilities'),
+  isOptionalElementVisible: jest.fn(),
 }));
 
 jest.mock('../../framework', () => ({
@@ -26,6 +32,7 @@ jest.mock('../../framework', () => ({
 }));
 
 import Gestures from '../../framework/Gestures';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import { Utilities, type AppiumElement } from '../../framework';
 import AccountListBottomSheet from './AccountListBottomSheet';
 
@@ -79,15 +86,19 @@ describe('AccountListBottomSheet account creation visibility', () => {
     it('taps Add account when no row exists and waits for the named row', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 3');
 
-      expect(tapAddAccountButtonV2).toHaveBeenCalledWith(undefined);
+      expect(tapAddAccountButtonV2).toHaveBeenCalledWith({
+        srpIndex: undefined,
+        shouldWait: undefined,
+        syncTimeoutMs: 25_000,
+      });
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 3', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 3 visible after Add account',
       });
       expect(Utilities.executeWithRetry).toHaveBeenCalledWith(
         expect.any(Function),
         {
-          timeout: 50000,
+          timeout: 120_000,
           interval: 1000,
           description: 'Add account and expect "Account 3" visible',
         },
@@ -101,12 +112,12 @@ describe('AccountListBottomSheet account creation visibility', () => {
 
       expect(tapAddAccountButtonV2).not.toHaveBeenCalled();
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 3', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 3 visible after Add account',
       });
     });
 
-    it('forwards srp index and wait flag only to the Add account tap', async () => {
+    it('forwards srp index and wait flag to the Add account tap with a capped sync budget', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 3', {
         srpIndex: 1,
         shouldWait: true,
@@ -115,14 +126,15 @@ describe('AccountListBottomSheet account creation visibility', () => {
       expect(tapAddAccountButtonV2).toHaveBeenCalledWith({
         srpIndex: 1,
         shouldWait: true,
+        syncTimeoutMs: 25_000,
       });
       expect(Utilities.executeWithRetry).toHaveBeenCalledWith(
         expect.any(Function),
-        expect.objectContaining({ timeout: 50000 }),
+        expect.objectContaining({ timeout: 120_000 }),
       );
     });
 
-    it('uses the caller timeout for the retry and keeps the inner visibility wait at 15s', async () => {
+    it('uses the caller timeout for the retry and keeps a 20s inner visibility wait', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 2', {
         timeout: 12000,
       });
@@ -136,7 +148,7 @@ describe('AccountListBottomSheet account creation visibility', () => {
         }),
       );
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 2', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 2 visible after Add account',
       });
     });
@@ -151,6 +163,96 @@ describe('AccountListBottomSheet account creation visibility', () => {
       ).rejects.toThrow('No account row found for "Account 3"');
 
       expect(tapAddAccountButtonV2).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('tapAddAccountButtonV2', () => {
+    it('scrolls with the account-list container when Add account is not visible', async () => {
+      const preScrollTarget = createCell();
+      const postScrollTarget = createCell();
+      const scrollable = createCell();
+      const scrollIntoViewFullyVisible = jest.mocked(
+        Gestures.scrollIntoViewFullyVisible,
+      );
+      const waitAndTap = jest.mocked(Gestures.waitAndTap);
+      jest.mocked(isOptionalElementVisible).mockResolvedValue(false);
+      jest
+        .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
+        .mockResolvedValue();
+      const getAddAccountButtonTapTarget = jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAddAccountButtonTapTarget: (
+              srpIndex: number,
+            ) => Promise<AppiumElement>;
+          },
+          'getAddAccountButtonTapTarget',
+        )
+        .mockResolvedValueOnce(preScrollTarget)
+        .mockResolvedValueOnce(postScrollTarget);
+      jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAccountListScrollable: () => Promise<AppiumElement>;
+          },
+          'getAccountListScrollable',
+        )
+        .mockResolvedValue(scrollable);
+      scrollIntoViewFullyVisible.mockResolvedValue();
+      waitAndTap.mockResolvedValue();
+
+      await AccountListBottomSheet.tapAddAccountButtonV2({
+        syncTimeoutMs: 25_000,
+      });
+
+      expect(scrollIntoViewFullyVisible).toHaveBeenCalledWith(
+        expect.any(Promise),
+        {
+          direction: 'down',
+          maxScrolls: 10,
+          scrollableElement: scrollable,
+        },
+      );
+      expect(getAddAccountButtonTapTarget).toHaveBeenCalledTimes(2);
+      expect(waitAndTap).toHaveBeenCalledWith(
+        expect.any(Promise),
+        expect.objectContaining({
+          elemDescription: 'Add Account button in V2 multichain accounts',
+        }),
+      );
+      expect(
+        scrollIntoViewFullyVisible.mock.invocationCallOrder[0],
+      ).toBeLessThan(waitAndTap.mock.invocationCallOrder[0]);
+    });
+
+    it('skips scroll when Add account is already visible', async () => {
+      const tapTarget = createCell();
+      const scrollIntoViewFullyVisible = jest.mocked(
+        Gestures.scrollIntoViewFullyVisible,
+      );
+      const waitAndTap = jest.mocked(Gestures.waitAndTap);
+      jest.mocked(isOptionalElementVisible).mockResolvedValue(true);
+      jest
+        .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
+        .mockResolvedValue();
+      jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAddAccountButtonTapTarget: (
+              srpIndex: number,
+            ) => Promise<AppiumElement>;
+          },
+          'getAddAccountButtonTapTarget',
+        )
+        .mockResolvedValue(tapTarget);
+      waitAndTap.mockResolvedValue();
+
+      await AccountListBottomSheet.tapAddAccountButtonV2({
+        syncTimeoutMs: 25_000,
+      });
+
+      expect(scrollIntoViewFullyVisible).not.toHaveBeenCalled();
+      expect(waitAndTap).toHaveBeenCalled();
     });
   });
 

@@ -29,6 +29,7 @@ import {
   selectAccountGroupWithInternalAccounts,
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../selectors/settings';
 import { selectStablecoins } from '../../../../selectors/featureFlagController/stableTokens';
 import type { RootState } from '../../../../reducers';
@@ -106,6 +107,9 @@ type AssetsBalanceState = ReturnType<typeof getAssetsBalance>;
 type AssetsInfoState = ReturnType<typeof getAssetsInfo>;
 type AssetsPriceState = ReturnType<typeof getAssetsPrice>;
 type AssetPreferencesState = ReturnType<typeof getAssetPreferences>;
+type NetworkConfigurationsState = ReturnType<
+  typeof selectNetworkConfigurations
+>;
 
 /**
  * A held asset with every piece of controller state it needs joined onto it:
@@ -179,8 +183,10 @@ const selectAccountsByAccountGroupId = createSelector(
  * decoration, so `decorateAsset` never does work it has to throw away:
  * assets the user hid (`assetPreferences` is keyed by asset ID alone, so
  * hiding applies across every account), assets with a balance but no metadata
- * or an unparseable ID, which cannot be rendered, and the chain-specific
- * ERC-20s that duplicate a native gas token.
+ * or an unparseable ID, which cannot be rendered, the chain-specific
+ * ERC-20s that duplicate a native gas token, and assets on chains the user has
+ * not configured (e.g. a removed network whose balances the accounts API still
+ * reports), which cannot be transacted on.
  *
  * Iterating `assetsBalance[accountId]` matches the controller's own notion of
  * which assets an account holds -- `getAccountAssetsByScope` walks exactly
@@ -195,6 +201,7 @@ const selectAssetsByAccountGroupId = createSelector(
     getAssetsInfo,
     getAssetPreferences,
     getAssetsPrice,
+    selectNetworkConfigurations,
   ],
   (
     accounts: AccountRef[],
@@ -202,6 +209,7 @@ const selectAssetsByAccountGroupId = createSelector(
     assetsInfo: AssetsInfoState,
     assetPreferences: AssetPreferencesState,
     assetsPrice: AssetsPriceState,
+    networkConfigurations: NetworkConfigurationsState,
   ): BaseAsset[] => {
     const entries: BaseAsset[] = [];
 
@@ -225,13 +233,19 @@ const selectAssetsByAccountGroupId = createSelector(
           continue;
         }
 
-        const parsed = parseCaipAsset(typedAssetId);
+        const parsed = parseCaipAsset(typedAssetId, metadata);
 
         if (!parsed) {
           continue;
         }
 
         const { address, chainId, isEvm, isNative } = parsed;
+
+        // EVM keys are hex and non-EVM keys are CAIP, matching the `chainId`
+        // shape `parseCaipAsset` produces.
+        if (!networkConfigurations[chainId]) {
+          continue;
+        }
 
         if (isExcludedAsset(typedAssetId, parsed)) {
           continue;
@@ -506,6 +520,7 @@ function decorateAsset({
         : undefined,
     assetId: publicAssetId,
     balance: amount,
+    caipAssetId: assetId,
     balanceInSelectedCurrency: formatFiat(displayBalance, displayCurrency),
     balanceInSelectedCurrencyAmount: displayBalance,
     chainId,
@@ -537,7 +552,10 @@ function decorateAsset({
  * needs. Returns `undefined` for IDs that cannot be parsed rather than
  * throwing, so one malformed entry cannot break the whole list.
  */
-function parseCaipAsset(assetId: CaipAssetType): ParsedCaipAsset | undefined {
+function parseCaipAsset(
+  assetId: CaipAssetType,
+  metadata: AssetMetadata,
+): ParsedCaipAsset | undefined {
   try {
     const {
       chainId: caipChainId,
@@ -547,7 +565,10 @@ function parseCaipAsset(assetId: CaipAssetType): ParsedCaipAsset | undefined {
 
     const [namespace, reference] = caipChainId.split(':');
     const isEvm = namespace === 'eip155';
-    const isNative = assetNamespace === 'slip44' || assetNamespace === 'native';
+    const isNative =
+      assetNamespace === 'slip44' ||
+      assetNamespace === 'native' ||
+      metadata.type === 'native';
 
     // EVM consumers compare against hex chain IDs; non-EVM keep CAIP form.
     const chainId = isEvm ? toHex(reference) : caipChainId;

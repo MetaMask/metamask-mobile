@@ -80,7 +80,6 @@ describe('useOpenSocialPostComposer', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale',
-        shareUrl: 'https://metamask.io/social/giga-whale',
         linkedAccountId: LINKED_ID,
         linkedAccountAddress: LINKED_ADDRESS,
       },
@@ -106,6 +105,23 @@ describe('useOpenSocialPostComposer', () => {
     const options = {
       position: { positionId: 'btc-perp' } as Position,
       entryPoint: 'perps' as const,
+    };
+    const { result } = renderHook(() => useOpenSocialPostComposer(), {
+      wrapper,
+    });
+
+    result.current.openComposer(options);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POST_COMPOSER,
+      options,
+    );
+  });
+
+  it('forwards the analytics source of a blank composer as a route param', () => {
+    const options = {
+      composerEntry: 'my_profile' as const,
+      analyticsSource: 'my_profile' as const,
     };
     const { result } = renderHook(() => useOpenSocialPostComposer(), {
       wrapper,

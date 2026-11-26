@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextColor,
   TextFieldSearch,
@@ -24,6 +23,7 @@ import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
+import PerpsExchangeFilterSheet from '../../components/PerpsExchangeFilterSheet/PerpsExchangeFilterSheet';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsRecentlyViewedRail, {
@@ -50,6 +50,7 @@ import {
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -70,6 +71,7 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { orderPerpsProviderLogoIds } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
@@ -79,6 +81,8 @@ import {
   selectPerpsMode,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 // Stable empty reference so the always-mounted list header doesn't churn when
 // the Recently Viewed rail has nothing to show.
@@ -92,6 +96,7 @@ const PerpsMarketListView = ({
   showBalanceActions: propShowBalanceActions,
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles, theme } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const listContentContainerStyle = useMemo(
@@ -139,6 +144,7 @@ const PerpsMarketListView = ({
     favoritesState,
     marketTypeFilterState,
     recentlyViewedState,
+    exchangeFilterState,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -149,6 +155,17 @@ const PerpsMarketListView = ({
     defaultSortDirection,
     showZeroVolume: __DEV__,
   });
+
+  // TAT-4511: the market count is the exchange selector. The mark(s) left
+  // of the count mirror the venue filter selection — one venue selected
+  // shows its mark, all venues show both overlapped — and the count row is
+  // tappable only while the exchange filter is available (more than one
+  // venue). Flag off leaves the plain count, exactly as before. The marks
+  // are re-ordered to the canonical stack (Hyperliquid first, Lighter on
+  // top) so a saved selection does not flip the overlap versus first load.
+  const marketCountLogoIds = exchangeFilterState?.isVisible
+    ? orderPerpsProviderLogoIds(exchangeFilterState.selectedProviderIds)
+    : undefined;
 
   const { searchQuery, setSearchQuery } = searchState;
 
@@ -166,6 +183,12 @@ const PerpsMarketListView = ({
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
+
+  // TAT-4407: venue filter sheet for the markets list. The trigger is only
+  // shown when more than one venue is available, and saving persists the
+  // selection across restarts. Positions and orders always show every provider.
+  const [isExchangeFilterSheetVisible, setIsExchangeFilterSheetVisible] =
+    useState(false);
 
   const { track } = usePerpsEventTracking();
 
@@ -842,8 +865,14 @@ const PerpsMarketListView = ({
             marketTypeFilter={marketTypeFilter}
             onCategorySelect={handleCategorySelect}
             marketCount={visibleWatchlistMarkets.length}
+            providerIds={marketCountLogoIds}
             isWatchlistSelected={showFavoritesOnly}
             showCategoryRow={false}
+            onExchangeFilterPress={
+              exchangeFilterState?.isVisible
+                ? () => setIsExchangeFilterSheetVisible(true)
+                : undefined
+            }
             testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
           />
           <PerpsWatchlistMarkets
@@ -936,8 +965,14 @@ const PerpsMarketListView = ({
         marketTypeFilter={marketTypeFilter}
         onCategorySelect={handleCategorySelect}
         marketCount={filteredMarkets.length}
+        providerIds={marketCountLogoIds}
         isWatchlistSelected={showFavoritesOnly}
         showCategoryRow={false}
+        onExchangeFilterPress={
+          exchangeFilterState?.isVisible
+            ? () => setIsExchangeFilterSheetVisible(true)
+            : undefined
+        }
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
       />
     );
@@ -969,7 +1004,9 @@ const PerpsMarketListView = ({
 
   return (
     <View style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
@@ -990,6 +1027,7 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
+            inputAccessibilityLabel={strings('perps.search_by_token_symbol')}
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
             }}
@@ -1015,6 +1053,7 @@ const PerpsMarketListView = ({
               ? visibleWatchlistMarkets.length
               : filteredMarkets.length
           }
+          providerIds={marketCountLogoIds}
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
@@ -1041,6 +1080,24 @@ const PerpsMarketListView = ({
         onOptionSelect={handleSortChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
+
+      {/* Exchange (venue) Filter Bottom Sheet — TAT-4407. The sheet opens on
+          mount (no isVisible prop), so it is mounted only while the user has
+          the trigger open; `isVisible` on the filter state only controls the
+          trigger button. */}
+      {exchangeFilterState?.isVisible && isExchangeFilterSheetVisible ? (
+        <PerpsExchangeFilterSheet
+          selectedProviderIds={exchangeFilterState.selectedProviderIds}
+          onSave={(providerIds: PerpsProviderType[]) => {
+            exchangeFilterState.onSave(providerIds);
+            setIsExchangeFilterSheetVisible(false);
+          }}
+          onClose={() => setIsExchangeFilterSheetVisible(false)}
+          testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS.concat(
+            '-exchange-sheet',
+          )}
+        />
+      ) : null}
     </View>
   );
 };

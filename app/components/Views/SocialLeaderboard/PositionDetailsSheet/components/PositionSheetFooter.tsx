@@ -3,8 +3,6 @@ import {
   Box,
   BoxFlexDirection,
   Button,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonSize,
   ButtonVariant,
   IconName,
@@ -12,6 +10,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+import PerpsDirectionButton from '../../../../UI/Perps/components/PerpsDirectionButton';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -19,22 +18,35 @@ import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testId
 export interface PositionSheetFooterProps {
   isPerp: boolean;
   isClosed: boolean;
+  /**
+   * The viewer's own position. Copy trade would repeat it, so it offers the
+   * same trade actions as a closed position, whether open or closed.
+   */
+  isOwnPost: boolean;
   /** Spot only: the viewer holds the token, so Sell is offered. */
   canSell: boolean;
+  /**
+   * Another trader's open position. UK geolocation and an unresolved lookup
+   * pass false so Copy trade is not rendered.
+   */
+  showCopyTrade?: boolean;
   onCopyTrade: () => void;
   onPerpsOrder: (direction: PerpDirection) => void;
   onSpotTrade: (mode: QuickBuyTradeMode) => void;
 }
 
 /**
- * Open positions offer Copy trade. Closed ones offer a fresh trade in the
- * same market: Long / Short for perps, Sell / Buy for spot (Sell only when the
- * viewer has something to sell).
+ * Another trader's open position offers Copy trade. Every other position, the
+ * viewer's own included, offers a fresh trade in the same market: Long / Short
+ * for perps, Sell / Buy for spot (Sell only when the viewer has something to
+ * sell).
  */
 const PositionSheetFooter = ({
   isPerp,
   isClosed,
+  isOwnPost,
   canSell,
+  showCopyTrade = true,
   onCopyTrade,
   onPerpsOrder,
   onSpotTrade,
@@ -42,11 +54,15 @@ const PositionSheetFooter = ({
   const tw = useTailwind();
   const halfWidth = tw.style('flex-1');
 
+  if (!isClosed && !isOwnPost && !showCopyTrade) {
+    return null;
+  }
+
   const renderActions = () => {
-    if (!isClosed) {
+    if (!isClosed && !isOwnPost) {
       return (
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           startIconName={IconName.SwapHorizontal}
@@ -64,24 +80,24 @@ const PositionSheetFooter = ({
     if (isPerp) {
       return (
         <>
-          <ButtonSemantic
-            severity={ButtonSemanticSeverity.Success}
+          <PerpsDirectionButton
+            direction="long"
             size={ButtonSize.Lg}
             onPress={() => onPerpsOrder('long')}
             style={halfWidth}
             testID={PositionDetailsSheetSelectorsIDs.LONG_BUTTON}
           >
             {strings('social_leaderboard.trader_position.long')}
-          </ButtonSemantic>
-          <ButtonSemantic
-            severity={ButtonSemanticSeverity.Danger}
+          </PerpsDirectionButton>
+          <PerpsDirectionButton
+            direction="short"
             size={ButtonSize.Lg}
             onPress={() => onPerpsOrder('short')}
             style={halfWidth}
             testID={PositionDetailsSheetSelectorsIDs.SHORT_BUTTON}
           >
             {strings('social_leaderboard.trader_position.short')}
-          </ButtonSemantic>
+          </PerpsDirectionButton>
         </>
       );
     }
@@ -102,7 +118,10 @@ const PositionSheetFooter = ({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => onSpotTrade('buy')}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
           style={halfWidth}
           testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
         >
@@ -116,7 +135,7 @@ const PositionSheetFooter = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       gap={3}
-      twClassName="px-4 pt-2 pb-5"
+      twClassName="px-4 pt-4 pb-5"
     >
       {renderActions()}
     </Box>

@@ -16,6 +16,7 @@ on:
           - e2e
           - exp
           - rc
+          - dev
         default: e2e
       sentry_target:
         description: 'Sentry target for performance events (test or real)'
@@ -176,12 +177,13 @@ jobs:
       contents: read
       actions: read # download this run's profile artifacts
       pull-requests: read
-      issues: write # scheduled main findings open or comment on tracking issues
     uses: ./.github/workflows/analyze-app-profiling.yml
     with:
       performance_run_id: ${{ github.run_id }}
       performance_event: ${{ github.event_name }}
       performance_result: ${{ github.event_name == 'schedule' && needs.scheduled-e2e.result || needs.manual.result }}
     secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}

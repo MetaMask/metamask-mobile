@@ -19,6 +19,11 @@ import {
   RewardsMoneyDataServiceGetCommissionsAction,
   RewardsMoneyDataServiceGetClaimByIdAction,
   RewardsMoneyDataServiceGetRebateQuoteAction,
+  RewardsMoneyDataServiceInitiateClaimAction,
+  RewardsMoneyDataServiceGetTaxMeAction,
+  RewardsMoneyDataServiceSubmitTaxAttestationAction,
+  RewardsMoneyDataServiceSubmitTaxUsActivityAction,
+  RewardsMoneyDataServiceMintTaxFormTokenAction,
   RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction,
@@ -45,6 +50,11 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRebateQuoteAction
+  | RewardsMoneyDataServiceInitiateClaimAction
+  | RewardsMoneyDataServiceGetTaxMeAction
+  | RewardsMoneyDataServiceSubmitTaxAttestationAction
+  | RewardsMoneyDataServiceSubmitTaxUsActivityAction
+  | RewardsMoneyDataServiceMintTaxFormTokenAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -91,6 +101,11 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getCommissions',
       'RewardsMoneyDataService:getClaimById',
       'RewardsMoneyDataService:getRebateQuote',
+      'RewardsMoneyDataService:initiateClaim',
+      'RewardsMoneyDataService:getTaxMe',
+      'RewardsMoneyDataService:submitTaxAttestation',
+      'RewardsMoneyDataService:submitTaxUsActivity',
+      'RewardsMoneyDataService:mintTaxFormToken',
       'RewardsMoneyDataService:getRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:setRewardsMoneyEnvUrl',

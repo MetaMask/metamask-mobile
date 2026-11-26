@@ -519,7 +519,8 @@ function weeklyWithIssues(issues) {
 const WEEKLY_ISSUES = [
   {
     number: 700,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/700',
+    jiraKey: 'MCWP-700',
+    url: 'https://consensyssoftware.atlassian.net/browse/MCWP-700',
     state: 'open',
     kind: 'scenario',
     scenario: 'Measure Warm Start: Warm Start to Login Screen',
@@ -532,7 +533,8 @@ const WEEKLY_ISSUES = [
   },
   {
     number: 705,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/705',
+    jiraKey: 'MCWP-705',
+    url: 'https://consensyssoftware.atlassian.net/browse/MCWP-705',
     state: 'closed',
     kind: 'slow-run',
     scenarios: ['a', 'b', 'c'],
@@ -542,46 +544,51 @@ const WEEKLY_ISSUES = [
   },
 ];
 
-test('the Monday report lists the GitHub issues opened during the week', () => {
+test('the Monday report lists the Jira tickets opened during the week', () => {
   const report = weeklyWithIssues({ items: WEEKLY_ISSUES });
   const slack = buildWeeklyParentSlack(report);
   const markdown = buildWeeklyMarkdown(report);
 
-  assert.match(slack, /\*GitHub issues opened this week:\* 2 \(1 still open\)/);
+  assert.match(slack, /\*Jira tickets opened this week:\* 2 \(1 still open\)/);
   assert.match(
     slack,
-    /• <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/700\|#700> Measure Warm Start: Warm Start to Login Screen — JS work 20\.4 s vs 12\.2 s recent median \(1\.68×\) in run 36676470722 · owner metamask-mobile-platform · open, flagged 2 more times since/,
+    /• <https:\/\/consensyssoftware\.atlassian\.net\/browse\/MCWP-700\|MCWP-700> Measure Warm Start: Warm Start to Login Screen — JS work 20\.4 s vs 12\.2 s recent baseline \(1\.68×\) in run 36676470722 · owner metamask-mobile-platform · open, flagged 2 more times since/,
   );
   assert.match(
     slack,
-    /• <.*\/705\|#705> slow run 36676470800: 3 scenarios over the threshold \(up to 2\.1×\) · closed, not flagged again/,
+    /• <.*\/MCWP-705\|MCWP-705> slow run 36676470800: 3 scenarios over the threshold \(up to 2\.1×\) · closed, not flagged again/,
   );
-  // Issues come after the week's findings and before the source footer.
-  assert.ok(slack.indexOf('Nothing to action this week') < slack.indexOf('GitHub issues opened this week'));
-  assert.ok(slack.indexOf('GitHub issues opened this week') < slack.indexOf('_Source:_'));
-  assert.match(markdown, /## GitHub issues opened this week\n\n- \[#700\]\(.*\/700\) Measure Warm Start/);
-  assert.match(markdown, /- \[#705\]\(.*\/705\) slow run 36676470800/);
+  // Tickets come after the week's findings and before the source footer.
+  assert.ok(slack.indexOf('Nothing to action this week') < slack.indexOf('Jira tickets opened this week'));
+  assert.ok(slack.indexOf('Jira tickets opened this week') < slack.indexOf('_Source:_'));
+  assert.match(markdown, /## Jira tickets opened this week\n\n- \[MCWP-700\]\(.*\/MCWP-700\) Measure Warm Start/);
+  assert.match(markdown, /- \[MCWP-705\]\(.*\/MCWP-705\) slow run 36676470800/);
+  assert.doesNotMatch(slack, /GitHub issues/);
+  assert.doesNotMatch(markdown, /GitHub issues/);
 });
 
-test('the Monday report says when no issue was opened and when GitHub could not be read', () => {
+test('the Monday report says when no ticket was opened and when Jira could not be read', () => {
   const none = weeklyWithIssues({ items: [] });
-  assert.match(buildWeeklyParentSlack(none), /_GitHub issues opened this week:_ none/);
-  assert.match(buildWeeklyMarkdown(none), /## GitHub issues opened this week\n\nNone\./);
+  assert.match(buildWeeklyParentSlack(none), /_Jira tickets opened this week:_ none/);
+  assert.match(buildWeeklyMarkdown(none), /## Jira tickets opened this week\n\nNone\./);
 
-  const failed = weeklyWithIssues({ error: 'gh: rate limited' });
+  const failed = weeklyWithIssues({ error: 'Jira HTTP 429: rate limited' });
   assert.match(
     buildWeeklyParentSlack(failed),
-    /_GitHub issues opened this week:_ could not be listed \(gh: rate limited\)/,
+    /_Jira tickets opened this week:_ could not be listed \(Jira HTTP 429: rate limited\)/,
   );
-  assert.match(buildWeeklyMarkdown(failed), /Could not be listed: gh: rate limited/);
+  assert.match(
+    buildWeeklyMarkdown(failed),
+    /Could not be listed: Jira HTTP 429: rate limited/,
+  );
 });
 
-test('a weekly run that did not query GitHub has no issue section', () => {
+test('a weekly run that did not query Jira has no ticket section', () => {
   const report = weeklyWithIssues(undefined);
 
   assert.equal(report.issues, undefined);
-  assert.doesNotMatch(buildWeeklyParentSlack(report), /GitHub issues/);
-  assert.doesNotMatch(buildWeeklyMarkdown(report), /GitHub issues/);
+  assert.doesNotMatch(buildWeeklyParentSlack(report), /Jira tickets/);
+  assert.doesNotMatch(buildWeeklyMarkdown(report), /Jira tickets/);
 });
 
 test('the issue section also follows real findings in the markdown record', () => {
@@ -603,9 +610,9 @@ test('the issue section also follows real findings in the markdown record', () =
   const markdown = buildWeeklyMarkdown(report);
   const slack = buildWeeklyParentSlack(report);
 
-  assert.ok(markdown.indexOf('## Worse than last week') < markdown.indexOf('## GitHub issues opened this week'));
+  assert.ok(markdown.indexOf('## Worse than last week') < markdown.indexOf('## Jira tickets opened this week'));
   assert.match(slack, /_Scenario findings:_ 1 worse than last week/);
-  assert.match(slack, /\*GitHub issues opened this week:\* 1 \(1 still open\)/);
+  assert.match(slack, /\*Jira tickets opened this week:\* 1 \(1 still open\)/);
 });
 
 test('a card without a previous week says so instead of printing n/a', () => {

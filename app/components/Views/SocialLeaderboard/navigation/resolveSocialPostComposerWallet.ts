@@ -32,7 +32,7 @@ const accountLabel = (account: SocialPostComposerWalletAccount): string => {
   return name || renderShortAddress(account.address);
 };
 
-const isLinkedAccountInSelectedGroup = (
+export const isLinkedAccountInSelectedGroup = (
   account: SocialPostComposerWalletAccount,
   selectedGroupAccountIds: readonly string[],
   selectedGroupAddresses: readonly string[],

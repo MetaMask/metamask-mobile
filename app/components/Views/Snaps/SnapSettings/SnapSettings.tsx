@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps,keyring-snaps)
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +6,7 @@ import Engine from '../../../../core/Engine';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  Button,
-  ButtonVariant,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 
 import stylesheet from './SnapSettings.styles';
 import {
@@ -44,6 +39,8 @@ import Logger from '../../../../util/Logger';
 import { areAddressesEqual } from '../../../../util/address';
 import { RouteMessengerInstance } from './messenger';
 import { useMessenger } from '../../../../hooks/useMessenger';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 interface SnapSettingsProps {
   snap: Snap;
 }
@@ -52,6 +49,7 @@ export const createSnapSettingsNavDetails =
   createNavigationDetails<SnapSettingsProps>(Routes.SNAPS.SNAP_SETTINGS);
 
 const SnapSettings = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation<AppNavigationProp>();
@@ -159,7 +157,9 @@ const SnapSettings = () => {
           { backgroundColor: colors.background.default },
         ]}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={snap.manifest.proposedName}
           titleProps={SNAPS_HEADER_TITLE_PROPS}
           onBack={handleBack}
@@ -223,4 +223,3 @@ const SnapSettings = () => {
 };
 
 export default React.memo(SnapSettings);
-///: END:ONLY_INCLUDE_IF

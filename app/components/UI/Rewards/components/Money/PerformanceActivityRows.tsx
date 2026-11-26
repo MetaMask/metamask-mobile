@@ -3,7 +3,6 @@ import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
-  AvatarToken,
   AvatarTokenSize,
   Box,
   BoxAlignItems,
@@ -20,17 +19,18 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
+import {
+  creditedBaseUnits,
+  isVoidedEarning,
+} from '../../utils/earningsSummaryTotals';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const PERFORMANCE_ACTIVITY_TEST_IDS = {
-  COMMISSION_ROW: 'performance-commission-row',
-  REBATE_ROW: 'performance-rebate-row',
-} as const;
+import PositionTokenAvatar from '../../../SocialFeed/components/PositionTokenAvatar';
+import { commissionTokenAvatar } from './commissionTokenAvatar';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows.testIds';
 
 function copiedTimesLabel(
   localizedText: ReferralLocalizedText,
@@ -52,30 +52,45 @@ export const PerformanceCommissionRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      twClassName="gap-4"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${item.id}`}
     >
-      <AvatarToken
-        name={name}
-        size={AvatarTokenSize.Md}
-        testID={`performance-commission-avatar-${item.id}`}
+      <PositionTokenAvatar
+        position={commissionTokenAvatar(item.token)}
+        size={AvatarTokenSize.Lg}
       />
-      <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Box twClassName="min-w-0 flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
           {name}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {formatRewardsRelativeDay(item.day)}
         </Text>
       </Box>
       <Box alignItems={BoxAlignItems.End}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
           {formatMusdBaseUnits(item.musd_amount, {
             signed: true,
             maximumFractionDigits: 2,
           }) ?? '—'}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {copiedTimesLabel(localizedText, item.copied_times)}
         </Text>
       </Box>
@@ -83,24 +98,35 @@ export const PerformanceCommissionRow: React.FC<{
   );
 };
 
+/**
+ * A Predict rebate is the origin type, or a row that still carries a Predict
+ * fill. The fill source can be null, and that row would otherwise read as swaps.
+ */
+function isPredictRebate(item: LedgerEarningEntryDto): boolean {
+  return (
+    item.earning_origin_type === 'PREDICT_FEE_CASHBACK' ||
+    item.predict_source !== null
+  );
+}
+
 function rebateTitle(
   item: LedgerEarningEntryDto,
   localizedText: ReferralLocalizedText,
 ): string {
-  if (item.predict_source) {
+  if (isPredictRebate(item)) {
     return localizedText.rebatePredictions;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
-    return localizedText.rebatePerpsVolume;
+    return localizedText.rebatePerps;
   }
   if (item.earning_origin_type === 'SWAPS_FEE_CASHBACK') {
-    return localizedText.rebateSwapsVolume;
+    return localizedText.rebateSwaps;
   }
   return localizedText.rebateSwaps;
 }
 
 function rebateIconName(item: LedgerEarningEntryDto): IconName {
-  if (item.predict_source) {
+  if (isPredictRebate(item)) {
     return IconName.Chart;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
@@ -112,17 +138,21 @@ function rebateIconName(item: LedgerEarningEntryDto): IconName {
 function rebateAmount(item: LedgerEarningEntryDto): {
   label: string;
   color: TextColor;
+  voided: boolean;
 } {
-  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
-  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+  const voided = isVoidedEarning(item.musd_amount, item.voided_musd_amount);
+  const units = voided
+    ? item.musd_amount
+    : creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
 
   return {
     label:
-      formatMusdBaseUnits(credited, {
+      formatMusdBaseUnits(units, {
         signed: true,
         maximumFractionDigits: 2,
       }) ?? '—',
-    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    color: voided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    voided,
   };
 }
 
@@ -143,19 +173,30 @@ export const PerformanceRebateRow: React.FC<{
         iconName={rebateIconName(item)}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
-        iconProps={{ color: IconColor.IconDefault }}
+        iconProps={{ color: IconColor.IconAlternative }}
       />
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="shrink"
+        >
           {rebateTitle(item, localizedText)}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
         </Text>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={amount.color}>
-        {amount.label}
-      </Text>
+      <Box alignItems={BoxAlignItems.End}>
+        <Text variant={TextVariant.BodyMd} color={amount.color}>
+          {amount.label}
+        </Text>
+        {amount.voided ? (
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {localizedText.voided}
+          </Text>
+        ) : null}
+      </Box>
     </Box>
   );
 };

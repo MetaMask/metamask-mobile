@@ -31,6 +31,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: () => false,
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
@@ -51,7 +55,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, Pressable } = jest.requireActual('react-native');

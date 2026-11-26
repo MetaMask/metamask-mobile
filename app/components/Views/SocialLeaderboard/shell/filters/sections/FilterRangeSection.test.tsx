@@ -58,9 +58,12 @@ describe('FilterRangeSection', () => {
     expect(
       screen.getByTestId('social-filters-market_cap-slider'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-market_cap-slider-controls'),
+    ).toHaveStyle({ marginTop: 8 });
   });
 
-  it('forwards slider changes to onValueChange', () => {
+  it('updates the range label while the thumb moves', () => {
     const onValueChange = jest.fn();
 
     render(<FilterRangeSection {...baseProps} onValueChange={onValueChange} />);
@@ -68,17 +71,27 @@ describe('FilterRangeSection', () => {
       screen.getByTestId('social-filters-market_cap-slider-emit-change'),
     );
 
-    expect(onValueChange).toHaveBeenCalledWith({ min: 10, max: 90 });
+    expect(screen.getByText('$10B - $90B')).toBeOnTheScreen();
+    expect(onValueChange).not.toHaveBeenCalled();
   });
 
-  it('forwards drag end events to onDragEnd when provided', () => {
+  it('commits the range when the drag ends', () => {
+    const onValueChange = jest.fn();
     const onDragEnd = jest.fn();
 
-    render(<FilterRangeSection {...baseProps} onDragEnd={onDragEnd} />);
+    render(
+      <FilterRangeSection
+        {...baseProps}
+        onValueChange={onValueChange}
+        onDragEnd={onDragEnd}
+      />,
+    );
     fireEvent.press(
       screen.getByTestId('social-filters-market_cap-slider-emit-drag-end'),
     );
 
+    expect(onValueChange).toHaveBeenCalledWith({ min: 10, max: 90 });
     expect(onDragEnd).toHaveBeenCalledWith({ min: 10, max: 90 });
+    expect(screen.getByText('$10B - $90B')).toBeOnTheScreen();
   });
 });

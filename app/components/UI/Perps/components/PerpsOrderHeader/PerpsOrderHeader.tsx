@@ -2,24 +2,29 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
-  HeaderSubpage,
   SelectButton,
   SelectButtonSize,
   SelectButtonVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveFocusedPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 interface PerpsOrderHeaderProps {
   asset: string;
+  providerId?: PerpsProviderType;
   price: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
@@ -31,6 +36,7 @@ interface PerpsOrderHeaderProps {
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
+  providerId,
   price,
   orderType,
   direction = 'long',
@@ -40,6 +46,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   isLoading,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
 
   // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
   // TAT-3334) — the same source PerpsOrderView already uses for its own
@@ -59,7 +66,10 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   // until this subscription delivers its first update for the current
   // symbol (including right after an asset change, until the channel
   // resolves the new symbol).
-  const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: asset,
+    providerId,
+  });
 
   const displayPrice = useMemo(() => {
     // Guard against stale PriceUpdate from a prior symbol: the focused-price
@@ -118,12 +128,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const description = useMemo(
     () => (
       <LivePriceHeader
+        providerId={providerId}
         symbol={asset}
         currentPrice={displayPrice}
         percentChange24h={percentChange24h}
       />
     ),
-    [asset, displayPrice, percentChange24h],
+    [asset, providerId, displayPrice, percentChange24h],
   );
 
   const endAccessory = useMemo(() => {
@@ -131,10 +142,15 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       return undefined;
     }
 
-    return (
+    const selectButton = (
       <SelectButton
         testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-        variant={SelectButtonVariant.Primary}
+        // Secondary has no fill of its own, so the glass shows through.
+        variant={
+          isBrandRefresh
+            ? SelectButtonVariant.Secondary
+            : SelectButtonVariant.Primary
+        }
         size={SelectButtonSize.Md}
         placeholder={orderTypeLabel}
         value={orderTypeLabel}
@@ -142,10 +158,23 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
         isDisabled={isLoading}
       />
     );
-  }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
+    return isBrandRefresh ? (
+      <CapsuleGlass>{selectButton}</CapsuleGlass>
+    ) : (
+      selectButton
+    );
+  }, [
+    handleOrderTypePress,
+    isBrandRefresh,
+    isLoading,
+    orderType,
+    orderTypeLabel,
+  ]);
 
   return (
-    <HeaderSubpage
+    <HeaderSubpageGlass
+      isGlass={isBrandRefresh}
+      isFloating={false}
       includesTopInset
       twClassName="min-h-14 h-auto bg-default justify-center pr-4"
       testID={PerpsOrderHeaderSelectorsIDs.HEADER}

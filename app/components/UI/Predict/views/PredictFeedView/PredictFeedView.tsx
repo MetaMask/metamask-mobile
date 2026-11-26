@@ -7,10 +7,10 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -20,6 +20,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { TraceName } from '../../../../../util/trace';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
@@ -32,6 +35,7 @@ import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
 import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -39,7 +43,11 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
-import { resolvePredictFilterLabel } from '../../utils/feed';
+import { selectPredictUpDownEnabledFlag } from '../../selectors/featureFlags';
+import {
+  deduplicateSeriesMarkets,
+  resolvePredictFilterLabel,
+} from '../../utils/feed';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../types';
 
@@ -57,6 +65,8 @@ const INITIAL_SKELETON_COUNT = 4;
 const PredictFeedView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
@@ -79,6 +89,18 @@ const PredictFeedView: React.FC = () => {
     setActiveFilterId,
     activeFilter,
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
+
+  const seriesOrder = activeFilter?.params?.series;
+  const refine = useMemo(() => {
+    if (!upDownEnabled) {
+      return undefined;
+    }
+    if (!seriesOrder?.length) {
+      return deduplicateSeriesMarkets;
+    }
+    return (marketsToRefine: PredictMarketType[]) =>
+      deduplicateSeriesMarkets(marketsToRefine, seriesOrder);
+  }, [seriesOrder, upDownEnabled]);
 
   const isReady = status === 'ready';
   const title =
@@ -123,6 +145,7 @@ const PredictFeedView: React.FC = () => {
     autoAdvanceEmptyPages: feedId === 'sports',
     filterStaleGameMarkets: feedId === 'sports',
     filterByVolume: activeFilter?.filterByVolume,
+    refine,
   });
 
   // Keep the latest tab/filter selection in a ref so the focus effect can read
@@ -269,6 +292,20 @@ const PredictFeedView: React.FC = () => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // End on list, empty, or error, not on first paint. Config can be unresolved
+  // while `isLoading` is already false (the query is disabled), and search
+  // starts hidden, so either flag alone would close the span at ~0ms.
+  const isFeedInteractive = isReady && !isLoading;
+  usePredictMeasurement({
+    traceName: TraceName.PredictFeedView,
+    conditions: [!isSearchVisible, isFeedInteractive],
+    debugContext: {
+      feedId: feedId ?? '',
+      isSearchVisible,
+      isFeedInteractive,
+    },
+  });
+
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
       <PredictMarket
@@ -378,7 +415,9 @@ const PredictFeedView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={PredictFeedViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={title}
         onBack={header?.showBackButton ? handleBack : undefined}

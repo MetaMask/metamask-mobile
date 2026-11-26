@@ -1,7 +1,9 @@
 export interface FollowerConnection {
   id: string;
   username: string;
-  handle: string;
+  /** Wallet address used for the Maskicon fallback. Never rendered as text. */
   address: string;
   avatarUri?: string;
+  /** Profile API verified this trader. */
+  verified?: boolean;
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   TransactionType,
@@ -17,19 +17,28 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import Routes from '../../../../../../constants/navigation/Routes';
+import Logger from '../../../../../../util/Logger';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePredictTrading } from '../../../../../UI/Predict/hooks/usePredictTrading';
+import { PREDICT_CONSTANTS } from '../../../../../UI/Predict/constants/errors';
+import {
+  ensureError,
+  showDepositErrorToast,
+} from '../../../../../UI/Predict/utils/predictErrorHandler';
+import { ConfirmationLoader } from '../../../components/confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import { usePredictLegacyDeposit } from '../../../../../UI/PredictNext';
 import useApprovalRequest from '../../useApprovalRequest';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
@@ -44,7 +53,15 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const transactionMeta = useTransactionMetadataRequest();
   const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const { data: predictBalance = 0 } = usePredictBalance();
+  // The Predict source is the legacy Polymarket balance and deposit. It is
+  // absent, and its balance is not read, unless that is the Active Venue's.
+  const {
+    isAvailable: isPredictDepositAvailable,
+    isAvailableNow: isPredictDepositAvailableNow,
+  } = usePredictLegacyDeposit();
+  const { data: predictBalance = 0 } = usePredictBalance({
+    enabled: isPredictDepositAvailable,
+  });
   const { resetSelectedPaymentToken, isPredictBalanceSelected } =
     usePredictPaymentToken();
   const transactionId = transactionMeta?.id ?? '';
@@ -54,6 +71,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
   const clearPaymentOverride = useClearPaymentOverride();
+  const { deposit } = usePredictTrading();
 
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -71,16 +89,40 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   }, [clearPaymentOverride, navigation, resetSelectedPaymentToken]);
 
   const handleAdd = useCallback(() => {
+    // Re-check before rejecting the confirmation, so a stale tap cannot
+    // discard it for a deposit that no longer applies.
+    if (!isPredictDepositAvailableNow()) {
+      return;
+    }
     onReject();
     dismissActivePreviewSheet();
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      params: { autoDeposit: true },
+    navigation.goBack();
+    // Open the confirmation inside the existing `Predict` route. Going through
+    // Predict's add-funds modal instead mounts a second Predict route behind
+    // the visible one, hiding the confirmation.
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: Routes.PREDICT.ROOT,
+        params: {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
+          params: { loader: ConfirmationLoader.CustomAmount },
+        },
+      }),
+    );
+    deposit({}).catch((error) => {
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePayWithPredictSection',
+        },
+      });
+      navigation.goBack();
+      showDepositErrorToast();
     });
-  }, [navigation, onReject]);
+  }, [deposit, isPredictDepositAvailableNow, navigation, onReject]);
 
   return useMemo(() => {
-    if (!isPredictDepositAndOrder) {
+    if (!isPredictDepositAndOrder || !isPredictDepositAvailable) {
       return null;
     }
 
@@ -122,5 +164,6 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
     isMoneyAccountSelected,
     isPredictBalanceSelected,
     isPredictDepositAndOrder,
+    isPredictDepositAvailable,
   ]);
 }

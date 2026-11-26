@@ -24,7 +24,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  HeaderStandard,
   HelpText,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -57,6 +56,9 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -67,6 +69,7 @@ interface AdjustMarginRouteParams {
 const floorUsd = (value: number) => Math.floor(value * 100) / 100;
 
 const PerpsAdjustMarginView: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -140,6 +143,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition?.symbol || '',
+    providerId: routePosition?.providerId,
     mode: mode || 'add',
     inputAmount: marginAmount,
   });
@@ -307,9 +311,13 @@ const PerpsAdjustMarginView: React.FC = () => {
     };
 
     if (isAddMode) {
-      await handleAddMargin(position.symbol, marginAmount);
+      await handleAddMargin(position.symbol, marginAmount, position.providerId);
     } else {
-      await handleRemoveMargin(position.symbol, marginAmount);
+      await handleRemoveMargin(
+        position.symbol,
+        marginAmount,
+        position.providerId,
+      );
     }
   }, [
     marginAmount,
@@ -458,7 +466,9 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={title}
         onBack={() => navigation.goBack()}

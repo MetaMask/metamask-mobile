@@ -18,8 +18,10 @@ import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
+import XTrustMark from './XTrustMark';
+import ProfileVerifiedBadge from './ProfileVerifiedBadge';
 import { buildTraderStatLabels } from '../utils/traderStats';
-import { formatFeedPostAge } from '../utils/formatters';
+import FeedPostAge from './FeedPostAge';
 import {
   SocialTraderIdentityRowSelectorsIDs,
   type SocialTraderIdentityRowTestIds,
@@ -70,10 +72,8 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   const avatar = (
     <TraderAvatar
       imageUrl={imageUrl}
-      // Profile id seeds the Maskicon. Ids that do not start with `0x`
-      // are hashed in full, so each trader stays distinct once wallet
-      // addresses leave the feed payload.
-      address={author.id}
+      address={author.address}
+      profileId={author.id}
       size={AVATAR_SIZE}
       recyclingKey={recyclingKey}
       testID={testIDs?.avatar ?? SocialTraderIdentityRowSelectorsIDs.AVATAR}
@@ -87,17 +87,37 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
           twClassName="shrink min-w-0"
-          testID={testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE}
         >
-          {handle}
-        </Text>
-        <Text
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink min-w-0"
+            testID={
+              testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE
+            }
+          >
+            {handle}
+          </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={
+                testIDs?.verifiedBadge ??
+                SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
+              }
+            />
+          ) : null}
+          {author.xHandle ? <XTrustMark /> : null}
+        </Box>
+        <FeedPostAge
+          timestampMs={timestampMs}
+          now={now}
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
@@ -105,9 +125,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           testID={
             testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
           }
-        >
-          {formatFeedPostAge(timestampMs, now)}
-        </Text>
+        />
       </Box>
       <RotatingTraderStat
         labels={statLabels}
@@ -122,7 +140,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      gap={2}
+      gap={3}
       twClassName={twClassName}
       testID={
         testIDs?.container ?? SocialTraderIdentityRowSelectorsIDs.CONTAINER
@@ -139,7 +157,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
       ) : (
         avatar
       )}
-      <Box twClassName="flex-1 min-w-0" gap={2}>
+      <Box twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}

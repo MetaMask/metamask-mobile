@@ -19,6 +19,7 @@ import type {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { Position as SocialPosition } from '@metamask/social-controllers';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 import type { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -31,7 +32,7 @@ export type PerpsModalsNavigationParamList = {
    * The modal stack is transparent, so the sheet opens over the calling page.
    */
   PerpsOrderRedirect: PerpsStackParamList['PerpsOrderRedirect'];
-  RedesignedConfirmations: PerpsStackParamList['RedesignedConfirmations'];
+  Confirmations: PerpsStackParamList['Confirmations'];
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -42,6 +43,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsOutreachDetails: undefined;
   PerpsSharePosition: PerpsStackParamList['PerpsPnlHeroCard'] & {
     accountAddress?: string;
+    socialPosition?: SocialPosition;
   };
   PerpsSelectModifyAction: {
     position: Position;
@@ -64,7 +66,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 };
 
 /**
- * Shared order / redesigned-confirmation params for the Perps trade flow.
+ * Shared order / confirmation params for the Perps trade flow.
  *
  * Declared as an object-literal `type` (not `interface`) so it keeps an implicit
  * index signature and stays assignable to `Record<string, unknown>` (e.g. when
@@ -116,6 +118,7 @@ export type PerpsOrderRouteParams = {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -390,10 +393,10 @@ export type PerpsStackParamList = {
   };
 
   /**
-   * Params for RedesignedConfirmations when opened from Perps order flow.
+   * Params for Confirmations when opened from Perps order flow.
    * Partial so header-option helpers can take only `showPerpsHeader`.
    */
-  RedesignedConfirmations: Partial<PerpsOrderRouteParams> | undefined;
+  Confirmations: Partial<PerpsOrderRouteParams> | undefined;
 
   /** Params for PerpsOrderRedirect - handles one-click trade from token details */
   PerpsOrderRedirect: {
@@ -421,6 +424,7 @@ export type PerpsStackParamList = {
     stayOnCurrentScreen?: boolean;
     /** Social post being copied, forwarded to the order view. */
     copyTradeOrigin?: CopyTradeOrigin;
+    isCopyTrade?: boolean;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)

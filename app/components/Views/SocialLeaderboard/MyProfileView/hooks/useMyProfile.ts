@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectProfileControllerXProfile } from '../../../../../selectors/profileController';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../../util/social/useSocialProfileId';
 import { useProfileController } from '../../ManageProfileView/hooks/useProfileController';
 import {
   getLocalSocialProfileSnapshot,
@@ -30,9 +30,10 @@ export interface MySocialProfile {
   xHandle?: string | null;
   /** True when X is linked, even if the X account failed to load. */
   connectedToX?: boolean;
+  /** Server-owned status from the Profile API, also served by social-api. */
+  verified?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
-  shareUrl: string;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
   winRatePercent?: number | null;
   /** Realized P&L in USD. */
@@ -56,6 +57,15 @@ interface UseMyProfileOptions {
   enabled?: boolean;
 }
 
+// Shared across mounts so a remount, like reopening the profile drawer, does
+// not wait again on a lookup that already found the profile or a 404.
+const resolvedSessionProfileIds = new Set<string>();
+
+/** Test helper. Forgets every resolved profile lookup. */
+export const resetResolvedSessionProfileIds = (): void => {
+  resolvedSessionProfileIds.clear();
+};
+
 /**
  * Owner profile seam.
  *
@@ -66,7 +76,7 @@ export const useMyProfile = ({
   enabled = true,
 }: UseMyProfileOptions = {}): UseMyProfileResult => {
   const { profileId: sessionProfileId, isLoading: isSessionLoading } =
-    useSessionProfileId();
+    useSocialProfileId();
   const {
     profile: controllerProfile,
     fetchAndUpdateProfile,
@@ -96,6 +106,7 @@ export const useMyProfile = ({
 
     try {
       const fetched = await fetchAndUpdateProfile(profileId);
+      resolvedSessionProfileIds.add(profileId);
       if (fetched.connectedToX) {
         try {
           await fetchAndUpdateXAccount();
@@ -104,7 +115,10 @@ export const useMyProfile = ({
         }
       }
     } catch (err) {
-      if (!isProfileNotFoundError(err)) {
+      if (isProfileNotFoundError(err)) {
+        resolvedSessionProfileIds.add(profileId);
+      } else {
+        resolvedSessionProfileIds.delete(profileId);
         setError(strings('social_leaderboard.my_profile.load_profile_error'));
       }
     } finally {
@@ -131,6 +145,7 @@ export const useMyProfile = ({
       : null,
     isLoading:
       enabled &&
+      !resolvedSessionProfileIds.has(trimmedSessionProfileId) &&
       (isSessionLoading ||
         isHydrating ||
         (Boolean(trimmedSessionProfileId) &&

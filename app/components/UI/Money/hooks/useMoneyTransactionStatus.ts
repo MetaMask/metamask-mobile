@@ -44,6 +44,7 @@ import {
 } from '../utils/hardwareDepositSigning';
 import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
 import { subscribeMusdRescueSetupFailures } from '../utils/musdRescueInFlight';
+import { isFiatOrderDeclineError } from '../../../../util/errorHandling/isFiatOrderDeclineError';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -246,8 +247,12 @@ export const useMoneyTransactionStatus = () => {
       } else if (isSend) {
         showToast(MoneyToastOptions.send.failed({ onPress }));
       } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = resolveDepositIntent(transactionMeta);
-        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
+        if (isFiatOrderDeclineError(transactionMeta.error?.message)) {
+          showToast(MoneyToastOptions.deposit.declined({ onPress }));
+        } else {
+          const intent = resolveDepositIntent(transactionMeta);
+          showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
+        }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
@@ -377,8 +382,13 @@ export const useMoneyTransactionStatus = () => {
         const amountFiat = transfer
           ? formatMusdAmountForToast(BigInt(transfer.amount))
           : undefined;
+        // Quoted withdrawals transfer to the money account, not the destination.
+        const recipient =
+          transfer?.recipient === transactionMeta.txParams?.from?.toLowerCase()
+            ? undefined
+            : transfer?.recipient;
         const destination =
-          resolveWithdrawDestination(transfer?.recipient) ??
+          resolveWithdrawDestination(recipient) ??
           strings('money.toasts.withdraw_fallback_destination');
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),

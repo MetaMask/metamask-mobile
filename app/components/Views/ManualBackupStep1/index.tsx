@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { KeyboardAvoidingView, FlatList, Platform } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -27,7 +24,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { strings } from '../../../../locales/i18n';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -67,11 +63,6 @@ const ManualBackupStep1 = () => {
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
 
   const saveOnboardingEvent = useCallback(
     (event: ITrackingEvent) => {
@@ -288,7 +279,7 @@ const ManualBackupStep1 = () => {
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView
-      style={tw.style('flex-1 flex-row self-center mb-[30px]')}
+      style={tw.style('flex-1 flex-row self-center')}
       behavior={'padding'}
     >
       <KeyboardAwareScrollView style={tw.style('flex-grow')} enableOnAndroid>
@@ -331,7 +322,7 @@ const ManualBackupStep1 = () => {
           </Box>
           <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
             <FooterGlass
-              twClassName="px-0"
+              twClassName="px-0 py-2"
               primaryButtonProps={{
                 children: strings('manual_backup_step_1.confirm'),
                 onPress: tryUnlock,
@@ -375,7 +366,7 @@ const ManualBackupStep1 = () => {
           }
         />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-xl flex-row border border-default min-h-[230px]">
+          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
@@ -419,7 +410,7 @@ const ManualBackupStep1 = () => {
         )}
       </Box>
       <FooterGlass
-        twClassName={`px-0 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
+        twClassName="px-0 py-2"
         primaryButtonProps={{
           children: strings('manual_backup_step_1.continue'),
           onPress: goNext,
@@ -451,8 +442,8 @@ const ManualBackupStep1 = () => {
       style={tw.style('bg-default flex-1')}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         onBack={showHeader ? () => navigation.goBack() : undefined}
         backButtonProps={
@@ -463,7 +454,7 @@ const ManualBackupStep1 = () => {
             : undefined
         }
       />
-      <Box twClassName="flex-1 px-4" style={{ marginTop: headerInset }}>
+      <Box twClassName="flex-1 px-4">
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

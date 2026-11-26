@@ -348,6 +348,14 @@ export function buildPerpsFlowHarness(
         context: buildServiceContext('closePosition'),
         reportOrderToDataLake,
       }),
+    closePositions: (
+      params: Parameters<typeof harness.provider.closePositions>[0],
+    ) =>
+      tradingService.closePositions({
+        provider: harness.provider,
+        params,
+        context: buildServiceContext('closePositions'),
+      }),
     flipPosition: (params: FlipPositionParams) =>
       tradingService.flipPosition({
         provider: harness.provider,

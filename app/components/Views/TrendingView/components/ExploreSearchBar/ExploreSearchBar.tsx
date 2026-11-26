@@ -291,6 +291,7 @@ const ExploreSearchBarInteractive = ({
       value={searchQuery}
       onChangeText={onSearchChange}
       placeholder={resolvedPlaceholder}
+      inputAccessibilityLabel={resolvedPlaceholder}
       autoFocus={autoFocus}
       inputRef={inputRef}
       onPressClearButton={() => {

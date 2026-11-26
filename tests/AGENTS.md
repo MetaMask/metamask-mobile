@@ -42,6 +42,7 @@ Page objects use `AppiumElement` from `tests/framework`. Shared Appium helpers m
 - [tests/docs/appium-smoke-testing.md](docs/appium-smoke-testing.md) — Appium smoke tests: builds, run commands, local/CI setup.
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro; Appium smoke quick start.
 - [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it, AI test selection logic.
+- [.ai-pr-analyzer/modes/smart-e2e/README.md](../.ai-pr-analyzer/modes/smart-e2e/README.md) — Smart E2E Selection implementation (shared `MetaMask/ai-analyzer` mode): model, prompts, hard rules. Not `tests/tools/e2e-ai-analyzer`, which only backs RC test-plan generation.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
 - [tests/docs/UNIFIED_E2E_ARCHITECTURE.md](docs/UNIFIED_E2E_ARCHITECTURE.md) — Appium layered architecture.
 - [tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md](docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — Local `buildPath` vs pre-installed app, `fullReset` / `noReset` for `EmulatorConfigBuilder`.

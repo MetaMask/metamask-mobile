@@ -19,6 +19,7 @@ import {
   type ExpectedScaleLadder,
   type GetScalePriceLadderParams,
   type MarginMode,
+  type MarginModeLockReason,
   type OrderType,
   type PerpsFeeSource,
   type PerpsMarketData,
@@ -58,12 +59,17 @@ import { ensureError } from '../../../../../../../util/errorUtils';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
+import { toPerpsSizeUnitAnalyticsValue } from '../../../../utils/perpsSizeDenomination';
 import {
   bpsToPercent,
   resolvePerpsMaxSlippageBps,
 } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
+import type { PerpsOrderPriceField } from '../../../../hooks/usePerpsOrderForm';
 import { usePerpsSavePendingConfig } from '../../../../hooks/usePerpsSavePendingConfig';
 import {
   useHasExistingPosition,
@@ -72,6 +78,7 @@ import {
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsQuotedFeeReservation,
   usePerpsOrderValidation,
   usePerpsToasts,
   usePerpsTrading,
@@ -79,9 +86,11 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAccount,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
+import { estimateCrossLiquidationPrice } from '../../../../utils/crossMarginSummary';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -99,7 +108,9 @@ import {
   unmountPerpsUiScaleForm,
 } from '../../../../utils/perpsUiObservations';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsFeeDisplayAbTest } from '../../../../hooks/usePerpsFeeDisplayAbTest';
 import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
+import { usePerpsSavedMarginMode } from '../../../../hooks/usePerpsSavedMarginMode';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -589,9 +600,13 @@ export interface UsePerpsProOrderFormResult {
   marginMode: MarginMode;
   isCrossMarginAvailableForMarket: boolean;
   isMarginModeLocked: boolean;
+  /** Why the venue fixes the margin mode; undefined while unknown or unlocked. */
+  marginModeLockReason?: MarginModeLockReason;
   /** Re-read the venue lock before the trader changes the margin mode. */
   refreshMarginModeLock: () => void;
   onMarginModeSelect: (marginMode: MarginMode) => void;
+  /** Explains why the other margin mode cannot be picked. */
+  onLockedMarginModePress: () => void;
   // Leverage sheet
   isLeverageVisible: boolean;
   minLeverage: number;
@@ -694,6 +709,8 @@ export const usePerpsProOrderForm = ({
   // this cannot double-count — and silencing it here would drop exposure
   // entirely whenever that panel is absent.
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
+  const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
 
   const {
     orderForm,
@@ -717,10 +734,16 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
+    orderBookSizeFill,
+    clearOrderBookSizeFill,
   } = usePerpsOrderContext();
 
   // Restore reduce-only from the 30s pending draft.
   const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
+  // Opening orders may show rates. Closes and TWAP stay on dollars: a TWAP
+  // quote has no builder fee, and the limit quote for the other side does.
+  const effectiveFeeDisplayMode =
+    reduceOnly || orderForm.type === 'twap' ? 'dollar' : feeDisplayMode;
   const [twapDays, setTwapDays] = useState('');
   const [twapHours, setTwapHours] = useState('');
   const [twapMinutes, setTwapMinutes] = useState(
@@ -752,6 +775,12 @@ export const usePerpsProOrderForm = ({
   const [chaseMaxDistanceUnit, setChaseMaxDistanceUnit] = useState<
     'usd' | 'percent'
   >('usd');
+  // The distance the last order-book tap wrote to Chase max distance, and the
+  // tapped price it came from.
+  const [orderBookChaseEntry, setOrderBookChaseEntry] = useState<{
+    price: string;
+    distance: string;
+  }>();
   const activeChaseCount = useMemo(
     () => chaseOrders.filter(occupiesChasePlacementSlot).length,
     [chaseOrders],
@@ -872,7 +901,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const { isAtCap } = usePerpsOICap(symbol);
+  const { isAtCap } = usePerpsOICap(symbol, market.providerId);
   const vipTier = useVipTier();
 
   const {
@@ -1035,13 +1064,18 @@ export const usePerpsProOrderForm = ({
     !marketData.onlyIsolated &&
     !marketData.marginMode;
   // Loading is temporary uncertainty, not a change to the trader's choice.
-  // Clear the choice only when the gate or fresh metadata rules out Cross.
+  // Clear the in-memory pick only when the gate or fresh metadata rules out
+  // Cross. A missing metadata read is not a restriction.
   const isCrossMarginUnsupported =
     !isCrossMarginAvailable ||
     !isProviderMetadataAvailable ||
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
+  const isCrossMarginRestrictedByMetadata =
+    !isMarketDataLoading &&
+    !!marketData &&
+    !!(marketData.onlyIsolated || marketData.marginMode);
   // An omitted provider in this eligible flow means the default Hyperliquid
   // route, so hydrating its id does not change the selection context.
   const perpsAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
@@ -1051,12 +1085,23 @@ export const usePerpsProOrderForm = ({
     perpsAccountAddress,
     network,
   ]);
+  const { savedMarginMode, saveMarginMode } = usePerpsSavedMarginMode(
+    symbol,
+    market.providerId,
+  );
   const [marginModeSelection, setMarginModeSelection] = useState<{
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
-  // Forget the pick on a context change or restriction, so switching back
-  // does not revive it. A metadata reload in the same context keeps it.
+  // Fresh metadata restricted Cross this visit, so a metadata reload must not
+  // revive the saved mode. The form is keyed per market, and a later visit
+  // reads the saved mode again. The temporary cross-margin gate is not a
+  // restriction; isCrossMarginUnsupported hides the saved mode while it lasts.
+  const [isSavedMarginModeRuledOut, setIsSavedMarginModeRuledOut] =
+    useState(false);
+  // The in-memory pick overrides the saved mode for this visit. Drop it on a
+  // context change or restriction; the saved per-market mode then applies.
+  // A metadata reload in the same context keeps it.
   useEffect(() => {
     setMarginModeSelection((selection) =>
       !isCrossMarginUnsupported &&
@@ -1065,18 +1110,33 @@ export const usePerpsProOrderForm = ({
         : null,
     );
   }, [marginModeContextKey, isCrossMarginUnsupported]);
+  useEffect(() => {
+    if (isCrossMarginRestrictedByMetadata) {
+      setIsSavedMarginModeRuledOut(true);
+    }
+  }, [isCrossMarginRestrictedByMetadata]);
+  const persistedMarginMode =
+    !isSavedMarginModeRuledOut &&
+    (savedMarginMode === 'cross' || savedMarginMode === 'isolated')
+      ? savedMarginMode
+      : undefined;
   const selectedMarginMode: MarginMode =
     !isCrossMarginUnsupported &&
     marginModeSelection?.contextKey === marginModeContextKey
       ? marginModeSelection.marginMode
-      : 'isolated';
+      : !isCrossMarginUnsupported && persistedMarginMode
+        ? persistedMarginMode
+        : 'isolated';
   const onMarginModeSelect = useCallback(
-    (nextMarginMode: MarginMode) =>
+    (nextMarginMode: MarginMode) => {
       setMarginModeSelection({
         contextKey: marginModeContextKey,
         marginMode: nextMarginMode,
-      }),
-    [marginModeContextKey],
+      });
+      setIsSavedMarginModeRuledOut(false);
+      saveMarginMode(nextMarginMode);
+    },
+    [marginModeContextKey, saveMarginMode],
   );
   const {
     lock: marginModeLock,
@@ -1121,6 +1181,24 @@ export const usePerpsProOrderForm = ({
     (!!currentMarketPosition ||
       venueLockedMarginMode !== undefined ||
       !isMarginModeLockResolved);
+  const marginModeLockReason: MarginModeLockReason | undefined =
+    !isCrossMarginAvailableForMarket
+      ? undefined
+      : currentMarketPosition
+        ? 'position'
+        : marginModeLock?.status === 'locked'
+          ? marginModeLock.reason
+          : undefined;
+  const onLockedMarginModePress = useCallback(() => {
+    if (!marginModeLockReason) {
+      return;
+    }
+    showToast(
+      PerpsToastOptions.formValidation.orderForm.marginModeLocked(
+        marginModeLockReason,
+      ),
+    );
+  }, [marginModeLockReason, showToast, PerpsToastOptions]);
   // Keep the displayed choice through a metadata reload, but hold submission
   // until the current restrictions and the subsequent venue read arrive.
   // An `unavailable` lock answer does not hold it; the venue re-checks at submit.
@@ -1132,9 +1210,16 @@ export const usePerpsProOrderForm = ({
     isMarginModeLockPendingRef.current = isMarginModeLockPending;
   }, [isMarginModeLockPending]);
 
-  const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
+  const prices = usePerpsLivePrices({
+    providerId: market.providerId,
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
   const currentPrice = prices[symbol];
-  const currentTopOfBook = usePerpsTopOfBook({ symbol });
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol,
+    providerId: market.providerId,
+  });
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -1191,6 +1276,45 @@ export const usePerpsProOrderForm = ({
     orderForm.limitPrice,
     szDecimals,
   );
+  // An order-book row fill sizes the order by the row's exact base size until
+  // the amount or the field it filled changes. A field the order type does not
+  // use holds no price.
+  const orderBookFillFieldPrices: Record<
+    PerpsOrderPriceField,
+    string | undefined
+  > = {
+    limit: isLimitExecutionOrderType(orderForm.type)
+      ? normalizedLimitPrice
+      : undefined,
+    trigger: isTriggerOrderType(orderForm.type)
+      ? normalizedTriggerPrice
+      : undefined,
+    scaleStart: isScaleOrder ? scaleStartPrice : undefined,
+    scaleEnd: isScaleOrder ? scaleEndPrice : undefined,
+    // Chase keeps a distance from the live price, so the tapped price stands
+    // while the distance the tap wrote does.
+    chaseMaxDistance:
+      orderForm.type === 'chase' &&
+      orderBookChaseEntry?.distance === chaseMaxDistance
+        ? orderBookChaseEntry.price
+        : undefined,
+  };
+  const orderBookFillPrice =
+    orderBookSizeFill && orderBookFillFieldPrices[orderBookSizeFill.field];
+  const orderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    orderBookFillPrice !== undefined &&
+    orderBookSizeFill.amount === orderForm.amount &&
+    new BigNumber(orderBookSizeFill.price).eq(orderBookFillPrice)
+      ? orderBookSizeFill.size
+      : undefined;
+  // Once the amount or price moves off the fill, drop it: setting them back
+  // is a new entry and sizes from the amount.
+  useEffect(() => {
+    if (orderBookSizeFill !== undefined && orderBookFillSize === undefined) {
+      clearOrderBookSizeFill();
+    }
+  }, [clearOrderBookSizeFill, orderBookFillSize, orderBookSizeFill]);
 
   const effectiveInputPrice = useMemo(
     () =>
@@ -1261,7 +1385,16 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
     preserveAssetIntent: isVenueSizedScale,
+    fillAssetAmount: orderBookFillSize,
   });
+  // A slider preview or typed draft is a new size intent, so the row size only
+  // sizes, validates and places the order while the amount in use is the
+  // filled one.
+  const exactOrderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    new BigNumber(effectiveUsdAmount).eq(orderBookSizeFill.amount)
+      ? orderBookFillSize
+      : undefined;
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
   const orderProviderId = isTwapOrder
@@ -1328,7 +1461,8 @@ export const usePerpsProOrderForm = ({
   ]);
   const isExactFullClose = exactFullCloseSize !== undefined;
 
-  const scaleBaseSize = exactFullCloseSize ?? exactAssetAmount;
+  const scaleBaseSize =
+    exactFullCloseSize ?? exactAssetAmount ?? exactOrderBookFillSize;
   // A live USD projection is display-only when the trader chose asset units.
   const scaleUsdAmount =
     scaleBaseSize === undefined ? effectiveUsdAmount : undefined;
@@ -1411,9 +1545,10 @@ export const usePerpsProOrderForm = ({
     const orderCount = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
     const targetOrderValue = new BigNumber(effectiveUsdAmount);
-    const targetExposure = new BigNumber(
-      exactFullCloseSize ?? exactAssetAmount ?? effectiveUsdAmount,
-    );
+    const targetExposure = new BigNumber(scaleBaseSize ?? effectiveUsdAmount);
+    // A full close or an order-book row size is split as given rather than
+    // grown to the USD target.
+    const exactTotalSize = exactFullCloseSize ?? exactOrderBookFillSize;
 
     if (
       !Number.isFinite(minPrice) ||
@@ -1489,7 +1624,7 @@ export const usePerpsProOrderForm = ({
         )
         .div(weightTotal);
       let totalSize =
-        exactFullCloseSize ??
+        exactTotalSize ??
         targetOrderValue
           .div(weightedAveragePrice)
           .decimalPlaces(szDecimals, BigNumber.ROUND_CEIL)
@@ -1517,7 +1652,7 @@ export const usePerpsProOrderForm = ({
 
       let rungs = buildRungs(totalSize);
       let orderValue = getOrderValue(rungs);
-      if (exactFullCloseSize === undefined && orderValue.lt(targetOrderValue)) {
+      if (exactTotalSize === undefined && orderValue.lt(targetOrderValue)) {
         const sizeMultiplier = new BigNumber(10).pow(szDecimals);
         const initialSizeUnits = new BigNumber(totalSize)
           .times(sizeMultiplier)
@@ -1653,8 +1788,9 @@ export const usePerpsProOrderForm = ({
     }
   }, [
     effectiveUsdAmount,
-    exactAssetAmount,
     exactFullCloseSize,
+    exactOrderBookFillSize,
+    scaleBaseSize,
     scaleMinimumOrderAmount,
     scaleEndPrice,
     scaleSizeSkew,
@@ -1707,7 +1843,10 @@ export const usePerpsProOrderForm = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
+    includeFeeRateBreakdown: effectiveFeeDisplayMode === 'percentage',
   });
+  // Size the max off the same resolved quote that drives the displayed fee.
+  usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Scale endpoints are compared against the side of the book they would hit:
@@ -1789,6 +1928,7 @@ export const usePerpsProOrderForm = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: market.providerId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps: resolvedMaxSlippageBps,
@@ -1837,6 +1977,7 @@ export const usePerpsProOrderForm = ({
         isBuy: orderForm.direction === 'long',
         maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
+        size: exactOrderBookFillSize,
       }),
     [
       calculationUsdAmount,
@@ -1850,6 +1991,7 @@ export const usePerpsProOrderForm = ({
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
+      exactOrderBookFillSize,
     ],
   );
   const submissionPositionSize =
@@ -2007,10 +2149,50 @@ export const usePerpsProOrderForm = ({
     liquidationPrice: isolatedLiquidationPrice,
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
-  // The estimate uses the isolated formula; a Cross order's liquidation depends
-  // on the whole account, so treat it as unknown instead of showing a wrong price.
+  // A Cross order liquidates against the whole cross account, so it is
+  // estimated from the account's cross collateral and maintenance margin. It
+  // stays unknown when the order adds to a position or is a Scale ladder.
+  const { account: liveAccount } = usePerpsLiveAccount({
+    enabled: marginMode === 'cross',
+  });
+  const crossLiquidationPrice = useMemo(() => {
+    // The default max leverage would estimate against the wrong maintenance
+    // margin, so wait for the market's own.
+    const marketMaxLeverage = marketData?.maxLeverage;
+    if (
+      marginMode !== 'cross' ||
+      isScaleOrder ||
+      currentMarketPosition ||
+      marketMaxLeverage === undefined
+    ) {
+      return undefined;
+    }
+    const estimate = estimateCrossLiquidationPrice({
+      entryPrice: effectivePrice,
+      size: Number.parseFloat(positionSize),
+      isLong: orderForm.direction === 'long',
+      maxLeverage: marketMaxLeverage,
+      crossMarginSummary: liveAccount?.crossMarginSummary,
+      spotCollateral: liveAccount?.spotCollateral,
+      providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+    });
+    return estimate === undefined
+      ? undefined
+      : new BigNumber(estimate).toFixed();
+  }, [
+    marginMode,
+    isScaleOrder,
+    currentMarketPosition,
+    effectivePrice,
+    positionSize,
+    orderForm.direction,
+    marketData?.maxLeverage,
+    liveAccount?.crossMarginSummary,
+    liveAccount?.spotCollateral,
+    market.providerId,
+  ]);
   const liquidationPrice =
-    marginMode === 'cross' ? '' : isolatedLiquidationPrice;
+    marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -2028,7 +2210,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
@@ -2080,8 +2268,11 @@ export const usePerpsProOrderForm = ({
       isReduceOnlyPositionLoading ||
       (orderForm.type === 'chase' &&
         (!isChaseEnabled || chaseProviderId === null)),
+    // Providers re-derive the size from a USD amount, so exact sizes omit it.
     originalUsdAmount:
-      isExactFullClose || isScaleOrder ? undefined : effectiveUsdAmount,
+      isExactFullClose || isScaleOrder || exactOrderBookFillSize !== undefined
+        ? undefined
+        : effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     providerId:
@@ -2096,6 +2287,7 @@ export const usePerpsProOrderForm = ({
     suppressedProtocolErrorCodes: isTwapOrder
       ? TWAP_OWNED_PROTOCOL_ERROR_CODES
       : undefined,
+    maxLeverage: marketData?.maxLeverage,
   });
   const { validateNow } = orderValidation;
   const scaleValidationInputKey = JSON.stringify({
@@ -2172,7 +2364,7 @@ export const usePerpsProOrderForm = ({
         maxPrice: scaleEndPrice,
         count: scaleTotalOrders,
         skew: scaleSizeSkew,
-        size: exactFullCloseSize ?? exactAssetAmount,
+        size: scaleBaseSize,
         usdAmount: effectiveUsdAmount,
         isBuy: orderForm.direction === 'long',
         reduceOnly,
@@ -2230,8 +2422,7 @@ export const usePerpsProOrderForm = ({
     scaleEndPrice,
     scaleTotalOrders,
     scaleSizeSkew,
-    exactFullCloseSize,
-    exactAssetAmount,
+    scaleBaseSize,
     effectiveUsdAmount,
     reduceOnly,
     scalePreview.observationGeneration,
@@ -2443,7 +2634,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -2619,6 +2810,9 @@ export const usePerpsProOrderForm = ({
         PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
       [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
+      [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
+        sizeInput.denomination.unit,
+      ),
       ...(isChaseSubmission
         ? {
             [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
@@ -3141,9 +3335,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3317,7 +3509,10 @@ export const usePerpsProOrderForm = ({
         orderType: placementOrderForm.type,
         effectivePrice: placementEffectivePrice,
         leverage: placementOrderForm.leverage,
-        usdAmount: placementIsExactFullClose ? undefined : placementUsdAmount,
+        usdAmount:
+          placementIsExactFullClose || exactOrderBookFillSize !== undefined
+            ? undefined
+            : placementUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
         limitPrice: finalizedLimitPrice,
         chaseMaxDistanceBps: latestChaseMaxDistanceBps,
@@ -3444,7 +3639,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4036,6 +4231,9 @@ export const usePerpsProOrderForm = ({
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
+      feeDisplayMode: effectiveFeeDisplayMode,
+      takerFeeRate: hasValidAmount ? feeResults.takerFeeRate : undefined,
+      makerFeeRate: hasValidAmount ? feeResults.makerFeeRate : undefined,
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -4061,6 +4259,9 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     feeResults.feeDiscountKind,
+    feeResults.takerFeeRate,
+    feeResults.makerFeeRate,
+    effectiveFeeDisplayMode,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4133,6 +4334,10 @@ export const usePerpsProOrderForm = ({
                 )
               : formatChaseDistanceValue(distance);
           setChaseMaxDistance(nextValue);
+          setOrderBookChaseEntry({
+            price: tappedPrice.toFixed(),
+            distance: nextValue,
+          });
         }),
     });
 
@@ -4166,7 +4371,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
@@ -4806,8 +5015,10 @@ export const usePerpsProOrderForm = ({
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    marginModeLockReason,
     refreshMarginModeLock,
     onMarginModeSelect,
+    onLockedMarginModePress,
     // Leverage sheet
     isLeverageVisible,
     minLeverage: 1,

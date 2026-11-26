@@ -1,8 +1,17 @@
-import { handleSwapUrl } from '../handleSwapUrl';
+import { createSwapDeeplinkIntent, handleSwapUrl } from '../handleSwapUrl';
+import { startSwapBridgePageLoadTrace } from '../../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
+import { getDeeplinkProcessedAppStartType } from '../../../../Performance/DeeplinkPerformance';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
-import { resetBridgeState } from '../../../../redux/slices/bridge';
-import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import {
+  resetBridgeState,
+  setDestToken,
+  setSourceToken,
+} from '../../../../redux/slices/bridge';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../../../components/UI/Bridge/types';
 import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES } from '../../../../../components/UI/Bridge/constants/limitOrders';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
@@ -25,6 +34,11 @@ jest.mock(
     startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
   }),
 );
+
+jest.mock('../../../../Performance/DeeplinkPerformance', () => ({
+  ...jest.requireActual('../../../../Performance/DeeplinkPerformance'),
+  getDeeplinkProcessedAppStartType: jest.fn(),
+}));
 
 // Mock fetchAssetMetadata from the utils module
 jest.mock(
@@ -102,7 +116,7 @@ const availableNetworkConfig = {
 };
 
 describe('handleSwapUrl', () => {
-  const expectedSourceToken = {
+  const expectedSourceToken: BridgeToken = {
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: '0x1',
     decimals: 6,
@@ -110,7 +124,7 @@ describe('handleSwapUrl', () => {
     symbol: 'USDC',
     image: 'https://example.com/usdc.png',
   };
-  const expectedDestToken = {
+  const expectedDestToken: BridgeToken = {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     chainId: '0x1',
     decimals: 6,
@@ -212,6 +226,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
     expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
@@ -235,6 +250,31 @@ describe('handleSwapUrl', () => {
         initialTab: BridgeTabKey.Limit,
         initialLimitOrderExpirationMinutes: 10080,
         initialLimitOrderPriceTolerance: '0.5',
+      },
+    });
+  });
+
+  it('opens the Recurring tab with processed swap and schedule parameters', async () => {
+    const swapPath =
+      'tab=recurring&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000&every=2&unit=week&repeatCount=8';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: '1.0',
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+        initialRecurringSchedule: {
+          everyValue: '2',
+          everyUnit: 'week',
+          repeatCount: '8',
+        },
       },
     });
   });
@@ -337,6 +377,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -360,7 +401,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('ignores unsupported tab parameters', async () => {
+  it('opens the Recurring tab without token or schedule parameters', async () => {
     const swapPath = 'tab=recurring';
 
     await handleSwapUrl({ swapPath });
@@ -374,6 +415,131 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+      },
+    });
+  });
+
+  it.each([
+    ['omitted', 'every=2&unit=week'],
+    ['empty', 'every=2&unit=week&repeatCount='],
+    ['zero', 'every=2&unit=week&repeatCount=0'],
+    ['negative', 'every=2&unit=week&repeatCount=-1'],
+    ['non-integer', 'every=2&unit=week&repeatCount=2.5'],
+    ['non-numeric', 'every=2&unit=week&repeatCount=invalid'],
+  ])(
+    'uses the default repeat count when it is %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Recurring,
+          initialRecurringSchedule: {
+            everyValue: '2',
+            everyUnit: 'week',
+            repeatCount: '10',
+          },
+        }),
+      });
+    },
+  );
+
+  it.each([
+    ['missing every', 'unit=week&repeatCount=8'],
+    ['missing unit', 'every=2&repeatCount=8'],
+    ['missing interval pair', 'repeatCount=8'],
+    ['unknown unit', 'every=2&unit=year&repeatCount=8'],
+    ['zero every', 'every=0&unit=week&repeatCount=8'],
+    ['non-integer every', 'every=2.5&unit=week&repeatCount=8'],
+    ['unit maximum exceeded', 'every=5&unit=week&repeatCount=8'],
+  ])(
+    'uses the default interval and preserves repeat count when %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Recurring,
+          initialRecurringSchedule: {
+            everyValue: '1',
+            everyUnit: 'hour',
+            repeatCount: '8',
+          },
+        }),
+      });
+    },
+  );
+
+  it.each([
+    ['maximum duration exceeded', 'every=6&unit=month&repeatCount=2'],
+    ['default repeat count exceeds the maximum duration', 'every=1&unit=month'],
+  ])(
+    'ignores the complete schedule when %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          initialTab: BridgeTabKey.Recurring,
+        },
+      });
+    },
+  );
+
+  it.each([
+    ['every=2&unit=week&repeatCount=8', BridgeTabKey.Market],
+    ['tab=limit&every=2&unit=week&repeatCount=8', BridgeTabKey.Limit],
+  ])(
+    'ignores Recurring schedule parameters outside the Recurring tab',
+    async (swapPath, initialTab) => {
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          initialTab,
+        },
+      });
+    },
+  );
+
+  it('opens the Market tab for unknown tab parameters', async () => {
+    const swapPath = 'tab=dca';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -393,6 +559,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -470,6 +637,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -504,12 +672,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -536,12 +702,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -587,6 +751,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -606,6 +771,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -625,6 +791,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -647,6 +814,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -672,12 +840,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -693,12 +859,10 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -725,6 +889,31 @@ describe('handleSwapUrl', () => {
     });
   });
 
+  it('preserves the Recurring tab and schedule when amount parsing falls back', async () => {
+    const swapPath =
+      'tab=recurring&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=invalid&every=2&unit=week&repeatCount=8';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+        initialRecurringSchedule: {
+          everyValue: '2',
+          everyUnit: 'week',
+          repeatCount: '8',
+        },
+      },
+    });
+  });
+
   it('navigates to Bridge view without parameters when no valid parameters are provided', async () => {
     const swapPath = 'invalid=param';
 
@@ -739,6 +928,7 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
     });
   });
@@ -746,6 +936,7 @@ describe('handleSwapUrl', () => {
   it('navigates to Bridge view with fallback when exception occurs', async () => {
     // Mock fetchAssetMetadata to throw an error
     mockFetchAssetMetadata.mockRejectedValue(new Error('API Error'));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
 
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -755,13 +946,50 @@ describe('handleSwapUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+        initialTab: BridgeTabKey.Market,
       },
+    });
+    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourcePage: 'deeplink' }),
+      { appStartType: 'cold' },
+    );
+  });
+
+  it('seeds tokens and starts the trace in prepare, right before navigation', async () => {
+    const mockStartTrace = startSwapBridgePageLoadTrace as jest.Mock;
+    mockStartTrace.mockImplementationOnce((params: object) => ({
+      ...params,
+      swapViewTraceId: 'trace-id',
+    }));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
+
+    const intent = await createSwapDeeplinkIntent({
+      swapPath:
+        'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    });
+
+    expect(mockStartTrace).not.toHaveBeenCalled();
+
+    await intent.prepare?.();
+
+    expect(mockDispatch.mock.calls).toStrictEqual([
+      [resetBridgeState()],
+      [setSourceToken(expectedSourceToken)],
+      [setDestToken(expectedDestToken)],
+    ]);
+    expect(mockStartTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken: expectedSourceToken }),
+      { appStartType: 'cold' },
+    );
+    expect(mockStartTrace.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mockDispatch.mock.invocationCallOrder[2],
+    );
+    expect(intent.target.params).toStrictEqual({
+      screen: 'BridgeView',
+      params: expect.objectContaining({ swapViewTraceId: 'trace-id' }),
     });
   });
 });

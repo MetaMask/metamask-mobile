@@ -9,10 +9,12 @@ import FCMService, {
 } from '../../util/notifications/services/FCMService';
 import NotificationsService from '../../util/notifications/services/NotificationService';
 import NavigationService from '../NavigationService';
+import { Linking, Platform } from 'react-native';
 import SharedDeeplinkManager, {
   DeeplinkManager,
   rewriteBranchUri,
 } from './DeeplinkManager';
+import { BRANCH_SHORTLINK_FALLBACK_MS } from './utils/androidShortlinkGate';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
@@ -822,6 +824,39 @@ describe('rewriteBranchUri', () => {
       rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
     ).toBe(uri);
   });
+
+  it('fills trader and position ids from the query on $deeplink_path', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path:
+          'social/profile/position?positionId=pepe-base&traderId=trader-1',
+      }),
+    ).toBe(
+      'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+    );
+  });
+
+  it('keeps a query key the short link already has', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf?traderId=kept';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path: '/social/profile?traderId=replaced',
+      }),
+    ).toBe('https://link.metamask.io/social/profile?traderId=kept');
+  });
+
+  it('decodes an encoded id on $deeplink_path once', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'social/profile?traderId=a%2Fb%20c',
+      }),
+    ).toBe('https://link.metamask.io/social/profile?traderId=a%2Fb+c');
+  });
 });
 
 describe('DeeplinkManager.start Branch deeplink handling', () => {
@@ -956,6 +991,93 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       expect(handleDeeplink).toHaveBeenCalledWith({
         uri: 'https://link.metamask.io/swap/token',
       });
+    });
+  });
+});
+
+describe('DeeplinkManager.start Android shortlink deferral', () => {
+  const originalPlatformOS = Platform.OS;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    Platform.OS = originalPlatformOS;
+  });
+
+  const startAndCaptureListeners = () => {
+    let linkingUrlHandler: ((event: { url: string }) => void) | undefined;
+    jest.spyOn(Linking, 'addEventListener').mockImplementation((event, cb) => {
+      if (event === 'url') {
+        linkingUrlHandler = cb;
+      }
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof Linking.addEventListener
+      >;
+    });
+
+    DeeplinkManager.start();
+
+    const branchCallback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    return {
+      emitLinkingUrl: (url: string) => linkingUrlHandler?.({ url }),
+      emitBranch: (opts: { uri?: string; params?: Record<string, unknown> }) =>
+        branchCallback(opts),
+    };
+  };
+
+  it('holds raw shortlink from Linking on Android and processes only the Branch-resolved route', () => {
+    Platform.OS = 'android';
+    const { emitLinkingUrl, emitBranch } = startAndCaptureListeners();
+
+    emitLinkingUrl('https://link.metamask.io/invite-perps?ref=5SYFDM');
+    expect(handleDeeplink).not.toHaveBeenCalled();
+
+    emitBranch({
+      uri: 'https://link.metamask.io/invite-perps?ref=5SYFDM',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'perps?sig_params=&sig=abc',
+      },
+    });
+
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/perps?ref=5SYFDM&sig_params=&sig=abc',
+    });
+
+    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS + 100);
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a late Android initial URL whose query differs from the cold-start Branch referring link', async () => {
+    Platform.OS = 'android';
+    const alias = 'https://metamask.app.link/invite-perps?ref=5SYFDM';
+    jest.mocked(Linking.getInitialURL).mockReturnValue(
+      new Promise((resolve) => {
+        setTimeout(() => resolve(alias), 1);
+      }),
+    );
+    jest.mocked(branch.getLatestReferringParams).mockResolvedValue({
+      '~referring_link': `${alias}&_branch_match_id=123`,
+      '+match_guaranteed': false,
+      '+is_first_session': false,
+      '+clicked_branch_link': true,
+      $deeplink_path: 'perps?sig_params=&sig=xyz',
+    });
+
+    startAndCaptureListeners();
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORTLINK_FALLBACK_MS + 1);
+
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/perps?ref=5SYFDM&_branch_match_id=123&sig_params=&sig=xyz',
     });
   });
 });

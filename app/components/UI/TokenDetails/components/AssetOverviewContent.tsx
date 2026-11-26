@@ -48,11 +48,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
-///: END:ONLY_INCLUDE_IF
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
 import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
@@ -85,6 +83,8 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 20,
     } as ViewStyle,
     tokenDetailsWrapper: {
+      // Clears the action buttons when nothing else renders between them.
+      marginTop: 24,
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
@@ -161,9 +161,7 @@ export interface AssetOverviewContentProps {
   /** Whether the security data fetch failed. Hides the card when true. */
   hasSecurityDataError?: boolean;
 
-  // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
 
   // Exit action tracking
   onExitAction?: () => void;
@@ -217,7 +215,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
   onPriceDirectionChange,
-  useAmbientColor,
   onExitAction,
   isPricePositive,
   onPerpsMarketResolved,
@@ -419,7 +416,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isLoading={isLoading}
             hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
-            useAmbientColor={useAmbientColor}
             isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (
@@ -454,18 +450,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             token={token}
             securityData={securityData ?? null}
             onDisplayResolved={onMarketInsightsDisplayResolved}
-            useAmbientColor={useAmbientColor}
             pricePercentChange={
               comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
             }
             containerStyle={styles.marketInsightsWrapper}
             isGlass={isGlass}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && <TronEnergyBandwidthDetail />
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && <TronEnergyBandwidthDetail />}
           {balance != null && spendableBalanceData.hasSpendableBalance && (
             <SpendableBalanceSection
               minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
@@ -489,18 +480,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <EarnBalance asset={token} isGlass={isGlass} />
             </>
           )}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && (
-              <TronAssetOverviewSection
-                token={tronNativeToken}
-                stakedTrxAsset={stakedTrxAsset}
-                inLockPeriodBalance={inLockPeriodBalance}
-                readyForWithdrawalBalance={readyForWithdrawalBalance}
-              />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && (
+            <TronAssetOverviewSection
+              token={tronNativeToken}
+              stakedTrxAsset={stakedTrxAsset}
+              inLockPeriodBalance={inLockPeriodBalance}
+              readyForWithdrawalBalance={readyForWithdrawalBalance}
+            />
+          )}
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
               <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
@@ -543,7 +530,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
-                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}

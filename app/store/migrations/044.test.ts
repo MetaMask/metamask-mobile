@@ -10,6 +10,7 @@ import {
 } from '../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 interface MigrationState {
   engine: {
@@ -226,7 +227,7 @@ describe('Migration #44', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

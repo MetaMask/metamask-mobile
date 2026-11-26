@@ -20,8 +20,10 @@ import { formatSignedAbbreviatedUsd } from '../../../../../UI/SocialFeed/utils/f
 import {
   getTopTraderAvatarTestId,
   getTopTraderCardTestId,
+  getTopTraderVerifiedBadgeTestId,
 } from './TopTraderCard.testIds';
 import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import ProfileVerifiedBadge from '../../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -90,20 +92,33 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           <TraderAvatar
             imageUrl={trader.avatarUri}
             address={trader.address}
+            profileId={trader.id}
             size={AVATAR_SIZE}
             testID={getTopTraderAvatarTestId(trader.id)}
           />
 
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {trader.username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.verified ? (
+                <ProfileVerifiedBadge
+                  testID={getTopTraderVerifiedBadgeTestId(trader.id)}
+                />
+              ) : null}
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}

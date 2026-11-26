@@ -48,10 +48,11 @@ import {
   getNftRowTestId,
   getRecipientAvatarTestId,
   getRecipientRowTestId,
-  RedesignedSendViewSelectorsIDs,
-} from './RedesignedSendView.testIds';
+  SendViewSelectorsIDs,
+} from './SendView.testIds';
 import { Send } from './send';
 import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import {
@@ -102,6 +103,112 @@ const buildTrustedAddressScanOverrides = (...addresses: string[]) =>
       },
     },
   }) as unknown as Record<string, unknown>;
+
+const SEND_FIAT_ACCOUNT_ID = 'acc-1';
+const SEND_FIAT_TOKEN_ADDRESS = '0x1111111111111111111111111111111111111111';
+const SEND_FIAT_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ETHEREUM_CHAIN_ID = '0x1';
+/** Chain 143. A $0.02 native coin, the direction where the doubled rate grows. */
+const CHEAP_NATIVE_CHAIN_ID = '0x8f';
+const TOKEN_FIAT_PRICE = 2;
+const ETHEREUM_NATIVE_PRICE = 4000;
+const CHEAP_NATIVE_PRICE = 0.02;
+
+const fungibleAssetPrice = (id: string, price: number) => ({
+  assetPriceType: 'fungible' as const,
+  id,
+  price,
+  usdPrice: price,
+  lastUpdated: 1700000000000,
+});
+
+/**
+ * Account assets carry the native-coin fiat rate. Market data carries the
+ * token priced in that native coin. `useRouteParams` folds the two into the
+ * token's own fiat price before the amount screen renders the fiat line.
+ */
+function sendFiatConversionState() {
+  const ethereumTokenId = `eip155:1/erc20:${SEND_FIAT_TOKEN_ADDRESS}`;
+  const cheapTokenId = `eip155:143/erc20:${SEND_FIAT_TOKEN_ADDRESS}`;
+  const ethereumNativeId = 'eip155:1/slip44:60';
+  const cheapNativeId = 'eip155:143/slip44:60';
+  const tokenInfo = {
+    type: 'erc20',
+    symbol: 'TEST',
+    name: 'Test Token',
+    decimals: 6,
+  };
+
+  return initialStateWallet()
+    .withOverrides(sendViewOverrides)
+    .withOverrides({
+      settings: { primaryCurrency: 'ETH' },
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHEAP_NATIVE_CHAIN_ID]: {
+                chainId: CHEAP_NATIVE_CHAIN_ID,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'monad',
+                    url: 'https://rpc.monad.xyz',
+                    type: 'custom',
+                    name: 'Monad',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: [],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Monad',
+                nativeCurrency: 'MON',
+              },
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              [ethereumNativeId]: {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              [cheapNativeId]: {
+                type: 'native',
+                symbol: 'MON',
+                name: 'Monad',
+                decimals: 18,
+              },
+              [ethereumTokenId]: tokenInfo,
+              [cheapTokenId]: tokenInfo,
+            },
+            assetsPrice: {
+              [ethereumNativeId]: fungibleAssetPrice(
+                'eth',
+                ETHEREUM_NATIVE_PRICE,
+              ),
+              [cheapNativeId]: fungibleAssetPrice('mon', CHEAP_NATIVE_PRICE),
+              [ethereumTokenId]: fungibleAssetPrice(
+                'test-eth',
+                TOKEN_FIAT_PRICE,
+              ),
+              [cheapTokenId]: fungibleAssetPrice('test-mon', TOKEN_FIAT_PRICE),
+            },
+            assetsBalance: {
+              [SEND_FIAT_ACCOUNT_ID]: {
+                [ethereumNativeId]: { amount: '10' },
+                [cheapNativeId]: { amount: '1000' },
+                [ethereumTokenId]: { amount: '1000' },
+                [cheapTokenId]: { amount: '1000' },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>)
+    .build();
+}
 
 /** Mainnet USDC (6 decimals), high balance — mirrors smoke ERC-20 send E2E fixture. */
 const EVM_USDC_ASSET = {
@@ -199,9 +306,7 @@ describeForPlatforms('Send', () => {
           { screen: Routes.SEND.AMOUNT, params: { asset: erc721Asset } },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByText('1'));
 
@@ -212,9 +317,7 @@ describeForPlatforms('Send', () => {
       fireEvent.press(continueButton);
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
     });
 
@@ -271,9 +374,7 @@ describeForPlatforms('Send', () => {
       fireEvent.press(nftRow);
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
     });
   });
@@ -316,24 +417,23 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -359,18 +459,17 @@ describeForPlatforms('Send', () => {
           { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
           {},
           { timeout: 5000 },
         ),
@@ -380,13 +479,13 @@ describeForPlatforms('Send', () => {
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.SEND_AMOUNT,
+          SendViewSelectorsIDs.SEND_AMOUNT,
           {},
           { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+        queryByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(SEND_NAVBAR_BACK_BUTTON_TEST_ID));
@@ -399,10 +498,10 @@ describeForPlatforms('Send', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+        queryByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+        queryByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).not.toBeOnTheScreen();
     });
 
@@ -441,22 +540,20 @@ describeForPlatforms('Send', () => {
           },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByText('5'));
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const recipientInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -506,24 +603,20 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_50),
-      );
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_50));
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const recipientInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -561,16 +654,17 @@ describeForPlatforms('Send', () => {
         },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByRole('button', { name: 'Max' }));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
           {},
           { timeout: 5000 },
         ),
@@ -595,14 +689,14 @@ describeForPlatforms('Send', () => {
       );
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, 'notanaddress');
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -663,14 +757,14 @@ describeForPlatforms('Send', () => {
       );
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, TOKEN_CONTRACT_ADDRESS);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -723,9 +817,7 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: tinyBalanceAsset } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       // Press digit '1' — enters 1 ETH, far exceeding 1 wei balance
       fireEvent.press(getByText('1'));
@@ -770,9 +862,7 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: erc1155Asset } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       // NFT name is shown in the amount header
       expect(getByText('Magic Sword')).toBeOnTheScreen();
@@ -846,19 +936,16 @@ describeForPlatforms('Send', () => {
         },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
 
       const avatarElements: ReturnType<typeof getByTestId>[] = [];
@@ -983,10 +1070,6 @@ describeForPlatforms('Send', () => {
 
         try {
           const state = initialStateWallet()
-            .withRemoteFeatureFlags({
-              tmcuActivityRedesignEnabled: true,
-              tmcuTransactionsRedesignEnabled: true,
-            })
             .withOverrides(sendViewOverrides)
             .withOverrides(buildMaxNativeSendFixture(chain))
             .build();
@@ -1031,30 +1114,30 @@ describeForPlatforms('Send', () => {
           activeStore = store;
 
           expect(
-            getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+            getByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
           ).toHaveTextContent('0');
 
           fireEvent.press(
-            getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+            getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
           );
 
           await waitFor(() => {
             expect(
-              getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+              getByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
             ).toHaveTextContent('1');
           });
 
           fireEvent.press(getByRole('button', { name: 'Continue' }));
 
           const recipientInput = await findByTestId(
-            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
             {},
             { timeout: 5000 },
           );
           fireEvent.changeText(recipientInput, MAX_NATIVE_SEND_RECIPIENT);
 
           const reviewButton = await findByTestId(
-            RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+            SendViewSelectorsIDs.REVIEW_BUTTON,
             {},
             { timeout: 5000 },
           );
@@ -1157,5 +1240,82 @@ describeForPlatforms('Send', () => {
         }
       });
     }
+  });
+
+  // MMQA-2523. The account list stores the native-coin fiat rate. Market data
+  // stores the token priced in that coin. The amount screen must show the
+  // token's own price. Applying the native-coin price again collapses a $2
+  // token when the native coin is $4,000 and inflates it when the native coin
+  // is $0.02. ETH stays at the native rate because that price is 1.
+  describe('fiat conversion', () => {
+    const openAmount = (asset: {
+      address: string;
+      chainId: string;
+      decimals: number;
+      symbol: string;
+    }) => {
+      const state = sendFiatConversionState();
+
+      return renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset } },
+      );
+    };
+
+    it('shows $20 for 10 tokens priced at $2 when the native coin is $4000', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_TOKEN_ADDRESS,
+        chainId: ETHEREUM_CHAIN_ID,
+        decimals: 6,
+        symbol: 'TEST',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
+
+      await waitFor(() => {
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$20.00',
+        );
+      });
+    });
+
+    it('shows $20 for 10 tokens priced at $2 when the native coin is $0.02', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_TOKEN_ADDRESS,
+        chainId: CHEAP_NATIVE_CHAIN_ID,
+        decimals: 6,
+        symbol: 'TEST',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
+
+      await waitFor(() => {
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$20.00',
+        );
+      });
+    });
+
+    it('shows $4000 for 1 ETH', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_NATIVE_ADDRESS,
+        chainId: ETHEREUM_CHAIN_ID,
+        decimals: 18,
+        symbol: 'ETH',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+
+      await waitFor(() => {
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$4,000.00',
+        );
+      });
+    });
   });
 });

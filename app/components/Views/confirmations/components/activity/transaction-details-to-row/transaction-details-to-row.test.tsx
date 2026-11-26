@@ -97,6 +97,21 @@ describe('TransactionDetailsToRow', () => {
     expect(getByText(RECIPIENT_MOCK)).toBeDefined();
   });
 
+  it('renders nothing for a moneyAccountWithdraw whose transfer pays the money account', () => {
+    parseStandardTokenTransactionDataMock.mockReturnValue({
+      args: { _to: '0xSENDER' },
+    } as unknown as ReturnType<typeof parseStandardTokenTransactionData>);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta(
+        TransactionType.moneyAccountWithdraw,
+      ),
+    });
+
+    const { toJSON } = render();
+    expect(toJSON()).toBeNull();
+  });
+
   it('renders "Account 1 Perps" label for perpsDeposit', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: createTransactionMeta(TransactionType.perpsDeposit),

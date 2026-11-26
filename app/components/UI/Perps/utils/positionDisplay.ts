@@ -24,6 +24,44 @@ export interface PerpsPositionHeaderDisplay {
 }
 
 /**
+ * Parses a position's `returnOnEquity` into the percentage value the UI
+ * renders. `returnOnEquity` is a decimal ratio (0.103 represents +10.30%).
+ *
+ * @param returnOnEquity - Raw `returnOnEquity` string from a position.
+ * @returns The RoE as a percentage (for example, 10.3), or undefined when the
+ * value is missing or malformed so callers can omit it instead of
+ * fabricating 0.00%.
+ */
+export const parsePositionRoePercentage = (
+  returnOnEquity: string | undefined,
+): number | undefined => {
+  const roeValue = Number.parseFloat(returnOnEquity ?? '');
+  return Number.isNaN(roeValue) ? undefined : roeValue * 100;
+};
+
+/**
+ * Margin amount to show for a position.
+ *
+ * Hyperliquid reports raw initial margin on `marginUsed`. When cross equity
+ * is below that initial margin, the venue shows a smaller figure, which the
+ * controller puts on `displayMarginUsed`. Isolated positions and a healthy
+ * cross account omit it or set it equal to `marginUsed`.
+ *
+ * @param position - Position carrying the venue margin fields.
+ * @returns The margin string the position card should format.
+ */
+export const getDisplayedPositionMargin = (
+  position: Pick<Position, 'marginUsed' | 'displayMarginUsed'>,
+): string => {
+  const displayed = position.displayMarginUsed?.trim();
+  if (!displayed) {
+    return position.marginUsed;
+  }
+  const value = Number.parseFloat(displayed);
+  return Number.isFinite(value) ? displayed : position.marginUsed;
+};
+
+/**
  * Derives the shared display values used by Lite and Pro position headers.
  *
  * Position size is signed by direction, while return on equity is provided as
@@ -43,7 +81,7 @@ export const getPerpsPositionHeaderDisplay = (
     ? strings('perps.market.long')
     : strings('perps.market.short');
   const pnl = Number.parseFloat(position.unrealizedPnl);
-  const roe = (Number.parseFloat(position.returnOnEquity) || 0) * 100;
+  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
   const pnlColor = pnl >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
   const positionValue = formatPerpsFiat(position.positionValue, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,

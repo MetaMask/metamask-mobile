@@ -12,6 +12,10 @@ inputs:
     description: Regex matching E2E build/test jobs whose skipped result is allowed. Failed or cancelled E2E jobs still fail.
     required: false
     default: '^e2e-'
+  flakiness-job-regex:
+    description: Regex matching flakiness-detection jobs whose skipped result is allowed (no relevant test files changed). Failed or cancelled flakiness jobs still fail.
+    required: false
+    default: '^$'
   event-name:
     description: GitHub event name for the current workflow run.
     required: true
@@ -29,6 +33,7 @@ runs:
         NEEDS_JSON: ${{ inputs.needs-json }}
         REQUIREMENT_CONTEXT_JSON: ${{ inputs.requirement-context-json }}
         E2E_JOB_REGEX: ${{ inputs.e2e-job-regex }}
+        FLAKINESS_JOB_REGEX: ${{ inputs.flakiness-job-regex }}
         EVENT_NAME: ${{ inputs.event-name }}
         IS_FORK: ${{ inputs.is-fork }}
       run: |
@@ -134,6 +139,8 @@ runs:
             skipped)
               if [[ "$job_name" =~ $E2E_JOB_REGEX ]]; then
                 add_summary_row "$job_name" "$result" "pass" "skipped E2E jobs are allowed"
+              elif [[ "$job_name" =~ $FLAKINESS_JOB_REGEX ]]; then
+                add_summary_row "$job_name" "$result" "pass" "skipped flakiness-detection job is allowed (no relevant test files changed)"
               elif [[ "$EVENT_NAME" == "merge_group" ]]; then
                 add_summary_row "$job_name" "$result" "pass" "merge queue skip is allowed"
               elif [[ "$IS_FORK" == "true" ]]; then
@@ -146,8 +153,6 @@ runs:
                         "$component_view_tests_result" =~ ^(failure|cancelled)$ ||
                         "$merge_unit_result" =~ ^(failure|cancelled|skipped)$ ) ]]; then
                 add_summary_row "$job_name" "$result" "pass" "downstream coverage/Sonar skip is allowed after upstream dependency/test failure or cancellation"
-              elif [[ "$job_name" == "security-code-scan" && "$EVENT_NAME" != "pull_request" && "$EVENT_NAME" != "merge_group" ]]; then
-                add_summary_row "$job_name" "$result" "pass" "security scan is required on pull requests and in the merge queue"
               else
                 mark_failure "$job_name was skipped unexpectedly"
                 add_summary_row "$job_name" "$result" "fail" "skip was not expected"

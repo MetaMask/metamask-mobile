@@ -7,10 +7,11 @@ ios
 jest.preprocessor.js
 node_modules
 CHANGELOG.md
+eslint-suppressions.json
 wdio
 wdio.conf.js
 scripts
 .detoxrc.js
 .prettierignore
 locales
-.storybook/storybook.requires.js
+.rnstorybook/storybook.requires.ts

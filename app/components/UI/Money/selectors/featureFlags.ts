@@ -30,8 +30,6 @@ import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmatio
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
-import { parseMoneyVbaActivityDepositFromAddresses } from '../utils/moneyVbaActivityDepositFromAddresses';
-
 /**
  * Selects whether the Money activity detail view is enabled.
  * When off, clicking on an activity list item does nothing instead of opening
@@ -57,6 +55,15 @@ export const selectMoneyEnableCardActivityEnrichmentFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+export const selectMoneyEnableHistoricalVaultShareValuationsFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableHistoricalVaultShareValuations as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  });
 
 /**
  * Selects whether the tilt-driven parallax animation is shown on the Money
@@ -109,22 +116,54 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
-/**
- * Selects the remotely managed Iron/MoonPay sender addresses for completed VBA
- * deposits. The allowlist can overlap while provider addresses rotate. An
- * absent or malformed flag fails closed; production addresses are never bundled.
- */
-export const selectMoneyVbaActivityDepositFromAddresses = createSelector(
+/** Dedicated opt-in gate for pending VBA activity from NeoBankService. */
+export const selectMoneyVbaPendingActivityEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string[] =>
-    parseMoneyVbaActivityDepositFromAddresses(
-      remoteFeatureFlags?.moneyVbaActivityDepositFromAddresses,
-    ),
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaPendingActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/** Dedicated opt-in gate for completed VBA activity from Money Account API. */
+export const selectMoneyVbaCompletedActivityEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaCompletedActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money account status debug page is enabled. Typically
+ * targeted at individual users by serving a
+ * threshold array whose entries list `metaMetricsIds`.
+ */
+export const selectMoneyAccountDebugEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyAccountDebugEnabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
 
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+export const selectMoneyAccountStatusPageEnabled = createSelector(
+  selectMoneyEnableMoneyAccountFlag,
+  selectMoneyAccountDebugEnabledFlag,
+  (isMoneyEnabled, isDebugEnabled) => isMoneyEnabled && isDebugEnabled,
 );
 
 /**
@@ -243,6 +282,30 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
   },
 );
 
+export const selectIsMoneyEarningsHistoryEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningHistoryEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money deposit Braze campaign can emit its trigger event.
+ */
+export const selectIsMoneyDepositBrazeCampaignEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyDepositBrazeCampaignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 /**
  * Kill-switch for the first-time deposit Rive animation.
  * Defaults to ON (true).
@@ -282,24 +345,6 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
-  },
-);
-
-/**
- * Selects whether the card education screen plays the Rive cards entrance.
- * Defaults to off (opt-in) so the animation stays disabled unless the remote
- * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
- * image is used otherwise, when reduce-motion is enabled, or when Rive fails
- * to load.
- */
-export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
-    const local =
-      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

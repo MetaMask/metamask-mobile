@@ -31,8 +31,11 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+  usePredictEntryActions,
+} from '../../UI/PredictNext';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
@@ -42,10 +45,8 @@ import {
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
@@ -64,7 +65,8 @@ const WalletActions = () => {
     selectIsSwapsEnabled(state),
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openPredict } = usePredictEntryActions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -72,7 +74,7 @@ const WalletActions = () => {
     sourcePage: 'MainView',
   });
   const { isEligible: isEarnEligible } = useStakingEligibility();
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -125,29 +127,22 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        const target = getPerpsHomeNavigationTarget({
+        const target = getTarget({
           source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
         navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(target));
       }
     });
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    isFirstTimePerpsUser,
-    getPerpsHomeNavigationTarget,
-  ]);
+  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser, getTarget]);
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      openPredict({
+        type: 'home',
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+  }, [closeBottomSheetAndNavigate, openPredict]);
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (

@@ -41,6 +41,8 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 
 const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SOURCE_CHAIN_ID_MOCK = '0xa';
+const SOURCE_ASSET_ID_MOCK =
+  `eip155:10/erc20:${SOURCE_TOKEN_ADDRESS_MOCK}` as const;
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
 function createQuoteMock(
@@ -50,7 +52,11 @@ function createQuoteMock(
 }
 
 function render(
-  options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
+  options: {
+    type?: TransactionType;
+    nestedTypes?: TransactionType[];
+    isGasFeeSponsored?: boolean;
+  } = {},
 ) {
   const state = merge(
     {},
@@ -65,6 +71,10 @@ function render(
   ).transactions[0];
 
   tx.type = options.type ?? TransactionType.perpsDeposit;
+
+  if (options.nestedTypes) {
+    tx.nestedTransactions = options.nestedTypes.map((type) => ({ type }));
+  }
 
   if (options.isGasFeeSponsored !== undefined) {
     tx.isGasFeeSponsored = options.isGasFeeSponsored;
@@ -106,8 +116,7 @@ describe('BridgeFeeRow', () => {
 
     useTransactionPayQuotesMock.mockReturnValue([
       createQuoteMock({
-        sourceChainId: SOURCE_CHAIN_ID_MOCK,
-        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+        sourceAssetId: SOURCE_ASSET_ID_MOCK,
       }),
     ]);
 
@@ -208,14 +217,15 @@ describe('BridgeFeeRow', () => {
       },
     } as TransactionPayTotals);
 
-    const { getByTestId, getByText } = render({
+    const { getByTestId, getByText, queryByTestId } = render({
       type: TransactionType.moneyAccountDeposit,
     });
 
     expect(getByText('$0.70')).toBeOnTheScreen();
+    expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      fireEvent.press(getByTestId('transaction-fee-pressable'));
     });
 
     expect(getByText('$0.20')).toBeOnTheScreen();
@@ -308,6 +318,8 @@ describe('BridgeFeeRow', () => {
 
       expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
       expect(queryByTestId('transaction-fee')).toBeNull();
+      expect(queryByTestId('transaction-fee-pressable')).toBeNull();
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
     });
 
     it('hides the tooltip icon when paid by MetaMask is shown', () => {
@@ -405,7 +417,6 @@ describe('BridgeFeeRow', () => {
     it.each([
       [TransactionType.predictDeposit],
       [TransactionType.predictWithdraw],
-      [TransactionType.moneyAccountDeposit],
       [TransactionType.moneyAccountWithdraw],
     ])('renders tooltip with $ value for %s', async (type) => {
       const { getByTestId } = render({ type });
@@ -417,19 +428,67 @@ describe('BridgeFeeRow', () => {
       expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
     });
 
-    it('renders moneyAccountDeposit tooltip copy', async () => {
-      const { getByTestId, getByText } = render({
+    it('renders moneyAccountDeposit tooltip via dotted fee underline without an info icon', async () => {
+      const { getByTestId, getByText, queryByTestId } = render({
         type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('transaction-fee-pressable'));
+      });
+
+      expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Conversion fees include network costs and may include provider fees.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders a non-empty fee tooltip for the Orange membership top-up batch', async () => {
+      const { getByTestId, getByText } = render({
+        type: TransactionType.batch,
+        nestedTypes: [
+          TransactionType.tokenMethodApprove,
+          TransactionType.membershipSubscription,
+        ],
       });
 
       await act(async () => {
         fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
       });
 
+      expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
       expect(
         getByText(
           'Conversion fees include network costs and may include provider fees.',
         ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render a tooltip when no tooltip copy exists for the transaction type', () => {
+      const { queryByTestId } = render({
+        type: TransactionType.contractInteraction,
+      });
+
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+      expect(queryByTestId('transaction-fee-pressable')).toBeNull();
+    });
+
+    it.each([
+      [TransactionType.perpsWithdraw],
+      [TransactionType.predictWithdraw],
+    ])('renders withdraw tooltip copy for %s', async (type) => {
+      const { getByTestId, getByText } = render({ type });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(
+        getByText('MetaMask will swap to your desired token for you.'),
       ).toBeOnTheScreen();
     });
   });
@@ -485,8 +544,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
           isPostQuote: true,
-          sourceChainId: SOURCE_CHAIN_ID_MOCK,
-          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+          sourceAssetId: SOURCE_ASSET_ID_MOCK,
           targetChainId: '0x1',
           targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         }),

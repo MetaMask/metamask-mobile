@@ -4,7 +4,6 @@
 
 import {
   formatDateRemaining,
-  formatDuration,
   formatRewardsDate,
   formatRewardsDateLabel,
   formatRewardsRelativeDay,
@@ -20,6 +19,7 @@ import {
   validateEmail,
   formatPercentChange,
   formatMusdBaseUnits,
+  isPositiveBaseUnits,
   isPercentChangeNonNegative,
   getChainHex,
   getAssetReference,
@@ -28,6 +28,8 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -51,6 +53,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params: Record<string, string> | undefined) => {
       const t: Record<string, string> = {
+        'rewards.today': 'Today',
         'rewards.events.to': 'to',
         'rewards.events.type.swap': 'Swap',
         'rewards.events.type.referral_action': 'Referral action',
@@ -157,49 +160,6 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('formatDuration', () => {
-    const now = Date.parse('2026-10-01T00:00:00.000Z');
-    const templates = {
-      day: '{count} day',
-      days: '{count} days',
-      hour: '{count} hour',
-      hours: '{count} hours',
-    };
-
-    it('uses whole days when at least a day remains', () => {
-      expect(formatDuration('2026-10-03T12:00:00.000Z', templates, now)).toBe(
-        '2 days',
-      );
-    });
-
-    it('uses hours below a day and keeps at least one hour', () => {
-      expect(formatDuration('2026-10-01T05:00:00.000Z', templates, now)).toBe(
-        '5 hours',
-      );
-      expect(formatDuration('2026-10-01T00:20:00.000Z', templates, now)).toBe(
-        '1 hour',
-      );
-    });
-
-    it('returns null for a missing, invalid, or past end', () => {
-      expect(formatDuration(null, templates, now)).toBeNull();
-      expect(formatDuration('not-a-date', templates, now)).toBeNull();
-      expect(
-        formatDuration('2026-09-01T00:00:00.000Z', templates, now),
-      ).toBeNull();
-    });
-
-    it('returns null when the unit template has no count placeholder', () => {
-      expect(
-        formatDuration(
-          '2026-10-03T12:00:00.000Z',
-          { ...templates, days: 'days' },
-          now,
-        ),
-      ).toBeNull();
-    });
-  });
-
   describe('formatRewardsRelativeTime', () => {
     const now = new Date('2026-09-25T12:00:00.000Z');
 
@@ -254,7 +214,7 @@ describe('formatUtils', () => {
     });
 
     it('returns today for the current UTC day', () => {
-      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('today');
+      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('Today');
     });
 
     it('counts whole UTC days', () => {
@@ -1532,6 +1492,20 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('isPositiveBaseUnits', () => {
+    it('is true only for a positive integer string', () => {
+      expect(isPositiveBaseUnits('1')).toBe(true);
+      expect(isPositiveBaseUnits('1000000')).toBe(true);
+      expect(isPositiveBaseUnits('0')).toBe(false);
+      expect(isPositiveBaseUnits('-1')).toBe(false);
+      expect(isPositiveBaseUnits(undefined)).toBe(false);
+      expect(isPositiveBaseUnits(null)).toBe(false);
+      expect(isPositiveBaseUnits('')).toBe(false);
+      expect(isPositiveBaseUnits('not-a-number')).toBe(false);
+      expect(isPositiveBaseUnits('1.5')).toBe(false);
+    });
+  });
+
   describe('formatMusdBaseUnits', () => {
     it('shifts base units to USD at 6 decimals', () => {
       expect(formatMusdBaseUnits('41750000')).toBe('$41.75');
@@ -1789,6 +1763,34 @@ describe('formatUtils', () => {
       expect(formatUsd(undefined)).toBe('—');
       expect(formatUsd(Number.NaN)).toBe('—');
       expect(formatUsd('not-a-number')).toBe('—');
+    });
+  });
+
+  describe('formatPredictPositionUsd', () => {
+    it.each([
+      [10, '$10'],
+      [0, '$0'],
+      [12.5, '$12.50'],
+      [1234.567, '$1,234.57'],
+      [9.999, '$10'],
+      [-3.2, '-$3.20'],
+      [NaN, '$0.00'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionUsd(value)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictPositionPercent', () => {
+    it.each([
+      [25, '25%'],
+      [0, '0%'],
+      [-12.5, '-12.5%'],
+      [33.3333, '33.33%'],
+      [10.1, '10.1%'],
+      [-0.001, '0%'],
+      [NaN, '0%'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionPercent(value)).toBe(expected);
     });
   });
 

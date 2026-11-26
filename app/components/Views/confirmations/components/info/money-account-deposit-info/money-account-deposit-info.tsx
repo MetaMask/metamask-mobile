@@ -20,7 +20,7 @@ import {
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
-  useNavbar(strings('confirm.title.money_account_add_money'), true);
+  useNavbar(strings('confirm.title.money_account_deposit_header'), true);
   useEnsureCompatibleProvider(MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]);
   const { preferredPaymentToken } = useParams<ConfirmationParams>({});
 
@@ -35,15 +35,17 @@ export function MoneyAccountDepositInfo() {
   );
 
   const { createEventBuilder, trackEvent } = useAnalytics();
+  const depositIntent = params?.depositIntent;
   useEffect(() => {
     trackEvent(
       createEventBuilder(CONFIRMATION_EVENTS.SCREEN_VIEWED)
         .addProperties({
           location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+          ...(depositIntent ? { mm_pay_deposit_intent: depositIntent } : {}),
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, depositIntent, trackEvent]);
 
   return (
     <CustomAmountInfo

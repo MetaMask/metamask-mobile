@@ -10,7 +10,8 @@ export interface UseActivityOptions {
   enabled?: boolean;
 }
 
-/** Reads a paginated Activity list (Fills and Settlements) for a Venue. */
+/** Reads a paginated Activity list (Trades and Settlements) for a Venue, in
+ * the backend's pinned order. */
 export const useActivity = (
   venueId: PredictVenueId,
   params: PortfolioPageParams,
@@ -21,7 +22,7 @@ export const useActivity = (
   return useInfiniteQuery<GetActivityResult>({
     queryKey: descriptor.queryKey,
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor || undefined,
     enabled: options?.enabled,
   });
 };

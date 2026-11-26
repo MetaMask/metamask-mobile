@@ -1,7 +1,7 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import { keepPreviousData } from '@tanstack/react-query';
+import { keepPreviousData, useQueryClient } from '@tanstack/react-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
@@ -17,12 +17,22 @@ import {
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../../util/social/socialServiceTelemetry';
+import Engine from '../../../../../../core/Engine';
+import { useSocialBlockLists } from '../../../../../UI/SocialFeed/hooks/useSocialBlockLists';
+import { readXHandle } from '../../../../../UI/SocialFeed/utils/xHandle';
+import { isProfileVerified } from '../../../../../UI/SocialFeed/utils/profileVerified';
+import {
+  measureSocialDataFetch,
+  type SocialCacheState,
+  type SocialDataFetchTab,
+} from '../../../../../../util/social/socialPerformance';
 
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   isFetching: boolean;
   hasFetched: boolean;
+  cacheState: SocialCacheState;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (
@@ -43,6 +53,8 @@ interface UseTopTradersOptions {
    */
   timeframe?: '7d' | '30d';
   enabled?: boolean;
+  /** Social V1-only tracing for the first real leaderboard request. */
+  performance?: Readonly<{ tab: SocialDataFetchTab }>;
   /**
    * Keep the previous ranking on screen while a new chain set loads, so the
    * rows can slide to their new order instead of remounting from a skeleton.
@@ -54,24 +66,79 @@ export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const queryClient = useQueryClient();
+  const initialRequestAccountedForRef = useRef(false);
 
   const hasLimit = options?.limit !== undefined;
   const hasChains = options?.chains !== undefined;
   const hasSort = options?.sort !== undefined;
   const timeframe = options?.timeframe ?? '7d';
-  const fetchOptions: FetchLeaderboardOptions | null =
-    hasLimit || hasChains || hasSort
-      ? {
-          ...(hasLimit && { limit: options?.limit }),
-          ...(hasChains && { chains: options?.chains }),
-          ...(hasSort && { sort: options?.sort }),
-        }
-      : null;
+  const fetchOptions = useMemo<FetchLeaderboardOptions | null>(
+    () =>
+      hasLimit || hasChains || hasSort
+        ? {
+            ...(hasLimit && { limit: options?.limit }),
+            ...(hasChains && { chains: options?.chains }),
+            ...(hasSort && { sort: options?.sort }),
+          }
+        : null,
+    [
+      hasChains,
+      hasLimit,
+      hasSort,
+      options?.chains,
+      options?.limit,
+      options?.sort,
+    ],
+  );
 
-  const queryKey: [string, FetchLeaderboardOptions | null] = [
-    'SocialService:fetchLeaderboard',
-    fetchOptions,
-  ];
+  const queryKey = useMemo<[string, FetchLeaderboardOptions | null]>(
+    () => ['SocialService:fetchLeaderboard', fetchOptions],
+    [fetchOptions],
+  );
+  const isQueryEnabled = (options?.enabled ?? true) && isUnlocked;
+  const resolveCacheState = (): SocialCacheState =>
+    queryClient.getQueryData<LeaderboardResponse>(queryKey) === undefined
+      ? 'cold'
+      : 'warm';
+  const cacheStateRef = useRef<SocialCacheState>('cold');
+  const cacheStateQueryKeyRef = useRef<typeof queryKey | undefined>(undefined);
+  const wasQueryEnabledRef = useRef(isQueryEnabled);
+  const shouldResolveCacheState =
+    isQueryEnabled &&
+    (cacheStateQueryKeyRef.current !== queryKey || !wasQueryEnabledRef.current);
+  if (shouldResolveCacheState) {
+    cacheStateRef.current = resolveCacheState();
+    cacheStateQueryKeyRef.current = queryKey;
+  }
+  wasQueryEnabledRef.current = isQueryEnabled;
+  const cacheState = cacheStateRef.current;
+  const performance = options?.performance;
+  const tracedQueryFn =
+    performance && fetchOptions
+      ? () => {
+          const fetchLeaderboard = () =>
+            Engine.controllerMessenger.call(
+              'SocialService:fetchLeaderboard',
+              fetchOptions,
+            );
+
+          if (initialRequestAccountedForRef.current) {
+            return fetchLeaderboard();
+          }
+
+          initialRequestAccountedForRef.current = true;
+          return measureSocialDataFetch({
+            tab: performance.tab,
+            cacheState:
+              queryClient.getQueryData<LeaderboardResponse>(queryKey) ===
+              undefined
+                ? 'cold'
+                : 'warm',
+            request: fetchLeaderboard,
+          });
+        }
+      : undefined;
 
   // Pause while locked so queryFn never reaches SocialService.#getAuthHeaders →
   // AuthenticationController.getBearerToken (throws "wallet is locked").
@@ -82,13 +149,25 @@ export const useTopTraders = (
   const { data, isLoading, isFetching, isFetched, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
-      enabled: (options?.enabled ?? true) && isUnlocked,
+      ...(tracedQueryFn ? { queryFn: tracedQueryFn } : {}),
+      enabled: isQueryEnabled,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       placeholderData: options?.keepPreviousRanking
         ? keepPreviousData
         : undefined,
     });
+
+  useEffect(() => {
+    if (
+      performance &&
+      data !== undefined &&
+      !isFetching &&
+      !initialRequestAccountedForRef.current
+    ) {
+      initialRequestAccountedForRef.current = true;
+    }
+  }, [data, isFetching, performance]);
 
   const leaderboardQueryParams = useMemo(
     () => ({
@@ -109,6 +188,7 @@ export const useTopTraders = (
   });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();
+  const { blockedProfileIds } = useSocialBlockLists();
 
   const traders: TopTrader[] = useMemo(() => {
     if (!data?.traders) {
@@ -119,26 +199,33 @@ export const useTopTraders = (
     const toWholePercent = (fraction: number | null | undefined) =>
       fraction == null ? null : fraction * 100;
 
-    return data.traders.map((entry) => ({
-      id: entry.profileId,
-      address: entry.addresses?.[0] ?? '',
-      rank: entry.rank,
-      overallRank: entry.rank,
-      username: entry.name,
-      avatarUri: entry.imageUrl ?? undefined,
-      // `roiPercent*` is already a whole-percent value from the API
-      // (e.g. 20.98 → "20.98%"); do not multiply by 100.
-      percentageChange: (is30d ? entry.roiPercent30d : entry.roiPercent7d) ?? 0,
-      pnlValue: (is30d ? entry.pnl30d : entry.pnl7d) ?? 0,
-      pnl30d: entry.pnl30d ?? null,
-      winRatePercent: toWholePercent(
-        is30d ? entry.winRate30d : entry.winRate7d,
-      ),
-      pnlPerChain: entry.pnlPerChain ?? {},
-      followerCount: entry.followerCount ?? 0,
-      isFollowing: isFollowing(entry.profileId),
-    }));
-  }, [data, isFollowing, timeframe]);
+    // Traders the viewer blocked leave every leaderboard; ranks keep their
+    // server values, so the list can skip a number.
+    return data.traders
+      .filter((entry) => !blockedProfileIds.has(entry.profileId))
+      .map((entry) => ({
+        id: entry.profileId,
+        address: entry.addresses?.[0] ?? '',
+        rank: entry.rank,
+        overallRank: entry.rank,
+        username: entry.name,
+        avatarUri: entry.imageUrl ?? undefined,
+        // `roiPercent*` is already a whole-percent value from the API
+        // (e.g. 20.98 → "20.98%"); do not multiply by 100.
+        percentageChange:
+          (is30d ? entry.roiPercent30d : entry.roiPercent7d) ?? 0,
+        pnlValue: (is30d ? entry.pnl30d : entry.pnl7d) ?? 0,
+        pnl30d: entry.pnl30d ?? null,
+        winRatePercent: toWholePercent(
+          is30d ? entry.winRate30d : entry.winRate7d,
+        ),
+        pnlPerChain: entry.pnlPerChain ?? {},
+        followerCount: entry.followerCount ?? 0,
+        isFollowing: isFollowing(entry.profileId),
+        xHandle: readXHandle(entry.socialHandles),
+        verified: isProfileVerified(entry),
+      }));
+  }, [blockedProfileIds, data, isFollowing, timeframe]);
 
   const refresh = useCallback(async () => {
     try {
@@ -166,11 +253,21 @@ export const useTopTraders = (
       isLoading,
       isFetching,
       hasFetched: isFetched,
+      cacheState,
       error: formatSocialQueryErrorMessage(error),
       refresh,
       toggleFollow,
     }),
-    [traders, isLoading, isFetching, isFetched, error, refresh, toggleFollow],
+    [
+      cacheState,
+      traders,
+      isLoading,
+      isFetching,
+      isFetched,
+      error,
+      refresh,
+      toggleFollow,
+    ],
   );
 };
 

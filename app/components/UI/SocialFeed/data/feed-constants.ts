@@ -1,11 +1,13 @@
 import type { CaipChainId } from '@metamask/utils';
-import type { SocialAssetClass } from '../types';
 
 /**
  * CAIP-2 chain ids requested on every Trader Feed fetch. Matches the feed
  * supported set in va-mmcx-social-api (`SUPPORTED_CAIP2_CHAIN_IDS`). Clicker
  * defaults to spot-only chains when `chains` is omitted, so we pass the full
  * set explicitly to include Hyperliquid perps.
+ *
+ * Also the fallback for `useFeedChains`, which fetches the live list from
+ * `GET /v1/supportedNetworks` and uses this while it is loading or unavailable.
  */
 export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'eip155:8453', // base
@@ -16,18 +18,5 @@ export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'eip155:999', // hyperliquid
 ];
 
-const HYPERLIQUID_CAIP2: CaipChainId = 'eip155:999';
-
-/**
- * Chains the global feed requests per asset class. `all` must stay the exact
- * `FEED_CAIP2_CHAINS` array: it is part of the query key V0's trader feed
- * shares.
- */
-export const FEED_CAIP2_CHAINS_BY_ASSET_CLASS: Record<
-  SocialAssetClass,
-  readonly CaipChainId[]
-> = {
-  all: FEED_CAIP2_CHAINS,
-  tokens: FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2),
-  perps: [HYPERLIQUID_CAIP2],
-};
+/** HyperEVM, the chain the feed files Hyperliquid perp markets under. */
+export const HYPERLIQUID_CAIP2_CHAIN_ID: CaipChainId = 'eip155:999';

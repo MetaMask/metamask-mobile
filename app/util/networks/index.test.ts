@@ -18,11 +18,13 @@ import NetworkList, {
   TESTNET_CHAIN_IDS,
   WHILELIST_NETWORK_NAME,
   isValidNetworkName,
+  getNetworkImageSource,
   isWhitelistedSymbol,
   isWhitelistedRpcUrl,
   isWhitelistedNetworkName,
   canDeleteNetwork,
   isMonadMainnetChainId,
+  isArbitrumMainnetChainId,
 } from '.';
 import {
   convertNetworkId,
@@ -197,6 +199,18 @@ describe('network-utils', () => {
     });
     it('returns false for Monad mainnet', () => {
       expect(canDeleteNetwork(NETWORKS_CHAIN_ID.MONAD)).toBe(false);
+    });
+    it('returns false for Arbitrum mainnet', () => {
+      expect(canDeleteNetwork(CHAIN_IDS.ARBITRUM)).toBe(false);
+    });
+  });
+
+  describe('isArbitrumMainnetChainId', () => {
+    it('returns true for Arbitrum mainnet chain ID', () => {
+      expect(isArbitrumMainnetChainId(CHAIN_IDS.ARBITRUM)).toBe(true);
+    });
+    it('returns false for a different chain ID', () => {
+      expect(isArbitrumMainnetChainId('0x1')).toBe(false);
     });
   });
 
@@ -1139,5 +1153,35 @@ describe('network-utils', () => {
 
       expect(result).toBe(false);
     });
+  });
+});
+
+describe('getNetworkImageSource', () => {
+  it('prefers a registry image over a static logo', () => {
+    // '0x1' resolves from the static lists, proving the registry entry wins.
+    const registryImage = { uri: 'https://example.com/eth-registry.svg' };
+    expect(
+      getNetworkImageSource({ chainId: '0x1' }, { '0x1': registryImage }),
+    ).toBe(registryImage);
+  });
+
+  it('skips the image cache when a registry map is provided', () => {
+    const registryImage = { uri: 'https://example.com/elysium.svg' };
+    // Prime the static cache for the same chain to prove it is not reused.
+    getNetworkImageSource({ chainId: '0x1863d' });
+    expect(
+      getNetworkImageSource(
+        { chainId: '0x1863d' },
+        { '0x1863d': registryImage },
+      ),
+    ).toBe(registryImage);
+  });
+
+  it('falls back to the static lists when the map has no entry for the chain', () => {
+    // '0x1' must still resolve its static logo even when a map is provided.
+    const staticImage = getNetworkImageSource({ chainId: '0x1' });
+    expect(
+      getNetworkImageSource({ chainId: '0x1' }, { '0x999': { uri: 'x' } }),
+    ).toBe(staticImage);
   });
 });

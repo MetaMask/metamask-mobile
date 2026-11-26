@@ -7,4 +7,16 @@ export {
   patchPostTradeShareSession,
   PostTradeShareOwner,
 } from './postTradeShareSession';
-export type { PostTradeShareOwnerId } from './postTradeShareSession';
+export {
+  buildPerpsPostTradeComposerParams,
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from './postTradeComposerParams';
+export type {
+  PostTradeShareOwnerId,
+  PostTradeShareVariant,
+} from './postTradeShareSession';
+export type {
+  PostTradePrompt,
+  PostTradeShareSheetCountKey,
+} from './resolvePostTradePrompt';

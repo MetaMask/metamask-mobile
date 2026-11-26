@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
+import { accountsApiActivityListDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -29,11 +29,14 @@ const AccountsApiActivityItem = ({
   );
 
   const display = useMemo(
-    () => accountsApiActivityDisplayInfo(activity, enrichment),
+    () => accountsApiActivityListDisplayInfo(activity, enrichment),
     [activity, enrichment],
   );
 
   const handlePress = useCallback(() => {
+    // Every Accounts API row uses the custom details view. VBA bank transfers
+    // must not fall back to generic local Money deposit details, because the
+    // custom view is what renders both the bank transfer and mUSD legs.
     navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
       activity,
       enrichment,

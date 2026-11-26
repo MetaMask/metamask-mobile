@@ -1,15 +1,14 @@
 import React, { useCallback } from 'react';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
-import {
-  BottomSheetHeader,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { TokenSelectorType, type BridgeToken } from '../Bridge/types';
 import { BridgeTokenSelectorContent } from '../Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Token picker for the active trade mode, rendered with the Bridge asset
@@ -17,6 +16,7 @@ import { useQuickBuyContext } from './useQuickBuyContext';
  * "Receive" token from any asset. Both exclude the position token.
  */
 const QuickBuyTokenSelectScreen: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     tradeMode,
     positionTokenFromSetup,
@@ -26,13 +26,15 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
     selectedReceiveToken,
     handleSelectReceiveToken,
     setActiveScreen,
+    tokenSearchQuery,
+    setTokenSearchQuery,
   } = useQuickBuyContext();
   const isSell = tradeMode === 'sell';
 
-  const handleBack = useCallback(
-    () => setActiveScreen('amount'),
-    [setActiveScreen],
-  );
+  const handleBack = useCallback(() => {
+    setTokenSearchQuery('');
+    setActiveScreen('amount');
+  }, [setActiveScreen, setTokenSearchQuery]);
 
   const handleSelect = useCallback(
     (token: BridgeToken) => {
@@ -41,6 +43,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
       } else {
         handleSelectSourceToken(token);
       }
+      setTokenSearchQuery('');
       setActiveScreen('amount');
     },
     [
@@ -48,12 +51,14 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
       handleSelectReceiveToken,
       handleSelectSourceToken,
       setActiveScreen,
+      setTokenSearchQuery,
     ],
   );
 
   return (
     <>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={handleBack}
         backButtonProps={{ testID: QuickBuySheetSelectorsIDs.PAY_WITH_BACK }}
         testID={QuickBuySheetSelectorsIDs.PAY_WITH_HEADER}
@@ -65,7 +70,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
               : 'social_leaderboard.quick_buy.pay_with',
           )}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <BridgeTokenSelectorContent
         type={isSell ? TokenSelectorType.Dest : TokenSelectorType.Source}
         selectedToken={isSell ? selectedReceiveToken : selectedSourceToken}
@@ -75,6 +80,8 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
         excludeToken={positionTokenFromSetup}
         onOpenNetworkList={() => setActiveScreen('selectNetwork')}
         hostManagesNetworkFilter
+        initialSearchString={tokenSearchQuery}
+        onSearchStringChange={setTokenSearchQuery}
         renderScrollComponent={GestureHandlerScrollView}
       />
     </>

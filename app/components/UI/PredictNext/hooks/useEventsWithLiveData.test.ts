@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { fullGameMoneylineMetadata } from '../contracts/v1/fixtures/fullGameMoneyline';
 import type { PredictGameLive, PredictQuote } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type {
@@ -11,6 +12,7 @@ import type {
 } from '../types';
 import {
   getPresentMarketIds,
+  LIVE_UPDATE_THROTTLE_MS,
   useEventsWithLiveData,
   type LiveMarketWatchScope,
 } from './useEventsWithLiveData';
@@ -46,6 +48,18 @@ const makeMarket = (id: string): PredictMarket => ({
     { id: `${id}:no` as PredictEntityId, side: 'no', label: 'No' },
   ],
 });
+
+const makeMoneylineMarket = (
+  id: string,
+  gameSelection: 'away' | 'home',
+): PredictMarket => {
+  const market = makeMarket(id);
+  return {
+    ...market,
+    ...fullGameMoneylineMetadata(),
+    outcomes: [{ ...market.outcomes[0], gameSelection }, market.outcomes[1]],
+  };
+};
 
 const makeEvent = (id: string, withGame = true): PredictEvent => ({
   venueId,
@@ -112,26 +126,8 @@ describe('getPresentMarketIds', () => {
   });
 
   it('lists only card-visible Markets when the scope is card', () => {
-    const away = {
-      ...makeMarket('card-away'),
-      outcomes: [
-        {
-          ...makeMarket('card-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('card-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('card-home'),
-      outcomes: [
-        {
-          ...makeMarket('card-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('card-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('card-away', 'away');
+    const home = makeMoneylineMarket('card-home', 'home');
     const spread = makeMarket('card-spread');
     const gameEvent: PredictEvent = {
       ...eventA,
@@ -162,7 +158,18 @@ describe('useEventsWithLiveData', () => {
     mockCall.mockClear();
     mockSubscribe.mockReset();
     mockUnsubscribe.mockClear();
+    // The throttle starts its cooldown from a microtask at the end of the turn.
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const endThrottle = () =>
+    act(() => {
+      jest.advanceTimersByTime(LIVE_UPDATE_THROTTLE_MS);
+    });
 
   it('watches every present Event on mount, with or without a Game', () => {
     renderHook(() => useEventsWithLiveData(venueId, [propsEvent, eventA]));
@@ -287,7 +294,6 @@ describe('useEventsWithLiveData', () => {
   });
 
   it('applies a snapshot replayed synchronously from watchEvents', () => {
-    const market = eventA.markets[0];
     const replayedGame: PredictGameLive = {
       venueId,
       eventId: eventA.id,
@@ -295,19 +301,21 @@ describe('useEventsWithLiveData', () => {
       status: 'in_progress',
       observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
     };
-    const replayedQuote: PredictQuote = {
-      venueId,
-      marketId: market.id,
-      outcomes: [
-        {
-          id: market.outcomes[0].id,
-          side: 'yes',
-          askPrice: '0.61' as PredictDecimal,
-        },
-        { id: market.outcomes[1].id, side: 'no' },
-      ],
-      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
-    };
+    const replayedQuotes: PredictQuote[] = eventA.markets.map(
+      (market, index) => ({
+        venueId,
+        marketId: market.id,
+        outcomes: [
+          {
+            id: market.outcomes[0].id,
+            side: 'yes',
+            askPrice: `0.6${index + 1}` as PredictDecimal,
+          },
+          { id: market.outcomes[1].id, side: 'no' },
+        ],
+        updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      }),
+    );
     // The service publishes the last known values inside watchEvents when
     // another surface already holds the Event. Only listeners registered
     // before that call can receive them.
@@ -321,11 +329,10 @@ describe('useEventsWithLiveData', () => {
           | ((live: PredictGameLive) => void)
           | undefined
       )?.(replayedGame);
-      (
-        subscribed.get(`${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`) as
-          | ((quote: PredictQuote) => void)
-          | undefined
-      )?.(replayedQuote);
+      const onQuote = subscribed.get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as ((quote: PredictQuote) => void) | undefined;
+      replayedQuotes.forEach((quote) => onQuote?.(quote));
     });
 
     try {
@@ -335,6 +342,7 @@ describe('useEventsWithLiveData', () => {
 
       expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
       expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.62');
     } finally {
       mockCall.mockReset();
     }
@@ -392,6 +400,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T12:30:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game?.score).toEqual({
       away: '17',
@@ -429,6 +438,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game).toEqual({
       ...eventA.sports?.game,
@@ -488,6 +498,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game?.score).toEqual({
       away: '14',
@@ -567,6 +578,7 @@ describe('useEventsWithLiveData', () => {
 
     act(() => onQuote(quoteAt('2026-09-08T13:00:00.000Z', '0.70')));
     act(() => onQuote(quoteAt('2026-09-08T12:30:00.000Z', '0.20')));
+    endThrottle();
 
     expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.70');
   });
@@ -633,27 +645,98 @@ describe('useEventsWithLiveData', () => {
     ]);
   });
 
+  describe('visible scope', () => {
+    const [m1, m2] = marketIds(eventA);
+    const visible = (
+      ...ids: readonly PredictEntityId[]
+    ): LiveMarketWatchScope => ({ type: 'visible', marketIds: ids });
+    const renderVisible = (marketScope: LiveMarketWatchScope) =>
+      renderHook(
+        (props: { marketScope: LiveMarketWatchScope }) =>
+          useEventsWithLiveData(venueId, [eventA], props),
+        { initialProps: { marketScope } },
+      );
+
+    it('carries the visible ids on the watch and the matching unwatch', () => {
+      const { unmount } = renderVisible(visible(m1));
+
+      unmount();
+
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+      ]);
+    });
+
+    it('re-scopes by watching the new ids before releasing the old ones', () => {
+      const { rerender } = renderVisible(visible(m1));
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2) });
+
+      // Watch first, so the Event never drops to zero watchers between the
+      // two calls; the service turns each pair into a Market-level diff.
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+      ]);
+    });
+
+    it('does not re-scope when a re-render names the same ids', () => {
+      const { rerender } = renderVisible(visible(m1, m2));
+      mockCall.mockClear();
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2, m1, m2) });
+
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('keeps an empty visible list distinct from the all scope', () => {
+      const { rerender } = renderVisible(visible());
+
+      rerender({ marketScope: 'all' });
+
+      expect(scopeCalls()).toEqual([
+        [WATCH, { marketScope: visible() }],
+        [WATCH, { marketScope: 'all' }],
+        [UNWATCH, { marketScope: visible() }],
+      ]);
+    });
+
+    it('applies quotes for every Market of the Event, not only the visible ones', () => {
+      const { result } = renderVisible(visible(m1));
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      act(() => {
+        onQuote({
+          venueId,
+          marketId: m2,
+          outcomes: [
+            {
+              id: eventA.markets[1].outcomes[0].id,
+              side: 'yes',
+              askPrice: '0.71' as PredictDecimal,
+            },
+            { id: eventA.markets[1].outcomes[1].id, side: 'no' },
+          ],
+          updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+        });
+      });
+
+      // A Market that just left the screen keeps its last live price.
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.71');
+    });
+  });
+
   it('keeps only card-visible quotes when marketScope is card', () => {
-    const away = {
-      ...makeMarket('live-away'),
-      outcomes: [
-        {
-          ...makeMarket('live-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('live-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('live-home'),
-      outcomes: [
-        {
-          ...makeMarket('live-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('live-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('live-away', 'away');
+    const home = makeMoneylineMarket('live-home', 'home');
     const spread = makeMarket('live-spread');
     const gameEvent: PredictEvent = {
       ...eventA,
@@ -749,8 +832,89 @@ describe('useEventsWithLiveData', () => {
     act(() =>
       onQuote(quoteFor(eventB.markets[0], '0.33', '2026-09-08T13:01:00.000Z')),
     );
+    endThrottle();
 
     expect(result.current[0]).toBe(afterFirst);
     expect(result.current[1]).not.toBe(eventB);
+  });
+
+  describe('throttling', () => {
+    const quoteFor = (
+      market: PredictMarket,
+      askPrice: string,
+    ): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: askPrice as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    });
+    const askPrices = (events: readonly PredictEvent[]) =>
+      events.flatMap((event) =>
+        event.markets.map((market) => market.outcomes[0].askPrice),
+      );
+
+    it('applies the first frame at once and later frames inside the window in one render', async () => {
+      let renders = 0;
+      const { result } = renderHook(() => {
+        renders += 1;
+        return useEventsWithLiveData(venueId, [eventA, eventB]);
+      });
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.50',
+        '0.50',
+        '0.50',
+      ]);
+
+      const rendersBeforeBurst = renders;
+      act(() => onQuote(quoteFor(eventA.markets[1], '0.62')));
+      act(() => onQuote(quoteFor(eventB.markets[0], '0.63')));
+      act(() => onQuote(quoteFor(eventB.markets[1], '0.64')));
+      expect(renders).toBe(rendersBeforeBurst);
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.50',
+        '0.50',
+        '0.50',
+      ]);
+
+      endThrottle();
+      expect(renders).toBe(rendersBeforeBurst + 1);
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.62',
+        '0.63',
+        '0.64',
+      ]);
+    });
+
+    it('applies a held frame when the Event list changes before the window ends', async () => {
+      const { result, rerender } = renderHook(
+        ({ events }: { events: readonly PredictEvent[] }) =>
+          useEventsWithLiveData(venueId, events),
+        { initialProps: { events: [eventA] } },
+      );
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      act(() => onQuote(quoteFor(eventA.markets[1], '0.62')));
+      rerender({ events: [eventA, eventB] });
+
+      expect(askPrices(result.current).slice(0, 2)).toEqual(['0.61', '0.62']);
+    });
   });
 });

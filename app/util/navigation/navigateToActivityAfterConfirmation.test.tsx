@@ -21,7 +21,7 @@ import { navigateToActivityAfterConfirmation } from './navigateToActivityAfterCo
 const RootStack = createNativeStackNavigator();
 const NestedStack = createNativeStackNavigator();
 
-const REDESIGNED = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+const CONFIRMATIONS_ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS;
 
 const Probe = ({ label }: { label: string }) => <Text>{label}</Text>;
 
@@ -44,7 +44,10 @@ const StakeScreensNavigator = () => (
     <NestedStack.Screen name={Routes.STAKING.STAKE}>
       {() => <Probe label="stake-input" />}
     </NestedStack.Screen>
-    <NestedStack.Screen name={REDESIGNED} component={ConfirmationScreen} />
+    <NestedStack.Screen
+      name={CONFIRMATIONS_ROUTE}
+      component={ConfirmationScreen}
+    />
   </NestedStack.Navigator>
 );
 
@@ -65,7 +68,10 @@ const SendNavigator = () => (
     <NestedStack.Screen name={Routes.SEND.RECIPIENT}>
       {() => <Probe label="send-recipient" />}
     </NestedStack.Screen>
-    <NestedStack.Screen name={REDESIGNED} component={ConfirmationScreen} />
+    <NestedStack.Screen
+      name={CONFIRMATIONS_ROUTE}
+      component={ConfirmationScreen}
+    />
   </NestedStack.Navigator>
 );
 
@@ -80,6 +86,9 @@ const renderTree = (
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={Routes.HOME_TABS}>
           {() => <Probe label="home" />}
+        </RootStack.Screen>
+        <RootStack.Screen name={Routes.NFT_DETAILS}>
+          {() => <Probe label="nft-details" />}
         </RootStack.Screen>
         <RootStack.Screen
           name="StakeScreens"
@@ -121,7 +130,10 @@ describe('navigateToActivityAfterConfirmation', () => {
             name: 'StakeScreens',
             state: {
               index: 1,
-              routes: [{ name: Routes.STAKING.STAKE }, { name: REDESIGNED }],
+              routes: [
+                { name: Routes.STAKING.STAKE },
+                { name: CONFIRMATIONS_ROUTE },
+              ],
             },
           },
         ],
@@ -199,7 +211,7 @@ describe('navigateToActivityAfterConfirmation', () => {
               routes: [
                 { name: Routes.SEND.AMOUNT },
                 { name: Routes.SEND.RECIPIENT },
-                { name: REDESIGNED },
+                { name: CONFIRMATIONS_ROUTE },
               ],
             },
           },
@@ -212,6 +224,43 @@ describe('navigateToActivityAfterConfirmation', () => {
     fireEvent.press(getByTestId('redirect-trigger'));
 
     // The whole Send flow stack (Amount/Recipient/confirmation) is replaced.
+    expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
+    expect(rootRouteNames(ref)).toEqual([
+      Routes.HOME_TABS,
+      Routes.TRANSACTIONS_VIEW,
+    ]);
+
+    act(() => {
+      ref.goBack();
+    });
+    expect(focusedRouteName(ref)).toBe(Routes.HOME_TABS);
+  });
+
+  it('flow 4 (NFT send): removes NFT details before replacing Send with Activity', () => {
+    const ref = createNavigationContainerRef();
+    const { getByTestId } = renderTree(
+      {
+        routes: [
+          { name: Routes.HOME_TABS },
+          { name: Routes.NFT_DETAILS },
+          {
+            name: Routes.SEND.DEFAULT,
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.SEND.RECIPIENT },
+                { name: CONFIRMATIONS_ROUTE },
+              ],
+            },
+          },
+        ],
+        index: 2,
+      } as PartialState<NavigationState>,
+      ref,
+    );
+
+    fireEvent.press(getByTestId('redirect-trigger'));
+
     expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
     expect(rootRouteNames(ref)).toEqual([
       Routes.HOME_TABS,

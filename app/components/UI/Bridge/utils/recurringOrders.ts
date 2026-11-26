@@ -1,20 +1,44 @@
 import { BigNumber } from 'bignumber.js';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import {
   RecurringSwapStatus,
   type RecurringOrder,
-  type RecurringPriceRange,
   type RecurringSchedule,
   type RecurringSwap,
 } from '../api/recurringOrders.types';
 import type { BridgeToken } from '../types';
 import { formatTokenBalance } from '.';
 import { formatCurrency } from './currencyUtils';
-import { formatPriceRangeLabel, PRICE_RANGE_MISSING_VALUE } from './priceRange';
+import {
+  formatPriceRangeLabel,
+  PRICE_RANGE_MISSING_VALUE,
+  type RecurringPriceRange,
+} from './priceRange';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
 import { OrderType } from '../types/advancedOrders';
+import { RECURRING_ORDERS_CHAIN_CONFIG } from '../constants/recurringOrders';
+
+/**
+ * Resolves the USD value a Recurring Order source amount has to reach on the
+ * given chain.
+ *
+ * @param chainId - Chain the order is placed on, hex or CAIP-2.
+ * @returns The chain's own minimum, else the wildcard one, or `undefined` when
+ * neither is configured.
+ */
+export function getRecurringOrderMinAmountUsd(
+  chainId: Hex | CaipChainId | undefined,
+): number | undefined {
+  const chainConfig = chainId
+    ? RECURRING_ORDERS_CHAIN_CONFIG[formatChainIdToCaip(chainId)]
+    : undefined;
+
+  return (chainConfig ?? RECURRING_ORDERS_CHAIN_CONFIG['*'])?.minAmountUSD;
+}
 
 export function getRecurringOrderTokens(order: RecurringOrder): {
   sourceToken: BridgeToken;
@@ -43,9 +67,7 @@ export function isRecurringSwapEligibleForAddFunds(
     return false;
   }
 
-  const swapIndex = orderedSwaps.findIndex(
-    ({ swapId }) => swapId === swap.swapId,
-  );
+  const swapIndex = orderedSwaps.findIndex(({ id }) => id === swap.id);
   if (swapIndex === -1) {
     return false;
   }
@@ -67,9 +89,7 @@ export function getRecurringOrderFilledPercent(order: RecurringOrder): number {
     return 0;
   }
 
-  return Math.round(
-    (order.filledSwapsCount / order.schedule.repeatCount) * 100,
-  );
+  return Math.round((order.fillData.count / order.schedule.repeatCount) * 100);
 }
 
 export function formatRecurringInterval(schedule: RecurringSchedule): string {
@@ -125,7 +145,7 @@ export function formatRecurringPriceRange({
   currentCurrency,
   usdToCurrentCurrencyRate,
 }: {
-  priceRange?: RecurringPriceRange;
+  priceRange: RecurringOrder['priceRange'];
   currentCurrency: string;
   usdToCurrentCurrencyRate?: number;
 }): string {
@@ -177,8 +197,8 @@ export function formatRecurringExecutionPrice({
   );
 }
 
-export const getOrderTypeFromPriceRange = (
-  priceRange: RecurringOrder['priceRange'],
+export const getOrderTypeFromDraftPriceRange = (
+  priceRange: RecurringPriceRange | undefined,
 ): OrderType => {
   switch (priceRange?.tokenSide) {
     case 'dest':

@@ -1,4 +1,5 @@
 import I18n from '../../../../../../../locales/i18n';
+import { fullGameMoneylineMetadata } from '../../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -32,6 +33,7 @@ const createMarket = (
   id: id as PredictEntityId,
   question: id,
   status,
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     createOutcome(`${id}-yes`, selection, askPrice),
     createOutcome(`${id}-no`),
@@ -157,6 +159,7 @@ describe('createGameCardProjection', () => {
         id: 'away' as PredictEntityId,
         question: 'away',
         status: 'active',
+        ...fullGameMoneylineMetadata(),
         outcomes: [awayYes, awayNo],
       },
       createMarket('home', 'home', '0.53'),
@@ -200,6 +203,31 @@ describe('createGameCardProjection', () => {
 
     const result = createGameCardProjection(event, game);
 
-    expect(result.awayProbabilityPercent).toBeUndefined();
+    expect(result.firstTeamProbabilityPercent).toBeUndefined();
+  });
+
+  it('projects the away Team first when the Game sends no Team order', () => {
+    const event = createEvent([
+      createMarket('away', 'away', '0.25'),
+      createMarket('home', 'home', '0.75'),
+    ]);
+
+    const result = createGameCardProjection(event, game);
+
+    expect(result.teamOrder).toEqual(['away', 'home']);
+    expect(result.firstTeamProbabilityPercent).toBe(25);
+  });
+
+  it('projects the home Team first for a home_first Game', () => {
+    const homeFirstGame: PredictGame = { ...game, teamOrder: 'home_first' };
+    const event = createEvent([
+      createMarket('away', 'away', '0.25'),
+      createMarket('home', 'home', '0.75'),
+    ]);
+
+    const result = createGameCardProjection(event, homeFirstGame);
+
+    expect(result.teamOrder).toEqual(['home', 'away']);
+    expect(result.firstTeamProbabilityPercent).toBe(75);
   });
 });

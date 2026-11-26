@@ -18,7 +18,10 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -70,6 +73,10 @@ import {
   type OrderBookListMetric,
   type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
+import {
+  getPerpsOrderBookSizeOnClickPreference,
+  setPerpsOrderBookSizeOnClickPreference,
+} from '../../../utils/perpsOrderBookSizeOnClickStorage';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
 
@@ -80,6 +87,8 @@ type OrderBookViewMode = 'default' | 'buy' | 'sell';
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
   symbol: string;
+  /** Venue whose book to show. Omit to follow the default venue. */
+  providerId?: PerpsProviderType;
   /**
    * Fallback mid/market price used to derive grouping options before the raw
    * order book produces its own mid.
@@ -91,8 +100,11 @@ export interface PerpsProOrderBookPanelProps {
   isMarketContextReady?: boolean;
   /** Changes whenever the active stream generation changes. */
   marketContextKey?: string;
-  /** Called when a ladder row is tapped (limit-price prefills). */
-  onSelectPrice?: (price: string) => void;
+  /**
+   * Called when a ladder row is tapped (limit-price prefills). `size` is the
+   * row's base size, passed only when "Set order book size on click" is on.
+   */
+  onSelectPrice?: (price: string, size?: string) => void;
   /** Hides the order-book column so the order form can go full width. */
   onCollapse?: () => void;
   onResolvedStateChange?: (
@@ -129,7 +141,7 @@ interface OrderBookRowProps {
   depthBarColor: string;
   szDecimals?: number;
   priceFormat: OrderBookPriceFormat | null;
-  onSelectPrice?: (price: string) => void;
+  onSelectPrice?: (price: string, size: string) => void;
   /** Side the order-book column is pinned to; mirrors the row when 'left'. */
   layout: PerpsProOrderBookPosition;
   testID: string;
@@ -222,7 +234,7 @@ const OrderBookRow = ({
   if (onSelectPrice) {
     return (
       <Pressable
-        onPress={() => onSelectPrice(level.price)}
+        onPress={() => onSelectPrice(level.price, level.size)}
         accessibilityRole="button"
         accessibilityLabel={strings('perps.order_book.use_price', {
           price: priceLabel,
@@ -421,6 +433,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
  */
 const PerpsProOrderBookPanel = ({
   symbol,
+  providerId,
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
@@ -442,6 +455,9 @@ const PerpsProOrderBookPanel = ({
   const metric = orderBookPreferences.metric;
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isSizeOnClickEnabled, setIsSizeOnClickEnabled] = useState(
+    getPerpsOrderBookSizeOnClickPreference,
+  );
 
   const handleCollapse = useCallback(() => {
     if (!onCollapse) {
@@ -496,6 +512,7 @@ const PerpsProOrderBookPanel = ({
   const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
     usePerpsLiveOrderBook({
       symbol,
+      providerId,
       enabled: Boolean(symbol) && isMarketContextReady,
       resetKey: marketContextKey,
       // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
@@ -555,7 +572,7 @@ const PerpsProOrderBookPanel = ({
   );
 
   const handleSelectPrice = useCallback(
-    (price: string) => {
+    (price: string, size: string) => {
       if (!onSelectPrice) {
         return;
       }
@@ -564,9 +581,14 @@ const PerpsProOrderBookPanel = ({
       // level: the ladder renders every price at `priceFormat`'s precision, so
       // a level with more decimals than that would fill a decimal the market
       // price never shows.
-      onSelectPrice(getOrderBookPriceValue(price, priceFormat));
+      const selectedPrice = getOrderBookPriceValue(price, priceFormat);
+      if (isSizeOnClickEnabled) {
+        onSelectPrice(selectedPrice, size);
+        return;
+      }
+      onSelectPrice(selectedPrice);
     },
-    [onSelectPrice, playSelection, priceFormat],
+    [isSizeOnClickEnabled, onSelectPrice, playSelection, priceFormat],
   );
   const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
@@ -579,6 +601,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
+    providerId,
     channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
@@ -651,6 +674,7 @@ const PerpsProOrderBookPanel = ({
       metric: OrderBookListMetric;
       grouping: number;
       layout: PerpsProOrderBookPosition;
+      sizeOnClick: boolean;
     }) => {
       setOrderBookPreferences({
         currency: next.currency,
@@ -659,6 +683,8 @@ const PerpsProOrderBookPanel = ({
       setSelectedGrouping(next.grouping);
       saveGrouping(next.grouping);
       setOrderBookPosition(next.layout);
+      setIsSizeOnClickEnabled(next.sizeOnClick);
+      setPerpsOrderBookSizeOnClickPreference(next.sizeOnClick);
     },
     [saveGrouping, setOrderBookPosition, setOrderBookPreferences],
   );
@@ -1035,6 +1061,7 @@ const PerpsProOrderBookPanel = ({
         grouping={currentGrouping}
         groupingOptions={groupingOptions}
         layout={orderBookPosition}
+        sizeOnClick={isSizeOnClickEnabled}
         onApply={handleApplyConfig}
         onClose={() => setIsConfigOpen(false)}
         testID={`${testID}-config-sheet`}

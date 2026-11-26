@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CardDeveloperOptionsSection from './CardDeveloperOptionsSection';
 import {
   resetOnboardingState,
+  setApplePaySplashSeen,
   setCardArrivalAnimationSeen,
   setCardArrivalPreviewRequested,
 } from '../../../../../core/redux/slices/card';
@@ -20,6 +21,10 @@ jest.mock('../../../../../core/redux/slices/card', () => ({
   })),
   setCardArrivalPreviewRequested: jest.fn((payload: boolean) => ({
     type: 'card/setCardArrivalPreviewRequested',
+    payload,
+  })),
+  setApplePaySplashSeen: jest.fn((payload: boolean) => ({
+    type: 'card/setApplePaySplashSeen',
     payload,
   })),
 }));
@@ -285,6 +290,19 @@ describe('CardDeveloperOptionsSection', () => {
       expect(setCardArrivalAnimationSeen).toHaveBeenCalledWith(false);
       expect(setCardArrivalPreviewRequested).toHaveBeenCalledWith(true);
       expect(mockDispatch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('reset Apple Pay splash', () => {
+    it('clears the seen flag', () => {
+      const { getByTestId } = renderWithProvider(
+        <CardDeveloperOptionsSection />,
+      );
+
+      fireEvent.press(getByTestId('card-dev-reset-apple-pay-splash-button'));
+
+      expect(setApplePaySplashSeen).toHaveBeenCalledWith(false);
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
   });
 });

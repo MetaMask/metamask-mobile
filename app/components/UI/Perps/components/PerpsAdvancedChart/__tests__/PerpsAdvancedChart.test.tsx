@@ -83,6 +83,7 @@ const mockAdapterResult = {
   deliveryRevision: 0,
   hasFreshCurrentSeriesDelivery: false,
   handleFetchOlderBarsRequest: jest.fn(),
+  webViewInstanceKey: 'adapter-webview-key',
 };
 
 describe('PerpsAdvancedChart', () => {
@@ -110,6 +111,12 @@ describe('PerpsAdvancedChart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
+  });
+
+  it('asks AdvancedChart for the candle skeleton', () => {
+    renderChart({ height: 240 });
+
+    expect(advancedChartProps().skeletonVariant).toBe('candles');
   });
 
   it('forwards Advanced Chart zoom candle counts', () => {
@@ -173,29 +180,12 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
-  it('resets the AdvancedChart WebView when the interval changes', () => {
-    const { rerender } = renderChart();
+  it('keys the AdvancedChart WebView with the adapter key', () => {
+    renderChart();
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|1h|perps');
-    expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|1h');
-
-    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
-      ...mockAdapterResult,
-      ohlcvSeriesKey: 'BTC|4h',
-    });
-
-    rerender(
-      <PerpsAdvancedChart
-        symbol="BTC"
-        interval={CandlePeriod.FourHours}
-        visibleCandleCount={100}
-        height={240}
-        fallbackCandleData={null}
-      />,
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe(
+      'adapter-webview-key',
     );
-
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|4h|perps');
-    expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
   });
 
   it('notifies the parent when the latest adapter close changes', () => {

@@ -1,9 +1,11 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
+import Engine from '../../../../core/Engine';
 import ExperimentalSettings from './';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Share from 'react-native-share';
@@ -47,6 +49,17 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: jest.fn(),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        logout: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
+
 jest.mock('../../../../core/redux/slices/card', () => ({
   selectIsDaimoDemo: jest.fn((state) => state.card.isDaimoDemo),
   setIsDaimoDemo: jest.fn((value) => ({
@@ -86,7 +99,38 @@ const initialState = {
 
 const store = mockStore(initialState);
 
+const authenticatedState = {
+  ...initialState,
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      CardController: {
+        ...backgroundState.CardController,
+        isAuthenticated: true,
+      },
+    },
+  },
+};
+
 const goBack = jest.fn();
+
+const renderExperimentalSettings = (
+  testStore: ReturnType<typeof mockStore> = store,
+) =>
+  render(
+    <Provider store={testStore}>
+      <ThemeContext.Provider value={mockTheme}>
+        <ExperimentalSettings
+          navigation={{
+            goBack,
+          }}
+          route={{}}
+        />
+      </ThemeContext.Provider>
+    </Provider>,
+  );
+
+const cardLogoutMock = () => Engine.context.CardController.logout as jest.Mock;
 
 describe('ExperimentalSettings', () => {
   beforeEach(() => {
@@ -236,6 +280,77 @@ describe('ExperimentalSettings', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('card logout', () => {
+    beforeEach(() => {
+      jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('hides the card logout section when the user is not authenticated', () => {
+      const { queryByTestId } = renderExperimentalSettings();
+
+      expect(
+        queryByTestId(ExperimentalSelectorsIDs.CARD_LOGOUT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows the card logout section when the user is authenticated', () => {
+      const { getByTestId, getByText } = renderExperimentalSettings(
+        mockStore(authenticatedState),
+      );
+
+      expect(
+        getByTestId(ExperimentalSelectorsIDs.CARD_LOGOUT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('experimental_settings.card_logout_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('experimental_settings.card_logout_cta')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls CardController.logout when logout is confirmed', async () => {
+      const { getByTestId } = renderExperimentalSettings(
+        mockStore(authenticatedState),
+      );
+
+      fireEvent.press(getByTestId(ExperimentalSelectorsIDs.CARD_LOGOUT_BUTTON));
+
+      const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+        style?: string;
+        onPress?: () => void;
+      }[];
+      const confirm = buttons.find((button) => button.style === 'destructive');
+
+      await act(async () => {
+        confirm?.onPress?.();
+      });
+
+      expect(cardLogoutMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call CardController.logout when logout is cancelled', () => {
+      const { getByTestId } = renderExperimentalSettings(
+        mockStore(authenticatedState),
+      );
+
+      fireEvent.press(getByTestId(ExperimentalSelectorsIDs.CARD_LOGOUT_BUTTON));
+
+      const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+        style?: string;
+        onPress?: () => void;
+      }[];
+      const cancel = buttons.find((button) => button.style === 'cancel');
+      cancel?.onPress?.();
+
+      expect(cardLogoutMock()).not.toHaveBeenCalled();
     });
   });
 });

@@ -7,8 +7,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -18,8 +22,8 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -114,9 +118,14 @@ describe('MoneyEarnCryptoInfoSheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackButtonClicked: mockTrackButtonClicked,
     });
-    jest.mocked(useMoneyNavigation).mockReturnValue({
-      isOnboardingRedirectNeeded: false,
+    jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
+    });
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
     });
     (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,
@@ -187,46 +196,6 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-go-back-trigger'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not render the deposit title without a variant', () => {
-    const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-    expect(
-      queryByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-    ).toBeNull();
-  });
-
-  describe('when variant is deposit', () => {
-    beforeEach(() => {
-      mockUseParams.mockReturnValue({ variant: 'deposit' });
-    });
-
-    it('renders the deposit title', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render the default title', () => {
-      const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        queryByText(strings('money.earn_crypto_info_sheet.title')),
-      ).toBeNull();
-    });
-
-    it('renders the body paragraph', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(
-          strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
-        ),
-      ).toBeOnTheScreen();
-    });
   });
 
   it('renders the body when APY is unavailable', () => {

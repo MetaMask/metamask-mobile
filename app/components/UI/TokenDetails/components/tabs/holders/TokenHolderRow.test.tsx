@@ -1,10 +1,13 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import { mapFeedItem } from '../../../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from './tokenHolders.fixture';
-import TokenHolderRow, { TokenHolderRowSelectorsIDs } from './TokenHolderRow';
+import TokenHolderRow from './TokenHolderRow';
+import { TokenDetailsIds } from '../../../testIds';
+
+const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 
 /**
  * A fixture holder, with room to override either half of the row: `core` is
@@ -46,6 +49,25 @@ describe('TokenHolderRow', () => {
     expect(
       screen.getByTestId(TokenHolderRowSelectorsIDs.FOLLOWERS),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the verified badge for a verified holder', () => {
+    const fixture = TOKEN_HOLDERS_FIXTURE.items[0];
+    const actor = { ...fixture.actor, verified: true };
+
+    renderWithProvider(<TokenHolderRow row={toRow(0, { core: { actor } })} />);
+
+    expect(
+      screen.getByTestId(TokenHolderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the verified badge for an unverified holder', () => {
+    renderWithProvider(<TokenHolderRow row={toRow(0)} />);
+
+    expect(
+      screen.queryByTestId(TokenHolderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
   });
 
   it('abbreviates the position value so a whale keeps the column one line', () => {
@@ -136,5 +158,20 @@ describe('TokenHolderRow', () => {
     expect(
       screen.getByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('is inert without a press handler', () => {
+    renderWithProvider(<TokenHolderRow row={toRow(0)} />);
+
+    expect(screen.queryByTestId(TokenHolderRowSelectorsIDs.PRESS)).toBeNull();
+  });
+
+  it('calls the press handler when the row is tapped', () => {
+    const onPress = jest.fn();
+
+    renderWithProvider(<TokenHolderRow row={toRow(0)} onPress={onPress} />);
+    fireEvent.press(screen.getByTestId(TokenHolderRowSelectorsIDs.PRESS));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -43,6 +43,18 @@ function getSkippedSwapLabel(swap: RecurringSwap) {
   return strings(`bridge.recurring.${swap.skipReason}`);
 }
 
+function getSwapSubtitle(swap: RecurringSwap) {
+  if (swap.status === RecurringSwapStatus.Skipped) {
+    return getSkippedSwapLabel(swap);
+  }
+
+  if (swap.status === RecurringSwapStatus.Submitted) {
+    return strings('bridge.limit.submitted');
+  }
+
+  return '';
+}
+
 export function RecurringSwapRow({
   swap,
   sourceToken,
@@ -67,7 +79,7 @@ export function RecurringSwapRow({
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
-      subtitle={isSkipped ? getSkippedSwapLabel(swap) : ''}
+      subtitle={getSwapSubtitle(swap)}
       primaryValue={`+${destinationAmount} ${destinationToken.symbol}`}
       secondaryValue={`-${sourceAmount} ${sourceToken.symbol}`}
       titleColor={getSwapTitleColor(swap)}
@@ -77,6 +89,7 @@ export function RecurringSwapRow({
             name={IconName.Warning}
             color={IconColor.WarningDefault}
             size={IconSize.Sm}
+            accessibilityLabel={strings('bridge.recurring.skipped')}
           />
         ) : undefined
       }
@@ -87,7 +100,7 @@ export function RecurringSwapRow({
         hasZeroAmounts ? TextColor.TextAlternative : TextColor.SuccessDefault
       }
       onPress={onPress}
-      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id)}
     />
   );
 }

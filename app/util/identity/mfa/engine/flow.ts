@@ -4,11 +4,14 @@ import {
   type EnrollmentChallenge,
   type VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
+import { createMfaTracker } from './analytics';
 import {
   MfaFlowError,
   getErrorHandling,
   getFlowErrorCode,
+  isCooldownCountdown,
   isReportable,
+  isRetryableFailure,
 } from './errors';
 import {
   getEnrollmentMaxSessionAgeMs,
@@ -45,8 +48,10 @@ export const createMfaFlow = ({
   passkey,
   now = Date.now,
   reportError,
+  trackEvent,
 }: MfaFlowOptions): MfaFlow => {
   const tokenReason = { operation: reason.operation };
+  const tracker = createMfaTracker({ reason, request, trackEvent });
   const completed: MfaMethod[] = [];
   const listeners = new Set<() => void>();
 
@@ -59,6 +64,8 @@ export const createMfaFlow = ({
   let recoveredStep: string | undefined;
   let current: CurrentStep | undefined;
   let lastOperation: (() => Promise<void>) | undefined;
+  /** The authenticator setup on screen before its code, so back can return. */
+  let totpSetup: Extract<MfaFlowStep, { name: 'totpSetup' }> | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -76,7 +83,22 @@ export const createMfaFlow = ({
     if (settled) {
       return;
     }
+    const previous = state;
     state = { ...state, ...next };
+    // Analytics follow what the user sees: a new screen, a new error on it.
+    if (next.step) {
+      tracker.stepViewed(state.step);
+      if (state.step.name === 'failure') {
+        tracker.errorViewed(state.step.code, state.step);
+      }
+    }
+    if (
+      state.error &&
+      state.error !== previous.error &&
+      !isCooldownCountdown(state)
+    ) {
+      tracker.errorViewed(state.error, state.step);
+    }
     listeners.forEach((listener) => listener());
   };
 
@@ -101,7 +123,11 @@ export const createMfaFlow = ({
   };
 
   const rejectWith = (code: MfaFlowErrorCode) =>
-    settle(() => rejectResult(new MfaFlowError(code, [...completed])));
+    settle(() => {
+      const error = new MfaFlowError(code, [...completed]);
+      tracker.ended(error, state);
+      rejectResult(error);
+    });
 
   const fail = (code: MfaFlowErrorCode, canRetry = false, error?: unknown) => {
     if (isReportable(code)) {
@@ -150,7 +176,10 @@ export const createMfaFlow = ({
       toList(request.verifyWith).length > 0;
     const value =
       wantsToken && token ? { credentials, token } : { credentials };
-    settle(() => resolveResult(value));
+    settle(() => {
+      tracker.completed();
+      resolveResult(value);
+    });
   };
 
   /**
@@ -261,13 +290,14 @@ export const createMfaFlow = ({
     }
     // Only a setup that started becomes the current step.
     current = { method: 'totp', purpose: 'setup', flowId: challenge.flowId };
-    show({
+    totpSetup = {
       name: 'totpSetup',
       secret: challenge.secret,
       qrCode: challenge.qrCode,
       setupUri: challenge.setupUri,
       isRestart,
-    });
+    };
+    show(totpSetup);
   };
 
   const startVerification = async (
@@ -401,15 +431,15 @@ export const createMfaFlow = ({
   };
 
   /**
-   * Starts a new challenge when the one on screen expired, otherwise shows
-   * the error: a new email code, a new authenticator app verification (the
-   * user enters the app's current code), or a new app setup, whose new secret
-   * replaces the one the user may have added. Only a started challenge can
-   * expire; a start failing with these codes would otherwise restart forever.
+   * Starts a new authenticator app challenge when the one on screen expired,
+   * otherwise shows the error: a new verification (the user enters the app's
+   * current code), or a new app setup, whose new secret replaces the one the
+   * user may have added. Only a started challenge can expire; a start failing
+   * with these codes would otherwise restart forever.
    *
-   * There is no `resendAvailableAt` check here: a resend that comes too early
-   * fails with a cooldown code, which the `cooldown` branch handles, and a
-   * successful send clears it in `beginCodeChallenge`.
+   * An expired email code only shows its error: the user asks for a new one,
+   * so no email is sent without them asking, and the server's resend limit
+   * decides when they can.
    *
    * @param code - The error's code.
    * @param isRecovery - Whether the failed operation was itself a recovery.
@@ -420,12 +450,6 @@ export const createMfaFlow = ({
     isRecovery: boolean,
   ): (() => Promise<void>) | undefined => {
     if (!isRecovery && current?.flowId && state.step.name === 'otp') {
-      if (current.method === 'email_otp') {
-        return async () => {
-          await beginCodeChallenge();
-          setState({ codeResent: true });
-        };
-      }
       if (current.method === 'totp') {
         return current.purpose === 'setup'
           ? () => startTotpSetup(true)
@@ -441,7 +465,8 @@ export const createMfaFlow = ({
 
   /**
    * Shows an error the user can fix on the same step. An email linked to
-   * another account goes back to email entry.
+   * another account goes back to email entry, and its spent challenge is
+   * dropped so continuing sends a new code.
    *
    * @param code - The error's code.
    */
@@ -451,6 +476,7 @@ export const createMfaFlow = ({
       current?.method === 'email_otp' &&
       current.purpose === 'setup'
     ) {
+      current = { ...current, flowId: undefined };
       show(
         { name: 'emailEntry', prefillEmail: current.email },
         { error: code },
@@ -478,7 +504,12 @@ export const createMfaFlow = ({
     }
     const code = getFlowErrorCode(error);
     const handling = getErrorHandling(code);
-    if (!presented && handling !== 'refresh' && handling !== 'failure') {
+    if (
+      !presented &&
+      handling !== 'refresh' &&
+      handling !== 'failure' &&
+      handling !== 'support'
+    ) {
       // No screen yet to show the error on: the failure screen offers to try
       // again, so the flow cannot hang on `idle`.
       fail(code, true);
@@ -503,7 +534,12 @@ export const createMfaFlow = ({
         showInlineError(code);
         return undefined;
       case 'failure':
-        fail(code, false, error);
+        fail(code, isRetryableFailure(code), error);
+        return undefined;
+      case 'support':
+        // Shown even before any other screen: the user needs a way to
+        // contact support.
+        show({ name: 'failure', code, canRetry: false });
         return undefined;
       default:
         setState({ busy: false, error: code });
@@ -528,8 +564,11 @@ export const createMfaFlow = ({
   };
 
   /**
-   * Opens the system passkey sheet straight away. The passkey screen only
-   * shows when the sheet fails, with the error and a way to try again.
+   * Opens the system passkey sheet straight away. On failure, the passkey
+   * screen shows with retry. When the sheet is cancelled and nothing from
+   * the kit has been shown yet (`!presented`), the flow ends with
+   * `flow_cancelled` so a host can open its own list; other failures still
+   * show retry.
    *
    * A function declaration, as it and `advance` call each other.
    *
@@ -540,6 +579,13 @@ export const createMfaFlow = ({
     try {
       await runPasskey();
     } catch (error) {
+      if (
+        getFlowErrorCode(error) === 'passkey_ceremony_cancelled' &&
+        !presented
+      ) {
+        rejectWith('flow_cancelled');
+        return;
+      }
       show({ name: 'passkey', purpose });
       throw error;
     }
@@ -560,6 +606,23 @@ export const createMfaFlow = ({
   };
 
   const submitEmailAddress = async (email: string) => {
+    // Returning from the setup code keeps its challenge. Continuing with the
+    // same address returns to that code instead of sending another one.
+    if (
+      current?.method === 'email_otp' &&
+      current.purpose === 'setup' &&
+      current.email === email &&
+      current.flowId
+    ) {
+      show({
+        name: 'otp',
+        purpose: 'setup',
+        method: 'email_otp',
+        email,
+        codeSent: true,
+      });
+      return;
+    }
     current = { method: 'email_otp', purpose: 'setup', email };
     // Stay on email entry until a code is sent. Opening the code screen
     // first tells the user a code went out when enrollment still failed.
@@ -629,6 +692,7 @@ export const createMfaFlow = ({
       case 'choose':
         if (step.name === 'picker' && step.options.includes(action.method)) {
           const { purpose } = step;
+          tracker.methodSelected(action.method, step);
           await run(() => startVerification(action.method, purpose));
         }
         return;
@@ -649,12 +713,55 @@ export const createMfaFlow = ({
           step.name === 'otp' &&
           (step.method === 'email_otp' || !step.codeSent)
         ) {
-          await run(beginCodeChallenge);
+          if (step.method === 'email_otp') {
+            tracker.codeResent('user', step);
+          }
+          const isResend = step.method === 'email_otp' && step.codeSent;
+          // Clear the previous notice so each new code changes it again: the
+          // code screen empties the boxes when it changes.
+          setState({ codeResent: undefined });
+          await run(async () => {
+            await beginCodeChallenge();
+            // Only once sent: a failed send may recover onto another step.
+            if (isResend) {
+              setState({ codeResent: true });
+            }
+          });
         }
         return;
       case 'retry':
         if (lastOperation) {
           await run(lastOperation);
+        }
+        return;
+      case 'errorCtaClicked': {
+        const code = step.name === 'failure' ? step.code : state.error;
+        if (code) {
+          tracker.errorCtaClicked(code, action.cta);
+        }
+        return;
+      }
+      case 'back':
+        // Setup codes return to the setup behind them without replacing the
+        // authenticator secret or sending another email code.
+        if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'totp' &&
+          totpSetup
+        ) {
+          show(totpSetup);
+        } else if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'email_otp' &&
+          current?.email
+        ) {
+          // A dead code can't be entered again: continuing sends a new one.
+          if (state.error && getErrorHandling(state.error) === 'restart') {
+            current = { ...current, flowId: undefined };
+          }
+          show({ name: 'emailEntry', prefillEmail: current.email });
         }
         return;
       case 'dismiss':
@@ -664,11 +771,12 @@ export const createMfaFlow = ({
   };
 
   const start = () => {
+    tracker.started();
     flowStartedAt = now();
     const needsPasskey =
       request.kind === 'enroll'
         ? request.method === 'passkey'
-        : request.methods.includes('passkey');
+        : !request.verifyOnly && request.methods.includes('passkey');
     if (needsPasskey && !passkey) {
       rejectWith('passkey_unsupported');
       return Promise.resolve();

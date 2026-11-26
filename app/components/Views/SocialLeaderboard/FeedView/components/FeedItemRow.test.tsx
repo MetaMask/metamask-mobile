@@ -16,15 +16,6 @@ import {
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
-    if (
-      key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
-      params
-    ) {
-      return `${params.size} at ${params.marketCap} ${params.abbreviation}`;
-    }
-    if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
-      return `${params.size} at ${params.price}`;
-    }
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',
       'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
@@ -35,6 +26,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return literals[key] ?? key;
   },
+}));
+
+jest.mock('../../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
 }));
 
 const spotItem: FeedSpotItem = {

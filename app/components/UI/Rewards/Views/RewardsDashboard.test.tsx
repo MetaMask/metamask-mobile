@@ -8,7 +8,6 @@ import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
-import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 // Mock dependencies
 const mockDispatch = jest.fn();
@@ -40,14 +39,6 @@ afterAll(() => {
   runAfterInteractionsSpy.mockRestore();
 });
 
-jest.mock('../../../../core/DeeplinkManager', () => ({
-  handleDeeplink: jest.fn(),
-}));
-
-const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
-  typeof handleDeeplink
->;
-
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -58,6 +49,13 @@ let mockParentNavigatorType = 'tab';
 const mockGetParent = jest.fn(() => ({
   getState: () => ({ type: mockParentNavigatorType }),
 }));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -79,6 +77,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock(
+  '../../../../component-library/components/Navigation/TabBarFloating',
+  () => ({
+    useFloatingTabBarInset: jest.fn(() => 0),
+  }),
+);
+
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
@@ -87,8 +92,6 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectIsVipReferee: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
-  selectPendingDeeplink: jest.fn(),
-  selectCampaignsFetching: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -107,6 +110,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsByGroupId: jest.fn(),
+}));
+
+const mockIsHardwareAccount = jest.fn();
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: (address: string) => mockIsHardwareAccount(address),
+}));
+
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
@@ -114,18 +127,18 @@ import {
   selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectPendingDeeplink,
-  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
-// Real action creator (the rewards reducer module is intentionally not mocked),
-// so the deeplink tests can assert the exact clear action dispatched.
-import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
+import { resetNotSupportedSheetSession } from '../utils/notSupportedSheetSession';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
@@ -167,9 +180,6 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
-const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
-  typeof selectPendingDeeplink
->;
 
 // Mock react-native-safe-area-context
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -208,9 +218,6 @@ jest.mock('../../../../core/Engine', () => ({
 // RewardsHome (MainNavigator), so it is no longer mocked here.
 jest.mock('../hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
-}));
-jest.mock('../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 jest.mock('../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
@@ -265,6 +272,14 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   },
 }));
 
+jest.mock('../components/Money/RewardsOptInSection', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="rewards-opt-in-section" />,
+  };
+});
+
 jest.mock('../components/Benefits/BenefitsPreview', () => ({
   __esModule: true,
   default: function MockBenefitsPreview() {
@@ -281,10 +296,6 @@ jest.mock('../components/Benefits/BenefitsPreview', () => ({
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
-}));
-
-jest.mock('../hooks/useRewardDashboardModals', () => ({
-  useRewardDashboardModals: jest.fn(),
 }));
 
 jest.mock('../hooks/useBulkLinkState', () => ({
@@ -311,35 +322,15 @@ jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
   useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
 }));
 
-jest.mock('../hooks/useRewardCampaigns', () => ({
-  useRewardCampaigns: jest.fn(),
-}));
-
-jest.mock('../hooks/useMoneyAccountSweepstakesSeries', () => ({
-  useMoneyAccountSweepstakesSeries: jest.fn(),
-}));
-
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
-import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import {
-  CampaignType,
-  type CampaignDto,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
-import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
+import { AccountGroupType } from '@metamask/account-api';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
 >;
-const mockUseRewardDashboardModals =
-  useRewardDashboardModals as jest.MockedFunction<
-    typeof useRewardDashboardModals
-  >;
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
@@ -358,27 +349,8 @@ const mockUseMoneyAccountSweepstakesOutcomeToast =
   useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
     typeof useMoneyAccountSweepstakesOutcomeToast
   >;
-const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
-  typeof useRewardCampaigns
->;
-const mockUseMoneyAccountSweepstakesSeries =
-  useMoneyAccountSweepstakesSeries as jest.MockedFunction<
-    typeof useMoneyAccountSweepstakesSeries
-  >;
-const emptyMoneyAccountSeries: MoneyAccountSweepstakesSeries = {
-  campaigns: [],
-  first: null,
-  last: null,
-  activeCampaign: null,
-  displayCampaign: null,
-  seriesStatus: null,
-};
-
 describe('RewardsDashboard', () => {
-  const mockShowUnlinkedAccountsModal = jest.fn();
-  const mockShowNotOptedInModal = jest.fn();
-  const mockShowNotSupportedModal = jest.fn();
-  const mockHasShownModal = jest.fn();
+  const mockGetAccountsByGroupId = jest.fn();
   const mockResumeBulkLink = jest.fn();
 
   const mockSelectedAccountGroup = {
@@ -412,15 +384,6 @@ describe('RewardsDashboard', () => {
       isLoading: false,
       hasError: false,
       refresh: jest.fn(),
-    },
-    useRewardDashboardModals: {
-      showUnlinkedAccountsModal: mockShowUnlinkedAccountsModal,
-      showNotOptedInModal: mockShowNotOptedInModal,
-      showNotSupportedModal: mockShowNotSupportedModal,
-      hasShownModal: mockHasShownModal,
-      resetSessionTracking: jest.fn(),
-      resetSessionTrackingForCurrentAccountGroup: jest.fn(),
-      resetAllSessionTracking: jest.fn(),
     },
     useBulkLinkState: {
       startBulkLink: jest.fn(),
@@ -494,24 +457,10 @@ describe('RewardsDashboard', () => {
     mockUseRewardOptinSummary.mockReturnValue(
       defaultHookValues.useRewardOptinSummary,
     );
-    mockUseRewardDashboardModals.mockReturnValue(
-      defaultHookValues.useRewardDashboardModals,
-    );
     mockUseBulkLinkState.mockReturnValue(defaultHookValues.useBulkLinkState);
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [],
-      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-      isLoading: false,
-      hasError: false,
-      hasLoaded: true,
-      fetchCampaigns: jest.fn(),
-    });
-    mockUseMoneyAccountSweepstakesSeries.mockReturnValue(
-      emptyMoneyAccountSeries,
-    );
 
-    // Setup default modal hook behavior - return false for all modal types by default
-    mockHasShownModal.mockReturnValue(false);
+    mockGetAccountsByGroupId.mockReturnValue([{ address: '0x123' }]);
+    mockIsHardwareAccount.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectActiveTab) return defaultSelectorValues.activeTab;
@@ -527,6 +476,8 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
+      if (selector === selectInternalAccountsByGroupId)
+        return mockGetAccountsByGroupId;
       if (selector === mockHasAcceptedVipInviteSelector) return false;
       if (selector === selectIsVipReferee) return false;
       if (selector === mockHasAcceptedVipRefereeInviteSelector) return false;
@@ -554,26 +505,6 @@ describe('RewardsDashboard', () => {
       expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
         1,
       );
-    });
-
-    it('renders all child components', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
-      expect(getByTestId('benefits-preview')).toBeTruthy();
-    });
-
-    it('calls modal hooks when component is rendered', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
     });
   });
 
@@ -633,9 +564,6 @@ describe('RewardsDashboard', () => {
         expect(
           getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
         ).toBeOnTheScreen();
-        expect(
-          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
-        ).toBeOnTheScreen();
         expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
       });
     });
@@ -648,14 +576,50 @@ describe('RewardsDashboard', () => {
       ).not.toBeOnTheScreen();
     });
 
+    describe('with glass headers on', () => {
+      beforeEach(() => {
+        const defaultSelector = mockUseSelector.getMockImplementation();
+        mockUseSelector.mockImplementation((selector) =>
+          selector === selectGlassHeadersEnabled
+            ? true
+            : defaultSelector?.(selector),
+        );
+      });
+
+      it('floats the tab header over the content', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+
+      it('keeps settings pressable in its glass capsule', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_SETTINGS_VIEW,
+          params: undefined,
+        });
+      });
+    });
+
+    it('keeps the solid header when glass headers are off', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
     it('renders settings button in header', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByLabelText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+      expect(getByLabelText('rewards.settings.title')).toBeOnTheScreen();
     });
   });
 
@@ -671,18 +635,6 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REWARDS_SETTINGS_VIEW,
-        params: undefined,
-      });
-    });
-
-    it('navigates to referral view when referral button is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REFERRAL_REWARDS_VIEW,
         params: undefined,
       });
     });
@@ -896,488 +848,8 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('deeplink navigation', () => {
-    // The dashboard reads the pending deeplink from Redux on mount and routes
-    // into the corresponding rewards sub-page, then clears it so it does not
-    // re-fire. navigateToRewardsRoute (not mocked) forwards through the
-    // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
-    interface DeeplinkSelectorOverrides {
-      subscriptionId?: string | null;
-      campaignsFetching?: boolean;
-    }
-
-    const setDeeplinkSelectors = (
-      pendingDeeplink: Record<string, unknown> | null,
-      selectorOverrides: DeeplinkSelectorOverrides = {},
-    ) => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPendingDeeplink) return pendingDeeplink;
-        if (selector === selectCampaignsFetching)
-          return selectorOverrides.campaignsFetching ?? false;
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return 'subscriptionId' in selectorOverrides
-            ? selectorOverrides.subscriptionId
-            : defaultSelectorValues.subscriptionId;
-        if (selector === selectIsCurrentSubscriptionVipEnabled)
-          return defaultSelectorValues.isVipEnabled;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === mockHasAcceptedVipInviteSelector) return false;
-        return undefined;
-      });
-    };
-
-    const renderWithPendingDeeplink = (
-      pendingDeeplink: Record<string, unknown> | null,
-      selectorOverrides: DeeplinkSelectorOverrides = {},
-    ) => {
-      setDeeplinkSelectors(pendingDeeplink, selectorOverrides);
-      return render(<RewardsDashboard />);
-    };
-
-    /**
-     * Renders through the real fetch sequence: the focus effect starts a
-     * campaigns fetch, then it settles. Deeplink resolution deliberately waits
-     * for a fetch to have been observed, so a single static render can never
-     * resolve one — a plain render only ever reproduces the pre-fetch commit.
-     */
-    const renderAfterSettledFetch = (
-      pendingDeeplink: Record<string, unknown> | null,
-      selectorOverrides: DeeplinkSelectorOverrides = {},
-    ) => {
-      const view = renderWithPendingDeeplink(pendingDeeplink, {
-        ...selectorOverrides,
-        campaignsFetching: true,
-      });
-      setDeeplinkSelectors(pendingDeeplink, {
-        ...selectorOverrides,
-        campaignsFetching: false,
-      });
-      view.rerender(<RewardsDashboard />);
-      return view;
-    };
-
-    const activeMoneyCampaign: CampaignDto = {
-      id: 'week-2',
-      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
-      name: 'Money Account Sweepstakes',
-      startDate: '2026-07-08T00:00:00.000Z',
-      endDate: '2026-07-15T00:00:00.000Z',
-      termsAndConditions: null,
-      excludedRegions: [],
-      details: {
-        howItWorks: {
-          title: 'How it works',
-          description: 'Enter the weekly draw',
-          steps: [],
-          tour: [
-            {
-              title: 'Step 1',
-              description: 'Description 1',
-              image: null,
-              actions: null,
-            },
-          ],
-        },
-      },
-      featured: false,
-      showUpcomingDate: false,
-    };
-
-    const activeMoneySeries: MoneyAccountSweepstakesSeries = {
-      campaigns: [activeMoneyCampaign],
-      first: activeMoneyCampaign,
-      last: activeMoneyCampaign,
-      activeCampaign: activeMoneyCampaign,
-      displayCampaign: activeMoneyCampaign,
-      seriesStatus: 'active',
-    };
-
-    const previousMoneySeries: MoneyAccountSweepstakesSeries = {
-      campaigns: [activeMoneyCampaign],
-      first: activeMoneyCampaign,
-      last: activeMoneyCampaign,
-      activeCampaign: null,
-      displayCampaign: activeMoneyCampaign,
-      seriesStatus: 'previous',
-    };
-
-    const upcomingMoneySeries: MoneyAccountSweepstakesSeries = {
-      campaigns: [activeMoneyCampaign],
-      first: activeMoneyCampaign,
-      last: activeMoneyCampaign,
-      activeCampaign: null,
-      displayCampaign: activeMoneyCampaign,
-      seriesStatus: 'upcoming',
-    };
-
-    it.each([
-      ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
-      ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
-      ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
-      [
-        'campaign',
-        'predict-the-pitch',
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-      ],
-    ])(
-      'routes %s=%s into the rewards flow and clears the pending deeplink',
-      (key, value, expectedScreen) => {
-        renderWithPendingDeeplink({ [key]: value });
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-          screen: expectedScreen,
-          params: undefined,
-        });
-        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-      },
-    );
-
-    describe('campaign=perps-comp', () => {
-      const buildPerpsCampaign = (
-        overrides: Partial<CampaignDto> = {},
-      ): CampaignDto => ({
-        id: 'perps-active',
-        type: CampaignType.PERPS_TRADING,
-        name: 'Perps Competition',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2099-01-01T00:00:00.000Z',
-        termsAndConditions: null,
-        excludedRegions: [],
-        details: null,
-        featured: false,
-        showUpcomingDate: false,
-        ...overrides,
-      });
-
-      const mockCampaigns = (
-        campaigns: CampaignDto[],
-        overrides: { isLoading?: boolean; hasError?: boolean } = {},
-      ) => {
-        mockUseRewardCampaigns.mockReturnValue({
-          campaigns,
-          categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-          isLoading: overrides.isLoading ?? false,
-          hasError: overrides.hasError ?? false,
-          hasLoaded: true,
-          fetchCampaigns: jest.fn(),
-        });
-      };
-
-      it('navigates to the active perps campaign with its id', () => {
-        mockCampaigns([
-          buildPerpsCampaign({
-            id: 'perps-past',
-            startDate: '2020-01-01T00:00:00.000Z',
-            endDate: '2020-02-01T00:00:00.000Z',
-          }),
-          buildPerpsCampaign({ id: 'perps-active' }),
-        ]);
-
-        renderAfterSettledFetch({ campaign: 'perps-comp' });
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-          screen: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-          params: { campaignId: 'perps-active' },
-        });
-        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('stays on the dashboard when only a past perps campaign exists', () => {
-        mockCampaigns([
-          buildPerpsCampaign({
-            id: 'perps-past',
-            startDate: '2020-01-01T00:00:00.000Z',
-            endDate: '2020-02-01T00:00:00.000Z',
-          }),
-        ]);
-
-        renderAfterSettledFetch({ campaign: 'perps-comp' });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('stays on the dashboard when only an upcoming perps campaign exists', () => {
-        mockCampaigns([
-          buildPerpsCampaign({
-            id: 'perps-upcoming',
-            startDate: '2098-01-01T00:00:00.000Z',
-            endDate: '2099-01-01T00:00:00.000Z',
-          }),
-        ]);
-
-        renderAfterSettledFetch({ campaign: 'perps-comp' });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('keeps the deeplink pending while campaigns are still loading', () => {
-        mockCampaigns([], { isLoading: true });
-
-        renderWithPendingDeeplink({ campaign: 'perps-comp' });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('keeps the deeplink pending when the campaigns fetch failed', () => {
-        mockCampaigns([], { hasError: true });
-
-        renderWithPendingDeeplink({ campaign: 'perps-comp' });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('keeps the deeplink pending on the commit before a fetch starts', () => {
-        // The focus effect dispatches campaignsFetching, so it is not readable
-        // until the next render. On the first commit after a remount the
-        // campaigns list in Redux is whatever the previous fetch left behind —
-        // resolving against it here would drop the deeplink for good.
-        mockCampaigns([
-          buildPerpsCampaign({
-            id: 'perps-past',
-            startDate: '2020-01-01T00:00:00.000Z',
-            endDate: '2020-02-01T00:00:00.000Z',
-          }),
-        ]);
-
-        renderWithPendingDeeplink(
-          { campaign: 'perps-comp' },
-          { campaignsFetching: false },
-        );
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('keeps the deeplink pending when there is no subscription yet', () => {
-        // fetchCampaigns short-circuits to an empty list without a
-        // subscription, and still marks campaigns loaded — so an empty list
-        // here means "not signed in", not "no campaigns exist".
-        mockCampaigns([]);
-
-        renderWithPendingDeeplink(
-          { campaign: 'perps-comp' },
-          { subscriptionId: null },
-        );
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-
-      it('keeps the deeplink pending while a refresh runs over a stale list', () => {
-        // campaignsLoading is suppressed once campaigns exist, so only the
-        // fetching flag catches a refresh that may add the active campaign.
-        mockCampaigns([
-          buildPerpsCampaign({
-            id: 'perps-past',
-            startDate: '2020-01-01T00:00:00.000Z',
-            endDate: '2020-02-01T00:00:00.000Z',
-          }),
-        ]);
-
-        renderWithPendingDeeplink(
-          { campaign: 'perps-comp' },
-          { campaignsFetching: true },
-        );
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-      });
-    });
-
-    it('opens the Money deeplink and clears the pending deeplink for page=musd', () => {
-      renderWithPendingDeeplink({ page: 'musd' });
-
-      expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://money',
-      });
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('navigates directly to the benefits full view (registered at root) for page=benefits', () => {
-      // Benefits is registered at the root MainNavigator level, so the dashboard
-      // navigates directly rather than through the REWARDS_FLOW host.
-      renderWithPendingDeeplink({ page: 'benefits' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARD_BENEFITS_FULL_VIEW,
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('does nothing when there is no pending deeplink', () => {
-      renderWithPendingDeeplink(null);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('does not clear the pending deeplink for an unrecognized page/campaign', () => {
-      // Unrecognized intents are preserved (not cleared) so they can be retried
-      // rather than silently dropped.
-      renderWithPendingDeeplink({ page: 'totally-unknown' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('waits for campaigns to load before handling campaign=money', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        campaigns: [],
-        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-        isLoading: true,
-        hasError: false,
-        hasLoaded: false,
-        fetchCampaigns: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('keeps pending campaign=money when campaigns failed with an empty series', () => {
-      // campaignsHasLoaded is true on error too — do not treat empty series as
-      // a final "stay on dashboard" result or a later retry can never recover.
-      mockUseRewardCampaigns.mockReturnValue({
-        campaigns: [],
-        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-        isLoading: false,
-        hasError: true,
-        hasLoaded: true,
-        fetchCampaigns: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('keeps pending campaign=money while a campaigns retry is in flight with an empty series', () => {
-      // Retry clears the error flag before settling, so an empty series during
-      // loading must also keep the deeplink.
-      mockUseRewardCampaigns.mockReturnValue({
-        campaigns: [],
-        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-        isLoading: true,
-        hasError: false,
-        hasLoaded: true,
-        fetchCampaigns: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('still routes campaign=money when a campaigns refresh failed but series data already exists', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        campaigns: [activeMoneyCampaign],
-        categorizedCampaigns: {
-          active: [activeMoneyCampaign],
-          upcoming: [],
-          previous: [],
-        },
-        isLoading: false,
-        hasError: true,
-        hasLoaded: true,
-        fetchCampaigns: jest.fn(),
-      });
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(previousMoneySeries);
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-        params: { campaignId: 'week-2' },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('stays on dashboard and clears pending deeplink for upcoming money series', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(upcomingMoneySeries);
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('routes campaign=money to details for previous series', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(previousMoneySeries);
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-        params: { campaignId: 'week-2' },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('routes campaign=money to details when series is active, even if a tour exists', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-        params: { campaignId: 'week-2' },
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.REWARDS_FLOW,
-        expect.objectContaining({
-          screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
-        }),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-  });
-
-  describe('referral button state', () => {
-    it('always renders the referral button as enabled regardless of subscription state', () => {
-      // Arrange - no subscriptionId
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const referralButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-      );
-
-      // Assert - referral button is never disabled
-      expect(referralButton).not.toBeDisabled();
-    });
-  });
-
   describe('settings button state', () => {
-    it('disables settings button when user is not opted in', () => {
+    it('enables settings and navigates when the user is not opted in', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
@@ -1390,6 +862,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return true;
         return undefined;
       });
 
@@ -1398,9 +871,38 @@ describe('RewardsDashboard', () => {
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
+      fireEvent.press(settingsButton);
 
       // Assert
-      expect(settingsButton).toBeDisabled();
+      expect(settingsButton).not.toBeDisabled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('hides settings when the user is not opted in and the money referral is unavailable', () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return false;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('enables settings button when user is opted in', () => {
@@ -1415,364 +917,73 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('modal triggering for current account', () => {
-    it('shows not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
-      // Arrange
-      const mockAccountGroupWithOptedOut = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [],
-        optedOutAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: false,
-          },
-        ],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupPartiallySupported: true,
-        currentAccountGroupOptedInStatus: 'notOptedIn',
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotOptedInModal).toHaveBeenCalled();
-      });
+  describe('unsupported account sheet', () => {
+    beforeEach(() => {
+      resetNotSupportedSheetSession();
     });
 
-    it('shows not supported modal when account group is not fully supported and modal has not been shown', async () => {
-      // Arrange
+    const KEY_PREFIX = 'rewards.dashboard_modal_info.account_not_supported';
+    const notSupportedParams = (descriptionKey: string) => ({
+      title: `${KEY_PREFIX}.title`,
+      description: `${KEY_PREFIX}.${descriptionKey}`,
+    });
+
+    const mockUnsupportedAccountGroup = () => {
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         currentAccountGroupPartiallySupported: false,
         currentAccountGroupOptedInStatus: null,
       });
+    };
 
-      // Act
-      render(<RewardsDashboard />);
+    const infoSheetOpens = () =>
+      mockNavigate.mock.calls.filter(
+        ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      ).length;
 
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-    });
-
-    it('does not show modal when modal has already been shown in session', () => {
-      // Arrange
-      mockHasShownModal.mockReturnValue(true);
-
-      const mockAccountGroupWithOptedOut = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [],
-        optedOutAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: false,
-          },
-        ],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupPartiallySupported: true,
-        currentAccountGroupOptedInStatus: 'notOptedIn',
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('modal triggering for unlinked accounts', () => {
-    const mockWalletWithOptedOutAccounts = [
-      {
-        wallet: {
-          id: 'keyring:wallet1' as const,
-          metadata: {
-            name: 'Wallet 1',
-          },
-          groups: {},
-          type: AccountWalletType.Keyring as const,
-          status: 'in-progress:discovery' as const,
-        },
-        groups: [
-          {
-            id: 'keyring:wallet1/2' as const,
-            name: 'Account Group 2',
-            optedInAccounts: [],
-            optedOutAccounts: [
-              {
-                id: 'account-2',
-                address: '0x456',
-                type: 'eip155:eoa' as const,
-                options: {},
-                metadata: {
-                  name: 'Account 2',
-                  importTime: Date.now(),
-                  keyring: { type: 'HD Key Tree' },
-                },
-                scopes: ['eip155:1'] as `${string}:${string}`[],
-                methods: ['eth_sendTransaction'],
-                hasOptedIn: false,
-              },
-            ],
-            unsupportedAccounts: [],
-          },
-        ],
-      },
-    ];
-
-    it('shows unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
-      // Arrange
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupOptedInStatus: 'fullyOptedIn',
-        currentAccountGroupPartiallySupported: true,
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
-      });
-    });
-
-    it('does not show unlinked accounts modal when hideUnlinkedAccountsBanner is true', () => {
-      // Arrange
-      mockSelectHideUnlinkedAccountsBanner.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner) return true;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-    });
-
-    it('does not show unlinked accounts modal when modal has already been shown', () => {
-      // Arrange
-      mockHasShownModal.mockImplementation(
-        (modalType) => modalType === 'unlinked-accounts',
+    const overrideSelector = (selector: unknown, value: unknown) => {
+      const defaultImplementation = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((candidate) =>
+        candidate === selector ? value : defaultImplementation?.(candidate),
       );
+    };
+
+    it('opens the info sheet with the general description when the account group is not supported', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+      expect(mockGetAccountsByGroupId).toHaveBeenCalledWith(
+        mockSelectedAccountGroup.id,
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        notSupportedParams('description_general'),
+      );
     });
-  });
 
-  describe('modal prioritization', () => {
-    it('shows unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
+    it('opens the info sheet with the hardware description when the account group has a hardware account', () => {
       // Arrange
-      const mockWalletWithOptedOutAccounts = [
-        {
-          wallet: {
-            id: 'keyring:wallet1' as const,
-            metadata: {
-              name: 'Wallet 1',
-            },
-            groups: {},
-            type: AccountWalletType.Keyring as const,
-            status: 'in-progress:discovery' as const,
-          },
-          groups: [
-            {
-              id: 'keyring:wallet1/2' as const,
-              name: 'Account Group 2',
-              optedInAccounts: [],
-              optedOutAccounts: [
-                {
-                  id: 'account-2',
-                  address: '0x456',
-                  type: 'eip155:eoa' as const,
-                  options: {},
-                  metadata: {
-                    name: 'Account 2',
-                    importTime: Date.now(),
-                    keyring: { type: 'HD Key Tree' },
-                  },
-                  scopes: ['eip155:1'] as `${string}:${string}`[],
-                  methods: ['eth_sendTransaction'],
-                  hasOptedIn: false,
-                },
-              ],
-              unsupportedAccounts: [],
-            },
-          ],
-        },
-      ];
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupOptedInStatus: 'fullyOptedIn',
-        currentAccountGroupPartiallySupported: true,
-      });
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return [{ accountGroupId: 'keyring:wallet1/1', hide: true }];
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
+      mockUnsupportedAccountGroup();
+      mockIsHardwareAccount.mockReturnValue(true);
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        notSupportedParams('description_hardware'),
+      );
     });
 
-    it('prioritizes not supported modal over other modals', async () => {
+    it('does not open the info sheet when the account group is supported', () => {
       // Arrange
-      const mockWalletWithOptedOutAccounts = [
-        {
-          wallet: {
-            id: 'keyring:wallet1' as const,
-            metadata: {
-              name: 'Wallet 1',
-            },
-            groups: {},
-            type: AccountWalletType.Keyring as const,
-            status: 'in-progress:discovery' as const,
-          },
-          groups: [
-            {
-              id: 'keyring:wallet1/2' as const,
-              name: 'Account Group 2',
-              optedInAccounts: [],
-              optedOutAccounts: [
-                {
-                  id: 'account-2',
-                  address: '0x456',
-                  type: 'eip155:eoa' as const,
-                  options: {},
-                  metadata: {
-                    name: 'Account 2',
-                    importTime: Date.now(),
-                    keyring: { type: 'HD Key Tree' },
-                  },
-                  scopes: ['eip155:1'] as `${string}:${string}`[],
-                  methods: ['eth_sendTransaction'],
-                  hasOptedIn: false,
-                },
-              ],
-              unsupportedAccounts: [],
-            },
-          ],
-        },
-      ];
-
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('account group opt-in status logic', () => {
-    it('does not show modal when account group is fully opted in', () => {
-      // Arrange
-      const mockAccountGroupFullyOptedIn = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: true,
-          },
-        ],
-        optedOutAccounts: [],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupFullyOptedIn,
         currentAccountGroupPartiallySupported: true,
         currentAccountGroupOptedInStatus: 'fullyOptedIn',
       });
@@ -1781,99 +992,107 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(0);
     });
 
-    it('shows not supported modal when account group contains unsupported accounts', async () => {
+    it('does not open the info sheet when the not-opted-in banner is hidden for the account group', () => {
       // Arrange
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
+      mockUnsupportedAccountGroup();
+      overrideSelector(selectHideCurrentAccountNotOptedInBannerArray, [
+        { accountGroupId: mockSelectedAccountGroup.id, hide: true },
+      ]);
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(0);
     });
 
-    it('handles null selectedAccountGroup gracefully', () => {
+    it('does not throw or open the info sheet when there is no selected account group', () => {
       // Arrange
+      mockUnsupportedAccountGroup();
       mockSelectSelectedAccountGroup.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup) return null;
-        return undefined;
+      overrideSelector(selectSelectedAccountGroup, null);
+
+      // Act & Assert
+      expect(() => render(<RewardsDashboard />)).not.toThrow();
+      expect(infoSheetOpens()).toBe(0);
+    });
+
+    it('does not open the info sheet when the selected account group has no id', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: undefined,
       });
 
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(0);
+    });
+
+    it('does not reopen the sheet when the dashboard refocuses for the same account group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+
+      // Act: closing the sheet refocuses the dashboard, which re-runs the effect
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(1);
+    });
+
+    it('does not reopen the sheet after the account group status briefly reports unknown', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: null,
         currentAccountGroupPartiallySupported: null,
         currentAccountGroupOptedInStatus: null,
       });
 
-      // Act & Assert
-      expect(() => render(<RewardsDashboard />)).not.toThrow();
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      // Act: a loading or error refresh flickers the status, then it settles
+      rerender(<RewardsDashboard />);
+      mockUnsupportedAccountGroup();
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(1);
     });
 
-    it('does not show modals when selectedAccountGroup has no id', () => {
+    it('does not reopen the sheet for the same account group in a new dashboard mount', () => {
       // Arrange
-      mockSelectSelectedAccountGroup.mockReturnValue({
-        ...mockSelectedAccountGroup,
-        id: undefined as never,
-      });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return { ...mockSelectedAccountGroup, id: undefined };
-        return undefined;
-      });
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
+      mockUnsupportedAccountGroup();
+      const { unmount } = render(<RewardsDashboard />);
+      unmount();
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(1);
     });
-  });
 
-  describe('hook integration', () => {
-    it('calls useRewardDashboardModals hook', () => {
+    it('opens the sheet again when the selected account group changes to another unsupported group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: 'other-group-id',
+      });
+
       // Act
-      render(<RewardsDashboard />);
+      rerender(<RewardsDashboard />);
 
       // Assert
-      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(2);
     });
   });
 

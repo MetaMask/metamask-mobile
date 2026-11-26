@@ -21,7 +21,6 @@ import {
   AvatarIconSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -31,18 +30,20 @@ import {
   IconName,
   ListItem,
   ListItemVariant,
-  SectionDivider,
   Text,
   TextColor,
   TextVariant,
   TitleAlert,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const DeleteWalletModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { isEnabled } = useAnalytics();
@@ -129,7 +130,8 @@ const DeleteWalletModal: React.FC = () => {
     >
       {showForgotPassword ? (
         <>
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={triggerClose}
             testID={ForgotPasswordModalSelectorsIDs.TITLE}
             closeButtonProps={{
@@ -137,10 +139,11 @@ const DeleteWalletModal: React.FC = () => {
             }}
           >
             {strings('login.forgot_password_desc')}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}
+            paddingBottom={4}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -150,53 +153,62 @@ const DeleteWalletModal: React.FC = () => {
               {strings('login.forgot_password_desc_2')}
             </Text>
           </Box>
-          <ListItem
-            variant={ListItemVariant.MultiLine}
-            avatar={
-              <AvatarIcon
-                iconName={IconName.FaceId}
-                size={AvatarIconSize.Md}
-                severity={AvatarIconSeverity.Neutral}
-              />
-            }
-            title={
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('login.forgot_password_point_1')}{' '}
+          <Box gap={4}>
+            <ListItem
+              variant={ListItemVariant.MultiLine}
+              twClassName="min-h-0 py-0"
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.FaceId}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
                 >
-                  {strings('login.forgot_password_point_1_bold')}
-                </Text>{' '}
-                {strings('login.forgot_password_point_1_1')}
-              </Text>
-            }
-          />
-          <SectionDivider marginVertical={0} marginHorizontal={4} />
-          <ListItem
-            variant={ListItemVariant.MultiLine}
-            avatar={
-              <AvatarIcon
-                iconName={IconName.ShieldLock}
-                size={AvatarIconSize.Md}
-                severity={AvatarIconSeverity.Neutral}
-              />
-            }
-            title={
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('login.forgot_password_point_2')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('login.forgot_password_point_2_bold')}{' '}
+                  {strings('login.forgot_password_point_1')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_1_bold')}
+                  </Text>{' '}
+                  {strings('login.forgot_password_point_1_1')}
                 </Text>
-                {strings('login.forgot_password_point_2_1')}
-              </Text>
-            }
-          />
+              }
+            />
+            <ListItem
+              variant={ListItemVariant.MultiLine}
+              twClassName="min-h-0 pt-0 pb-2"
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.ShieldLock}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('login.forgot_password_point_2')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_2_bold')}{' '}
+                  </Text>
+                  {strings('login.forgot_password_point_2_1')}
+                </Text>
+              }
+            />
+          </Box>
           <BottomSheetFooter
             primaryButtonProps={{
               children: strings('login.reset_wallet'),
@@ -218,6 +230,7 @@ const DeleteWalletModal: React.FC = () => {
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}
+            gap={4}
           >
             <TitleAlert
               severity={IconAlertSeverity.Danger}
@@ -227,20 +240,12 @@ const DeleteWalletModal: React.FC = () => {
               }}
               twClassName="pt-6"
             />
-            <Box marginTop={6} gap={4}>
+            <Box gap={4}>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('login.reset_wallet_desc')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('login.reset_wallet_desc_bold')}
-                </Text>{' '}
-                {strings('login.reset_wallet_desc_2')}
+                {strings('login.reset_wallet_desc')}
               </Text>
               <Text
                 variant={TextVariant.BodyMd}
@@ -279,7 +284,7 @@ const DeleteWalletModal: React.FC = () => {
               testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
               twClassName: 'mt-4',
             }}
-            twClassName="pt-5 flex-col-reverse"
+            twClassName="pt-6 flex-col-reverse"
           />
         </>
       )}

@@ -48,6 +48,8 @@ import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import hideProtocolFromUrl from '../../../../util/hideProtocolFromUrl';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import { useSelector } from 'react-redux';
+import { getRegistryNetworkImagesByChainId } from '../../../../selectors/configRegistry';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CustomNetwork from '../../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -69,9 +71,7 @@ const getItemType = (item: NetworkSelectorListItem) => item.type;
 
 const NetworkSelectorList = ({
   networkConfigurations,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmNetworkConfigurations,
-  ///: END:ONLY_INCLUDE_IF
   searchString,
   showTestNetworks,
   isSendFlow,
@@ -88,9 +88,7 @@ const NetworkSelectorList = ({
   isNetworkSelected,
   onSetRpcTarget,
   onNetworkChange,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange,
-  ///: END:ONLY_INCLUDE_IF
   openModal,
   openRpcModal,
   onCancel,
@@ -240,6 +238,8 @@ const NetworkSelectorList = ({
     );
   };
 
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
+
   const renderRpcNetwork = (networkConfiguration: NetworkConfiguration) => {
     const {
       name: nickname,
@@ -251,7 +251,10 @@ const NetworkSelectorList = ({
     const name =
       nickname || rpcEndpoints[defaultRpcEndpointIndex].name || rpcUrl;
 
-    const image = getNetworkImageSource({ chainId: chainId.toString() });
+    const image = getNetworkImageSource(
+      { chainId: chainId.toString() },
+      networkImageUrls,
+    );
     const isSelected = isEvmSelected && chainId === selectedChainId;
 
     if (!isRedesignEnabled) {
@@ -402,7 +405,6 @@ const NetworkSelectorList = ({
     );
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetwork = (network: NonEvmNetworkListConfiguration) => (
     <Cell
       variant={CellVariant.Select}
@@ -418,7 +420,6 @@ const NetworkSelectorList = ({
       style={styles.networkCell}
     />
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const renderAdditionalNetworks = () => {
     const filteredNetworks =
@@ -495,7 +496,6 @@ const NetworkSelectorList = ({
       });
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (!isSendFlow) {
       Object.values(nonEvmNetworkConfigurations)
         .filter((network) => !network.isTestnet)
@@ -507,7 +507,6 @@ const NetworkSelectorList = ({
           });
         });
     }
-    ///: END:ONLY_INCLUDE_IF
 
     if (!isSendFlow && isRedesignEnabled && searchString.length === 0) {
       items.push({
@@ -545,7 +544,6 @@ const NetworkSelectorList = ({
         });
       });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       Object.values(nonEvmNetworkConfigurations)
         .filter((network) => network.isTestnet)
         .forEach((networkConfiguration) => {
@@ -555,7 +553,6 @@ const NetworkSelectorList = ({
             networkConfiguration,
           });
         });
-      ///: END:ONLY_INCLUDE_IF
     }
 
     return items;
@@ -563,9 +560,7 @@ const NetworkSelectorList = ({
     isRedesignEnabled,
     isSendFlow,
     networkConfigurations,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmNetworkConfigurations,
-    ///: END:ONLY_INCLUDE_IF
     isNoSearchResults,
     searchString,
     showTestNetworks,

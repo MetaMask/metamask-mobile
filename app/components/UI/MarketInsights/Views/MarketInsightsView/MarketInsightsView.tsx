@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -36,8 +35,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Button,
-  ButtonVariant,
   ButtonSize,
   Icon,
   IconName,
@@ -46,6 +43,8 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -56,6 +55,7 @@ import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsigh
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { isSafeUrl } from '../../utils/marketInsightsFormatting';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import PerpsDirectionButton from '../../../Perps/components/PerpsDirectionButton';
 import type {
   MarketInsightsTweet,
   MarketInsightsTrend,
@@ -72,12 +72,6 @@ import {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
-import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
@@ -177,8 +171,6 @@ export interface MarketInsightsRouteParams {
   isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
-  /** Whether the ambient price color A/B test treatment is active. */
-  useAmbientColor?: boolean;
 }
 
 /**
@@ -208,7 +200,6 @@ const MarketInsightsView: React.FC = () => {
     hasPerpsPosition = false,
     isAtOICap = false,
     source: routeSource = 'unknown',
-    useAmbientColor,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -248,8 +239,6 @@ const MarketInsightsView: React.FC = () => {
   const { track } = usePerpsEventTracking();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toastRef } = useContext(ToastContext);
-  const theme = useAppThemeFromContext();
   const [videoEnded, setVideoEnded] = useState(false);
   const [showLastFrame, setShowLastFrame] = useState(false);
   const lastFrameImage = useMemo(
@@ -521,21 +510,19 @@ const MarketInsightsView: React.FC = () => {
         return;
       }
       trackMarketInsightsInteraction('source_click', { source_url: url });
-      Linking.openURL(url);
+      Linking.openURL(url).catch(() => undefined);
     },
     [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.Confirmation,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
-      labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
+    toast({
+      title: strings('market_insights.feedback_submitted'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
+  }, []);
 
   useEffect(() => {
     hasTrackedViewRef.current = false;
@@ -886,24 +873,24 @@ const MarketInsightsView: React.FC = () => {
               twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
             >
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <Button
-                  variant={ButtonVariant.Primary}
+                <PerpsDirectionButton
+                  direction="long"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('long')}
                   testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
                 >
                   {strings('perps.market.long')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Primary}
+                </PerpsDirectionButton>
+                <PerpsDirectionButton
+                  direction="short"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('short')}
                   testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
                 >
                   {strings('perps.market.short')}
-                </Button>
+                </PerpsDirectionButton>
               </Box>
               <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
                 <Text
@@ -929,7 +916,6 @@ const MarketInsightsView: React.FC = () => {
               onBuyPress={handleStickyBuyPress}
               onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
-              useAmbientColor={useAmbientColor}
               sourcePage="MarketInsightsView"
             />
           </Box>

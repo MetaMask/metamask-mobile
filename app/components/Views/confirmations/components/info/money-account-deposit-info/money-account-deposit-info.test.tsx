@@ -40,7 +40,9 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
+    ({ 'confirm.title.money_account_deposit_header': 'Add to MetaMask Money' })[
+      key
+    ] ?? key,
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useEnsureCompatibleProvider', () => ({
@@ -93,7 +95,7 @@ describe('MoneyAccountDepositInfo', () => {
     render(<MoneyAccountDepositInfo />);
 
     expect(mockUseNavbar).toHaveBeenCalledTimes(1);
-    expect(mockUseNavbar).toHaveBeenCalledWith('Add funds', true);
+    expect(mockUseNavbar).toHaveBeenCalledWith('Add to MetaMask Money', true);
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -177,4 +179,21 @@ describe('MoneyAccountDepositInfo', () => {
       expect.objectContaining({ name: 'Confirmation Screen Viewed' }),
     );
   });
+
+  it.each(['addUsdc', 'addUsdt', 'addMusd'] as const)(
+    'adds mm_pay_deposit_intent when Pay opens for %s',
+    (depositIntent) => {
+      mockUseParams.mockReturnValue({
+        depositIntent,
+        preferredPaymentToken: { address: '0xabc', chainId: '0x2105' },
+      });
+
+      render(<MoneyAccountDepositInfo />);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+        mm_pay_deposit_intent: depositIntent,
+      });
+    },
+  );
 });

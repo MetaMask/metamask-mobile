@@ -7,9 +7,11 @@ import {
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
+  KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerSignTypedMessageAction,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
@@ -28,18 +30,26 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AccountTreeController:getState',
       'AccountsController:getState',
+      'AccountTreeController:getAccountContext',
+      'AccountTreeController:getAccountGroupObject',
       'AssetsController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:getState',
       'RampsController:getOrder',
       'RampsController:getQuoteWithFees',
+      'RampsController:getState',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:failTransaction',
+      'TransactionController:finalizeResumedTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
@@ -48,6 +58,7 @@ export function getTransactionPayControllerMessenger(
     ],
     events: [
       'AssetsController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
@@ -59,6 +70,7 @@ export function getTransactionPayControllerMessenger(
 
 type InitMessengerActions =
   | DelegationControllerSignDelegationAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
@@ -66,7 +78,7 @@ type InitMessengerActions =
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 
-type InitMessengerEvents = never;
+type InitMessengerEvents = KeyringControllerUnlockEvent;
 
 export type TransactionPayControllerInitMessenger = Messenger<
   'TransactionPayControllerInit',
@@ -88,6 +100,7 @@ export function getTransactionPayControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'DelegationController:signDelegation',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
@@ -95,7 +108,7 @@ export function getTransactionPayControllerInitMessenger(
       'RemoteFeatureFlagController:getState',
       'TransactionController:isAtomicBatchSupported',
     ],
-    events: [],
+    events: ['KeyringController:unlock'],
     messenger,
   });
 

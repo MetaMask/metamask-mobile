@@ -23,8 +23,6 @@ import type {
   SeasonStateDto,
   SubscriptionBenefitDto,
   LineaTokenRewardDto,
-  ApplyReferralDto,
-  ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   ClientVersionRequirementDto,
@@ -194,11 +192,6 @@ export interface RewardsDataServiceGetReferralDetailsAction {
   handler: RewardsDataService['getReferralDetails'];
 }
 
-export interface RewardsDataServiceValidateReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:validateReferralCode`;
-  handler: RewardsDataService['validateReferralCode'];
-}
-
 export interface RewardsDataServiceMobileJoinAction {
   type: `${typeof SERVICE_NAME}:mobileJoin`;
   handler: RewardsDataService['mobileJoin'];
@@ -242,21 +235,6 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
 export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
-}
-
-export interface RewardsDataServiceApplyReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:applyReferralCode`;
-  handler: RewardsDataService['applyReferralCode'];
-}
-
-export interface RewardsDataServiceValidateBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:validateBonusCode`;
-  handler: RewardsDataService['validateBonusCode'];
-}
-
-export interface RewardsDataServiceApplyBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:applyBonusCode`;
-  handler: RewardsDataService['applyBonusCode'];
 }
 
 export interface RewardsDataServiceGetSubscriptionAccountsAction {
@@ -478,7 +456,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -488,13 +465,10 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
-  | RewardsDataServiceValidateBonusCodeAction
-  | RewardsDataServiceApplyBonusCodeAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
@@ -611,10 +585,6 @@ export class RewardsDataService {
       this.getReferralDetails.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateReferralCode`,
-      this.validateReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileJoin`,
       this.mobileJoin.bind(this),
     );
@@ -649,18 +619,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyReferralCode`,
-      this.applyReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateBonusCode`,
-      this.validateBonusCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyBonusCode`,
-      this.applyBonusCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSubscriptionAccounts`,
@@ -1111,7 +1069,7 @@ export class RewardsDataService {
 
   /**
    * Perform optin via signature for the current account.
-   * @param body - The login request body containing account, timestamp, signature and referral code.
+   * @param body - The login request body containing account, timestamp and signature.
    * @returns The login response DTO.
    */
   async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
@@ -1220,57 +1178,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionReferralDetailsDto;
-  }
-
-  /**
-   * Validate a referral code.
-   * @param code - The referral code to validate.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
-    const response = await this.makeRequest(
-      `/referral/validate?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate referral code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
-  }
-
-  /**
-   * Validate a bonus code.
-   * @param code - The bonus code to validate.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateBonusCode(
-    code: string,
-    subscriptionId: string,
-  ): Promise<{ valid: boolean }> {
-    const response = await this.makeRequest(
-      `/subscriptions/bonus-code?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate bonus code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean };
   }
 
   /**
@@ -1566,73 +1473,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param dto - The apply referral request body containing the referral code.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    dto: ApplyReferralDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-referral',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      // Handle 204 No Content as success (already handled by response.ok)
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply referral code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
-   * Apply a bonus code to a subscription.
-   * @param dto - The DTO containing the bonus code to apply.
-   * @param subscriptionId - The subscription ID to apply the bonus code to.
-   * @returns Promise that resolves when the bonus code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyBonusCode(
-    dto: ApplyBonusCodeDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-bonus-code',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply bonus code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
    * Get CAIP-10 encoded account addresses linked to the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns Array of CAIP-10 account strings (up to 1000).
@@ -1683,15 +1523,22 @@ export class RewardsDataService {
    * Opt a subscription into a campaign.
    * @param subscriptionId - The subscription ID for authentication.
    * @param campaignId - The campaign ID to opt into.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one.
    * @returns The participant status after opting in.
    */
   async optInToCampaign(
     subscriptionId: string,
     campaignId: string,
+    profileUsername?: string,
   ): Promise<CampaignParticipantStatusDto> {
     const response = await this.makeRequest(
       `/wr/campaigns/${campaignId}/opt-in`,
-      { method: 'POST' },
+      {
+        method: 'POST',
+        ...(profileUsername
+          ? { body: JSON.stringify({ profileUsername }) }
+          : {}),
+      },
       subscriptionId,
     );
 
@@ -2166,7 +2013,8 @@ export class RewardsDataService {
   }
 
   /**
-   * Get the Perps Trading Campaign leaderboard (top 20 entries, no tiers).
+   * Get the Perps Trading Campaign leaderboard (no tiers). The entry depth is
+   * the campaign's winner count, with a floor of 20 entries.
    * Public endpoint — no authentication required.
    * @param campaignId - The campaign ID.
    */

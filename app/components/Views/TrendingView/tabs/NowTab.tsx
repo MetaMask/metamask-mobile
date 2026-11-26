@@ -15,7 +15,12 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictTrendingCarousel,
+  selectPredictAvailability,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -37,8 +42,6 @@ import { useExploreActiveTab } from '../ExploreActiveTabContext';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import {
   STOCKS_FEED_PREVIEW_PAGE_SIZE,
@@ -219,10 +222,11 @@ const NowTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
 
@@ -239,7 +243,8 @@ const NowTabContent: React.FC<TabProps> = ({
     void refreshWhatsHappening();
   }, [refresh.trigger, refreshWhatsHappening]);
 
-  const displayedPredictions = usePredictionsFeed({
+  const displayedPredictions = usePredictTrendingFeed({
+    tab: 'now',
     refresh,
     enabled: isPredictEnabled,
   });
@@ -299,7 +304,7 @@ const NowTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predict',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={displayedPredictions}
             tabName="Now"
             sectionName="predictions_trending"
@@ -307,7 +312,7 @@ const NowTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-market-row-item"
             idPrefix="predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(navigation, 'trending')
+              navigateToExplorePredictionsList(openPredict, 'trending')
             }
             isEnabled={isPredictEnabled}
           />
@@ -433,6 +438,7 @@ const NowTabContent: React.FC<TabProps> = ({
     displayedPredictions,
     isPredictEnabled,
     navigation,
+    openPredict,
     cryptoMovers.data,
     cryptoMovers.isLoading,
     refresh,

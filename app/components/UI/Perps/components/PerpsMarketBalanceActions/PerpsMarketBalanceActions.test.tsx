@@ -4,8 +4,13 @@ import { fireEvent } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsMarketBalanceActionsSelectorsIDs,
+  PerpsProviderLogosSelectorsIDs,
+} from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import { usePerpsLiveAccount } from '../../hooks/stream';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import {
   useColorPulseAnimation,
   useBalanceComparison,
@@ -770,7 +775,7 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('glass', () => {
-    it('draws Withdraw with the sheen and Add funds tinted on glass', () => {
+    it('draws Withdraw with the sheen and Add funds as the plain primary button', () => {
       const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
         renderWithProvider(
           <PerpsMarketBalanceActions
@@ -782,14 +787,14 @@ describe('PerpsMarketBalanceActions', () => {
           false,
         );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(2);
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
       expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    it('passes glass to the empty-balance Add funds', () => {
+    it('keeps the empty-balance Add funds off glass', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           ...defaultPerpsAccount,
@@ -802,13 +807,13 @@ describe('PerpsMarketBalanceActions', () => {
         error: null,
       });
 
-      const { UNSAFE_getAllByType } = renderWithProvider(
+      const { UNSAFE_queryAllByType } = renderWithProvider(
         <PerpsMarketBalanceActions hideBalanceSection isGlass />,
         { state: createMockState() },
         false,
       );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
     });
 
     it('keeps the original buttons by default', () => {
@@ -1097,6 +1102,135 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Assert - actual value is visible, no dots
       expect(queryByText(DOTS_SHORT)).toBeNull();
+    });
+  });
+
+  describe('exchange logos beside the available balance', () => {
+    const previousLighterFlag = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    const DOTS_SHORT = '•'.repeat(6);
+
+    const renderWithLighter = (
+      activeProvider: 'hyperliquid' | 'lighter' | 'aggregated',
+      options: { privacyMode?: boolean; totalBalance?: string } = {},
+    ): ReturnType<typeof renderWithProvider> => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+
+      if (options.totalBalance !== undefined) {
+        mockUsePerpsLiveAccount.mockReturnValue({
+          account: {
+            ...defaultPerpsAccount,
+            totalBalance: options.totalBalance,
+            spendableBalance: options.totalBalance,
+            withdrawableBalance: options.totalBalance,
+          },
+          isInitialLoading: false,
+          isLoading: false,
+          error: null,
+        });
+      }
+
+      const baseState = createMockState(
+        { activeProvider },
+        options.privacyMode ?? false,
+      );
+
+      return renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                ...baseState.engine.backgroundState,
+                // Omit minimumVersion so this unit harness does not run the
+                // device-version compare. An unrecognized flag falls back to
+                // the build-time Lighter gate, which the test turns on.
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    perpsLighterProviderEnabled: {
+                      enabled: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        false,
+      );
+    };
+
+    afterEach(() => {
+      if (previousLighterFlag === undefined) {
+        delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+      } else {
+        process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = previousLighterFlag;
+      }
+    });
+
+    it('hides exchange logos when the Lighter flag is off', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({ activeProvider: 'hyperliquid' }) },
+        false,
+      );
+
+      expect(
+        getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('shows the HyperLiquid logo when the active provider is Hyperliquid', () => {
+      const { getByLabelText, queryByTestId } =
+        renderWithLighter('hyperliquid');
+
+      expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
+      expect(queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeNull();
+    });
+
+    it('shows the Lighter logo when the active provider is Lighter', () => {
+      const { getByLabelText } = renderWithLighter('lighter');
+
+      expect(getByLabelText('Lighter')).toBeOnTheScreen();
+    });
+
+    it('shows overlapped Hyperliquid and Lighter logos in aggregated mode', () => {
+      const { getByLabelText } = renderWithLighter('aggregated');
+
+      expect(getByLabelText('HyperLiquid, Lighter')).toBeOnTheScreen();
+    });
+
+    it('hides exchange logos when the balance is empty', () => {
+      const { queryByTestId } = renderWithLighter('aggregated', {
+        totalBalance: '0',
+      });
+
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeNull();
+    });
+
+    it('keeps exchange logos visible when privacy mode hides the amount', () => {
+      const { getByLabelText, getByText, queryByText } = renderWithLighter(
+        'hyperliquid',
+        { privacyMode: true },
+      );
+
+      expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
+      expect(getByText(strings('perps.available'))).toBeOnTheScreen();
+      expect(
+        queryByText(formatPerpsBalance(defaultPerpsAccount.spendableBalance)),
+      ).toBeNull();
+      expect(getByText(DOTS_SHORT)).toBeOnTheScreen();
     });
   });
 });

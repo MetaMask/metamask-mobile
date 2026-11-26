@@ -108,6 +108,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -439,7 +443,11 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
       ).not.toBeOnTheScreen();
-      expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
+      expect(mockHandleRemoveMargin).toHaveBeenCalledWith(
+        'ETH',
+        200,
+        undefined,
+      );
     });
 
     const renderRemoveWithNoLimitLeft = (before: () => void) => {
@@ -909,7 +917,7 @@ describe('PerpsAdjustMarginView', () => {
         await Promise.resolve();
       });
 
-      expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+      expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250, undefined);
       expect(playImpact).not.toHaveBeenCalled();
     });
 
@@ -954,7 +962,11 @@ describe('PerpsAdjustMarginView', () => {
         await Promise.resolve();
       });
 
-      expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+      expect(mockHandleRemoveMargin).toHaveBeenCalledWith(
+        'ETH',
+        100,
+        undefined,
+      );
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });

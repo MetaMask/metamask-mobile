@@ -15,11 +15,14 @@ on:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
-        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Pushes use path-filtered platforms, while scheduled runs select iOS only on main.'
+        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests require an explicit iOS request (run-appium-ios-tests, smoke-infrastructure changes on main, or a brand-new tests/smoke-appium spec). Pushes use path-filtered platforms, while scheduled runs select iOS only on main.'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_spec_files:
         description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection on PRs targeting main.'
         value: ${{ jobs.detect-changes.outputs.changed_spec_files }}
+      changed_cv_test_files:
+        description: 'Space-separated list of changed component view test file paths (*.view.test.tsx) only — never the full changed-file list. The component-view-flakiness-detection job uses this to re-run modified CV tests N times for flakiness detection on PRs targeting main.'
+        value: ${{ jobs.detect-changes.outputs.changed_cv_test_files }}
       block_merge_for_e2e_readiness:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
@@ -46,13 +49,14 @@ jobs:
   detect-changes:
     name: Filter files changed and decide which jobs to run
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     outputs:
       skip_everything: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
       skip_e2e: ${{ steps.set-e2e-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
       android_e2e_needed: ${{ steps.set-e2e-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-e2e-outputs.outputs.ios_final }}
       changed_spec_files: ${{ steps.set-e2e-outputs.outputs.changed_spec_files }}
+      changed_cv_test_files: ${{ steps.cv-test-files.outputs.changed_cv_test_files }}
       block_merge_for_e2e_readiness: ${{ steps.set-e2e-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-e2e-outputs.outputs.run_smart_e2e_selection }}
       run_smart_e2e_contracts: ${{ steps.filter.outputs.smart_e2e_contracts }}
@@ -163,11 +167,51 @@ jobs:
           filters: .github/rules/filter-rules.yml
           list-files: shell
 
+      # Changed component view test files for flakiness detection. Mirrors
+      # changed_spec_files: PRs targeting main only, emitted as a heredoc so a
+      # long file list cannot break GITHUB_OUTPUT parsing. Nothing is emitted
+      # when no CV test file changed, so the consuming job skips.
+      - name: List changed component view test files
+        id: cv-test-files
+        if: >-
+          steps.skip-merge-queue.outputs.up-to-date != 'true' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.base.ref == 'main'
+        env:
+          CV_TEST_FILES_LIST: ${{ steps.filter.outputs.cv_test_files_files }}
+        run: |
+          if [ -z "$CV_TEST_FILES_LIST" ]; then
+            echo "-> No component view test files changed"
+            exit 0
+          fi
+          {
+            echo "changed_cv_test_files<<CV_TEST_FILES_EOF"
+            echo "$CV_TEST_FILES_LIST"
+            echo "CV_TEST_FILES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Setup Node.js for E2E requirement computation
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+
+      # Pull request file status is the three-dot diff, so a spec deleted on the
+      # base after branch point is not "added". Platform selection accepts only
+      # status "added" with no previous filename.
+      - name: List added Appium smoke specs
+        id: added-smoke-specs
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "added_smoke_spec_files<<ADDED_SMOKE_SPECS_EOF"
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
+              --jq '.[] | select(.filename | test("^tests/smoke-appium/.+\\.spec\\.ts$")) | "\(.status)\t\(.filename)\t\(.previous_filename // "")"'
+            echo "ADDED_SMOKE_SPECS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Compute E2E flags
         id: set-e2e-outputs
@@ -194,4 +238,5 @@ jobs:
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
           ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
           IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
+          ADDED_SMOKE_SPEC_FILES: ${{ steps.added-smoke-specs.outputs.added_smoke_spec_files }}
         run: node .github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.mjs

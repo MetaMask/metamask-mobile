@@ -156,6 +156,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             <TraderAvatar
               imageUrl={item.avatarUri}
               address={item.traderAddress}
+              profileId={item.traderId}
               size={AVATAR_SIZE}
               recyclingKey={item.id}
             />

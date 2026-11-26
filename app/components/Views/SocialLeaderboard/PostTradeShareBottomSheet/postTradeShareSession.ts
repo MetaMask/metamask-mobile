@@ -4,8 +4,15 @@ import type {
   SocialPostPerpsPreview,
   SocialPostTradePreview,
 } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../analytics/socialEvents';
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
+
+/**
+ * `share` asks a user with a social profile to post the trade.
+ * `create_profile` asks a user without one to create a profile.
+ */
+export type PostTradeShareVariant = 'share' | 'create_profile';
 
 /**
  * Screen that opened Quick Buy. Try again reopens only that screen, because
@@ -13,8 +20,9 @@ export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
  */
 export const PostTradeShareOwner = {
   socialV1Feed: 'social-v1-feed',
+  socialV1Profile: 'social-v1-profile',
   traderPosition: 'trader-position',
-  positionDetails: 'position-details',
+  tokenDetails: 'token-details',
 } as const;
 
 export type PostTradeShareOwnerId =
@@ -23,9 +31,15 @@ export type PostTradeShareOwnerId =
 interface PostTradeShareSessionBase {
   sessionId: string;
   status: PostTradeShareStatus;
+  variant: PostTradeShareVariant;
   pairLabel?: string;
   tradeInFlightChain?: string;
   reopenRequested: boolean;
+  /**
+   * Social Screen Viewed source for the share sheet and composer.
+   * Set from the trade that opened the session.
+   */
+  analyticsSource?: SocialEventSource;
 }
 
 export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {
@@ -36,6 +50,10 @@ export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {
   tradeMode: QuickBuyTradeMode;
   /** Post being copied, so a failed swap can reopen Quick Buy with the same intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  /** True when Quick Buy was opened from Copy trade, not from an ordinary Buy. */
+  isCopyTrade?: boolean;
+  /** Trader copied by this swap. Restored when Try again reopens Quick Buy. */
+  traderAddress?: string;
   /** Screen that should reopen Quick Buy after a failure. */
   owner?: string;
 }
@@ -53,18 +71,20 @@ export type PostTradeShareSession =
 
 type BeginSpotPostTradeShareSession = Omit<
   SpotPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product?: 'spot';
+  variant?: PostTradeShareVariant;
 };
 
 type BeginPerpsPostTradeShareSession = Omit<
   PerpsPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product: 'perps';
+  variant?: PostTradeShareVariant;
 };
 
 export type BeginPostTradeShareSession =
@@ -84,6 +104,8 @@ export interface PostTradeShareReopen {
   target: QuickBuyTarget;
   copyTradeOrigin?: CopyTradeOrigin;
   tradeMode: QuickBuyTradeMode;
+  /** Trader the original Quick Buy was copying. Restored on Try again. */
+  traderAddress?: string;
 }
 
 type Listener = () => void;
@@ -93,15 +115,19 @@ const STORE_GLOBAL_KEY = '__mmPostTradeShareSession__';
 interface StoreState {
   session: PostTradeShareSession | null;
   listeners: Set<Listener>;
+  /** Mounted screens able to reopen Quick Buy, ref-counted per owner. */
+  reopenOwners: Map<string, number>;
 }
 
 const bootstrap = (): StoreState => ({
   session: null,
   listeners: new Set(),
+  reopenOwners: new Map(),
 });
 
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? bootstrap();
+state.reopenOwners ??= new Map();
 globalScope[STORE_GLOBAL_KEY] = state;
 let nextSessionId = 0;
 
@@ -126,12 +152,14 @@ export const beginPostTradeShareSession = (
 ): string => {
   const sessionId = String(nextSessionId++);
   const status = session.status ?? 'pending';
+  const variant = session.variant ?? 'share';
   if (session.product === 'perps') {
     state.session = {
       ...session,
       product: 'perps',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   } else {
@@ -140,6 +168,7 @@ export const beginPostTradeShareSession = (
       product: 'spot',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   }
@@ -193,12 +222,40 @@ export const requestPostTradeShareReopen = (): void => {
   notify();
 };
 
+/**
+ * Marks `owner` as able to reopen Quick Buy until the returned function runs.
+ * The sheet offers Try again only while the session's owner is registered.
+ */
+export const registerPostTradeShareReopenOwner = (
+  owner: string,
+): (() => void) => {
+  state.reopenOwners.set(owner, (state.reopenOwners.get(owner) ?? 0) + 1);
+  notify();
+  let isRegistered = true;
+  return () => {
+    if (!isRegistered) {
+      return;
+    }
+    isRegistered = false;
+    const count = (state.reopenOwners.get(owner) ?? 0) - 1;
+    if (count > 0) {
+      state.reopenOwners.set(owner, count);
+    } else {
+      state.reopenOwners.delete(owner);
+    }
+    notify();
+  };
+};
+
+export const hasPostTradeShareReopenOwner = (owner: string): boolean =>
+  state.reopenOwners.has(owner);
+
 export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
   if (!state.session?.reopenRequested || state.session.product !== 'spot') {
     return null;
   }
-  const { target, copyTradeOrigin, tradeMode } = state.session;
+  const { target, copyTradeOrigin, tradeMode, traderAddress } = state.session;
   state.session = null;
   notify();
-  return { target, copyTradeOrigin, tradeMode };
+  return { target, copyTradeOrigin, tradeMode, traderAddress };
 };

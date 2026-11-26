@@ -1,6 +1,8 @@
 import React from 'react';
+import { CommonActions } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import configureStore from '../../../../util/test/configureStore';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,7 +20,35 @@ const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
+
+const mockHomeRoute = {
+  key: 'home-key',
+  name: Routes.HOME_TABS,
+};
+
+const mockRootRoutesBeforeDismiss = [
+  mockHomeRoute,
+  { key: 'old-rewards', name: Routes.REWARDS_VIEW },
+  { key: 'rewards-flow', name: Routes.REWARDS_FLOW },
+  {
+    key: 'splash',
+    name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+  },
+];
+
+const moneyDashboardReset = CommonActions.reset({
+  index: 1,
+  routes: [
+    mockHomeRoute,
+    {
+      name: Routes.REWARDS_VIEW,
+      params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
+    },
+  ],
+});
 
 const sessionBackgroundState = (profileId: string) => ({
   AuthenticationController: {
@@ -44,7 +74,12 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({
-      canGoBack: () => true,
+      canGoBack: mockCanGoBack,
+      dispatch: mockDispatch,
+      getState: () => ({
+        index: mockRootRoutesBeforeDismiss.length - 1,
+        routes: mockRootRoutesBeforeDismiss,
+      }),
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
@@ -113,16 +148,19 @@ const buildReferralMe = (
   referred_by: {
     referral_code: 'KOL1',
   },
-  earn_rates: {
+  earn_rates: earnRatesFixture({
     cashback_rate_bps: 1000,
     cashback_earning_start: '2026-09-01T00:00:00.000Z',
     cashback_earning_end: '2026-10-24T00:00:00.000Z',
     // Revenue share runs six months. The splash must not date the cashback
     // copy from this.
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
     revshare_earning_end: '2027-04-01T00:00:00.000Z',
-  },
+    cashback_by_product: {
+      perps: { rate_bps: 1000, source: null },
+      swaps: { rate_bps: 1000, source: null },
+      predict: null,
+    },
+  }),
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
   excluded_regions: [],
@@ -181,23 +219,53 @@ describe('fillInviteAcceptedBodyDate', () => {
 describe('RewardsMoneyReferralAcceptedSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
   });
 
-  const renderSplash = (referralMe: ReferralMeDto = buildReferralMe()) => {
+  const renderSplash = (
+    referralMe: ReferralMeDto = buildReferralMe(),
+    pendingReferralCode: string | null = null,
+  ) => {
     const store = configureStore({
       engine: { backgroundState: sessionBackgroundState(PROFILE_ID) },
       rewardsMoney: {
         referralMe: {
           [PROFILE_ID]: { loading: false, error: false, data: referralMe },
         },
+        pendingReferralCode,
       },
     });
-    return render(
+    const view = render(
       <Provider store={store}>
         <RewardsMoneyReferralAcceptedSplashView />
       </Provider>,
     );
+    return { ...view, store };
   };
+
+  it('keeps the accepted deeplink referral code while the splash is shown', () => {
+    const { store } = renderSplash(buildReferralMe(), 'KOL1');
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+  });
+
+  it('clears the accepted deeplink referral code once the splash closes', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL1');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL1');
+  });
+
+  it('clears a newer pending code once the splash closes, since the user is now a referee', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL2');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL2');
+  });
 
   it('renders activation copy through the cashback window end', () => {
     const { getByTestId, getByText } = renderSplash();
@@ -216,14 +284,15 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
   it('uses inviteMessageBody when a cashback date is missing', () => {
     const { getByTestId } = renderSplash(
       buildReferralMe({
-        earn_rates: {
+        earn_rates: earnRatesFixture({
           cashback_rate_bps: 1000,
-          cashback_earning_start: null,
-          cashback_earning_end: null,
-          revshare_rate_bps: null,
-          revshare_earning_start: null,
           revshare_earning_end: '2027-04-01T00:00:00.000Z',
-        },
+          cashback_by_product: {
+            perps: { rate_bps: 1000, source: null },
+            swaps: { rate_bps: 1000, source: null },
+            predict: null,
+          },
+        }),
       }),
     );
 
@@ -258,27 +327,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.VIEW_REWARDS));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
-    });
-  });
-
-  it('opens the money dashboard when the splash is closed', () => {
-    const { getByTestId } = renderSplash();
-
-    fireEvent.press(getByTestId(TEST_IDS.CLOSE));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
   it('opens the trade actions sheet over the money dashboard when start trading is pressed', () => {
@@ -286,20 +335,10 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.START_TRADING));
 
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+      params: { hasBottomNotch: false },
     });
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      {
-        screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
-        params: { hasBottomNotch: false },
-      },
-    );
   });
 });

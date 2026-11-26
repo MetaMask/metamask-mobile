@@ -8,8 +8,6 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   Checkbox,
   FilterButton,
   FontWeight,
@@ -19,6 +17,7 @@ import {
   IconSize,
   KeyValueRow,
   SegmentedControl,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -31,6 +30,7 @@ import {
 import React, { useCallback, useRef } from 'react';
 import {
   Pressable,
+  StyleSheet,
   type KeyboardTypeOptions,
   type TextInput,
   type View,
@@ -49,6 +49,7 @@ import {
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
+import PerpsDirectionButton from '../../../../components/PerpsDirectionButton';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -64,6 +65,9 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const styles = StyleSheet.create({
+  marginModeButtonWithTag: { flexGrow: 2 },
+});
 const formatScalePrice = (price: string) =>
   formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
 
@@ -244,6 +248,9 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
+  feeDisplayMode,
+  takerFeeRate,
+  makerFeeRate,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     {twapSummary ? (
@@ -331,6 +338,9 @@ const OrderSummary = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
+          feeDisplayMode={feeDisplayMode}
+          takerFeeRate={takerFeeRate}
+          makerFeeRate={makerFeeRate}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -492,6 +502,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  marginModeTag,
   onMarginModePress,
   leverageLabel,
   onLeveragePress,
@@ -785,8 +796,39 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Md}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="flex-1 rounded-xl bg-muted"
+              // The ratio tag is not shrinkable, so with it present the button
+              // takes a larger share of the row (and tighter padding) instead of
+              // letting the tag cover the "Cross" label.
+              twClassName={
+                marginModeTag
+                  ? 'flex-1 rounded-xl bg-muted pl-3 pr-2'
+                  : 'flex-1 rounded-xl bg-muted'
+              }
+              style={marginModeTag ? styles.marginModeButtonWithTag : undefined}
               textProps={{ variant: TextVariant.BodySm }}
+              endAccessory={
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  accessible={false}
+                >
+                  {marginModeTag ? (
+                    <Tag
+                      severity={marginModeTag.severity}
+                      testID={ids.MARGIN_MODE_TAG}
+                    >
+                      {marginModeTag.label}
+                    </Tag>
+                  ) : null}
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                    testID={`${ids.MARGIN_MODE_BUTTON}-chevron`}
+                  />
+                </Box>
+              }
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -797,6 +839,12 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onLeveragePress}
               twClassName="flex-1 rounded-xl bg-muted px-2"
               textProps={{ variant: TextVariant.BodySm }}
+              endIconName={IconName.ArrowDown}
+              endIconProps={{
+                size: IconSize.Sm,
+                color: IconColor.IconDefault,
+                testID: `${ids.LEVERAGE_BUTTON}-chevron`,
+              }}
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -1015,12 +1063,8 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <ButtonSemantic
-            severity={
-              placeOrderIntent === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
+          <PerpsDirectionButton
+            direction={placeOrderIntent}
             size={ButtonBaseSize.Lg}
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
@@ -1029,7 +1073,7 @@ const PerpsProOrderForm = ({
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
-          </ButtonSemantic>
+          </PerpsDirectionButton>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}

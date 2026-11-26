@@ -1,22 +1,28 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   LedgerClaimEntryDto,
+  EarningsSummaryDto,
   LedgerEntryDto,
-  ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
-import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows';
-import RewardsEarningsHistoryView, {
-  REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS,
-} from './RewardsEarningsHistoryView';
+import { useEarningsSummary } from '../hooks/useEarningsSummary';
+import { REWARDS_HELD_BANNER_TEST_IDS } from '../components/Money/RewardsHeldBanner.testIds';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
+import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton.testIds';
+import RewardsEarningsHistoryView from './RewardsEarningsHistoryView';
+import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
 const mockNavigate = jest.fn();
+const mockOpenComposer = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -36,21 +42,21 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+  }),
+);
+
 jest.mock('../hooks/useEarningsHistory');
+jest.mock('../hooks/useEarningsSummary');
+jest.mock('../hooks/useInFlightClaims', () => ({
+  useInFlightClaims: () => ({ claims: [], refresh: jest.fn() }),
+}));
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
-const LOCALIZED_TEXT = {
-  history: 'History',
-  historyReferrals: 'Referral earning',
-  historyCommission: 'Commission',
-  historyRebate: 'Rebate',
-  historyClaimed: 'Claimed',
-  tradingActivityEmptyDescription:
-    'Your activity is empty now. Start trading to earn today!',
-  tradingActivityEmptyAction: 'Start trading',
-} as unknown as ReferralLocalizedText;
-
 const earning: LedgerEntryDto = {
   type: 'earning',
   id: 'earn-1',
@@ -81,6 +87,35 @@ const claim: LedgerClaimEntryDto = {
   settled_at: '2026-09-02T00:00:00.000Z',
   payout_method: 'VOUCHER',
 };
+
+const UNDER_REVIEW_SUMMARY = {
+  lifetime_total: '0',
+  window: null,
+  pending: '0',
+  claimed: '0',
+  minimum_musd_base_units: '1000000',
+  pairing_pending: false,
+  self_earned: {
+    lifetime: '0',
+    pending: '0',
+    claimed: '0',
+    by_claim_family: {
+      REFERRAL_TRADE_FEE_CASHBACK: {
+        lifetime: '0',
+        pending: '0',
+        claimed: '0',
+        blocked: '9150000',
+        blocking_reason: 'UNDER_REVIEW',
+      },
+    },
+  },
+  earned_by_others: {
+    lifetime: '0',
+    pending: '0',
+    claimed: '0',
+    by_claim_family: {},
+  },
+} as unknown as EarningsSummaryDto;
 
 const STATE = {
   engine: {
@@ -113,14 +148,34 @@ const STATE = {
         data: { localized_text: LOCALIZED_TEXT },
       },
     },
+    earningsSummary: {},
   },
 };
+
+function underReviewState() {
+  return {
+    ...STATE,
+    rewardsMoney: {
+      ...STATE.rewardsMoney,
+      earningsSummary: {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: UNDER_REVIEW_SUMMARY,
+        },
+      },
+    },
+  };
+}
 
 describe('RewardsEarningsHistoryView', () => {
   const loadMore = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useEarningsSummary as jest.Mock).mockReturnValue({
+      fetchEarningsSummary: jest.fn(),
+    });
     (useEarningsHistory as jest.Mock).mockReturnValue({
       items: [earning],
       isLoading: false,
@@ -134,6 +189,15 @@ describe('RewardsEarningsHistoryView', () => {
     });
   });
 
+  it('hides the paused banner when the summary has no under-review total', () => {
+    const { queryByTestId } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state: STATE },
+    );
+
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
   it('lists the unified feed under the localized history title', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <RewardsEarningsHistoryView />,
@@ -145,7 +209,7 @@ describe('RewardsEarningsHistoryView', () => {
       getByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('History')).toBeOnTheScreen();
-    expect(getByText('Rebate')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
     expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${EARNINGS_HISTORY_TEST_IDS.ROW}-${earning.id}`),
@@ -180,6 +244,13 @@ describe('RewardsEarningsHistoryView', () => {
 
     expect(keyExtractor(earning)).toBe(`earning-${earning.id}`);
     expect(keyExtractor(claim)).toBe(`claim-${earning.id}`);
+    expect(
+      keyExtractor({
+        kind: 'pending-claim',
+        id: 'claim-open',
+        net_amount: '1000000',
+      }),
+    ).toBe('pending-claim-open');
   });
 
   it('opens the trade tray from the empty history action', () => {
@@ -211,5 +282,165 @@ describe('RewardsEarningsHistoryView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.Activity);
+  });
+
+  it('uses the copy-trading empty copy and opens the composer for a copy-trading-only sharer', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+    const state = {
+      ...STATE,
+      rewardsMoney: {
+        ...STATE.rewardsMoney,
+        referralMe: {
+          [PROFILE_ID]: {
+            loading: false,
+            error: false,
+            data: {
+              localized_text: LOCALIZED_TEXT,
+              roles: ['COPY_TRADING' as const],
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state },
+    );
+
+    expect(
+      getByText(LOCALIZED_TEXT.copyTradingEmptyDescription),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(LOCALIZED_TEXT.tradingActivityEmptyDescription),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    );
+
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.anything(),
+    );
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
+  });
+
+  it('hides the under-review banner while history is still on its first load', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: null,
+      isLoading: true,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { queryByTestId, getByTestId } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state: underReviewState() },
+    );
+
+    expect(
+      getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('keeps the under-review banner while a summary refresh is in flight', () => {
+    const state = underReviewState();
+    state.rewardsMoney.earningsSummary[PROFILE_ID].loading = true;
+
+    const { getByTestId } = renderWithProvider(<RewardsEarningsHistoryView />, {
+      state,
+    });
+
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the under-review banner from the summary and opens the paused sheet', () => {
+    const { getByTestId } = renderWithProvider(<RewardsEarningsHistoryView />, {
+      state: underReviewState(),
+    });
+
+    expect(useEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toHaveTextContent('$9.15 of rewards paused.Learn more');
+
+    fireEvent.press(getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: LOCALIZED_TEXT.rewardsPausedTitle,
+        description: LOCALIZED_TEXT.rewardsPausedDescription,
+      },
+    );
+  });
+
+  it('shows the held banner for income held for tax and opens the held sheet', () => {
+    const state = underReviewState();
+    state.rewardsMoney.earningsSummary[PROFILE_ID].data = {
+      ...UNDER_REVIEW_SUMMARY,
+      self_earned: { ...UNDER_REVIEW_SUMMARY.self_earned, by_claim_family: {} },
+      earned_by_others: {
+        ...UNDER_REVIEW_SUMMARY.earned_by_others,
+        by_claim_family: {
+          SOCIAL_FOLLOW_TRADE: {
+            lifetime: '56000000',
+            pending: '0',
+            claimed: '0',
+            held: '56000000',
+            blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state },
+    );
+
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+    expect(getByTestId(REWARDS_HELD_BANNER_TEST_IDS.BANNER)).toHaveTextContent(
+      '$56.00 of rewards held.Learn more',
+    );
+
+    fireEvent.press(getByTestId(REWARDS_HELD_BANNER_TEST_IDS.BANNER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: LOCALIZED_TEXT.rewardsHeldTitle,
+        description: LOCALIZED_TEXT.rewardsHeldDescription,
+      },
+    );
   });
 });

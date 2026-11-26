@@ -11,7 +11,6 @@ import {
   type SeasonTierState,
   type SeasonTierDto,
   type SubscriptionReferralDetailState,
-  type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
@@ -119,8 +118,6 @@ import { sortAccounts } from './utils/sortAccounts';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
-
-export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
@@ -577,8 +574,6 @@ export async function wrapWithCache<T>({
 
 const MESSENGER_EXPOSED_METHODS = [
   'addPointsEstimateToHistory',
-  'applyBonusCode',
-  'applyReferralCode',
   'calculateTierStatus',
   'canChangeRewardsEnvUrl',
   'checkOptInStatusAgainstCache',
@@ -597,7 +592,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClientVersionRequirements',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
-  'getGeoRewardsMetadata',
   'getHasAccountOptedIn',
   'getOffDeviceSubscriptionAccounts',
   'getOndoCampaignDeposits',
@@ -645,7 +639,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'hasActivityChanged',
   'hasPointsEventsChanged',
   'hasVipTransactionsChanged',
-  'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
   'isOptInSupported',
@@ -668,8 +661,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'setRewardsEnvUrl',
   'shouldSkipSilentAuth',
   'signRewardsMessage',
-  'validateBonusCode',
-  'validateReferralCode',
 ] as const;
 
 /**
@@ -681,7 +672,6 @@ export class RewardsController extends BaseController<
   RewardsControllerState,
   RewardsControllerMessenger
 > {
-  #geoLocation: GeoRewardsMetadata | null = null;
   #participantOutcomeCache: Map<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
@@ -3015,12 +3005,8 @@ export class RewardsController extends BaseController<
   /**
    * Perform the complete opt-in process for rewards
    * @param accounts - Array of internal accounts to opt in
-   * @param referralCode - Optional referral code
    */
-  async optIn(
-    accounts: InternalAccount[],
-    referralCode?: string,
-  ): Promise<string | null> {
+  async optIn(accounts: InternalAccount[]): Promise<string | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
@@ -3058,7 +3044,7 @@ export class RewardsController extends BaseController<
       );
 
       try {
-        optinResult = await this.#optIn(accountToTry, referralCode);
+        optinResult = await this.#optIn(accountToTry);
       } catch {
         // Silent auth failed for this account
       }
@@ -3101,12 +3087,10 @@ export class RewardsController extends BaseController<
   /**
    * Private method to perform opt-in for a single internal account (using mobile opt-in logic)
    * @param account - The internal account to opt in
-   * @param referralCode - Optional referral code
    * @returns Promise with subscription data or null if failed
    */
   async #optIn(
     account: InternalAccount,
-    referralCode?: string,
   ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -3135,7 +3119,6 @@ export class RewardsController extends BaseController<
           account: account.address,
           timestamp: ts,
           signature: sig as `0x${string}`,
-          referralCode,
         });
       } catch (error) {
         // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
@@ -3323,142 +3306,6 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Logout failed to complete',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Get geo rewards metadata including location and support status
-   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
-   */
-  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      };
-    }
-
-    if (this.#geoLocation) {
-      return this.#geoLocation;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-
-      const geoLocation = await this.messenger.call(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Check if the location is supported (not in blocked regions)
-      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
-        (blockedRegion) => geoLocation.startsWith(blockedRegion),
-      );
-
-      const result: GeoRewardsMetadata = {
-        geoLocation,
-        optinAllowedForGeo,
-      };
-
-      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
-      this.#geoLocation = result;
-      return result;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get geo rewards metadata:',
-        error instanceof Error ? error.message : String(error),
-      );
-
-      // Return fallback metadata on error
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      };
-    }
-  }
-
-  /**
-   * Validate a referral code
-   * @param code - The referral code to validate
-   * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode: boolean }> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return { valid: false, isVipCode: false };
-    }
-
-    if (!code.trim()) {
-      return { valid: false, isVipCode: false };
-    }
-
-    try {
-      const response = await this.messenger.call(
-        'RewardsDataService:validateReferralCode',
-        code,
-      );
-      // A referral code is only treated as a VIP code when the backend says so
-      // AND the VIP feature is enabled locally (rewards on and VIP not disabled).
-      const isVipCode =
-        (response.isVipCode ?? false) && this.isVipFeatureEnabled();
-      return { valid: response.valid, isVipCode };
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Validate a bonus code
-   * @param code - The bonus code to validate
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<boolean> - True if the code is valid, false otherwise
-   */
-  async validateBonusCode(
-    code: string,
-    subscriptionId: string,
-  ): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length < 4 || code.length > 16) {
-      return false;
-    }
-
-    if (!/^[A-Za-z0-9]+$/.test(code)) {
-      return false;
-    }
-
-    try {
-      const response = await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:validateBonusCode',
-            code,
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-      return response.valid;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
@@ -4119,11 +3966,13 @@ export class RewardsController extends BaseController<
    * Opt a subscription into a campaign.
    * @param campaignId - The campaign ID to opt into.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one.
    * @returns The participant status after opting in.
    */
   async optInToCampaign(
     campaignId: string,
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
@@ -4136,11 +3985,20 @@ export class RewardsController extends BaseController<
       this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
-      return (await this.messenger.call(
-        'RewardsDataService:optInToCampaign',
-        subscriptionId,
-        campaignId,
-      )) as CampaignParticipantStatusDto;
+      return (
+        profileUsername
+          ? await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+              profileUsername,
+            )
+          : await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+            )
+      ) as CampaignParticipantStatusDto;
     }, subscriptionId);
     this.invalidateSubscriptionCache({ subscriptionId, campaignId });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
@@ -4174,11 +4032,13 @@ export class RewardsController extends BaseController<
    * post-event status fetches hit cache instead of the network.
    * @param campaignIds - Campaign IDs to opt into, in call order.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
    * @returns Per-campaign participant statuses after opting in.
    */
   async optInToCampaigns(
     campaignIds: string[],
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<Record<string, CampaignParticipantStatusDto>> {
     if (!this.isRewardsFeatureEnabled()) {
       return Object.fromEntries(
@@ -4221,11 +4081,20 @@ export class RewardsController extends BaseController<
               campaignId,
               `attempt ${attempt + 1}/${maxAttempts}`,
             );
-            return (await this.messenger.call(
-              'RewardsDataService:optInToCampaign',
-              subscriptionId,
-              campaignId,
-            )) as CampaignParticipantStatusDto;
+            return (
+              profileUsername
+                ? await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                    profileUsername,
+                  )
+                : await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                  )
+            ) as CampaignParticipantStatusDto;
           }, subscriptionId);
 
           if (attemptResult?.optedIn) {
@@ -5497,91 +5366,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param referralCode - The referral code to apply.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    referralCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:applyReferralCode',
-            { referralCode },
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-
-      // Invalidate referral details cache for this subscription
-      this.invalidateReferralDetailsCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied referral code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Apply a bonus code to a subscription.
-   * @param bonusCode - The bonus code to apply.
-   * @param subscriptionId - The subscription ID to apply the bonus code to.
-   * @returns Promise that resolves when the bonus code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyBonusCode(
-    bonusCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:applyBonusCode',
-            { bonusCode },
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-
-      this.#invalidatePointsEventsCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied bonus code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply bonus code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Fetch the minimum client version requirements from the public API.
    * Cached for 30 minutes using controller state, matching other endpoint caches.
    * This is a public (unauthenticated) endpoint that does not require
@@ -5613,21 +5397,6 @@ export class RewardsController extends BaseController<
     });
 
     return result;
-  }
-
-  /**
-   * Invalidate referral details cache for a subscription
-   * @param subscriptionId - The subscription ID to invalidate cache for
-   */
-  invalidateReferralDetailsCache(subscriptionId: string): void {
-    this.update((state) => {
-      delete state.subscriptionReferralDetails[subscriptionId];
-    });
-
-    Logger.log(
-      'RewardsController: Invalidated referral details cache for subscription',
-      subscriptionId,
-    );
   }
 
   /**

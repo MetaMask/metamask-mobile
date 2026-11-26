@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overrides the Braze SDK layout to inflate DensityAwareHtmlView. Keep in sync with
+     com_braze_inappmessage_html.xml from com.braze:android-sdk-ui. -->
+<io.metamask.braze.DensityAwareHtmlView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/com_braze_inappmessage_html"
+    style="@style/Braze.InAppMessage.Html">
+
+    <com.braze.ui.inappmessage.views.InAppMessageWebView
+        android:id="@+id/com_braze_inappmessage_html_webview"
+        style="@style/Braze.InAppMessage.Html.Webview"/>
+</io.metamask.braze.DensityAwareHtmlView>

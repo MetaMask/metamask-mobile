@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Keyboard, ScrollView } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
+  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -23,7 +21,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -88,11 +85,6 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -230,12 +222,12 @@ const OnboardingInterestQuestionnaire = () => {
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
       />
 
-      <Box twClassName="px-4 pb-6" style={{ marginTop: headerInset }}>
+      <Box twClassName="px-4 pb-6">
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -255,16 +247,24 @@ const OnboardingInterestQuestionnaire = () => {
               key={option.id}
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
-              showSelectedIcon
               endAccessory={
-                <Icon
-                  name={IconName.Add}
-                  size={IconSize.Lg}
-                  color={IconColor.IconDefault}
-                />
+                isSelected ? (
+                  <Checkbox
+                    isSelected
+                    onChange={() => handleOptionPress(option.id)}
+                    pointerEvents="none"
+                    accessibilityLabel={strings(option.labelKey)}
+                  />
+                ) : (
+                  <Icon
+                    name={IconName.Add}
+                    size={IconSize.Lg}
+                    color={IconColor.IconDefault}
+                  />
+                )
               }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border px-6 py-4 ${
+              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
@@ -300,7 +300,7 @@ const OnboardingInterestQuestionnaire = () => {
       </ScrollView>
 
       <FooterGlass
-        twClassName="pt-2 pb-2"
+        twClassName="py-2"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),
           onPress: onNext,

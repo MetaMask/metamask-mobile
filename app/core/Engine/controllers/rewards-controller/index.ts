@@ -42,8 +42,6 @@ export type { RewardsControllerMessenger };
 export type { RewardsControllerGetStateAction } from './types';
 export type {
   RewardsControllerAddPointsEstimateToHistoryAction,
-  RewardsControllerApplyBonusCodeAction,
-  RewardsControllerApplyReferralCodeAction,
   RewardsControllerCalculateTierStatusAction,
   RewardsControllerCanChangeRewardsEnvUrlAction,
   RewardsControllerCheckOptInStatusAgainstCacheAction,
@@ -59,7 +57,6 @@ export type {
   RewardsControllerGetClientVersionRequirementsAction,
   RewardsControllerGetDefaultRewardsEnvUrlAction,
   RewardsControllerGetFirstSubscriptionIdAction,
-  RewardsControllerGetGeoRewardsMetadataAction,
   RewardsControllerGetHasAccountOptedInAction,
   RewardsControllerGetOffDeviceSubscriptionAccountsAction,
   RewardsControllerGetOndoCampaignDepositsAction,
@@ -80,7 +77,6 @@ export type {
   RewardsControllerHandleAuthenticationTriggerAction,
   RewardsControllerHasActiveSeasonAction,
   RewardsControllerHasPointsEventsChangedAction,
-  RewardsControllerInvalidateReferralDetailsCacheAction,
   RewardsControllerInvalidateSubscriptionAndAccountsAction,
   RewardsControllerInvalidateSubscriptionCacheAction,
   RewardsControllerIsOptInSupportedAction,
@@ -99,6 +95,4 @@ export type {
   RewardsControllerSetRewardsEnvUrlAction,
   RewardsControllerShouldSkipSilentAuthAction,
   RewardsControllerSignRewardsMessageAction,
-  RewardsControllerValidateBonusCodeAction,
-  RewardsControllerValidateReferralCodeAction,
 } from './RewardsController-method-action-types';

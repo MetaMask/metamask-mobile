@@ -22,6 +22,7 @@ export const SocialLeaderboardEventProperties = {
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  DEDUPLICATION_ID: 'deduplication_id',
   INTERACTION_TYPE: 'interaction_type',
   NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
@@ -94,7 +95,7 @@ export const SocialLeaderboardEventValues = {
     FOLLOWING: 'tab_following',
     TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
-    LIVE_TRADES: 'tab_live_trades',
+    LIVE: 'tab_live',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {
@@ -137,17 +138,8 @@ export type SocialLeaderboardSource =
   | 'explore_now'
   | 'explore_rwas'
   | 'explore_trending'
-  | 'explore_stocks';
-
-export type LeaderboardScreenViewedSource = Extract<
-  SocialLeaderboardSource,
-  | 'home_banner'
-  | 'nav_tab'
-  | 'nux'
-  | 'notification'
-  | 'deep_link'
-  | 'home_carousel'
->;
+  | 'explore_stocks'
+  | 'explore_perps';
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -158,6 +150,8 @@ export type TraderProfileScreenViewedSource = Extract<
   | 'notification'
   | 'deep_link'
   | 'trader_feed'
+  | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type TraderFollowInteractionSource = Extract<
@@ -169,6 +163,8 @@ export type TraderFollowInteractionSource = Extract<
   | 'profiles_to_follow'
   | 'nux'
   | 'trader_feed'
+  | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type FollowTradingTokenSource = Extract<

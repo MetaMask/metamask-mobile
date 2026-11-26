@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
@@ -13,6 +15,7 @@ import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
+import MoneyEstimatedBalanceSheet from '../components/MoneyEstimatedBalanceSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
@@ -21,12 +24,16 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
+import MoneyDeeplinkModal from '../components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type {
   MoneyConfirmationsNavigationParamList,
   MoneyModalsNavigationParamList,
   MoneyScreensStackParamList,
 } from '../types/navigation';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+import { selectMoneyEnableMoneyAccountFlag } from '../selectors/featureFlags';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 const TabStack = createNativeStackNavigator<MoneyScreensStackParamList>();
 const ConfirmationStack =
@@ -52,7 +59,9 @@ const MoneyTabScreenStack = () => {
         component={MoneyHomeView}
         listeners={{
           focus: () => {
-            Engine.context.CardController.fetchCardHomeData();
+            if (Engine.context.CardController.state.isAuthenticated) {
+              Engine.context.CardController.fetchCardHomeData();
+            }
           },
         }}
       />
@@ -78,16 +87,14 @@ const MoneyConfirmationScreenStack = () => {
 
   return (
     <ConfirmationStack.Navigator
-      initialRouteName={
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
-      }
+      initialRouteName={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <ConfirmationStack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
       />
@@ -129,6 +136,11 @@ const MoneyModalStack = () => {
         options={{ headerShown: false }}
       />
       <ModalStack.Screen
+        name={Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET}
+        component={MoneyEstimatedBalanceSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
         name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
         component={MoneyEarningsInfoSheet}
         options={{ headerShown: false }}
@@ -157,4 +169,34 @@ const MoneyModalStack = () => {
   );
 };
 
-export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };
+const MoneyModalGateway = () => {
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const handleDismiss = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  if (!isMoneyAccountEnabled) {
+    return (
+      <MoneyDeeplinkModal
+        content={{
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        }}
+        onDismiss={handleDismiss}
+      />
+    );
+  }
+
+  return <MoneyModalStack />;
+};
+
+export {
+  MoneyConfirmationScreenStack,
+  MoneyModalGateway,
+  MoneyModalStack,
+  MoneyTabScreenStack,
+};

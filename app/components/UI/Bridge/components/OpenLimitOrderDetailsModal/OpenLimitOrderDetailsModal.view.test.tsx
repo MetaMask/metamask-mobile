@@ -76,7 +76,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       within(statusRow).getByText(strings('bridge.limit.status')),
     ).toBeOnTheScreen();
     expect(
-      within(statusRow).getByText(strings('bridge.limit.in_progress')),
+      within(statusRow).getByText(strings('bridge.limit.open')),
     ).toBeOnTheScreen();
 
     const submittedRow = getByTestId(SUBMITTED);
@@ -153,8 +153,8 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
   });
 
   it('shows the trigger price of a sell as entered when the API reports it inverted', async () => {
-    // Selling BNB at or above 817.501762 USDT per BNB, which the API reports
-    // as at or below 1 / 817.501762 BNB per USDT.
+    // Selling BNB at or above 817.501762 BSC-USD per BNB, which the API reports
+    // as at or below 1 / 817.501762 BNB per BSC-USD.
     const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
       order: {
         ...MOCK_LIMIT_OPEN_ORDER,
@@ -174,7 +174,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
               'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
             address: '0x55d398326f99059ff775485246999027b3197955',
             chainId: 56,
-            symbol: 'USDT',
+            symbol: 'BSC-USD',
             decimals: 18,
           },
           amount: '81750176200000000000',
@@ -191,7 +191,9 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     const triggerRow = getByTestId(TRIGGER_CONDITION);
-    expect(within(triggerRow).getByText('817.501762 USDT')).toBeOnTheScreen();
+    expect(
+      within(triggerRow).getByText('817.501762 BSC-USD'),
+    ).toBeOnTheScreen();
     expect(
       within(triggerRow).getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
     ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
@@ -223,6 +225,19 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     expect(queryByTestId(CANCEL_ORDER_BUTTON)).not.toBeOnTheScreen();
+  });
+
+  it('shows in progress status when the API reports the order as not cancellable', async () => {
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: false },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    const statusRow = getByTestId(STATUS);
+    expect(
+      within(statusRow).getByText(strings('bridge.limit.in_progress')),
+    ).toBeOnTheScreen();
   });
 
   it('opens the cancel order sheet from the details sheet', async () => {

@@ -1,0 +1,1117 @@
+{
+  "app/component-library/base-components/TagBase/TagBase.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/component-library/components-temp/BaseNotification/BaseNotification.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/component-library/components-temp/MainActionButton/MainActionButton.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/component-library/components/Toast/Toast.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Approvals/SnapAccountCustomNameApproval/SnapAccountCustomNameApproval.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Base/InfoModal.tsx": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Base/ListItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Base/Summary.tsx": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Base/Text/Text.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Base/Title/Title.styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Snaps/SnapUICopyable/SnapUICopyable.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/AccountApproval/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 13
+    }
+  },
+  "app/components/UI/AccountInfoCard/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/AccountOverview/index.js": {
+    "design-system/spacing-grid": {
+      "count": 11
+    }
+  },
+  "app/components/UI/AccountRightButton/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/ActivityListItemRow/ActivityListAccountImportTimeRow.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/ActivityListItemRow/ActivityListItemRow.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/AddToAddressBookWrapper/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/AddressInputs/index.js": {
+    "design-system/spacing-grid": {
+      "count": 5
+    }
+  },
+  "app/components/UI/AssetOverview/Price/Price.styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/AssetOverview/PriceChart/PriceChart.styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/PercentChangeAlertForm.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/BlockingActionModal/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/InputStepper/styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/LimitOrderPriceAdjustCard/ButtonPricePresetsSection/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/QuoteDetailsCard/QuoteDetailsCard.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/SkeletonItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/TokenInputArea/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/UI/Bridge/components/TokenSelectorItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Bridge/components/TokenWarningModal/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/TransactionDetails/StepProgressBarItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Bridge/components/TransactionDetails/TransactionAsset.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Bridge/components/TransactionDetails/TransactionDetails.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/BrowserUrlBar/BrowserUrlBar.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Card/Views/CardWelcome/CardWelcome.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/CollectibleDetectionModal/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/CollectibleOverview/index.js": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/ConnectHeader/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/DeFiPositions/DeFiPositionsListItem.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/DeprecatedNetworkModal/DeprecatedNetworkModal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/DesignerMode/DesignerModeRN.tsx": {
+    "design-system/spacing-grid": {
+      "count": 50
+    }
+  },
+  "app/components/UI/Earn/LendingLearnMoreModal/LendingLearnMoreModal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Earn/components/EarnLendingBalance/EarnLendingBalance.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Earn/components/EarnTokenSelector/EarnTokenSelector.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistoryList/EarningsHistoryList.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Earn/components/Earnings/EarningsHistory/EarningsTimePeriod/EarningsTimePeriod.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Earn/components/Tron/ResourceToggle/ResourceToggle.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/HardwareWallet/AccountDetails/styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/HardwareWallet/AccountSelector/styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 8
+    }
+  },
+  "app/components/UI/KYC/Views/Status/KycPending.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/ManageNetworks/ManageNetworks.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Money/components/MoneySheetOptionsList/MoneySheetOptionsList.styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Money/components/MoneySheetOptionsList/MoneySheetOptionsList.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Navbar/index.js": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/NetworkConnectionBanner/NetworkConnectionBanner.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/NetworkInfo/InfoDescription/infoDescription.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/NetworkInfo/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 9
+    }
+  },
+  "app/components/UI/NetworkManager/index.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/NetworkModal/NetworkDetails/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/NetworkModal/index.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/NetworkVerificationInfo/NetworkVerificationInfo.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Notification/List/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Notification/Modal/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Notification/SwitchLoadingModal/Loader.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PermissionsSummary/MaliciousDappIndicators.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PermissionsSummary/PermissionsSummary.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsMarketListView/components/PerpsMarketListEmptyState/PerpsMarketListEmptyState.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton/PerpsMarketRowSkeleton.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 5
+    }
+  },
+  "app/components/UI/Perps/components/LivePriceDisplay/LivePriceHeader.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/PerpsAggregatedFillsCheckbox/PerpsAggregatedFillsCheckbox.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsBadge/PerpsBadge.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsMarketStatisticsCard/PerpsMarketStatisticsCard.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsMarketTradesList/PerpsMarketTradesList.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsOrderBookTable/PerpsOrderBookTable.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsRecentlyAddedSection/PerpsRecentlyAddedSection.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/PerpsSelectionBottomSheet/PerpsSelectionOptionCard.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsSlippageBottomSheet/PerpsCustomSlippageBottomSheet.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsTutorialCarousel/PerpsTutorialCarousel.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsWebSocketHealthToast/PerpsWebSocketHealthToast.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Perps/components/TradingViewChart/TradingViewChart.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictPayWithRow/PredictPayWithRow.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/events/markets/internal/MarketCard.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/events/markets/internal/MarketGroupOptionSelector.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/searchResults/PredictSearchResultRow.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictHome/internal/PortfolioActions.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/QRHardware/AnimatedQRScanner.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/QRHardware/QRSigningDetails.tsx": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/Account.tsx": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/AmountInput.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/CustomAction/CustomAction.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/ErrorView.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/PaymentMethod.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelector.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/Quote/Quote.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/RegionAlert.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/SkeletonText.tsx": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Ramp/Aggregator/components/modals/Modal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/Ramp/Views/HeadlessPlayground/HeadlessPlayground.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 15
+    }
+  },
+  "app/components/UI/Ramp/Views/NativeFlow/EnterAddress.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Views/NativeFlow/OtpCode.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Views/NativeFlow/StateSelector.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/components/DepositProgressBar/DepositProgressBar.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/components/DepositTextField/DepositTextField.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/components/NetworksFilterBar/NetworksFilterBar.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Ramp/components/TruncatedError/TruncatedError.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/ReviewModal/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Rewards/components/RewardPointsAnimation/index.styles.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/SDKFeedback/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/SelectComponent/index.js": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/SelectOptionSheet/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/SimulationDetails/BalanceChangeRow/BalanceChangeRow.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/SimulationDetails/FiatDisplay/FiatDisplay.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/SimulationDetails/SimulationDetails.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/SimulationDetails/shared.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Sites/components/SiteRowItem/SiteRowItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Sites/components/SiteSkeleton/SiteSkeleton.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/SkipAccountSecurityModal/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/SrpInputGrid/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Stake/components/StakeButton/StakeButton.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Stake/components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Tabs/TabThumbnail/TabThumbnail.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/UI/Tabs/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/TokenDetails/components/AssetOverviewContent.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/TokenDetails/components/SecurityBanner.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/TokenDetails/components/TokenDetailsStickyFooter.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/TokenDetails/components/V1/StatBar/StatBar.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/TransactionElement/TransactionDetails/index.js": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/TransactionElement/index.js": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/TransactionHeader/index.js": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Transactions/index.js": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/UpdateNeeded/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/UrlAutocomplete/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/UI/WarningAlert/WarningAlert.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/WebviewError/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/WhatsNewModal/WhatsNewModal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/AddAsset/components/AddCustomToken/AddCustomToken.tsx": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/AddressQRCode/index.js": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/AesCryptoTestForm/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 8
+    }
+  },
+  "app/components/Views/ConnectQRHardware/Instruction/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/DataCollectionModal/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/EnterPasswordSimple/index.js": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/ErrorBoundary/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/ExperienceEnhancerModal/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard/PerpsMarketTileCard.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/ImportPrivateKeySuccess/index.js": {
+    "design-system/spacing-grid": {
+      "count": 5
+    }
+  },
+  "app/components/Views/LedgerSelectAccount/index.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/MediaPlayer/AndroidMediaPlayer.js": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/MediaPlayer/Loader.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/MultichainAccounts/AccountDetails/AccountTypes/BaseAccountDetails/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/WalletDetails/BaseWalletDetails/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/MultichainAccounts/sheets/EditAccountName/EditAccountName.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/MultichainAccounts/sheets/RevealSRP/RevealSRP.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/NetworkSelector/NetworkSearchTextInput/NetworkSearchTextInput.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/Views/NetworkSelector/NetworkSelector.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/NftDetails/NftDetails.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/Notifications/Details/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/OfflineMode/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/OnboardingSuccess/OnboardingAssetsSettings/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Quiz/QuizContent/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/ResetPassword/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 5
+    }
+  },
+  "app/components/Views/RestoreWallet/styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/RevealPrivateCredential/components/SeedPhraseConcealer.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SDK/SDKSessionModal/SDKSessionModal.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SDK/SDKSessionsManager/SDKSessionItem.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SDK/SDKSessionsManager/getSharedStyles.ts": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/Settings/AdvancedSettings/AdvancedSettings.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Settings/NetworksSettings/NetworkSettings/emptyList.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Settings/NotificationsSettings/NotificationsSettings.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Snaps/KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/Snaps/SnapsSettingsList/SnapsSettingsList.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/Snaps/components/SnapVersionTag/SnapVersionTag.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/SocialLeaderboard/MyProfileView/components/MyProfileHeader.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/PositionDetailsSheet/components/PositionSheetChart.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/shell/filters/SocialFiltersBottomSheet.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/TradeWalletActions/TradeWalletActions.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/TrendingView/components/PillRow.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/WalletConnectSessions/index.js": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/WalletRecovery/index.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/UI/info-row/info-row.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/UI/info-row/info-value/display-url/display-url.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/UI/inline-alert/inline-alert.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/UI/text-field-with-label/text-field-with-label.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/alert-banner/alert-banner.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/confirmations/components/blockaid-alert-content/blockaid-alert-content.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/confirmations/components/gas/gas-fee-token-list-item/gas-fee-token-list-item.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/confirmations/components/gas/selected-gas-fee-token/selected-gas-fee-token.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/confirmations/components/info/custom-amount-info/custom-amount-info.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/typed-sign-permit/typed-sign-permit.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/modals/mm-pay-debug-modal/mm-pay-debug-modal.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/progress-list/progress-list.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 3
+    }
+  },
+  "app/components/Views/confirmations/components/rows/account-picker-row/account-picker-row.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/confirmations/components/rows/pay-with-row/pay-with-row.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/rows/transactions/from-to-row/from-to-row.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/rows/transactions/gas-fee-details-row/gas-fee-details-row.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/token-conversion-asset-header/token-conversion-asset-header.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/legacy/components/CustomNonceModal/index.js": {
+    "design-system/spacing-grid": {
+      "count": 6
+    }
+  },
+  "app/components/Views/confirmations/legacy/components/ErrorMessage/index.js": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/legacy/components/WatchAssetRequest/index.js": {
+    "design-system/spacing-grid": {
+      "count": 4
+    }
+  },
+  "app/components/Views/shared/browser-tab-shared-styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/Views/transactions/SmartTransactionStatus/SmartTransactionStatus.tsx": {
+    "design-system/spacing-grid": {
+      "count": 2
+    }
+  },
+  "app/components/hooks/useOnboardingHeader.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/product-safety/scam-questionnaire/scam-questionnaire.styles.ts": {
+    "design-system/spacing-grid": {
+      "count": 5
+    }
+  },
+  "app/core/HardwareWallet/components/HardwareWalletBottomSheet/contents/DeviceSelectionContent.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/dev-tools/AgenticService/AgentStepHud.tsx": {
+    "design-system/spacing-grid": {
+      "count": 1
+    }
+  }
+}

@@ -65,13 +65,20 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+permissions: {}
+
 jobs:
   get_requirements:
     name: Get workflow and job requirements
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
+    permissions:
+      contents: read
     # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
     # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
     # macos/ios-build concurrency.
@@ -105,6 +112,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -119,6 +129,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -151,6 +164,9 @@ jobs:
   native-build-fingerprint:
     name: Compute native build fingerprint
     runs-on: ubuntu-latest
+    # This token can post any commit status, including the build-source-hash that picks which
+    # native build RC repacks reuse, so the job must not restore a shared cache.
+    cache-mode: none
     if: >-
       ${{
         needs.get_requirements.outputs.skip_everything != 'true' &&
@@ -183,7 +199,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -206,6 +221,8 @@ jobs:
 
   dedupe:
     name: Dedupe
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -236,6 +253,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # duplicate-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -265,6 +285,8 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -295,6 +317,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the git-dependency
+        # safety check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -317,6 +342,8 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -333,6 +360,7 @@ jobs:
     needs:
       - get_requirements
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       # `include` with no base axis yields exactly these combinations, and `name`
       # already interpolates a matrix value, so the rendered job names stay
       # `Run <script>` and the required status checks keep reporting (MCWP-813).
@@ -377,6 +405,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the results of the lint, type,
+        # format, depcheck and other script checks.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -401,52 +432,35 @@ jobs:
           fi
 
   # Same files, rules, and exit semantics as `yarn lint`, split by file size.
-  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
-  # file set and bin-packs by size. Per-file cache stays off the persisted
-  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  # ESLint 9 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set from eslint.config.mjs and bin-packs by size. Per-file cache
+  # stays off the persisted paths: #33370 reverted it because cross-file and
+  # type-aware rules go stale.
+  #
+  # Pinned to GitHub-hosted runners. After Oxlint, four lint shards finish in
+  # about two minutes and no longer need Namespace 8x16 capacity. Keep this
+  # job off the runner_provider switch so a Namespace default does not pull
+  # it back onto paid Namespace profiles.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        with:
-          fetch-depth: 2
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 2
-      - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -463,9 +477,9 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
-          # the other test jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+          # ubuntu-latest matches the other GitHub-hosted test jobs. Local
+          # yarn lint stays at 12288.
+          LINT_HEAP_MB: 20480
       - name: Require clean working directory
         shell: bash
         run: |
@@ -480,11 +494,8 @@ jobs:
   # Shard jobs are `Run lint (N)` and do not use that name.
   lint:
     name: Run `lint`
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    permissions: {}
+    runs-on: ubuntu-latest
     needs:
       - get_requirements
       - lint-shards
@@ -523,6 +534,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and id-token: write), no secrets, and the contract test results. The token
+        # exchange grants any ci.yml job contents: read on MetaMask/ai-analyzer and contents: write on
+        # MetaMask/mobile_bundlesize_stats.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -563,6 +578,8 @@ jobs:
   # needing to know anything about what (if anything) reacts to it.
   dependency-audit:
     name: Dependency audit (advisory)
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -595,6 +612,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the has-advisories output that
+        # decides if dependency-audit-escalation runs.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -652,6 +672,10 @@ jobs:
     # to a 2.3% failure rate, so the cheap remedy is already applied. Revisit with
     # MCWP-812 if failures recur; `ci-linux-large` exists for that.
     name: JS bundle size check
+    # This token can post any commit status, including the build-source-hash that picks which
+    # native build RC repacks reuse, so the job must not restore a shared cache. The Namespace
+    # cache is not governed by cache-mode, so this job does not configure it either.
+    cache-mode: none
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -691,19 +715,9 @@ jobs:
           echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
           echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
           echo "BUNDLE_SIZE_BASE_REF=${BASE_REF}" >> "$GITHUB_ENV"
-      - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -1028,6 +1042,8 @@ jobs:
 
   check-workflows:
     name: Check workflows
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1053,7 +1069,12 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        # actionlint 1.7.1 predates the `cache-mode` workflow key and the
+        # `output-env-credentials` input of aws-actions/configure-aws-credentials@v4.
+        run: >-
+          ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+          -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
+          -ignore 'input "output-env-credentials" is not defined in action "aws-actions/configure-aws-credentials@v4"'
         shell: bash
 
   deploy-platform-api-docs:
@@ -1069,6 +1090,8 @@ jobs:
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1113,6 +1136,8 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1130,7 +1155,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1193,6 +1218,8 @@ jobs:
   # We need to merge unit, component view, and integration tests into a
   # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1409,6 +1436,8 @@ jobs:
 
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1426,6 +1455,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
         # The shard list length must match the denominator in --shard below.
@@ -1477,9 +1507,92 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
+  # CV counterpart of the Appium changed-spec copies (run-appium-e2e-workflow.yml):
+  # on PRs targeting main, added or modified *.view.test.tsx files are re-run N
+  # times so a flake surfaces before merge. Detection comes from get-requirements
+  # (changed_cv_test_files); deleted paths are dropped, the file list is capped,
+  # and the script reports per-iteration results and names every failing test.
+  component-view-flakiness-detection:
+    name: Component view flakiness detection
+    permissions:
+      contents: read
+      # PR label check for skip-cv-flakiness-detection.
+      pull-requests: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        needs.prepare-ci-js-deps.result == 'success' &&
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.base.ref == 'main' &&
+        needs.get_requirements.outputs.changed_cv_test_files != ''
+      }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
+    # Budget default is 60 minutes; the job ceiling adds checkout/setup slack.
+    timeout-minutes: 75
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Repeat changed component view tests
+        run: node .github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs
+        env:
+          CHANGED_CV_TEST_FILES: ${{ needs.get_requirements.outputs.changed_cv_test_files }}
+          REPEAT_COUNT: '5'
+          MAX_FILES: '10'
+          TIME_BUDGET_MINUTES: '60'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Matches the component view gate job's heap.
+          NODE_OPTIONS: --max-old-space-size=12288
+      - name: Upload flakiness detection results (artifact stores)
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: cv-flakiness-results
+          path: tests/results/cv-flakiness/
+          if-no-files-found: ignore
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
+    permissions:
+      contents: read
     # Renders exactly as GitHub's own matrix suffix did for `name: Integration tests`
     # with a single `shard` axis, so the `Integration tests (1)` / `(2)` required
     # checks keep reporting. Spelling it out is load-bearing: the auto-suffix joins
@@ -1503,6 +1616,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         include:
           # Shard 1 peaks at 9.3 GB — above the 8 GB line, so it keeps 8x16.
@@ -1589,6 +1703,10 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      # Single source of truth for the Smart E2E acceptance threshold.
+      # Empty when this job is skipped or fails, so callers run ALL and still build.
+      ai_tags_accepted: ${{ fromJSON(steps.e2e-selection.outputs.ai_confidence || '0') >= 80 }}
+      skip_e2e_builds: ${{ fromJSON(steps.e2e-selection.outputs.ai_confidence || '0') >= 80 && steps.e2e-selection.outputs.ai_e2e_test_tags == '[]' }}
       ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
       ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
@@ -1643,6 +1761,9 @@ jobs:
         needs.get_requirements.outputs.run_performance == 'true'
       }}
     needs: [get_requirements, native-build-fingerprint]
+    # run-performance-e2e.yml grants statuses: write to every job, so none of them may restore a
+    # shared cache. A caller's cache-mode caps every workflow it calls.
+    cache-mode: none
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
@@ -1669,7 +1790,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     permissions:
       contents: read
@@ -1693,6 +1814,10 @@ jobs:
 
   prepare-e2e-timings:
     name: 'Prepare E2E Timings'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     # Run in parallel with the build jobs — it is a lightweight API call (~30s).
     # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
     # and uploads them as a run-scoped artifact so every shard and every re-run
@@ -1702,7 +1827,7 @@ jobs:
       ${{
         !cancelled() &&
         (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.get_requirements.outputs.ios_e2e_needed == 'true') &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     needs: [get_requirements, smart-e2e-selection]
     outputs:
@@ -1715,6 +1840,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
 
       - name: Fetch and freeze E2E timings
         id: fetch
@@ -1752,7 +1878,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     permissions:
       contents: read
@@ -1805,7 +1931,7 @@ jobs:
         }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+          (needs.smart-e2e-selection.outputs.ai_tags_accepted == 'true' &&
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
@@ -1846,104 +1972,17 @@ jobs:
         }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+          (needs.smart-e2e-selection.outputs.ai_tags_accepted == 'true' &&
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
-  # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs when path filters select
-  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
-  # release/* that build Android.
-  validate-e2e-fixtures:
-    name: 'Validate E2E Fixtures'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.build-android-apks.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' ||
-          needs.prepare-e2e-timings.result == 'skipped' ||
-          needs.prepare-e2e-timings.result == 'failure')
-      }}
-    permissions:
-      contents: read
-      checks: write
-      id-token: write
-      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
-      actions: read
-      pull-requests: read
-    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: validate-e2e-fixtures
-      platform: android
-      test_suite_tag: FixtureValidation
-      split_number: 1
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: 'main'
-      metamask_environment: 'e2e'
-      # Skip golden AVD cache restore; boot-mode cold keeps intent explicit.
-      cache-android-golden-snapshot: false
-      android-emulator-boot-mode: cold
-      # Mirrors build-android-apps' resolution chain so this consumer always matches
-      # the builder's artifact store (GitHub on current, Namespace store on namespace).
-      runner_provider: >-
-        ${{
-          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
-        }}
-    secrets: inherit
-
-  report-fixture-validation:
-    name: 'Report Fixture Validation'
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
-    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
-    needs: [validate-e2e-fixtures]
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-      - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-
-      # run-appium-e2e-workflow uploads fixture validation results unconditionally via
-      # actions/upload-artifact (no Namespace-store arm), so results always land in the
-      # GitHub Actions artifact store — download via actions/* regardless of provider.
-      - name: Download fixture validation results
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: fixture-validation-results-validate-e2e-fixtures
-          path: fixture-results/
-
-      - name: Report results
-        env:
-          RESULTS_PATH: fixture-results
-          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node .github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs
-
   sonar-cloud:
     name: SonarCloud analysis
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1980,6 +2019,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
       - name: Download lcov.info (Namespace)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -2157,45 +2197,10 @@ jobs:
               core.info('Artifact ci-js-deps not found (already deleted or never created)');
             }
 
-  # Required for pull requests and the merge queue. Check all jobs pass fails
-  # when this job fails. Push, schedule, and manual runs skip it.
-  security-code-scan:
-    name: Security code scan
-    needs:
-      - get_requirements
-    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
-    with:
-      scanner-ref: v2.1.1
-      # ubuntu-latest cannot finish these detected languages. Swift needs macOS.
-      # C/C++ has no compiled source. Java looks for ./mvnw, which this repo does
-      # not have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
-      languages-config: |
-        [
-          {"language":"swift","ignore":true},
-          {"language":"cpp","ignore":true},
-          {"language":"java","ignore":true}
-        ]
-      paths-ignored: |
-        tests/
-        docs/
-        scripts/money-movement/debug-dashboard/
-        .storybook/
-        '**/*.test.js'
-        '**/*.test.ts'
-        '**/*.test.jsx'
-        '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
-        '**/*.snap'
-      rules-excluded: example
-
   check-all-jobs-pass:
     name: Check all jobs pass
+    permissions:
+      contents: read
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
     if: ${{ always() && !cancelled() }}
@@ -2220,6 +2225,7 @@ jobs:
       - lint
       - unit-tests
       - component-view-tests
+      - component-view-flakiness-detection
       - merge-unit-and-component-view-tests
       - check-workflows
       - prepare-ci-js-deps
@@ -2229,7 +2235,6 @@ jobs:
       - build-ios-apps
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
-      - security-code-scan
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -2251,11 +2256,13 @@ jobs:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
           e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          flakiness-job-regex: '^(component-view-flakiness-detection)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
   log-merge-group-failure:
     name: Log merge group failure
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&

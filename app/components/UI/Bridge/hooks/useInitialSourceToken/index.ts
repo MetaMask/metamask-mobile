@@ -29,10 +29,12 @@ import { NetworkConfiguration } from '@metamask/network-controller';
  *
  * @param initialSourceToken The initial source token to set, e.g. coming in from Asset Details page or a deeplink
  * @param initialSourceAmount The initial source amount to set, e.g. coming in from a deeplink
+ * @param initializationKey Re-initializes the source token when a new entry is received
  */
 export const useInitialSourceToken = (
   initialSourceToken?: BridgeToken,
   initialSourceAmount?: string,
+  initializationKey?: string,
 ) => {
   const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
@@ -56,6 +58,7 @@ export const useInitialSourceToken = (
   });
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
   const hasInitializedRef = useRef(false);
+  const initializationKeyRef = useRef<string | undefined>(undefined);
 
   const chainId = isEvmNetworkSelected
     ? selectedEvmChainId
@@ -88,10 +91,14 @@ export const useInitialSourceToken = (
   );
 
   useEffect(() => {
-    if (hasInitializedRef.current) {
+    if (
+      hasInitializedRef.current &&
+      initializationKeyRef.current === initializationKey
+    ) {
       return;
     }
     hasInitializedRef.current = true;
+    initializationKeyRef.current = initializationKey;
 
     // If initial source token is already set in Redux (pre-populated before navigation),
     // only handle network switching if needed.
@@ -158,6 +165,7 @@ export const useInitialSourceToken = (
     chainId,
     dispatch,
     initialSourceAmount,
+    initializationKey,
     bip44DefaultPair,
     handleNetworkSwitch,
   ]);

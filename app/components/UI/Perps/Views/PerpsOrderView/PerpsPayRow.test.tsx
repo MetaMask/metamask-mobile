@@ -25,6 +25,7 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../../Views/confirmations/ConfirmationView.testIds';
+import { buildPaymentTokenMock } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -93,18 +94,18 @@ describe('PerpsPayRow', () => {
     resetPerpsPaymentTokenSelection();
     mockUseNavigation.mockReturnValue({
       navigate: navigateMock,
-    } as unknown as ReturnType<typeof useNavigation>);
+    });
     mockUseTransactionMetadataRequest.mockReturnValue({
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: '0xusdc',
         chainId: '0xa4b1',
         symbol: 'USDC',
-      },
+      }),
       setPayToken: jest.fn(),
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseTokenWithBalance.mockReturnValue({
       address: '0xusdc',
@@ -116,7 +117,7 @@ describe('PerpsPayRow', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     mockUsePerpsEventTracking.mockReturnValue({
       track: trackMock,
-    } as unknown as ReturnType<typeof usePerpsEventTracking>);
+    });
     mockIsHardwareAccount.mockReturnValue(false);
   });
 
@@ -144,9 +145,13 @@ describe('PerpsPayRow', () => {
   it('renders pay token symbol when perps balance is not selected', () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' },
+      payToken: buildPaymentTokenMock({
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+      }),
       setPayToken: jest.fn(),
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
 
     const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
@@ -181,9 +186,13 @@ describe('PerpsPayRow', () => {
 
     it('renders money account label instead of the underlying mUSD pay token', () => {
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: { address: '0xmusd', chainId: '0x279f', symbol: 'mUSD' },
+        payToken: buildPaymentTokenMock({
+          address: '0xmusd',
+          chainId: '0x279f',
+          symbol: 'mUSD',
+        }),
         setPayToken: jest.fn(),
-      } as unknown as ReturnType<typeof useTransactionPayToken>);
+      });
 
       const { getByTestId } = renderWithProvider(<PerpsPayRow />, {
         state: MONEY_ACCOUNT_STATE,
@@ -264,9 +273,9 @@ describe('PerpsPayRow', () => {
       symbol: string;
     }) =>
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: token,
+        payToken: buildPaymentTokenMock(token),
         setPayToken: jest.fn(),
-      } as unknown as ReturnType<typeof useTransactionPayToken>);
+      });
 
     it('emits payment_token_selector_dismissed when the selector closes with the token unchanged', () => {
       const usdc = { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' };

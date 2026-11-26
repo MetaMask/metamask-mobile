@@ -16,7 +16,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -28,8 +27,11 @@ import { usePredictOrderFlow } from '../PredictOrderFlow';
 import {
   getFeedScreen,
   getFeedScreenTab,
+  getKnownFeedScreenTitle,
   type FeedScreenDefinition,
+  type FeedScreenTab,
 } from '../../navigation/feedScreens';
+import { useVenueCapabilities } from '../../capabilities';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictEventCard } from '../../events/cards';
@@ -41,6 +43,9 @@ import type {
 import { TraceName } from '../../../../../util/trace';
 import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const FEED_PAGE_LIMIT = 20;
 const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
@@ -73,7 +78,9 @@ const getFeedVisibleEventIds = (
 interface PredictFeedContentProps {
   venueId: PredictVenueId;
   definition: FeedScreenDefinition;
-  selectedTabId?: string;
+  /** The supported tabs; never empty. */
+  tabs: readonly FeedScreenTab[];
+  initialTab: FeedScreenTab;
   onBack: () => void;
   onOpenEvent: (event: PredictEvent) => void;
 }
@@ -133,10 +140,63 @@ const FeedError = ({ onRetry }: { onRetry: () => void }) => (
   </Box>
 );
 
+const FeedScreenFrame = ({
+  definition,
+  onBack,
+  children,
+}: {
+  /** While the catalog loads or fails, only the title the app knows. */
+  definition: Pick<FeedScreenDefinition, 'title' | 'selectionLabel'>;
+  onBack: () => void;
+  children: React.ReactNode;
+}) => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <Box testID={PredictFeedScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        title={definition.title}
+        onBack={onBack}
+        includesTopInset
+        testID={PredictFeedScreenTestIds.HEADER}
+        backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
+      />
+      <Box twClassName="flex-1">
+        <Box twClassName="px-4 pb-3 pt-4">
+          {definition.selectionLabel ? (
+            <Text variant={TextVariant.HeadingMd}>
+              {definition.selectionLabel}
+            </Text>
+          ) : null}
+        </Box>
+        {children}
+      </Box>
+    </Box>
+  );
+};
+
+const FeedUnavailable = ({ onBack }: { onBack: () => void }) => (
+  <Box
+    testID={PredictFeedScreenTestIds.UNAVAILABLE}
+    twClassName="flex-1 gap-6 p-4 pt-12"
+  >
+    <Button
+      testID={PredictFeedScreenTestIds.BACK}
+      variant={ButtonVariant.Tertiary}
+      onPress={onBack}
+    >
+      Back
+    </Button>
+    <Text>This feed is unavailable.</Text>
+  </Box>
+);
+
 const PredictFeedContent = ({
   venueId,
   definition,
-  selectedTabId,
+  tabs,
+  initialTab,
   onBack,
   onOpenEvent,
 }: PredictFeedContentProps) => {
@@ -144,9 +204,8 @@ const PredictFeedContent = ({
   const isFocused = useIsFocused();
   const listRef = useRef<FlatList<PredictEvent>>(null);
   const listContentContainerStyle = useMemo(() => tw.style('px-3 pb-6'), [tw]);
-  const defaultTab = getFeedScreenTab(definition, selectedTabId);
-  const [activeTabId, setActiveTabId] = useState(defaultTab.id);
-  const activeTab = getFeedScreenTab(definition, activeTabId);
+  const [activeTabId, setActiveTabId] = useState(initialTab.id);
+  const activeTab = getFeedScreenTab(tabs, activeTabId) ?? initialTab;
   const {
     data,
     fetchNextPage,
@@ -295,29 +354,14 @@ const PredictFeedContent = ({
   }
 
   return (
-    <Box testID={PredictFeedScreenTestIds.VIEW} twClassName="flex-1 bg-default">
-      <HeaderStandard
-        title={definition.title}
-        onBack={onBack}
-        includesTopInset
-        backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
+    <FeedScreenFrame definition={definition} onBack={onBack}>
+      <FeedScreenTabs
+        tabs={tabs}
+        selectedTabId={activeTab.id}
+        onTabSelect={handleTabSelect}
       />
-      <Box twClassName="flex-1">
-        <Box twClassName="px-4 pb-3 pt-4">
-          {definition.selectionLabel ? (
-            <Text variant={TextVariant.HeadingMd}>
-              {definition.selectionLabel}
-            </Text>
-          ) : null}
-        </Box>
-        <FeedScreenTabs
-          tabs={definition.tabs}
-          selectedTabId={activeTab.id}
-          onTabSelect={handleTabSelect}
-        />
-        {feedContent}
-      </Box>
-    </Box>
+      {feedContent}
+    </FeedScreenFrame>
   );
 };
 
@@ -326,7 +370,17 @@ export const PredictFeedScreen = () => {
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, feedScreenId, selectedTabId } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextFeed'>>().params;
-  const definition = getFeedScreen(feedScreenId);
+  const capabilities = useVenueCapabilities(venueId);
+  // The screen, its tabs and their labels come from the Venue catalog, so a
+  // link or a stale route can name a screen the catalog no longer has.
+  const definition = useMemo(
+    () => getFeedScreen(feedScreenId, capabilities),
+    [feedScreenId, capabilities],
+  );
+  const pendingDefinition = useMemo(
+    () => ({ title: getKnownFeedScreenTitle(feedScreenId) }),
+    [feedScreenId],
+  );
 
   const handleBack = useCallback(
     () =>
@@ -346,29 +400,40 @@ export const PredictFeedScreen = () => {
     [navigation],
   );
 
-  if (!definition) {
+  if (capabilities.status === 'loading') {
     return (
-      <Box
-        testID={PredictFeedScreenTestIds.UNAVAILABLE}
-        twClassName="flex-1 gap-6 p-4 pt-12"
-      >
-        <Button
-          testID={PredictFeedScreenTestIds.BACK}
-          variant={ButtonVariant.Tertiary}
-          onPress={handleBack}
-        >
-          Back
-        </Button>
-        <Text>This feed is unavailable.</Text>
-      </Box>
+      <FeedScreenFrame definition={pendingDefinition} onBack={handleBack}>
+        <FeedLoading />
+      </FeedScreenFrame>
     );
+  }
+  if (
+    capabilities.status === 'unavailable' &&
+    capabilities.reason === 'error'
+  ) {
+    return (
+      <FeedScreenFrame definition={pendingDefinition} onBack={handleBack}>
+        <FeedError onRetry={capabilities.retry} />
+      </FeedScreenFrame>
+    );
+  }
+  // Unknown Venue, invalid catalog, a screen the catalog lacks, or no
+  // supported tab: nothing to show, and never another Venue's Feed.
+  const initialTab = definition
+    ? getFeedScreenTab(definition.tabs, selectedTabId)
+    : undefined;
+  if (!definition || !initialTab) {
+    return <FeedUnavailable onBack={handleBack} />;
   }
 
   return (
     <PredictFeedContent
+      // A changed tab set restarts the tab selection.
+      key={definition.tabs.map(({ id }) => id).join()}
       venueId={venueId}
       definition={definition}
-      selectedTabId={selectedTabId}
+      tabs={definition.tabs}
+      initialTab={initialTab}
       onBack={handleBack}
       onOpenEvent={handleOpenEvent}
     />

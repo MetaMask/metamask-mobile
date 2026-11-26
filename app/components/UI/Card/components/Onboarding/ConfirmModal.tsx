@@ -18,9 +18,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef } from 'react';
-import { ModalAction } from '../../../Rewards/components/RewardsBottomSheetModal';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
+
+interface ModalAction {
+  label: string;
+  onPress: () => void | Promise<void>;
+  variant?: ButtonVariant;
+  disabled?: boolean;
+  isLoading?: boolean;
+  loadOnPress?: boolean;
+}
 
 export interface ConfirmModalParams {
   title: string;
@@ -56,7 +64,7 @@ const ConfirmModal = () => {
   const renderTitle = () => (
     <Text
       variant={TextVariant.HeadingMd}
-      twClassName="text-center text-default"
+      twClassName="text-center"
       testID="confirm-modal-title"
     >
       {title}
@@ -66,7 +74,7 @@ const ConfirmModal = () => {
   const renderDescription = () => (
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="text-center text-alternative px-6"
+      twClassName="text-center text-alternative"
       testID="confirm-modal-description"
     >
       {description}

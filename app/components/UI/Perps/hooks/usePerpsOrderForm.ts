@@ -12,6 +12,7 @@ import {
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
   selectSelectedOrderType,
+  type PerpsProviderType,
   type OrderFormState,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
@@ -58,6 +59,7 @@ export interface PerpsOrderPriceFieldHandlers {
 }
 
 interface UsePerpsOrderFormParams {
+  providerId?: PerpsProviderType;
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
@@ -128,6 +130,8 @@ export interface UsePerpsOrderFormReturn {
    * the open position notional). Pass `null` to restore the margin-based cap.
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
+  /** Reserves the quoted trading fee (fraction of notional) in the margin-based max. */
+  setEstimatedFeeRate: (rate: number) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -155,13 +159,15 @@ export function usePerpsOrderForm(
   const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
+    providerId: params.providerId,
     symbols: [initialAsset],
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const { marketData } = usePerpsMarketData(
-    initialSzDecimals == null ? initialAsset : '',
-  );
+  const { marketData } = usePerpsMarketData({
+    asset: initialSzDecimals == null ? initialAsset : '',
+    providerId: params.providerId,
+  });
   const assetSzDecimals =
     initialSzDecimals ??
     marketData?.szDecimals ??
@@ -170,8 +176,15 @@ export function usePerpsOrderForm(
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
   const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.symbol === initialAsset)?.leverage?.value,
-    [positions, initialAsset],
+    () =>
+      positions.find(
+        (p) =>
+          p.symbol === initialAsset &&
+          (!p.providerId ||
+            !params.providerId ||
+            p.providerId === params.providerId),
+      )?.leverage?.value,
+    [positions, initialAsset, params.providerId],
   );
 
   // Get saved trade configuration for this asset (user preference for new positions)
@@ -318,6 +331,12 @@ export function usePerpsOrderForm(
     },
     [],
   );
+  // Fee rate (protocol + MetaMask) as a fraction of notional, pushed in by the
+  // order surface from its own resolved fee quote (`usePerpsOrderFees`), so the
+  // max size and the displayed fee never diverge. Fees are charged on top of
+  // margin, so the max size must leave room for them.
+  const [estimatedFeeRate, setEstimatedFeeRate] = useState(0);
+
   const effectiveMaxSlippageBps = useMemo(
     () =>
       resolvePerpsMaxSlippageBps({
@@ -332,6 +351,9 @@ export function usePerpsOrderForm(
   // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
+    // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
+    const feeAdjustedBalance =
+      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -363,7 +385,7 @@ export function usePerpsOrderForm(
 
     if (triggerMarketCapPrice !== undefined) {
       return getMaxAllowedAmountAtExecutionPrice({
-        spendableBalance: balanceForMax,
+        spendableBalance: feeAdjustedBalance,
         sizePrice: effectiveAssetPrice,
         executionPrice: triggerMarketCapPrice,
         assetSzDecimals: sizeDecimals,
@@ -372,13 +394,14 @@ export function usePerpsOrderForm(
     }
 
     return getMaxAllowedAmount({
-      spendableBalance: balanceForMax,
+      spendableBalance: feeAdjustedBalance,
       assetPrice: effectiveAssetPrice,
       assetSzDecimals,
       leverage: orderForm.leverage,
     });
   }, [
     balanceForMax,
+    estimatedFeeRate,
     currentPrice?.price,
     orderForm.type,
     orderForm.direction,
@@ -666,6 +689,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      setEstimatedFeeRate,
       balanceForValidation: balanceForMax,
     }),
     [
@@ -696,6 +720,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      setEstimatedFeeRate,
       balanceForMax,
     ],
   );

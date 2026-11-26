@@ -348,7 +348,6 @@ export type RewardsControllerGetReferralDetailsAction = {
 /**
  * Perform the complete opt-in process for rewards
  * @param accounts - Array of internal accounts to opt in
- * @param referralCode - Optional referral code
  */
 export type RewardsControllerOptInAction = {
   type: `RewardsController:optIn`;
@@ -370,36 +369,6 @@ export type RewardsControllerResetAllAction = {
 export type RewardsControllerLogoutAction = {
   type: `RewardsController:logout`;
   handler: RewardsController['logout'];
-};
-
-/**
- * Get geo rewards metadata including location and support status
- * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
- */
-export type RewardsControllerGetGeoRewardsMetadataAction = {
-  type: `RewardsController:getGeoRewardsMetadata`;
-  handler: RewardsController['getGeoRewardsMetadata'];
-};
-
-/**
- * Validate a referral code
- * @param code - The referral code to validate
- * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
- */
-export type RewardsControllerValidateReferralCodeAction = {
-  type: `RewardsController:validateReferralCode`;
-  handler: RewardsController['validateReferralCode'];
-};
-
-/**
- * Validate a bonus code
- * @param code - The bonus code to validate
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<boolean> - True if the code is valid, false otherwise
- */
-export type RewardsControllerValidateBonusCodeAction = {
-  type: `RewardsController:validateBonusCode`;
-  handler: RewardsController['validateBonusCode'];
 };
 
 /**
@@ -486,6 +455,7 @@ export type RewardsControllerGetCampaignsAction = {
  * Opt a subscription into a campaign.
  * @param campaignId - The campaign ID to opt into.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one.
  * @returns The participant status after opting in.
  */
 export type RewardsControllerOptInToCampaignAction = {
@@ -503,6 +473,7 @@ export type RewardsControllerOptInToCampaignAction = {
  * post-event status fetches hit cache instead of the network.
  * @param campaignIds - Campaign IDs to opt into, in call order.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
  * @returns Per-campaign participant statuses after opting in.
  */
 export type RewardsControllerOptInToCampaignsAction = {
@@ -755,30 +726,6 @@ export type RewardsControllerPostBenefitImpressionAction = {
 };
 
 /**
- * Apply a referral code to an existing subscription.
- * @param referralCode - The referral code to apply.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns Promise that resolves when the referral code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyReferralCodeAction = {
-  type: `RewardsController:applyReferralCode`;
-  handler: RewardsController['applyReferralCode'];
-};
-
-/**
- * Apply a bonus code to a subscription.
- * @param bonusCode - The bonus code to apply.
- * @param subscriptionId - The subscription ID to apply the bonus code to.
- * @returns Promise that resolves when the bonus code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyBonusCodeAction = {
-  type: `RewardsController:applyBonusCode`;
-  handler: RewardsController['applyBonusCode'];
-};
-
-/**
  * Fetch the minimum client version requirements from the public API.
  * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
@@ -787,15 +734,6 @@ export type RewardsControllerApplyBonusCodeAction = {
 export type RewardsControllerGetClientVersionRequirementsAction = {
   type: `RewardsController:getClientVersionRequirements`;
   handler: RewardsController['getClientVersionRequirements'];
-};
-
-/**
- * Invalidate referral details cache for a subscription
- * @param subscriptionId - The subscription ID to invalidate cache for
- */
-export type RewardsControllerInvalidateReferralDetailsCacheAction = {
-  type: `RewardsController:invalidateReferralDetailsCache`;
-  handler: RewardsController['invalidateReferralDetailsCache'];
 };
 
 /**
@@ -995,9 +933,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInAction
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
-  | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction
-  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction
   | RewardsControllerLinkAccountsToSubscriptionCandidateAction
@@ -1032,10 +967,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerApplyReferralCodeAction
-  | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
   | RewardsControllerGetPredictThePitchLeaderboardPositionAction

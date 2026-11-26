@@ -12,7 +12,6 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxFlexDirection,
@@ -41,6 +40,9 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
+import Routes from '../../../../../constants/navigation/Routes';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ShareAddressQRParams {
   address: string;
@@ -61,6 +63,7 @@ type ShareAddressQRRouteProp = RouteProp<
 >;
 
 export const ShareAddressQR = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
@@ -73,7 +76,7 @@ export const ShareAddressQR = () => {
 
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toBlockExplorer, getBlockExplorerUrl, getBlockExplorerName } =
+  const { getBlockExplorerUrl, getBlockExplorerName } =
     useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
   const explorerButtonText = strings(
@@ -105,24 +108,32 @@ export const ShareAddressQR = () => {
       text: explorerButtonText,
       url,
     });
-    toBlockExplorer(address);
+    // Sheet `goBack` pops this route before the callback, so the explorer
+    // pushes onto the address list instead of sitting above the QR sheet.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW, {
+        url,
+        title: explorerButtonText,
+      });
+    });
   }, [
     address,
     createEventBuilder,
     explorerButtonText,
     getBlockExplorerUrl,
-    toBlockExplorer,
+    navigation,
     trackEvent,
   ]);
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleOnBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
       >
         {`${accountGroupName} / ${networkName}`}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
@@ -189,5 +200,3 @@ export const ShareAddressQR = () => {
     </BottomSheet>
   );
 };
-
-export default ShareAddressQR;

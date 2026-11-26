@@ -10,6 +10,7 @@ import {
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
+import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE_BY_VARIANT = {
@@ -24,7 +25,11 @@ export interface TraderHeaderIdentityProps {
   traderName: string;
   traderImageUrl?: string | null;
   traderAddress?: string;
+  /** Profile id used when `traderAddress` is missing. */
+  traderProfileId?: string;
   avatar?: React.ReactNode;
+  /** Profile API verified this trader. */
+  isVerified?: boolean;
   variant?: TraderHeaderIdentityVariant;
   onPress?: () => void;
   testID?: string;
@@ -44,7 +49,9 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   avatar,
+  isVerified = false,
   variant = 'nav',
   onPress,
   testID,
@@ -71,6 +78,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
         <TraderAvatar
           imageUrl={traderImageUrl}
           address={traderAddress}
+          profileId={traderProfileId}
           size={avatarSize}
         />
       )}
@@ -83,6 +91,11 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       >
         {traderName}
       </Text>
+      {isVerified ? (
+        <ProfileVerifiedBadge
+          testID={testID ? `${testID}-verified` : undefined}
+        />
+      ) : null}
     </Box>
   );
 

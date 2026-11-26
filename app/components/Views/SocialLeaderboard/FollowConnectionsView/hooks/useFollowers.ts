@@ -4,13 +4,13 @@ import type {
   FollowersResponse,
 } from '@metamask/social-controllers';
 import { useCallback, useMemo } from 'react';
-import { formatAddress } from '../../../../../util/address';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import type { FollowerConnection } from './types';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 
 export interface UseFollowersOptions {
   /**
@@ -65,9 +65,9 @@ const mapFollowers = (data: FollowersResponse | undefined) => {
   return data.followers.map((profile) => ({
     id: profile.profileId,
     username: profile.name,
-    handle: formatAddress(profile.address, 'short'),
     address: profile.address,
     avatarUri: profile.imageUrl ?? undefined,
+    verified: isProfileVerified(profile),
   }));
 };
 

@@ -23,7 +23,7 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
-  referral?: string;
+  ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -46,6 +46,11 @@ export interface DeeplinkUrlParams {
   expiresInMinutes?: string;
   priceTolerance?: string;
 
+  // Recurring Buy-specific parameters
+  every?: string;
+  unit?: string;
+  repeatCount?: string;
+
   // Perps-specific parameters
   symbol?: string;
   screen?: string;
@@ -66,9 +71,6 @@ export interface DeeplinkUrlParams {
   // Buy-specific parameters
   crypto_currency?: string;
   crypto_amount?: string;
-
-  // Home-specific parameters
-  previewToken?: string;
 
   // Privacy-specific parameters
   // Which privacy settings section to scroll to (e.g. 'metametrics',
@@ -116,10 +118,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;
@@ -151,15 +149,19 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.PERPS_ASSET,
   ACTIONS.PERPS_OUTREACH,
   ACTIONS.REWARDS,
+  ACTIONS.EARN_MUSD,
   ACTIONS.WC,
   ACTIONS.ONBOARDING,
   ACTIONS.PREDICT,
   ACTIONS.TRENDING,
   ACTIONS.WHATS_HAPPENING,
   ACTIONS.TOP_TRADERS,
+  ACTIONS.SOCIAL,
+  ACTIONS.SOCIAL_TRADER,
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,
+  ACTIONS.CARD_KYC_NOTIFICATION,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
   ACTIONS.AGENTIC_CLI,
@@ -176,6 +178,8 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  ACTIONS.KYC,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

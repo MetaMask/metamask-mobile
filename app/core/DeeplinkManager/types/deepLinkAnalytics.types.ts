@@ -25,14 +25,6 @@ export enum SignatureStatus {
 }
 
 /**
- * App installation status
- */
-export enum AppInstallationStatus {
-  INSTALLED = 'installed',
-  NOT_INSTALLED = 'not_installed',
-}
-
-/**
  * Route types for deep links
  */
 export enum DeepLinkRoute {
@@ -54,7 +46,9 @@ export enum DeepLinkRoute {
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
   TOP_TRADERS = 'top-traders',
+  SOCIAL_TRADER = 'social-trader',
   SOCIAL_TRADER_POSITION = 'social-trader-position',
+  SOCIAL_POST = 'social-post',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
@@ -74,6 +68,7 @@ export enum DeepLinkRoute {
   // MetaMask SDK `mmsdk` deeplinks (the SDK's RPC message channel).
   SDK_MMSDK = 'sdk-mmsdk',
   MONEY = 'money',
+  MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
   PRIVACY = 'privacy',
   NOTIFICATIONS_SETTINGS = 'notifications-settings',
   INVALID = 'invalid',

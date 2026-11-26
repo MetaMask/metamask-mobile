@@ -3,9 +3,12 @@ import { useIsFocused } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { FEED_CAIP2_CHAINS } from '../../SocialFeed/data/feed-constants';
+import { useFeedChains } from '../../SocialFeed/data/supportedNetworks';
 import {
   getOpenPositionForAsset,
   TraderPositionHttpError,
+  type OpenPositionMatch,
 } from './traderPositionService';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
 import { TRADER_POSITION_POLL_INTERVAL_MS } from './useTraderPosition';
@@ -13,6 +16,10 @@ import { TRADER_POSITION_POLL_INTERVAL_MS } from './useTraderPosition';
 jest.mock('./traderPositionService', () => ({
   ...jest.requireActual('./traderPositionService'),
   getOpenPositionForAsset: jest.fn(),
+}));
+
+jest.mock('../../SocialFeed/data/supportedNetworks', () => ({
+  useFeedChains: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -34,6 +41,9 @@ jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
 }));
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseFeedChains = useFeedChains as jest.MockedFunction<
+  typeof useFeedChains
+>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
@@ -55,6 +65,7 @@ describe('useOpenPositionForAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIsFocused.mockReturnValue(true);
+    mockUseFeedChains.mockReturnValue(FEED_CAIP2_CHAINS);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
       return undefined;
@@ -82,6 +93,81 @@ describe('useOpenPositionForAsset', () => {
     renderHook(() => useOpenPositionForAsset('0xAbc', undefined));
 
     expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('stays disabled for an asset on a chain the route does not serve', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('serves the chains social-api reports as supported', () => {
+    mockUseFeedChains.mockReturnValue(['eip155:137']);
+
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(true);
+  });
+
+  it('stays disabled for a chain social-api no longer reports as supported', () => {
+    mockUseFeedChains.mockReturnValue(['eip155:8453']);
+
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('only fetches the supported networks while the wallet is unlocked', () => {
+    mockUseSelector.mockImplementation(() => false);
+
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    expect(mockUseFeedChains).toHaveBeenCalledWith(false);
+  });
+
+  it('stays disabled for native Bitcoin', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('reports not loading for an asset the route does not serve', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    } as unknown as ReturnType<typeof useQuery>);
+
+    const { result } = renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stays enabled for a Hyperliquid perp on a served chain', () => {
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:999/perp:kPEPE'));
+
+    expect(queryOptions().enabled).toBe(true);
   });
 
   it('returns null when the route answers 404', async () => {
@@ -146,5 +232,102 @@ describe('useOpenPositionForAsset', () => {
     renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
 
     expect(queryOptions().refetchInterval).toBe(false);
+  });
+
+  it('requests an empty trader id when the trader id is missing', async () => {
+    renderHook(() => useOpenPositionForAsset(undefined, 'eip155:1/slip44:60'));
+
+    await queryOptions().queryFn({});
+
+    expect(mockGetOpenPosition).toHaveBeenCalledWith(
+      '',
+      'eip155:1/slip44:60',
+      undefined,
+    );
+  });
+
+  it('requests an empty asset id when the asset id is missing', async () => {
+    renderHook(() => useOpenPositionForAsset('0xAbc', undefined));
+
+    await queryOptions().queryFn({});
+
+    expect(mockGetOpenPosition).toHaveBeenCalledWith('0xAbc', '', undefined);
+  });
+
+  it('returns the first position without trying the wallet', async () => {
+    const match: OpenPositionMatch = {
+      pnl: {
+        positionAmount: 1,
+        isOpen: true,
+        boughtUsd: 10,
+        soldUsd: 0,
+        realizedPnl: 0,
+        costBasis: 10,
+        currentValueUSD: 12,
+        pnlValueUsd: 2,
+        pnlPercent: 20,
+        pnlStatus: 'ready',
+      },
+      position: null,
+    };
+    mockGetOpenPosition.mockResolvedValue(match);
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toStrictEqual(match);
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry when the wallet matches the trader id', async () => {
+    mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
+    renderHook(() =>
+      useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60', '0xAbc'),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toBeNull();
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows an error that is not a missing trader', async () => {
+    const failure = new Error('network down');
+    mockGetOpenPosition.mockRejectedValue(failure);
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    await expect(queryOptions().queryFn({})).rejects.toBe(failure);
+  });
+
+  it('returns null when the wallet retry is also missing', async () => {
+    mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'dfab10bf-9412-40fe-b018-96d28376d4d7',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toBeNull();
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(2);
+  });
+
+  it('rethrows a non-missing error from the wallet retry', async () => {
+    const failure = new Error('network down');
+    mockGetOpenPosition
+      .mockRejectedValueOnce(new TraderPositionHttpError(403))
+      .mockRejectedValueOnce(failure);
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'dfab10bf-9412-40fe-b018-96d28376d4d7',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).rejects.toBe(failure);
   });
 });

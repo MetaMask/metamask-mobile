@@ -5,6 +5,7 @@ import { setEarningsHistory } from '../../../../reducers/rewardsMoney';
 import { selectEarningsHistory } from '../../../../reducers/rewardsMoney/selectors';
 import type { RootState } from '../../../../reducers';
 import type {
+  EarningOriginType,
   EarningsLedgerPageDto,
   LedgerEntryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -15,6 +16,21 @@ import {
 
 export type UseEarningsHistoryResult =
   UseCursorPaginatedListResult<LedgerEntryDto>;
+
+/**
+ * Every origin this feed asks for.
+ *
+ * A ledger request that names no origin type leaves `PREDICT_FEE_CASHBACK`
+ * out, and one that names a subset returns only that subset. Naming the full
+ * set is what puts Predict rows in this feed without dropping the others.
+ */
+export const EARNINGS_HISTORY_ORIGIN_TYPES: EarningOriginType[] = [
+  'SWAPS_FEE_CASHBACK',
+  'PERPS_FEE_CASHBACK',
+  'PREDICT_FEE_CASHBACK',
+  'REFERRAL_REV_SHARE',
+  'SOCIAL_FOLLOW_TRADE',
+];
 
 /**
  * Unified earnings history: accruals and settled claims in one feed.
@@ -46,6 +62,7 @@ export const useEarningsHistory = (
       const page: EarningsLedgerPageDto = await Engine.controllerMessenger.call(
         'RewardsMoneyController:getEarningsLedger',
         {
+          originTypes: EARNINGS_HISTORY_ORIGIN_TYPES,
           cursor: isFirstPage ? undefined : cursor,
           includeClaims: true,
           forceFresh: isFirstPage ? forceFresh : undefined,
@@ -78,5 +95,6 @@ export const useEarningsHistory = (
     onFirstPage,
     errorMessage: 'Failed to fetch earnings history',
     feature: 'rewards-money',
+    laterPageRetryLimit: 1,
   });
 };

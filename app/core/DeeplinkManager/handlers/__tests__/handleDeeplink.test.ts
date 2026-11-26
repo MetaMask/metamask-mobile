@@ -15,6 +15,7 @@ import {
 } from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../../Performance/DeeplinkPerformance';
+import { armMeasuredAppProfilingFromUri } from '../../../Performance/appProfiling';
 import Engine from '../../../Engine';
 
 jest.mock('../../../../actions/user', () => ({
@@ -86,6 +87,10 @@ jest.mock('../../util/deeplinks/deepLinkAnalytics', () => ({
   detectAppInstallation: jest.fn(),
 }));
 
+jest.mock('../../../Performance/appProfiling', () => ({
+  armMeasuredAppProfilingFromUri: jest.fn(() => false),
+}));
+
 describe('handleDeeplink', () => {
   const mockDispatch = ReduxService.store.dispatch as jest.Mock;
   const mockGetState = ReduxService.store.getState as jest.Mock;
@@ -108,11 +113,24 @@ describe('handleDeeplink', () => {
     resetDeeplinkDeduplication();
     mockIsMwpDeeplink.mockReturnValue(false);
     mockIsUnlocked.mockReturnValue(false);
+    jest.mocked(armMeasuredAppProfilingFromUri).mockReturnValue(false);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: true },
     });
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
+  });
+
+  it('arms Hermes profiling without opening the unsupported-link flow', () => {
+    const testUri = 'metamask://e2e/profiler/arm?nonce=abc';
+    jest.mocked(armMeasuredAppProfilingFromUri).mockReturnValue(true);
+
+    handleDeeplink({ uri: testUri });
+
+    expect(armMeasuredAppProfilingFromUri).toHaveBeenCalledWith(testUri);
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
+    expect(startDeeplinkNavigatedTrace).not.toHaveBeenCalled();
   });
 
   it('processes valid URI and dispatch checkForDeeplink', () => {

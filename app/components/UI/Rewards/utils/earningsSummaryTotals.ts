@@ -52,6 +52,30 @@ export function creditedBaseUnits(
   return (net.isNegative() ? new BigNumber(0) : net).toFixed(0);
 }
 
+/**
+ * A ledger row is voided when every base unit of `musd_amount` is voided.
+ * A day row adds up several earnings, and a void of some of them leaves the
+ * rest payable, so a smaller `voided_musd_amount` is not a voided row. Treat
+ * an over-void the same as a full void because the credited amount floors at
+ * zero.
+ */
+export function isVoidedEarning(
+  amount: string | null | undefined,
+  voided: string | null | undefined,
+): boolean {
+  if (amount == null || amount === '' || voided == null || voided === '') {
+    return false;
+  }
+  const total = new BigNumber(amount);
+  const removed = new BigNumber(voided);
+  return (
+    total.isFinite() &&
+    removed.isFinite() &&
+    removed.gt(0) &&
+    removed.gte(total)
+  );
+}
+
 /** Lifetime the profile earned on its own trades, e.g. its cashback. */
 export function selfEarnedLifetime(
   summary: EarningsSummaryDto | null | undefined,
@@ -66,4 +90,105 @@ export function earnedByOthersLifetime(
   family: EarningClaimFamily,
 ): string | null {
   return familyLifetime(summary?.earned_by_others, family);
+}
+
+/** One claim family on one branch, for a page that shows a single family. */
+export interface SummaryFamilyScope {
+  branch: 'self_earned' | 'earned_by_others';
+  family: EarningClaimFamily;
+}
+
+/**
+ * Every family on both branches, or only the scoped one. A scoped family the
+ * summary does not list yields nothing, not the other families.
+ */
+function summaryFamilies(
+  summary: EarningsSummaryDto,
+  scope?: SummaryFamilyScope,
+) {
+  if (scope) {
+    const family = summary[scope.branch]?.by_claim_family?.[scope.family];
+    return family ? [family] : [];
+  }
+  return [
+    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
+    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
+  ];
+}
+
+function finiteBaseUnits(value: string | null | undefined): BigNumber {
+  const amount = new BigNumber(value ?? 0);
+  if (!amount.isFinite() || !amount.gt(0)) {
+    return new BigNumber(0);
+  }
+  return amount;
+}
+
+function blockedUnderReview(family: {
+  blocking_reason?: string | null;
+  blocked?: string | null;
+}): BigNumber {
+  if (family.blocking_reason !== 'UNDER_REVIEW') {
+    return new BigNumber(0);
+  }
+  return finiteBaseUnits(family.blocked);
+}
+
+/**
+ * Sums one amount per claim family, across both branches or the scoped
+ * family. No summary, or a total that is not positive, returns null.
+ */
+function sumFamilyBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+  scope: SummaryFamilyScope | undefined,
+  amountOf: (family: ReturnType<typeof summaryFamilies>[number]) => BigNumber,
+): string | null {
+  if (!summary) {
+    return null;
+  }
+  const total = summaryFamilies(summary, scope).reduce(
+    (sum, family) => sum.plus(amountOf(family)),
+    new BigNumber(0),
+  );
+  return total.gt(0) ? total.toFixed(0) : null;
+}
+
+/**
+ * Base units a review is holding in `blocked`, summed across both branches'
+ * claim families.
+ *
+ * A branch reason is null when its families disagree, so the family is the
+ * place a mixed branch still says `UNDER_REVIEW`. Zero and any other reason
+ * add nothing, and a summary with no such family returns null. A `scope`
+ * reads one family only.
+ */
+export function underReviewBlockedBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+  scope?: SummaryFamilyScope,
+): string | null {
+  return sumFamilyBaseUnits(summary, scope, blockedUnderReview);
+}
+
+function heldForTax(family: {
+  blocking_reason?: string | null;
+  held?: string | null;
+}): BigNumber {
+  if (family.blocking_reason !== 'TAX_DETERMINATION_REQUIRED') {
+    return new BigNumber(0);
+  }
+  return finiteBaseUnits(family.held);
+}
+
+/**
+ * Base units held until a tax determination clears the payee, summed across
+ * both branches' claim families. Only a family whose reason is
+ * `TAX_DETERMINATION_REQUIRED` counts: `held` also carries balances held by a
+ * claims pause, which a determination does not release. Cashback is never
+ * held for tax. A `scope` reads one family only. No such balance returns null.
+ */
+export function taxHeldBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+  scope?: SummaryFamilyScope,
+): string | null {
+  return sumFamilyBaseUnits(summary, scope, heldForTax);
 }

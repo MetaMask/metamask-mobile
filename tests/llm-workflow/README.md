@@ -38,9 +38,9 @@ Run `yarn mm:doctor` to verify the iOS toolchain. `mm launch` does not search bu
 - `io.metamask/io.metamask.MainActivity` available as the launcher activity
 - No worktree/current-directory `.device-session` override, because Android requires the ADB backend rather than Appium
 
-The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears MetaMask or its app data. Snapshot capture installs or updates only the bundled `agent-device` snapshot-helper instrumentation APK when it is missing or outdated. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no MetaMask APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.8.0 launch flags.
+The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears MetaMask or its app data. Snapshot capture installs or updates only `@metamask/device-mcp`'s bundled snapshot-helper instrumentation APK (`io.metamask.devicemcp.snapshothelper`, a `testOnly` APK) when it is missing or has an older version code, and verifies its signing certificate before every use. The previous `agent-device` helper (`com.callstack.agentdevice.snapshothelper`) is no longer used; it is left installed, because the workflow never uninstalls anything. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no MetaMask APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.8.0 launch flags.
 
-During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to reduce transition churn around interactions. Snapshot capture does not depend on those scales because the helper bypasses raw UiAutomator's fixed idle-state gate. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
+During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to reduce transition churn around interactions. Snapshot capture does not depend on those scales because device-mcp's snapshot helper bypasses raw UiAutomator's idle-state gate. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
 
 ## Basic Workflow
 
@@ -65,12 +65,14 @@ yarn mm screenshot --name "result"
 # Force-stop the selected app and clear the active workflow session
 yarn mm cleanup
 
-# Also request simulator shutdown when using the supported iOS cleanup option
+# Also stop the mm daemon after cleanup (the device is not shut down)
 yarn mm cleanup --shutdown
 
 # Replace an active session in one step instead of running cleanup first
 yarn mm launch --force
 ```
+
+Agents that run many commands can call the CLI bin directly: `node_modules/.bin/mm <command>` takes the same arguments as `yarn mm <command>`. It saves about 0.4-0.5 s per call, because Yarn's script runtime does not start.
 
 Launching while a session is already active fails with `MM_SESSION_ALREADY_RUNNING`. Run `yarn mm cleanup` first, or pass `--force` to clean up the active session and launch in a single step.
 
@@ -97,6 +99,8 @@ MM_METRO_PORT=8081 yarn mm launch --platform ios
 # Android
 MM_METRO_PORT=8081 yarn mm launch --platform android
 ```
+
+`yarn mm cdp` and `yarn mm hermes-targets` use the Metro port of the launch, so no `--metro-port` is needed on each call. The session keeps one Hermes connection open and reuses it. A per-call `--metro-port` or `--app-id` overrides the session values for that call only.
 
 On Node 20, Hermes/CDP WebSocket access may require the experimental WebSocket flag:
 
@@ -134,7 +138,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - `yarn mm launch`
 - `yarn mm cleanup`
-- `yarn mm cleanup --shutdown`: clean up and request iOS simulator shutdown
+- `yarn mm cleanup --shutdown`: clean up, then stop the mm daemon. It does not shut down the simulator or emulator.
 - `yarn mm status`
 - `yarn mm stop`
 
@@ -142,21 +146,29 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - `yarn mm describe-screen`
 - `yarn mm list-testids`
-- `yarn mm click <a11yRef>` or `--testid <id>`
-- `yarn mm type <a11yRef> <text>` or `--testid <id>`
+- `yarn mm click <a11yRef>` or `--testid <id>`. On iOS and Android the click fails with `MM_TARGET_OBSCURED` when another element (for example the keyboard, or the Expo dev "Tools" button in a dev build) covers the target, and nothing is tapped. `--dismiss-keyboard` closes a covering keyboard and taps again.
+- `yarn mm type <a11yRef> <text>` or `--testid <id>`. The field is cleared first; `""` clears it.
+- `yarn mm dismiss-keyboard`. On Android it fails with `MM_DEVICE_ACTION_FAILED` when the keyboard is still shown.
+- `yarn mm scroll-to-element <a11yRef>` or `--testid <id>`. `--direction` is the content direction (`down` reveals content below) and defaults to `auto`. The result has `swipes`, `inViewport` and `bounds`. A target that is found but not brought into view fails with `MM_TARGET_NOT_VISIBLE`.
 - `yarn mm wait-for`
 - `yarn mm get-text`
 - `yarn mm screenshot`
 - `yarn mm run-steps '<json>'`
 - `yarn mm cdp Runtime.evaluate '<json>'` when attached to a compatible Metro development build
 
+### Failures and exit codes
+
+A failed command prints one JSON line on stdout, `{"ok":false,"error":{"code","message","hint"?,"retryable"},"meta"?}`, and exits with a code per error class: 2 usage or validation, 3 no session or daemon down, 4 target not found or not actionable, 5 timeout (including `MM_QUEUE_TIMEOUT` when the daemon stops a request), 6 platform or device unavailable, 1 anything else. A successful response has no `ok` field. See the `@metamask/client-mcp-core` README for the full table.
+
+Set `MM_ARTIFACTS_DIR` before the daemon starts to write session artifacts (`<dir>/<sessionId>/session.json`) to another directory. The default is `test-artifacts`.
+
 ## Android Limitations and Validation Status
 
 - Emulator-only; no physical-device support.
 - No emulator lifecycle management, APK discovery/build/install, app-data reset, Appium fallback, clipboard, WebView switching, Flask-specific handling, or CI support.
-- Android UI snapshots are locally serialized and captured through the bundled `agent-device` snapshot-helper instrumentation APK, avoiding raw `uiautomator dump` and its idle-state gate. The helper installation is cached by its public API and refreshed only when missing or outdated; helper failures propagate without a raw-dump fallback.
+- Android UI snapshots come directly from `@metamask/device-mcp`'s `AdbBackend`; the workflow adds no snapshot wrapper. The backend's default `helper-first` mode captures through its bundled snapshot-helper instrumentation, which does not wait for an idle state, and falls back to up to three `uiautomator dump` attempts only for non-trust helper failures. Captures are serialized per backend. The helper's signer is verified before every `am instrument`, and a signer mismatch fails closed without a dump fallback. Set `DEVICE_MCP_ADB_SNAPSHOT=instrument` (helper only, no fallback), `auto` (quick dump first, then the helper), or `dump` (no helper) to override the mode.
 - Live validation was completed on AVD `Medium_Phone_API_36.1` (`emulator-5554`) with installed package `io.metamask`. Explicit Android launch succeeded and returned a loaded state with `extensionId: io.metamask` after activity resolution was updated to normalize Android's `io.metamask/.MainActivity` shorthand exactly.
-- The live unlock-screen session validated `describe-screen`, `list-testids`, `get-state`, screenshots, `type --testid`, `get-text --testid`, `wait-for`, valid `run-steps`, and `click --testid`. A screenshot path was returned. An intentionally invalid credential was used only to exercise typing and clicking; successful wallet unlock and home-screen navigation were not attempted.
+- The live unlock-screen session validated `describe-screen`, `list-testids`, `get-state`, screenshots, `type --testid`, `get-text --testid`, `wait-for`, valid `run-steps`, and `click --testid`. A screenshot path was returned. An intentionally invalid credential was used only to exercise typing and clicking. Later live runs with `@metamask/client-mcp-core` 0.14.0 on the same AVD unlocked the wallet, navigated the wallet home with `list-testids`, `describe-screen`, and `scroll-to-element`, opened Send and backed out, and opened Settings.
 - Android resource IDs and app test IDs were observable and usable. Test IDs including `login`, `login-password-input`, and `log-in-button` worked without changes to `SCREEN_DETECTION_MAP`.
 - Live cleanup succeeded, left no `io.metamask` process, and left no reverse mapping. Metro reverse ownership and development-client deep linking were exercised during follow-up debugging; the readiness gate correctly rejected the Expo Dev Launcher when the React root did not mount. The original pre-built `/index.bundle?...` deep link reproduced `Invalid Rive resource` because Rive received an empty asset URI. Switching the deep link to the Metro origin fixed asset resolution, and a cold `yarn mm` Metro launch rendered MetaMask's welcome/onboarding UI without errors, exposed a recognized startup-screen marker along with the observed accessibility controls and Rive `TextureView`, and registered one `io.metamask` Hermes target. An induced real-device partial-launch failure was not performed.
 - Android prerequisite, routing, launch verification, cleanup/failure teardown, and ADB reverse ownership edge cases remain covered by mocked unit tests in addition to the live checks above.
@@ -164,7 +176,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 ## Operational Notes
 
-- The daemon binds only to `127.0.0.1`, records worktree-local state in `.mm-server`, and allows up to 180 seconds for requests. Android readiness uses up to 90 seconds, kept below the CLI's 120s request timeout so a real failure surfaces as `MM_ANDROID_RUNNER_NOT_READY` rather than a bare timeout.
+- The daemon binds only to `127.0.0.1`, records worktree-local state in `.mm-server`, and allows up to 180 seconds for requests. It publishes that limit in `.mm-server` (`requestTimeoutMs`), and the CLI waits longer than it. Android readiness uses up to 90 seconds, kept below the CLI's 120s request timeout so a real failure surfaces as `MM_LAUNCH_FAILED` rather than a bare timeout.
 - The daemon shuts down after 30 minutes of inactivity and writes `.mm-daemon.log`.
 - Browser-only navigation and tab APIs are unavailable on mobile sessions.
 - Accessibility references are ephemeral; call `describe-screen` again after navigation or major UI changes.
@@ -172,7 +184,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 ## Troubleshooting
 
-Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` only preserves a consumer-thrown code when it is a known core code and collapses anything else into `MM_LAUNCH_FAILED`. The iOS-specific detail is carried in the message and remediation text.
+Launch errors use the core `ErrorCode` set, because the `mm` CLI maps each known core code to an exit code (an unknown `MM_*` code reaches the caller but exits 1). The iOS-specific detail is carried in the message and remediation text.
 
 | Error                     | Resolution                                                                                                                                                                                                                                                        |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -183,4 +195,4 @@ Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` 
 | `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
 | `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
-Mobile platform support comes from `@metamask/client-mcp-core` 0.8.0; `@metamask/device-mcp` 0.3.3 supplies the device backends. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).
+The workflow uses `@metamask/client-mcp-core` 0.15.0 (mobile platform support since 0.8.0); `@metamask/device-mcp` 0.9.0 supplies the device backends. Core and this workflow must resolve the same device-mcp copy: the workflow creates the backend, so device-mcp fixes (such as the Android tap occlusion check) only apply through it. The device-mcp snapshot helper and its `helper-first` default ship since `@metamask/device-mcp` 0.6.0. When a device-mcp build does not ship the helper APK, the backend default is `dump`. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).

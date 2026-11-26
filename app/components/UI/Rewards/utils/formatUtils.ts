@@ -142,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
+ * @example 'Today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -166,7 +166,7 @@ export const formatRewardsRelativeDay = (
   const diffDays = Math.round((todayUtc - dayUtc) / DAY_MS);
 
   if (diffDays <= 0) {
-    return 'today';
+    return strings('rewards.today');
   }
   return formatDaysAgo(diffDays);
 };
@@ -236,51 +236,6 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   const minuteString = minutes > 0 ? `${minutes}m` : '';
 
   return `${dayString}${hourString}${minuteString}`?.trim();
-};
-
-/** `{count}` templates from referral `localized_text`, one per unit and plural. */
-export interface DurationTemplates {
-  day: string | undefined;
-  days: string | undefined;
-  hour: string | undefined;
-  hours: string | undefined;
-}
-
-/**
- * Largest whole unit still ahead of now: days, otherwise hours.
- * Missing, invalid, or past ends are null so the caller hides the line.
- * The phrase is the matching `{count}` template with the number filled in.
- */
-export const formatDuration = (
-  endIso: string | null | undefined,
-  templates: DurationTemplates,
-  nowMs: number = Date.now(),
-): string | null => {
-  if (!endIso) {
-    return null;
-  }
-  const endMs = new Date(endIso).getTime();
-  if (Number.isNaN(endMs) || endMs <= nowMs) {
-    return null;
-  }
-  const remainingMs = endMs - nowMs;
-  const unit = remainingMs >= DAY_MS ? 'day' : 'hour';
-  const value =
-    unit === 'day'
-      ? Math.floor(remainingMs / DAY_MS)
-      : Math.max(1, Math.floor(remainingMs / HOUR_MS));
-  const template =
-    unit === 'day'
-      ? value === 1
-        ? templates.day
-        : templates.days
-      : value === 1
-        ? templates.hour
-        : templates.hours;
-  if (!template?.includes('{count}')) {
-    return null;
-  }
-  return template.replaceAll('{count}', String(value));
 };
 
 /**
@@ -522,6 +477,23 @@ export const formatSignedUsd = (
 };
 
 /**
+ * True when a Money API base-unit string is a positive integer.
+ * Missing, zero, and unreadable values are false.
+ */
+export const isPositiveBaseUnits = (
+  value: string | null | undefined,
+): boolean => {
+  if (!value) {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
  * base-unit integer strings, because they exceed what a JSON number holds
  * exactly, so they are shifted by {@link MUSD_DECIMALS} before formatting.
@@ -625,6 +597,27 @@ export const formatCompactUsd = (
   return `${sign}$${compactValue}`;
 };
 
+/**
+ * Formats a Predict campaign position amount the way Predict lists its own
+ * positions: whole dollars without cents, otherwise two decimals.
+ *
+ * @example formatPredictPositionUsd(10)     // '$10'
+ * @example formatPredictPositionUsd(1234.5) // '$1,234.50'
+ * @example formatPredictPositionUsd(NaN)    // '$0.00'
+ */
+export const formatPredictPositionUsd = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '$0.00';
+  }
+  const rounded = Math.round(value * 100) / 100;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: rounded === Math.floor(rounded) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(rounded);
+};
+
 // ── Percent / rate formatting ───────────────────────────────────────────
 
 /**
@@ -650,6 +643,26 @@ export const formatPercentChange = (value: string | number): string => {
 export const isPercentChangeNonNegative = (value: string | number): boolean => {
   const num = typeof value === 'number' ? value : parseFloat(value);
   return !Number.isNaN(num) && num >= 0;
+};
+
+/**
+ * Formats a Predict campaign position percentage (already in percent, not a
+ * ratio) the way Predict lists its own positions: up to two decimals,
+ * trailing zeros dropped, no sign on gains.
+ *
+ * @example formatPredictPositionPercent(25)     // '25%'
+ * @example formatPredictPositionPercent(-12.5)  // '-12.5%'
+ * @example formatPredictPositionPercent(-0.001) // '0%'
+ */
+export const formatPredictPositionPercent = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '0%';
+  }
+  if (value === Math.floor(value)) {
+    return `${value}%`;
+  }
+  const formatted = value.toFixed(2).replace(/\.?0+$/, '');
+  return formatted === '-0' ? '0%' : `${formatted}%`;
 };
 
 // ── Ordinal rank (English) ─────────────────────────────────────────────

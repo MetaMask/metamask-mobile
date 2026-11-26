@@ -9,6 +9,7 @@ import {
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import {
   TransactionDetails,
   SUMMARY_SECTION_TYPES,
@@ -24,6 +25,9 @@ import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
   useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
+jest.mock('../../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
 }));
 jest.mock('../transaction-details-hero', () => ({
   TransactionDetailsHero: jest.fn(() => null),
@@ -573,22 +577,22 @@ describe('TransactionDetails', () => {
       });
     });
 
-    it('incoming allowlisted confirmed mUSD transfer returns deposited', () => {
+    it('incoming confirmed mUSD transfer returns received', () => {
       const sender = '0x000000000000000000000000000000000000000a';
       const recipient = '0x000000000000000000000000000000000000000b';
       const state = merge({}, otherControllersMock, {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                moneyVbaActivityDepositFromAddresses: [sender],
-              },
+              remoteFeatureFlags: {},
             },
             MoneyAccountController: {
               moneyAccounts: {
                 account: {
                   address: recipient,
-                  options: { entropy: { id: 'primary-keyring' } },
+                  options: {
+                    entropy: { type: 'mnemonic', id: 'primary-keyring' },
+                  },
                 },
               },
             },
@@ -623,7 +627,7 @@ describe('TransactionDetails', () => {
       const { getByText } = renderWithProvider(<TransactionDetails />, {
         state,
       });
-      expect(getByText(strings('money.transaction.deposited'))).toBeTruthy();
+      expect(getByText(strings('money.transaction.received'))).toBeTruthy();
     });
 
     it('incoming transfer returns received', () => {

@@ -1,42 +1,51 @@
 // Third party dependencies
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
 import { View } from 'react-native';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PermittedNetworksInfoSheet.styles';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   Button,
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const PermittedNetworksInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
 
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const onDismiss = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View
         style={styles.container}
         testID={PermittedNetworksInfoSheetTestIds.CONTAINER}
       >
-        <BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('permissions.permitted_networks')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View
           style={styles.descriptionContainer}
           testID={PermittedNetworksInfoSheetTestIds.DESCRIPTION_CONTAINER}

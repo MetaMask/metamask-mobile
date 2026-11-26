@@ -31,7 +31,9 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
+import { isFiatOrderDeclineError } from '../../../../util/errorHandling/isFiatOrderDeclineError';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import {
   clearMoneyAccountDepositIntent,
   setMoneyAccountDepositIntent,
@@ -42,6 +44,7 @@ export type { MoneyAccountDepositIntent };
 export {
   clearMoneyAccountDepositIntent,
   getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
 } from '../utils/moneyAccountDepositIntent';
 
 const LOG_TAG = '[Money Account]';
@@ -92,13 +95,14 @@ function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
     NavigationService.navigation.getCurrentRoute()?.name ===
     (forceBottomSheet
       ? Routes.CONFIRMATION_REQUEST_MODAL
-      : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS)
+      : Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS)
   );
 }
 
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -106,6 +110,8 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      assertMoneyAccountAccessible();
+
       const preferredPaymentToken = options?.preferredPaymentToken;
       const getDepositSetup = () => {
         if (!vaultConfig) {
@@ -180,6 +186,7 @@ export function useMoneyAccountDeposit() {
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
+        ...(options?.intent ? { depositIntent: options.intent } : {}),
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
         forceBottomSheet: options?.forceBottomSheet,
@@ -249,18 +256,21 @@ export function useMoneyAccountDeposit() {
               navigation.goBack();
             }
           }
-          showToast(
-            MoneyToastOptions.deposit.failed({ intent: options?.intent }),
-          );
+          if (!isFiatOrderDeclineError(errorObj.message)) {
+            showToast(
+              MoneyToastOptions.deposit.failed({ intent: options?.intent }),
+            );
+            showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
+          }
+          Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
         }
-        Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
-        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
         // Rethrow so the caller can log the failed initiation.
         throw error;
       }
     },
     [
       MoneyToastOptions.deposit,
+      assertMoneyAccountAccessible,
       isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
@@ -276,12 +286,15 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
+    assertMoneyAccountAccessible();
+
     if (!vaultConfig) {
       throw new Error(`${LOG_TAG} Missing vault config`);
     }
@@ -347,14 +360,15 @@ export function useMoneyAccountWithdrawal() {
           navigation.goBack();
         }
         showToast(MoneyToastOptions.withdraw.failed());
+        Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
+        showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
       }
-      Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
-      showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
   }, [
     MoneyToastOptions.withdraw,
+    assertMoneyAccountAccessible,
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,

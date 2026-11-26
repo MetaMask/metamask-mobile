@@ -1,9 +1,9 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -15,6 +15,9 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
@@ -49,6 +52,7 @@ const PredictPreviewSheet = forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const {
       sheetRef,
       isVisible,
@@ -71,12 +75,14 @@ const PredictPreviewSheet = forwardRef<
         onClose={handleSheetClosed}
         testID={testID}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={closeSheet}
           // Override internal styles that set width of start accessory to same size as close button,
           // to allow for left aligned predict header content
           startAccessoryWrapperProps={{ style: tw.style('w-0') }}
-          style={tw.style('gap-0')}
+          style={tw.style('gap-0 pl-4')}
+          testID="preview-sheet-header"
         >
           {renderHeader ? (
             renderHeader()
@@ -84,15 +90,13 @@ const PredictPreviewSheet = forwardRef<
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              // Without an avatar the header's own px-2 leaves the text at 8px,
-              // so pad to match the 16px inset of the sheet body below.
-              twClassName={`gap-3 flex-1 min-w-0 ${image ? '' : 'pl-2'}`}
+              twClassName="gap-3 flex-1 min-w-0"
               testID="preview-sheet-header-content"
             >
               {image && (
                 <Image
                   source={{ uri: image }}
-                  style={tw.style('w-12 h-12 rounded')}
+                  style={tw.style('w-12 h-12 rounded-xl')}
                 />
               )}
               <Box twClassName="flex-1 min-w-0 shrink">
@@ -102,7 +106,8 @@ const PredictPreviewSheet = forwardRef<
                   twClassName="gap-1 min-w-0"
                 >
                   <Text
-                    variant={TextVariant.HeadingMd}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     twClassName="text-default shrink"
                     numberOfLines={1}
                     ellipsizeMode="tail"
@@ -116,7 +121,7 @@ const PredictPreviewSheet = forwardRef<
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="font-medium"
+                    fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                     testID="preview-sheet-subtitle"
                   >
@@ -126,7 +131,7 @@ const PredictPreviewSheet = forwardRef<
               </Box>
             </Box>
           )}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         {children(closeSheet)}
       </BottomSheet>
     );

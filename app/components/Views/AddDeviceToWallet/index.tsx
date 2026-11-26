@@ -1,26 +1,26 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
+  BoxBackgroundColor,
+  Button,
   FontWeight,
   IconName,
   ListItem,
   ListItemVariant,
   Text,
   TextColor,
+  TextField,
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -35,11 +35,19 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
@@ -89,26 +97,40 @@ const INSTRUCTIONS: {
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
+  const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
+  // Import and existing-user Phase C pop this screen while they still read
+  // pending secrets and provisioning metadata.
+  const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
 
   const handleBack = useCallback(() => {
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
     navigation.goBack();
-  }, [messenger, navigation]);
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (shouldKeepQrSyncState) {
+        return;
+      }
+
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
+  }, [messenger, navigation, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -154,6 +176,25 @@ const AddDeviceToWallet = () => {
     });
   }, [messenger, navigation, isSessionActive]);
 
+  const submitManualQrPayload = useCallback(async () => {
+    const payload = manualQrPayload.trim();
+    if (!payload) {
+      return;
+    }
+
+    await messenger.call('QrSyncController:handleScannedQrPayload', payload);
+  }, [manualQrPayload, messenger]);
+
+  const triggerManualQrSubmit = useCallback(() => {
+    submitManualQrPayload().catch((submitError: unknown) => {
+      reportQrSyncFailure(submitError, {
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+      });
+    });
+  }, [submitManualQrPayload]);
+
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
@@ -165,14 +206,14 @@ const AddDeviceToWallet = () => {
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         onBack={handleBack}
       />
-      <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
+      <Box twClassName="flex-1 pt-3">
         <TitleStandard
-          twClassName="mb-6 px-4"
+          twClassName="mb-2 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
@@ -184,6 +225,7 @@ const AddDeviceToWallet = () => {
               <AvatarIcon
                 iconName={instruction.iconName}
                 severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
               />
             }
             title={strings(instruction.titleKey)}
@@ -197,8 +239,51 @@ const AddDeviceToWallet = () => {
           />
         ))}
 
+        {__DEV__ ? (
+          <Box
+            backgroundColor={BoxBackgroundColor.BackgroundSection}
+            twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
+          >
+            <Box gap={1}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+            </Box>
+            <TextField
+              value={manualQrPayload}
+              onChangeText={setManualQrPayload}
+              placeholder="Paste QR payload"
+              isDisabled={isBusy}
+              inputProps={{
+                autoCapitalize: 'none',
+                autoCorrect: false,
+                onSubmitEditing: triggerManualQrSubmit,
+                returnKeyType: 'done',
+              }}
+            />
+            <Button
+              twClassName="w-full"
+              onPress={triggerManualQrSubmit}
+              isDisabled={!manualQrPayload.trim() || isBusy}
+              isLoading={isBusy}
+            >
+              Submit QR data
+            </Button>
+          </Box>
+        ) : null}
+
         <FooterGlass
-          twClassName="mt-auto py-4"
+          twClassName="mt-auto py-2"
           primaryButtonProps={{
             children: strings('app_settings.add_device.scan_qr_code_button'),
             onPress: openQRScanner,

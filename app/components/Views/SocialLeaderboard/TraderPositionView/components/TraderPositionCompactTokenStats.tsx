@@ -24,6 +24,8 @@ export interface TraderPositionCompactTokenStatsProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
+  isTraderVerified?: boolean;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
   onTraderPress: () => void;
@@ -38,6 +40,8 @@ const TraderPositionCompactTokenStats: React.FC<
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
+  isTraderVerified,
   perpDirection,
   perpLeverage,
   onTraderPress,
@@ -60,6 +64,8 @@ const TraderPositionCompactTokenStats: React.FC<
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
+            isVerified={isTraderVerified}
             variant="breadcrumb"
             onPress={onTraderPress}
             testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TRADER_LINK}

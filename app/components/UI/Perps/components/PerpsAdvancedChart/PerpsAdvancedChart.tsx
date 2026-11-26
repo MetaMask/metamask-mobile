@@ -243,6 +243,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     deliveryRevision,
     hasFreshCurrentSeriesDelivery,
     handleFetchOlderBarsRequest,
+    webViewInstanceKey,
   } = usePerpsAdvancedChartAdapter({
     symbol,
     interval,
@@ -318,10 +319,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   }, [szDecimals]);
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
-  const webViewInstanceKey = useMemo(
-    () => `${symbol}|${interval}|perps`,
-    [interval, symbol],
-  );
 
   useEffect(() => {
     onLatestPriceChange?.(
@@ -629,6 +626,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       priceDecimals={priceDecimals}
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
+      skeletonVariant="candles"
       positionLines={positionLines}
       positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}

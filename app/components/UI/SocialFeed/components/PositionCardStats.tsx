@@ -67,8 +67,8 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   }
 
   return (
-    // The shell's own gap sits above the divider; matching it below keeps the
-    // rule optically centred between the header and the first stat row.
+    // The divider takes no layout height and hangs in the gap above, so the
+    // shell's gap below the header and this gap below the rule both stay 8px.
     <Box twClassName="gap-2">
       <PositionCardDivider
         testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}
@@ -84,7 +84,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             // long value truncate instead of pushing its neighbours off-card.
             <Box
               key={row.key}
-              twClassName="flex-1 min-w-0 gap-1"
+              twClassName="flex-1 min-w-0 py-0.5"
               testID={row.testID}
             >
               <Text
@@ -118,7 +118,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
               >
                 {row.label}
               </Text>
-              <StatValue row={row} variant={TextVariant.BodyXs} />
+              <StatValue row={row} variant={TextVariant.BodySm} />
             </Box>
           ))}
         </Box>

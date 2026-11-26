@@ -136,17 +136,12 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
     onSelect,
     onChartTypeSelect,
     onChartTypeToggle,
-    isChartLoading,
   }: {
     onSelect: (r: string) => void;
     onChartTypeSelect?: (type: number) => void;
     onChartTypeToggle?: () => void;
-    isChartLoading?: boolean;
   }) => (
-    <View
-      testID="mock-time-range-selector"
-      accessibilityState={{ busy: isChartLoading }}
-    >
+    <View testID="mock-time-range-selector">
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
       {(onChartTypeSelect || onChartTypeToggle) && (
@@ -378,6 +373,14 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
   });
 
+  it('asks AdvancedChart for the candle skeleton', () => {
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(getByTestId('mock-advanced-chart').props.skeletonVariant).toBe(
+      'candles',
+    );
+  });
+
   it('renders TimeRangeSelector when chart has data', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
@@ -429,13 +432,11 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
-  it('shows candle empty state when OHLCV has fewer than 5 candles', () => {
+  it('shows candle empty state when OHLCV has fewer than 3 candles', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
         { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
-        { time: 3000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
-        { time: 4000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
       ],
       isLoading: false,
       error: undefined,
@@ -635,7 +636,7 @@ describe('PriceAdvanced', () => {
       },
     ];
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore,
         {
@@ -670,7 +671,7 @@ describe('PriceAdvanced', () => {
 
     // After time range change: prevBar close = 103, current = 105
     // Expected: (105 - 103) / 103 * 100 = 1.94%
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore.slice(0, -1),
         { ...ohlcvPadBefore[2], close: 103 },
@@ -1014,17 +1015,16 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
     });
 
-    it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
+    it('keeps the time range buttons visible while the advanced chart loads', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const timeRangeSelector = getByTestId('mock-time-range-selector');
 
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(true);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
 
       act(() => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
       });
 
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
     });
 
     it('keeps TimeRangeSelector visible after time range change when technical indicators FF is OFF', () => {
@@ -1034,17 +1034,13 @@ describe('PriceAdvanced', () => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
       });
 
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
 
       act(() => {
         fireEvent.press(getByTestId('select-1W'));
       });
 
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
     });
 
     it('draws the indicator bar on glass when the screen passes isGlass', () => {
@@ -1068,7 +1064,7 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('mock-indicator-bar-glass')).toBeOnTheScreen();
     });
 
-    it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
+    it('shows interval and indicator bars while the advanced chart loads', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
@@ -1080,12 +1076,10 @@ describe('PriceAdvanced', () => {
         return ChartType.Candles;
       });
 
-      const { getByTestId, queryByTestId } = render(
-        <PriceAdvanced {...baseProps} />,
-      );
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
-      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
 
       act(() => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
@@ -1397,13 +1391,10 @@ describe('PriceAdvanced', () => {
   });
 
   describe('ambient color logic', () => {
-    it('returns undefined when useAmbientColor is false', () => {
-      const { queryByTestId } = render(
-        <PriceAdvanced {...baseProps} useAmbientColor={false} />,
-      );
+    it('renders chart when ambient color is always active', () => {
+      const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-      // When useAmbientColor is false, ambientColor should be undefined
-      // This means we won't render the skeleton and will render the chart directly
+      // Ambient color is always active — chart should render
       expect(queryByTestId('mock-advanced-chart')).toBeOnTheScreen();
     });
 
@@ -1421,9 +1412,7 @@ describe('PriceAdvanced', () => {
         hasEmptyData: false,
       });
 
-      const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} useAmbientColor />,
-      );
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
       // When displayDiff is null, should default to positive (success green)
       // The chart should still render because we default to success green
@@ -1434,7 +1423,7 @@ describe('PriceAdvanced', () => {
       // OHLCV data: reference close = 100, current price = 105
       // displayDiff = 105 - 100 = 5 (positive)
       const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} currentPrice={105} useAmbientColor />,
+        <PriceAdvanced {...baseProps} currentPrice={105} />,
       );
 
       // Should render chart with success green color
@@ -1444,7 +1433,7 @@ describe('PriceAdvanced', () => {
       // In light mode, should use LIGHT_MODE_SUCCESS_GREEN
     });
 
-    it('returns AMBIENT_NEGATIVE_COLOR when displayDiff is negative', () => {
+    it('returns error red when displayDiff is negative', () => {
       // Mock OHLCV data with negative price movement
       // For 1D range: visibleFromMs = lastBarTime - 86400000ms (24 hours)
       // lastBarTime = 100000000, visibleFromMs = 13600000
@@ -1488,14 +1477,14 @@ describe('PriceAdvanced', () => {
       });
 
       const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} currentPrice={95} useAmbientColor />,
+        <PriceAdvanced {...baseProps} currentPrice={95} />,
       );
 
-      // Should render chart with negative color (#FA4B00)
+      // Should render chart with error red color from design tokens
       expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
       const chart = getByTestId('mock-advanced-chart');
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      expect(chart.props.lineColorOverride).toBe('#FA4B00');
+      expect(chart.props.lineColorOverride).toBeTruthy();
+      // The color comes from theme.colors.error.default (design token)
     });
 
     it('calls onPriceDirectionChange with true for positive displayDiff', () => {
@@ -1505,7 +1494,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1559,7 +1547,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={95}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1585,7 +1572,6 @@ describe('PriceAdvanced', () => {
       render(
         <PriceAdvanced
           {...baseProps}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1615,7 +1601,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1625,16 +1610,14 @@ describe('PriceAdvanced', () => {
       expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true); // positive price
     });
 
-    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 5 bars) - legacy handles it', () => {
+    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 3 bars) - legacy handles it', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
-      // Insufficient OHLCV data (4 bars total) - should fallback to legacy
+      // Insufficient OHLCV data (2 bars total) - should fallback to legacy
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
-          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
-          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
         ],
         isLoading: false,
         error: undefined,
@@ -1647,7 +1630,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
           priceDiff={5} // Legacy will use this
         />,
@@ -1678,7 +1660,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={95}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
           priceDiff={-5} // Negative - should be used by legacy
         />,

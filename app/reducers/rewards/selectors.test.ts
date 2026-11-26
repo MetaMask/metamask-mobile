@@ -2,11 +2,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import {
   selectActiveTab,
-  selectReferralCode,
   selectBalanceTotal,
   selectCampaignsFetching,
-  selectReferralCount,
-  selectReferredByCode,
+  selectReferralCode,
   selectIsVipReferee,
   selectReferredByVipCode,
   selectCurrentTier,
@@ -22,14 +20,7 @@ import {
   selectSeasonTiers,
   selectSeasonActivityTypes,
   selectSeasonWaysToEarn,
-  selectOnboardingActiveStep,
-  selectOnboardingReferralCode,
-  selectGeoLocation,
   selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading,
-  selectOptinAllowedForGeoError,
-  selectReferralDetailsLoading,
-  selectReferralDetailsError,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
@@ -50,6 +41,8 @@ import {
   selectBulkLinkAccountProgress,
   selectPendingMasSeriesOptIn,
   selectBenefits,
+  selectBenefitsError,
+  selectBenefitsHasLoaded,
   selectVipDashboard,
   selectVipDashboardError,
   selectVipDashboardLoading,
@@ -97,7 +90,6 @@ import {
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
-import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
@@ -289,12 +281,14 @@ describe('Rewards selectors', () => {
     if (
       Array.isArray(flat.benefits) ||
       flat.benefitsLoading !== undefined ||
-      flat.benefitsError !== undefined
+      flat.benefitsError !== undefined ||
+      flat.benefitsHasLoaded !== undefined
     ) {
       benefitsMap[subscriptionId] = {
         benefits: Array.isArray(flat.benefits) ? flat.benefits : [],
         loading: flat.benefitsLoading ?? false,
         error: flat.benefitsError ?? false,
+        hasLoaded: flat.benefitsHasLoaded ?? false,
       };
     }
 
@@ -359,6 +353,7 @@ describe('Rewards selectors', () => {
       benefits: _bf,
       benefitsLoading: _bfl,
       benefitsError: _bfe,
+      benefitsHasLoaded: _bfhl,
       vipDashboardLoading: _vdl,
       vipDashboardError: _vde,
       vipRefereeDashboardLoading: _vrdl,
@@ -456,29 +451,6 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('activity');
     });
   });
-
-  describe('selectReferralCode', () => {
-    it('returns null when referral code is not set', () => {
-      const mockState = { rewards: { referralCode: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferralCode));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referral code when set', () => {
-      const mockState = { rewards: { referralCode: 'ABC123' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferralCode));
-      expect(result.current).toBe('ABC123');
-    });
-  });
-
   describe('selectBalanceTotal', () => {
     it('returns null when balance total is null', () => {
       const mockState = { rewards: { balanceTotal: null } };
@@ -510,58 +482,15 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe(0);
     });
   });
-
-  describe('selectReferralCount', () => {
-    it('returns referee count', () => {
-      const mockState = { rewards: { refereeCount: 5 } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferralCount));
-      expect(result.current).toBe(5);
+  describe('selectReferralCode', () => {
+    it('returns null when no referral code is stored', () => {
+      const state = createMockRootState({});
+      expect(selectReferralCode(state)).toBeNull();
     });
 
-    it('returns zero when no referrals', () => {
-      const mockState = { rewards: { refereeCount: 0 } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferralCount));
-      expect(result.current).toBe(0);
-    });
-  });
-
-  describe('selectReferredByCode', () => {
-    it('returns null when referred by code is not set', () => {
-      const mockState = { rewards: { referredByCode: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referred by code when set', () => {
-      const mockState = { rewards: { referredByCode: 'REFERRER123' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBe('REFERRER123');
-    });
-
-    it('returns empty string when referred by code is empty', () => {
-      const mockState = { rewards: { referredByCode: '' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBe('');
+    it('returns the referral code for the current subscription', () => {
+      const state = createMockRootState({ referralCode: 'ABC123' });
+      expect(selectReferralCode(state)).toBe('ABC123');
     });
   });
 
@@ -1102,342 +1031,86 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectOnboardingActiveStep', () => {
-    it('returns INTRO step when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.INTRO },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.INTRO);
-    });
-
-    it('returns STEP_1 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_1 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_1);
-    });
-
-    it('returns STEP_2 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_2 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_2);
-    });
-
-    it('returns STEP_3 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_3 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_3);
-    });
-
-    it('returns STEP_4 when set', () => {
-      const mockState = {
-        rewards: { onboardingActiveStep: OnboardingStep.STEP_4 },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingActiveStep),
-      );
-      expect(result.current).toBe(OnboardingStep.STEP_4);
-    });
-  });
-
-  describe('selectOnboardingReferralCode', () => {
-    it('returns null when onboarding referral code is not set', () => {
-      const mockState = { rewards: { onboardingReferralCode: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns onboarding referral code when set', () => {
-      const mockState = { rewards: { onboardingReferralCode: 'ONBOARD123' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBe('ONBOARD123');
-    });
-
-    it('returns empty string when onboarding referral code is empty', () => {
-      const mockState = { rewards: { onboardingReferralCode: '' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBe('');
-    });
-
-    it('handles state changes correctly', () => {
-      const mockState = { rewards: { onboardingReferralCode: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBeNull();
-
-      // Simulate state change: update onboardingReferralCode to a string
-      const updatedState = {
-        rewards: { onboardingReferralCode: 'UPDATED456' },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(updatedState),
-      );
-      rerender();
-      expect(result.current).toBe('UPDATED456');
-    });
-  });
-
-  describe('selectGeoLocation', () => {
-    it('returns null when geo location is not set', () => {
-      const mockState = { rewards: { geoLocation: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectGeoLocation));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns geo location when set', () => {
-      const mockState = { rewards: { geoLocation: 'US' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectGeoLocation));
-      expect(result.current).toBe('US');
-    });
-  });
-
   describe('selectOptinAllowedForGeo', () => {
-    it('returns false when opt-in is not allowed for geo', () => {
-      const mockState = { rewards: { optinAllowedForGeo: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
+    const stateWithGeo = (
+      location: string | undefined,
+      status: 'idle' | 'loading' | 'complete' | 'error' | undefined,
+    ) =>
+      ({
+        rewards: {},
+        engine: {
+          backgroundState: {
+            GeolocationController: { location, status },
+          },
+        },
+      }) as RootState;
 
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeo),
+    it('returns null while there is no known location and the lookup has not finished', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, undefined))).toBe(
+        null,
       );
-      expect(result.current).toBe(false);
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'idle'))).toBe(
+        null,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'loading'))).toBe(
+        null,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'loading'))).toBe(
+        null,
+      );
     });
 
-    it('returns true when opt-in is allowed for geo', () => {
-      const mockState = { rewards: { optinAllowedForGeo: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('keeps a known location in force while a refresh is loading', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('US', 'loading'))).toBe(
+        true,
       );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeo),
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'loading'))).toBe(
+        false,
       );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectOptinAllowedForGeoLoading', () => {
-    it('returns false when geo check is not loading', () => {
-      const mockState = { rewards: { optinAllowedForGeoLoading: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoLoading),
-      );
-      expect(result.current).toBe(false);
     });
 
-    it('returns true when geo check is loading', () => {
-      const mockState = { rewards: { optinAllowedForGeoLoading: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('fails open when the lookup errors or resolves to UNKNOWN with no usable location', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'error'))).toBe(
+        true,
       );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoLoading),
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'error'))).toBe(
+        true,
       );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectOptinAllowedForGeoError', () => {
-    it('returns false when there is no geo error', () => {
-      const mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
-      );
-      expect(result.current).toBe(false);
+      expect(
+        selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'complete')),
+      ).toBe(true);
     });
 
-    it('returns true when there is a geo error', () => {
-      const mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
-      );
-      expect(result.current).toBe(true);
+    it('keeps a blocked location blocked when a later refresh fails', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'error'))).toBe(false);
     });
 
-    it('handles error state changes correctly', () => {
-      let mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('returns false when a settled location starts with a blocked region', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'complete'))).toBe(
+        false,
       );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UK-ENG', 'complete'))).toBe(
+        false,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('GI', 'complete'))).toBe(
+        false,
+      );
+    });
 
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
+    it('returns true when a settled location is outside the blocked regions', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('US-CA', 'complete'))).toBe(
+        true,
       );
-      expect(result.current).toBe(false);
+    });
 
-      mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(true);
+    it('flips when the same screen sees a new location', () => {
+      const allowed = stateWithGeo('US', 'complete');
+      const blocked = stateWithGeo('GB', 'complete');
 
-      mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(false);
+      expect(selectOptinAllowedForGeo(allowed)).toBe(true);
+      expect(selectOptinAllowedForGeo(blocked)).toBe(false);
     });
   });
-
-  describe('selectReferralDetailsLoading', () => {
-    it('returns false when referral details are not loading', () => {
-      const mockState = { rewards: { referralDetailsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsLoading),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when referral details are loading', () => {
-      const mockState = { rewards: { referralDetailsLoading: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsLoading),
-      );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectReferralDetailsError', () => {
-    it('returns false when there is no referral details error', () => {
-      const mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when there is a referral details error', () => {
-      const mockState = { rewards: { referralDetailsError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(true);
-    });
-
-    it('handles error state changes correctly', () => {
-      let mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(false);
-
-      mockState = { rewards: { referralDetailsError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(true);
-
-      mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(false);
-    });
-  });
-
   describe('selectCandidateSubscriptionId', () => {
     it('returns null when candidate subscription ID is null', () => {
       const mockState = { rewards: { candidateSubscriptionId: null } };
@@ -1963,36 +1636,6 @@ describe('Rewards selectors', () => {
         expect(selectBalanceTotal(state)).toBe(-100);
       });
     });
-
-    describe('selectReferralCount direct calls', () => {
-      it('returns correct referral count directly', () => {
-        const state = createMockRootState({ refereeCount: 42 });
-        expect(selectReferralCount(state)).toBe(42);
-      });
-
-      it('handles zero referrals correctly', () => {
-        const state = createMockRootState({ refereeCount: 0 });
-        expect(selectReferralCount(state)).toBe(0);
-      });
-
-      it('handles large referral counts correctly', () => {
-        const state = createMockRootState({ refereeCount: 9999 });
-        expect(selectReferralCount(state)).toBe(9999);
-      });
-    });
-
-    describe('selectReferredByCode direct calls', () => {
-      it('returns null when referred by code is null', () => {
-        const state = createMockRootState({ referredByCode: null });
-        expect(selectReferredByCode(state)).toBeNull();
-      });
-
-      it('returns referred by code when set', () => {
-        const state = createMockRootState({ referredByCode: 'REFERRER456' });
-        expect(selectReferredByCode(state)).toBe('REFERRER456');
-      });
-    });
-
     describe('selectSeasonTiers direct calls', () => {
       it('returns empty array when no tiers', () => {
         const state = createMockRootState({ seasonTiers: [] });
@@ -2245,36 +1888,30 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
 
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
 
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
 
@@ -2290,45 +1927,32 @@ describe('Rewards selectors', () => {
     describe('String value edge cases', () => {
       it('handles empty strings correctly', () => {
         const state = createMockRootState({
-          referralCode: '',
           seasonId: '',
           seasonName: '',
-          geoLocation: '',
           candidateSubscriptionId: 'sub-empty-test',
         });
 
-        expect(selectReferralCode(state)).toBe('');
         expect(selectSeasonId(state)).toBe('');
         expect(selectSeasonName(state)).toBe('');
-        expect(selectGeoLocation(state)).toBe('');
         expect(selectCandidateSubscriptionId(state)).toBe('sub-empty-test');
       });
 
       it('handles very long strings correctly', () => {
         const longString = 'a'.repeat(10000);
         const state = createMockRootState({
-          referralCode: longString,
           seasonName: longString,
-          geoLocation: longString,
         });
 
-        expect(selectReferralCode(state)).toBe(longString);
         expect(selectSeasonName(state)).toBe(longString);
-        expect(selectGeoLocation(state)).toBe(longString);
       });
 
       it('handles strings with special characters correctly', () => {
-        const specialString = '!@#$%^&*()_+-=[]{}|;:,.<>?';
         const unicodeString = '🎉🌟✨🎊🎈';
         const state = createMockRootState({
-          referralCode: specialString,
           seasonName: unicodeString,
-          geoLocation: 'en-US',
         });
 
-        expect(selectReferralCode(state)).toBe(specialString);
         expect(selectSeasonName(state)).toBe(unicodeString);
-        expect(selectGeoLocation(state)).toBe('en-US');
       });
     });
 
@@ -2483,11 +2107,7 @@ describe('Rewards selectors', () => {
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
-        onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
-        geoLocation: 'US-CA',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
         hideCurrentAccountNotOptedInBanner: [
           {
@@ -2519,9 +2139,6 @@ describe('Rewards selectors', () => {
           new Date('2024-03-31'),
         );
         expect(selectSeasonTiers(comprehensiveState)).toHaveLength(3);
-        expect(selectReferralDetailsLoading(comprehensiveState)).toBe(false);
-        expect(selectReferralCode(comprehensiveState)).toBe('REFER2024');
-        expect(selectReferralCount(comprehensiveState)).toBe(25);
         expect(selectCurrentTier(comprehensiveState)?.name).toBe('Silver');
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
@@ -2529,15 +2146,9 @@ describe('Rewards selectors', () => {
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
         );
-        expect(selectOnboardingActiveStep(comprehensiveState)).toBe(
-          OnboardingStep.STEP_3,
-        );
         expect(selectCandidateSubscriptionId(comprehensiveState)).toBe(
           'sub-candidate-12345',
         );
-        expect(selectGeoLocation(comprehensiveState)).toBe('US-CA');
-        expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
-        expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState),
@@ -3812,6 +3423,36 @@ describe('Rewards selectors', () => {
     it('returns benefits when they exist', () => {
       const state = createMockRootState({ benefits: [mockBenefit] });
       expect(selectBenefits(state)).toEqual([mockBenefit]);
+    });
+  });
+
+  describe('selectBenefitsError', () => {
+    it('returns false when the subscription has no benefits entry', () => {
+      expect(selectBenefitsError(createMockRootState({}))).toBe(false);
+    });
+
+    it('returns true when the stored read failed', () => {
+      const state = createMockRootState({ benefitsError: true });
+      expect(selectBenefitsError(state)).toBe(true);
+    });
+  });
+
+  describe('selectBenefitsHasLoaded', () => {
+    it('returns false when the subscription has no benefits entry', () => {
+      expect(selectBenefitsHasLoaded(createMockRootState({}))).toBe(false);
+    });
+
+    it('returns false while the first read has not settled', () => {
+      const state = createMockRootState({ benefitsLoading: true });
+      expect(selectBenefitsHasLoaded(state)).toBe(false);
+    });
+
+    it('returns true once a read has settled', () => {
+      const state = createMockRootState({
+        benefits: [],
+        benefitsHasLoaded: true,
+      });
+      expect(selectBenefitsHasLoaded(state)).toBe(true);
     });
   });
 

@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 
+import { buildRegressionActionsSlack } from './profiling-regression-actions.mjs';
 import { scenarioTeam } from './link-scenario-artifacts.mjs';
 
 export const SCHEDULED_BASELINE_HOURS = 7 * 24;
-/** Last two scheduled ticks (~6h and ~12h ago), not a 7-day pile. */
-export const BASELINE_PREVIOUS_RUNS = 2;
-export const MIN_BASELINE_RUNS = BASELINE_PREVIOUS_RUNS;
+/** Last six scheduled ticks (~36h), not a 7-day pile. */
+export const BASELINE_PREVIOUS_RUNS = 6;
+/** A tick with no collected report may be replaced by one of the next older ticks, up to this many ticks back. */
+export const BASELINE_CANDIDATE_RUNS = BASELINE_PREVIOUS_RUNS + 2;
+/** Clean observations a scenario needs after filtering before it is compared. */
+export const MIN_BASELINE_RUNS = 4;
 export const REGRESSION_RATIO = 1.5;
+/** A baseline observation outside median ÷ ratio … median × ratio is a spike. */
+export const SPIKE_BAND_RATIO = REGRESSION_RATIO;
 
 function displayName(scenario) {
   return String(scenario || '')
@@ -36,68 +42,207 @@ function scenarioKey(scenario) {
 }
 
 /**
- * The two most recent scheduled ticks before the current run. A missing
- * collected report for one of those ticks is not filled from an older run.
+ * The most recent scheduled ticks before the current run. A tick with no
+ * collected report is replaced by the next older one, but only within
+ * `candidates` ticks so the baseline never drifts far back in time.
  */
 export function selectBaselineReports(
   scheduledRuns,
   collected,
   limit = BASELINE_PREVIOUS_RUNS,
+  candidates = BASELINE_CANDIDATE_RUNS,
 ) {
   return scheduledRuns
-    .slice(0, limit)
+    .slice(0, candidates)
     .map((run) => collected.get(String(run.databaseId)))
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function mean(values) {
+  return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+function mostCommonSegmentCount(observations) {
+  const counts = new Map();
+  for (const { segmentCount } of observations) {
+    if (Number.isFinite(segmentCount)) {
+      counts.set(segmentCount, (counts.get(segmentCount) || 0) + 1);
+    }
+  }
+  let best = null;
+  for (const [segmentCount, count] of counts) {
+    if (
+      best === null ||
+      count > best.count ||
+      (count === best.count && segmentCount > best.segmentCount)
+    ) {
+      best = { segmentCount, count };
+    }
+  }
+  return best?.segmentCount ?? null;
 }
 
 /**
- * Compares the newly collected run with the median of the previous two
- * scheduled runs. Until both ticks have a collected report for the scenario,
- * the run is stored for later but cannot generate an alert.
+ * A run that lost segments under-reports JS work, so it is a measurement
+ * error and not a data point. A report from before `segmentCount` was stored
+ * is judged by its JS work alone.
  */
-export function buildScheduledException(currentReport, baselineReports) {
+function isIncompleteObservation(observation, expectedSegmentCount) {
+  if (!(observation.jsWorkMs > 0)) {
+    return true;
+  }
+  return (
+    expectedSegmentCount !== null &&
+    Number.isFinite(observation.segmentCount) &&
+    observation.segmentCount < expectedSegmentCount
+  );
+}
+
+/**
+ * Reduces one scenario's baseline observations to the complete, non-spiking
+ * ones. `reference` is their mean, the value the current run is compared with.
+ */
+function cleanBaseline(observations) {
+  const expectedSegmentCount = mostCommonSegmentCount(observations);
+  const complete = observations.filter(
+    (observation) => !isIncompleteObservation(observation, expectedSegmentCount),
+  );
+  const center = complete.length > 0 ? median(complete.map((o) => o.jsWorkMs)) : 0;
+  const clean = complete.filter(
+    (observation) =>
+      observation.jsWorkMs <= center * SPIKE_BAND_RATIO &&
+      observation.jsWorkMs >= center / SPIKE_BAND_RATIO,
+  );
+  return {
+    expectedSegmentCount,
+    clean,
+    reference: clean.length > 0 ? mean(clean.map((o) => o.jsWorkMs)) : 0,
+    incompleteCount: observations.length - complete.length,
+    spikeCount: complete.length - clean.length,
+  };
+}
+
+/**
+ * What one run contributes for one scenario: the first attempt's JS work, so
+ * a retry never stands in for the run. A report written before first-attempt
+ * measurements existed has none, which makes the observation incomplete.
+ */
+function observationOf(report, scenario) {
+  const measurement = scenario.firstAttempt;
+  return {
+    jsWorkMs: measurement?.measured ? measurement.jsWorkMs : 0,
+    segmentCount: measurement?.segmentCount,
+    headSha: report.meta?.headSha ?? null,
+  };
+}
+
+function observationFor(report, key) {
+  const scenario = (report?.scenarios || []).find(
+    (candidate) => scenarioKey(candidate) === key,
+  );
+  return scenario ? observationOf(report, scenario) : undefined;
+}
+
+/**
+ * Compares the newly collected run with the average of the complete,
+ * non-spiking runs among the previous scheduled ones. A scenario with fewer
+ * than `MIN_BASELINE_RUNS` clean observations is unchecked, not compared.
+ *
+ * A scenario over the threshold is only a finding when the previous scheduled
+ * run was also over it. A single run over the threshold is reported as
+ * pending: most one-run spikes correct themselves on the next run.
+ */
+export function buildScheduledException(
+  currentReport,
+  baselineReports,
+  { previousReport = null } = {},
+) {
   const baselineByScenario = new Map();
   for (const report of baselineReports) {
     for (const scenario of report.scenarios || []) {
       const key = scenarioKey(scenario);
       const observations = baselineByScenario.get(key) || [];
-      observations.push(scenario.jsWorkMs);
+      observations.push(observationOf(report, scenario));
       baselineByScenario.set(key, observations);
     }
   }
 
+  const currentSha = currentReport.meta?.headSha || null;
   const scenarios = currentReport.scenarios || [];
-  // A scenario with too little history is not "clean"; it is unchecked. The
-  // all-clear says so instead of implying the whole run was compared.
+  const cleaned = new Map();
+  let excludedIncompleteCount = 0;
+  let excludedSpikeCount = 0;
+  for (const scenario of scenarios) {
+    const key = scenarioKey(scenario);
+    const result = cleanBaseline(baselineByScenario.get(key) || []);
+    cleaned.set(key, result);
+    excludedIncompleteCount += result.incompleteCount;
+    excludedSpikeCount += result.spikeCount;
+  }
+
+  // Every baseline run built the same commit as this run, so a change here is
+  // run-to-run variance on identical code, not a regression.
+  const isSameCommitOnly = (key) => {
+    const observations = cleaned.get(key)?.clean || [];
+    return (
+      Boolean(currentSha) &&
+      observations.length > 0 &&
+      observations.every((observation) => observation.headSha === currentSha)
+    );
+  };
+
+  // A scenario with too little clean history, an unmeasured first attempt, or
+  // only same-commit history is not "clean"; it is unchecked. The all-clear
+  // says so instead of implying the whole run was compared.
   const comparedScenarios = scenarios.filter(
-    (scenario) =>
-      (baselineByScenario.get(scenarioKey(scenario)) || []).length >=
-      MIN_BASELINE_RUNS,
+    (scenario) => {
+      const key = scenarioKey(scenario);
+      return (
+        scenario.firstAttempt?.measured === true &&
+        !isSameCommitOnly(key) &&
+        cleaned.get(key).clean.length >= MIN_BASELINE_RUNS
+      );
+    },
   );
 
-  const findings = comparedScenarios
+  const overThreshold = comparedScenarios
     .map((scenario) => {
-      const observations = baselineByScenario.get(scenarioKey(scenario)) || [];
-      const baselineMedianJsWorkMs = median(observations);
+      const key = scenarioKey(scenario);
+      const { clean, reference, expectedSegmentCount } = cleaned.get(key);
+      const jsWorkMs = scenario.firstAttempt.jsWorkMs;
       const ratio =
-        baselineMedianJsWorkMs > 0
-          ? Number((scenario.jsWorkMs / baselineMedianJsWorkMs).toFixed(2))
-          : 0;
+        reference > 0 ? Number((jsWorkMs / reference).toFixed(2)) : 0;
       if (ratio < REGRESSION_RATIO) {
         return null;
       }
+      const previous = observationFor(previousReport, key);
+      const confirmed =
+        Boolean(previous) &&
+        !isIncompleteObservation(previous, expectedSegmentCount) &&
+        previous.jsWorkMs / reference >= REGRESSION_RATIO;
       return {
+        confirmed,
         projectName: scenario.projectName,
         scenario: scenario.scenario,
-        jsWorkMs: scenario.jsWorkMs,
-        baselineMedianJsWorkMs,
-        baselineRuns: observations.length,
+        jsWorkMs,
+        // The filtered baseline average. The key keeps its original name so
+        // issue markers written before the filter still parse.
+        baselineMedianJsWorkMs: Number(reference.toFixed(2)),
+        baselineRuns: clean.length,
         ratio,
         owner: scenarioTeam(displayName(scenario.scenario)).handle,
       };
     })
     .filter(Boolean)
     .sort((left, right) => right.ratio - left.ratio);
+
+  const findings = overThreshold
+    .filter(({ confirmed }) => confirmed)
+    .map(({ confirmed: _confirmed, ...finding }) => finding);
+  const pending = overThreshold
+    .filter(({ confirmed }) => !confirmed)
+    .map(({ confirmed: _confirmed, ...finding }) => finding);
 
   return {
     meta: {
@@ -113,10 +258,14 @@ export function buildScheduledException(currentReport, baselineReports) {
       thresholdRatio: REGRESSION_RATIO,
       scenarioCount: scenarios.length,
       comparedScenarioCount: comparedScenarios.length,
+      excludedIncompleteCount,
+      excludedSpikeCount,
+      pendingConfirmationCount: pending.length,
       profileCount: currentReport.meta.profileCount,
       symbolicatedProfileCount: currentReport.meta.symbolicatedProfileCount,
     },
     findings,
+    pending,
   };
 }
 
@@ -125,11 +274,39 @@ function baselineCoverageNote(meta) {
   if (unchecked <= 0) {
     return '';
   }
-  return ` · ${unchecked} still building a baseline of ${meta.minimumBaselineRuns} runs`;
+  return ` · ${unchecked} without ${meta.minimumBaselineRuns} clean baseline runs yet`;
+}
+
+function baselineExclusionNote(meta) {
+  const parts = [];
+  if (meta.excludedIncompleteCount > 0) {
+    parts.push(`${meta.excludedIncompleteCount} incomplete`);
+  }
+  if (meta.excludedSpikeCount > 0) {
+    parts.push(`${meta.excludedSpikeCount} spiking`);
+  }
+  return parts.length > 0
+    ? ` · excluded ${parts.join(' and ')} baseline observations`
+    : '';
+}
+
+function pendingNote(exception) {
+  const pending = exception.pending || [];
+  if (pending.length === 0) {
+    return '';
+  }
+  const names = pending
+    .map((finding) => `${displayName(finding.scenario)} (${finding.ratio}×)`)
+    .join(', ');
+  return `${pending.length} over ${exception.meta.thresholdRatio}× once, awaiting confirmation by the next scheduled run: ${names}`;
+}
+
+function trackedIssueLabel(issue) {
+  return issue.jiraKey || `#${issue.number}`;
 }
 
 /**
- * Issue outcome recorded by the GitHub sync. Absent when the sync did not
+ * Ticket outcome recorded by the Jira sync. Absent when the sync did not
  * run (branch run, manual re-analysis, or the flag was off).
  */
 function issueSlackSuffix(issue) {
@@ -137,9 +314,9 @@ function issueSlackSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` · GitHub issue not created (${issue.error})`;
+    return ` · Jira ticket not created (${issue.error})`;
   }
-  return ` · <${issue.url}|#${issue.number}> ${issue.created ? 'opened' : 'already open, referenced'}`;
+  return ` · <${issue.url}|${trackedIssueLabel(issue)}> ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 function issueMarkdownSuffix(issue) {
@@ -147,9 +324,10 @@ function issueMarkdownSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` — GitHub issue not created (${issue.error})`;
+    return ` — Jira ticket not created (${issue.error})`;
   }
-  return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
+  const label = trackedIssueLabel(issue);
+  return ` — [${label}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 /**
@@ -172,7 +350,7 @@ function openedBugs(exception) {
 
 /**
  * A finding is tracked only after issue sync stored a URL. The digest is
- * also built when `--github-issues` is off or a create/comment failed, so
+ * also built when `--jira-issues` is off or a create/comment failed, so
  * the headline must not claim a bug that was never opened.
  */
 function everyFindingHasBug(findings) {
@@ -185,7 +363,7 @@ function everyFindingHasBug(findings) {
 function multiScenarioHeadline(exception, slack) {
   const count = exception.findings.length;
   const crossed = slack
-    ? `*${count} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent median.`
+    ? `*${count} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent average.`
     : `${count} scenarios each crossed the threshold.`;
   return everyFindingHasBug(exception.findings)
     ? `${crossed} Each one is tracked on its own bug.`
@@ -197,13 +375,24 @@ function findingComparison(finding) {
     finding.jsWorkMs,
     finding.baselineMedianJsWorkMs,
   ]);
-  return `${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs)`;
+  return `${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs)`;
+}
+
+/**
+ * Findings that did not open a bug on this run: an issue that was already
+ * open, a create that failed, or a finding with no issue yet.
+ */
+function findingsWithoutNewBug(exception) {
+  return exception.findings.filter(
+    (finding) => !(finding.issue?.created && finding.issue?.url),
+  );
 }
 
 /**
  * Message for #metamask-performance when this run opened a bug. The owning
- * team is mentioned. A referenced issue, or a run with no issue, returns
- * null so that channel stays quiet.
+ * team is mentioned. A run that only references an existing issue, or that
+ * opened nothing, returns null. A mixed run still lists those other findings
+ * so the already-open issue stays linked.
  */
 export function buildPerformanceChannelSlack(exception) {
   const opened = openedBugs(exception);
@@ -216,12 +405,12 @@ export function buildPerformanceChannelSlack(exception) {
     lines.push(
       '*App profiling: bugs opened for review*',
       '',
-      `${opened.length} scenarios exceeded ${meta.thresholdRatio}× their recent median JS work. A bug is open for each owning team.`,
+      `${opened.length} scenarios exceeded ${meta.thresholdRatio}× their recent average JS work. A bug is open for each owning team.`,
       '',
     );
     for (const finding of opened) {
       lines.push(
-        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
       );
     }
   } else {
@@ -229,16 +418,26 @@ export function buildPerformanceChannelSlack(exception) {
     lines.push(
       '*App profiling: bug opened for review*',
       '',
-      `*${displayName(finding.scenario)}* is over ${meta.thresholdRatio}× its recent median JS work. A bug is open for the owning team.`,
+      `*${displayName(finding.scenario)}* is over ${meta.thresholdRatio}× its recent average JS work. A bug is open for the owning team.`,
       '',
       `• JS work: ${findingComparison(finding)}`,
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
-      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+      `• Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
     );
+  }
+  const others = findingsWithoutNewBug(exception);
+  if (others.length > 0) {
+    lines.push('', '*Also flagged*');
+    for (const finding of others) {
+      lines.push(
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
+      );
+    }
   }
   lines.push(
     '',
     `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
+    "_Jira:_ each new bug is filed in the owning team's Jira project.",
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
@@ -251,11 +450,13 @@ export function buildPerformanceChannelSlack(exception) {
 export function buildScheduledExceptionSlack(exception) {
   const { meta } = exception;
   if (!meta.hasFindings) {
+    const pending = pendingNote(exception);
     return [
       '*Hermes CPU-profile run check* · nothing to action',
       `_Run:_ <${meta.runUrl}|${meta.runId}>`,
-      `_Checked:_ ${meta.comparedScenarioCount}/${meta.scenarioCount} scenarios against the median of the previous ${meta.baselinePreviousRuns} scheduled runs${baselineCoverageNote(meta)}`,
-      `_Result:_ no scenario reached ${meta.thresholdRatio}× its recent median JS work.`,
+      `_Checked:_ ${meta.comparedScenarioCount}/${meta.scenarioCount} scenarios against the average of up to the previous ${meta.baselinePreviousRuns} clean scheduled runs${baselineCoverageNote(meta)}${baselineExclusionNote(meta)}`,
+      `_Result:_ no scenario is confirmed over ${meta.thresholdRatio}× its recent average JS work.`,
+      ...(pending ? [`_Pending:_ ${pending}`] : []),
     ].join('\n');
   }
   const sharedRun = exception.findings.length > 1;
@@ -263,11 +464,11 @@ export function buildScheduledExceptionSlack(exception) {
     '*Hermes CPU-profile run exception*',
     '',
     `_Run:_ <${exception.meta.runUrl}|${exception.meta.runId}>`,
-    `_Baseline:_ median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h)`,
+    `_Baseline:_ average of up to the previous ${exception.meta.baselinePreviousRuns} clean scheduled runs (~36h); over the threshold in this run and the one before it${baselineExclusionNote(exception.meta)}`,
     '',
     sharedRun
       ? multiScenarioHeadline(exception, true)
-      : `*Possible regression:* one scenario exceeded ${exception.meta.thresholdRatio}× its recent median.`,
+      : `*Possible regression:* one scenario exceeded ${exception.meta.thresholdRatio}× its recent average.`,
     '_Owners are named for routing; no team is notified._',
     '',
   ];
@@ -277,7 +478,7 @@ export function buildScheduledExceptionSlack(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
+      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
     );
   }
   lines.push(
@@ -292,12 +493,14 @@ export function buildScheduledExceptionMarkdown(exception) {
     '# Hermes CPU-profile scheduled-run check',
     '',
     `Run: [${exception.meta.runId}](${exception.meta.runUrl})`,
-    `Baseline: previous ${exception.meta.baselinePreviousRuns} scheduled runs · ${exception.meta.baselineRunCount} collected · minimum ${exception.meta.minimumBaselineRuns} observations per scenario`,
+    `Baseline: average of up to the previous ${exception.meta.baselinePreviousRuns} scheduled runs · ${exception.meta.baselineRunCount} collected · minimum ${exception.meta.minimumBaselineRuns} clean observations per scenario${baselineExclusionNote(exception.meta)}`,
     '',
   ];
   if (!exception.meta.hasFindings) {
+    const pending = pendingNote(exception);
     lines.push(
-      `Checked ${exception.meta.comparedScenarioCount}/${exception.meta.scenarioCount} scenarios; none reached ${exception.meta.thresholdRatio}× its recent median JS work.`,
+      `Checked ${exception.meta.comparedScenarioCount}/${exception.meta.scenarioCount} scenarios; none confirmed over ${exception.meta.thresholdRatio}× its recent average JS work.`,
+      ...(pending ? ['', `Pending: ${pending}`] : []),
       '',
       'An all-clear was posted so a silent channel still means the check stopped running.',
     );
@@ -315,8 +518,30 @@ export function buildScheduledExceptionMarkdown(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
+      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
     );
   }
   return lines.join('\n');
+}
+
+/**
+ * #metamask-performance body for a scheduled finding.
+ *
+ * A newly opened bug uses the short review, which mentions the owning Slack
+ * group and links the Jira ticket. Other findings in that same run are
+ * listed under it, including an issue that was already open. A run with no
+ * new bug keeps the digest. An all-clear returns an empty string so nothing
+ * is sent.
+ */
+export function buildPerformanceChannelPost(exception, aiText = null) {
+  if (!exception?.meta?.hasFindings) {
+    return '';
+  }
+  const opened = buildPerformanceChannelSlack(exception);
+  const parts = [opened || buildScheduledExceptionSlack(exception)];
+  const proposal = buildRegressionActionsSlack(aiText);
+  if (proposal) {
+    parts.push('', proposal);
+  }
+  return parts.join('\n');
 }

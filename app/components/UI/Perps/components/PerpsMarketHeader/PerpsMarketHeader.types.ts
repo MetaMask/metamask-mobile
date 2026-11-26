@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import type { PerpsMarketData, PerpsMode } from '@metamask/perps-controller';
+import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
 
 /** Fixed header height, in px. */
 export const PERPS_MARKET_HEADER_HEIGHT = 64;
@@ -33,6 +34,11 @@ export interface PerpsMarketHeaderProps {
   endAccessory?: ReactNode;
   /** Default action row — ignored when `endAccessory` is provided. */
   onWalletPress?: () => void;
+  /**
+   * Cross margin risk shown as a badge on the wallet button. Only `warning`
+   * and `danger` render a badge; `safe` and `undefined` leave the icon plain.
+   */
+  walletRiskTone?: CrossMarginRatioTone;
   onFavoritePress?: () => void;
   isFavorite?: boolean;
   mode?: PerpsMode;
@@ -65,4 +71,6 @@ export interface PerpsMarketHeaderProps {
    * falls back to the live mid-price stream.
    */
   currentPrice?: number;
+  /** Status bar space the floating header pads, when the screen runs under it. */
+  topInset?: number;
 }

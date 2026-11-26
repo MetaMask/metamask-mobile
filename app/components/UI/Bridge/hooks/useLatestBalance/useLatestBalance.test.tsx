@@ -1,5 +1,8 @@
+import { AccountWalletType } from '@metamask/account-api';
 import {
+  evmAccountAddress,
   initialState,
+  solanaAccountAddress,
   solanaNativeTokenAddress,
   solanaToken2Address,
   solanaAccountId,
@@ -13,10 +16,12 @@ import {
 } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
+import BigNumberJs from 'bignumber.js';
 import { act, waitFor } from '@testing-library/react-native';
 import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import {
   endTrace,
   trace,
@@ -48,6 +53,41 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockRefetchMoneyBalance = jest.fn().mockResolvedValue(undefined);
+
+const createMoneyBalance = (
+  overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
+) =>
+  ({
+    withdrawableMusd: undefined,
+    refetchBalance: mockRefetchMoneyBalance,
+    ...overrides,
+  }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const createMoneyToken = (
+  overrides: {
+    address?: string;
+    isMoneyToken?: boolean;
+    decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string;
+    refreshKey?: string | number;
+  } = {},
+) => ({
+  address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  isMoneyToken: true,
+  decimals: 6,
+  chainId: 'eip155:143' as CaipChainId,
+  balance: '4.5',
+  ...overrides,
+});
+
 const mockTrace = trace as jest.MockedFunction<
   (request: TraceRequest) => TraceContext
 >;
@@ -64,6 +104,8 @@ describe('useLatestBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getProviderByChainId as jest.Mock).mockReturnValue(mockProvider);
+    mockRefetchMoneyBalance.mockResolvedValue(undefined);
+    mockUseMoneyAccountBalance.mockReturnValue(createMoneyBalance());
   });
 
   it('should fetch native token balance when token address is zero address', async () => {
@@ -584,8 +626,8 @@ describe('useLatestBalance', () => {
     });
   });
 
-  describe('Address type validation (race condition fix)', () => {
-    it('does not call EVM balance fetch when Solana address is selected with EVM hex chainId', async () => {
+  describe('account resolution by token chain', () => {
+    it('fetches the token balance of the EVM account of the selected group when a Solana account is selected', async () => {
       const state = cloneDeep(initialState);
       state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
         solanaAccountId;
@@ -594,26 +636,23 @@ describe('useLatestBalance', () => {
         () =>
           useLatestBalance({
             address: '0x1234567890123456789012345678901234567890',
-            decimals: 18,
+            decimals: 6,
             chainId: '0x1' as Hex,
             balance: '100.0',
           }),
         { state },
       );
 
-      // When Solana address is selected but chainId is EVM hex,
-      // isEthAddress(selectedAddress) returns false, preventing EVM balance fetch
-      expect(getProviderByChainId).not.toHaveBeenCalled();
-      expect(mockProvider.getBalance).not.toHaveBeenCalled();
-
-      // Returns cached balance instead of attempting to fetch
-      expect(result.current).toEqual({
-        displayBalance: '100.0',
-        atomicBalance: BigNumber.from('100000000000000000000'),
+      await waitFor(() => {
+        expect(getProviderByChainId).toHaveBeenCalledWith('0x1');
+        expect(result.current).toEqual({
+          displayBalance: '1.0',
+          atomicBalance: BigNumber.from('1000000'),
+        });
       });
     });
 
-    it('does not call EVM balance fetch when Solana address with native token has EVM chainId', async () => {
+    it('fetches the native balance of the EVM account of the selected group when a Solana account is selected', async () => {
       const state = cloneDeep(initialState);
       state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
         solanaAccountId;
@@ -629,14 +668,16 @@ describe('useLatestBalance', () => {
         { state },
       );
 
-      // Solana address with zero address token and EVM chainId
-      // should not attempt EVM balance fetch
-      expect(getProviderByChainId).not.toHaveBeenCalled();
-      expect(mockProvider.getBalance).not.toHaveBeenCalled();
-      expect(result.current).toEqual({
-        displayBalance: '50.0',
-        atomicBalance: BigNumber.from('50000000000000000000'),
+      await waitFor(() => {
+        expect(mockProvider.getBalance).toHaveBeenCalledWith(evmAccountAddress);
+        expect(result.current).toEqual({
+          displayBalance: '1.0',
+          atomicBalance: BigNumber.from('1000000000000000000'),
+        });
       });
+      expect(mockProvider.getBalance).not.toHaveBeenCalledWith(
+        solanaAccountAddress,
+      );
     });
 
     it('fetches EVM balance when EVM address is selected with EVM chainId', async () => {
@@ -660,11 +701,13 @@ describe('useLatestBalance', () => {
       });
     });
 
-    it('returns cached balance when Bitcoin address is selected with EVM chainId', async () => {
+    it('returns cached balance when the selected group has no EVM account', async () => {
       const state = cloneDeep(initialState);
-      // Mock a Bitcoin account being selected
-      state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-        'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq'; // Bitcoin address format
+      state.engine.backgroundState.AccountTreeController.accountTree.wallets[
+        `${AccountWalletType.Entropy}:wallet1`
+      ].groups[`${AccountWalletType.Entropy}:wallet1/0`].accounts = [
+        solanaAccountId,
+      ];
 
       const { result } = renderHookWithProvider(
         () =>
@@ -677,7 +720,6 @@ describe('useLatestBalance', () => {
         { state },
       );
 
-      // Bitcoin address with EVM chainId should not attempt EVM balance fetch
       expect(getProviderByChainId).not.toHaveBeenCalled();
       expect(mockProvider.getBalance).not.toHaveBeenCalled();
       expect(result.current).toEqual({
@@ -686,7 +728,7 @@ describe('useLatestBalance', () => {
       });
     });
 
-    it('handles rapid account switching from EVM to Solana gracefully', async () => {
+    it('keeps fetching the EVM balance after switching the selected account from EVM to Solana', async () => {
       const stateWithEvmAccount = cloneDeep(initialState);
 
       renderHookWithProvider(
@@ -723,15 +765,11 @@ describe('useLatestBalance', () => {
         { state: stateWithSolanaAccount },
       );
 
-      // After switching to Solana, EVM balance fetch should not be called
-      // even though chainId is still '0x1'
-      expect(getProviderByChainId).not.toHaveBeenCalled();
-      expect(mockProvider.getBalance).not.toHaveBeenCalled();
-
-      // Should return cached balance
-      expect(resultAfterSwitch.current).toEqual({
-        displayBalance: '10.0',
-        atomicBalance: BigNumber.from('10000000000000000000'),
+      await waitFor(() => {
+        expect(getProviderByChainId).toHaveBeenCalledWith('0x1');
+        expect(resultAfterSwitch.current?.atomicBalance).toEqual(
+          BigNumber.from('1000000'),
+        );
       });
     });
   });
@@ -1229,6 +1267,201 @@ describe('useLatestBalance', () => {
           displayBalance: '0',
           atomicBalance: BigNumber.from('0'),
         });
+      });
+    });
+  });
+
+  /**
+   * Unit fallback: this hook maps live withdrawable mUSD onto the selected
+   * source token. CV cannot cover it without mocking useLatestBalance or
+   * standing up react-query + MoneyAccountBalanceService. Integration is the
+   * money-balance service seam, not this mapping.
+   */
+  describe('money token balance', () => {
+    it('returns live withdrawable mUSD instead of the selection snapshot', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('10.25') }),
+      );
+
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '10.25',
+        atomicBalance: BigNumber.from('10250000'),
+      });
+    });
+
+    it('returns the new live balance when withdrawable mUSD updates without reselecting', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('10.25') }),
+      );
+      rerender({ state: initialState });
+
+      expect(result.current).toEqual({
+        displayBalance: '10.25',
+        atomicBalance: BigNumber.from('10250000'),
+      });
+    });
+
+    it('falls back to the snapshot when live withdrawable mUSD is missing', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('4500000'),
+      });
+    });
+
+    it('uses 0 when live and snapshot money balances are missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({
+              address: undefined,
+              balance: undefined,
+            }),
+          ),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses live 0 instead of the snapshot when withdrawable mUSD is 0', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('0') }),
+      );
+
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when the money balance cannot be parsed', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ balance: 'not-a-number' })),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: 'not-a-number',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when money decimals are missing', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ decimals: undefined })),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('does not fetch EVM balance for money tokens', () => {
+      renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({
+              address: constants.AddressZero,
+              chainId: '0x1' as Hex,
+            }),
+          ),
+        { state: initialState },
+      );
+
+      expect(mockProvider.getBalance).not.toHaveBeenCalled();
+    });
+
+    it('does not refetch money balance on first render', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ refreshKey: 0 })),
+        { state: initialState },
+      );
+
+      expect(mockRefetchMoneyBalance).not.toHaveBeenCalled();
+    });
+
+    it('refetches money balance when refreshKey changes', async () => {
+      let refreshKey = 0;
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      const { rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({ chainId: '0x8f' as Hex, refreshKey }),
+          ),
+        { state: initialState },
+      );
+
+      await act(async () => {
+        refreshKey = 1;
+        rerender({ state: initialState });
+      });
+
+      expect(mockRefetchMoneyBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables the money account query for non-money tokens', async () => {
+      renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId: '0x1' as Hex,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockProvider.getBalance).toHaveBeenCalled();
+      });
+
+      expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+        enabled: false,
+      });
+    });
+
+    it('enables the money account query for money tokens', () => {
+      renderHookWithProvider(() => useLatestBalance(createMoneyToken()), {
+        state: initialState,
+      });
+
+      expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+        enabled: true,
       });
     });
   });

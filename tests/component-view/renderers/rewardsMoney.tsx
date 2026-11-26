@@ -1,0 +1,846 @@
+import '../mocks';
+import React from 'react';
+import { Pressable, Text } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { toast } from '@metamask/design-system-react-native';
+import Engine from '../../../app/core/Engine';
+import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
+import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
+import TaxFormQuestionSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
+import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
+import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyClaimsPausedModal, {
+  type RewardsMoneyClaimsPausedModalParams,
+} from '../../../app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
+import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
+import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
+import ReduxService from '../../../app/core/redux/ReduxService';
+import type { ReduxStore } from '../../../app/core/redux/types';
+import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
+import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
+import RewardsCopyTradingView from '../../../app/components/UI/Rewards/Views/RewardsCopyTradingView';
+import RewardsMoneyReferralsView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralsView';
+import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
+import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
+import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
+import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
+import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
+import type {
+  ClaimDto,
+  CommissionEntryView,
+  EarningsSummaryDto,
+  LedgerEarningEntryDto,
+  LedgerEntryDto,
+  ReferralFunnelDto,
+  ReferralMeDto,
+  TaxFormSubmittedSnapshot,
+} from '../../../app/core/Engine/controllers/rewards-money-controller/types';
+import Routes from '../../../app/constants/navigation/Routes';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../render';
+import {
+  CASHBACK_LEDGER_FIXTURE,
+  CLAIMABLE_EARNINGS_SUMMARY,
+  COMMISSIONS_FIXTURE,
+  EARNINGS_HISTORY_ROW,
+  referralMeFixture,
+  REFERRAL_FUNNEL_FIXTURE,
+  REWARDS_MONEY_PROFILE_ID,
+  rewardsMoneyViewState,
+  windowedEarningsSummary,
+  type RewardsMoneyViewStateOptions,
+} from '../presets/rewardsMoney';
+
+const engineCall = Engine.controllerMessenger.call as jest.Mock;
+
+/** A payee who can claim. Prefetch and Claim both read this unless a test overrides it. */
+const CLEARED_TAX_ME = {
+  state: 'COMPLETE_OR_VERIFIED',
+  next_action: 'NONE',
+  reason: null,
+  clears_until: null,
+  cleared: true,
+  can_change_answer: false,
+};
+const baseEngineCall = engineCall.getMockImplementation();
+
+type EngineHandler = (...args: unknown[]) => unknown;
+
+export type InitiateClaimMode = 'hang' | 'under_review';
+
+export interface RewardsMoneyEngineOptions {
+  referralMe?: ReferralMeDto;
+  summary?: EarningsSummaryDto | null;
+  /** Returned by the unwindowed summary read after an under-review refusal. */
+  summaryAfterRefusal?: EarningsSummaryDto;
+  history?: LedgerEntryDto[] | 'pending';
+  cashback?: LedgerEarningEntryDto[] | 'pending';
+  funnel?: ReferralFunnelDto | 'pending';
+  commissions?: CommissionEntryView[];
+  claims?: ClaimDto[];
+  initiateClaim?: InitiateClaimMode;
+  handlers?: Record<string, EngineHandler>;
+}
+
+interface SummaryParams {
+  from?: string;
+  to?: string;
+}
+
+function summaryParams(args: unknown[]): SummaryParams {
+  const params = args[0];
+  if (!params || typeof params !== 'object') {
+    return {};
+  }
+  return params as SummaryParams;
+}
+
+function ledgerParams(args: unknown[]): { includeClaims?: boolean } {
+  const params = args[0];
+  if (!params || typeof params !== 'object') {
+    return {};
+  }
+  return params as { includeClaims?: boolean };
+}
+
+function pendingPage(): Promise<never> {
+  return new Promise(() => undefined);
+}
+
+/**
+ * Installs Rewards Money reads on the shared Engine mock.
+ *
+ * `mockReset` drops a previous test's implementation. Unknown
+ * RewardsMoneyController actions throw. Everything else, including Money
+ * balance reads, delegates to the implementation captured when this module
+ * loaded.
+ */
+export function installRewardsMoneyEngine({
+  referralMe = referralMeFixture('referee'),
+  summary = CLAIMABLE_EARNINGS_SUMMARY,
+  summaryAfterRefusal,
+  history = [EARNINGS_HISTORY_ROW],
+  cashback = CASHBACK_LEDGER_FIXTURE,
+  funnel = REFERRAL_FUNNEL_FIXTURE,
+  commissions = COMMISSIONS_FIXTURE,
+  claims = [],
+  initiateClaim,
+  handlers = {},
+}: RewardsMoneyEngineOptions = {}): jest.Mock {
+  let refused = false;
+  let taxFormSubmitted: TaxFormSubmittedSnapshot | null = null;
+
+  const defaults: Record<string, EngineHandler> = {
+    'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
+    'RewardsMoneyController:getEarningsSummary': (...args) => {
+      const params = summaryParams(args);
+      const current =
+        refused && summaryAfterRefusal ? summaryAfterRefusal : summary;
+      if (current == null) {
+        return Promise.resolve(null);
+      }
+      if (params.from) {
+        return Promise.resolve(
+          windowedEarningsSummary(current, params.from, params.to),
+        );
+      }
+      return Promise.resolve(current);
+    },
+    'RewardsMoneyController:getEarningsLedger': (...args) => {
+      const includeClaims = ledgerParams(args).includeClaims === true;
+      const page = includeClaims ? history : cashback;
+      if (page === 'pending') {
+        return pendingPage();
+      }
+      return Promise.resolve({
+        results: page,
+        has_more: false,
+        cursor: null,
+        window: null,
+      });
+    },
+    'RewardsMoneyController:getClaimHistory': () =>
+      Promise.resolve({ results: claims, has_more: false, cursor: null }),
+    'RewardsMoneyController:getReferralFunnel': () => {
+      if (funnel === 'pending') {
+        return pendingPage();
+      }
+      return Promise.resolve(funnel);
+    },
+    'RewardsMoneyController:getCommissions': () =>
+      Promise.resolve({
+        results: commissions,
+        mechanisms: {
+          REFERRAL_REV_SHARE: { claim_open: false, reason: null },
+          SOCIAL_FOLLOW_TRADE: {
+            claim_open: false,
+            reason: 'MECHANISM_NOT_CLAIMABLE',
+          },
+        },
+        has_more: false,
+        cursor: null,
+      }),
+    'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED_TAX_ME),
+    'RewardsMoneyController:getTaxFormSubmitted': () =>
+      Promise.resolve(taxFormSubmitted),
+    'RewardsMoneyController:noteTaxFormSubmitted': (snapshot: unknown) => {
+      taxFormSubmitted = (snapshot as TaxFormSubmittedSnapshot | null) ?? null;
+      return Promise.resolve(undefined);
+    },
+    'RewardsMoneyController:clearTaxFormSubmitted': () => {
+      taxFormSubmitted = null;
+      return Promise.resolve(undefined);
+    },
+    'RewardsMoneyController:initiateClaim': () => {
+      if (initiateClaim === 'under_review') {
+        refused = true;
+        return Promise.reject(
+          new RewardsMoneyClaimRefusalError(403, 'UNDER_REVIEW'),
+        );
+      }
+      if (initiateClaim === 'hang') {
+        return pendingPage();
+      }
+      return Promise.reject(new Error('initiateClaim was not stubbed'));
+    },
+  };
+
+  const resolved: Record<string, EngineHandler> = { ...defaults, ...handlers };
+
+  engineCall.mockReset();
+  engineCall.mockImplementation((action: string, ...args: unknown[]) => {
+    const handler = resolved[action];
+    if (handler) {
+      return handler(...args);
+    }
+    if (action.startsWith('RewardsMoneyController:')) {
+      throw new Error(`Unexpected RewardsMoneyController call: ${action}`);
+    }
+    if (baseEngineCall) {
+      return baseEngineCall(action, ...args);
+    }
+    return Promise.resolve(undefined);
+  });
+
+  return engineCall;
+}
+
+/**
+ * The Rewards toast hook shows toasts through the design-system `toast()` API.
+ * Component-view renders do not mount its Toaster, and that API is stubbed
+ * globally, so this host surfaces the toast title for the refusal and tax tests.
+ */
+function RewardsMoneyToastHost({ children }: { children: React.ReactNode }) {
+  const [label, setLabel] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const mockedToast = jest.mocked(toast);
+    mockedToast.mockImplementation((options) => {
+      setLabel(typeof options.title === 'string' ? options.title : null);
+      return '';
+    });
+    return () => {
+      mockedToast.mockReset();
+    };
+  }, []);
+
+  return (
+    <>
+      {children}
+      {label === null ? null : <Text>{label}</Text>}
+    </>
+  );
+}
+
+const FlowStack = createNativeStackNavigator();
+
+function routeProbe(routeName: string): React.FC {
+  const Probe = () => (
+    <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>
+  );
+  Probe.displayName = `RouteProbe(${routeName})`;
+  return Probe;
+}
+
+/** Nested stack `navigateToRewardsRoute` targets through `REWARDS_FLOW`. */
+function RewardsFlowProbe() {
+  return (
+    <FlowStack.Navigator>
+      <FlowStack.Screen
+        name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+        component={routeProbe(Routes.REWARDS_EARNINGS_HISTORY_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_SETTINGS_VIEW}
+        component={routeProbe(Routes.REWARDS_SETTINGS_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_TRADING_REBATES_VIEW}
+        component={routeProbe(Routes.REWARDS_TRADING_REBATES_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_MONEY_REFERRALS_VIEW}
+        component={routeProbe(Routes.REWARDS_MONEY_REFERRALS_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_COPY_TRADING_VIEW}
+        component={routeProbe(Routes.REWARDS_COPY_TRADING_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
+        component={createRouteParamsProbe(
+          Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+        )}
+      />
+    </FlowStack.Navigator>
+  );
+}
+
+export const REWARDS_ROOT_MODAL_BACK_TEST_ID = 'rewards-root-modal-back';
+
+function SupportWebviewProbe() {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  return (
+    <>
+      <Text testID={getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        testID={REWARDS_ROOT_MODAL_BACK_TEST_ID}
+        onPress={() => navigation.goBack()}
+      />
+    </>
+  );
+}
+
+function RootModalFlowProbe() {
+  return (
+    <FlowStack.Navigator screenOptions={{ headerShown: false }}>
+      <FlowStack.Screen
+        name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+        component={SupportConsentSheet}
+      />
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={SupportWebviewProbe}
+      />
+      <FlowStack.Screen
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        component={routeProbe(Routes.MODAL.TRADE_WALLET_ACTIONS)}
+      />
+    </FlowStack.Navigator>
+  );
+}
+
+function rewardsFlowRoutes() {
+  return [
+    { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+    {
+      name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      Component: createRouteParamsProbe(
+        Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      ),
+    },
+    {
+      name: Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      Component: RewardsInfoSheetModal,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+      Component: TaxFormQuestionSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+      Component: TaxFormOpenFormSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
+      Component: TaxFormContactUsSheet,
+    },
+    {
+      name: Routes.REWARDS_TAX_FORM_VIEW,
+      Component: RewardsTaxFormView,
+    },
+    {
+      name: Routes.WEBVIEW.MAIN,
+      Component: SupportWebviewStack,
+    },
+    {
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      Component: RootModalFlowProbe,
+    },
+  ];
+}
+
+function SupportWebviewStack() {
+  return (
+    <FlowStack.Navigator>
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={createRouteParamsProbe(Routes.WEBVIEW.SIMPLE)}
+      />
+    </FlowStack.Navigator>
+  );
+}
+
+export type RenderRewardsMoneyOptions = RewardsMoneyEngineOptions &
+  RewardsMoneyViewStateOptions;
+
+function renderMoneyScreen(
+  Component: React.ComponentType,
+  name: string,
+  options: RenderRewardsMoneyOptions,
+) {
+  const engine = installRewardsMoneyEngine({
+    referralMe: referralMeFixture(options.persona ?? 'referee'),
+    ...options,
+  });
+  const state = rewardsMoneyViewState(options);
+
+  return {
+    ...renderScreenWithRoutes(
+      Component,
+      { name },
+      rewardsFlowRoutes() as unknown as {
+        name: string;
+        Component?: React.ComponentType<object>;
+      }[],
+      { state },
+      undefined,
+      undefined,
+      (children) => <RewardsMoneyToastHost>{children}</RewardsMoneyToastHost>,
+    ),
+    engine,
+  };
+}
+
+export function renderEarningsTab(options: RenderRewardsMoneyOptions = {}) {
+  const persona = options.persona ?? 'referee';
+
+  function Screen() {
+    return (
+      <EarningsTab profileId={REWARDS_MONEY_PROFILE_ID} persona={persona} />
+    );
+  }
+
+  return renderMoneyScreen(Screen, 'EarningsTab', { ...options, persona });
+}
+
+let restoreRewardsDashboardReduxStore: (() => void) | undefined;
+
+/**
+ * Puts back the store `renderRewardsDashboard` replaced. Start sharing reads
+ * Social V1 from `ReduxService.store`, not from the React provider.
+ */
+export function restoreRewardsDashboardStore(): void {
+  restoreRewardsDashboardReduxStore?.();
+}
+
+/**
+ * Rewards dashboard on the Money preset. Social V1 and the referral copy come
+ * from Redux. The Social profile-onboarding route is a probe.
+ */
+export function renderRewardsDashboard(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const engine = installRewardsMoneyEngine({
+    referralMe: referralMeFixture(options.persona ?? 'plain'),
+    ...options,
+  });
+  const state = rewardsMoneyViewState(options);
+  const result = renderScreenWithRoutes(
+    RewardsDashboard,
+    { name: Routes.REWARDS_DASHBOARD },
+    [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }],
+    { state },
+  );
+
+  shareStoreWithReduxService(result.store);
+
+  return { ...result, engine };
+}
+
+/**
+ * Makes `ReduxService.store` the rendered store, for code that reads Redux
+ * outside React. Undo it with `restoreRewardsDashboardStore`.
+ */
+function shareStoreWithReduxService(store: unknown): void {
+  restoreRewardsDashboardStore();
+  let previousStore: ReduxStore | undefined;
+  try {
+    previousStore = ReduxService.store;
+  } catch {
+    previousStore = undefined;
+  }
+  ReduxService.store = store as ReduxStore;
+  restoreRewardsDashboardReduxStore = () => {
+    restoreRewardsDashboardReduxStore = undefined;
+    if (previousStore) {
+      ReduxService.store = previousStore;
+    }
+  };
+}
+
+export function renderRewardsMoneyDashboard(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  return renderMoneyScreen(
+    RewardsMoneyDashboard,
+    Routes.REWARDS_MONEY_DASHBOARD,
+    options,
+  );
+}
+
+/**
+ * Rewards Settings on the Money preset. Session profile, code validation, and
+ * referee registration are Engine calls. The splash is a route probe.
+ */
+export function renderRewardsSettingsView(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'plain';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const engine = installRewardsMoneyEngine({
+    ...options,
+    referralMe,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:validateReferralCode': () =>
+        Promise.resolve({ success: true }),
+      'RewardsMoneyController:registerReferee': () => Promise.resolve(),
+      'RewardsMoneyController:canChangeRewardsMoneyEnvUrl': () => false,
+      // The settings toggle reads the host on every build, including when
+      // the switch is locked. A missing stub throws and the error boundary
+      // replaces the referral section.
+      'RewardsMoneyController:getRewardsMoneyEnvUrl': () =>
+        'https://rewards-money.dev-api.cx.metamask.io',
+      ...options.handlers,
+    },
+  });
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    moneyControllerEnabled: options.moneyControllerEnabled ?? true,
+  });
+
+  return {
+    ...renderScreenWithRoutes(
+      RewardsSettingsView as unknown as React.ComponentType,
+      { name: Routes.REWARDS_SETTINGS_VIEW },
+      [
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+        },
+      ],
+      { state },
+    ),
+    engine,
+  };
+}
+
+export function renderWaysToEarnTab({
+  onOpenShareCode = () => undefined,
+  onOpenCampaigns = () => undefined,
+  ...options
+}: RenderRewardsMoneyOptions & {
+  onOpenShareCode?: () => void;
+  onOpenCampaigns?: () => void;
+} = {}) {
+  const persona = options.persona ?? 'referee';
+
+  function Screen() {
+    return (
+      <WaysToEarnTab
+        profileId={REWARDS_MONEY_PROFILE_ID}
+        persona={persona}
+        onOpenShareCode={onOpenShareCode}
+        onOpenCampaigns={onOpenCampaigns}
+      />
+    );
+  }
+
+  const result = renderMoneyScreen(Screen, 'WaysToEarnTab', {
+    ...options,
+    persona,
+  });
+  // Opening the Social tab reads its onboarding state from `ReduxService`.
+  shareStoreWithReduxService(result.store);
+  return result;
+}
+
+export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
+  return renderMoneyScreen(
+    RewardsEarningsHistoryView,
+    Routes.REWARDS_EARNINGS_HISTORY_VIEW,
+    options,
+  );
+}
+
+/**
+ * Copy trading earn page. Its action opens the post composer, which reads the
+ * Social onboarding state from `ReduxService`.
+ */
+export function renderCopyTradingView(options: RenderRewardsMoneyOptions = {}) {
+  const result = renderMoneyScreen(
+    RewardsCopyTradingView,
+    Routes.REWARDS_COPY_TRADING_VIEW,
+    options,
+  );
+  shareStoreWithReduxService(result.store);
+  return result;
+}
+
+/** Referrals earn page, the family a copy-trading hold must not reach. */
+export function renderMoneyReferralsView(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  return renderMoneyScreen(
+    RewardsMoneyReferralsView,
+    Routes.REWARDS_MONEY_REFERRALS_VIEW,
+    options,
+  );
+}
+
+export interface RenderRewardsMoneyInviteSheetOptions
+  extends RenderRewardsMoneyOptions {
+  referralCode?: string;
+  entryType?: MoneyReferralEntryType;
+}
+
+export const REFERRAL_SPLASH_JOURNEY_TEST_IDS = {
+  OPEN: 'open-referral-splash',
+} as const;
+
+export const REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE = 'ReferralDestination';
+
+export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
+  HOST: 'referral-invite-host',
+} as const;
+
+/**
+ * Host screen that opens a modal route on mount and shows a labelled marker
+ * while it is focused, so a journey can assert it is back on the screen below.
+ */
+function createModalJourneyHost(
+  modalRoute:
+    | typeof Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+    | typeof Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  hostTestId: string,
+  label: string,
+) {
+  return function ModalJourneyHost() {
+    const navigation = useNavigation<AppNavigationProp>();
+    const isFocused = useIsFocused();
+
+    React.useEffect(() => {
+      navigation.navigate(modalRoute);
+    }, [navigation]);
+
+    return isFocused ? <Text testID={hostTestId}>{label}</Text> : null;
+  };
+}
+
+const ReferralInviteJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+  REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST,
+  'Swap',
+);
+
+/**
+ * Deeplink invite sheet pushed over a destination, with the accepted splash
+ * registered as a probe. Code validation and referee registration are Engine
+ * calls. Used to exercise the real accept/dismiss navigation.
+ */
+export function renderRewardsMoneyInviteSheet(
+  options: RenderRewardsMoneyInviteSheetOptions = {},
+) {
+  const persona = options.persona ?? 'plain';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const engine = installRewardsMoneyEngine({
+    ...options,
+    referralMe,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:validateReferralCode': () =>
+        Promise.resolve({ success: true }),
+      'RewardsMoneyController:registerReferee': () => Promise.resolve(),
+      ...options.handlers,
+    },
+  });
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    moneyControllerEnabled: options.moneyControllerEnabled ?? true,
+  });
+
+  function InviteSheetScreen() {
+    return (
+      <AcceptInviteSheet
+        route={{
+          params: {
+            referralCode: options.referralCode,
+            entryType: options.entryType,
+          },
+        }}
+      />
+    );
+  }
+
+  return {
+    ...renderScreenWithRoutes(
+      ReferralInviteJourneyHost,
+      { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
+      [
+        {
+          name: Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+          Component: InviteSheetScreen as unknown as React.ComponentType,
+        },
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+      ],
+      { state },
+    ),
+    engine,
+  };
+}
+
+export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
+  HOST: 'claims-paused-host',
+} as const;
+
+const ClaimsPausedJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST,
+  'Earnings',
+);
+
+/**
+ * Claims paused sheet, or the balance breakdown, pushed over a host screen with
+ * the in-app browser registered as a params probe. The sheet reads the terms
+ * copy from the referral-me entry in Redux. Closing it returns to the host.
+ */
+export function renderRewardsMoneyClaimsPausedModal(
+  params: RewardsMoneyClaimsPausedModalParams,
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const state = rewardsMoneyViewState(options);
+
+  function ClaimsPausedScreen() {
+    return <RewardsMoneyClaimsPausedModal route={{ params }} />;
+  }
+
+  return renderScreenWithRoutes(
+    ClaimsPausedJourneyHost,
+    { name: 'ClaimsPausedHost' },
+    [
+      {
+        name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        Component: ClaimsPausedScreen,
+      },
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
+}
+
+function ReferralSplashJourneyDestination() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
+
+  return (
+    <Pressable
+      testID={REFERRAL_SPLASH_JOURNEY_TEST_IDS.OPEN}
+      onPress={() =>
+        navigation.navigate(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW)
+      }
+    >
+      {isFocused ? (
+        <Text
+          testID={getRouteProbeTestId(
+            REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE,
+          )}
+        >
+          Swap
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
+/**
+ * Real splash pushed over a Swap destination. Used to assert that closing the
+ * splash returns to the link's destination, not the Money dashboard.
+ */
+export function renderRewardsMoneyReferralSplashJourney(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'referee';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    pendingReferralCode: options.pendingReferralCode ?? 'KOL1',
+  });
+
+  return renderScreenWithRoutes(
+    ReferralSplashJourneyDestination as unknown as React.ComponentType,
+    { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
+    [
+      {
+        name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+        Component:
+          RewardsMoneyReferralAcceptedSplashView as unknown as React.ComponentType,
+      },
+      { name: Routes.REWARDS_VIEW },
+    ],
+    { state },
+  );
+}
+
+/**
+ * Splash with no back stack. Closing it must open the Money dashboard.
+ */
+export function renderRewardsMoneyReferralAcceptedSplash(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'referee';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    pendingReferralCode: options.pendingReferralCode ?? 'KOL1',
+  });
+
+  return renderScreenWithRoutes(
+    RewardsMoneyReferralAcceptedSplashView as unknown as React.ComponentType,
+    { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+    [{ name: Routes.REWARDS_VIEW }],
+    { state },
+  );
+}

@@ -1,8 +1,10 @@
 import { useQuery } from '@metamask/react-data-query';
 import type { FollowingResponse } from '@metamask/social-controllers';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
+import { syncFollowingState } from '../../../../../util/social/followingSync';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -18,6 +20,8 @@ export interface FollowedTrader {
   address: string;
   /** Profile avatar URL, if any. */
   avatarUri?: string;
+  /** Profile API verified this trader. */
+  verified?: boolean;
 }
 
 export interface UseFollowedTradersOptions {
@@ -41,6 +45,17 @@ const EMPTY_TRADERS: FollowedTrader[] = [];
 
 const FOLLOWED_TRADERS_SOURCE = 'useFollowedTraders';
 
+const hasSameProfileIds = (
+  following: FollowingResponse['following'],
+  profileIds: string[],
+): boolean => {
+  if (following.length !== profileIds.length) {
+    return false;
+  }
+  const ids = new Set(profileIds);
+  return following.every((profile) => ids.has(profile.profileId));
+};
+
 /**
  * Fetches the list of traders the current user follows, with their
  * full profile summary (name + avatar).
@@ -57,11 +72,40 @@ export const useFollowedTraders = (
 ): UseFollowedTradersResult => {
   const enabled = options?.enabled ?? true;
   const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const hasRequestedSyncRef = useRef(false);
 
   const { data, isLoading, error, refetch } = useQuery<FollowingResponse>({
     queryKey: ['SocialService:fetchFollowing'],
     enabled,
   });
+
+  // `SocialController.followingProfileIds` drives every follow button, but it
+  // only refreshes on this device's own follow/unfollow (startup hydration is
+  // skipped while locked). Re-sync it once per mount when the server disagrees.
+  useEffect(() => {
+    if (
+      !enabled ||
+      !data?.following ||
+      hasRequestedSyncRef.current ||
+      hasSameProfileIds(data.following, followingProfileIds)
+    ) {
+      return;
+    }
+    hasRequestedSyncRef.current = true;
+    syncFollowingState().catch((err: unknown) => {
+      reportSocialServiceFailure(
+        err,
+        {
+          surface: 'followed_traders',
+          operation: 'sync_following',
+          extraMessage: 'Following state sync failed',
+          source: FOLLOWED_TRADERS_SOURCE,
+          endpoint: 'following',
+        },
+        { breadcrumb: false },
+      );
+    });
+  }, [data, enabled, followingProfileIds]);
 
   useLogSocialQueryError(error, {
     surface: 'followed_traders',
@@ -75,18 +119,14 @@ export const useFollowedTraders = (
     if (!data?.following) {
       return EMPTY_TRADERS;
     }
-    return (
-      data.following
-        // Technically not required, cache is invalidated on follow/unfollow. This is an extra belt-and-suspenders for instant UI during refetch
-        .filter((profile) => followingProfileIds.includes(profile.profileId))
-        .map((profile) => ({
-          id: profile.profileId,
-          username: profile.name,
-          address: profile.address,
-          avatarUri: profile.imageUrl ?? undefined,
-        }))
-    );
-  }, [data, followingProfileIds]);
+    return data.following.map((profile) => ({
+      id: profile.profileId,
+      username: profile.name,
+      address: profile.address,
+      avatarUri: profile.imageUrl ?? undefined,
+      verified: isProfileVerified(profile),
+    }));
+  }, [data]);
 
   const refresh = useCallback(async () => {
     try {

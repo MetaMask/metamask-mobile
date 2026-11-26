@@ -1,5 +1,4 @@
 import axios, { isAxiosError } from 'axios';
-import { ethers } from 'ethers';
 import { BaanxService, CardApiError } from '../services/BaanxService';
 import { CardStatus, CardType } from '../../../../../components/UI/Card/types';
 import {
@@ -1309,293 +1308,6 @@ describe('BaanxProvider — getCardDetails hasPin', () => {
   });
 });
 
-describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', () => {
-  const MockStaticJsonRpcProvider = ethers.providers
-    .StaticJsonRpcProvider as jest.MockedClass<
-    typeof ethers.providers.StaticJsonRpcProvider
-  >;
-
-  const OWNER = '0x1234567890abcdef1234567890abcdef12345678';
-
-  const lineaChainId = 'eip155:59144';
-
-  const baseCardFeatureFlag: CardFeatureFlag = {
-    chains: {
-      [lineaChainId]: {
-        enabled: true,
-        balanceScannerAddress: '0xScannerAddress',
-        foxConnectAddresses: {
-          global: '0xGlobalFoxConnect',
-          us: '0xUSFoxConnect',
-        },
-        tokens: [
-          {
-            address: '0xTokenAddress',
-            symbol: 'USDC',
-            decimals: 6,
-            enabled: true,
-          },
-        ],
-      },
-    },
-  };
-
-  const buildProvider = (flag: CardFeatureFlag = baseCardFeatureFlag) =>
-    new BaanxProvider({
-      service: {
-        get: jest.fn(),
-        apiKey: 'k',
-      } as unknown as BaanxService,
-      cardFeatureFlag: flag,
-    });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('uses StaticJsonRpcProvider with Linea chain ID 59144 to avoid auto-detection calls', async () => {
-    // Simulate a provider that throws so we short-circuit without needing full
-    // contract call mocks — we only care about how the provider was constructed.
-    MockStaticJsonRpcProvider.mockImplementation(() => {
-      throw new Error('provider error');
-    });
-
-    const provider = buildProvider();
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(MockStaticJsonRpcProvider).toHaveBeenCalledWith(
-      {
-        url: expect.stringContaining('linea-mainnet.infura.io'),
-        skipFetchSetup: true,
-      },
-      { chainId: 59144, name: 'linea' },
-    );
-    expect(result.card).toBeNull();
-    expect(result.account).toBeNull();
-    expect(result.actions).toContainEqual({ type: 'add_funds', enabled: true });
-  });
-
-  it('returns the fallback when the feature flag has no Linea chain config', async () => {
-    const provider = buildProvider({ chains: {} });
-
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(MockStaticJsonRpcProvider).not.toHaveBeenCalled();
-    expect(result.card).toBeNull();
-    expect(result.fundingAssets).toHaveLength(0);
-    expect(result.actions).toContainEqual({ type: 'add_funds', enabled: true });
-  });
-
-  it('returns the fallback when Linea tokens list is empty', async () => {
-    const provider = buildProvider({
-      chains: {
-        [lineaChainId]: {
-          ...(baseCardFeatureFlag.chains?.[lineaChainId] ?? {}),
-          tokens: [],
-        },
-      },
-    });
-
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(MockStaticJsonRpcProvider).not.toHaveBeenCalled();
-    expect(result.fundingAssets).toHaveLength(0);
-  });
-
-  it('returns the fallback when foxConnectAddresses are missing', async () => {
-    const provider = buildProvider({
-      chains: {
-        [lineaChainId]: {
-          ...(baseCardFeatureFlag.chains?.[lineaChainId] ?? {}),
-          foxConnectAddresses: undefined,
-        },
-      },
-    });
-
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(MockStaticJsonRpcProvider).not.toHaveBeenCalled();
-    expect(result.card).toBeNull();
-  });
-
-  it('returns the fallback when balanceScannerAddress is missing', async () => {
-    const provider = buildProvider({
-      chains: {
-        [lineaChainId]: {
-          ...(baseCardFeatureFlag.chains?.[lineaChainId] ?? {}),
-          balanceScannerAddress: undefined,
-        },
-      },
-    });
-
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(MockStaticJsonRpcProvider).not.toHaveBeenCalled();
-    expect(result.card).toBeNull();
-  });
-
-  it('surfaces feature-flag Linea tokens and logs when an on-chain call throws', async () => {
-    MockStaticJsonRpcProvider.mockImplementation(() => {
-      throw new Error('network failure');
-    });
-
-    const provider = buildProvider();
-    const result = await provider.getOnChainAssets(OWNER);
-
-    expect(result.card).toBeNull();
-    expect(result.account).toBeNull();
-    expect(result.fundingAssets).toHaveLength(1);
-    expect(result.fundingAssets[0]?.symbol).toBe('USDC');
-    expect(result.fundingAssets[0]?.spendableBalance).toBe('');
-  });
-
-  describe('#fetchOnChainAllowances — batched calls', () => {
-    const TOKEN_ADDRESS = '0x176211869ca2b568f2a7d4ee941e073a821ee1ff';
-    const GLOBAL_SPENDER = '0x9dd23A4a0845f10d65D293776B792af1131c7B30';
-    const US_SPENDER = '0xA90b298d05C2667dDC64e2A4e17111357c215dD2';
-    const SCANNER_ADDRESS = '0xScannerAddress';
-
-    const singleTokenFlag: CardFeatureFlag = {
-      chains: {
-        'eip155:59144': {
-          enabled: true,
-          balanceScannerAddress: SCANNER_ADDRESS,
-          foxConnectAddresses: {
-            global: GLOBAL_SPENDER,
-            us: US_SPENDER,
-          },
-          tokens: [
-            {
-              address: TOKEN_ADDRESS,
-              symbol: 'USDC',
-              decimals: 6,
-              enabled: true,
-            },
-          ],
-        },
-      },
-    };
-
-    // ABI-encode a uint256 the same way the on-chain scanner returns it
-    const encodeBalance = (value: number) =>
-      ethers.utils.defaultAbiCoder.encode(['uint256'], [value]);
-
-    let contractSpy: jest.SpyInstance;
-    let spendersAllowancesForTokens: jest.Mock;
-    let tokensBalance: jest.Mock;
-
-    beforeEach(() => {
-      MockStaticJsonRpcProvider.mockImplementation(
-        () =>
-          ({
-            getBlockNumber: jest.fn().mockResolvedValue(1),
-          }) as unknown as ethers.providers.StaticJsonRpcProvider,
-      );
-
-      spendersAllowancesForTokens = jest.fn();
-      tokensBalance = jest.fn();
-
-      // Spy on the real ethers.Contract so we can control what it returns
-      // without replacing the whole class (which would break BigNumber utils).
-      contractSpy = jest
-        .spyOn(ethers, 'Contract')
-        .mockImplementation(
-          () => ({ spendersAllowancesForTokens, tokensBalance }) as never,
-        );
-    });
-
-    afterEach(() => {
-      contractSpy.mockRestore();
-    });
-
-    it('calls tokensBalance (not individual balanceOf) and fires both scanner calls in parallel', async () => {
-      const allowance = ethers.BigNumber.from(1_000_000);
-      spendersAllowancesForTokens.mockResolvedValue([
-        [
-          [true, ethers.utils.defaultAbiCoder.encode(['uint256'], [allowance])],
-          [true, ethers.utils.defaultAbiCoder.encode(['uint256'], [0])],
-        ],
-      ]);
-      tokensBalance.mockResolvedValue([
-        { success: true, data: encodeBalance(500_000) },
-      ]);
-
-      const provider = buildProvider(singleTokenFlag);
-      await provider.getOnChainAssets(OWNER);
-
-      expect(spendersAllowancesForTokens).toHaveBeenCalledTimes(1);
-      expect(tokensBalance).toHaveBeenCalledTimes(1);
-      expect(tokensBalance).toHaveBeenCalledWith(OWNER, [TOKEN_ADDRESS]);
-    });
-
-    it('maps decoded balance into spendableBalance on the funding asset', async () => {
-      const allowanceRaw = 1_000_000; // 1 USDC (6 decimals)
-      const balanceRaw = 500_000; // 0.5 USDC — spendable = min(0.5, 1) = 0.5
-
-      spendersAllowancesForTokens.mockResolvedValue([
-        [
-          [
-            true,
-            ethers.utils.defaultAbiCoder.encode(['uint256'], [allowanceRaw]),
-          ],
-          [true, ethers.utils.defaultAbiCoder.encode(['uint256'], [0])],
-        ],
-      ]);
-      tokensBalance.mockResolvedValue([
-        { success: true, data: encodeBalance(balanceRaw) },
-      ]);
-
-      const provider = buildProvider(singleTokenFlag);
-      const result = await provider.getOnChainAssets(OWNER);
-
-      expect(result.fundingAssets).toHaveLength(1);
-      // spendableBalance = min(balance, allowance) formatted to human units
-      expect(result.fundingAssets[0]?.spendableBalance).toBe('0.5');
-    });
-
-    it('returns zero spendableBalance when tokensBalance result has success: false', async () => {
-      const allowanceRaw = 1_000_000;
-
-      spendersAllowancesForTokens.mockResolvedValue([
-        [
-          [
-            true,
-            ethers.utils.defaultAbiCoder.encode(['uint256'], [allowanceRaw]),
-          ],
-          [true, ethers.utils.defaultAbiCoder.encode(['uint256'], [0])],
-        ],
-      ]);
-      // success: false → walletBalance = 0 → spendableBalance = min(0, 1) = 0
-      tokensBalance.mockResolvedValue([{ success: false, data: '0x' }]);
-
-      const provider = buildProvider(singleTokenFlag);
-      const result = await provider.getOnChainAssets(OWNER);
-
-      expect(result.fundingAssets[0]?.spendableBalance).toBe('0');
-    });
-
-    it('returns zero spendableBalance when tokensBalance result data is empty (0x)', async () => {
-      const allowanceRaw = 1_000_000;
-
-      spendersAllowancesForTokens.mockResolvedValue([
-        [
-          [
-            true,
-            ethers.utils.defaultAbiCoder.encode(['uint256'], [allowanceRaw]),
-          ],
-          [true, ethers.utils.defaultAbiCoder.encode(['uint256'], [0])],
-        ],
-      ]);
-      tokensBalance.mockResolvedValue([{ success: true, data: '0x' }]);
-
-      const provider = buildProvider(singleTokenFlag);
-      const result = await provider.getOnChainAssets(OWNER);
-
-      expect(result.fundingAssets[0]?.spendableBalance).toBe('0');
-    });
-  });
-});
-
 describe('BaanxProvider — listTransactions', () => {
   const tokens: CardAuthTokens = {
     accessToken: 'at',
@@ -2102,7 +1814,7 @@ describe('BaanxProvider push provisioning', () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it('fills wallet provisioning from an active card issued after the cutoff', async () => {
+  it('fills wallet provisioning from an active card', async () => {
     const get = jest.fn().mockImplementation((path: string) => {
       if (path === '/v1/user') {
         return Promise.resolve({
@@ -2129,7 +1841,111 @@ describe('BaanxProvider push provisioning', () => {
       cardholderName: 'Jose OBrien',
       lastFour: '1234',
       network: 'MASTERCARD',
+      countryCode: 'US',
     });
+  });
+
+  it('keeps an active card eligible when the account predates 2025-11-10', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          createdAt: '2025-01-01T00:00:00.000Z',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ eligible: true, countryCode: 'US' }),
+    );
+  });
+
+  it('copies cardProvider onto the provisioning processor', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          cardProvider: 'galileo',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ cardProcessor: 'galileo' }),
+    );
+  });
+
+  it('uses the residence country when the account is outside the US', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          countryOfResidence: 'gb',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', {
+      ...tokens,
+      location: 'international',
+    });
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ countryCode: 'GB' }),
+    );
+    expect(data.walletProvisioning).not.toHaveProperty('cardProcessor');
+  });
+
+  it('hides provisioning eligibility when the card is frozen', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve({ ...activeCard, status: CardStatus.FROZEN });
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toEqual(
+      expect.objectContaining({ eligible: false }),
+    );
   });
 
   it('returns null wallet provisioning when the user has no card', async () => {
@@ -2150,5 +1966,96 @@ describe('BaanxProvider push provisioning', () => {
     const data = await provider.getCardHomeData('0xabc', tokens);
 
     expect(data.walletProvisioning).toBeNull();
+  });
+});
+
+describe('BaanxProvider money account link', () => {
+  const tokens: CardAuthTokens = {
+    accessToken: 'at',
+    refreshToken: 'rt',
+    accessTokenExpiresAt: 1,
+    location: 'international',
+  };
+  const delegationSettings = {
+    count: 1,
+    _links: { self: '/v1/delegation/settings' },
+    networks: [
+      {
+        network: 'monad',
+        environment: 'production',
+        chainId: '143',
+        delegationContract: '0x2222222222222222222222222222222222222222',
+        tokens: {
+          veda: {
+            symbol: 'veda',
+            address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+            decimals: 6,
+          },
+        },
+      },
+    ],
+  };
+
+  it('prepareMoneyAccountLink returns the Veda token and a SIWE message', async () => {
+    const get = jest.fn().mockResolvedValue({
+      token: 'delegation-token',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      nonce: 'nonce-1',
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const preparation = await provider.prepareMoneyAccountLink(
+      {
+        moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+        amountHuman: '1',
+        delegationSettings,
+      },
+      tokens,
+    );
+
+    expect(preparation.tokenAddress).toBe(
+      '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+    );
+    expect(preparation.spender).toBe(
+      '0x2222222222222222222222222222222222222222',
+    );
+    expect(preparation.context.signatureMessage).toContain('nonce-1');
+    expect(preparation.context.delegationToken).toBe('delegation-token');
+  });
+
+  it('completeMoneyAccountLink posts the EVM approval', async () => {
+    const post = jest.fn().mockResolvedValue(undefined);
+    const provider = new BaanxProvider({
+      service: { post, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    await provider.completeMoneyAccountLink(
+      {
+        moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+        amountHuman: '1',
+        txHash: '0xtx',
+        sigHash: '0xsig',
+        context: {
+          signatureMessage: 'siwe',
+          delegationToken: 'delegation-token',
+          network: 'monad',
+          currency: 'veda',
+        },
+      },
+      tokens,
+    );
+
+    expect(post).toHaveBeenCalledWith(
+      '/v1/delegation/evm/post-approval',
+      expect.objectContaining({
+        txHash: '0xtx',
+        sigHash: '0xsig',
+        sigMessage: 'siwe',
+        token: 'delegation-token',
+      }),
+      tokens,
+    );
   });
 });

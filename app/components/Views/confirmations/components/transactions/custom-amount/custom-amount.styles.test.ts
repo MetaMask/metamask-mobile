@@ -1,34 +1,44 @@
+import { Platform } from 'react-native';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { mockTheme } from '../../../../../../util/theme';
 import { Theme } from '../../../../../../util/theme/models';
-import styleSheet, {
-  getFontSizeForConfirmationAmount,
-} from './custom-amount.styles';
+import styleSheet from './custom-amount.styles';
 
 describe('custom-amount.styles', () => {
-  it.each([
-    [8, 64],
-    [9, 40],
-    [13, 40],
-    [14, 30],
-    [18, 30],
-    [19, 20],
-  ])(
-    'uses the confirmation font size breakpoint for length %i',
-    (length, expectedFontSize) => {
-      expect(getFontSizeForConfirmationAmount(length)).toBe(expectedFontSize);
-    },
-  );
+  it('sizes the amount and cursor from the shared input length scale', () => {
+    const amountLength = 9;
+    const fontSize = getFontSizeForInputLength(amountLength);
 
-  it('uses the raw amount length without adding affix characters', () => {
     const styles = styleSheet({
       theme: mockTheme as Theme,
       vars: {
-        amountLength: 9,
+        amountLength,
         hasAlert: false,
         disabled: false,
       },
     });
 
-    expect(styles.input.fontSize).toBe(40);
+    expect(styles.input.fontSize).toBe(fontSize);
+    expect(styles.input.lineHeight).toBe(fontSize);
+    expect(styles.cursor.height).toBe(Math.round(fontSize * 0.95));
   });
+
+  it.each([
+    ['ios', -4],
+    ['android', 2],
+  ] as const)(
+    'offsets the cursor to center it on the digits on %s',
+    (os, expectedTranslateY) => {
+      jest.replaceProperty(Platform, 'OS', os);
+
+      const styles = styleSheet({
+        theme: mockTheme as Theme,
+        vars: { amountLength: 8, hasAlert: false, disabled: false },
+      });
+
+      expect(styles.cursor.transform).toEqual([
+        { translateY: expectedTranslateY },
+      ]);
+    },
+  );
 });

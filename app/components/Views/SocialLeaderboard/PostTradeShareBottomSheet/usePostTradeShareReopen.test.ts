@@ -3,6 +3,7 @@ import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   beginPostTradeShareSession,
   clearPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   PostTradeShareOwner,
   requestPostTradeShareReopen,
 } from './postTradeShareSession';
@@ -45,7 +46,7 @@ describe('usePostTradeShareReopen', () => {
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy');
+    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy', undefined);
   });
 
   it('calls onReopen with the copy-trade origin when the session has one', () => {
@@ -61,12 +62,18 @@ describe('usePostTradeShareReopen', () => {
         tradeMode: 'buy',
         preview,
         copyTradeOrigin,
+        traderAddress: '0xtrader',
         owner: PostTradeShareOwner.socialV1Feed,
       });
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, copyTradeOrigin, 'buy');
+    expect(onReopen).toHaveBeenCalledWith(
+      target,
+      copyTradeOrigin,
+      'buy',
+      '0xtrader',
+    );
   });
 
   it('leaves a position retry for the position screen while the feed is mounted', () => {
@@ -78,7 +85,7 @@ describe('usePostTradeShareReopen', () => {
     renderHook(() =>
       usePostTradeShareReopen(
         positionReopen,
-        PostTradeShareOwner.positionDetails,
+        PostTradeShareOwner.traderPosition,
       ),
     );
 
@@ -87,13 +94,54 @@ describe('usePostTradeShareReopen', () => {
         target,
         tradeMode: 'sell',
         preview,
-        owner: PostTradeShareOwner.positionDetails,
+        owner: PostTradeShareOwner.traderPosition,
       });
       requestPostTradeShareReopen();
     });
 
     expect(feedReopen).not.toHaveBeenCalled();
-    expect(positionReopen).toHaveBeenCalledWith(target, undefined, 'sell');
+    expect(positionReopen).toHaveBeenCalledWith(
+      target,
+      undefined,
+      'sell',
+      undefined,
+    );
+  });
+
+  it('registers the owner while mounted and unregisters on unmount', () => {
+    const { unmount } = renderHook(() =>
+      usePostTradeShareReopen(jest.fn(), PostTradeShareOwner.socialV1Feed),
+    );
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      true,
+    );
+
+    unmount();
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      false,
+    );
+  });
+
+  it('unregisters the owner when it becomes undefined', () => {
+    const { rerender } = renderHook(
+      ({ owner }: { owner?: typeof PostTradeShareOwner.socialV1Feed }) =>
+        usePostTradeShareReopen(jest.fn(), owner),
+      {
+        initialProps: {
+          owner: PostTradeShareOwner.socialV1Feed as
+            | typeof PostTradeShareOwner.socialV1Feed
+            | undefined,
+        },
+      },
+    );
+
+    rerender({ owner: undefined });
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      false,
+    );
   });
 
   it('does not call onReopen when the session is cleared', () => {
