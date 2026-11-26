@@ -18293,7 +18293,7 @@
   },
   "app/components/Views/Wallet/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 4
@@ -22747,11 +22747,6 @@
     },
     "typescript/restrict-template-expressions": {
       "count": 1
-    }
-  },
-  "app/core/XAuthService/XAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 4
     }
   },
   "app/core/XAuthService/XAuthService.ts": {
