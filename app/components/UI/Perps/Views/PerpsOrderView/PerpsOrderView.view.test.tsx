@@ -857,10 +857,32 @@ describe('PerpsOrderView', () => {
     getAccountSupport.mockClear();
     fireEvent.press(placeOrderButton);
     await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
+    // The order form sizes against the venue's available to trade, not the
+    // account stream, so the balance drop arrives on that subscription.
+    const availableToTradeSubscription = jest
+      .mocked(Engine.context.PerpsController.subscribeToAvailableToTrade)
+      .mock.calls.map(([params]) => params)
+      .filter((params) => params.symbol === 'ETH')
+      .at(-1);
+    expect(availableToTradeSubscription).toBeDefined();
+
     act(() => {
-      stream.emitAccount(accountWithBalance('1'));
+      availableToTradeSubscription?.callback({
+        providerId: 'hyperliquid',
+        symbol: 'ETH',
+        long: '1',
+        short: '1',
+      });
     });
-    await waitForDeferredOrderData();
+    // Prove the drop reached validation before the support check resolves, so
+    // the final assertion cannot pass on an unrelated abort.
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
     await act(async () => {
       resolveAccountSupport({ isSupported: true });
     });
