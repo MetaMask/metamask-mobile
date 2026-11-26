@@ -32,18 +32,18 @@ export async function networkAttempt<QueryFnData>(
   const controller = new AbortController();
   // TanStack makes one signal per fetch, so the listener does not outlive it.
   signal.addEventListener('abort', () => controller.abort());
+  const { hungMs } = getLatencyThresholds();
+  // The fetch wrapper must start sampling before the timeout starts counting.
+  const request = getJson(url, parse, controller.signal);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timedOut = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      controller.abort();
       reject(new NetworkTimeoutError());
-    }, getLatencyThresholds().hungMs);
+      controller.abort();
+    }, hungMs);
   });
   try {
-    return await Promise.race([
-      getJson(url, parse, controller.signal),
-      timedOut,
-    ]);
+    return await Promise.race([request, timedOut]);
   } finally {
     clearTimeout(timer);
   }
