@@ -64,7 +64,10 @@ import {
 const ENTRY_POINT = PredictEventValues.ENTRY_POINT.HOME_SECTION;
 const CARD_WIDTH_CLASS = 'w-[300px]';
 const SKELETON_KEYS = ['first', 'second'] as const;
-const LOADING: HomeDiscoveryState = { status: 'loading' };
+const LOADING: HomeDiscoveryState = {
+  status: 'loading',
+  isFetching: false,
+};
 
 /**
  * What the reads amount to. Discovery waits for every shown slot before
@@ -82,7 +85,12 @@ const getDiscoveryState = (
   if (capabilities.status === 'unavailable' || slotCount === 0) {
     return { status: 'hidden', reason: 'unsupported' };
   }
-  if (reads.some((read) => read.isLoading)) return LOADING;
+  if (reads.some((read) => read.isLoading)) {
+    return {
+      status: 'loading',
+      isFetching: reads.some((read) => read.isFetching),
+    };
+  }
   if (itemCount > 0) return { status: 'ready', itemCount };
   return reads.every((read) => read.isError)
     ? { status: 'hidden', reason: 'error' }
@@ -95,6 +103,9 @@ const isSameState = (a: HomeDiscoveryState, b: HomeDiscoveryState) => {
   }
   if (a.status === 'hidden' && b.status === 'hidden') {
     return a.reason === b.reason;
+  }
+  if (a.status === 'loading' && b.status === 'loading') {
+    return a.isFetching === b.isFetching;
   }
   return a.status === b.status;
 };

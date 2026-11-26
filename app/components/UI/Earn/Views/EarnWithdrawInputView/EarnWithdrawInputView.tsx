@@ -545,7 +545,7 @@ const EarnWithdrawInputViewContent = ({
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: {
           amountWei: amountTokenMinimalUnit.toString(),
           amountFiat: amountFiatNumber,

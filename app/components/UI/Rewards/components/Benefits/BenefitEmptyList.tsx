@@ -1,41 +1,39 @@
 import React from 'react';
 import {
   AvatarIcon,
+  AvatarIconSeverity,
   AvatarIconSize,
   Box,
-  Card,
+  IconColor,
   IconName,
-  Text,
+  TabEmptyState,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
- * Shown when a user has no benefits. The card, icon and title follow the
- * Rewards opt-in section: a muted surface, the icon centered above the title.
+ * Shown when a user has no benefits. It matches the trading activity empty
+ * state: the icon centered above the description, with no action button.
  */
 const BenefitEmptyList = () => (
-  <Card twClassName="items-center gap-4 py-6">
-    <Box twClassName="items-center gap-3">
-      {/* The avatar takes the card's own surface, so only the gift shows. */}
-      <AvatarIcon
-        iconName={IconName.Gift}
-        size={AvatarIconSize.Md}
-        twClassName="bg-section"
-        accessibilityElementsHidden
-        importantForAccessibility="no"
-      />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        twClassName="text-center"
-        accessibilityRole="header"
-      >
-        {strings('rewards.benefits.empty-list')}
-      </Text>
-    </Box>
-  </Card>
+  <Box twClassName="items-center px-4 py-4">
+    <TabEmptyState
+      icon={
+        <AvatarIcon
+          iconName={IconName.Gift}
+          size={AvatarIconSize.Xl}
+          severity={AvatarIconSeverity.Neutral}
+          iconProps={{ color: IconColor.IconDefault }}
+        />
+      }
+      description={strings('rewards.benefits.empty-list')}
+      descriptionProps={{
+        variant: TextVariant.BodyMd,
+        color: TextColor.TextAlternative,
+      }}
+    />
+  </Box>
 );
 
 export default BenefitEmptyList;

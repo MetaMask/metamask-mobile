@@ -572,10 +572,10 @@ describe('AbsolutePriceAlertForm', () => {
     });
   });
 
-  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+  it('pre-fills BTC with integer keypad precision in perps mode', () => {
     const screen = renderForm({
       currentPrice: 83714,
-      szDecimals: 5,
+      isPerps: true,
       displayTicker: 'BTC',
       marketId: 'btc-hyperliquid-mainnet',
     });
@@ -585,15 +585,94 @@ describe('AbsolutePriceAlertForm', () => {
     ).toHaveTextContent('$83,714');
   });
 
-  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+  it('allows 6 keypad decimal places for a sub-cent perps price', () => {
     const screen = renderForm({
       currentPrice: 0.008764,
-      szDecimals: 0,
+      isPerps: true,
       displayTicker: 'kPEPE',
     });
 
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
     ).toHaveTextContent('$0.008764');
+  });
+
+  it('caps ETH at one decimal in perps mode, matching the displayed price', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+      marketId: 'eth-hyperliquid-mainnet',
+    });
+
+    // Tick precision (szDecimals 4 → 2 decimals) used to prefill $2,406.64;
+    // the display rule pre-fills what the market header shows.
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2,406.6');
+  });
+
+  it('prefills a legacy finer threshold exactly and keeps Save disabled', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+      marketId: 'eth-hyperliquid-mainnet',
+      // An alert saved at tick precision (2 decimals), finer than the
+      // display cap of 1.
+      editingAlert: { ...editingAlert, threshold: 2406.64 },
+    });
+
+    // The stored value is shown exactly, not rounded to the display cap…
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2,406.64');
+    // …and Save stays disabled: opening the edit form is not a change, so a
+    // reflexive tap cannot silently rewrite the stored threshold.
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('caps quick-percentage pills at the displayed decimals in perps mode', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+    });
+
+    // +10% of 2406.64 is 2647.304 — the pill must land on the display cap
+    // (1 decimal), not tick precision.
+    fireEvent.press(
+      screen.getByTestId(
+        `${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-10`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2647.3');
+  });
+
+  it('rejects a second decimal when typing an ETH target in perps mode', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+    });
+    const { getByTestId } = screen;
+
+    clearKeypad(getByTestId);
+    // Type 2406.64 — the trailing 4 must be dropped by the one-decimal cap.
+    for (const digit of ['2', '4', '0', '6']) {
+      fireEvent.press(getByTestId(`keypad-key-${digit}`));
+    }
+    fireEvent.press(getByTestId('keypad-key-dot'));
+    fireEvent.press(getByTestId('keypad-key-6'));
+    fireEvent.press(getByTestId('keypad-key-4'));
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2406.6');
   });
 });

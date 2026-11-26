@@ -7,7 +7,7 @@ import { createContext } from 'react';
  * Polymarket section does for an empty or failed discovery.
  */
 export type HomeDiscoveryState =
-  | { status: 'loading' }
+  | { status: 'loading'; isFetching: boolean }
   | { status: 'ready'; itemCount: number }
   | { status: 'hidden'; reason: 'unsupported' | 'empty' | 'error' };
 

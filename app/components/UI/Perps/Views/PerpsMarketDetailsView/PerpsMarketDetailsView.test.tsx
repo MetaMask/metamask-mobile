@@ -176,6 +176,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
       getError: jest.fn(() => null),
     },
@@ -763,11 +764,15 @@ jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
 }));
 
 // Mock usePerpsOICap to return not at cap by default
+const mockUsePerpsOICap = jest.fn();
 jest.mock('../../hooks/usePerpsOICap', () => ({
-  usePerpsOICap: () => ({
-    isAtCap: false,
-    capPercentage: 50,
-  }),
+  usePerpsOICap: (...args: unknown[]) => {
+    mockUsePerpsOICap(...args);
+    return {
+      isAtCap: false,
+      capPercentage: 50,
+    };
+  },
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -1697,6 +1702,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      fullCatalog: true,
       skipInitialFetch: false,
     });
     expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
@@ -3217,6 +3223,24 @@ describe('PerpsMarketDetailsView', () => {
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
       expect(playSelection).not.toHaveBeenCalled();
+    });
+
+    it('checks the open interest cap on the market venue', () => {
+      mockRouteParams.market = {
+        ...mockRouteParams.market,
+        providerId: 'lighter',
+      } as PerpsMarketData;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(mockUsePerpsOICap).toHaveBeenLastCalledWith('BTC', 'lighter');
     });
 
     it.each(['notification', 'deep_link'] as const)(

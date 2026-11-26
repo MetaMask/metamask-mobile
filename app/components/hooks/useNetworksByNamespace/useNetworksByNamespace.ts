@@ -13,6 +13,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { getNetworkImageSource } from '../../../util/networks';
+import { getRegistryNetworkImagesByChainId } from '../../../selectors/configRegistry';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 
 export interface ProcessedNetwork {
@@ -113,8 +114,10 @@ const useProcessedNetworks = (
     | EvmAndMultichainNetworkConfigurationsWithCaipChainId[],
   enabledNetworksForNamespace: Record<string, boolean>,
   networkType: NetworkType,
-): ProcessedNetwork[] =>
-  useMemo(() => {
+): ProcessedNetwork[] => {
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
+
+  return useMemo(() => {
     const isPopular = networkType === NetworkType.Popular;
 
     return filteredNetworkConfigurations.map((config) => {
@@ -144,12 +147,21 @@ const useProcessedNetworks = (
         name: network.name,
         caipChainId: network.caipChainId,
         isSelected,
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
+        imageSource: getNetworkImageSource(
+          { chainId: network.caipChainId },
+          networkImageUrls,
+        ),
         networkTypeOrRpcUrl: rpcUrl,
         hasMultipleRpcs,
       };
     });
-  }, [filteredNetworkConfigurations, enabledNetworksForNamespace, networkType]);
+  }, [
+    filteredNetworkConfigurations,
+    enabledNetworksForNamespace,
+    networkType,
+    networkImageUrls,
+  ]);
+};
 
 /**
  * Helper function to calculate derived network statistics

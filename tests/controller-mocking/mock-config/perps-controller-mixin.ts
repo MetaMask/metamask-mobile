@@ -757,6 +757,14 @@ export function buildE2EMockStreamManagerPlain(): Record<
   const mockService = PerpsE2EMockService.getInstance();
   const mockMarkets = mockService.getMockMarkets();
   const mockPrices = mockService.getMockPrices();
+  const subscribeToEmptyCaps = ({
+    callback,
+  }: {
+    callback: (data: string[]) => void;
+  }) => {
+    const timer = setTimeout(() => callback([]), 0);
+    return () => clearTimeout(timer);
+  };
 
   /**
    * Production stream channels expose sync `getSnapshot()` for cold-start reads.
@@ -834,6 +842,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     account: {
+      getAggregateMetadata: (): null => null,
       getSnapshot: () => mockService.getMockAccountState(),
       // Production StreamChannel API — place-order CUF ends read this after
       // a successful submit. Missing → TypeError → "Order failed" toast even
@@ -888,11 +897,8 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     oiCaps: {
-      subscribe: (params: { callback: (data: string[]) => void }) => {
-        // Return empty array - no markets at OI cap in E2E tests by default
-        setTimeout(() => params.callback([]), 0);
-        return () => undefined;
-      },
+      subscribe: subscribeToEmptyCaps,
+      subscribeToSymbol: subscribeToEmptyCaps,
     },
     topOfBook: {
       subscribeToSymbol: (params: {

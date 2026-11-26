@@ -173,7 +173,7 @@ export const PerformanceRebateRow: React.FC<{
         iconName={rebateIconName(item)}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
-        iconProps={{ color: IconColor.IconDefault }}
+        iconProps={{ color: IconColor.IconAlternative }}
       />
       <Box twClassName="flex-1">
         <Text

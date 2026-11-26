@@ -7,6 +7,7 @@ ios
 jest.preprocessor.js
 node_modules
 CHANGELOG.md
+eslint-suppressions.json
 wdio
 wdio.conf.js
 scripts

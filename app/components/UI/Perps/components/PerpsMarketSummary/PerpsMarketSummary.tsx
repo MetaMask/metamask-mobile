@@ -1,3 +1,4 @@
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import {
   Box,
   BoxAlignItems,
@@ -10,6 +11,7 @@ import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 
 export interface PerpsMarketSummaryProps {
   symbol: string;
+  providerId?: PerpsProviderType;
   currentPrice: number;
   testID: string;
   testIDPrice: string;
@@ -25,6 +27,7 @@ export interface PerpsMarketSummaryProps {
  */
 const PerpsMarketSummary = ({
   symbol,
+  providerId,
   currentPrice,
   testID,
   testIDPrice,
@@ -47,6 +50,7 @@ const PerpsMarketSummary = ({
       >
         <Box twClassName="flex-1">
           <LivePriceHeader
+            providerId={providerId}
             symbol={symbol}
             currentPrice={currentPrice}
             size="large"
@@ -69,6 +73,7 @@ const PerpsMarketSummary = ({
     >
       <Box twClassName="flex-1 py-2">
         <LivePriceHeader
+          providerId={providerId}
           symbol={symbol}
           currentPrice={currentPrice}
           size="prominent"

@@ -30,7 +30,7 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
-import ProgressIndicator from '../components/Onboarding/ProgressIndicator';
+import ProgressIndicator from '../components/ProgressIndicator';
 import CampaignTourStep, {
   CAMPAIGN_TOUR_STEP_TEST_IDS,
 } from '../components/Campaigns/tour/CampaignTourStep';

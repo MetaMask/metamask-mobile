@@ -141,6 +141,28 @@ describe('BridgeTrendingTokensSection', () => {
     ).toBeTruthy();
   });
 
+  it('renders only Verified, Benign and unscanned tokens', () => {
+    const verdicts = ['Warning', 'Spam', 'Malicious', 'Verified', 'Benign'];
+    const tokens = createTrendingTokens(6).map((token, index) => ({
+      ...token,
+      securityData: verdicts[index]
+        ? ({ resultType: verdicts[index] } as TrendingAsset['securityData'])
+        : undefined,
+    }));
+    setupMocks(tokens);
+
+    const { getByTestId, queryByTestId } = render(
+      <BridgeTrendingTokensSection />,
+    );
+
+    tokens.slice(0, 3).forEach(({ assetId }) => {
+      expect(queryByTestId(`row-${assetId}`)).not.toBeOnTheScreen();
+    });
+    tokens.slice(3).forEach(({ assetId }) => {
+      expect(getByTestId(`row-${assetId}`)).toBeOnTheScreen();
+    });
+  });
+
   it('appends one chunk when isNearBottom becomes true', () => {
     const { getAllByTestId, rerender } = render(
       <BridgeTrendingTokensSection />,

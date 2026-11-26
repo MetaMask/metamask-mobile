@@ -3,7 +3,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import SendView from '../../../page-objects/Send/RedesignedSendView.js';
+import SendView from '../../../page-objects/Send/SendView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import {

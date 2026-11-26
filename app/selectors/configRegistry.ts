@@ -14,6 +14,8 @@ import { PopularList } from '../util/networks/customNetworks';
 import { selectRemoteFeatureFlags } from './featureFlagController';
 import type { StateWithPartialEngine } from './featureFlagController/types';
 import { selectEvmNetworkConfigurationsByChainId } from './networkController';
+import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 const DEFAULT_CONFIG_REGISTRY_STATE = getDefaultConfigRegistryControllerState();
 
@@ -130,5 +132,44 @@ export const getAdditionalNetworksList = createSelector(
       return mapped;
     }
     return PopularList as PopularListNetworkShape[];
+  },
+);
+
+/**
+ * Returns a chain ID to network image source map built from the config
+ * registry network image URLs, so networks added by the user also render
+ * their registry logo. EVM entries are keyed by both hex and CAIP-2 chain
+ * ID, non-EVM entries by CAIP-2 chain ID only. Returns an empty map when
+ * the config registry API is disabled, still loading, or has no configs;
+ * callers fall back to the static network image lists.
+ *
+ * @param state - The Redux state
+ * @returns Record of chain ID to image source ({ uri }) from the registry
+ */
+export const getRegistryNetworkImagesByChainId = createSelector(
+  [getConfigRegistryNetworks, getIsConfigRegistryApiEnabled],
+  (
+    networks: RegistryNetworkConfig[],
+    isEnabled,
+  ): Record<string, { uri: string }> => {
+    if (!isEnabled) {
+      return {};
+    }
+    const result: Record<string, { uri: string }> = {};
+    for (const network of networks) {
+      const imageUrl = network.imageUrl;
+      if (
+        typeof imageUrl !== 'string' ||
+        !imageUrl.toLowerCase().startsWith('https://')
+      ) {
+        continue;
+      }
+      result[network.chainId] = { uri: imageUrl };
+      if (network.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)) {
+        const { reference } = parseCaipChainId(network.chainId);
+        result[toHex(reference)] = { uri: imageUrl };
+      }
+    }
+    return result;
   },
 );

@@ -5,9 +5,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
-import type {
-  ExtendedBottomTabNavigationOptions,
+import {
   TabBarIconKey,
+  type ExtendedBottomTabNavigationOptions,
 } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import type { HomeTabDefinition, HomeTabRoute } from './homeTabs.types';
 
@@ -71,12 +71,20 @@ export const toJsTabOptions = (
 export const toNativeTabOptions = (
   tab: HomeTabDefinition,
   route?: HomeTabRoute,
-  newBadgeColor?: string,
 ): NativeBottomTabNavigationOptions => {
   const { nativeIcon } = tab;
   const isHidden = route ? (tab.hidesTabBarFor?.(route) ?? false) : false;
+  const title = strings(LABEL_BY_TAB_BAR_ICON_KEY[tab.iconKey]);
+  const accessibilityLabel =
+    tab.iconKey === TabBarIconKey.Social && tab.showNewBadge
+      ? `${title}, ${strings('bridge.tabs.new_badge')}`
+      : undefined;
+
   return {
-    title: strings(LABEL_BY_TAB_BAR_ICON_KEY[tab.iconKey]),
+    title,
+    ...(accessibilityLabel
+      ? { tabBarAccessibilityLabel: accessibilityLabel }
+      : null),
     ...(nativeIcon
       ? {
           tabBarIcon: ({ focused }: { focused: boolean }) => ({
@@ -84,14 +92,6 @@ export const toNativeTabOptions = (
             source: focused ? nativeIcon.selectedSource : nativeIcon.source,
             tinted: true,
           }),
-        }
-      : null),
-    ...(tab.showNewBadge
-      ? {
-          tabBarBadge: '',
-          ...(newBadgeColor
-            ? { tabBarBadgeStyle: { backgroundColor: newBadgeColor } }
-            : null),
         }
       : null),
     // Only set when hiding, so the shared style identity survives otherwise.
