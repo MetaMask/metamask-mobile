@@ -30,14 +30,24 @@ export interface PhaseTimerMeta {
   [key: string]: string | number | boolean | undefined;
 }
 
+/** Absolute window (epoch ms, runner clock) a phase ran in. */
+export interface PhaseWindow {
+  phase: PhaseName;
+  startedAt: number;
+  endedAt: number;
+}
+
 export interface PhaseTimerSnapshot {
   phases: Record<string, number>;
+  /** Per-run windows, used to attribute network calls to phases. */
+  windows: PhaseWindow[];
   meta: PhaseTimerMeta;
 }
 
 export interface PhaseTimer {
   start(phase: PhaseName): void;
   record(phase: PhaseName, ms: number): void;
+  recordWindow(phase: PhaseName, startedAt: number, endedAt: number): void;
   stop(): void;
   setMeta(meta: Partial<PhaseTimerMeta>): void;
   snapshot(): PhaseTimerSnapshot;
@@ -66,6 +76,7 @@ export function bindPhaseTimer(timer: PhaseTimer): () => void {
 
 class PhaseTimerImpl implements PhaseTimer {
   readonly #phases = new Map<string, number>();
+  readonly #windows: PhaseWindow[] = [];
   readonly #now: () => number;
   #meta: PhaseTimerMeta = {};
   #currentPhase: string | null = null;
@@ -88,6 +99,17 @@ class PhaseTimerImpl implements PhaseTimer {
     this.#phases.set(phase, (this.#phases.get(phase) ?? 0) + ms);
   }
 
+  recordWindow(phase: PhaseName, startedAt: number, endedAt: number): void {
+    if (
+      !Number.isFinite(startedAt) ||
+      !Number.isFinite(endedAt) ||
+      endedAt < startedAt
+    ) {
+      return;
+    }
+    this.#windows.push({ phase, startedAt, endedAt });
+  }
+
   stop(): void {
     this.#stopCurrent();
   }
@@ -100,6 +122,7 @@ class PhaseTimerImpl implements PhaseTimer {
     this.#stopCurrent();
     return {
       phases: Object.fromEntries(this.#phases.entries()),
+      windows: this.#windows.map((window) => ({ ...window })),
       meta: { ...this.#meta },
     };
   }
@@ -110,7 +133,9 @@ class PhaseTimerImpl implements PhaseTimer {
       this.#currentStartedAt = null;
       return;
     }
-    const elapsed = this.#now() - this.#currentStartedAt;
+    const endedAt = this.#now();
+    const elapsed = endedAt - this.#currentStartedAt;
+    this.recordWindow(this.#currentPhase, this.#currentStartedAt, endedAt);
     this.#phases.set(
       this.#currentPhase,
       (this.#phases.get(this.#currentPhase) ?? 0) + elapsed,
@@ -157,6 +182,14 @@ export function getPhaseTimerAlsStore(): PhaseTimer | undefined {
   return storage.getStore();
 }
 
+export function recordPhaseWindow(
+  phase: PhaseName,
+  startedAt: number,
+  endedAt: number,
+): void {
+  getPhaseTimer()?.recordWindow(phase, startedAt, endedAt);
+}
+
 export function startPhase(phase: PhaseName): void {
   getPhaseTimer()?.start(phase);
 }
@@ -196,11 +229,15 @@ export async function recordElapsedPhase<T>(
   const storedPhase = nestedPhaseName(phase);
   try {
     const value = await run();
-    recordPhase(storedPhase, now() - startedAt);
+    const endedAt = now();
+    recordPhase(storedPhase, endedAt - startedAt);
+    recordPhaseWindow(phase, startedAt, endedAt);
     return value;
   } catch (error) {
-    const elapsedMs = now() - startedAt;
+    const endedAt = now();
+    const elapsedMs = endedAt - startedAt;
     recordPhase(storedPhase, elapsedMs);
+    recordPhaseWindow(phase, startedAt, endedAt);
     throw annotateElapsedError(error, `${phase} after ${elapsedMs}ms`);
   }
 }

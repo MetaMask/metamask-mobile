@@ -1,6 +1,6 @@
 import { createLogger } from '../framework/logger';
 import { THRESHOLD_MARGIN_PERCENT } from '../framework/quality-gates/thresholdMargin';
-import type { MetricStep, DeviceInfo, TeamInfo } from './types';
+import type { MetricStep, DeviceInfo, NetworkWindow, TeamInfo } from './types';
 
 const logger = createLogger({ name: 'PerformanceTracker' });
 
@@ -10,6 +10,8 @@ interface Timer {
   baseThreshold: number | null;
   /** Defaults to true when omitted. */
   includeInTotal?: boolean;
+  /** Window-only timer: kept out of steps, thresholds and the total. */
+  networkOnly?: boolean;
   getDuration(): number | null;
   /** Epoch-ms start/end of the stopped timer; null when unavailable. */
   getWindow?(): { start: number; end: number } | null;
@@ -19,6 +21,8 @@ interface Timer {
 
 export interface MetricsOutput {
   steps: MetricStep[];
+  /** Network-only timer windows; not timing measurements. */
+  networkWindows?: NetworkWindow[];
   timestamp: string;
   thresholdMarginPercent: number;
   team: TeamInfo | null;
@@ -41,11 +45,14 @@ export interface MetricsOutput {
  */
 export class PerformanceTracker {
   timers: Timer[];
+  /** `networkOnly` timers, kept apart so they never reach timing output. */
+  networkTimers: Timer[];
   teamInfo: TeamInfo | null;
   private _sessionCreationDurationMs?: number;
 
   constructor() {
     this.timers = [];
+    this.networkTimers = [];
     this.teamInfo = null;
   }
 
@@ -64,10 +71,11 @@ export class PerformanceTracker {
   }
 
   addTimer(timer: Timer): void {
-    if (this.timers.find((existingTimer) => existingTimer.id === timer.id)) {
+    const target = timer.networkOnly ? this.networkTimers : this.timers;
+    if (target.find((existingTimer) => existingTimer.id === timer.id)) {
       return;
     }
-    this.timers.push(timer);
+    target.push(timer);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,6 +94,21 @@ export class PerformanceTracker {
         sessionCreationDurationMs: this._sessionCreationDurationMs,
       }),
     };
+
+    const networkWindows: NetworkWindow[] = [];
+    for (const timer of this.networkTimers) {
+      const timerWindow = timer.getWindow?.();
+      if (timerWindow) {
+        networkWindows.push({
+          name: timer.id,
+          startedAt: timerWindow.start,
+          endedAt: timerWindow.end,
+        });
+      }
+    }
+    if (networkWindows.length > 0) {
+      metrics.networkWindows = networkWindows;
+    }
 
     let totalSeconds = 0;
     let totalThresholdMs = 0;

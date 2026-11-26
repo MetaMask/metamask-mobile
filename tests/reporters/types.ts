@@ -23,6 +23,13 @@ export interface MetricStep {
   } | null;
 }
 
+/** A named time window (epoch ms, runner clock) used to attribute API calls. */
+export interface NetworkWindow {
+  name: string;
+  startedAt: number;
+  endedAt: number;
+}
+
 export interface DeviceInfo {
   name: string;
   osVersion: string;
@@ -43,6 +50,10 @@ export interface MetricsEntry {
   testFilePath?: string;
   tags?: string[];
   steps: MetricStep[];
+  /** Network-only timer windows (see `TimerHelper` `networkOnly`). */
+  networkWindows?: NetworkWindow[];
+  /** Phase windows (login, test_body, ...) from `appium-phase-timings`. */
+  phaseWindows?: NetworkWindow[];
   total: number;
   totalThreshold?: number | null;
   hasThresholds?: boolean;
@@ -219,6 +230,8 @@ export type ApiCallsSummary =
     }
   | { status: 'error'; error: string };
 
+export type ApiStepSource = 'timed' | 'network_only' | 'phase';
+
 export interface ApiCountSummary {
   total: number;
   unique: number;
@@ -234,6 +247,8 @@ export interface ApiCountSummary {
  */
 export interface ApiStepSummary {
   step: string;
+  /** `timed`: a measured step; `network_only`: window-only timer; `phase`: harness phase. */
+  source: ApiStepSource | 'none';
   phase: 'during' | 'after' | 'none';
   total: number;
   /** Requests with `api.kind: app`. */

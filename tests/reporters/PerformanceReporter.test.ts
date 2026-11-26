@@ -844,6 +844,105 @@ describe('PerformanceReporter', () => {
         });
       });
 
+      describe('network windows and phase windows', () => {
+        const startTime = new Date('2026-07-22T11:55:00.000Z');
+        const start = startTime.getTime();
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+        const phaseAttachment = (
+          windows: unknown[],
+        ): { name: string; body: Buffer } => ({
+          name: 'appium-phase-timings',
+          body: Buffer.from(JSON.stringify({ phases: {}, windows, meta: {} })),
+        });
+
+        const record = (
+          networkLogsEntries: unknown[],
+          metricsOverrides: Record<string, unknown>,
+          extraAttachments: { name: string; body: Buffer }[] = [],
+        ): void => {
+          const args = [
+            makeTest(),
+            makeResult({
+              startTime,
+              duration: 300_000,
+              attachments: [
+                makeSessionAttachment({ networkLogsEntries }),
+                makeMetricsAttachment(metricsOverrides),
+                ...extraAttachments,
+              ],
+            }),
+          ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+          reporter.onTestEnd(...args);
+        };
+
+        const publishedSteps = (): {
+          step: string;
+          source: string;
+          total: number;
+        }[] =>
+          (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0].summary
+            .steps;
+
+        it('attributes calls to phase windows named phase:<name> and to network-only windows', async () => {
+          record(
+            [
+              callAt(1_000),
+              callAt(5_000),
+              callAt(100_000),
+              callAt(500_000 - 1),
+            ],
+            {
+              steps: [
+                {
+                  name: 'tap Add Funds',
+                  duration: 1000,
+                  baseThreshold: null,
+                  threshold: null,
+                  startedAt: start + 200_000,
+                  endedAt: start + 201_000,
+                },
+              ],
+              networkWindows: [
+                {
+                  name: 'type amount → quote shown',
+                  startedAt: start + 4_000,
+                  endedAt: start + 6_000,
+                },
+              ],
+            },
+            [
+              phaseAttachment([
+                {
+                  phase: 'login_wallet_home',
+                  startedAt: start,
+                  endedAt: start + 3_000,
+                },
+                { phase: 'bad' },
+              ]),
+            ],
+          );
+
+          await reporter.onEnd();
+
+          expect(
+            publishedSteps().map(({ step, source, total }) => [
+              step,
+              source,
+              total,
+            ]),
+          ).toEqual([
+            ['type amount → quote shown', 'network_only', 1],
+            ['phase:login_wallet_home', 'phase', 1],
+            ['unattributed', 'none', 2],
+          ]);
+        });
+      });
+
       describe('session selection for retried tests', () => {
         const startTime = new Date('2026-07-22T14:10:00.000Z');
         const start = startTime.getTime();

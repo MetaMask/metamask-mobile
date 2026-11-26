@@ -1060,6 +1060,7 @@ describe('PerformanceSentryPublisher', () => {
         steps: [
           {
             step: 'open Token Details Page',
+            source: 'timed',
             phase: 'during',
             total: 4,
             appTotal: 3,
@@ -1083,6 +1084,7 @@ describe('PerformanceSentryPublisher', () => {
           },
           {
             step: 'open Token Details Page',
+            source: 'timed',
             phase: 'after',
             total: 2,
             appTotal: 2,
@@ -1099,6 +1101,7 @@ describe('PerformanceSentryPublisher', () => {
           },
           {
             step: 'unattributed',
+            source: 'none',
             phase: 'none',
             total: 1,
             appTotal: 0,
@@ -1125,6 +1128,7 @@ describe('PerformanceSentryPublisher', () => {
           expect.objectContaining({
             'api.step': 'open Token Details Page',
             'api.step.phase': 'during',
+            'api.step.source': 'timed',
             'api.step.requests': 4,
             'api.step.requests.app': 3,
             'api.step.failed': 0,
@@ -1137,6 +1141,7 @@ describe('PerformanceSentryPublisher', () => {
           expect.objectContaining({
             'api.step': 'unattributed',
             'api.step.phase': 'none',
+            'api.step.source': 'none',
             'api.step.requests': 1,
             'api.step.failed': 1,
           }),
@@ -1157,6 +1162,7 @@ describe('PerformanceSentryPublisher', () => {
         expect(endpointSpans[0].data).toMatchObject({
           'api.step': 'open Token Details Page',
           'api.step.phase': 'during',
+          'api.step.source': 'timed',
           'api.step_endpoint':
             'open Token Details Page | POST mainnet.infura.io/v3/***',
           'api.method': 'POST',
@@ -1166,6 +1172,61 @@ describe('PerformanceSentryPublisher', () => {
           'api.endpoint.failed': 0,
         });
         expect(endpointSpans[1].data['api.kind']).toBe('preflight');
+      });
+
+      it('tags network-only and phase windows with api.step.source', async () => {
+        const { payload } = await publish({
+          ...stepSummary,
+          steps: [
+            {
+              step: 'type amount → quote shown',
+              source: 'network_only',
+              phase: 'during',
+              total: 2,
+              appTotal: 2,
+              failed: 0,
+              topEndpoints: [
+                {
+                  method: 'GET',
+                  kind: 'app',
+                  url: 'api.example.com/getQuoteStream',
+                  count: 2,
+                  failed: 0,
+                },
+              ],
+            },
+            {
+              step: 'phase:login_wallet_home',
+              source: 'phase',
+              phase: 'during',
+              total: 1,
+              appTotal: 1,
+              failed: 0,
+              topEndpoints: [],
+            },
+          ],
+        });
+
+        const stepSpans = payload.spans.filter(
+          (span: { op: string }) => span.op === 'e2e.performance.network.step',
+        );
+        expect(
+          stepSpans.map(
+            (span: { data: Record<string, unknown> }) =>
+              [span.data['api.step'], span.data['api.step.source']] as const,
+          ),
+        ).toEqual([
+          ['type amount → quote shown', 'network_only'],
+          ['phase:login_wallet_home', 'phase'],
+        ]);
+        const endpointSpan = payload.spans.find(
+          (span: { op: string }) =>
+            span.op === 'e2e.performance.network.step_endpoint',
+        );
+        expect(endpointSpan.data['api.step.source']).toBe('network_only');
+        expect(endpointSpan.data['api.step_endpoint']).toBe(
+          'type amount → quote shown | GET api.example.com/getQuoteStream',
+        );
       });
 
       it('labels the after phase in descriptions and the combined attribute only', async () => {

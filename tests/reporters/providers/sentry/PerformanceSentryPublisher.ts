@@ -642,7 +642,7 @@ const NETWORK_ENDPOINT_SPAN_OP = 'e2e.performance.network.endpoint';
 const NETWORK_STEP_SPAN_OP = 'e2e.performance.network.step';
 const NETWORK_STEP_ENDPOINT_SPAN_OP = 'e2e.performance.network.step_endpoint';
 const MAX_HOST_SPANS = 20;
-const MAX_STEP_SPANS = 30;
+const MAX_STEP_SPANS = 40;
 
 /**
  * Span `data` keys that hold request counts. They are sent as plain JSON
@@ -702,7 +702,9 @@ interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
  * the span description, so grouping by one field shows both in a chart
  * legend. `api.step.phase` is `during` (incl. pre-roll), `after` (calls just
  * after the step, labelled "<step> (after)" in descriptions and
- * `api.step_endpoint`) or `none` (`unattributed`). Endpoint spans carry
+ * `api.step_endpoint`) or `none` (`unattributed`). `api.step.source` is
+ * `timed` (a measured step), `network_only` (a window-only timer) or `phase`
+ * (a harness phase, named `phase:<name>`); `none` for `unattributed`. Endpoint spans carry
  * `api.kind` (app | preflight | test_infra | telemetry). The
  * `api_step_attribution` tag (ok | skewed | no_overlap | unavailable) says
  * whether the HAR and test-runner clocks line up.
@@ -806,12 +808,13 @@ export async function publishApiCallsSummaryToSentry(
     }
 
     for (const stepSummary of (summary.steps ?? []).slice(0, MAX_STEP_SPANS)) {
-      const { step, phase } = stepSummary;
+      const { step, phase, source } = stepSummary;
       const stepLabel = phase === 'after' ? `${step} (after)` : step;
       spans.push(
         createSpan(NETWORK_STEP_SPAN_OP, stepLabel, {
           'api.step': step,
           'api.step.phase': phase,
+          'api.step.source': source,
           [API_COUNT_ATTRIBUTES.stepRequests]: stepSummary.total,
           [API_COUNT_ATTRIBUTES.stepAppRequests]: stepSummary.appTotal,
           [API_COUNT_ATTRIBUTES.stepFailed]: stepSummary.failed,
@@ -826,6 +829,7 @@ export async function publishApiCallsSummaryToSentry(
             {
               'api.step': step,
               'api.step.phase': phase,
+              'api.step.source': source,
               'api.step_endpoint': `${stepLabel} | ${endpointKey}`,
               'api.method': endpoint.method,
               'api.kind': endpoint.kind,

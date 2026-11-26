@@ -37,12 +37,27 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
+
+      // Window-only: attributes the quote request, which fires while typing,
+      // before the thresholded timer below starts.
+      const quoteRequestWindow = new TimerHelper(
+        'type amount → quote shown',
+        undefined,
+        currentDeviceDetails.platform,
+        { networkOnly: true },
+      );
+      quoteRequestWindow.start();
       await QuoteView.enterSourceTokenAmount('0.01');
 
       await QuoteView.dismissKeypad();
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
+      quoteRequestWindow.stop();
 
-      performanceTracker.addTimers(swapLoadTimer, swapTimer);
+      performanceTracker.addTimers(
+        swapLoadTimer,
+        swapTimer,
+        quoteRequestWindow,
+      );
 
       await aiVisualTest(
         driver,

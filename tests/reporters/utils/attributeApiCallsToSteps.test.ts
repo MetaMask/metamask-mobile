@@ -2,6 +2,8 @@ import type { MetricStep, NetworkLogEntry } from '../types';
 import {
   AFTER_MAX_MS,
   attributeApiCallsToSteps,
+  getAttributionWindows,
+  type AttributionWindow,
   getTestWindow,
   networkLogOverlapsSteps,
   PRE_ROLL_MS,
@@ -22,6 +24,13 @@ const step = (
   startedAt,
   endedAt,
 });
+
+const windowOf = (
+  name: string,
+  startedAt: number,
+  endedAt: number,
+  source: AttributionWindow['source'],
+): AttributionWindow => ({ name, startedAt, endedAt, source });
 
 const call = (
   startedAt: number | undefined,
@@ -157,6 +166,136 @@ describe('attributeApiCallsToSteps', () => {
     });
   });
 
+  describe('network-only and phase windows', () => {
+    const totals = (
+      calls: NetworkLogEntry[],
+      windows: AttributionWindow[],
+    ): Record<string, number> =>
+      Object.fromEntries(
+        attributeApiCallsToSteps(calls, windows).steps.map((summary) => [
+          `${summary.step}:${summary.source}:${summary.phase}`,
+          summary.total,
+        ]),
+      );
+
+    it('attributes calls inside a network-only window and reports its source', () => {
+      expect(
+        totals(
+          [call(1_500)],
+          [windowOf('type amount → quote shown', 1_000, 2_000, 'network_only')],
+        ),
+      ).toEqual({ 'type amount → quote shown:network_only:during': 1 });
+    });
+
+    it('lets a specific step beat the broad phase containing it', () => {
+      const windows = [
+        windowOf('phase:test_body', 0, 30_000, 'phase'),
+        windowOf('tap Add Funds', 4_000, 5_000, 'timed'),
+      ];
+
+      expect(totals([call(4_500), call(20_000)], windows)).toEqual({
+        'tap Add Funds:timed:during': 1,
+        'phase:test_body:phase:during': 1,
+      });
+    });
+
+    it('lets a shorter phase beat the step it sits in (shortest window wins)', () => {
+      const windows = [
+        windowOf('tap Add Funds', 4_000, 8_000, 'timed'),
+        windowOf('phase:interrupting_screens_recovery', 5_000, 5_500, 'phase'),
+      ];
+
+      expect(totals([call(5_200), call(6_000)], windows)).toEqual({
+        'phase:interrupting_screens_recovery:phase:during': 1,
+        'tap Add Funds:timed:during': 1,
+      });
+    });
+
+    it('lets list order decide exact ties, so timed steps win over network-only windows', () => {
+      const windows = [
+        windowOf('w', 1_000, 2_000, 'timed'),
+        windowOf('w', 1_000, 2_000, 'network_only'),
+      ];
+
+      expect(totals([call(1_500)], windows)).toEqual({
+        'w:timed:during': 1,
+      });
+    });
+
+    it('keeps step pre-roll and after calls out of the enclosing phase', () => {
+      const windows = [
+        windowOf('phase:test_body', 0, 20_000, 'phase'),
+        windowOf('tap', 10_000, 11_000, 'timed'),
+      ];
+
+      expect(
+        totals(
+          [
+            call(10_000 - PRE_ROLL_MS / 2),
+            call(11_000 + 1_000),
+            call(11_000 + AFTER_MAX_MS + 1),
+          ],
+          windows,
+        ),
+      ).toEqual({
+        'tap:timed:during': 1,
+        'tap:timed:after': 1,
+        'phase:test_body:phase:during': 1,
+      });
+    });
+
+    it('gives phases no pre-roll or after', () => {
+      expect(
+        totals(
+          [call(900), call(2_100)],
+          [windowOf('phase:login', 1_000, 2_000, 'phase')],
+        ),
+      ).toEqual({ 'unattributed:none:none': 2 });
+    });
+
+    it('does not double count with all sources present', () => {
+      const windows = [
+        windowOf('phase:test_body', 0, 30_000, 'phase'),
+        windowOf('tap', 4_000, 5_000, 'timed'),
+        windowOf('quote window', 3_000, 6_000, 'network_only'),
+      ];
+      const calls = [
+        call(100),
+        call(3_500),
+        call(4_500),
+        call(5_500),
+        call(20_000),
+      ];
+
+      const result = totals(calls, windows);
+
+      expect(Object.values(result).reduce((sum, n) => sum + n, 0)).toBe(
+        calls.length,
+      );
+      expect(result).toEqual({
+        'tap:timed:during': 1,
+        'quote window:network_only:during': 2,
+        'phase:test_body:phase:during': 2,
+      });
+    });
+  });
+
+  describe('getAttributionWindows', () => {
+    it('orders timed steps, network-only windows, then phase windows with sources', () => {
+      expect(
+        getAttributionWindows({
+          steps: [step('s', 1, 2)],
+          networkWindows: [{ name: 'n', startedAt: 3, endedAt: 4 }],
+          phaseWindows: [{ name: 'phase:p', startedAt: 5, endedAt: 6 }],
+        }).map(({ name, source }) => [name, source]),
+      ).toEqual([
+        ['s', 'timed'],
+        ['n', 'network_only'],
+        ['phase:p', 'phase'],
+      ]);
+    });
+  });
+
   it('picks the shortest window for overlapping timers regardless of order', () => {
     const outer = step('whole flow', 0, 10_000);
     const inner = step('tap Add Funds', 4_000, 5_000);
@@ -200,17 +339,7 @@ describe('attributeApiCallsToSteps', () => {
 
   it('is unavailable without step windows or request timestamps', () => {
     expect(
-      attributeApiCallsToSteps(
-        [call(1_000)],
-        [
-          {
-            name: 'running',
-            duration: 1,
-            baseThreshold: null,
-            threshold: null,
-          },
-        ],
-      ),
+      attributeApiCallsToSteps([call(1_000)], [{ name: 'running' }]),
     ).toEqual({
       steps: [],
       attribution: expect.objectContaining({ status: 'unavailable' }),

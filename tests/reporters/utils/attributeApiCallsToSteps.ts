@@ -1,8 +1,8 @@
 import type {
   ApiCallsSummary,
   ApiStepAttribution,
+  ApiStepSource,
   ApiStepSummary,
-  MetricStep,
   MetricsEntry,
   NetworkLogEntry,
 } from '../types';
@@ -29,10 +29,19 @@ export const SKEW_OUTSIDE_WINDOW_SHARE = 0.3;
 /** Below this many timestamped calls the share thresholds are not trusted. */
 export const SKEW_MIN_CALLS = 10;
 
+/** A named window to attribute calls to; timed steps satisfy this as is. */
+export interface AttributionWindow {
+  name: string;
+  startedAt?: number;
+  endedAt?: number;
+  source?: ApiStepSource;
+}
+
 interface StepWindow {
   name: string;
   startedAt: number;
   endedAt: number;
+  source: ApiStepSource;
 }
 
 export interface TestWindow {
@@ -42,9 +51,9 @@ export interface TestWindow {
   end: number;
 }
 
-function getStepWindows(steps: MetricStep[]): StepWindow[] {
+function getStepWindows(steps: AttributionWindow[]): StepWindow[] {
   const windows: StepWindow[] = [];
-  for (const { name, startedAt, endedAt } of steps) {
+  for (const { name, startedAt, endedAt, source = 'timed' } of steps) {
     if (
       typeof startedAt === 'number' &&
       typeof endedAt === 'number' &&
@@ -52,14 +61,14 @@ function getStepWindows(steps: MetricStep[]): StepWindow[] {
       Number.isFinite(endedAt) &&
       endedAt >= startedAt
     ) {
-      windows.push({ name, startedAt, endedAt });
+      windows.push({ name, startedAt, endedAt, source });
     }
   }
   return windows;
 }
 
 interface Owner {
-  name: string;
+  window: StepWindow;
   phase: 'during' | 'after';
 }
 
@@ -79,36 +88,52 @@ function pickBest(
 
 const lengthOf = (win: StepWindow): number => win.endedAt - win.startedAt;
 
+/** Shortest window wins (innermost), then the latest start. */
+const isInnerWindow = (win: StepWindow, best: StepWindow): boolean =>
+  lengthOf(win) < lengthOf(best) ||
+  (lengthOf(win) === lengthOf(best) && win.startedAt > best.startedAt);
+
+const containing = (windows: StepWindow[], time: number): StepWindow[] =>
+  windows.filter((win) => time >= win.startedAt && time <= win.endedAt);
+
 /**
- * Picks the step owning a call that started at `time`, by strict precedence
- * `during` > pre-roll > `after`, so a call is counted once.
+ * Picks the window owning a call that started at `time`. Precedence is strict
+ * so a call is counted once.
  *
- * `during`: inside a window (inclusive). For nested or overlapping timers the
- * shortest window wins (innermost), then the latest start.
+ * `during`: windows containing the call (inclusive), specific (timed steps,
+ * network-only windows) and broad harness phases alike. The shortest wins
+ * (innermost), then the latest start; on an exact tie a specific window beats
+ * a phase. So a step beats the enclosing `test_body`, and a short phase such
+ * as interrupting-screen recovery beats the step it sits in.
  *
- * Pre-roll (counted as `during`): up to PRE_ROLL_MS before a start. The
- * nearest following start wins, then the shortest window.
+ * Pre-roll, specific windows only (counted as `during`): up to PRE_ROLL_MS
+ * before a start. The nearest following start wins, then the shortest.
  *
- * `after`: up to AFTER_MAX_MS after an end. The most recently ended step wins,
- * then the shortest window. A next step's own `during` or pre-roll outranks
- * this, so `after` stops when the next step begins.
+ * `after`, specific windows only: up to AFTER_MAX_MS after an end. The most
+ * recently ended wins, then the shortest. A next window's own `during` or
+ * pre-roll outranks it, so `after` stops when the next step begins.
  *
- * Remaining ties go to the earliest recorded step, so the result depends only
- * on the step list.
+ * Phases never claim pre-roll or `after`. A call no specific window claims
+ * falls back to the phase containing it.
+ *
+ * Remaining ties go to the earliest window in the list (timed steps, then
+ * network-only windows, then phases), so the result depends only on the list.
  */
 function findOwner(windows: StepWindow[], time: number): Owner | null {
-  const during = pickBest(
-    windows.filter((win) => time >= win.startedAt && time <= win.endedAt),
-    (win, best) =>
-      lengthOf(win) < lengthOf(best) ||
-      (lengthOf(win) === lengthOf(best) && win.startedAt > best.startedAt),
-  );
-  if (during) {
-    return { name: during.name, phase: 'during' };
+  const specific = windows.filter((win) => win.source !== 'phase');
+  const phases = windows.filter((win) => win.source === 'phase');
+
+  const specificDuring = pickBest(containing(specific, time), isInnerWindow);
+  const phaseDuring = pickBest(containing(phases, time), isInnerWindow);
+
+  if (specificDuring) {
+    return phaseDuring && isInnerWindow(phaseDuring, specificDuring)
+      ? { window: phaseDuring, phase: 'during' }
+      : { window: specificDuring, phase: 'during' };
   }
 
   const preRoll = pickBest(
-    windows.filter(
+    specific.filter(
       (win) => time < win.startedAt && time >= win.startedAt - PRE_ROLL_MS,
     ),
     (win, best) =>
@@ -116,18 +141,22 @@ function findOwner(windows: StepWindow[], time: number): Owner | null {
       (win.startedAt === best.startedAt && lengthOf(win) < lengthOf(best)),
   );
   if (preRoll) {
-    return { name: preRoll.name, phase: 'during' };
+    return { window: preRoll, phase: 'during' };
   }
 
   const after = pickBest(
-    windows.filter(
+    specific.filter(
       (win) => time > win.endedAt && time <= win.endedAt + AFTER_MAX_MS,
     ),
     (win, best) =>
       win.endedAt > best.endedAt ||
       (win.endedAt === best.endedAt && lengthOf(win) < lengthOf(best)),
   );
-  return after ? { name: after.name, phase: 'after' } : null;
+  if (after) {
+    return { window: after, phase: 'after' };
+  }
+
+  return phaseDuring ? { window: phaseDuring, phase: 'during' } : null;
 }
 
 function spansIntersect(
@@ -149,7 +178,7 @@ function spansIntersect(
  */
 export function networkLogOverlapsSteps(
   apiCalls: NetworkLogEntry[] | null | undefined,
-  steps: MetricStep[] | undefined,
+  steps: AttributionWindow[] | undefined,
 ): boolean {
   const windows = getStepWindows(steps ?? []);
   const timestamped = (apiCalls ?? []).filter((call) =>
@@ -204,7 +233,7 @@ function evaluateSkew(
  */
 export function attributeApiCallsToSteps(
   apiCalls: NetworkLogEntry[],
-  steps: MetricStep[],
+  steps: AttributionWindow[],
   testWindow?: TestWindow | null,
   topN: number = DEFAULT_TOP_ENDPOINTS,
 ): { steps: ApiStepSummary[]; attribution: ApiStepAttribution } {
@@ -230,14 +259,14 @@ export function attributeApiCallsToSteps(
     };
   }
 
-  const bucketKey = (name: string, phase: Owner['phase']): string =>
-    `${phase}\u0000${name}`;
+  const bucketKey = (win: StepWindow, phase: Owner['phase']): string =>
+    `${phase}\u0000${win.source}\u0000${win.name}`;
   const buckets = new Map<string, NetworkLogEntry[]>();
-  for (const { name } of windows) {
-    buckets.set(bucketKey(name, 'during'), []);
+  for (const win of windows) {
+    buckets.set(bucketKey(win, 'during'), []);
   }
-  for (const { name } of windows) {
-    buckets.set(bucketKey(name, 'after'), []);
+  for (const win of windows) {
+    buckets.set(bucketKey(win, 'after'), []);
   }
   const unattributedCalls: NetworkLogEntry[] = [];
   let outsideTestWindow = 0;
@@ -249,7 +278,7 @@ export function attributeApiCallsToSteps(
         ? findOwner(windows, time)
         : null;
     if (owner) {
-      buckets.get(bucketKey(owner.name, owner.phase))?.push(call);
+      buckets.get(bucketKey(owner.window, owner.phase))?.push(call);
       continue;
     }
     unattributedCalls.push(call);
@@ -266,6 +295,7 @@ export function attributeApiCallsToSteps(
   const summaries: ApiStepSummary[] = [];
   const addSummary = (
     step: string,
+    source: ApiStepSummary['source'],
     phase: ApiStepSummary['phase'],
     calls: NetworkLogEntry[],
   ): void => {
@@ -273,6 +303,7 @@ export function attributeApiCallsToSteps(
     if (calls.length > 0 && summary?.status === 'captured') {
       summaries.push({
         step,
+        source,
         phase,
         total: summary.total,
         appTotal: summary.app.total,
@@ -282,10 +313,10 @@ export function attributeApiCallsToSteps(
     }
   };
   for (const [key, calls] of buckets) {
-    const [phase, step] = key.split('\u0000');
-    addSummary(step, phase as Owner['phase'], calls);
+    const [phase, source, step] = key.split('\u0000');
+    addSummary(step, source as ApiStepSource, phase as Owner['phase'], calls);
   }
-  addSummary(UNATTRIBUTED_STEP, 'none', unattributedCalls);
+  addSummary(UNATTRIBUTED_STEP, 'none', 'none', unattributedCalls);
 
   const base = {
     attributed: apiCalls.length - unattributedCalls.length,
@@ -317,6 +348,31 @@ export function getTestWindow(
 }
 
 /**
+ * Every window calls can be attributed to, in tie-break order: timed steps,
+ * network-only windows, then harness phase windows (named `phase:<name>`).
+ */
+export function getAttributionWindows(
+  metric: Partial<
+    Pick<MetricsEntry, 'steps' | 'networkWindows' | 'phaseWindows'>
+  >,
+): AttributionWindow[] {
+  return [
+    ...(metric.steps ?? []).map((step) => ({
+      ...step,
+      source: 'timed' as const,
+    })),
+    ...(metric.networkWindows ?? []).map((win) => ({
+      ...win,
+      source: 'network_only' as const,
+    })),
+    ...(metric.phaseWindows ?? []).map((win) => ({
+      ...win,
+      source: 'phase' as const,
+    })),
+  ];
+}
+
+/**
  * `summarizeApiCalls` plus the per-step breakdown and clock-skew verdict for
  * captured logs. Errors and "not attempted" pass through unchanged.
  */
@@ -324,7 +380,13 @@ export function summarizeApiCallsByStep(
   metric: Partial<
     Pick<
       MetricsEntry,
-      'apiCalls' | 'apiCallsError' | 'steps' | 'testStartedAt' | 'testEndedAt'
+      | 'apiCalls'
+      | 'apiCallsError'
+      | 'steps'
+      | 'networkWindows'
+      | 'phaseWindows'
+      | 'testStartedAt'
+      | 'testEndedAt'
     >
   >,
 ): ApiCallsSummary | null {
@@ -334,7 +396,7 @@ export function summarizeApiCallsByStep(
   }
   const { steps, attribution } = attributeApiCallsToSteps(
     metric.apiCalls,
-    metric.steps ?? [],
+    getAttributionWindows(metric),
     getTestWindow(metric),
   );
   return { ...summary, steps, stepAttribution: attribution };

@@ -19,11 +19,14 @@ import {
   publishPerformanceScenarioToSentry,
 } from './providers/sentry/PerformanceSentryPublisher';
 import {
+  getAttributionWindows,
   networkLogOverlapsSteps,
   summarizeApiCallsByStep,
 } from './utils/attributeApiCallsToSteps';
+import { PHASE_TIMINGS_ATTACHMENT_NAME } from '../framework/telemetry/PhaseTimer';
 import type {
   MetricsEntry,
+  NetworkWindow,
   SessionData,
   FailedTestsByTeam,
   TeamInfo,
@@ -83,6 +86,32 @@ const getAttemptSessionId = (
     // Unparseable attachment: fall back to the annotation below.
   }
   return result.annotations?.find((a) => a.type === 'sessionId')?.description;
+};
+
+/** Harness phase windows from `appium-phase-timings`, as `phase:<name>`. */
+const getPhaseWindows = (result: PlaywrightTestResult): NetworkWindow[] => {
+  const body = result.attachments
+    .find((att) => att.name === PHASE_TIMINGS_ATTACHMENT_NAME)
+    ?.body?.toString();
+  if (!body) {
+    return [];
+  }
+  try {
+    const { windows } = JSON.parse(body) as {
+      windows?: { phase?: string; startedAt?: number; endedAt?: number }[];
+    };
+    return (windows ?? []).flatMap(({ phase, startedAt, endedAt }) =>
+      phase &&
+      typeof startedAt === 'number' &&
+      typeof endedAt === 'number' &&
+      Number.isFinite(startedAt) &&
+      Number.isFinite(endedAt)
+        ? [{ name: `phase:${phase}`, startedAt, endedAt }]
+        : [],
+    );
+  } catch {
+    return [];
+  }
 };
 
 const isTestFailureStatus = (status: string): boolean =>
@@ -381,6 +410,10 @@ class PerformanceReporter {
           projectName,
           ...getTestWindowFields(result),
         };
+        const phaseWindows = getPhaseWindows(result);
+        if (phaseWindows.length > 0) {
+          metricsEntry.phaseWindows = phaseWindows;
+        }
         const attemptSessionId = getAttemptSessionId(result);
         if (attemptSessionId) {
           metricsEntry.sessionId = attemptSessionId;
@@ -813,7 +846,10 @@ class PerformanceReporter {
     }
     return (
       sameTest.find((session) =>
-        networkLogOverlapsSteps(session.networkLogsEntries, metric.steps),
+        networkLogOverlapsSteps(
+          session.networkLogsEntries,
+          getAttributionWindows(metric),
+        ),
       ) ?? sameTest[sameTest.length - 1]
     );
   }
