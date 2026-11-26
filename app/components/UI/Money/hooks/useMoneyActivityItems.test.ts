@@ -7,6 +7,7 @@ import {
   CardTransactionType,
   type CardTransaction,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
 import {
   mergeMoneyActivity,
   buildMoneyActivityBuckets,
@@ -32,6 +33,8 @@ import {
   selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
+import { selectCardCashbackClaim } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
 
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
@@ -42,6 +45,13 @@ jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
 }));
 jest.mock('../../Card/hooks/useCardCapabilities', () => ({
   useCardCapabilities: jest.fn(),
+}));
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      clearCashbackClaim: jest.fn(),
+    },
+  },
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -57,6 +67,8 @@ const mockUseMoneyMicrodeposits = jest.mocked(useMoneyMicrodeposits);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockUseSelector = jest.mocked(useSelector);
+const mockClearCashbackClaim = Engine.context.CardController
+  .clearCashbackClaim as jest.Mock;
 
 const defaultIndexResult = {
   bySettlementHash: new Map<string, CardTransaction>(),
@@ -73,12 +85,14 @@ function mockEnrichmentFlags({
   moneyAccount = false,
   geoEligible = false,
   pendingActivity = true,
+  claim = null,
 }: {
   master?: boolean;
   enrichment?: boolean;
   moneyAccount?: boolean;
   geoEligible?: boolean;
   pendingActivity?: boolean;
+  claim?: CardCashbackClaim | null;
 } = {}) {
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectCardTransactionHistoryEnabled) {
@@ -98,6 +112,9 @@ function mockEnrichmentFlags({
     }
     if (selector === selectMoneyVbaCompletedActivityEnabled) {
       return false;
+    }
+    if (selector === selectCardCashbackClaim) {
+      return claim;
     }
     return false;
   });
@@ -138,6 +155,19 @@ const cashbackTx = (hash: Hex, time: number): AccountsApiActivity => ({
   token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
   amount: '300000',
   receivedFrom: '0xrewarder' as Hex,
+});
+
+const createCashbackClaim = (
+  overrides: Partial<CardCashbackClaim> = {},
+): CardCashbackClaim => ({
+  status: 'pending',
+  amount: '0.3',
+  moneyAddress: '0xmoney',
+  submittedAt: 1_000,
+  txHash: null,
+  chainId: '0x8f',
+  error: null,
+  ...overrides,
 });
 
 const refundTx = (hash: Hex, time: number): AccountsApiActivity => ({
@@ -540,6 +570,27 @@ describe('buildMoneyActivityBuckets', () => {
     expect(
       buckets[MoneyActivityFilter.Purchases].map((i) => i.id),
     ).not.toContain('declined-old');
+  });
+  it('injects the cashback claim into All and Purchases only', () => {
+    const claim = createCashbackClaim();
+
+    const buckets = buildMoneyActivityBuckets(
+      { all: [], deposits: [], transfers: [] },
+      [card],
+      Number.NEGATIVE_INFINITY,
+      [],
+      [],
+      [],
+      claim,
+    );
+
+    const containsClaim = (filter: MoneyActivityFilter) =>
+      buckets[filter].some((item) => item.kind === 'cashbackClaim');
+
+    expect(containsClaim(MoneyActivityFilter.All)).toBe(true);
+    expect(containsClaim(MoneyActivityFilter.Purchases)).toBe(true);
+    expect(containsClaim(MoneyActivityFilter.Deposits)).toBe(false);
+    expect(containsClaim(MoneyActivityFilter.Transfers)).toBe(false);
   });
 });
 
@@ -1368,5 +1419,79 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([
       expect.objectContaining({ kind: 'onchain', id: 'local-settlement' }),
     ]);
+  });
+
+  it('shows a pending cashback claim in All and Purchases', () => {
+    const claim = createCashbackClaim({ submittedAt: Date.now() });
+    mockEnrichmentFlags({ claim });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([
+      expect.objectContaining({
+        kind: 'cashbackClaim',
+        id: `cashback-claim-${claim.submittedAt}`,
+      }),
+    ]);
+    expect(result.current.buckets[MoneyActivityFilter.Purchases]).toHaveLength(
+      1,
+    );
+    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toEqual([]);
+    expect(result.current.buckets[MoneyActivityFilter.Transfers]).toEqual([]);
+  });
+
+  it('hides a cashback claim for another Money account', () => {
+    mockEnrichmentFlags({
+      claim: createCashbackClaim({
+        submittedAt: Date.now(),
+        moneyAddress: '0xother',
+      }),
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
+  });
+
+  it('polls activity while a cashback claim exists', () => {
+    mockEnrichmentFlags({
+      claim: createCashbackClaim({ submittedAt: Date.now() }),
+    });
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(mockUseMoneyAccountApiActivity).toHaveBeenCalledWith({
+      refetchIntervalMs: 30_000,
+    });
+  });
+
+  it('clears a cashback claim once the API reports the settlement', () => {
+    const hash: Hex =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    mockEnrichmentFlags({
+      claim: createCashbackClaim({
+        submittedAt: Date.now(),
+        txHash: hash,
+      }),
+    });
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({ activity: [cashbackTx(hash, Date.now())] }),
+    );
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(mockClearCashbackClaim).toHaveBeenCalled();
+  });
+
+  it('clears an expired cashback claim', () => {
+    mockEnrichmentFlags({
+      claim: createCashbackClaim({
+        submittedAt: Date.now() - 11 * 60 * 1000,
+      }),
+    });
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(mockClearCashbackClaim).toHaveBeenCalled();
   });
 });

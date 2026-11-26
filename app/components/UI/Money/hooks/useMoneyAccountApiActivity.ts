@@ -35,6 +35,7 @@ import { useMoneyActivityValuations } from './useMoneyActivityValuations';
 
 interface UseMoneyAccountApiActivityOptions {
   enabled?: boolean;
+  refetchIntervalMs?: number | false;
 }
 
 export interface UseMoneyAccountApiActivityResult {
@@ -87,6 +88,7 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
  */
 export function useMoneyAccountApiActivity({
   enabled: callerEnabled = true,
+  refetchIntervalMs = false,
 }: UseMoneyAccountApiActivityOptions = {}): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const cashbackMultisendContracts = useSelector(
@@ -181,6 +183,7 @@ export function useMoneyAccountApiActivity({
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
+    refetchInterval: refetchIntervalMs,
     initialData: cachedFirstPage
       ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
       : undefined,

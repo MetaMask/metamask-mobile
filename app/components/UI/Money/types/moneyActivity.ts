@@ -1,6 +1,7 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
 
 export type AccountsApiDisplayAmount =
   | {
@@ -116,6 +117,12 @@ export type MoneyActivityItem =
       id: string;
       time: number;
       tx: MicrodepositActivity;
+    }
+  | {
+      kind: 'cashbackClaim';
+      id: string;
+      time: number;
+      claim: CardCashbackClaim;
     };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
@@ -157,4 +164,13 @@ export const microdepositItem = (
   id: tx.id,
   time: tx.time,
   tx,
+});
+
+export const cashbackClaimItem = (
+  claim: CardCashbackClaim,
+): MoneyActivityItem => ({
+  kind: 'cashbackClaim',
+  id: `cashback-claim-${claim.submittedAt}`,
+  time: claim.submittedAt,
+  claim,
 });

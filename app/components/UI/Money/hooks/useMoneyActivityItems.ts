@@ -4,6 +4,7 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
   cardProviderItem,
+  cashbackClaimItem,
   microdepositItem,
   neobankItem,
   onchainItem,
@@ -28,6 +29,14 @@ import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
+import { selectCardCashbackClaim } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
+import { areAddressesEqual } from '../../../../util/address';
+import {
+  isCashbackClaimExpired,
+  isSettlingCashbackActivity,
+} from '../utils/cashbackClaim';
 import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
@@ -191,15 +200,20 @@ export function buildMoneyActivityBuckets(
   declinedCardTxs: CardTransaction[] = [],
   neobankActivity: NeobankBankTransferActivity[] = [],
   microdeposits: readonly MicrodepositActivity[] = [],
+  cashbackClaim: CardCashbackClaim | null = null,
 ): MoneyActivityBuckets {
+  const withClaim = (items: MoneyActivityItem[]): MoneyActivityItem[] =>
+    cashbackClaim ? [cashbackClaimItem(cashbackClaim), ...items] : items;
   return {
     [MoneyActivityFilter.All]: safeItems(
-      mergeMoneyActivity(
-        onchain.all,
-        apiActivity,
-        declinedCardTxs,
-        neobankActivity,
-        microdeposits,
+      withClaim(
+        mergeMoneyActivity(
+          onchain.all,
+          apiActivity,
+          declinedCardTxs,
+          neobankActivity,
+          microdeposits,
+        ),
       ),
       watermark,
     ),
@@ -228,7 +242,7 @@ export function buildMoneyActivityBuckets(
     // Purchases is API-only (+ declined card rows); the watermark gate still
     // applies for same-timestamp siblings on the next page.
     [MoneyActivityFilter.Purchases]: safeItems(
-      mergeMoneyActivity([], apiActivity, declinedCardTxs),
+      withClaim(mergeMoneyActivity([], apiActivity, declinedCardTxs)),
       watermark,
     ),
   };
@@ -243,6 +257,7 @@ export function useMoneyActivityItems({
 }: UseMoneyActivityItemsOptions = {}): UseMoneyActivityItemsResult {
   const { allTransactions, deposits, transfers, moneyAddress } =
     useMoneyAccountTransactions();
+  const cashbackClaim = useSelector(selectCardCashbackClaim);
   const {
     activity,
     isLoading,
@@ -254,7 +269,9 @@ export function useMoneyActivityItems({
     isValuationSettling,
     error,
     refetch: refetchApiActivity,
-  } = useMoneyAccountApiActivity();
+  } = useMoneyAccountApiActivity({
+    refetchIntervalMs: cashbackClaim ? 30_000 : false,
+  });
   const pendingActivityEnabled = useSelector(
     selectMoneyVbaPendingActivityEnabled,
   );
@@ -309,6 +326,27 @@ export function useMoneyActivityItems({
       pendingActivityEnabled,
     ],
   );
+
+  const claimSettled = cashbackClaim
+    ? isSettlingCashbackActivity(cashbackClaim, activity)
+    : false;
+  const claimExpired = cashbackClaim
+    ? isCashbackClaimExpired(cashbackClaim)
+    : false;
+  const visibleCashbackClaim =
+    cashbackClaim &&
+    moneyAddress &&
+    areAddressesEqual(cashbackClaim.moneyAddress, moneyAddress) &&
+    !claimSettled &&
+    !claimExpired
+      ? cashbackClaim
+      : null;
+
+  useEffect(() => {
+    if (cashbackClaim && (claimSettled || claimExpired)) {
+      Engine.context.CardController.clearCashbackClaim();
+    }
+  }, [cashbackClaim, claimSettled, claimExpired]);
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,
@@ -375,6 +413,7 @@ export function useMoneyActivityItems({
         declinedForFeed,
         visibleVbaActivity,
         microdeposits,
+        visibleCashbackClaim,
       ),
     [
       allTransactions,
@@ -386,6 +425,7 @@ export function useMoneyActivityItems({
       declinedForFeed,
       visibleVbaActivity,
       microdeposits,
+      visibleCashbackClaim,
     ],
   );
 

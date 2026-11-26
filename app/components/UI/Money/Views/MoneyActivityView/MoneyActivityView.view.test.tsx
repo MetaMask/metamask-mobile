@@ -3,6 +3,8 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
+import type { CardCashbackClaim } from '../../../../../core/Engine/controllers/card-controller/types';
+import StorageWrapper from '../../../../../store/storage-wrapper';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
@@ -17,6 +19,8 @@ import {
   MONEY_STANDARD_VAULT,
 } from '../../../../../../tests/component-view/presets/moneyActivity';
 import { MoneyActivityItemTestIds } from '../../components/MoneyActivityItem/MoneyActivityItem.testIds';
+import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
+import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import {
   CARD_BLOCK_NUMBER,
   CARD_TX_HASH as CARD_HASH,
@@ -73,6 +77,28 @@ function cashbackTransaction(): MockMoneyActivityTransaction {
         decimal: 6,
         contractAddress: MONEY_PREMIUM_VAULT.boringVault,
         symbol: 'pvmUSD',
+      },
+    ],
+  };
+}
+
+function cashbackMusdTransaction(): MockMoneyActivityTransaction {
+  return {
+    hash: CASHBACK_HASH,
+    timestamp: '2026-09-25T13:13:36Z',
+    chainId: 143,
+    blockNumber: 107901997,
+    from: REWARDER_ADDRESS,
+    to: MONEY_ACTIVITY_ACCOUNT,
+    transactionType: 'METAMASK_CARD_CASHBACK',
+    valueTransfers: [
+      {
+        from: REWARDER_ADDRESS,
+        to: MONEY_ACTIVITY_ACCOUNT,
+        amount: '524978000',
+        decimal: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+        symbol: 'mUSD',
       },
     ],
   };
@@ -255,5 +281,148 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
 
     expect(await findByText('-900.00 mUSD')).toBeOnTheScreen();
     expect(valuationCallCount()).toBe(1);
+  });
+});
+
+describeForPlatforms('MoneyActivityView cashback claims', () => {
+  const createClaim = (
+    overrides: Partial<CardCashbackClaim> = {},
+  ): CardCashbackClaim => ({
+    status: 'pending',
+    amount: '0.3',
+    moneyAddress: MONEY_ACTIVITY_ACCOUNT,
+    submittedAt: Date.now(),
+    txHash: null,
+    chainId: '0x8f',
+    error: null,
+    ...overrides,
+  });
+
+  beforeEach(async () => {
+    await StorageWrapper.removeItem(
+      `money.activity.page1.v1.${MONEY_ACTIVITY_ACCOUNT.toLowerCase()}`,
+    );
+    engineCall.mockReset();
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+  });
+
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks(MONEY_ACTIVITY_ACCOUNT);
+    netInfoMock.__resetMockNetInfo();
+  });
+
+  it('shows a pending cashback claim in the Pending section', async () => {
+    setupMoneyActivityApiMock(MONEY_ACTIVITY_ACCOUNT, [
+      cashbackMusdTransaction(),
+    ]);
+    const claim = createClaim();
+
+    const { findByTestId, getByTestId } = renderMoneyActivityView({
+      historicalValuationsEnabled: false,
+      cashbackClaim: claim,
+    });
+
+    const row = await findByTestId(
+      `${MoneyActivityItemTestIds.ROW}-cashback-claim-${claim.submittedAt}`,
+    );
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.LABEL),
+    ).toHaveTextContent('Receiving');
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.DESCRIPTION),
+    ).toHaveTextContent('mUSD back');
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.PENDING_SPINNER, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('+0.30 mUSD');
+    expect(
+      getByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the claim when the Accounts API reports the settlement', async () => {
+    setupMoneyActivityApiMock(MONEY_ACTIVITY_ACCOUNT, [
+      cashbackMusdTransaction(),
+    ]);
+    const claim = createClaim({
+      amount: '524.978',
+      txHash: CASHBACK_HASH,
+    });
+
+    const { queryByTestId } = renderMoneyActivityView({
+      historicalValuationsEnabled: false,
+      cashbackClaim: claim,
+    });
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(
+          `${MoneyActivityItemTestIds.ROW}-cashback-claim-${claim.submittedAt}`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('shows a failed cashback claim in a date section', async () => {
+    setupMoneyActivityApiMock(MONEY_ACTIVITY_ACCOUNT, [
+      cashbackMusdTransaction(),
+    ]);
+    const claim = createClaim({ status: 'failed' });
+
+    const { findByTestId, getAllByTestId, queryByTestId } =
+      renderMoneyActivityView({
+        historicalValuationsEnabled: false,
+        cashbackClaim: claim,
+      });
+
+    const row = await findByTestId(
+      `${MoneyActivityItemTestIds.ROW}-cashback-claim-${claim.submittedAt}`,
+    );
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.LABEL),
+    ).toHaveTextContent('mUSD back');
+    expect(
+      within(row).getByTestId(MoneyActivityItemTestIds.DESCRIPTION),
+    ).toHaveTextContent('Failed');
+    expect(
+      within(row).queryByTestId(MoneyActivityItemTestIds.PENDING_SPINNER, {
+        includeHiddenElements: true,
+      }),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      getAllByTestId(MoneyActivityViewTestIds.DATE_HEADER).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('hides a claim for another Money account', async () => {
+    setupMoneyActivityApiMock(MONEY_ACTIVITY_ACCOUNT, [
+      cashbackMusdTransaction(),
+    ]);
+    const claim = createClaim({
+      moneyAddress: '0x9999999999999999999999999999999999999999',
+    });
+
+    const { queryByTestId } = renderMoneyActivityView({
+      historicalValuationsEnabled: false,
+      cashbackClaim: claim,
+    });
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(
+          `${MoneyActivityItemTestIds.ROW}-cashback-claim-${claim.submittedAt}`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).not.toBeOnTheScreen();
   });
 });
