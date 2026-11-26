@@ -22,7 +22,7 @@ interface ActiveWebviewAuthSession {
   finish: (redirectUrl?: string) => void;
   clearMountTimeout: () => void;
   close?: () => void;
-  settled: boolean;
+  readonly settled: boolean;
 }
 
 const activeSessions = new Map<string, ActiveWebviewAuthSession>();
@@ -116,6 +116,7 @@ export async function openWebviewAuthSession(options: {
   const sessionId = `webview-auth-${++nextSessionId}`;
 
   return await new Promise<string | undefined>((resolve, reject) => {
+    let settled = false;
     let onAbort: (() => void) | undefined;
     let mountFrame: number | undefined;
     let mountTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -131,28 +132,45 @@ export async function openWebviewAuthSession(options: {
       }
     };
 
+    const settleSession = (): void => {
+      settled = true;
+      clearMountTimeout();
+      if (signal && onAbort) {
+        signal.removeEventListener('abort', onAbort);
+      }
+    };
+
+    const finish = (redirectUrl?: string): void => {
+      if (settled) {
+        return;
+      }
+      settleSession();
+      resolve(redirectUrl);
+    };
+
+    const fail = (error: unknown): void => {
+      if (settled) {
+        return;
+      }
+      settleSession();
+      activeSessions.delete(sessionId);
+      reject(error);
+    };
+
     const session: ActiveWebviewAuthSession = {
       redirectUri,
-      settled: false,
-      clearMountTimeout,
-      finish: (redirectUrl?: string) => {
-        if (session.settled) {
-          return;
-        }
-        session.settled = true;
-        clearMountTimeout();
-        if (signal && onAbort) {
-          signal.removeEventListener('abort', onAbort);
-        }
-        resolve(redirectUrl);
+      get settled(): boolean {
+        return settled;
       },
+      clearMountTimeout,
+      finish,
     };
     activeSessions.set(sessionId, session);
 
     if (signal) {
       onAbort = () => {
         const closeScreen = session.close;
-        session.finish();
+        finish();
         if (!closeScreen) {
           activeSessions.delete(sessionId);
         }
@@ -172,36 +190,22 @@ export async function openWebviewAuthSession(options: {
         },
       });
     } catch (error) {
-      clearMountTimeout();
-      activeSessions.delete(sessionId);
-      if (signal && onAbort) {
-        signal.removeEventListener('abort', onAbort);
-      }
-      session.settled = true;
-      reject(error);
+      fail(error);
       return;
     }
 
-    if (session.settled || session.close) {
+    if (settled || session.close) {
       return;
     }
 
     mountFrame = requestAnimationFrame(() => {
       mountFrame = undefined;
-      if (session.settled || session.close) {
+      if (settled || session.close) {
         return;
       }
       mountTimeout = setTimeout(() => {
-        if (session.settled) {
-          return;
-        }
-        session.settled = true;
         mountTimeout = undefined;
-        activeSessions.delete(sessionId);
-        if (signal && onAbort) {
-          signal.removeEventListener('abort', onAbort);
-        }
-        reject(new WebviewAuthMountTimeoutError());
+        fail(new WebviewAuthMountTimeoutError());
       }, WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
     });
   });
