@@ -21,10 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import perpsPayTokenIcon from '../../../../../../images/perps-pay-token-icon.png';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
-import {
-  isLighterProviderEnabled,
-  isPerpsLighterConfirmationEnabled,
-} from '../../../../../UI/Perps/utils/lighterFeatureFlags';
+import { isLighterProviderEnabled } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
@@ -82,10 +79,7 @@ function DepositToRowComponent({
 
   // PerpsReceiveToRow renders its own "To" row when the Lighter picker is enabled.
   const isPerpsReceiveToVisible =
-    isPerpsDeposit &&
-    isPerpsLighterConfirmationEnabled() &&
-    isLighterProviderEnabled() &&
-    lighterProviderFlagEnabled;
+    isPerpsDeposit && isLighterProviderEnabled() && lighterProviderFlagEnabled;
 
   if (isPerpsReceiveToVisible) {
     return null;

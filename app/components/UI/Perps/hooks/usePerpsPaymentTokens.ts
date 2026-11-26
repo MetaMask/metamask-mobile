@@ -14,7 +14,10 @@ import {
   type PerpsToken,
 } from '@metamask/perps-controller';
 import { usePerpsNetwork } from './index';
-import { usePerpsLiveAccount } from './stream';
+import {
+  readMaxAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from './stream/usePerpsLiveAvailableToTrade';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -26,21 +29,26 @@ import { usePerpsLiveAccount } from './stream';
  * 2. Other USDC tokens (easier to bridge)
  * 3. Other tokens sorted by balance (highest first)
  *
- * Shows all tokens owned by the user, regardless of balance amount
+ * Shows all tokens owned by the user, regardless of balance amount.
+ *
+ * The Hyperliquid USDC row uses the larger side of the venue's available to
+ * trade for `symbol`. While the venue figure is unknown, or without a symbol,
+ * the row carries no balance instead of showing $0. Withdraw surfaces do not
+ * use this hook.
  */
-export function usePerpsPaymentTokens(): PerpsToken[] {
+export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   // Use ref to store previous token array
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
-  // Get Hyperliquid account balance from the reshaped balance contract.
-  // `spendableBalance` is the Unified-aware tradeable amount.
-  const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
-  const hyperliquidBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() || '0',
-  );
+  const { availableToTrade } = usePerpsLiveAvailableToTrade({
+    symbol: symbol ?? '',
+    enabled: Boolean(symbol),
+  });
+  // Undefined while the venue has not reported, so the row can omit it.
+  const hyperliquidBalance = readMaxAvailableToTradeUsd(availableToTrade);
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {
@@ -75,11 +83,13 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
       decimals: USDC_DECIMALS,
       chainId: hyperliquidChainId as Hex,
       image: USDC_TOKEN_ICON_URL,
-      balance: (hyperliquidBalance * 1e6).toString(),
-      balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
+      ...(hyperliquidBalance !== undefined && {
+        balance: (hyperliquidBalance * 1e6).toString(),
+        balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
+      }),
     };
 
-    // Always show Hyperliquid USDC first (even if balance is 0)
+    // Always show Hyperliquid USDC first (even if its balance is 0 or unknown)
     tokens.push(hyperliquidUsdc);
 
     // Get all tokens (not filtered by minimum order requirement)

@@ -2,6 +2,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
@@ -156,7 +157,7 @@ describe('buildLighterExistingAccountDepositRequest', () => {
       skipInitialGasEstimate: true,
       type: TransactionType.perpsLighterDeposit,
     });
-    expect(request.paymentOverride).toBe('perpsLighter');
+    expect(request.paymentOverride).toBe(PaymentOverride.PerpsLighter);
   });
 });
 

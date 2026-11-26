@@ -3,6 +3,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { LIGHTER_BRIDGE_CONFIG } from '@metamask/perps-controller/constants/lighterConfig';
 
 import Engine from '../../../../../core/Engine';
@@ -216,7 +217,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     setTransactionConfig.mock.calls[0][1](config);
     expect(config).toStrictEqual({
       isQuoteRequired: true,
-      paymentOverride: 'perpsLighter',
+      paymentOverride: PaymentOverride.PerpsLighter,
     });
     expect(mockAddTransaction.mock.invocationCallOrder[0]).toBeLessThan(
       mockRejectRequest.mock.invocationCallOrder[0],

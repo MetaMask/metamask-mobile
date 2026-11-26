@@ -4,13 +4,13 @@ import {
   Icon,
   IconName,
   IconSize,
+  Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { getFormatters, useFormatters } from '../../../hooks/useFormatters';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 
 const flameThreshold = 20_000;
