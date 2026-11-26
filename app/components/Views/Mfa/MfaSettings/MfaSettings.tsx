@@ -4,15 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
-  Box,
   ContentVariant,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   ListItem,
-  Switch,
   Text,
   TextColor,
   TextVariant,
@@ -38,7 +35,6 @@ import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
-import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
@@ -76,8 +72,6 @@ const MfaSettings = () => {
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const methods = useSelector(selectMfaUiKitMethods);
   const passkeyCount = getActivePasskeys(credentials).length;
-  const { status: moneyMfaStatus, turnOn: turnOnMoneyMfa } = useMoneyMfa();
-  const isMoneyMfaOn = moneyMfaStatus === 'enabled';
   const activeTypes = new Set(
     getActiveCredentials(credentials).map(({ type }) => type),
   );
@@ -134,16 +128,6 @@ const MfaSettings = () => {
       (isSetUp || methods.includes(method)),
   );
 
-  const toggleMoneyMfa = () => {
-    if (isMoneyMfaOn) {
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
-      });
-    } else {
-      turnOnMoneyMfa().catch(() => undefined);
-    }
-  };
-
   const open = (method: MfaMethod, isSetUp: boolean) => {
     if (!isSetUp) {
       add(method);
@@ -181,31 +165,6 @@ const MfaSettings = () => {
               : 'mfa.settings.notice',
           )}
         </Text>
-        {moneyMfaStatus === 'unavailable' ? null : (
-          <Box
-            twClassName="flex-row items-center px-4 py-3 gap-4"
-            testID={MfaSettingsSelectorsIDs.MONEY_MFA_ROW}
-          >
-            <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('money.mfa.more_sheet_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.mfa.more_sheet_description')}
-              </Text>
-            </Box>
-            <Switch
-              isOn={isMoneyMfaOn}
-              isDisabled={moneyMfaStatus === 'setting_up'}
-              onValueChange={toggleMoneyMfa}
-              accessibilityLabel={strings('money.mfa.more_sheet_title')}
-              testID={MfaSettingsSelectorsIDs.MONEY_MFA_SWITCH}
-            />
-          </Box>
-        )}
         {visibleRows.map(({ method, label, isSetUp, summary }) => (
           <ListItem
             key={method}
