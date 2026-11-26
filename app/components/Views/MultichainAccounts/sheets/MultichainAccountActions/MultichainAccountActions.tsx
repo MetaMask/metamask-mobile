@@ -47,12 +47,6 @@ export const createAccountGroupDetailsNavigationDetails =
     accountGroup: AccountGroupObject;
   }>(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS);
 
-export const createMultichainAccountDetailActionsModalNavigationDetails =
-  createNavigationDetails<{
-    screen: string;
-    params: { accountGroup: AccountGroupObject };
-  }>(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS);
-
 interface MultichainAccountActionsParams {
   accountGroup: AccountGroupObject;
 }

@@ -5462,19 +5462,6 @@
     "accounts": "λογαριασμοί",
     "show_accounts": "Εμφάνιση",
     "hide_accounts": "Απόκρυψη",
-    "labels": {
-      "bitcoin_testnet_account_name": "Λογαριασμός στο Bitcoin Testnet",
-      "bitcoin_account_name": "Λογαριασμός στο Bitcoin",
-      "bitcoin_signet_account_name": "Λογαριασμός Bitcoin στο δίκτυο Signet",
-      "bitcoin_regtest_account_name": "Λογαριασμός Bitcoin στο δίκτυο Regtest",
-      "solana_devnet_account_name": "Λογαριασμός στο Solana Devnet",
-      "solana_testnet_account_name": "Λογαριασμός στο Solana Testnet",
-      "solana_account_name": "Λογαριασμός στο Solana",
-      "tron_account_name": "Λογαριασμός Tron",
-      "tron_nile_account_name": "Λογαριασμός Tron Nile",
-      "tron_shasta_account_name": "Λογαριασμός Tron Shasta",
-      "stellar_account_name": "Λογαριασμός στο δίκτυο Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
     },

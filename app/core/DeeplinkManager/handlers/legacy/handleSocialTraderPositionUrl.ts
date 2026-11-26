@@ -7,7 +7,6 @@ import {
   isSocialV1Treatment,
   popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
-import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
@@ -21,14 +20,6 @@ interface HandleSocialTraderPositionUrlParams {
 
 const navigateToFallback = () => {
   if (isSocialV1Treatment()) {
-    if (
-      !ensureSocialTermsAccepted(
-        NavigationService.navigation.navigate,
-        navigateToFallback,
-      )
-    ) {
-      return;
-    }
     popToSocialTab(NavigationService.navigation);
     return;
   }
@@ -115,8 +106,7 @@ export const handleSocialTraderPositionUrl = ({
 
     const isV1Treatment = isSocialV1Treatment();
     // A shared link from someone who has not joined Social previews the
-    // trader first. A notification only reaches Social members, so it keeps
-    // the plain terms gate.
+    // trader first. A notification only reaches Social members.
     if (
       isV1Treatment &&
       !openedFromNotification &&
@@ -128,43 +118,19 @@ export const handleSocialTraderPositionUrl = ({
     ) {
       return;
     }
-    // Catches on its own because the terms screen can run it after this
-    // handler's try/catch has returned.
-    const openPosition = () => {
-      try {
-        if (isV1Treatment && !openedFromNotification) {
-          openSharedPositionOnProfile(positionId, traderId);
-          return;
-        }
-        NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
-          positionId,
-          traderId,
-          source: openedFromNotification ? 'notification' : 'deep_link',
-          originalEntryPoint: openedFromNotification
-            ? 'notification'
-            : 'deep_link',
-          notificationSubtype,
-          notificationTemplateVariant,
-          isSocialV1: isV1Treatment,
-        });
-      } catch (error) {
-        DevLogger.log(
-          '[handleSocialTraderPositionUrl] Failed to open the position:',
-          error,
-        );
-        navigateToFallback();
-      }
-    };
-    if (
-      isV1Treatment &&
-      !ensureSocialTermsAccepted(
-        NavigationService.navigation.navigate,
-        openPosition,
-      )
-    ) {
+    if (isV1Treatment && !openedFromNotification) {
+      openSharedPositionOnProfile(positionId, traderId);
       return;
     }
-    openPosition();
+    NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
+      positionId,
+      traderId,
+      source: openedFromNotification ? 'notification' : 'deep_link',
+      originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
+      notificationSubtype,
+      notificationTemplateVariant,
+      isSocialV1: isV1Treatment,
+    });
   } catch (error) {
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Failed to handle deeplink:',

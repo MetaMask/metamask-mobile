@@ -64,6 +64,7 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: jest.fn(() => ({
     removeQueries: mockRemoveQueries,
+    invalidateQueries: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -405,6 +406,25 @@ jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
 }));
 
+const mockUseCardRecentTransactions = jest.fn(
+  (_options?: { enabled?: boolean }) => ({
+    transactions: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
+);
+
+jest.mock('../../hooks/useCardRecentTransactions', () => ({
+  useCardRecentTransactions: (options?: { enabled?: boolean }) =>
+    mockUseCardRecentTransactions(options),
+}));
+
+let mockTransactionHistoryDestination: 'card' | 'money' | null = 'card';
+jest.mock('../../hooks/useCardTransactionHistoryDestination', () => ({
+  useCardTransactionHistoryDestination: () => mockTransactionHistoryDestination,
+}));
+
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -582,6 +602,32 @@ jest.mock(
   }),
 );
 
+// Mock the design-system BottomSheet: the real sheet does not render its
+// children in the test environment, and the More sheet holds the TOS and
+// Contact support rows.
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      const { children, ...rest } = props;
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => cb?.(),
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return ReactActual.createElement(View, { ...rest }, children);
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
+
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
@@ -689,6 +735,7 @@ jest.mock('../../../../../core/Engine', () => ({
         setSelectedAccount: jest.fn(),
       },
       CardController: {
+        state: { isAuthenticated: false },
         validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
         getCapabilities: jest.fn().mockReturnValue(null),
         logout: jest.fn().mockResolvedValue(undefined),
@@ -829,6 +876,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
+      'card.card_home.segments.activity': 'Activity',
+      'card.card_home.segments.manage': 'Manage',
+      'card.card_home.recent_activity.see_all': 'See all',
+      'card.card_home.activity_empty_title': 'No transactions yet',
+      'card.card_home.activity_empty_description':
+        'Your card purchases will show here.',
+      'card.card_home.manage_card_options.manage_spending_limit':
+        'Manage limit',
       'card.card_home.manage_card_options.view_pin': 'View PIN',
       'card.card_home.manage_card_options.view_pin_description':
         'View your card PIN securely',
@@ -852,6 +907,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
         'Spend your balance while it earns, anywhere Mastercard is accepted.',
+      'card.card_home.manage_card_options.manage_spending_limit_description_remaining':
+        '{{remaining}} {{symbol}} of {{total}} {{symbol}} left',
     };
     const value = strings[key];
     if (value) {
@@ -866,6 +923,22 @@ jest.mock('../../../../../../locales/i18n', () => ({
           '{{accountName}}',
           String((params as { accountName?: string }).accountName ?? ''),
         );
+      }
+      if (
+        key ===
+          'card.card_home.manage_card_options.manage_spending_limit_description_remaining' &&
+        params &&
+        typeof params === 'object'
+      ) {
+        const limitParams = params as {
+          remaining?: string | number;
+          total?: string | number;
+          symbol?: string;
+        };
+        return value
+          .replaceAll('{{remaining}}', String(limitParams.remaining ?? ''))
+          .replaceAll('{{total}}', String(limitParams.total ?? ''))
+          .replaceAll('{{symbol}}', String(limitParams.symbol ?? ''));
       }
       return value;
     }
@@ -1063,6 +1136,7 @@ function setupLoadCardDataMock(
     delegationSettings: Record<string, unknown> | null;
     countryOfResidence: string | null;
     alerts: { type: string; dismissable: boolean }[];
+    tokenBalance: number;
   }>,
 ) {
   const defaults = {
@@ -1222,8 +1296,8 @@ function setupLoadCardDataMock(
         ...config.priorityToken,
         balanceFiat: '$1,000.00',
         balanceFormatted: '1000.000000 USDC',
-        rawFiatNumber: 1000,
-        rawTokenBalance: 1000,
+        rawFiatNumber: config.tokenBalance ?? 1000,
+        rawTokenBalance: config.tokenBalance ?? 1000,
       }
     : null;
 
@@ -1321,8 +1395,13 @@ const CardHomeWithToast = () => (
 );
 
 // Helper: Render component with proper wrapper
-function render() {
-  return renderScreen(
+// Terms and Contact support live in the header's More sheet.
+function openMoreSheet() {
+  fireEvent.press(screen.getByTestId(CardHomeSelectors.MORE_BUTTON));
+}
+
+function render(options?: { segment?: 'activity' | 'manage' }) {
+  const view = renderScreen(
     withCardSDK(CardHomeWithToast),
     {
       name: Routes.CARD.HOME,
@@ -1335,6 +1414,27 @@ function render() {
       },
     },
   );
+  if (options?.segment) {
+    const segmentTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.MANAGE_SEGMENT
+        : CardHomeSelectors.ACTIVITY_SEGMENT;
+    const expectedTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.CHANGE_ASSET_BUTTON
+        : CardHomeSelectors.RECENT_ACTIVITY;
+    const segmentButton = screen.queryByTestId(segmentTestId);
+    if (segmentButton) {
+      fireEvent.press(segmentButton);
+      if (screen.queryByTestId(expectedTestId) == null) {
+        const control = screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS);
+        if (control) {
+          fireEvent(control, 'onChange', options.segment);
+        }
+      }
+    }
+  }
+  return view;
 }
 
 const authTransitionListeners = new Set<() => void>();
@@ -1389,6 +1489,13 @@ describe('CardHome Component', () => {
     mockIsProvisioningPollActive = false;
     mockNetworkTier = null;
     mockEnableCard.mockClear();
+    mockUseCardRecentTransactions.mockReturnValue({
+      transactions: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockTransactionHistoryDestination = 'card';
     mockRecheckProvisioning.mockClear();
     jest.clearAllMocks();
 
@@ -1718,6 +1825,19 @@ describe('CardHome Component', () => {
       Routes.CARD.AUTHENTICATION,
       { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     );
+  });
+
+  it('stays on Card Home when the controller is signed in before Redux catches up', () => {
+    setupMockSelectors({ isAuthenticated: false, hasCard: true });
+    Engine.context.CardController.state.isAuthenticated = true;
+
+    try {
+      render();
+
+      expect(StackActions.replace).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.CardController.state.isAuthenticated = false;
+    }
   });
 
   it('sends a logged-out user with no card to welcome', () => {
@@ -2077,6 +2197,7 @@ describe('CardHome Component', () => {
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
+    openMoreSheet();
 
     const tosItem = screen.getByTestId(CardHomeSelectors.CARD_TOS_ITEM);
     fireEvent.press(tosItem);
@@ -2176,6 +2297,7 @@ describe('CardHome Component', () => {
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
+    openMoreSheet();
 
     const contactSupportItem = screen.getByTestId(
       CardHomeSelectors.CONTACT_SUPPORT_ITEM,
@@ -2194,6 +2316,7 @@ describe('CardHome Component', () => {
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
+    openMoreSheet();
 
     const contactSupportItem = screen.getByTestId(
       CardHomeSelectors.CONTACT_SUPPORT_ITEM,
@@ -2217,6 +2340,7 @@ describe('CardHome Component', () => {
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
+    openMoreSheet();
     mockNavigate.mockClear();
 
     fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
@@ -2248,6 +2372,7 @@ describe('CardHome Component', () => {
     setupLoadCardDataMock({ isAuthenticated: true });
 
     render();
+    openMoreSheet();
 
     fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
 
@@ -2505,7 +2630,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('opens the Apple Pay learn-more page from the Add to Apple Wallet section', () => {
+    it('drops the learn-more link from the wallet section; the Manage row covers it', () => {
       mockUsePushProvisioning.mockReturnValueOnce({
         initiateProvisioning: mockInitiateProvisioning,
         resetStatus: mockResetProvisioningStatus,
@@ -2524,11 +2649,11 @@ describe('CardHome Component', () => {
 
       render();
 
-      fireEvent.press(
-        screen.getByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
-      );
-
-      expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
+      // The learn-more link is gone from the wallet section (the Manage
+      // list's how-to-use row covers the already-added-card state).
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
     });
 
     it('hides learn more when the card is already on a device', () => {
@@ -2772,6 +2897,41 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
+  describe('when card history lives in Money activity', () => {
+    beforeEach(() => {
+      mockTransactionHistoryDestination = 'money';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+    });
+
+    it('hides the Activity and Manage tabs', () => {
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not fetch provider transactions', () => {
+      render();
+
+      expect(mockUseCardRecentTransactions).not.toHaveBeenCalledWith({
+        enabled: true,
+      });
+    });
+
+    it('keeps the transaction history row in the management list', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows the Immersve privacy policy and contact support before a card exists', () => {
     setupMockSelectors({
       isAuthenticated: true,
@@ -2799,6 +2959,7 @@ describe('CardHome Component', () => {
     });
 
     render();
+    openMoreSheet();
 
     expect(useImmersveSupportedRegions).toHaveBeenCalledWith('GB', {
       enabled: true,
@@ -2949,8 +3110,8 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('shows restricted manage spending limit description when allowance state is limited', () => {
-    // Given: priority token has limited allowance
+  it('shows the remaining spending limit when the allowance is limited', () => {
+    // Given: priority token has a limited allowance with a cap
     const limitedAllowanceToken = {
       ...mockPriorityToken,
       fundingStatus: FundingStatus.Limited,
@@ -2963,11 +3124,9 @@ describe('CardHome Component', () => {
     // When: component renders
     render();
 
-    // Then: restricted spending limit description is shown
+    // Then: the Manage limit row shows the remaining and total amounts
     expect(
-      screen.getByText(
-        'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-      ),
+      screen.getByText('500000000 USDC of 500000000 USDC left'),
     ).toBeOnTheScreen();
   });
 
@@ -3952,61 +4111,82 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('SpendingLimitProgressBar', () => {
-    it('renders when authenticated and allowance is limited on EVM chain', () => {
-      // Given: authenticated with limited allowance on EVM chain
-      // originalSpendingCap = 1000 (original cap), spendingCap = 500 (remaining allowance)
-      // consumed = 1000 - 500 = 500
+  describe('Manage limit row', () => {
+    // The progress bar is gone from Card home; the Manage limit row shows
+    // the remaining and total amounts instead.
+    const limitedToken = (overrides: Record<string, unknown> = {}) => ({
+      ...mockPriorityToken,
+      fundingStatus: FundingStatus.Limited,
+      spendingCap: '500',
+      spendableBalance: '500',
+      originalSpendingCap: '1000',
+      caipChainId: 'eip155:59144',
+      ...overrides,
+    });
+
+    it('shows the remaining and total amounts on the Activity segment', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const limitedAllowanceToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
-        spendingCap: '500',
-        spendableBalance: '500',
-        originalSpendingCap: '1000',
-        caipChainId: 'eip155:59144',
-      };
       setupLoadCardDataMock({
-        priorityToken: limitedAllowanceToken,
-        allTokens: [limitedAllowanceToken],
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
         isAuthenticated: true,
         warning: null,
       });
 
-      // When: component renders
-      render();
+      render({ segment: 'activity' });
 
-      // Then: should display spending limit progress bar with consumed/total
-      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
-      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
+      expect(screen.getByText('500 USDC of 1000 USDC left')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeNull();
     });
 
-    it('does not render when not authenticated', () => {
-      // Given: not authenticated with limited allowance
-      setupMockSelectors({ isAuthenticated: false });
-      const limitedAllowanceToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
-        spendingCap: '500',
-        spendableBalance: '500',
-        originalSpendingCap: '1000',
-        caipChainId: 'eip155:59144',
-      };
+    it('shows the remaining and total amounts when the token balance is zero', () => {
+      setupMockSelectors({ isAuthenticated: true });
       setupLoadCardDataMock({
-        priorityToken: limitedAllowanceToken,
-        allTokens: [limitedAllowanceToken],
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
+        isAuthenticated: true,
+        warning: null,
+        tokenBalance: 0,
+      });
+
+      render();
+
+      expect(screen.getByText('500 USDC of 1000 USDC left')).toBeOnTheScreen();
+    });
+
+    it('shows the remaining and total amounts when authenticated and limited', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      render();
+
+      expect(screen.getByText('Manage limit')).toBeOnTheScreen();
+      expect(screen.getByText('500 USDC of 1000 USDC left')).toBeOnTheScreen();
+    });
+
+    it('does not show the amounts when not authenticated', () => {
+      setupMockSelectors({ isAuthenticated: false });
+      setupLoadCardDataMock({
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
         isAuthenticated: false,
       });
 
-      // When: component renders
       render();
 
-      // Then: should not display spending limit progress bar
-      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('500 USDC of 1000 USDC left'),
+      ).not.toBeOnTheScreen();
     });
 
-    it('does not render when allowance is enabled', () => {
-      // Given: authenticated with enabled allowance (unlimited)
+    it('does not show the amounts when the allowance is enabled', () => {
       setupMockSelectors({ isAuthenticated: true });
       const enabledAllowanceToken = {
         ...mockPriorityToken,
@@ -4021,50 +4201,34 @@ describe('CardHome Component', () => {
         isAuthenticated: true,
       });
 
-      // When: component renders
       render();
 
-      // Then: should not display spending limit progress bar
-      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('1000 USDC of 1000 USDC left'),
+      ).not.toBeOnTheScreen();
     });
 
-    it('renders compact "available" indicator for Solana chain assets without originalSpendingCap', () => {
+    it('falls back to the spending cap as the total when no original cap exists', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const limitedSolanaToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
-        spendingCap: '500',
-        spendableBalance: '500',
+      const solanaToken = limitedToken({
         caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      };
+        originalSpendingCap: undefined,
+      });
       setupLoadCardDataMock({
-        priorityToken: limitedSolanaToken,
-        allTokens: [limitedSolanaToken],
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
         isAuthenticated: true,
         warning: null,
       });
 
-      // When: component renders
       render();
 
-      // Then: should display compact spending-limit indicator
-      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
-      expect(screen.getByText('500 USDC available')).toBeOnTheScreen();
-      expect(screen.queryByText('0/500 USDC')).not.toBeOnTheScreen();
+      expect(screen.getByText('500 USDC of 500 USDC left')).toBeOnTheScreen();
     });
 
-    it('does not render for unsupported tokens (AUSDC, AMUSD)', () => {
-      // Given: authenticated with limited allowance on an unsupported token
+    it('does not show the amounts for unsupported tokens', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const unsupportedToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
-        spendingCap: '500',
-        spendableBalance: '500',
-        originalSpendingCap: '1000',
-        symbol: 'AUSDC',
-        caipChainId: 'eip155:59144',
-      };
+      const unsupportedToken = limitedToken({ symbol: 'AUSDC' });
       setupLoadCardDataMock({
         priorityToken: unsupportedToken,
         allTokens: [unsupportedToken],
@@ -4072,88 +4236,65 @@ describe('CardHome Component', () => {
         warning: null,
       });
 
-      // When: component renders
       render();
 
-      // Then: should not display spending limit progress bar (AUSDC not supported)
-      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+      expect(screen.queryByText(/of 1000 \S+ left/)).not.toBeOnTheScreen();
     });
 
-    it('displays correct consumed and total amounts', () => {
-      // Given: authenticated with specific allowance values
-      // originalSpendingCap = 200, spendingCap = 150 (remaining), consumed = 50
+    it('shows the consumed and total amounts', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const limitedAllowanceToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
+      const consumedToken = limitedToken({
         spendingCap: '150',
         spendableBalance: '150',
         originalSpendingCap: '200',
-        symbol: 'USDC',
-        caipChainId: 'eip155:59144',
-      };
+      });
       setupLoadCardDataMock({
-        priorityToken: limitedAllowanceToken,
-        allTokens: [limitedAllowanceToken],
+        priorityToken: consumedToken,
+        allTokens: [consumedToken],
         isAuthenticated: true,
-        warning: null,
       });
 
-      // When: component renders
       render();
 
-      // Then: should display correct consumed amount (50/200)
-      expect(screen.getByText('50/200 USDC')).toBeOnTheScreen();
+      expect(screen.getByText('150 USDC of 200 USDC left')).toBeOnTheScreen();
     });
 
-    it('handles zero remaining allowance (fully consumed)', () => {
-      // Given: authenticated with zero remaining allowance (all spent)
-      // originalSpendingCap = 1000, spendingCap = 0 (all consumed)
+    it('shows zero remaining when the allowance is fully consumed', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const limitedAllowanceToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
+      const fullyConsumedToken = limitedToken({
         spendingCap: '0',
         spendableBalance: '0',
         originalSpendingCap: '1000',
-        caipChainId: 'eip155:59144',
-      };
+      });
       setupLoadCardDataMock({
-        priorityToken: limitedAllowanceToken,
-        allTokens: [limitedAllowanceToken],
+        priorityToken: fullyConsumedToken,
+        allTokens: [fullyConsumedToken],
         isAuthenticated: true,
         warning: null,
       });
 
-      // When: component renders
       render();
 
-      // Then: should display fully consumed allowance
-      expect(screen.getByText('1000/1000 USDC')).toBeOnTheScreen();
+      expect(screen.getByText('0 USDC of 1000 USDC left')).toBeOnTheScreen();
     });
 
-    it('handles undefined allowance values', () => {
+    it('does not show amounts when the allowance values are missing', () => {
       setupMockSelectors({ isAuthenticated: true });
-      const limitedAllowanceToken = {
-        ...mockPriorityToken,
-        fundingStatus: FundingStatus.Limited,
+      const missingToken = limitedToken({
         spendingCap: undefined as unknown as string,
         spendableBalance: undefined as unknown as string,
-        caipChainId: 'eip155:59144',
-      };
+        originalSpendingCap: undefined,
+      });
       setupLoadCardDataMock({
-        priorityToken: limitedAllowanceToken,
-        allTokens: [limitedAllowanceToken],
+        priorityToken: missingToken,
+        allTokens: [missingToken],
         isAuthenticated: true,
         warning: null,
       });
 
-      // When: component renders
       render();
 
-      // Then: should display compact zero-fallback indicator
-      expect(screen.getByText('0 USDC available')).toBeOnTheScreen();
-      expect(screen.queryByText('0/0 USDC')).not.toBeOnTheScreen();
+      expect(screen.queryByText('0 USDC of 0 USDC left')).not.toBeOnTheScreen();
     });
   });
 

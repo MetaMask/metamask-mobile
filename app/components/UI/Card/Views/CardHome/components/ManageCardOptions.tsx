@@ -1,8 +1,16 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Switch } from 'react-native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName,
+  SensitiveText,
+  SensitiveTextLength,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ManageCardListItem from '../../../components/ManageCardListItem';
+import { formatSpendingLimitDisplayValue } from '../../../util/formatSpendingLimitDisplayValue';
 import applePayMark from '../../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
 
 const APPLE_PAY_MARK_ASPECT_RATIO = 170 / 109;
@@ -15,6 +23,7 @@ const styles = StyleSheet.create({
 });
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardType } from '../../../types';
 import {
   CardStatus,
@@ -55,19 +64,41 @@ interface ManageCardOptionsProps {
   fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
+  /**
+   * When true (authenticated, Limited, supported token), the Manage limit
+   * row shows the remaining/total amounts when they are present and the
+   * total is greater than zero (including none left).
+   */
+  showLimitedSpendingAmounts?: boolean;
+  /** Blocked cards still show the amounts, without a way to change them. */
+  spendingLimitReadOnly?: boolean;
+  /** Hides the remaining and total amounts, matching the balance privacy mode. */
+  privacyMode?: boolean;
+  spendingLimitRemaining?: string;
+  spendingLimitTotal?: string;
+  spendingLimitSymbol?: string;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   /**
-   * The Card home quick-action row now carries the View card details, View
-   * PIN and Freeze/Unfreeze actions; when it is showing them, hide these
-   * rows so the same action does not appear twice. Defaults to false (rows
-   * unchanged).
+   * Quick-action tiles the Card home row is showing. Each matching row is
+   * hidden so the same action does not appear twice. Omitted: rows unchanged.
    */
-  hideQuickActionRows?: boolean;
+  hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
+  /**
+   * Render only the spending-limit row. Card home uses this on the Activity
+   * tab, and for a blocked card, so the amounts stay visible where the old
+   * progress bar was.
+   */
+  spendingLimitOnly?: boolean;
+  /**
+   * Keeps the history row for a fully set-up card whose history has no
+   * Activity panel on Card home (history lives in Money activity).
+   */
+  showTransactionHistoryRow?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -102,13 +133,21 @@ const ManageCardOptions = ({
   fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
+  showLimitedSpendingAmounts = false,
+  spendingLimitReadOnly = false,
+  privacyMode = false,
+  spendingLimitRemaining,
+  spendingLimitTotal,
+  spendingLimitSymbol,
   onChangeAsset,
   hasPriorityTokenBalance,
-  hideQuickActionRows = false,
+  hiddenQuickActionRows,
   onCashback,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
+  spendingLimitOnly = false,
+  showTransactionHistoryRow = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -138,17 +177,77 @@ const ManageCardOptions = ({
     !hasPriorityTokenBalance &&
     (capabilities?.supportsFundingLimits ?? true);
 
+  const spendingLimitRemainingValue = parseFloat(spendingLimitRemaining ?? '');
+  const spendingLimitTotalValue = parseFloat(spendingLimitTotal ?? '');
+  const hasSpendingLimitAmounts =
+    showLimitedSpendingAmounts &&
+    Boolean(spendingLimitSymbol) &&
+    spendingLimitRemaining != null &&
+    spendingLimitRemaining !== '' &&
+    Number.isFinite(spendingLimitRemainingValue) &&
+    Number.isFinite(spendingLimitTotalValue) &&
+    spendingLimitTotalValue > 0;
+
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-    : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
+    : hasSpendingLimitAmounts
+      ? 'card.card_home.manage_card_options.manage_spending_limit_description_remaining'
+      : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
+  // Recent activity panel (with its own "See all"). This row only remains for
+  // the setup override (Immersve while setup actions are pending) and for
+  // Money-history users, where the panel is not shown.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
     isAuthenticated &&
     Boolean(card) &&
     !hideManageOptions &&
-    (isFullySetUp || showTransactionHistoryDuringSetup);
+    ((showTransactionHistoryDuringSetup && !isFullySetUp) ||
+      (showTransactionHistoryRow && isFullySetUp));
+
+  // Amounts follow the old progress bar: a limited, supported allowance stays
+  // visible at a zero balance. The other manage rows still wait for funds.
+  const showSpendingLimitRow =
+    isAuthenticated &&
+    Boolean(capabilities?.supportsFundingLimits) &&
+    !isLoading &&
+    (!hideManageOptions || showLimitedSpendingAmounts);
+
+  const spendingLimitRow = showSpendingLimitRow ? (
+    <ManageCardListItem
+      title={strings(
+        'card.card_home.manage_card_options.manage_spending_limit',
+      )}
+      description={
+        hasSpendingLimitAmounts ? (
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+          >
+            {strings(showSpendingLimitDescription, {
+              remaining: formatSpendingLimitDisplayValue(
+                spendingLimitRemainingValue,
+              ),
+              total: formatSpendingLimitDisplayValue(spendingLimitTotalValue),
+              symbol: spendingLimitSymbol ?? '',
+            })}
+          </SensitiveText>
+        ) : (
+          strings(showSpendingLimitDescription)
+        )
+      }
+      rightIcon={spendingLimitReadOnly ? undefined : IconName.ArrowRight}
+      onPress={spendingLimitReadOnly ? undefined : onManageSpendingLimit}
+      testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+    />
+  ) : null;
+
+  if (spendingLimitOnly) {
+    return spendingLimitRow;
+  }
 
   return (
     <>
@@ -212,7 +311,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&
           card &&
@@ -245,7 +344,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.pin &&
           isAuthenticated &&
           !isLoading &&
           card &&
@@ -278,7 +377,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.SET_PIN_BUTTON}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.freeze &&
           isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
@@ -307,20 +406,7 @@ const ManageCardOptions = ({
               testID="freeze-card-list-item"
             />
           )}
-        {isAuthenticated &&
-          capabilities?.supportsFundingLimits &&
-          !isLoading &&
-          !hideManageOptions && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(showSpendingLimitDescription)}
-              rightIcon={IconName.ArrowRight}
-              onPress={onManageSpendingLimit}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {spendingLimitRow}
         {isFullySetUp &&
           capabilities?.supportsContactDetails &&
           !hideManageOptions && (

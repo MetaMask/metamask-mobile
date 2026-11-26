@@ -5462,19 +5462,6 @@
     "accounts": "Konten",
     "show_accounts": "Anzeigen",
     "hide_accounts": "Verbergen",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin-Testnet-Konto",
-      "bitcoin_account_name": "Bitcoin-Konto",
-      "bitcoin_signet_account_name": "Bitcoin-Signet-Konto",
-      "bitcoin_regtest_account_name": "Bitcoin-Regtest-Konto",
-      "solana_devnet_account_name": "Solana-Devnet-Konto",
-      "solana_testnet_account_name": "Solana-Testnet-Konto",
-      "solana_account_name": "Solana-Konto",
-      "tron_account_name": "Tron-Konto",
-      "tron_nile_account_name": "Tron Nile-Konto",
-      "tron_shasta_account_name": "Tron Shasta-Konto",
-      "stellar_account_name": "Stellar-Konto"
-    },
     "error_messages": {
       "failed_to_create_account": "Erstellung von {{clientType}}-Konto fehlgeschlagen"
     },
