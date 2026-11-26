@@ -254,7 +254,6 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
-          requireSocialProfile
           testID={testID}
           scrollTestID={scrollTestID}
         />

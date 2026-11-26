@@ -110,6 +110,25 @@ jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectHasSocialV1Access: () => mockHasSocialV1Access(),
 }));
 
+const mockEnsureSocialTermsAccepted = jest.fn(
+  (_onAccepted?: () => void) => true,
+);
+jest.mock('../../../SocialLeaderboard/terms/useSocialTermsGate', () => ({
+  useSocialTermsGate: () => ({
+    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  }),
+}));
+
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+jest.mock(
+  '../../../SocialLeaderboard/hooks/useRequireSocialProfileOnboarding',
+  () => ({
+    useRequireSocialProfileOnboarding: () => ({
+      ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+    }),
+  }),
+);
+
 let mockIsMasterNotificationsEnabled = true;
 jest.mock('../../../../../selectors/notifications', () => ({
   ...jest.requireActual('../../../../../selectors/notifications'),
@@ -242,6 +261,8 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasSocialV1Access.mockReturnValue(false);
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockUseABTest.mockImplementation((_flagKey, variants) => ({
       variant: variants.control,
       variantName: 'control',
@@ -735,6 +756,85 @@ describe('TopTradersSection', () => {
         traderAvatarUri: undefined,
       }),
     );
+  });
+
+  describe('Social V1 follow gate', () => {
+    const renderWithToggleFollow = () => {
+      const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+      mockUseTopTraders.mockReturnValue({
+        traders: mockTraders,
+        isLoading: false,
+        isFetching: false,
+        error: null,
+        refresh: mockRefetch,
+        toggleFollow: mockToggleFollow,
+      });
+      renderWithProvider(<TopTradersSection {...defaultProps} />);
+      return mockToggleFollow;
+    };
+
+    beforeEach(() => {
+      mockHasSocialV1Access.mockReturnValue(true);
+    });
+
+    it('opens profile onboarding instead of following without a linked social wallet', async () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      const mockToggleFollow = renderWithToggleFollow();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Follow'));
+      });
+
+      expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockToggleFollow).not.toHaveBeenCalled();
+    });
+
+    it('asks for the Social terms before following', async () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      const mockToggleFollow = renderWithToggleFollow();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Follow'));
+      });
+
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledTimes(1);
+      expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
+      expect(mockToggleFollow).not.toHaveBeenCalled();
+    });
+
+    it('follows once the Social profile is set up', async () => {
+      const mockToggleFollow = renderWithToggleFollow();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Follow'));
+      });
+
+      expect(mockToggleFollow).toHaveBeenCalledWith(
+        'trader-1',
+        expect.objectContaining({ source: 'home_carousel' }),
+      );
+    });
+  });
+
+  it('follows without the Social gates outside Social V1', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
   it('uses the provided source for view all, profile and follow', async () => {

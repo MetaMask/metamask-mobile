@@ -20813,21 +20813,8 @@
       "count": 2
     }
   },
-  "app/core/DeeplinkManager/handlers/legacy/handleSocialPostUrl.ts": {
-    "typescript/unbound-method": {
-      "count": 1
-    }
-  },
-  "app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts": {
-    "typescript/unbound-method": {
-      "count": 2
-    }
-  },
   "app/core/DeeplinkManager/handlers/legacy/handleSocialTraderUrl.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "typescript/unbound-method": {
       "count": 1
     }
   },
