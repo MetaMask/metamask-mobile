@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import {
+  BadgeStatus,
+  BadgeStatusStatus,
   Box,
   BoxFlexDirection,
   IconName,
@@ -12,6 +14,8 @@ import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 interface ActionButtonConfig {
   onPress: () => void;
   disabled?: boolean;
+  /** Highlights a newly released action with the discovery dot. */
+  showNewDot?: boolean;
 }
 
 interface MoneyActionButtonRowProps {
@@ -74,16 +78,33 @@ const MoneyActionButtonRow = ({
       isGlass={isGlass}
     />
     {details ? (
-      <MainActionButtonGlass
-        iconName={IconName.Bank}
-        label={strings('money.action.details')}
-        onPress={details.onPress}
-        isDisabled={details.disabled}
-        testID={MoneyActionButtonRowTestIds.DETAILS_BUTTON}
-        twClassName="py-3"
-        containerStyle={styles.buttonContainer}
-        isGlass={isGlass}
-      />
+      <Box twClassName="flex-1">
+        <MainActionButtonGlass
+          iconName={IconName.Bank}
+          label={strings('money.action.details')}
+          accessibilityLabel={
+            details.showNewDot
+              ? `${strings('money.action.details')}, ${strings(
+                  'money.action.details_new_badge',
+                )}`
+              : undefined
+          }
+          onPress={details.onPress}
+          isDisabled={details.disabled}
+          testID={MoneyActionButtonRowTestIds.DETAILS_BUTTON}
+          twClassName="py-3"
+          containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
+        />
+        {details.showNewDot ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Active}
+            pointerEvents="none"
+            twClassName="absolute top-2 right-2"
+            testID={MoneyActionButtonRowTestIds.DETAILS_NEW_DOT}
+          />
+        ) : null}
+      </Box>
     ) : null}
   </Box>
 );

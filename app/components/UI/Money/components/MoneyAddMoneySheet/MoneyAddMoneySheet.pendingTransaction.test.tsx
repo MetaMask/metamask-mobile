@@ -12,10 +12,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../selectors/depositTokens';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
@@ -162,8 +161,8 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
 }));
 
 // Sheet UI dependencies (mirrors MoneyAddMoneySheet.test.tsx setup).
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
+jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
+  useQuickDepositStablecoins: jest.fn(() => undefined),
 }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
@@ -172,9 +171,9 @@ jest.mock(
 jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
   useRegionHasFiatProvider: jest.fn(),
 }));
-jest.mock('../../../../../selectors/tokenBalancesController', () => ({
-  ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
-  selectHasAnyNonZeroTokenBalance: jest.fn(),
+jest.mock('../../selectors/depositTokens', () => ({
+  ...jest.requireActual('../../selectors/depositTokens'),
+  selectHasMoneyDepositAssetsMeetingMinimumBalance: jest.fn(),
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -238,20 +237,13 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
       return 0;
     });
     mockEngineState.TransactionController = { transactions: [] };
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '0',
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: false,
-      tokenBalanceAggregated: '0',
-      tokenBalanceByChain: {},
-    });
     (useMMPayFiatConfig as jest.Mock).mockReturnValue({
       enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
       maxDelayMinutesForPaymentMethods: 10,
     });
-    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
-      true,
-    );
+    (
+      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
+    ).mockReturnValue(true);
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),

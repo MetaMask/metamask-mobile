@@ -1,35 +1,24 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { AssetPollingProvider } from './AssetPollingProvider';
-import { useArcDefaultTokens } from '../useArcDefaultTokens';
-
-jest.mock('../useArcDefaultTokens', () => ({
-  useArcDefaultTokens: jest.fn(),
-}));
 
 const CHAIN_IDS_MOCK = ['0x1', '0x2'] as const;
 
 describe('AssetPollingProvider', () => {
-  const mockUseArcDefaultTokens = jest.mocked(useArcDefaultTokens);
+  it('renders nothing', () => {
+    const { toJSON } = render(<AssetPollingProvider />);
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+    expect(toJSON()).toBeNull();
   });
 
-  it('calls useArcDefaultTokens on render', () => {
-    render(<AssetPollingProvider />);
-
-    expect(mockUseArcDefaultTokens).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls useArcDefaultTokens regardless of props provided', () => {
-    render(
+  it('renders nothing regardless of props provided', () => {
+    const { toJSON } = render(
       <AssetPollingProvider
         chainIds={[...CHAIN_IDS_MOCK]}
         address="0x1234567890abcdef"
       />,
     );
 
-    expect(mockUseArcDefaultTokens).toHaveBeenCalledTimes(1);
+    expect(toJSON()).toBeNull();
   });
 });

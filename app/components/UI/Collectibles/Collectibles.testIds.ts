@@ -18,4 +18,17 @@ export const collectiblesTestIds = {
   buyButton: (code: string) => `collectibles-pack-tile-buy-${code}`,
   buySheet: 'collectibles-buy-sheet',
   buySheetClose: 'collectibles-buy-sheet-close',
+  packsSkeleton: 'collectibles-packs-skeleton',
+  packsEmpty: 'collectibles-packs-empty',
+  packsCategoryChip: (id: string) => `collectibles-packs-chip-${id}`,
+  packsFilterSortLine: 'collectibles-packs-filter-sort-line',
+  packsFilterButton: 'collectibles-packs-filter-button',
+  packsSortButton: 'collectibles-packs-sort-button',
+  packsGrid: 'collectibles-packs-grid',
+  packsTile: (code: string) => `collectibles-packs-tile-${code}`,
+  packsTileDetail: (code: string) => `collectibles-packs-tile-detail-${code}`,
+  packsTileBuy: (code: string) => `collectibles-packs-tile-buy-${code}`,
+  packsTileArt: (code: string) => `collectibles-packs-tile-art-${code}`,
+  packsTileArtPlaceholder: (code: string) =>
+    `collectibles-packs-tile-art-placeholder-${code}`,
 } as const;

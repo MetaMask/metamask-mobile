@@ -199,7 +199,7 @@ appiumTest.describe(
     );
 
     appiumTest(
-      'selects mUSD when opening via add mUSD',
+      'selects USDC when opening via add USDC',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
@@ -223,14 +223,14 @@ appiumTest.describe(
             await MoneyHomeView.expectMoneyHomeVisible();
             await MoneyHomeView.tapAdd();
             await MoneyAddMoneySheet.expectVisible();
-            await MoneyAddMoneySheet.tapMoveMusd();
+            await MoneyAddMoneySheet.tapMoveStablecoin();
 
             await TransactionPayConfirmation.expectPayWithRowLoaded();
             await Assertions.expectElementToHaveText(
               TransactionPayConfirmation.payWithSymbol,
-              'mUSD ($10)',
+              'USDC ($500)',
               {
-                description: 'Add mUSD should select mUSD as the pay token',
+                description: 'Add USDC should select USDC as the pay token',
               },
             );
           },

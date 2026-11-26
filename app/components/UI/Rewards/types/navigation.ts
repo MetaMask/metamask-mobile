@@ -1,9 +1,5 @@
-import type { ReactNode } from 'react';
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type {
-  ButtonVariant,
-  IconName,
-} from '@metamask/design-system-react-native';
+import type { IconName } from '@metamask/design-system-react-native';
 import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
@@ -102,29 +98,6 @@ export interface RewardsMoneyAccountSweepstakesCampaignDetailsParams {
 export interface RewardsMoneyAccountSweepstakesCampaignWinningParams {
   campaignId: string;
   campaignName: string;
-}
-
-export interface RewardsModalAction {
-  label: string;
-  onPress: () => void | Promise<void>;
-  variant?: ButtonVariant;
-  disabled?: boolean;
-  isLoading?: boolean;
-  loadOnPress?: boolean;
-}
-
-/** Params for `RewardsBottomSheetModal` (root modal). */
-export interface RewardsBottomSheetModalParams {
-  title: string | ReactNode;
-  description: string | ReactNode;
-  type?: 'danger' | 'confirmation';
-  confirmAction: RewardsModalAction;
-  onCancel?: () => void;
-  cancelLabel?: string;
-  showCancelButton?: boolean;
-  cancelMode?: 'cta-button' | 'top-right-cross-icon' | string;
-  showIcon?: boolean;
-  customIcon?: ReactNode;
 }
 
 /**
@@ -250,7 +223,6 @@ export type RewardsStackParamList = {
 export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsSelectSheet: RewardsSelectSheetParams;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
-  RewardsBottomSheetModal: RewardsBottomSheetModalParams | undefined;
   RewardsInfoSheetModal: RewardsInfoSheetModalParams | undefined;
   RewardsMoneyClaimsPausedModal:
     | RewardsMoneyClaimsPausedModalParams

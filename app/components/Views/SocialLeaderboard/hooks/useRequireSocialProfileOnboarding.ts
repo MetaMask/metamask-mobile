@@ -6,6 +6,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import { isSocialProfileOnboardingRequired } from '../navigation/resolveSocialPostComposerWallet';
 
+export interface UseRequireSocialProfileOnboardingOptions {
+  /**
+   * Runs the onboarding navigation. A bottom sheet passes one that closes the
+   * sheet first, so onboarding opens full screen instead of inside the sheet.
+   * Defaults to navigating immediately.
+   */
+  runNavigation?: (navigate: () => void) => void;
+}
+
 export interface UseRequireSocialProfileOnboardingResult {
   ensureSocialProfileOnboarding: () => boolean;
 }
@@ -17,23 +26,31 @@ export interface UseRequireSocialProfileOnboardingResult {
  * Reads the linked wallet from ProfileController state and never fetches, so
  * it is safe to mount once per list row.
  */
-export const useRequireSocialProfileOnboarding =
-  (): UseRequireSocialProfileOnboardingResult => {
-    const navigation = useNavigation<AppNavigationProp>();
-    const linkedAccountAddress = useSelector(
-      selectProfileControllerLinkedEvmAddress,
-    );
+export const useRequireSocialProfileOnboarding = ({
+  runNavigation,
+}: UseRequireSocialProfileOnboardingOptions = {}): UseRequireSocialProfileOnboardingResult => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const linkedAccountAddress = useSelector(
+    selectProfileControllerLinkedEvmAddress,
+  );
 
-    const ensureSocialProfileOnboarding = useCallback(() => {
-      if (!isSocialProfileOnboardingRequired(linkedAccountAddress)) {
-        return true;
-      }
+  const ensureSocialProfileOnboarding = useCallback(() => {
+    if (!isSocialProfileOnboardingRequired(linkedAccountAddress)) {
+      return true;
+    }
 
+    const navigate = (): void => {
       navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-      return false;
-    }, [linkedAccountAddress, navigation]);
+    };
+    if (runNavigation) {
+      runNavigation(navigate);
+    } else {
+      navigate();
+    }
+    return false;
+  }, [linkedAccountAddress, navigation, runNavigation]);
 
-    return { ensureSocialProfileOnboarding };
-  };
+  return { ensureSocialProfileOnboarding };
+};
 
 export default useRequireSocialProfileOnboarding;
