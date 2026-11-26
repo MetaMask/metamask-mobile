@@ -54,7 +54,6 @@ export interface AccountSelectorProps {
   /** Title in the account selection bottom sheet (header). */
   selectorTitle?: string;
   style?: StyleProp<ViewStyle>;
-  isAccountAllowed?: (account: InternalAccount) => boolean;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -63,7 +62,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   label = strings('confirm.label.to'),
   selectorTitle = strings('bridge.select_recipient'),
   style,
-  isAccountAllowed,
 }) => {
   const isGlassHeader = useIsGlassHeader();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -76,14 +74,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getIsAccountSupported = useCallback(
-    (accountId: AccountId) => {
-      const account = internalAccountsById[accountId];
-      return Boolean(
-        account?.scopes.includes(EthScope.Eoa) &&
-          (isAccountAllowed?.(account) ?? true),
-      );
-    },
-    [internalAccountsById, isAccountAllowed],
+    (accountId: AccountId) =>
+      Boolean(internalAccountsById[accountId]?.scopes.includes(EthScope.Eoa)),
+    [internalAccountsById],
   );
 
   const openModal = useCallback(() => setIsModalVisible(true), []);

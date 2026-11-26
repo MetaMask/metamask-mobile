@@ -1233,6 +1233,155 @@ describe('useTransactionConfirm', () => {
         }),
       });
     });
+
+    it.each([
+      {
+        accountId: 'ledger-recipient-id',
+        address: '0x3333333333333333333333333333333333333333',
+        keyringType: 'Ledger Hardware',
+        label: 'Ledger',
+      },
+      {
+        accountId: 'qr-recipient-id',
+        address: '0x4444444444444444444444444444444444444444',
+        keyringType: 'QR Hardware Wallet Device',
+        label: 'QR',
+      },
+      {
+        accountId: 'onekey-recipient-id',
+        address: '0x5555555555555555555555555555555555555555',
+        keyringType: 'OneKey Hardware',
+        label: 'OneKey',
+      },
+    ])(
+      'confirms money account withdraw with the Money Account when recipient is a $label hardware wallet',
+      async ({ accountId, address, keyringType }) => {
+        const deferSpy = jest.fn();
+        useHandleHwSendMock.mockReturnValue({
+          shouldDefer: jest.fn(() => false),
+          defer: deferSpy,
+        });
+        isHardwareAccountMock.mockImplementation(
+          (addr) => addr.toLowerCase() === address.toLowerCase(),
+        );
+        useTransactionPayQuotesMock.mockReturnValue([
+          {} as TransactionPayQuote<Json>,
+        ]);
+        setupMoneyAccountTransaction({
+          type: TransactionType.moneyAccountWithdraw,
+        });
+
+        const stateWithHardwareRecipient = merge({}, moneyKeyringState, {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  accounts: {
+                    [accountId]: {
+                      address,
+                      id: accountId,
+                      metadata: {
+                        keyring: { type: keyringType },
+                        name: 'Hardware Recipient',
+                      },
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              TransactionPayController: {
+                transactionData: {
+                  [transactionIdMock]: {
+                    accountOverride: accountId,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const { result } = renderHook(stateWithHardwareRecipient);
+
+        await act(async () => {
+          await result.current.onConfirm();
+        });
+
+        expect(isHardwareAccountMock).toHaveBeenCalledWith(
+          MONEY_ACCOUNT_ADDRESS,
+        );
+        expect(isHardwareAccountMock).not.toHaveBeenCalledWith(address);
+        expect(deferSpy).not.toHaveBeenCalled();
+        expect(onApprovalConfirm).toHaveBeenCalledWith(
+          expect.objectContaining({
+            waitForResult: false,
+          }),
+          {
+            txMeta: expect.objectContaining({
+              isExternalSign: true,
+              isGasFeeSponsored: true,
+              txParams: { from: MONEY_ACCOUNT_ADDRESS },
+            }),
+          },
+        );
+      },
+    );
+
+    it('treats hardware accountOverride as hardware payer for money account deposit', async () => {
+      const ledgerPayerId = 'ledger-payer-id';
+      const ledgerPayerAddress = '0x3333333333333333333333333333333333333333';
+      isHardwareAccountMock.mockImplementation(
+        (addr) => addr.toLowerCase() === ledgerPayerAddress.toLowerCase(),
+      );
+      useTransactionPayQuotesMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
+      setupMoneyAccountTransaction({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      const stateWithLedgerPayer = merge({}, moneyKeyringState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [ledgerPayerId]: {
+                    address: ledgerPayerAddress,
+                    id: ledgerPayerId,
+                    metadata: {
+                      keyring: { type: 'Ledger Hardware' },
+                      name: 'Ledger Payer',
+                    },
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+            TransactionPayController: {
+              transactionData: {
+                [transactionIdMock]: {
+                  accountOverride: ledgerPayerId,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(stateWithLedgerPayer);
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(isHardwareAccountMock).toHaveBeenCalledWith(ledgerPayerAddress);
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          waitForResult: true,
+        }),
+        expect.anything(),
+      );
+    });
   });
 
   describe('fiat payment branching', () => {
