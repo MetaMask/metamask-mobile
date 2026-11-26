@@ -43,7 +43,6 @@ export const PredictHomeTestIds = {
   HOME_GAMES_ERROR: 'predict-next-home-games-error',
   HOME_GAMES_RETRY: 'predict-next-home-games-retry',
   GET_STARTED_BANNER: 'predict-next-home-get-started-banner',
-  GET_STARTED_BANNER_IMAGE: 'predict-next-home-get-started-banner-image',
   GET_STARTED_BANNER_DISMISS: 'predict-next-home-get-started-banner-dismiss',
   SECTIONS_LOADING: 'predict-next-home-sections-loading',
   SECTIONS_ERROR: 'predict-next-home-sections-error',
