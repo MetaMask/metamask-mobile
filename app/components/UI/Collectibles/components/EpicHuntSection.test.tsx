@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import type { EpicHuntPack } from '#app/components/UI/Collectibles/types/packs';
@@ -72,6 +77,13 @@ describe('EpicHuntSection', () => {
     expect(screen.getByText('+12')).toBeOnTheScreen();
   });
 
+  it('shows an unsigned zero at the average', () => {
+    mockResult = { data: [{ ...pack, pullsOverAverage: 0 }], isPending: false };
+    render(<EpicHuntSection />);
+
+    expect(screen.getByText('0')).toBeOnTheScreen();
+  });
+
   it('opens the info sheet from the info icon', () => {
     render(<EpicHuntSection />);
 
@@ -80,5 +92,18 @@ describe('EpicHuntSection', () => {
     expect(
       screen.getByText(strings('collectibles.epic_hunt.info_independent')),
     ).toBeOnTheScreen();
+  });
+
+  it('closes the info sheet from its close button', async () => {
+    render(<EpicHuntSection />);
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.epicHuntInfoButton));
+
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.epicHuntInfoClose));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(strings('collectibles.epic_hunt.info_independent')),
+      ).not.toBeOnTheScreen(),
+    );
   });
 });

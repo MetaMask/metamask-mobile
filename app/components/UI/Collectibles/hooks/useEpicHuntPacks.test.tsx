@@ -35,6 +35,14 @@ describe('useEpicHuntPacks', () => {
 
     const pack = result.current.data.find(({ code }) => code === 'pack-1');
     expect(pack?.subtitle).toBe('Epic 1% · 32 pulls since last Epic');
+  });
+
+  it('gives each pack its pulls over the average', async () => {
+    const { result } = renderEpicHuntPacks();
+
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    const pack = result.current.data.find(({ code }) => code === 'pack-1');
     expect(pack?.pullsOverAverage).toBe(-68);
   });
 

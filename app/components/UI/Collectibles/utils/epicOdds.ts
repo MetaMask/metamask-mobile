@@ -17,8 +17,9 @@ export function rankEpicOddsPacks(machines: EpicHuntMachine[]) {
       !machine.isMachineOpen ||
       !machine.isApproved ||
       priceUsd === undefined ||
-      !epicOdds ||
-      epicOdds <= 0
+      epicOdds === undefined ||
+      !(epicOdds > 0 && epicOdds <= 1) ||
+      !(machine.pullsSinceEpic >= 0)
     ) {
       return [];
     }

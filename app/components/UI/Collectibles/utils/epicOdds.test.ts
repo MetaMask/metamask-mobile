@@ -70,6 +70,12 @@ describe('rankEpicOddsPacks', () => {
     ['not approved', { isApproved: false }],
     ['without Epic odds', { epicOdds: undefined }],
     ['with zero Epic odds', { epicOdds: 0 }],
+    ['with negative Epic odds', { epicOdds: -0.01 }],
+    ['with NaN Epic odds', { epicOdds: NaN }],
+    ['with infinite Epic odds', { epicOdds: Infinity }],
+    ['with Epic odds above 100%', { epicOdds: 1.5 }],
+    ['with negative pulls since last Epic', { pullsSinceEpic: -1 }],
+    ['with NaN pulls since last Epic', { pullsSinceEpic: NaN }],
     ['without a price', { priceUsd: undefined }],
   ])('drops a pack that is %s', (_label, overrides) => {
     expect(
