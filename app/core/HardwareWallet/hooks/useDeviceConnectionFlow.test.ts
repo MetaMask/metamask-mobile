@@ -1140,9 +1140,9 @@ describe('useDeviceConnectionFlow', () => {
 
       // Arm the flow first — the retry button only exists while the flow is
       // active (bottom sheet mounted).
-      const { readyPromise } = await capturePendingReadiness(async () => {
-        return result.current.ensureDeviceReady('device-123');
-      });
+      const { readyPromise } = await capturePendingReadiness(async () =>
+        result.current.ensureDeviceReady('device-123'),
+      );
       await flushPromises();
       expect(options.flowActiveRef.current).toBe(true);
       (options.handleError as jest.Mock).mockClear();

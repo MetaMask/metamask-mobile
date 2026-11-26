@@ -360,10 +360,9 @@ function getBridgeStatus(store: any) {
 }
 
 /** Renders the screen, waits for the mount submit, then dispatches a rejection. */
-async function renderAndReject(): Promise<{
-  getByTestId: (id: string) => unknown;
-  store: any;
-}> {
+async function renderAndReject(): Promise<
+  Pick<ReturnType<typeof renderScreen>, 'getByTestId' | 'store'>
+> {
   const { getByTestId, store } = renderScreen({});
   await waitFor(() => {
     expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
