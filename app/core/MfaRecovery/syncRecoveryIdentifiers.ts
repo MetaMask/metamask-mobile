@@ -8,11 +8,6 @@ export const PASSWORDLESS_RECOVERY_SETUP_OPERATION =
 export interface SyncRecoveryAfterEnrollOptions {
   /** Proves the user so the recovery approvals are accepted. */
   verifyMfa: () => Promise<void>;
-  /**
-   * Asks for the email to link the social login with, when it is not linked
-   * yet. `undefined` links with the social token's own email.
-   */
-  getSocialLinkEmail?: () => Promise<string | undefined>;
 }
 
 export type RemovePasskeyFromRecoveryOptions = Pick<
@@ -22,12 +17,11 @@ export type RemovePasskeyFromRecoveryOptions = Pick<
 
 /**
  * Keeps passwordless recovery in step with a newly enrolled method. Sets
- * recovery up on first enrollment, linking the social login first when Auth
- * does not have it; afterwards, adds each passkey Auth approved that Cubist
- * does not have yet.
+ * recovery up on first enrollment; afterwards, adds each passkey Auth approved
+ * that Cubist does not have yet.
  *
  * @param method - The method that was just enrolled.
- * @param options - How to prove the user and pick the social link email.
+ * @param options - How to prove the user.
  */
 export async function syncRecoveryAfterEnroll(
   method: MfaMethod,

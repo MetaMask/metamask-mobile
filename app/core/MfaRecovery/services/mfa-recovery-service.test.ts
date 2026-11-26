@@ -4,7 +4,6 @@ import {
 } from '@metamask/mfa-recovery-controller';
 import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import { createSrpSiweSigner } from '../../Engine/controllers/mfa-recovery-controller/auth/srp-siwe-signer';
-import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   IdentifierNotApprovedError,
   MfaRecoveryService,
@@ -46,7 +45,6 @@ const RANDOM_BYTE = 7;
 const RECOVERY_SECRET = new Uint8Array(32).fill(RANDOM_BYTE);
 const REGISTERED_SECRET = new Uint8Array(32).fill(9);
 const OPERATION = 'test.operation';
-const AUTH_ENV = 'test-env';
 
 const mockToprfConfig = {
   aal2Audience: 'toprf-aal2-audience',
@@ -60,21 +58,11 @@ jest.mock('../../Engine/controllers/mfa-recovery-controller/config', () => ({
   getToprfRecoveryConfig: () => mockToprfConfig,
 }));
 
-jest.mock('../social-login/link-social-login', () => ({
-  linkSocialLogin: jest.fn(),
-}));
-
-jest.mock('../../apiEnv', () => ({
-  authEnv: () => 'test-env',
-}));
-
 const mockLoggerLog = jest.fn();
 jest.mock('../../../util/Logger', () => ({
   __esModule: true,
   default: { log: (...args: unknown[]) => mockLoggerLog(...args) },
 }));
-
-const mockLinkSocialLogin = jest.mocked(linkSocialLogin);
 
 function createController({
   identifiers = [] as Identifier[],
@@ -132,7 +120,6 @@ function createSeedless() {
   } = { authConnection: 'google', userId: 'google-user', vault: 'vault' };
   return {
     state,
-    getAccessToken: jest.fn().mockResolvedValue('social-token'),
     authenticateForRecovery: jest.fn().mockResolvedValue(undefined),
     runMigrations: jest.fn().mockResolvedValue(false),
     migrateToEnvelope: jest.fn(async (_: { recoverySecret: Uint8Array }) => {
@@ -146,31 +133,25 @@ function createService({
   seedless = createSeedless(),
   siweAddress = ADDRESS,
   keyring = createTestKeyringController(),
-  getSocialLinkEmail,
 }: {
   controller?: ReturnType<typeof createController>;
   seedless?: ReturnType<typeof createSeedless>;
   /** Stubs `getSiweAddress`; `null` derives it from `keyring`. */
   siweAddress?: string | null;
   keyring?: ReturnType<typeof createTestKeyringController>;
-  getSocialLinkEmail?: () => Promise<string | undefined>;
 } = {}) {
   const verifyMfa = jest.fn().mockResolvedValue(undefined);
   const requestMfaApproval = jest.fn(async () => ({ approval: 'aal2-token' }));
-  const getVerificationToken = jest.fn(() => ({
-    accessToken: 'verified-token',
-  }));
   Object.assign(controllers, {
     MfaRecoveryController: controller,
     SeedlessOnboardingController: seedless,
     KeyringController: keyring,
-    AuthenticationController: { requestMfaApproval, getVerificationToken },
+    AuthenticationController: { requestMfaApproval },
   });
   const service = new MfaRecoveryService({
     messenger: createMfaRecoveryServiceTestMessenger(() => controllers),
     verifyMfa,
     approvalOperation: OPERATION,
-    getSocialLinkEmail,
   });
   if (siweAddress !== null) {
     jest.spyOn(service, 'getSiweAddress').mockResolvedValue(siweAddress);
@@ -213,7 +194,6 @@ describe('MfaRecoveryService', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    mockLinkSocialLogin.mockReset();
   });
 
   it('reads the status through the messenger', () => {
@@ -676,38 +656,6 @@ describe('MfaRecoveryService', () => {
     });
   });
 
-  describe('linkSocialLogin', () => {
-    it('verifies before linking with the given email', async () => {
-      const { service, verifyMfa, seedless } = createService();
-      const order: string[] = [];
-      verifyMfa.mockImplementation(async () => {
-        order.push('verify');
-      });
-      mockLinkSocialLogin.mockImplementation(async () => {
-        order.push('link');
-      });
-
-      await service.linkSocialLogin('dev@example.com');
-
-      expect(order).toStrictEqual(['verify', 'link']);
-      expect(mockLinkSocialLogin).toHaveBeenCalledWith(
-        expect.objectContaining({
-          env: AUTH_ENV,
-          seedlessState: seedless.state,
-          verifierId: 'dev@example.com',
-        }),
-      );
-    });
-
-    it('does not link when verification fails', async () => {
-      const { service, verifyMfa } = createService();
-      verifyMfa.mockRejectedValue(new Error('cancelled'));
-
-      await expect(service.linkSocialLogin()).rejects.toThrow('cancelled');
-      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
-    });
-  });
-
   describe('setUp', () => {
     function createSetUpService(
       options: Parameters<typeof createService>[0] = {},
@@ -781,7 +729,6 @@ describe('MfaRecoveryService', () => {
       ]);
       expect(captured.registered).toStrictEqual(RECOVERY_SECRET);
       expect(captured.migrated).toStrictEqual(RECOVERY_SECRET);
-      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
     });
 
     it('prefers the Auth SIWE identifier when present', async () => {
@@ -818,7 +765,7 @@ describe('MfaRecoveryService', () => {
       ]);
     });
 
-    it('throws IdentifierNotApprovedError before linking social when requirePasskey is true and no trusted passkey exists', async () => {
+    it('throws IdentifierNotApprovedError when requirePasskey is true and no trusted passkey exists', async () => {
       const UNTRUSTED_PASSKEY: Identifier = {
         ...AUTH_PASSKEY,
         value: 'rogue-credential',
@@ -833,7 +780,6 @@ describe('MfaRecoveryService', () => {
       await expect(
         service.setUp({ requirePasskey: true }),
       ).rejects.toBeInstanceOf(IdentifierNotApprovedError);
-      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
       expect(controller.register).not.toHaveBeenCalled();
     });
 
@@ -877,98 +823,18 @@ describe('MfaRecoveryService', () => {
       ]);
     });
 
-    it('links the social login when Auth lists none, then reads the identifiers again', async () => {
+    it('throws social_identifier_not_approved when Auth lists no social identifier', async () => {
       const controller = createController({
         epoch: 0,
         authIdentifiers: [AUTH_PASSKEY],
       });
       const { service, seedless } = createSetUpService({ controller });
-      mockLinkSocialLogin.mockImplementation(async () => {
-        controller.state.authIdentifiers = [AUTH_PASSKEY, AUTH_SOCIAL];
-      });
-
-      await service.setUp({ requirePasskey: true });
-
-      expect(mockLinkSocialLogin).toHaveBeenCalledTimes(1);
-      const [dependencies] = mockLinkSocialLogin.mock.calls[0];
-      expect(dependencies).toStrictEqual({
-        env: AUTH_ENV,
-        seedlessState: seedless.state,
-        getSocialAccessToken: expect.any(Function),
-        getVerifiedAccessToken: expect.any(Function),
-        verifierId: undefined,
-      });
-      await expect(dependencies.getSocialAccessToken()).resolves.toBe(
-        'social-token',
-      );
-      expect(dependencies.getVerifiedAccessToken()).toBe('verified-token');
-      expect(controller.getIdentifiers).toHaveBeenCalledTimes(2);
-      expect(controller.register).toHaveBeenCalledWith(expect.any(Uint8Array), [
-        SIWE,
-        AUTH_SOCIAL,
-        AUTH_PASSKEY,
-      ]);
-    });
-
-    it('links with the trimmed email from getSocialLinkEmail', async () => {
-      const getSocialLinkEmail = jest
-        .fn()
-        .mockResolvedValue('  dev@example.com ');
-      const controller = createController({
-        epoch: 0,
-        authIdentifiers: [AUTH_PASSKEY],
-      });
-      const { service } = createSetUpService({
-        controller,
-        getSocialLinkEmail,
-      });
-      mockLinkSocialLogin.mockImplementation(async () => {
-        controller.state.authIdentifiers = [AUTH_PASSKEY, AUTH_SOCIAL];
-      });
-
-      await service.setUp();
-
-      expect(mockLinkSocialLogin).toHaveBeenCalledWith(
-        expect.objectContaining({ verifierId: 'dev@example.com' }),
-      );
-    });
-
-    it('does not ask for the link email when Auth already lists the social identifier', async () => {
-      const getSocialLinkEmail = jest.fn();
-      const { service } = createSetUpService({ getSocialLinkEmail });
-
-      await service.setUp();
-
-      expect(getSocialLinkEmail).not.toHaveBeenCalled();
-      expect(mockLinkSocialLogin).not.toHaveBeenCalled();
-    });
-
-    it('throws social_identifier_not_approved when linking does not add it', async () => {
-      const controller = createController({
-        epoch: 0,
-        authIdentifiers: [AUTH_PASSKEY],
-      });
-      const { service, seedless } = createSetUpService({ controller });
-      mockLinkSocialLogin.mockResolvedValue(undefined);
 
       await expect(service.setUp()).rejects.toMatchObject({
         code: 'social_identifier_not_approved',
       });
       expect(controller.register).not.toHaveBeenCalled();
       expect(seedless.migrateToEnvelope).not.toHaveBeenCalled();
-    });
-
-    it('does not register when linking the social login fails', async () => {
-      const controller = createController({
-        epoch: 0,
-        authIdentifiers: [AUTH_PASSKEY],
-      });
-      const { service } = createSetUpService({ controller });
-      const error = new Error('link failed');
-      mockLinkSocialLogin.mockRejectedValue(error);
-
-      await expect(service.setUp()).rejects.toBe(error);
-      expect(controller.register).not.toHaveBeenCalled();
     });
 
     it('registers, authenticates, migrates data types, then seals the vault', async () => {

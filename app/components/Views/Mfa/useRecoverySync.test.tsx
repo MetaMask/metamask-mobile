@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import {
   removePasskeyFromRecovery,
   syncRecoveryAfterEnroll,
@@ -12,7 +12,6 @@ import type {
 } from '../../../util/identity/mfa/engine/types';
 import Logger from '../../../util/Logger';
 import { RECOVERY_SETUP_PROGRESS_TEST_IDS } from '../shared/RecoverySetupProgressBottomSheet';
-import { MfaSettingsSelectorsIDs } from './Mfa.testIds';
 import useRecoverySync from './useRecoverySync';
 
 jest.mock('../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
@@ -31,11 +30,6 @@ jest.mock('../../../util/identity/mfa', () => ({
   useMfa: (): { verifyOrEnroll: typeof mockVerifyOrEnroll } => ({
     verifyOrEnroll: mockVerifyOrEnroll,
   }),
-}));
-
-const mockIsMfaDevRecoveryBuild = jest.fn(() => false);
-jest.mock('../../../core/MfaRecovery/isMfaDevRecoveryBuild', () => ({
-  isMfaDevRecoveryBuild: (): boolean => mockIsMfaDevRecoveryBuild(),
 }));
 
 const mockUseSelector = jest.fn();
@@ -137,8 +131,6 @@ const advance = async (ms: number): Promise<void> =>
 
 const progressSheet = (): ReturnType<typeof screen.queryByTestId> =>
   screen.queryByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET);
-const socialLinkSheet = (): ReturnType<typeof screen.queryByTestId> =>
-  screen.queryByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_SHEET);
 
 describe('useRecoverySync', () => {
   const originalOS = Platform.OS;
@@ -146,7 +138,6 @@ describe('useRecoverySync', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockIsMfaDevRecoveryBuild.mockReturnValue(false);
     mockUseSelector.mockReturnValue(true);
     mockGetVerificationToken.mockResolvedValue(null);
   });
@@ -256,52 +247,6 @@ describe('useRecoverySync', () => {
     expect(verifyDone).toBe(true);
     expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
     expect(progressSheet()).toBeOnTheScreen();
-  });
-
-  it('asks for the social link email in dev builds and hands it to the sync', async () => {
-    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
-    const email = deferred<string | undefined>();
-    const finish = deferred();
-    mockSync.mockImplementation(async (_method, options: SyncOptions) => {
-      email.resolve(await options.getSocialLinkEmail?.());
-      await finish.promise;
-    });
-    const { startSync } = renderRecoverySync();
-
-    void startSync();
-    await flush();
-    expect(progressSheet()).toBeNull();
-    expect(socialLinkSheet()).toBeNull();
-    await advance(MODAL_SETTLE_MS);
-    expect(socialLinkSheet()).toBeOnTheScreen();
-    fireEvent.changeText(
-      screen.getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_INPUT),
-      ' qa@example.com ',
-    );
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_CONFIRM),
-      );
-    });
-    expect(socialLinkSheet()).toBeNull();
-    await advance(MODAL_SETTLE_MS);
-
-    await expect(email.promise).resolves.toBe('qa@example.com');
-    expect(progressSheet()).toBeOnTheScreen();
-  });
-
-  it('offers no social link email outside dev builds', async () => {
-    mockSync.mockResolvedValue(undefined);
-    const { startSync } = renderRecoverySync();
-
-    await act(async () => {
-      await startSync();
-    });
-
-    expect(mockSync).toHaveBeenCalledWith(
-      'passkey',
-      expect.objectContaining({ getSocialLinkEmail: undefined }),
-    );
   });
 
   it('verifies without waiting for modals to settle on Android', async () => {
@@ -417,24 +362,6 @@ describe('useRecoverySync', () => {
 
     expect(screen.getByText('Setting up recovery')).toBeOnTheScreen();
     await act(async () => sync.resolve());
-  });
-
-  it('resolves the pending social link email with undefined on unmount', async () => {
-    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
-    const email = deferred<string | undefined>();
-    mockSync.mockImplementation(async (_method, options: SyncOptions) => {
-      email.resolve(await options.getSocialLinkEmail?.());
-    });
-    const { startSync, unmount } = renderRecoverySync();
-    void startSync();
-    await flush();
-    await advance(MODAL_SETTLE_MS);
-    expect(socialLinkSheet()).toBeOnTheScreen();
-
-    unmount();
-    await advance(MODAL_SETTLE_MS);
-
-    await expect(email.promise).resolves.toBeUndefined();
   });
 
   describe('when the mfaRecovery flag is off', () => {

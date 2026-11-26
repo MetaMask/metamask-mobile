@@ -55,17 +55,6 @@ describe('syncRecoveryAfterEnroll', () => {
     jest.clearAllMocks();
   });
 
-  it('gives the service the social link email prompt for setup', async () => {
-    createService({ status: 'NotEnabled' });
-    const getSocialLinkEmail = jest.fn();
-
-    await syncRecoveryAfterEnroll('totp', { verifyMfa, getSocialLinkEmail });
-
-    expect(createMfaRecoveryService).toHaveBeenCalledWith(
-      expect.objectContaining({ getSocialLinkEmail }),
-    );
-  });
-
   it("builds the service with the caller's verifyMfa and the setup approval operation", async () => {
     createService();
 

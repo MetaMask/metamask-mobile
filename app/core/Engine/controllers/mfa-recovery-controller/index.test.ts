@@ -6,7 +6,6 @@ import {
   UserStorageTrustedIdentifierStore,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
-import { clearDevSocialLinkEmail } from '../../../MfaRecovery/social-login/devSocialLinkEmail';
 import {
   getRecoveryRegistrationLockProviderMessenger,
   getUserStorageTrustedIdentifierStoreMessenger,
@@ -55,11 +54,6 @@ jest.mock('./auth/identifier-auth-provider', () => ({
 
 jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
   mobilePasskeyAdapter: { get: jest.fn() },
-}));
-
-jest.mock('../../../MfaRecovery/social-login/devSocialLinkEmail', () => ({
-  clearDevSocialLinkEmail: jest.fn(),
-  hydrateDevSocialLinkEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../messengers/mfa-recovery-controller-messenger', () => ({
@@ -278,21 +272,18 @@ describe('mfaRecoveryControllerInit', () => {
     handlers.get('KeyringController:lock')?.();
     expect(tokenProviderClear).toHaveBeenCalledTimes(1);
     expect(clientGetterClear).toHaveBeenCalledTimes(1);
-    expect(clearDevSocialLinkEmail).not.toHaveBeenCalled();
 
     handlers.get('AuthenticationController:stateChange')?.({
       isSignedIn: true,
     });
     expect(tokenProviderClear).toHaveBeenCalledTimes(1);
     expect(clientGetterClear).toHaveBeenCalledTimes(1);
-    expect(clearDevSocialLinkEmail).not.toHaveBeenCalled();
 
     handlers.get('AuthenticationController:stateChange')?.({
       isSignedIn: false,
     });
     expect(tokenProviderClear).toHaveBeenCalledTimes(2);
     expect(clientGetterClear).toHaveBeenCalledTimes(2);
-    expect(clearDevSocialLinkEmail).toHaveBeenCalledTimes(1);
   });
 
   describe('SIWE signer', () => {

@@ -3,10 +3,6 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import {
-  clearDevSocialLinkEmail,
-  setDevSocialLinkEmail,
-} from '../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { GlobalActions, GlobalEvents } from '../types';
 import {
   getMfaRecoveryControllerInitMessenger,
@@ -27,10 +23,6 @@ function createRootMessenger(): TestRootMessenger {
 }
 
 describe('mfa-recovery-controller-messenger', () => {
-  afterEach(() => {
-    clearDevSocialLinkEmail();
-  });
-
   it('delegates controller actions including SeedlessOnboardingController:getState', () => {
     const rootMessenger = createRootMessenger();
     const seedlessState = { authConnection: 'google' };
@@ -45,28 +37,6 @@ describe('mfa-recovery-controller-messenger', () => {
     expect(messenger.call('SeedlessOnboardingController:getState')).toBe(
       seedlessState,
     );
-  });
-
-  it('applies the dev social link email override on SeedlessOnboardingController:getState', () => {
-    const rootMessenger = createRootMessenger();
-    const seedlessState = {
-      authConnection: 'google',
-      socialLoginEmail: 'real@example.com',
-    };
-    rootMessenger.registerActionHandler(
-      'SeedlessOnboardingController:getState',
-      (() => seedlessState) as never,
-    );
-    setDevSocialLinkEmail('dev-alias@example.com', 'real@example.com');
-
-    const messenger = getMfaRecoveryControllerMessenger(rootMessenger);
-
-    expect(
-      messenger.call('SeedlessOnboardingController:getState'),
-    ).toStrictEqual({
-      authConnection: 'google',
-      socialLoginEmail: 'dev-alias@example.com',
-    });
   });
 
   it('delegates UserStorageController actions to the trusted identifier store messenger', async () => {

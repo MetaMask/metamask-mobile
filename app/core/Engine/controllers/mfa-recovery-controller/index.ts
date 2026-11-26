@@ -8,11 +8,6 @@ import {
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
-import { isMfaDevRecoveryBuild } from '../../../MfaRecovery/isMfaDevRecoveryBuild';
-import {
-  clearDevSocialLinkEmail,
-  hydrateDevSocialLinkEmail,
-} from '../../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   getRecoveryRegistrationLockProviderMessenger,
@@ -52,9 +47,6 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   MfaRecoveryControllerMessenger,
   MfaRecoveryControllerInitMessenger
 > = ({ controllerMessenger, initMessenger, persistedState }) => {
-  if (isMfaDevRecoveryBuild()) {
-    void hydrateDevSocialLinkEmail();
-  }
   const isEnabled = () => {
     const { remoteFeatureFlags } = initMessenger.call(
       'RemoteFeatureFlagController:getState',
@@ -96,7 +88,6 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   initMessenger.subscribe('AuthenticationController:stateChange', (state) => {
     if (!state.isSignedIn) {
       clearCaches();
-      clearDevSocialLinkEmail();
     }
   });
 

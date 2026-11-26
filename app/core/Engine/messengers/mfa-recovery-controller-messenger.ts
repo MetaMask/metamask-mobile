@@ -18,8 +18,6 @@ import type {
   RecoveryRegistrationLockProviderMessenger,
   UserStorageTrustedIdentifierStoreMessenger,
 } from '@metamask/mfa-recovery-controller';
-import { isMfaDevRecoveryBuild } from '../../MfaRecovery/isMfaDevRecoveryBuild';
-import { applyDevSocialLinkEmail } from '../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
 
@@ -42,16 +40,6 @@ export function getMfaRecoveryControllerMessenger(
     ],
     messenger,
   });
-  if (isMfaDevRecoveryBuild()) {
-    const originalCall = messenger.call.bind(messenger);
-    messenger.call = ((actionType, ...args) => {
-      const result = originalCall(actionType, ...args);
-      if (actionType === 'SeedlessOnboardingController:getState') {
-        return applyDevSocialLinkEmail(result as { socialLoginEmail?: string });
-      }
-      return result;
-    }) as typeof messenger.call;
-  }
   return messenger;
 }
 
@@ -146,7 +134,6 @@ export function getUserStorageTrustedIdentifierStoreMessenger(
 
 /** The controller actions the MFA recovery service may call. */
 export const MFA_RECOVERY_SERVICE_ACTIONS = [
-  'AuthenticationController:getVerificationToken',
   'AuthenticationController:requestMfaApproval',
   'KeyringController:getState',
   'KeyringController:withKeyringV2Unsafe',
@@ -162,7 +149,6 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'MfaRecoveryController:updateIdentifiers',
   'SeedlessOnboardingController:authenticateForRecovery',
   'SeedlessOnboardingController:fetchAllSecretData',
-  'SeedlessOnboardingController:getAccessToken',
   'SeedlessOnboardingController:getState',
   'SeedlessOnboardingController:migrateToEnvelope',
   'SeedlessOnboardingController:recoverWithRecoverySecret',

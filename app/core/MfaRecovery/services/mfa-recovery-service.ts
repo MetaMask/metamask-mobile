@@ -24,7 +24,6 @@ import type {
   SecretMetadata,
   SeedlessOnboardingControllerAuthenticateForRecoveryAction,
   SeedlessOnboardingControllerFetchAllSecretDataAction,
-  SeedlessOnboardingControllerGetAccessTokenAction,
   SeedlessOnboardingControllerGetStateAction,
   SeedlessOnboardingControllerMigrateToEnvelopeAction,
   SeedlessOnboardingControllerRecoverWithRecoverySecretAction,
@@ -33,7 +32,6 @@ import type {
 } from '@metamask/seedless-onboarding-controller';
 import { bytesToHex } from '@metamask/utils';
 import Logger from '../../../util/Logger';
-import { authEnv } from '../../apiEnv';
 import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import {
   isProvablePasskeyIdentifier,
@@ -48,10 +46,7 @@ import {
   RECOVERY_SECRET_LENGTH,
 } from '../../Engine/controllers/mfa-recovery-controller/config';
 import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
-import { setDevSocialLinkEmail } from '../social-login/devSocialLinkEmail';
-import { linkSocialLogin } from '../social-login/link-social-login';
 import {
-  findSocialIdentifier,
   getMfaRecoveryStatus,
   getRegistrationIdentifiers,
   isSameIdentifier,
@@ -70,7 +65,6 @@ type MfaRecoveryControllerIsTrustedAction = Extract<
 >;
 
 type AllowedActions =
-  | AuthenticationController.AuthenticationControllerGetVerificationTokenAction
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerGetStateAction
   | KeyringControllerWithKeyringV2UnsafeAction
@@ -86,7 +80,6 @@ type AllowedActions =
   | MfaRecoveryControllerUpdateIdentifiersAction
   | SeedlessOnboardingControllerAuthenticateForRecoveryAction
   | SeedlessOnboardingControllerFetchAllSecretDataAction
-  | SeedlessOnboardingControllerGetAccessTokenAction
   | SeedlessOnboardingControllerGetStateAction
   | SeedlessOnboardingControllerMigrateToEnvelopeAction
   | SeedlessOnboardingControllerRecoverWithRecoverySecretAction
@@ -107,11 +100,6 @@ export interface MfaRecoveryServiceOptions {
   verifyMfa: () => Promise<void>;
   /** The MFA reason the recovery approvals are requested for. */
   approvalOperation: string;
-  /**
-   * Asks for the email to link the social login with during setup.
-   * `undefined` links with the social token's own email.
-   */
-  getSocialLinkEmail?: () => Promise<string | undefined>;
 }
 
 export interface MfaRecoverySetupOptions {
@@ -403,20 +391,16 @@ export class MfaRecoveryService {
     return await this.#withRecoveryLock<MfaRecoverySetupResult>(async () => {
       await this.#resumePendingOperation();
 
-      const initial = await this.#messenger.call(
-        'MfaRecoveryController:getIdentifiers',
-      );
-      const initialTrusted = await this.#filterTrusted(initial.authIdentifiers);
+      const { epoch, identifiers, authIdentifiers } =
+        await this.#messenger.call('MfaRecoveryController:getIdentifiers');
+      const trustedAuth = await this.#filterTrusted(authIdentifiers);
 
       if (
         requirePasskey &&
-        !initialTrusted.some((identifier) => identifier.type === 'passkey')
+        !trustedAuth.some((identifier) => identifier.type === 'passkey')
       ) {
         throw new IdentifierNotApprovedError('passkey');
       }
-
-      const { epoch, identifiers, authIdentifiers, trustedAuth } =
-        await this.#ensureSocialIdentifier(initial, initialTrusted);
 
       // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
       // signature, so fall back to the SRP signing key's identifier.
@@ -472,30 +456,6 @@ export class MfaRecoveryService {
         recoverySecret.fill(0);
       }
     });
-  }
-
-  /**
-   * Attaches the seedless social login to the Auth profile, so Auth lists it
-   * as a recovery identifier. Verifies first: Auth needs an aal2 token to add
-   * a login once the profile has a factor.
-   *
-   * @param verifierId - Email to link instead of the token's own.
-   */
-  async linkSocialLogin(verifierId?: string): Promise<void> {
-    await this.verifyMfa();
-    const messenger = this.#messenger;
-    const seedlessState = this.#seedlessState();
-    await linkSocialLogin({
-      env: authEnv(),
-      seedlessState,
-      getSocialAccessToken: async () =>
-        messenger.call('SeedlessOnboardingController:getAccessToken'),
-      getVerifiedAccessToken: () =>
-        messenger.call('AuthenticationController:getVerificationToken')
-          ?.accessToken,
-      verifierId,
-    });
-    setDevSocialLinkEmail(verifierId, seedlessState.socialLoginEmail);
   }
 
   /**
@@ -568,30 +528,6 @@ export class MfaRecoveryService {
         epoch: newEpoch,
       };
     });
-  }
-
-  async #ensureSocialIdentifier(
-    initial: RecoveryIdentifiers,
-    trustedAuth: Identifier[],
-  ): Promise<RecoveryIdentifiers & { trustedAuth: Identifier[] }> {
-    if (findSocialIdentifier(trustedAuth, this.#seedlessState())) {
-      return { ...initial, trustedAuth };
-    }
-    const socialLinkEmail = (
-      await this.#options.getSocialLinkEmail?.()
-    )?.trim();
-    await this.linkSocialLogin(
-      socialLinkEmail !== undefined && socialLinkEmail.length > 0
-        ? socialLinkEmail
-        : undefined,
-    );
-    const refreshed = await this.#messenger.call(
-      'MfaRecoveryController:getIdentifiers',
-    );
-    return {
-      ...refreshed,
-      trustedAuth: await this.#filterTrusted(refreshed.authIdentifiers),
-    };
   }
 
   async #syncMissingIdentifiers(

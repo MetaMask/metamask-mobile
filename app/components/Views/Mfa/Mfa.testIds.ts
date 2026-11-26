@@ -31,9 +31,6 @@ export const MfaSettingsSelectorsIDs = {
   QA_PRESETS: 'mfa-settings-qa-presets',
   QA_RESULT: 'mfa-settings-qa-result',
   ADD_LOADING: 'mfa-settings-add-loading',
-  SOCIAL_LINK_EMAIL_SHEET: 'mfa-settings-social-link-email-sheet',
-  SOCIAL_LINK_EMAIL_INPUT: 'mfa-settings-social-link-email-input',
-  SOCIAL_LINK_EMAIL_CONFIRM: 'mfa-settings-social-link-email-confirm',
 } as const;
 
 export const MfaPasskeysSelectorsIDs = {

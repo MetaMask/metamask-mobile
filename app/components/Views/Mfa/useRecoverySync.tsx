@@ -14,7 +14,6 @@ import type {
   MfaMethod,
   MfaReason,
 } from '../../../util/identity/mfa/engine/types';
-import { isMfaDevRecoveryBuild } from '../../../core/MfaRecovery/isMfaDevRecoveryBuild';
 import {
   removePasskeyFromRecovery,
   syncRecoveryAfterEnroll,
@@ -22,9 +21,8 @@ import {
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import RecoverySetupProgressBottomSheet from '../shared/RecoverySetupProgressBottomSheet';
-import SocialLinkEmailBottomSheet from './SocialLinkEmailBottomSheet';
 
-type RecoverySyncPhase = 'idle' | 'running' | 'hidden' | 'linking';
+type RecoverySyncPhase = 'idle' | 'running' | 'hidden';
 type RecoveryProgressCopy = 'setup' | 'update';
 
 // iOS drops a modal presented while another one is still being dismissed.
@@ -46,14 +44,13 @@ interface RecoverySync {
     credentialId: string,
     verifyMfa: () => Promise<unknown>,
   ) => Promise<void>;
-  /** The progress and social link sheets; render them in the screen. */
+  /** The progress sheet; render it in the screen. */
   recoverySheets: ReactNode;
 }
 
 /**
  * Keeps passwordless recovery in step with enrolled and removed methods, behind
- * a progress sheet. The sheet steps aside while the user verifies or, in dev
- * builds, picks the social link email.
+ * a progress sheet. The sheet steps aside while the user verifies.
  */
 const useRecoverySync = (): RecoverySync => {
   const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
@@ -63,9 +60,6 @@ const useRecoverySync = (): RecoverySync => {
     useState<RecoveryProgressCopy>('setup');
   const isMounted = useRef(true);
   const pendingShowTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
-  const pendingResolve = useRef<((email?: string) => void) | undefined>(
     undefined,
   );
 
@@ -81,8 +75,6 @@ const useRecoverySync = (): RecoverySync => {
     return (): void => {
       isMounted.current = false;
       clearPendingShow();
-      pendingResolve.current?.(undefined);
-      pendingResolve.current = undefined;
     };
   }, [clearPendingShow]);
 
@@ -147,23 +139,6 @@ const useRecoverySync = (): RecoverySync => {
     [stepAsideWhile],
   );
 
-  const askSocialLinkEmail = useCallback(async (): Promise<
-    string | undefined
-  > => {
-    if (!isMounted.current) {
-      return undefined;
-    }
-    showPhase('linking');
-    return new Promise<string | undefined>((resolve) => {
-      pendingResolve.current = resolve;
-    });
-  }, [showPhase]);
-
-  const closeSocialLinkPrompt = useCallback((email?: string) => {
-    pendingResolve.current?.(email);
-    pendingResolve.current = undefined;
-  }, []);
-
   const syncRecovery = useCallback(
     async (method: MfaMethod, reason: MfaReason): Promise<void> => {
       if (!isMfaRecoveryEnabled) {
@@ -179,9 +154,6 @@ const useRecoverySync = (): RecoverySync => {
               reason,
             });
           }),
-          getSocialLinkEmail: isMfaDevRecoveryBuild()
-            ? stepAsideWhile(askSocialLinkEmail)
-            : undefined,
         });
       } catch (error) {
         Logger.error(
@@ -193,11 +165,9 @@ const useRecoverySync = (): RecoverySync => {
       }
     },
     [
-      askSocialLinkEmail,
       isMfaRecoveryEnabled,
       showPhase,
       startProgress,
-      stepAsideWhile,
       verifyIfNeeded,
       verifyOrEnroll,
     ],
@@ -223,9 +193,8 @@ const useRecoverySync = (): RecoverySync => {
     [isMfaRecoveryEnabled, showPhase, startProgress, verifyIfNeeded],
   );
 
-  let recoverySheets: ReactNode = null;
-  if (phase === 'running') {
-    recoverySheets = (
+  const recoverySheets: ReactNode =
+    phase === 'running' ? (
       <RecoverySetupProgressBottomSheet
         title={
           progressCopy === 'update'
@@ -233,15 +202,7 @@ const useRecoverySync = (): RecoverySync => {
             : undefined
         }
       />
-    );
-  } else if (phase === 'linking') {
-    recoverySheets = (
-      <SocialLinkEmailBottomSheet
-        onSubmit={closeSocialLinkPrompt}
-        onClose={() => closeSocialLinkPrompt()}
-      />
-    );
-  }
+    ) : null;
 
   return { syncRecovery, removeRecoveryPasskey, recoverySheets };
 };

@@ -1,8 +1,8 @@
 const DEV_ENVIRONMENTS = new Set(['dev', 'local', 'test']);
 
 /**
- * Whether this build runs the MFA recovery dev tools (dev social-link email
- * override and the dev fallback for the `mfaRecovery` remote flag).
+ * Whether this build runs the MFA recovery dev tools (developer options
+ * section and the dev fallback for the `mfaRecovery` remote flag).
  *
  * Uses an explicit allowlist so non-dev environments (`production`, `beta`,
  * `pre-release`, `rc`, `e2e`, `exp`, or unknown values) fail closed.
