@@ -506,15 +506,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     avatarAccountType={avatarAccountType}
                   />
                 }
-              /><AccountTag
-                    accountAddress={selectedAccount?.address}
-                    accountName={
-                      activeAccountGroup?.metadata?.name ||
-                      selectedAccount.metadata.name
-                    }
-                    avatarAccountType={avatarAccountType}
-                  />
-                }
               />
               <KeyValueRow
                 className={KEY_VALUE_ROW_CLASSNAME}
@@ -531,12 +522,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     avatarAccountType={avatarAccountType}
                   />
                 }
-              /><ContractTag
-                    contractAddress={lendingContractAddress}
-                    contractName={capitalize(lendingProtocol)}
-                    avatarAccountType={avatarAccountType}
-                  />
-                }
               />
             </View>
             <InfoRowDivider />
@@ -547,17 +532,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
                 value={
                   <View style={styles.networkRowRight}>
-                    <BadgeNetwork
-                      src={
-                        getNetworkImageSource({
-                          chainId: token?.chainId,
-                        }) as React.ComponentProps<typeof BadgeNetwork>['src']
-                      }
-                    />
-                    <Text>{networkConfig?.name}</Text>
-                  </View>
-                }
-              /><View style={styles.networkRowRight}>
                     <BadgeNetwork
                       src={
                         getNetworkImageSource({
@@ -658,80 +632,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                       </View>
                     ),
                   }}
-                /><View style={styles.healthFactorTooltipContainer}>
-                          <Text>
-                            {strings(
-                              'earn.tooltip_content.health_factor.your_health_factor_measures_liquidation_risk',
-                            )}
-                          </Text>
-                          <View style={styles.healthFactorTooltipContent}>
-                            <View style={styles.healthFactorTooltipRow}>
-                              <Text variant={TextVariant.BodyMDMedium}>
-                                •{' '}
-                                {strings(
-                                  'earn.tooltip_content.health_factor.above_two_dot_zero',
-                                )}
-                              </Text>
-                              <Text>
-                                {strings(
-                                  'earn.tooltip_content.health_factor.safe_position',
-                                )}
-                              </Text>
-                            </View>
-                            <View style={styles.healthFactorTooltipRow}>
-                              <Text variant={TextVariant.BodyMDMedium}>
-                                •{' '}
-                                {strings(
-                                  'earn.tooltip_content.health_factor.between_one_dot_five_and_2_dot_zero',
-                                )}
-                              </Text>
-                              <Text>
-                                {strings(
-                                  'earn.tooltip_content.health_factor.medium_liquidation_risk',
-                                )}
-                              </Text>
-                            </View>
-                            <View style={styles.healthFactorTooltipRow}>
-                              <Text variant={TextVariant.BodyMDMedium}>
-                                •{' '}
-                                {strings(
-                                  'earn.tooltip_content.health_factor.below_one_dot_five',
-                                )}
-                              </Text>
-                              <Text>
-                                {strings(
-                                  'earn.tooltip_content.health_factor.higher_liquidation_risk',
-                                )}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      ),
-                    },
-                  }}
-                  value={{
-                    label: (
-                      <View style={styles.healthFactorRight}>
-                        <Text
-                          variant={TextVariant.BodyMDMedium}
-                          color={getHealthFactorValueColor(
-                            healthFactorSimulation.before,
-                          )}
-                        >
-                          {getHealthFactorLabel(healthFactorSimulation.before)}
-                        </Text>
-                        <Text>→</Text>
-                        <Text
-                          variant={TextVariant.BodyMDMedium}
-                          color={getHealthFactorValueColor(
-                            healthFactorSimulation.after,
-                          )}
-                        >
-                          {getHealthFactorLabel(healthFactorSimulation.after)}
-                        </Text>
-                      </View>
-                    ),
-                  }}
                 />
                 <KeyValueRow
                   field={{
@@ -744,12 +644,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     label: (
                       <View>
                         <Text color={riskTextColor}>
-                          {capitalize(healthFactorSimulation.risk)}
-                        </Text>
-                      </View>
-                    ),
-                  }}
-                /><Text color={riskTextColor}>
                           {capitalize(healthFactorSimulation.risk)}
                         </Text>
                       </View>

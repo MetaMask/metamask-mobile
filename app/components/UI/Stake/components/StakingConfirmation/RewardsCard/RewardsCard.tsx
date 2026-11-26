@@ -54,11 +54,6 @@ const RewardsCard = ({
             <Text>{rewardsEth}</Text>
           </View>
         }
-      /><View style={styles.estAnnualRewardValue}>
-            <Text color={TextColor.TextAlternative}>{rewardsFiat}</Text>
-            <Text>{rewardsEth}</Text>
-          </View>
-        }
       />
       <KeyValueRow
         className={KEY_VALUE_ROW_CLASSNAME}

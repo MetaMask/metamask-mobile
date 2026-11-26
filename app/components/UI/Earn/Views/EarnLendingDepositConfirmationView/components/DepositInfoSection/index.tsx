@@ -78,18 +78,6 @@ const DepositInfoSection = ({
             fontWeight: FontWeight.Regular,
             color: TextColor.SuccessDefault,
           }}
-        /><View style={styles.aprTooltipContentContainer}>
-              <Text>{strings('earn.tooltip_content.apr.part_one')}</Text>
-              <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
-            </View>,
-          )}
-          value={`${formatEarnRatePercentage(
-            earnToken?.experience?.apr ?? '0',
-          )}%`}
-          valueTextProps={{
-            fontWeight: FontWeight.Regular,
-            color: TextColor.SuccessDefault,
-          }}
         />
         <KeyValueRow
           className={KEY_VALUE_ROW_CLASSNAME}
@@ -97,23 +85,6 @@ const DepositInfoSection = ({
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
             <View style={styles.estAnnualReward}>
-              <Text numberOfLines={1}>
-                {
-                  estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
-                }
-              </Text>
-              <Text
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                ellipsizeMode="head"
-              >
-                {
-                  estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
-                }
-              </Text>
-            </View>
-          }
-        /><View style={styles.estAnnualReward}>
               <Text numberOfLines={1}>
                 {
                   estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
@@ -163,12 +134,6 @@ const DepositInfoSection = ({
           )}
           value={
             <ContractTag
-              contractAddress={lendingContractAddress}
-              contractName={lendingProtocol}
-              avatarAccountType={avatarAccountType}
-            />
-          }
-        /><ContractTag
               contractAddress={lendingContractAddress}
               contractName={lendingProtocol}
               avatarAccountType={avatarAccountType}

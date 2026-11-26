@@ -63,12 +63,6 @@ const AccountCard = ({
                 avatarAccountType={avatarAccountType}
               />
             }
-          /><AccountTag
-                accountAddress={selectedAccount?.address}
-                accountName={selectedAccount.metadata.name}
-                avatarAccountType={avatarAccountType}
-              />
-            }
           />
         )}
         <KeyValueRow
@@ -77,12 +71,6 @@ const AccountCard = ({
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
             <ContractTag
-              contractAddress={vaultMetadata?.vaultAddress ?? contractName}
-              contractName={contractName}
-              avatarAccountType={avatarAccountType}
-            />
-          }
-        /><ContractTag
               contractAddress={vaultMetadata?.vaultAddress ?? contractName}
               contractName={contractName}
               avatarAccountType={avatarAccountType}
@@ -97,19 +85,6 @@ const AccountCard = ({
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
             <View style={styles.networkKeyValueRow}>
-              <AvatarNetwork
-                className="rounded bg-default"
-                src={
-                  images.ETHEREUM as React.ComponentProps<
-                    typeof AvatarNetwork
-                  >['src']
-                }
-                size={AvatarNetworkSize.Xs}
-              />
-              <Text>{networkName}</Text>
-            </View>
-          }
-        /><View style={styles.networkKeyValueRow}>
               <AvatarNetwork
                 twClassName="rounded bg-default"
                 src={
