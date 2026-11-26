@@ -839,12 +839,12 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('disables the switch while the notification channels are read', async () => {
         let resolvePreferences: (value: unknown) => void = () => undefined;
-        mockMessengerCall.mockImplementation((action: string) =>
+        mockMessengerCall.mockImplementation(async (action: string) =>
           action === GET_NOTIFICATION_PREFERENCES_ACTION
             ? new Promise((resolve) => {
                 resolvePreferences = resolve;
               })
-            : Promise.resolve(undefined),
+            : undefined,
         );
 
         const { getByTestId } = await turnMarketingOff(true);

@@ -97,7 +97,7 @@ const MarketingConsentSheet = ({
         buttonsAlignment={ButtonsAlignment.Vertical}
         primaryButtonProps={{
           children: confirmLabel,
-          onPress: handleConfirm,
+          onPress: () => void handleConfirm(),
           isLoading: isSubmitting,
           isDisabled: isSubmitting,
           size: ButtonSize.Lg,

@@ -374,7 +374,7 @@ export const NotificationSettingsSectionContent = ({
       'MarketingConsentSyncService:setMarketingConsent',
       true,
     );
-    identify({ [UserProfileProperty.HAS_MARKETING_CONSENT]: true });
+    await identify({ [UserProfileProperty.HAS_MARKETING_CONSENT]: true });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
