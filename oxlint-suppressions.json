@@ -13879,14 +13879,6 @@
       "count": 2
     }
   },
-  "app/components/UI/TokenDetails/queries/tokenAssetQuery.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/TokenDetails/queries/tokenMarketData.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -17761,7 +17753,7 @@
   },
   "app/components/Views/SocialLeaderboard/TraderPositionView/useSpotTraderPositionPrices.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/Views/SocialLeaderboard/TraderPositionView/useTraderPositionData.test.ts": {

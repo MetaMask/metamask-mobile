@@ -9,6 +9,7 @@ import { caipChainIdToHex } from '../../../UI/Rewards/utils/formatUtils';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Logger from '../../../../util/Logger';
+import { useNetworkQuery } from '../../../../core/Networking/useNetworkQuery';
 import { PERIOD_TO_API, type TimePeriod } from './traderPositionData';
 
 /**
@@ -30,6 +31,51 @@ export interface SpotTraderPositionPricesResult {
   pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>;
   isLoading: boolean;
   marketCap: number | undefined;
+}
+
+function isNumeric(value: unknown): value is number | string {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value !== 'string' || value.trim() === '') return false;
+  return Number.isFinite(Number(value));
+}
+
+function parseHistoricalPrices(body: unknown): TokenPrice[] {
+  if (body === null) return [];
+  if (
+    typeof body !== 'object' ||
+    !('prices' in body) ||
+    !Array.isArray(body.prices)
+  ) {
+    throw new Error('Expected a historical price series');
+  }
+  return body.prices.map((point: unknown): TokenPrice => {
+    if (!Array.isArray(point)) throw new Error('Expected a price point');
+    const [timestamp, price]: unknown[] = point;
+    if (!isNumeric(timestamp))
+      throw new Error('Invalid historical price timestamp');
+    if (!isNumeric(price)) throw new Error('Invalid historical price');
+    return [String(timestamp), Number(price)];
+  });
+}
+
+function useHistoricalPeriod(
+  seriesUrl: string,
+  currency: string,
+  period: TimePeriod,
+  enabled: boolean,
+) {
+  const params = new URLSearchParams({
+    timePeriod: PERIOD_TO_API[period],
+    vsCurrency: currency,
+  });
+  const url = `${seriesUrl}?${params.toString()}`;
+  return useNetworkQuery({
+    queryKey: ['social-spot-history', seriesUrl, currency, period],
+    url,
+    parse: parseHistoricalPrices,
+    enabled,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useSpotTraderPositionPrices(
@@ -105,77 +151,31 @@ export function useSpotTraderPositionPrices(
 
   const marketCap = cachedMarket?.marketCap ?? fetchedMarketCap;
 
-  const [pricesByPeriod, setPricesByPeriod] = useState<
-    Partial<Record<TimePeriod, TokenPrice[]>>
-  >({});
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    if (tokenAddress === undefined) {
-      setPricesByPeriod({});
-      setIsLoading(false);
-      return;
-    }
-
-    if (!caipChainId) {
-      setPricesByPeriod({});
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    let cancelled = false;
-
-    const assetIdentifier = `erc20:${tokenAddress}`;
-    const vsCurrency = currentCurrency.toLowerCase();
-
-    const fetchPeriod = async (period: TimePeriod) => {
-      const apiPeriod = PERIOD_TO_API[period];
-      const uri = `${PRICE_API_V3_BASE_URL}/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
-      try {
-        const response = await fetch(uri);
-        if (response.status === 204 || !response.ok)
-          return { period, prices: [] as TokenPrice[] };
-        const data: { prices: [number, number][] } = await response.json();
-        const prices: TokenPrice[] = (data.prices ?? []).map(
-          ([timestamp, price]) =>
-            [timestamp.toString(), Number(price)] as TokenPrice,
-        );
-        return { period, prices };
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          `useSpotTraderPositionPrices: failed to fetch ${period} prices`,
-        );
-        return { period, prices: [] as TokenPrice[] };
-      }
-    };
-
-    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
-
-    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
-      if (cancelled) return;
-      const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
-      for (const { period, prices } of results) {
-        cache[period] = prices;
-        if (period === '1D') cache['1H'] = prices;
-      }
-      setPricesByPeriod(cache);
-      setIsLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, tokenAddress, caipChainId, currentCurrency]);
+  const hasAsset = Boolean(tokenAddress && caipChainId);
+  const historyEnabled = enabled && hasAsset;
+  const seriesUrl = `${PRICE_API_V3_BASE_URL}/historical-prices/${caipChainId}/erc20:${tokenAddress}`;
+  const currency = currentCurrency.toLowerCase();
+  const day = useHistoricalPeriod(seriesUrl, currency, '1D', historyEnabled);
+  const week = useHistoricalPeriod(seriesUrl, currency, '1W', historyEnabled);
+  const month = useHistoricalPeriod(seriesUrl, currency, '1M', historyEnabled);
+  const all = useHistoricalPeriod(seriesUrl, currency, 'All', historyEnabled);
+  const pricesByPeriod =
+    useMemo((): SpotTraderPositionPricesResult['pricesByPeriod'] => {
+      if (!historyEnabled) return {};
+      return {
+        '1H': day.data ?? [],
+        '1D': day.data ?? [],
+        '1W': week.data ?? [],
+        '1M': month.data ?? [],
+        All: all.data ?? [],
+      };
+    }, [historyEnabled, day.data, week.data, month.data, all.data]);
+  const isLoading =
+    historyEnabled && [day, week, month, all].some((query) => query.isLoading);
 
   return {
     pricesByPeriod,
-    isLoading: enabled ? isLoading : false,
+    isLoading,
     marketCap: enabled ? marketCap : undefined,
   };
 }

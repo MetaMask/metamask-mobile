@@ -1,4 +1,6 @@
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
+import { renderHookWithQueryClient as renderHook } from '../../../../util/test/renderHookWithQueryClient';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import type { Position } from '@metamask/social-controllers';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import { fetchHyperliquidHistoricalPrices } from '../utils/hyperliquidPrices';
@@ -56,7 +58,7 @@ describe('useSpotTraderPositionPrices', () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ prices: [[1_700_000_000, 1.5]] }),
+      json: async () => ({ prices: [['1700000000', '1.5']] }),
     }) as jest.Mock;
   });
 
@@ -65,7 +67,7 @@ describe('useSpotTraderPositionPrices', () => {
   });
 
   it('fetches spot historical prices when enabled', async () => {
-    renderHook(() =>
+    const { result } = renderHook(() =>
       useSpotTraderPositionPrices(
         {
           positionParam: spotPosition,
@@ -75,7 +77,7 @@ describe('useSpotTraderPositionPrices', () => {
       ),
     );
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     const urls = (global.fetch as jest.Mock).mock.calls.map(
       ([url]) => url as string,
     );
@@ -83,6 +85,33 @@ describe('useSpotTraderPositionPrices', () => {
       urls.some((url) => url.includes('historical-prices/eip155:8453')),
     ).toBe(true);
     expect(mockFetchHyperliquid).not.toHaveBeenCalled();
+  });
+
+  it('requests four periods without touching disk, and treats 204 as empty', async () => {
+    const json = jest.fn();
+    jest.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+      json,
+    } as unknown as Response);
+
+    const { result } = renderHook(() =>
+      useSpotTraderPositionPrices(
+        { positionParam: spotPosition, caipChainId: 'eip155:8453' },
+        { enabled: true },
+      ),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+    expect(result.current.pricesByPeriod).toMatchObject({
+      '1H': [],
+      '1D': [],
+      '1W': [['1700000000', 1.5]],
+    });
+    expect(json).not.toHaveBeenCalled();
+    expect(StorageWrapper.getItemSync).not.toHaveBeenCalled();
+    expect(StorageWrapper.setItem).not.toHaveBeenCalled();
   });
 
   it('does not fetch when enabled is false', async () => {
@@ -140,18 +169,15 @@ describe('useSpotTraderPositionPrices', () => {
       position: { ...spotPosition, tokenAddress: '0xdef' } as Position,
     });
 
-    await waitFor(() =>
-      expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(
-        fetchCount,
-      ),
-    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(global.fetch).toHaveBeenCalledTimes(fetchCount + 4);
     const latestUrls = (global.fetch as jest.Mock).mock.calls
       .slice(fetchCount)
       .map(([url]) => url as string);
     expect(latestUrls.every((url) => url.includes('erc20:0xdef'))).toBe(true);
   });
 
-  it('resolves caipChainId via chain mapping when passed from facade', () => {
+  it('resolves caipChainId via chain mapping when passed from facade', async () => {
     (chainNameToId as jest.Mock).mockReturnValue('eip155:8453');
     const { result } = renderHook(() =>
       useSpotTraderPositionPrices(
@@ -164,5 +190,6 @@ describe('useSpotTraderPositionPrices', () => {
     );
 
     expect(result.current.isLoading).toBe(true);
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
   });
 });

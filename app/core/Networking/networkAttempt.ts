@@ -6,10 +6,10 @@ async function getJson<QueryFnData>(
   parse: (body: unknown) => QueryFnData,
   signal: AbortSignal,
 ): Promise<QueryFnData> {
-  // The query cache is the only cache, so a refetch always reaches the server.
   const response = await fetch(url, { signal, cache: 'no-cache' });
   if (!response.ok) throw new HttpError(response.status);
   try {
+    if (response.status === 204) return parse(null);
     return parse(await response.json());
   } catch (error) {
     throw new InvalidResponseError(error);

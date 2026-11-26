@@ -35,4 +35,9 @@ export type NetworkQueryOptions<
   refetchInterval?: number;
   /** Reuse the response after a restart. Defaults to `NetworkCache.NONE`. */
   cache?: NetworkCache;
+  /** Share one disk slot across keys, and save only the public fields `parse` needs to restore. */
+  cacheProjection?: {
+    slot: string;
+    project: (data: QueryFnData) => unknown;
+  };
 };

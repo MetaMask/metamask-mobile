@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar as WSOHLCVBar } from '@metamask/core-backend';
 import Engine from '../../../../core/Engine';
+import { resolvePollInterval } from '../../../../core/Networking/policy';
+import { useNetworkQuery } from '../../../../core/Networking/useNetworkQuery';
 import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
 export interface UseOHLCVRealtimeOptions {
@@ -43,51 +45,18 @@ const OHLCV_PATH = '/v3/ohlcv';
  * Fetch the current (latest) candle from the dedicated /latest REST endpoint.
  * The API returns a single bar object with `timestamp` in milliseconds.
  */
-async function fetchLatestBar(
-  assetId: string,
-  timePeriod: string,
-  wsInterval: string,
-  currency: string,
-  baseUrl: string,
-  signal?: AbortSignal,
-): Promise<WSOHLCVBar | null> {
-  const url = new URL(`${baseUrl}${OHLCV_PATH}/${assetId}/latest`);
-  url.searchParams.set('timePeriod', timePeriod);
-  url.searchParams.set('interval', wsInterval);
-  url.searchParams.set('vsCurrency', currency);
+function parseLatestBar(body: unknown): WSOHLCVBar | null {
+  if (!body || typeof body !== 'object') return null;
+  const bar: Record<string, unknown> = { ...body };
+  const { timestamp, open, high, low, close, volume } = bar;
+  if (!isFiniteNumber(timestamp) || !isFiniteNumber(open)) return null;
+  if (!isFiniteNumber(high) || !isFiniteNumber(low)) return null;
+  if (!isFiniteNumber(close) || !isFiniteNumber(volume)) return null;
+  return { timestamp: timestamp / 1000, open, high, low, close, volume };
+}
 
-  const response = await fetch(url.toString(), { signal });
-  if (!response.ok) return null;
-
-  const bar = (await response.json()) as {
-    timestamp: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-  } | null;
-
-  if (!bar) return null;
-
-  // Validate that we have valid numeric data
-  if (
-    typeof bar.timestamp !== 'number' ||
-    typeof bar.close !== 'number' ||
-    Number.isNaN(bar.timestamp) ||
-    Number.isNaN(bar.close)
-  ) {
-    return null;
-  }
-
-  return {
-    timestamp: bar.timestamp / 1000,
-    open: bar.open,
-    high: bar.high,
-    low: bar.low,
-    close: bar.close,
-    volume: bar.volume,
-  };
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 /**
@@ -137,6 +106,20 @@ export function useOHLCVRealtime({
   // itself is unaffected either way — its gateway comes from the build.
   const contextBaseUrl = usePriceApiHost();
   const latestBaseUrl = baseUrl ?? contextBaseUrl;
+  const params = new URLSearchParams({
+    timePeriod,
+    interval,
+    vsCurrency: currency,
+  });
+  const latestUrl = `${latestBaseUrl}${OHLCV_PATH}/${assetId}/latest?${params.toString()}`;
+  // Only the WebSocket fallback triggers this query, not mount/focus or a second timer.
+  const { refetch: refetchLatestBar, isPaused: isLatestBarPaused } =
+    useNetworkQuery({
+      queryKey: ['ohlcv-latest', latestUrl],
+      url: latestUrl,
+      parse: parseLatestBar,
+      enabled: false,
+    });
 
   const [latest, setLatest] = useState<{
     channel: string;
@@ -153,7 +136,6 @@ export function useOHLCVRealtime({
     );
   }, []);
   const subscribedRef = useRef(false);
-  const cancelledRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<string>('');
 
@@ -161,7 +143,6 @@ export function useOHLCVRealtime({
   const lastMessageTimeRef = useRef<number>(0);
   const stalenessTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const chainDownRef = useRef(false);
-  const pollingAbortRef = useRef<AbortController | null>(null);
 
   const buildChannel = useCallback(
     () => `ohlcv.v1.${assetId}.${interval}.${currency}`,
@@ -175,38 +156,29 @@ export function useOHLCVRealtime({
 
     const channel = buildChannel();
     channelRef.current = channel;
-    cancelledRef.current = false;
     setLatest(null);
     setSettledChannel(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
 
-    // Staleness polling: check periodically if we should fall back to REST
-    const pollLatest = async () => {
-      pollingAbortRef.current?.abort();
-      const controller = new AbortController();
-      pollingAbortRef.current = controller;
+    let active = true;
+    let pollInFlight = false;
+    let lastPollAt = 0;
+    let wsRevision = 0;
 
-      try {
-        const bar = await fetchLatestBar(
-          assetId,
-          timePeriod,
-          interval,
-          currency,
-          latestBaseUrl,
-          controller.signal,
-        );
-        if (bar) {
-          lastMessageTimeRef.current = Date.now();
-          updateLatestBar(channel, bar);
-        }
-      } catch {
-        // no-op
+    const pollLatest = async () => {
+      if (!active || pollInFlight) return;
+      pollInFlight = true;
+      lastPollAt = Date.now();
+      const revision = wsRevision;
+      const result = await refetchLatestBar({ cancelRefetch: false });
+      pollInFlight = false;
+      if (!active) return;
+      if (result.isSuccess && result.data && revision === wsRevision) {
+        lastMessageTimeRef.current = Date.now();
+        updateLatestBar(channel, result.data);
       }
-      // An aborted poll was superseded by a newer one, which settles instead.
-      if (!controller.signal.aborted) {
-        setSettledChannel(channel);
-      }
+      setSettledChannel(channel);
     };
 
     const handleBarUpdated = (payload: {
@@ -214,6 +186,7 @@ export function useOHLCVRealtime({
       bar: WSOHLCVBar;
     }) => {
       if (payload.channel === channelRef.current) {
+        wsRevision += 1;
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
         updateLatestBar(payload.channel, payload.bar);
@@ -267,6 +240,12 @@ export function useOHLCVRealtime({
       const isStale =
         lastMessageTimeRef.current > 0 && elapsed >= STALENESS_THRESHOLD_MS;
 
+      const intervalMs = resolvePollInterval(STALENESS_CHECK_INTERVAL_MS);
+      if (!intervalMs) return;
+      // At normal speed the original 5 s staleness check already gates each poll.
+      if (intervalMs > STALENESS_CHECK_INTERVAL_MS) {
+        if (Date.now() - lastPollAt < intervalMs) return;
+      }
       if (isStale || chainDownRef.current) {
         pollLatest();
       }
@@ -281,7 +260,7 @@ export function useOHLCVRealtime({
           currency,
         });
 
-        if (cancelledRef.current) {
+        if (!active) {
           await Engine.controllerMessenger.call('OHLCVService:unsubscribe', {
             assetId,
             interval,
@@ -298,14 +277,14 @@ export function useOHLCVRealtime({
       } catch {
         // Subscribe failure is handled via subscriptionError event → immediate REST poll.
         // Without that event no poll follows, so the lookup is over.
-        if (!cancelledRef.current) {
+        if (active && !pollInFlight) {
           setSettledChannel(channel);
         }
       }
     }, DEBOUNCE_MS);
 
     return () => {
-      cancelledRef.current = true;
+      active = false;
 
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -316,8 +295,6 @@ export function useOHLCVRealtime({
         clearInterval(stalenessTimerRef.current);
         stalenessTimerRef.current = null;
       }
-
-      pollingAbortRef.current?.abort();
 
       (Engine.controllerMessenger.unsubscribe as (...args: unknown[]) => void)(
         'OHLCVService:barUpdated',
@@ -345,7 +322,8 @@ export function useOHLCVRealtime({
     currency,
     timePeriod,
     enabled,
-    latestBaseUrl,
+    latestUrl,
+    refetchLatestBar,
     buildChannel,
     updateLatestBar,
   ]);
@@ -357,6 +335,7 @@ export function useOHLCVRealtime({
   const isLoading =
     Boolean(enabled && assetId && interval && currency) &&
     latestBar === null &&
+    !isLatestBarPaused &&
     settledChannel !== currentChannel;
 
   return { latestBar, isLoading };

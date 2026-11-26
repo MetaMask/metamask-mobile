@@ -1,5 +1,12 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
+import { renderHookWithQueryClient as renderHook } from '../../../../util/test/renderHookWithQueryClient';
+import { getNetworkTierSnapshot } from '../../../../util/deviceCapability';
 import { useOHLCVRealtime } from './useOHLCVRealtime';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => null,
+  getNetworkTierSnapshot: jest.fn(() => null),
+}));
 
 const mockCall = jest.fn().mockResolvedValue(undefined);
 const mockSubscribe = jest.fn();
@@ -42,7 +49,8 @@ describe('useOHLCVRealtime', () => {
     mockCall.mockReset().mockResolvedValue(undefined);
     mockSubscribe.mockReset();
     mockUnsubscribe.mockReset();
-    mockFetch.mockReset();
+    mockFetch.mockReset().mockResolvedValue({ ok: false, status: 404 });
+    jest.mocked(getNetworkTierSnapshot).mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -381,9 +389,10 @@ describe('useOHLCVRealtime', () => {
       );
 
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        await jest.advanceTimersByTimeAsync(3_500);
       });
 
+      expect(mockFetch).toHaveBeenCalledTimes(3);
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -655,6 +664,21 @@ describe('useOHLCVRealtime', () => {
 
       // Only called once immediately after subscribe, not again for different chain
       expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not poll again until 15 seconds on a slow connection', async () => {
+      jest.mocked(getNetworkTierSnapshot).mockReturnValue('SLOW_CELLULAR');
+      renderHook(() => useOHLCVRealtime(arrangeDefaultOptions()));
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(15_000);
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5_000);
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it('handles REST API failure gracefully', async () => {
