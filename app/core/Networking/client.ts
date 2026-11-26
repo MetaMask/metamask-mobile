@@ -39,22 +39,17 @@ function cancelled(): Error {
 }
 
 function requestUrl(input: string | URL, query: RequestOptions['query']): URL {
+  let url: URL;
   try {
-    const url = new URL(input.toString());
-    if (
-      !['http:', 'https:'].includes(url.protocol) ||
-      url.username ||
-      url.password
-    ) {
-      throw new TypeError();
-    }
-    for (const [key, value] of Object.entries(query ?? {})) {
-      if (value !== undefined) url.searchParams.set(key, String(value));
-    }
-    return url;
+    url = new URL(input.toString());
   } catch {
+    // The native message echoes the input, which can hold an address.
     throw new TypeError('Invalid HTTP request URL');
   }
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value !== undefined) url.searchParams.set(key, String(value));
+  }
+  return url;
 }
 
 async function request<Data, Schema>(

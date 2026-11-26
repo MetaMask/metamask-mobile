@@ -56,6 +56,12 @@ describe('httpClient', () => {
     );
   });
 
+  it('does not echo an invalid URL in the error', async () => {
+    await expect(httpClient.get('/private-path')).rejects.toThrow(
+      new TypeError('Invalid HTTP request URL'),
+    );
+  });
+
   it('rejects caller-supplied credentials', async () => {
     await expect(
       httpClient.get(url, {
