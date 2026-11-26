@@ -23661,7 +23661,7 @@
   },
   "app/store/sagas/marketingAttribution.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 2
+      "count": 1
     }
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
