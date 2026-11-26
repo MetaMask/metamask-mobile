@@ -146,7 +146,7 @@ export function installDefaultApiMocks(): void {
   add(
     'get',
     ACCOUNTS_API_ORIGIN,
-    /\/v1\/networks\/[^/]+\/transactions\/[^/]+/,
+    /\/v5\/accounts\/[^/]+\/transactions\/[^/]+/,
     {},
     404,
   );
