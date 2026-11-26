@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import render from '#app/util/test/renderWithProvider';
-import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
+import { getFormatters } from '#app/components/hooks/useFormatters';
 import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
 import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
 import { PackTile } from '#app/components/UI/Collectibles/components/PackTile';
@@ -47,12 +47,18 @@ describe('PackTile', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(collectiblesTestIds.buyButton(pack.code)),
+      screen.getByRole('button', {
+        name: getFormatters().formatCurrency(pack.priceUsd, 'USD'),
+      }),
     );
 
     expect(
       await screen.findByText(
-        `buy sheet: ${JSON.stringify({ packCode: pack.code })}`,
+        `buy sheet: ${JSON.stringify({
+          packCode: pack.code,
+          name: pack.name,
+          priceUsd: pack.priceUsd,
+        })}`,
       ),
     ).toBeOnTheScreen();
   });

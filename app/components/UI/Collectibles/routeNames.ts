@@ -26,6 +26,8 @@ export type CollectiblesStackParamList = Record<
 
 export interface BuySheetParams {
   packCode: string;
+  name: string;
+  priceUsd: number;
 }
 
 export type CollectiblesParamList = ReactNavigation.RootParamList &

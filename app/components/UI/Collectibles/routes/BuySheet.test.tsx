@@ -3,45 +3,41 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import render from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
-import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
+import { mockEpicOddsMachines } from '#app/components/UI/Collectibles/mocks/epicOdds';
 import { BuySheet } from './BuySheet';
 
 const mockGoBack = jest.fn();
-let mockPackCode = '';
+const [mockPack] = mockEpicOddsMachines;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
-  useRoute: () => ({ params: { packCode: mockPackCode } }),
+  useRoute: () => ({
+    params: {
+      packCode: mockPack.code,
+      name: mockPack.name,
+      priceUsd: mockPack.priceUsd,
+    },
+  }),
 }));
-
-jest.mock('#app/components/UI/Collectibles/hooks/useHomePacks', () => ({
-  useHomePacks: () => ({ data: mockHomePacks }),
-}));
-
-const [pack] = mockHomePacks;
 
 describe('BuySheet', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
   });
 
-  it('shows the name of the pack it was opened for', () => {
-    mockPackCode = pack.code;
+  it('shows the buy form for a pack outside the Home list', () => {
     render(<BuySheet />);
 
-    expect(screen.getByText(pack.name)).toBeOnTheScreen();
-  });
-
-  it('falls back to the Collectibles title for an unknown pack', () => {
-    mockPackCode = 'unknown-pack';
-    render(<BuySheet />);
-
-    expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
+    expect(screen.getByText(mockPack.name)).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('collectibles.buy_sheet.open_packs', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('goes back when the close button is pressed', async () => {
-    mockPackCode = pack.code;
     render(<BuySheet />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.buySheetClose));

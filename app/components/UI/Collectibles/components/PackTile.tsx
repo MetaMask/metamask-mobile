@@ -33,7 +33,7 @@ export function PackTile({
 
   const buySheetLink = useLinkProps<CollectiblesParamList>({
     screen: collectiblesRoutes.buySheet,
-    params: { packCode: pack.code },
+    params: { packCode: pack.code, name: pack.name, priceUsd: pack.priceUsd },
   });
 
   return (
@@ -63,7 +63,6 @@ export function PackTile({
             name: pack.name,
           })}
           hitSlop={11}
-          testID={collectiblesTestIds.buyButton(pack.code)}
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {formatCurrency(pack.priceUsd, 'USD')}

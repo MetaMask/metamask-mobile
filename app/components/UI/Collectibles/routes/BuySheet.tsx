@@ -9,7 +9,7 @@ import { collectiblesRoutes, type BuySheetParams } from '../routeNames';
 
 export function BuySheet() {
   const navigation = useNavigation();
-  const { packCode } =
+  const { name, priceUsd } =
     useRoute<
       RouteProp<
         Record<typeof collectiblesRoutes.buySheet, BuySheetParams>,
@@ -18,6 +18,10 @@ export function BuySheet() {
     >().params;
 
   return (
-    <BuySheetView packCode={packCode} onDismiss={() => navigation.goBack()} />
+    <BuySheetView
+      name={name}
+      priceUsd={priceUsd}
+      onDismiss={() => navigation.goBack()}
+    />
   );
 }
