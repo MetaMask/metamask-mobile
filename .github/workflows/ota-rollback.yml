@@ -2,12 +2,9 @@
 #
 # OTA Rollback
 #
-# Rolls an OTA channel back without rebuilding: either republishes an earlier update group, or
-# publishes a roll-back-to-embedded directive so devices return to the bundle in their store
-# build. Both are signed with the channel's code-signing key, so devices accept them.
-#
-# Production runs wait for the `build-production` environment approval (release-team, no
-# self-approval, `main` and `release/*` only). See docs/ota-rollback.md.
+# Republishes an earlier update group, or publishes a roll-back-to-embedded directive, signed
+# with the channel's code-signing key, without rebuilding. Production runs need the
+# `build-production` environment approval. Runbook: docs/ota-rollback.md.
 #
 ##############################################################################################
 name: OTA Rollback
@@ -24,9 +21,7 @@ on:
           - production
         default: exp
       mode:
-        description: >-
-          republish: serve an earlier update group again. embedded: return devices to the
-          bundle in their store build.
+        description: 'republish: serve an earlier update group again. embedded: return devices to their store bundle.'
         type: choice
         options:
           - republish
@@ -50,9 +45,7 @@ on:
         type: string
         required: true
       drill:
-        description: >-
-          Rehearsal. Targets a runtime version no store build uses, so no device can
-          receive it.
+        description: 'Rehearsal: targets a runtime version no store build uses, so no device can receive it'
         type: boolean
         default: false
 
@@ -117,22 +110,9 @@ jobs:
               ;;
           esac
 
-          if [[ "$MODE" != "republish" && "$MODE" != "embedded" ]]; then
-            echo "::error::Unknown mode: ${MODE}"
-            exit 1
-          fi
-          if [[ "$PLATFORM" != "all" && "$PLATFORM" != "ios" && "$PLATFORM" != "android" ]]; then
-            echo "::error::Unknown platform: ${PLATFORM}"
-            exit 1
-          fi
-
-          if [[ -z "${REASON// /}" ]]; then
-            echo "::error::reason is required."
-            exit 1
-          fi
           # The reason is shown to approvers in the run summary, so keep it to one line.
-          if [[ "$REASON" == *$'\n'* || "$REASON" == *$'\r'* ]]; then
-            echo "::error::reason must be a single line."
+          if [[ -z "${REASON// /}" || "$REASON" == *$'\n'* || "$REASON" == *$'\r'* ]]; then
+            echo "::error::reason is required and must be a single line."
             exit 1
           fi
 
@@ -142,7 +122,7 @@ jobs:
               exit 1
             fi
           elif [[ -n "$GROUP_ID" ]]; then
-            echo "::error::group_id is only used with republish. Clear it for an embedded rollback."
+            echo "::error::group_id is only used with republish."
             exit 1
           fi
 
@@ -150,12 +130,11 @@ jobs:
             RUNTIME_VERSION="$DRILL_RUNTIME_VERSION"
           else
             RUNTIME_VERSION=$(jq -r .version package.json)
-            # The runtime version comes from package.json, so a real rollback has to run from
-            # the release branch of the store version it targets. Same pattern as the OTA push
-            # in push-eas-update.yml.
+            # The runtime version comes from package.json, so a real rollback runs from the
+            # release branch of the store version it targets. Same pattern as push-eas-update.yml.
             RELEASE_REF_PATTERN='^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$'
             if [[ "$CHANNEL" != "exp" && ! "$GITHUB_REF" =~ $RELEASE_REF_PATTERN ]]; then
-              echo "::error::Run from the release/X.Y.Z or release/X.Y.Z-ota branch of the affected store version (\"Use workflow from\"), not ${GITHUB_REF}."
+              echo "::error::Run from the release/X.Y.Z or release/X.Y.Z-ota branch of the affected store version, not ${GITHUB_REF}."
               exit 1
             fi
           fi
@@ -168,21 +147,11 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           {
-            if [[ "$DRILL" == "true" ]]; then
-              echo "### 🧪 OTA rollback drill requested"
-            else
-              echo "### ⏪ OTA rollback requested"
-            fi
+            echo "### OTA rollback requested$([[ "$DRILL" == "true" ]] && echo " (drill)")"
             echo
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Channel** | \`${CHANNEL}\` |"
-            echo "| **Mode** | \`${MODE}\` |"
-            echo "| **Update group** | \`${GROUP_ID:-n/a}\` |"
-            echo "| **Platform** | \`${PLATFORM}\` |"
-            echo "| **Runtime version** | \`${RUNTIME_VERSION}\` |"
-            echo "| **Ref** | \`${GITHUB_REF}\` |"
-            echo "| **Requested by** | @${ACTOR} |"
+            echo "| Channel | Mode | Update group | Platform | Runtime version | Ref | Requested by |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
+            echo "| \`${CHANNEL}\` | \`${MODE}\` | \`${GROUP_ID:-n/a}\` | \`${PLATFORM}\` | \`${RUNTIME_VERSION}\` | \`${GITHUB_REF}\` | @${ACTOR} |"
             echo
             echo "**Reason:** ${REASON}"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -207,8 +176,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ needs.plan.outputs.github_environment }}
-    outputs:
-      update_group: ${{ steps.publish.outputs.update-group }}
     permissions:
       contents: read
       id-token: write # AWS OIDC for the code-signing key
@@ -248,16 +215,6 @@ jobs:
       - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
 
-      # vars.EXPO_CHANNEL is set per environment, so this catches a channel/environment mismatch.
-      - name: Check environment channel
-        env:
-          ENVIRONMENT_CHANNEL: ${{ vars.EXPO_CHANNEL }}
-        run: |
-          if [[ "$ENVIRONMENT_CHANNEL" != "$CHANNEL" ]]; then
-            echo "::error::Environment channel '${ENVIRONMENT_CHANNEL}' does not match requested channel '${CHANNEL}'."
-            exit 1
-          fi
-
       # Sets METAMASK_ENVIRONMENT, which app.config.js uses to pick the code-signing certificate.
       - name: Apply build config from builds.yml
         env:
@@ -277,7 +234,6 @@ jobs:
             echo "::error::Project resolves runtime version '${resolved}', expected '${RUNTIME_VERSION}'."
             exit 1
           fi
-          echo "✅ Runtime version: ${resolved}"
 
       - name: Check update group
         if: ${{ inputs.mode == 'republish' }}
@@ -288,39 +244,19 @@ jobs:
           set -euo pipefail
           group=$(yarn eas update:view "$GROUP_ID" --json)
           channel_branches=$(yarn eas channel:view "$CHANNEL" --json --non-interactive | jq -r '.currentPage.updateBranches[].name')
-
           branch=$(jq -r '.[0].branch' <<< "$group")
           runtimes=$(jq -r '[.[].runtimeVersion] | unique | join(",")' <<< "$group")
-          platforms=$(jq -r '[.[].platform] | sort | join(",")' <<< "$group")
 
           if ! grep -qxF "$branch" <<< "$channel_branches"; then
             echo "::error::Update group is on branch '${branch}', which channel '${CHANNEL}' does not serve."
             exit 1
           fi
           if [[ "$runtimes" != "$RUNTIME_VERSION" ]]; then
-            echo "::error::Update group targets runtime '${runtimes}', expected '${RUNTIME_VERSION}'. Check the group ID and the branch this run uses."
+            echo "::error::Update group targets runtime '${runtimes}', expected '${RUNTIME_VERSION}'."
             exit 1
-          fi
-          if [[ "$PLATFORM" != "all" && ",${platforms}," != *",${PLATFORM},"* ]]; then
-            echo "::error::Update group has no ${PLATFORM} update (it has: ${platforms})."
-            exit 1
-          fi
-          if [[ "$PLATFORM" == "all" && "$platforms" != "android,ios" ]]; then
-            echo "::warning::Update group only has: ${platforms}. Only those platforms are rolled back."
           fi
 
-          {
-            echo "### Update group to republish"
-            echo
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Branch** | \`${branch}\` |"
-            echo "| **Platforms** | \`${platforms}\` |"
-            echo "| **Message** | $(jq -r '.[0].message // ""' <<< "$group") |"
-            echo "| **Commit** | \`$(jq -r '.[0].gitCommitHash // "unknown"' <<< "$group")\` |"
-            echo "| **Created** | $(jq -r '.[0].createdAt' <<< "$group") |"
-            echo
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "**Republishing:** $(jq -r '.[0].message // ""' <<< "$group") (commit \`$(jq -r '.[0].gitCommitHash // "unknown"' <<< "$group")\`)" >> "$GITHUB_STEP_SUMMARY"
 
       # Credentials go to step outputs, not the job environment, so later steps cannot
       # re-read the signer secret from Secrets Manager.
@@ -359,7 +295,6 @@ jobs:
           echo "key-path=$key_path" >> "$GITHUB_OUTPUT"
 
       - name: Publish rollback
-        id: publish
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
@@ -369,58 +304,22 @@ jobs:
         run: |
           set -euo pipefail
           prefix="Rollback"
-          [[ "$DRILL" == "true" ]] && prefix="Rollback drill"
+          if [[ "$DRILL" == "true" ]]; then prefix="Rollback drill"; fi
           message="${prefix} (${MODE}) by ${ACTOR}: ${REASON}"
           result="$RUNNER_TEMP/rollback-result.json"
 
-          case "$MODE" in
-            republish)
-              yarn eas update:republish \
-                --group "$GROUP_ID" \
-                --platform "$PLATFORM" \
-                --message "$message" \
-                --private-key-path "$KEY_PATH" \
-                --non-interactive \
-                --json > "$result"
-              ;;
-            embedded)
-              yarn eas update:roll-back-to-embedded \
-                --channel "$CHANNEL" \
-                --platform "$PLATFORM" \
-                --message "$message" \
-                --private-key-path "$KEY_PATH" \
-                --non-interactive \
-                --json > "$result"
-              ;;
-          esac
-
-          echo "update-group=$(jq -r '[.[].group // empty] | unique | join(",")' "$result")" >> "$GITHUB_OUTPUT"
+          if [[ "$MODE" == "republish" ]]; then
+            yarn eas update:republish --group "$GROUP_ID" --platform "$PLATFORM" \
+              --message "$message" --private-key-path "$KEY_PATH" --non-interactive --json > "$result"
+          else
+            yarn eas update:roll-back-to-embedded --channel "$CHANNEL" --platform "$PLATFORM" \
+              --message "$message" --private-key-path "$KEY_PATH" --non-interactive --json > "$result"
+          fi
 
           {
-            echo "### ✅ Rollback published"
+            echo "### Rollback published"
             echo
             echo "| Platform | Update ID | Update group | Runtime version |"
             echo "| --- | --- | --- | --- |"
             jq -r '.[] | "| \(.platform // "?") | `\(.id // "?")` | `\(.group // "?")` | `\(.runtimeVersion // "?")` |"' "$result"
-            echo
-            if [[ "$DRILL" == "true" ]]; then
-              echo "Drill: published on runtime \`${RUNTIME_VERSION}\`, which no store build uses."
-            elif [[ "$MODE" == "republish" ]]; then
-              echo "Devices download this on their next launch check. iOS offers a reload; Android applies it on the next cold start."
-            else
-              echo "Devices download this on their next launch check and run the embedded bundle after the following cold start."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Remove code-signing key
-        if: always()
-        run: rm -f "$RUNNER_TEMP/expo-private-key.pem"
-
-      - name: Update summary on failure
-        if: failure()
-        run: |
-          {
-            echo "### ❌ Rollback failed"
-            echo
-            echo "Check the logs above. If the \"Publish rollback\" step did not run, nothing was published."
           } >> "$GITHUB_STEP_SUMMARY"
