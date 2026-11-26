@@ -5,6 +5,7 @@ import {
   FontWeight,
   IconName,
   TabEmptyState,
+  Text,
   TextColor,
   TextFieldSearch,
   TextVariant,
@@ -25,7 +26,6 @@ import {
 } from '../utils/collection';
 import { CollectionCardTile } from '../components/CollectionCardTile';
 import { CollectionSkeleton } from '../components/CollectionSkeleton';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 
 interface Props {
@@ -84,7 +84,7 @@ export function CollectionView({ jumpTo }: Props) {
           placeholder={strings('collectibles.collection.search')}
           inputAccessibilityLabel={strings('collectibles.collection.search')}
           onPressClearButton={() => setQuery('')}
-          testID={collectiblesTestIds.collectionSearch}
+          inputProps={{ testID: collectiblesTestIds.collectionSearch }}
         />
       </View>
 

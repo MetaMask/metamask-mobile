@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   FontWeight,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -11,7 +12,6 @@ import type { PackPartnerCard } from '../providers/pack-partner/types/packPartne
 import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 import { Image } from '../../primitives/Image';
 import { Pressable } from '../../primitives/Pressable';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 
 interface Props {

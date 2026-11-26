@@ -58,7 +58,7 @@ describe('CollectionView', () => {
     render(<CollectionView />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText(strings('collectibles.collection.search')),
+      screen.getByTestId(collectiblesTestIds.collectionSearch),
       'magna',
     );
 
@@ -132,7 +132,7 @@ describe('CollectionView', () => {
     render(<CollectionView />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText(strings('collectibles.collection.search')),
+      screen.getByTestId(collectiblesTestIds.collectionSearch),
       'zzz',
     );
 
