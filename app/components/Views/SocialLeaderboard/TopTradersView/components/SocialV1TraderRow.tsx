@@ -172,7 +172,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         recyclingKey={trader.id}
       />
 
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -183,7 +183,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
           >
             {trader.username}
           </Text>
@@ -198,7 +198,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
               severity={
                 nameTag.isPositive ? TagSeverity.Success : TagSeverity.Danger
               }
-              twClassName="shrink-0"
+              className="shrink-0"
               testID={SocialV1TraderRowSelectorsIDs.NAME_TAG}
             >
               {nameTag.label}
@@ -221,12 +221,12 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         ) : null}
       </Box>
 
-      <Box alignItems={BoxAlignItems.End} twClassName="shrink-0">
+      <Box alignItems={BoxAlignItems.End} className="shrink-0">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName={`${metricColorClass(resolvedMetric)} shrink-0`}
+          className={`${metricColorClass(resolvedMetric)} shrink-0`}
           testID={SocialV1TraderRowSelectorsIDs.METRIC}
         >
           {resolvedMetric.label}
@@ -241,7 +241,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 numberOfLines={1}
-                twClassName={metricColorClass(subMetric)}
+                className={metricColorClass(subMetric)}
                 testID={SocialV1TraderRowSelectorsIDs.PERCENTAGE}
               >
                 {subMetric.label}
@@ -269,17 +269,17 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         {highlighted ? (
           <Box
             testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
-            twClassName="bg-muted"
+            className="bg-muted"
             style={{ height: rowHeight }}
           >
             <Box
               testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR}
-              twClassName="absolute bottom-0 left-0 top-0 w-0.5 bg-success-default"
+              className="absolute bottom-0 left-0 top-0 w-0.5 bg-success-default"
             />
-            <Box twClassName="px-4">{rowBody}</Box>
+            <Box className="px-4">{rowBody}</Box>
           </Box>
         ) : (
-          <Box twClassName="px-4">{rowBody}</Box>
+          <Box className="px-4">{rowBody}</Box>
         )}
       </TouchableOpacity>
     </Animated.View>

@@ -245,7 +245,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
       testID={getFeedAudienceOptionTestId(option)}
       style={styles.touchable}
     >
-      <Box twClassName={SEGMENT_TW_CLASS}>
+      <Box className={SEGMENT_TW_CLASS}>
         <Box style={styles.labelWrap}>
           {/* In-flow Medium label sets the segment width so the wider
               selected weight never clips (e.g. Android "Followin[g]"). */}
@@ -278,7 +278,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="shrink-0 border border-muted rounded-full p-1"
+      className="shrink-0 border border-muted rounded-full p-1"
       style={styles.container}
       testID={testID}
     >

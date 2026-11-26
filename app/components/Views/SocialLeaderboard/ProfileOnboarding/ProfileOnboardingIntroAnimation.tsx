@@ -148,7 +148,7 @@ const ProfileOnboardingIntroAnimation: React.FC<
   }
 
   return (
-    <Box twClassName="h-full w-full flex-1">
+    <Box className="h-full w-full flex-1">
       {riveFile && instance ? (
         <RiveView
           hybridRef={setHybridRef}

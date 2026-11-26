@@ -68,7 +68,7 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
 
   return (
     <Card
-      twClassName={`${POPULAR_TRADER_CARD_SURFACE} items-center gap-3`}
+      className={`${POPULAR_TRADER_CARD_SURFACE} items-center gap-3`}
       testID={testID ?? getPopularTraderCardTestId(trader.id)}
     >
       <Pressable
@@ -95,12 +95,12 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
             size={AVATAR_SIZE}
             testID={getPopularTraderCardAvatarTestId(trader.id)}
           />
-          <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
+          <Box alignItems={BoxAlignItems.Center} className="w-full">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={1}
-              twClassName="max-w-full"
+              className="max-w-full"
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -108,7 +108,7 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                twClassName="shrink"
+                className="shrink"
               >
                 {trader.username}
               </Text>

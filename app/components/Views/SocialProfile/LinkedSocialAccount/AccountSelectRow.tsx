@@ -73,6 +73,37 @@ const AccountSelectRow = ({
         <RadioButton isChecked={isSelected} isReadOnly />
       }
       accessoryGap={2}
+      className={[
+        showDivider ? 'border-t border-muted' : '',
+        isSelected ? 'bg-primary-muted' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onPress={handlePress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: isSelected }}
+      accessibilityLabel={accountGroup.metadata.name}
+      testID={LinkedSocialAccountSelectorsIDs.accountRow(accountGroup.id)}
+    /><AvatarAccount
+          address={iconSeedAddress}
+          variant={avatarVariant}
+          shape={AvatarBaseShape.Square}
+          size={AvatarAccountSize.Md}
+        />
+      }
+      title={accountGroup.metadata.name}
+      titleProps={{ numberOfLines: 1 }}
+      description={balanceLabel}
+      descriptionProps={{
+        length: SensitiveTextLength.Long,
+        isHidden: isBalanceHidden,
+      }}
+      endAccessory={
+        // The whole row is the control, so the radio itself is not separately
+        // focusable.
+        <RadioButton isChecked={isSelected} isReadOnly />
+      }
+      accessoryGap={2}
       twClassName={[
         showDivider ? 'border-t border-muted' : '',
         isSelected ? 'bg-primary-muted' : '',

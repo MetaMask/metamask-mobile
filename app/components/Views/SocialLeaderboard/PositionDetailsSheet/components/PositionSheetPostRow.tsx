@@ -37,11 +37,11 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
       gap={4}
-      twClassName="px-4 py-3"
+      className="px-4 py-3"
       testID={`${PositionDetailsSheetSelectorsIDs.POST_ROW}-${post.uid}`}
     >
       {/* Centred on the name and first text line, like a transaction row. */}
-      <Box twClassName="pt-1.5">
+      <Box className="pt-1.5">
         <TraderAvatar
           imageUrl={author.avatarUri}
           address={author.address}
@@ -49,7 +49,7 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
           size={AVATAR_SIZE}
         />
       </Box>
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -59,7 +59,7 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Bold}
             numberOfLines={1}
-            twClassName="shrink min-w-0"
+            className="shrink min-w-0"
           >
             {author.username}
           </Text>
@@ -72,14 +72,14 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextMuted}
-            twClassName="shrink-0"
+            className="shrink-0"
           >
             {formatFeedPostAge(post.timestamp, now)}
           </Text>
         </Box>
         {text ? <Text variant={TextVariant.BodySm}>{text}</Text> : null}
         {gifUrl ? (
-          <Box twClassName="mt-2 rounded-2xl overflow-hidden">
+          <Box className="mt-2 rounded-2xl overflow-hidden">
             <SocialFeedGif
               uri={gifUrl}
               testID={`${PositionDetailsSheetSelectorsIDs.POST_GIF}-${post.uid}`}

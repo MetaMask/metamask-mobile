@@ -447,7 +447,7 @@ const SocialV0View: React.FC = () => {
     <>
       {isPushedScreen ? (
         <Box
-          twClassName="px-4 pt-2 pb-3 bg-default"
+          className="px-4 pt-2 pb-3 bg-default"
           onLayout={handleTitleLayout}
         >
           <Text
@@ -460,7 +460,7 @@ const SocialV0View: React.FC = () => {
         </Box>
       ) : null}
 
-      <Box twClassName="bg-default">
+      <Box className="bg-default">
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -559,7 +559,7 @@ const SocialV0View: React.FC = () => {
       )}
 
       {showNotificationsBanner && (
-        <Box twClassName="px-4 pt-2">
+        <Box className="px-4 pt-2">
           <BannerAlert
             severity={BannerAlertSeverity.Info}
             description={strings(
@@ -580,7 +580,7 @@ const SocialV0View: React.FC = () => {
           instead of scrolling over the back button / notification bell.
           As a tab the header is static, so the block stays in normal flow. */}
       {isPushedScreen ? (
-        <Box twClassName="flex-1 overflow-hidden">
+        <Box className="flex-1 overflow-hidden">
           <Animated.View
             style={[
               tw.style('absolute top-0 left-0 right-0'),
@@ -591,7 +591,7 @@ const SocialV0View: React.FC = () => {
           </Animated.View>
         </Box>
       ) : (
-        <Box twClassName="flex-1">{titleTabsAndPager}</Box>
+        <Box className="flex-1">{titleTabsAndPager}</Box>
       )}
 
       {feedHasSpotItem && (

@@ -62,7 +62,7 @@ const FilterChipSection = <T extends string>({
   );
 
   return (
-    <Box twClassName="mt-4">
+    <Box className="mt-4">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -70,12 +70,12 @@ const FilterChipSection = <T extends string>({
       >
         {strings(titleKey)}
       </Text>
-      <Box twClassName="mt-2" testID={`${testID}-controls`}>
+      <Box className="mt-2" testID={`${testID}-controls`}>
         <FilterButtonGroup
           value={value}
           onChange={handleChange}
           variant={FilterButtonVariant.Secondary}
-          twClassName="gap-2"
+          className="gap-2"
         >
           {options.map((option) => (
             <FilterButton
@@ -83,7 +83,7 @@ const FilterChipSection = <T extends string>({
               value={option.id}
               size={FilterButtonSize.Sm}
               isSelected={option.id === value}
-              twClassName={CHIP_BORDER_TW_CLASS_NAME}
+              className={CHIP_BORDER_TW_CLASS_NAME}
               testID={`${testID}-${option.id}`}
             >
               {option.leadingEmoji

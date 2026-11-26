@@ -79,7 +79,7 @@ const PositionSheetHeader = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="justify-between px-4 py-2 border-b border-muted"
+      className="justify-between px-4 py-2 border-b border-muted"
       testID={PositionDetailsSheetSelectorsIDs.HEADER}
     >
       <Pressable
@@ -100,12 +100,12 @@ const PositionSheetHeader = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="min-w-0 shrink"
+          className="min-w-0 shrink"
         >
           <Text
             variant={TextVariant.HeadingSm}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={PositionDetailsSheetSelectorsIDs.TITLE}
           >
             {author.username}
@@ -127,10 +127,10 @@ const PositionSheetHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="shrink-0"
+        className="shrink-0"
       >
         {onShare && isSharing ? (
-          <Box twClassName="h-10 w-10 items-center justify-center">
+          <Box className="h-10 w-10 items-center justify-center">
             <ShareButtonSpinner
               testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
             />

@@ -145,7 +145,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   }
 
   return (
-    <Box twClassName="w-full aspect-square">
+    <Box className="w-full aspect-square">
       {riveFile && instance ? (
         <RiveView
           hybridRef={setHybridRef}
@@ -163,7 +163,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
       ) : null}
       <Box
         pointerEvents="none"
-        twClassName="absolute inset-0 items-center justify-center"
+        className="absolute inset-0 items-center justify-center"
         style={{ transform: [{ translateY: -READY_AVATAR_LIFT }] }}
       >
         <ProfileAvatar

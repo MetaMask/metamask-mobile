@@ -192,7 +192,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
       analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
-      <Box twClassName="gap-4" testID={testID}>
+      <Box className="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {renderHeader?.()}
         <SocialFeedPlaceholder state={state} emptyState={emptyState} />

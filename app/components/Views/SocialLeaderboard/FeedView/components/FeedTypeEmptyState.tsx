@@ -61,7 +61,7 @@ const FeedTypeEmptyState: React.FC<FeedTypeEmptyStateProps> = ({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Sm}
         onPress={onLoadMore}
-        twClassName="self-center"
+        className="self-center"
         testID={FeedViewSelectorsIDs.LOAD_MORE_BUTTON}
       >
         {strings('social_leaderboard.feed.load_more')}
@@ -73,7 +73,7 @@ const FeedTypeEmptyState: React.FC<FeedTypeEmptyStateProps> = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1 px-8 py-16 gap-3"
+      className="flex-1 px-8 py-16 gap-3"
       testID={FeedViewSelectorsIDs.TYPE_EMPTY_STATE}
     >
       <Icon
@@ -85,14 +85,14 @@ const FeedTypeEmptyState: React.FC<FeedTypeEmptyStateProps> = ({
         variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings(titleKey)}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('social_leaderboard.feed.empty_type.description')}
       </Text>

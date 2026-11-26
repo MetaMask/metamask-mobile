@@ -19,7 +19,7 @@ const ProfilePostsLoadingState: React.FC = () => (
             testID={getSocialV1FeedEntryDividerTestId(`loading-${index}`)}
           />
         ) : null}
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <SocialFeedPostSkeleton index={index} />
         </Box>
       </Fragment>

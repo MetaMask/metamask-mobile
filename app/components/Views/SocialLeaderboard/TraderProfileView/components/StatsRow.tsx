@@ -49,13 +49,13 @@ const StatsRow: React.FC<StatsRowProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Around}
-        twClassName="px-4 py-3"
+        className="px-4 py-3"
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="flex-1">
+        <Box alignItems={BoxAlignItems.Center} className="flex-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName={isWinRatePositive ? 'text-success-default' : undefined}
+            className={isWinRatePositive ? 'text-success-default' : undefined}
             color={isWinRatePositive ? undefined : TextColor.TextDefault}
           >
             {winRate}
@@ -64,18 +64,18 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.trader_profile.win_rate')}
           </Text>
         </Box>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="flex-1">
+        <Box alignItems={BoxAlignItems.Center} className="flex-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={hasPnl ? undefined : TextColor.TextDefault}
-            twClassName={
+            className={
               hasPnl
                 ? isPnlPositive
                   ? 'text-success-default'
@@ -89,13 +89,13 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.trader_profile.pnl_7d')}
           </Text>
         </Box>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="flex-1">
+        <Box alignItems={BoxAlignItems.Center} className="flex-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -109,7 +109,7 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.trader_profile.hold_time')}
           </Text>

@@ -83,12 +83,12 @@ const PositionSheetPriceHeader = ({
       testID={PositionDetailsSheetSelectorsIDs.PRICE_HEADER}
     >
       <Box
-        twClassName="px-4 pt-4"
+        className="px-4 pt-4"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={4}
       >
-        <Box twClassName="flex-1" gap={1}>
+        <Box className="flex-1" gap={1}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -97,7 +97,7 @@ const PositionSheetPriceHeader = ({
             <Text
               variant={TextVariant.HeadingSm}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
             >
               {assetName}
             </Text>
@@ -124,7 +124,7 @@ const PositionSheetPriceHeader = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="pb-1"
+                className="pb-1"
               >
                 {marketCapSuffix}
               </Text>

@@ -299,7 +299,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   const emptyState = useMemo(
     () =>
       isFilterActive ? (
-        <Box twClassName="-mt-2">
+        <Box className="-mt-2">
           <SocialFilterEmptyState
             onClear={onClearFilters ?? (() => undefined)}
           />
@@ -311,7 +311,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       {prefetchSuggestions ? <FollowingSuggestionsPrefetch /> : null}
       {hasBeenActive ? (
         <SocialFeed

@@ -122,14 +122,14 @@ const SocialAccountRow = memo(
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
             gap={3}
-            twClassName={`px-4 py-3 ${isSelected ? 'bg-section' : ''}`}
+            className={`px-4 py-3 ${isSelected ? 'bg-section' : ''}`}
           >
             <AvatarAccount
               address={account.address}
               size={AvatarAccountSize.Md}
               variant={getAvatarAccountVariant(avatarAccountType)}
             />
-            <Box twClassName="min-w-0 flex-1">
+            <Box className="min-w-0 flex-1">
               <Text numberOfLines={1} variant={TextVariant.BodyMd}>
                 {account.name}
               </Text>

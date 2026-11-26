@@ -66,7 +66,7 @@ const TradingActivityBenefits: React.FC<TradingActivityBenefitsProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={isShown ? TextColor.TextDefault : TextColor.TextAlternative}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings(`social_leaderboard.trading_activity_benefits.${id}`)}
           </Text>
