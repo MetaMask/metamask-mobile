@@ -7,7 +7,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import MainActionButtonGlass from '../../../../../../component-library/components-temp/MainActionButtonGlass';
-import SnowflakeIcon from '../../../components/SnowflakeIcon';
+
 import { CardHomeSelectors } from '../CardHome.testIds';
 import {
   CardStatus,
@@ -156,7 +156,7 @@ const CardHomeActionButtonRow = ({
       ) : null}
       {freeze ? (
         <MainActionButtonGlass
-          customIcon={<SnowflakeIcon />}
+          iconName={IconName.Snowflake}
           label={strings(
             freeze.isFrozen
               ? 'card.card_home.action_buttons.unfreeze'
