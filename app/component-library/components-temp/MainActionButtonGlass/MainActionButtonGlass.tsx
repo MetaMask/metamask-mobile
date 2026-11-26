@@ -2,7 +2,6 @@ import React from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import {
   MainActionButton,
-  type IconName,
   type MainActionButtonProps,
 } from '@metamask/design-system-react-native';
 
@@ -33,7 +32,7 @@ const MainActionButtonGlass = ({
   const button = (
     <MainActionButton
       {...props}
-      iconName={iconName as IconName}
+      iconName={iconName}
       style={resolvedStyle}
     />
   );
