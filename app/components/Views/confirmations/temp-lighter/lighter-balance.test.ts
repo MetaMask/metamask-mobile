@@ -38,6 +38,18 @@ describe('fetchLighterWithdrawableBalance', () => {
     expect(await fetchLighterWithdrawableBalance(USER)).toBeUndefined();
   });
 
+  it('throws on a 400 that is not the account not found code', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ code: 20001, message: 'invalid parameter' }),
+    });
+
+    await expect(fetchLighterWithdrawableBalance(USER)).rejects.toThrow(
+      'invalid parameter',
+    );
+  });
+
   it('returns undefined when the account has no available balance', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

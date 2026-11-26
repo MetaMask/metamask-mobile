@@ -1,4 +1,5 @@
 import { getLighterHttpEndpoint } from '@metamask/perps-controller/constants/lighterConfig';
+import { LIGHTER_ACCOUNT_NOT_FOUND_CODE } from './lighter-usdc-deposit';
 
 /**
  * Temporary. Perps should own the Lighter balance lookup (likely in
@@ -28,11 +29,14 @@ export async function fetchLighterWithdrawableBalance(
   const response = await fetch(url);
   const body = (await response.json()) as LighterAccountBody;
 
+  // Lighter answers 400 with this code when the address has no account. Any
+  // other failure, including other 400s, is thrown so it is not read as an
+  // empty balance.
+  if (body.code === LIGHTER_ACCOUNT_NOT_FOUND_CODE) {
+    return undefined;
+  }
+
   if (!response.ok || body.code !== LIGHTER_OK_CODE) {
-    // Lighter answers 400 when the address has no account.
-    if (response.status === 400) {
-      return undefined;
-    }
     throw new Error(
       body.message ?? `Lighter balance lookup failed (${response.status})`,
     );
