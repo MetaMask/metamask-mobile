@@ -115,7 +115,7 @@ export function Carousel<T>({
               width: isLastItem ? cardWidth : slotWidth,
               ...(isLastItem ? {} : { paddingRight: gap }),
             })}
-            twClassName="rounded-2xl overflow-hidden"
+            twClassName="rounded-[20px] overflow-hidden"
             testID={`${idPrefix}-card-${index}`}
           >
             {isLoading ? (

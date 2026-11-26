@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import {
   fireEvent,
   render,
@@ -755,12 +756,41 @@ describe('EventCardGame', () => {
       expect(screen.queryByText(/Vol/)).not.toBeOnTheScreen();
     });
 
-    it('is 190pt wide', () => {
+    it('is 190pt wide with the muted container, 20pt radius, muted border, and 12pt vertical padding with no horizontal padding', () => {
       renderCard(createSmallEvent(), { variant: 'small' });
+
+      const card = screen.getByTestId('predict-next-event-kalshi-game-event');
+      const style = StyleSheet.flatten(card.props.style);
+      expect(style).toMatchObject({
+        width: 190,
+        backgroundColor: lightTheme.colors.background.muted,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: lightTheme.colors.border.muted,
+        paddingTop: 12,
+        paddingBottom: 12,
+      });
+      expect(style.paddingLeft).toBeUndefined();
+      expect(style.paddingRight).toBeUndefined();
+    });
+
+    it('uses dark theme muted surface and muted border in dark mode', () => {
+      render(
+        <ThemeProvider theme={Theme.Dark}>
+          <EventCardGame
+            event={createSmallEvent()}
+            onPress={jest.fn()}
+            variant="small"
+          />
+        </ThemeProvider>,
+      );
 
       expect(
         screen.getByTestId('predict-next-event-kalshi-game-event'),
-      ).toHaveStyle({ width: 190 });
+      ).toHaveStyle({
+        backgroundColor: darkTheme.colors.background.muted,
+        borderColor: darkTheme.colors.border.muted,
+      });
     });
 
     it('lays the Competition and start out on one line', () => {
