@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
-import { WebView } from '@metamask/react-native-webview';
+import {
+  WebView,
+  type WebViewNavigation,
+} from '@metamask/react-native-webview';
 import { IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
+import {
+  attachWebviewAuthSessionClose,
+  dismissWebviewAuthSession,
+  handleWebviewAuthRedirect,
+} from '../../../util/webviewAuthSession';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
@@ -33,6 +41,7 @@ const SimpleWebView = () => {
     hideShareButton,
     isModal,
     useGlassHeader,
+    authSessionId,
   } = route.params;
   const includesTopInset = !isModal || Platform.OS === 'android';
   const [hardwareTier] = useState(getHardwareTier);
@@ -52,6 +61,48 @@ const SimpleWebView = () => {
   }, [url]);
 
   const close = useCallback(() => navigation.goBack(), [navigation]);
+
+  useEffect(() => {
+    if (!authSessionId) {
+      return undefined;
+    }
+
+    const attached = attachWebviewAuthSessionClose(authSessionId, close);
+    if (!attached) {
+      close();
+      return undefined;
+    }
+
+    return () => {
+      dismissWebviewAuthSession(authSessionId);
+    };
+  }, [authSessionId, close]);
+
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      if (
+        authSessionId &&
+        handleWebviewAuthRedirect(authSessionId, request.url)
+      ) {
+        close();
+        return false;
+      }
+      return true;
+    },
+    [authSessionId, close],
+  );
+
+  const handleNavigationStateChange = useCallback(
+    (navState: WebViewNavigation) => {
+      if (
+        authSessionId &&
+        handleWebviewAuthRedirect(authSessionId, navState.url)
+      ) {
+        close();
+      }
+    },
+    [authSessionId, close],
+  );
 
   const headerProps = {
     title,
@@ -106,6 +157,13 @@ const SimpleWebView = () => {
         containerStyle={tw.style('flex-1')}
         source={{ uri: url }}
         testID="simple-webview"
+        domStorageEnabled={Boolean(authSessionId)}
+        onShouldStartLoadWithRequest={
+          authSessionId ? handleShouldStartLoadWithRequest : undefined
+        }
+        onNavigationStateChange={
+          authSessionId ? handleNavigationStateChange : undefined
+        }
         originWhitelist={[
           'https://*',
           'http://*',

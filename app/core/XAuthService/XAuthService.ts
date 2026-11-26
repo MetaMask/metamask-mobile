@@ -1,7 +1,12 @@
-import { dismissAuthSession, openAuthSessionAsync } from 'expo-web-browser';
-import { Linking } from 'react-native';
+import {
+  dismissAuthSession,
+  getCustomTabsSupportingBrowsersAsync,
+  openAuthSessionAsync,
+} from 'expo-web-browser';
+import { Linking, Platform } from 'react-native';
 import type { ConnectXSession, XProfile } from '@metamask/profile-controller';
 import Engine from '../Engine';
+import { openWebviewAuthSession } from '../../util/webviewAuthSession';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 
@@ -66,22 +71,120 @@ function parseRedirectParams(redirectUrl: string): XRedirectParams {
   };
 }
 
+const cancelledXConnect = (): XAuthError =>
+  new XAuthError(XAuthErrorType.UserCancelled, 'X connect was cancelled');
+
+const throwIfXConnectCancelled = (signal?: AbortSignal): void => {
+  if (signal?.aborted) {
+    throw cancelledXConnect();
+  }
+};
+
+type AndroidBrowserResolution =
+  | { status: 'available'; browserPackage: string }
+  | { status: 'unavailable' }
+  | { status: 'unknown' };
+
 /**
- * Opens the backend-issued X authorization URL in a system browser session and
- * resolves with the x-oauth-redirect URL: session result first, then a Linking
- * event fallback, then the getInitialURL() cold-start fallback (iOS < 17.4).
+ * Resolves a Custom Tabs–capable browser package on Android so
+ * `openAuthSessionAsync` never loops back into MetaMask's own `https://`
+ * intent filter when MetaMask (or a non-Custom-Tabs browser) is set as default.
+ */
+async function resolveAndroidCustomTabsBrowser(): Promise<AndroidBrowserResolution> {
+  if (
+    Platform.OS !== 'android' ||
+    typeof getCustomTabsSupportingBrowsersAsync !== 'function'
+  ) {
+    return { status: 'unknown' };
+  }
+
+  try {
+    const { preferredBrowserPackage, servicePackages = [] } =
+      await getCustomTabsSupportingBrowsersAsync();
+
+    if (
+      preferredBrowserPackage &&
+      servicePackages.includes(preferredBrowserPackage)
+    ) {
+      return { status: 'available', browserPackage: preferredBrowserPackage };
+    }
+
+    if (servicePackages.length > 0) {
+      return { status: 'available', browserPackage: servicePackages[0] };
+    }
+
+    return { status: 'unavailable' };
+  } catch {
+    return { status: 'unknown' };
+  }
+}
+
+/**
+ * Fallback when `expo-web-browser` cannot launch an auth session (for example,
+ * Android devices with no Custom Tabs browser). Opens the authorization URL in
+ * the in-app WebView modal and intercepts `X_REDIRECT_URI` before the WebView
+ * loads it, avoiding Branch's HTTP redirect and `DeepLinkModal`.
+ */
+async function openInAppWebviewFallback(
+  authorizationUrl: string,
+  reason: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  let redirectUrl: string | undefined;
+  try {
+    redirectUrl = await openWebviewAuthSession({
+      url: authorizationUrl,
+      redirectUri: X_REDIRECT_URI,
+      signal,
+    });
+  } catch (fallbackError) {
+    throwIfXConnectCancelled(signal);
+    throw new XAuthError(
+      XAuthErrorType.NetworkFailure,
+      `Failed to open X authorization session: ${reason} (in-app WebView fallback failed: ${getErrorMessage(fallbackError)})`,
+    );
+  }
+
+  throwIfXConnectCancelled(signal);
+
+  if (!redirectUrl) {
+    throw new XAuthError(
+      XAuthErrorType.UserCancelled,
+      'User cancelled the X authorization process',
+    );
+  }
+
+  return redirectUrl;
+}
+
+/**
+ * Opens the backend-issued X authorization URL in a system browser session
+ * (selecting a Custom Tabs browser on Android and falling back to an in-app
+ * WebView when no browser session can be launched) and resolves with the
+ * x-oauth-redirect URL: session result first, then a Linking event fallback,
+ * then the getInitialURL() cold-start fallback (iOS < 17.4).
  */
 async function openAuthorizationSession(
   authorizationUrl: string,
+  signal?: AbortSignal,
 ): Promise<string> {
+  const androidBrowser = await resolveAndroidCustomTabsBrowser();
+  throwIfXConnectCancelled(signal);
+
+  if (androidBrowser.status === 'unavailable') {
+    return await openInAppWebviewFallback(
+      authorizationUrl,
+      'No Custom Tabs browser available',
+      signal,
+    );
+  }
+
   const initialUrlBeforeSession = await Linking.getInitialURL();
 
   let removeRedirectListener: (() => void) | undefined;
   const redirectUrlPromise = new Promise<string>((resolve) => {
     const subscription = Linking.addEventListener('url', ({ url }) => {
-      const matchesRedirectUri = url.startsWith(X_REDIRECT_URI);
-
-      if (matchesRedirectUri) {
+      if (url.startsWith(X_REDIRECT_URI)) {
         resolve(url);
       }
     });
@@ -97,12 +200,20 @@ async function openAuthorizationSession(
         X_REDIRECT_URI,
         // iOS 17.4+ resolves the redirect directly; older iOS routes it
         // through the universal link captured by the Linking fallback below.
-        { createTask: false, preferUniversalLinks: true },
+        {
+          createTask: false,
+          preferUniversalLinks: true,
+          ...(androidBrowser.status === 'available'
+            ? { browserPackage: androidBrowser.browserPackage }
+            : undefined),
+        },
       );
-    } catch (error) {
-      throw new XAuthError(
-        XAuthErrorType.NetworkFailure,
-        `Failed to open X authorization session: ${getErrorMessage(error)}`,
+    } catch (openSessionError) {
+      throwIfXConnectCancelled(signal);
+      return await openInAppWebviewFallback(
+        authorizationUrl,
+        getErrorMessage(openSessionError),
+        signal,
       );
     }
 
@@ -148,15 +259,6 @@ async function openAuthorizationSession(
     removeRedirectListener?.();
   }
 }
-
-const cancelledXConnect = (): XAuthError =>
-  new XAuthError(XAuthErrorType.UserCancelled, 'X connect was cancelled');
-
-const throwIfXConnectCancelled = (signal?: AbortSignal): void => {
-  if (signal?.aborted) {
-    throw cancelledXConnect();
-  }
-};
 
 /**
  * Connects the user's X (Twitter) account through the backend-mediated
@@ -213,7 +315,10 @@ async function connectXSession(signal?: AbortSignal): Promise<XProfile> {
 
   let redirectUrl: string;
   try {
-    redirectUrl = await openAuthorizationSession(session.authorizationUrl);
+    redirectUrl = await openAuthorizationSession(
+      session.authorizationUrl,
+      signal,
+    );
   } catch (error) {
     throwIfXConnectCancelled(signal);
     throw error;
