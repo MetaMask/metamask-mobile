@@ -159,12 +159,12 @@ interface KycSession {
 }
 
 const engineContext = Engine.context as unknown as {
-  ['RampsController']: {
+  RampsController: {
     hydrateVbaOnboarding?: jest.Mock;
     registerMoneyAccountWallet?: jest.Mock;
     createAutoramp?: jest.Mock;
   };
-  ['KycController']?: {
+  KycController?: {
     state: { email: string | null };
     readSessionStatus: jest.Mock;
     startSession: jest.Mock;
