@@ -17,7 +17,7 @@ interface Props {
 
 export function EpicOddsGauge({ code, value }: Props) {
   const { formatNumber } = useFormatters();
-  const label = value > 0 ? `+${formatNumber(value)}` : formatNumber(value);
+  const label = formatNumber(value, { signDisplay: 'exceptZero' });
 
   return (
     <View

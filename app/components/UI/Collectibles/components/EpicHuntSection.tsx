@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { useBoolean } from '../../../hooks/useBoolean';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import type { EpicOddsPack } from '../types/packs';
 import { useEpicOddsPacks } from '../hooks/useEpicOddsPacks';
@@ -29,7 +30,11 @@ const renderItem = ({ item }: { item: EpicOddsPack }) => (
 export function EpicHuntSection() {
   const { packs, isPending } = useEpicOddsPacks();
 
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const {
+    value: isInfoOpen,
+    setTrue: openInfo,
+    setFalse: closeInfo,
+  } = useBoolean();
 
   return (
     <LandingSection
@@ -40,19 +45,19 @@ export function EpicHuntSection() {
           iconName={IconName.Info}
           size={ButtonIconSize.Sm}
           accessibilityLabel={strings('collectibles.epic_vs_odds.info')}
-          onPress={() => setIsInfoOpen(true)}
+          onPress={openInfo}
           testID={collectiblesTestIds.epicOddsInfoButton}
         />
       }
     >
-      {isPending ? (
-        <CollectiblesCarouselSkeleton />
-      ) : packs.length ? (
+      {packs.length ? (
         <CollectiblesCarousel packs={packs} renderItem={renderItem} />
+      ) : isPending ? (
+        <CollectiblesCarouselSkeleton />
       ) : (
         <CollectiblesCarouselEmpty />
       )}
-      {isInfoOpen && <EpicOddsInfoSheet onClose={() => setIsInfoOpen(false)} />}
+      {isInfoOpen && <EpicOddsInfoSheet onClose={closeInfo} />}
     </LandingSection>
   );
 }
