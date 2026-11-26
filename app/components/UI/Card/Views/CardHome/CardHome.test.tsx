@@ -160,6 +160,7 @@ let mockCardNavigationParent:
 let mockArrivalOverride: {
   usesRiveCard: boolean;
   playReveal: boolean;
+  hasStartedReveal?: boolean;
 } | null = null;
 
 import {
@@ -446,6 +447,9 @@ jest.mock('./hooks/useCardArrivalAnimation', () => {
         return {
           usesRiveCard: mockArrivalOverride.usesRiveCard,
           playReveal: mockArrivalOverride.playReveal,
+          hasStartedReveal:
+            mockArrivalOverride.hasStartedReveal ??
+            mockArrivalOverride.usesRiveCard,
           revealKey: 1,
           revealDelayMs: 0,
           cardStyle: {},
@@ -4668,6 +4672,25 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
       ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the freeze animation unmounted while card details cover the arrival card', () => {
+      mockArrivalOverride = {
+        usesRiveCard: false,
+        playReveal: false,
+        hasStartedReveal: true,
+      };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
     });
 
     it('shows the static card face instead of the arrival reveal while offline', () => {

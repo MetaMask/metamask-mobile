@@ -888,17 +888,18 @@ const CardHome = () => {
     Boolean(actions.cardSensitiveDetails) ||
     Boolean(actions.cardDetailsImageUrl);
 
-  const arrival = useCardArrivalAnimation({
-    fromCardOnboarding: !!route.params?.fromCardOnboarding,
-    cardType: data?.card?.type,
-    isRevealingCardDetails,
-  });
-  const reduceMotion = useReduceMotion();
   // Offline: no Rive, on every hardware tier. A low-end phone on a slow
   // cell connection skips it too. An unknown network keeps the animation.
   const allowCardRive =
     networkTier !== 'NONE' &&
     !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
+  const arrival = useCardArrivalAnimation({
+    fromCardOnboarding: !!route.params?.fromCardOnboarding,
+    cardType: data?.card?.type,
+    isRevealingCardDetails,
+    isRiveAllowed: allowCardRive,
+  });
+  const reduceMotion = useReduceMotion();
 
   // The arrival reveal holds the card only until a Freeze or Unfreeze press
   // this visit; then the freeze file takes over so the ice or melt plays.
@@ -909,7 +910,7 @@ const CardHome = () => {
     actions.unfreeze.isPending ||
     actions.unfreeze.isSuccess ||
     actions.unfreeze.isError;
-  const arrivalHoldsCard = arrival.usesRiveCard && !hasUsedFreezeThisVisit;
+  const arrivalHoldsCard = arrival.hasStartedReveal && !hasUsedFreezeThisVisit;
 
   // The freeze file only contains the virtual face. Metal and physical cards,
   // a blocked card (which dims), and the arrival reveal keep their own art.
