@@ -1377,8 +1377,8 @@ const Wallet = ({
                     homepageSearchReturnTransition,
                   )}
                   showSearchPastePill={showPastePill}
-                  handleSearchPastePress={(origin) => {
-                    handlePastePress(origin).catch((error) =>
+                  handleSearchPastePress={() => {
+                    handlePastePress().catch((error) =>
                       Logger.error(
                         error as Error,
                         'Error handling homepage search paste',
