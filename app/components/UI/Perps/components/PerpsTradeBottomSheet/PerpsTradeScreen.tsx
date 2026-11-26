@@ -530,11 +530,15 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           paddingHorizontal={4}
           gap={4}
           // Nothing to size without funds: dim and block the amount input,
-          // leaving the Add funds CTA as the way forward.
+          // leaving the Add funds CTA as the way forward. Hide it from
+          // screen readers too so they do not land on controls that cannot
+          // respond.
           {...(showAmountWarning
             ? {
                 twClassName: 'opacity-50',
                 pointerEvents: 'none' as const,
+                accessibilityElementsHidden: true,
+                importantForAccessibility: 'no-hide-descendants' as const,
                 testID: PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
               }
             : {})}

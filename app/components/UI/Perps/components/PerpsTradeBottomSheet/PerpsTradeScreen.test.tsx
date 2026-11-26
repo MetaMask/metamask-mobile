@@ -273,9 +273,16 @@ describe('PerpsTradeScreen errors', () => {
 
     render(<PerpsTradeScreen {...defaultProps} showAmountWarning />);
 
-    expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED),
-    ).toBeOnTheScreen();
+    // Hidden from the accessibility tree on purpose, so query past it.
+    const amountSection = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+      { includeHiddenElements: true },
+    );
+    expect(amountSection).toBeOnTheScreen();
+    expect(amountSection.props.accessibilityElementsHidden).toBe(true);
+    expect(amountSection.props.importantForAccessibility).toBe(
+      'no-hide-descendants',
+    );
   });
 
   it('propagates every form error to an accessible alert', () => {

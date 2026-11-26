@@ -1192,7 +1192,12 @@ describe('PerpsOrderView', () => {
       const addFunds = await findEnabledSubmitButton();
       expect(within(addFunds).getByText('Add funds')).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED),
+        screen.getByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+          {
+            includeHiddenElements: true,
+          },
+        ),
       ).toBeOnTheScreen();
 
       // Only the bottom error is shown, not a second warning under the amount.
