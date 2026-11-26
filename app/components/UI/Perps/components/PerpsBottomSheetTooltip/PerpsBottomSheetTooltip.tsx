@@ -161,7 +161,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
           buttonsAlignment={ButtonsAlignment.Horizontal}
           primaryButtonProps={primaryButtonProps}
           secondaryButtonProps={secondaryButtonProps}
-          twClassName="pt-6"
+          className="pt-6"
         />
       </BottomSheet>
     );

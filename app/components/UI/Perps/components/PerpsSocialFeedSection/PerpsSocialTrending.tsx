@@ -83,7 +83,7 @@ const PerpsSocialTrending: React.FC = () => {
 
   if (isLoading && posts.length === 0) {
     return (
-      <Box twClassName="gap-6">
+      <Box className="gap-6">
         <SocialFeedSkeleton count={PERPS_TRENDING_POST_COUNT} />
       </Box>
     );
@@ -99,7 +99,7 @@ const PerpsSocialTrending: React.FC = () => {
 
   return (
     <SocialFeedSurfaceProvider location="perps_home" analyticsSource={SOURCE}>
-      <Box twClassName="gap-6">
+      <Box className="gap-6">
         <SocialV1FeedPostList
           posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
           dividerKeyPrefix="perps-home-trending"

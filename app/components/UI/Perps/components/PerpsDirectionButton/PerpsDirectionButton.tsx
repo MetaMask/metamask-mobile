@@ -42,7 +42,7 @@ const PerpsDirectionButton = ({
   return (
     <ButtonBase
       {...props}
-      twClassName={`${twClassName} ${colorClasses.background}`}
+      className={`${twClassName} ${colorClasses.background}`}
       textClassName={() => colorClasses.foreground}
       iconClassName={() => colorClasses.foreground}
     />

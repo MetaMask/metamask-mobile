@@ -107,6 +107,19 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           ) : undefined
         }
         testID={testID ? `${testID}-${category.id}` : undefined}
+      ><PerpsSentimentSatisfiedIcon
+              size={PERPS_SENTIMENT_ICON_SIZE_SM}
+              // FilterButton recolours `startIconName` but passes
+              // `startAccessory` through untouched, so mirror its variants:
+              // selected renders ButtonPrimary (`text-primary-inverse`),
+              // unselected renders ButtonTertiary (`IconColor.IconAlternative`).
+              color={
+                isSelected ? colors.primary.inverse : colors.icon.alternative
+              }
+            />
+          ) : undefined
+        }
+        testID={testID ? `${testID}-${category.id}` : undefined}
       >
         {category.label}
       </FilterButton>
@@ -118,7 +131,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       value={groupValue}
       onChange={handleFilterChange}
       variant={FilterButtonVariant.Primary}
-      twClassName="px-4 py-2"
+      className="px-4 py-2"
       testID={testID}
     >
       {showWatchlistBadge && (
@@ -128,7 +141,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
           testID={testID ? `${testID}-watchlist` : undefined}
           contentWrapperProps={{ gap: 0 }}
-          twClassName="px-2"
+          className="px-2"
         >
           {null}
         </FilterButton>

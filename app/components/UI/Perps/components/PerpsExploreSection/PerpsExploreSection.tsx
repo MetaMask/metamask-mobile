@@ -296,7 +296,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
       // otherwise keeps a label gap and wider trailing padding.
       if (tab.iconOnly) {
         return (
-          <Button {...sharedProps} twClassName="px-3">
+          <Button {...sharedProps} className="px-3">
             <Icon
               name={IconName.StarFilled}
               size={IconSize.Sm}
@@ -312,6 +312,20 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
           startAccessory={
             isMemecoin ? (
               <PerpsSentimentSatisfiedIcon
+                size={PERPS_SENTIMENT_ICON_SIZE_SM}
+                color={
+                  isSelected ? colors.primary.inverse : colors.icon.alternative
+                }
+              />
+            ) : (
+              <Icon
+                name={getCategoryIconName(tab.id)}
+                size={IconSize.Sm}
+                color={iconColor}
+              />
+            )
+          }
+        ><PerpsSentimentSatisfiedIcon
                 size={PERPS_SENTIMENT_ICON_SIZE_SM}
                 color={
                   isSelected ? colors.primary.inverse : colors.icon.alternative
@@ -343,7 +357,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
   }
 
   return (
-    <Box testID={TEST_ID} twClassName="pb-4">
+    <Box testID={TEST_ID} className="pb-4">
       <SectionHeader
         title={strings('perps.home.explore')}
         isInteractive={activeTab !== null}
@@ -392,7 +406,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
               testID={`${TEST_ID}-list`}
             />
           )}
-          <Box accessible={false} twClassName="px-4 pt-3">
+          <Box accessible={false} className="px-4 pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}

@@ -45,10 +45,10 @@ const PerpsMarketSummary = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         gap={2}
-        twClassName="px-4 py-2"
+        className="px-4 py-2"
         onLayout={onLayout}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <LivePriceHeader
             providerId={providerId}
             symbol={symbol}
@@ -68,10 +68,10 @@ const PerpsMarketSummary = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-4 px-4"
+      className="gap-4 px-4"
       onLayout={onLayout}
     >
-      <Box twClassName="flex-1 py-2">
+      <Box className="flex-1 py-2">
         <LivePriceHeader
           providerId={providerId}
           symbol={symbol}

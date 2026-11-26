@@ -58,7 +58,7 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {/* Circular icon skeleton */}
             <Skeleton
@@ -68,7 +68,7 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
             />
 
             {/* Text info */}
-            <Box twClassName="flex-1 gap-1.5">
+            <Box className="flex-1 gap-1.5">
               {/* Primary text (larger) */}
               <Skeleton height={16} width="70%" />
 
@@ -78,7 +78,7 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
           </Box>
 
           {/* Right section: Value + Label */}
-          <Box alignItems={BoxAlignItems.End} twClassName="gap-1.5">
+          <Box alignItems={BoxAlignItems.End} className="gap-1.5">
             {/* Value text */}
             <Skeleton height={16} width={80} />
 

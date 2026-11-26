@@ -250,7 +250,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
         {strings('perps.order.size_modal.title')}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="gap-2 px-4">
+      <Box className="gap-2 px-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.pro_positions_panel.order_card.size')}
         </Text>
@@ -261,6 +261,16 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
           isError={Boolean(sizeError)}
           endAccessory={
             <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {displaySymbol}
+            </Text>
+          }
+          inputProps={{
+            showSoftInputOnFocus: false,
+          }}
+        /><Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
             >
@@ -296,7 +306,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
         )}
       </Box>
 
-      <Box twClassName="mb-4 mt-4 px-4">
+      <Box className="mb-4 mt-4 px-4">
         {isInputReady ? (
           <Keypad
             value={orderSize}

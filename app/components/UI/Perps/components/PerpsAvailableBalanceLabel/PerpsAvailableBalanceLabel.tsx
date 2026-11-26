@@ -41,7 +41,7 @@ const PerpsAvailableBalanceLabel: React.FC<PerpsAvailableBalanceLabelProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       testID={PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW}
-      twClassName={twClassName}
+      className={twClassName}
     >
       {providerLogoIds.length > 0 ? (
         <PerpsProviderLogos
