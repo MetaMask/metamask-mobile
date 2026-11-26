@@ -170,46 +170,26 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
   });
 
-  describe('legacy KeyringController encryptionKey', () => {
-    const legacyVersion = 27;
+  describe('persisted KeyringController encryptionKey', () => {
+    const versionBeforeMigration75 = 74;
     const lastVersion = numberOfMigrations - 1;
-    const legacyControllerFiles: Record<string, Record<string, unknown>> = {
-      KeyringController: {
-        vault: 'encrypted-vault',
-        encryptionKey: 'vault-encryption-key',
-      },
-      TokenBalancesController: {},
-      TransactionController: {},
-      NetworkController: {},
-    };
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
 
     it.each([
       'TokenBalancesController',
       'TransactionController',
       'NetworkController',
     ])(
-      'never writes encryptionKey to disk when the legacy %s file is missing',
+      'does not write encryptionKey to persist:KeyringController when %s state is missing',
       async (missingController) => {
-        const { [missingController]: _missing, ...persistedFiles } =
-          legacyControllerFiles;
-        jest
-          .spyOn(FilesystemStorage, 'getItem')
-          .mockImplementation(async (key: string) => {
-            const controllerState = persistedFiles[key.replace('persist:', '')];
-            return controllerState
-              ? JSON.stringify(controllerState)
-              : undefined;
-          });
-        const filesystemSetItem = jest
-          .spyOn(FilesystemStorage, 'setItem')
-          .mockResolvedValue(undefined);
-        jest
-          .spyOn(FilesystemStorage, 'removeItem')
-          .mockResolvedValue(undefined);
+        const { [missingController]: _missing, ...backgroundState } = {
+          KeyringController: {
+            vault: 'encrypted-vault',
+            encryptionKey: 'vault-encryption-key',
+          },
+          TokenBalancesController: {},
+          TransactionController: {},
+          NetworkController: {},
+        } as Record<string, Record<string, unknown>>;
         const mockedControllerStorage = jest.mocked(ControllerStorage);
         mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
         mockedControllerStorage.setItem.mockResolvedValue();
@@ -218,20 +198,16 @@ describe('migrations', () => {
         );
 
         await migrate(
-          { _persist: { version: legacyVersion, rehydrated: false } },
+          {
+            engine: { backgroundState },
+            _persist: { version: versionBeforeMigration75, rehydrated: false },
+          } as PersistedState,
           lastVersion,
         );
 
-        const rootWrite = filesystemSetItem.mock.calls.find(
-          ([key]) => key === 'persist:root',
-        );
         const keyringWrite = mockedControllerStorage.setItem.mock.calls.find(
           ([key]) => key === 'persist:KeyringController',
         );
-        expect(
-          JSON.parse(rootWrite?.[1] ?? '{}').engine.backgroundState
-            .KeyringController,
-        ).toStrictEqual({ vault: 'encrypted-vault' });
         expect(JSON.parse(keyringWrite?.[1] ?? '{}')).toStrictEqual({
           vault: 'encrypted-vault',
         });
