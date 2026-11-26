@@ -162,9 +162,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       };
 
       const updateOptions =
-        existingNetwork != null &&
-        existingNetwork.chainId === hexChainId &&
-        indexRpc >= 0
+        existingNetwork?.chainId === hexChainId && indexRpc >= 0
           ? { replacementSelectedRpcEndpointIndex: indexRpc }
           : undefined;
 
