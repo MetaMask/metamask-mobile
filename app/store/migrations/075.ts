@@ -25,6 +25,15 @@ const migration = (state: unknown): unknown => {
 
   const keyringControllerState = state.engine.backgroundState.KeyringController;
 
+  // Must run before the validation below: an early return would otherwise
+  // leave the vault encryption key in state, which is then written to disk.
+  if (
+    isObject(keyringControllerState) &&
+    'encryptionKey' in keyringControllerState
+  ) {
+    delete keyringControllerState.encryptionKey;
+  }
+
   if (!isObject(tokenBalancesControllerState)) {
     captureException(
       new Error(
@@ -71,10 +80,6 @@ const migration = (state: unknown): unknown => {
 
   if ('isCustomNetwork' in networkControllerState) {
     delete networkControllerState.isCustomNetwork;
-  }
-
-  if ('encryptionKey' in keyringControllerState) {
-    delete keyringControllerState.encryptionKey;
   }
 
   return state;

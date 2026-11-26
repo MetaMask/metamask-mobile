@@ -153,4 +153,40 @@ describe('Migration 75: Remove specific properties from controllers', () => {
       );
     },
   );
+
+  it.each([
+    'TokenBalancesController',
+    'TransactionController',
+    'NetworkController',
+  ] as const)(
+    'removes encryptionKey from KeyringController when %s state is invalid',
+    (invalidController) => {
+      mockedEnsureValidState.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {},
+            TransactionController: {},
+            NetworkController: {},
+            [invalidController]: 'invalid',
+            KeyringController: {
+              vault: 'encrypted-vault',
+              encryptionKey: 'some-key',
+            },
+          },
+        },
+      };
+
+      const migratedState = migrate(state) as typeof state;
+
+      expect(
+        migratedState.engine.backgroundState.KeyringController,
+      ).toStrictEqual({ vault: 'encrypted-vault' });
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: `FATAL ERROR: Migration 75: Invalid ${invalidController} state error: 'string'`,
+        }),
+      );
+    },
+  );
 });

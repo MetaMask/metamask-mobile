@@ -100,6 +100,16 @@ export default async function migrate(state: unknown) {
             newEngineState.backgroundState[controllerName] =
               persistedControllerJSON;
           }
+
+          // The vault encryption key must never reach `persist:root`.
+          const controllerState =
+            newEngineState.backgroundState[controllerName];
+          if (
+            controllerName === 'KeyringController' &&
+            isObject(controllerState)
+          ) {
+            delete controllerState.encryptionKey;
+          }
         }
       } catch (e) {
         captureException(

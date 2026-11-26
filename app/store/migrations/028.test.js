@@ -114,4 +114,45 @@ describe('Migration #28', () => {
       require('@sentry/react-native').captureException,
     ).not.toHaveBeenCalled();
   });
+
+  it('does not write the KeyringController encryptionKey to persist:root', async () => {
+    const persistedKeyringController = {
+      vault: 'encrypted-vault',
+      encryptionKey: 'vault-encryption-key',
+    };
+    const setItemMock = jest.fn().mockResolvedValue(undefined);
+    require('@metamask/utils').isObject.mockReturnValue(true);
+    require('@metamask/utils').hasProperty = jest.fn().mockReturnValue(false);
+    require('../../util/general').deepJSONParse = jest.fn(({ jsonString }) =>
+      JSON.parse(jsonString),
+    );
+    require('redux-persist-filesystem-storage').getItem = jest.fn((key) =>
+      Promise.resolve(
+        key === 'persist:KeyringController'
+          ? JSON.stringify(persistedKeyringController)
+          : undefined,
+      ),
+    );
+    require('redux-persist-filesystem-storage').setItem = setItemMock;
+    require('redux-persist-filesystem-storage').removeItem = jest
+      .fn()
+      .mockResolvedValue(undefined);
+
+    const result = await migrate({});
+
+    expect(setItemMock).toHaveBeenCalledWith(
+      'persist:root',
+      JSON.stringify({
+        engine: {
+          backgroundState: { KeyringController: { vault: 'encrypted-vault' } },
+        },
+      }),
+      true,
+    );
+    expect(result).toEqual({
+      engine: {
+        backgroundState: { KeyringController: { vault: 'encrypted-vault' } },
+      },
+    });
+  });
 });
