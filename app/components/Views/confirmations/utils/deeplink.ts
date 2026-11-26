@@ -30,9 +30,7 @@ const getNetworkClientIdForChainId = (chainId: Hex) => {
   return networkClientId;
 };
 
-export function isDeeplinkRedesignedConfirmationCompatible(
-  functionName?: string,
-) {
+export function isDeeplinkConfirmationCompatible(functionName?: string) {
   switch (functionName) {
     case ETH_ACTIONS.APPROVE: {
       return false;

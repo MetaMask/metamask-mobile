@@ -108,7 +108,6 @@ import { bridgeStatusControllerInit } from './controllers/bridge-status-controll
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
-import { SignatureControllerInit } from './controllers/signature-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -316,7 +315,6 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
-        SignatureController: SignatureControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
@@ -415,7 +413,7 @@ export class Engine {
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const gasFeeController = this.#wallet.getInstance('GasFeeController');
-    const signatureController = messengerClientsByName.SignatureController;
+    const signatureController = this.#wallet.getInstance('SignatureController');
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
     const transactionController = this.#wallet.getInstance(

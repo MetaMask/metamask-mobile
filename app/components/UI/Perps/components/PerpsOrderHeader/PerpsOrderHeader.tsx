@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
@@ -47,9 +48,11 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  // Only show the venue mark in multi-provider mode, preserving flag-off UI.
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
-  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
-  // TAT-3334) — the same source PerpsOrderView already uses for its own
+  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence) —
+  // the same source PerpsOrderView already uses for its own
   // fee/margin/validation calculations. Subscribing again here (rather than
   // only reading the `price` prop) puts the resulting setState inside
   // PerpsOrderHeader's own subtree, so its render is independent of the
@@ -182,7 +185,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       backButtonProps={{
         testID: PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
       }}
-      avatar={<PerpsTokenLogo symbol={asset} size={40} />}
+      avatar={
+        <PerpsTokenLogo
+          symbol={asset}
+          size={40}
+          providerId={isMultiProviderEnabled ? providerId : undefined}
+        />
+      }
       title={displayTitle}
       titleProps={{ testID: PerpsOrderHeaderSelectorsIDs.ASSET_TITLE }}
       description={description}

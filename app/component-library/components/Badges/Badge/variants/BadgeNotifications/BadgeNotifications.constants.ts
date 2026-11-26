@@ -5,7 +5,6 @@ import { IconName } from '../../../../Icons/Icon/Icon.types';
 import { BadgeNotificationsProps } from './BadgeNotifications.types';
 
 // Test IDs
-export const BADGE_NOTIFICATIONS_TEST_ID = 'badge-notifications';
 export const TEST_NOTIFICATIONS_ACTION = NotificationTypes.TRANSACTION;
 export const TEST_NOTIFICATIONS_ICON_NAME = IconName.Send;
 

@@ -1,6 +1,9 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createComponentViewQueryClient,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -62,6 +65,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
   publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
+  waitForPredictFeedQueries,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 const {
@@ -119,6 +123,13 @@ const rowEventIds = (row: Parameters<typeof within>[0]) =>
     );
 const eventIdsOf = (events: readonly PredictEvent[]) =>
   events.map((event) => event.id);
+/** The test ids of the portfolio actions, in display order. */
+const portfolioActionOrder = (view: {
+  getByTestId: (id: string) => Parameters<typeof within>[0];
+}) =>
+  within(view.getByTestId(PredictHomeTestIds.ACTIONS))
+    .getAllByRole('button')
+    .map((action) => String(action.props.testID));
 /** The messenger calls to one action, in call order. */
 const callsTo = (action: string) =>
   messengerCall.mock.calls.filter(([name]) => name === action);
@@ -285,6 +296,11 @@ describe('PredictHome', () => {
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
   });
 
   it('hides Withdraw where the Venue does not list it', async () => {
@@ -316,6 +332,10 @@ describe('PredictHome', () => {
       view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
     ).not.toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.WITHDRAW,
+    ]);
   });
 
   it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
@@ -356,6 +376,10 @@ describe('PredictHome', () => {
     });
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(portfolioActionOrder(view)).toEqual([
+      PredictHomeTestIds.POSITIONS,
+      PredictHomeTestIds.ADD_FUNDS,
+    ]);
 
     fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
 
@@ -564,16 +588,16 @@ describe('PredictHome', () => {
         home: 'Steelers',
         awayScore: '17',
         homeScore: '21',
-        awayQuote: /^PAC\s*· 41¢$/,
-        homeQuote: /^STE\s*· 59¢$/,
+        awayQuote: '41%',
+        homeQuote: '59%',
       });
       expectPredictNextGameCard(trending, 'ncaa-2', {
         away: 'Georgia',
         home: 'Florida',
         awayScore: '3',
         homeScore: '0',
-        awayQuote: /^GEO\s*· 55¢$/,
-        homeQuote: /^FLO\s*· 45¢$/,
+        awayQuote: '55%',
+        homeQuote: '45%',
       });
       // NCAAF's third Game ranks after the five Trending shows.
       expect(
@@ -890,7 +914,7 @@ describe('PredictHome', () => {
     // Trending shows other live Games, so read this card's own score.
     expect(within(card).getByText('28')).toBeOnTheScreen();
     expect(within(card).getByText('24')).toBeOnTheScreen();
-    expect(within(card).getByText('Q4 · 01:12')).toBeOnTheScreen();
+    expect(within(card).getByText('Q4 01:12')).toBeOnTheScreen();
   });
 
   describe('live-data subscriptions', () => {
@@ -1380,7 +1404,7 @@ describe('PredictHome', () => {
     expect(
       within(
         view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3')),
-      ).getByText('Q1 · 14:00'),
+      ).getByText('Q1 14:00'),
     ).toBeOnTheScreen();
     expect(
       rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
@@ -1781,18 +1805,39 @@ describe('PredictHome', () => {
 
     it('sits below the Trending and Sports rows and above Politics', async () => {
       configureFullHomeFeeds();
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      const queryClient = createComponentViewQueryClient();
+      try {
+        const view = renderPredictNext(false, { queryClient });
 
-      const order = [
-        PredictHomeTestIds.HOME_TRENDING,
-        PredictHomeTestIds.HOME_SPORTS,
-        PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
-      ];
-      const blocks = view.getAllByTestId(new RegExp(`^(${order.join('|')})$`));
-      expect(blocks.map((block) => block.props.testID)).toEqual(order);
+        // Cold shard 3 runs PredictHome first; await feed query settlement in
+        // act instead of racing findBy's 5 s wall clock against GC/coverage.
+        await act(async () => {
+          await waitForPredictFeedQueries(queryClient, [
+            NFL_GAMES_FEED_ID,
+            NCAA_GAMES_FEED_ID,
+            POLITICS_TRUMP_FEED_ID,
+          ]);
+        });
+
+        expect(
+          view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4')),
+        ).toBeOnTheScreen();
+        expect(
+          view.getByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
+        ).toBeOnTheScreen();
+        const order = [
+          PredictHomeTestIds.HOME_TRENDING,
+          PredictHomeTestIds.HOME_SPORTS,
+          PredictHomeTestIds.CATEGORIES,
+          PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+        ];
+        const blocks = view.getAllByTestId(
+          new RegExp(`^(${order.join('|')})$`),
+        );
+        expect(blocks.map((block) => block.props.testID)).toEqual(order);
+      } finally {
+        queryClient.clear();
+      }
     });
 
     it('opens the Politics Feed Screen on the Trump tab from the Politics chip', async () => {

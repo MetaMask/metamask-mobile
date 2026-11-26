@@ -101,10 +101,9 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     try {
       await depositWithConfirmation();
       hasLeftForDeposit.current = true;
-      navigation.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        { showPerpsHeader: true },
-      );
+      navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+        showPerpsHeader: true,
+      });
     } catch {
       hasLeftForDeposit.current = true;
       restoreOrder();

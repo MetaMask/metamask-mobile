@@ -40,6 +40,7 @@ import {
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  type PerpsProviderType,
   CandlePeriod,
   PerpsMode,
   TimeDuration,
@@ -75,6 +76,7 @@ import ChartCandleSkeleton from '../../../Charts/ChartCandleSkeleton';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
+  PerpsTradeOnSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -110,6 +112,10 @@ import type { SocialFeedPageHandle } from '../../../SocialFeed/types';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
+import { usePerpsTradeVenue } from '../../hooks/usePerpsTradeVenue';
+import PerpsTradeOnRow from '../../components/PerpsTradeOnSheet/PerpsTradeOnRow';
+import PerpsTradeOnSheet from '../../components/PerpsTradeOnSheet/PerpsTradeOnSheet';
+import { PERPS_TRADE_ON_INTERACTION } from '../../constants/perpsAnalytics';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -169,7 +175,10 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import {
+  usePerpsMarkets,
+  type PerpsMarketRow,
+} from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -212,6 +221,7 @@ import {
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import {
+  selectPerpsDefaultProvider,
   selectPerpsEligibility,
   selectPerpsProvider,
 } from '../../selectors/perpsController';
@@ -242,6 +252,8 @@ interface MarketDetailsRouteParams extends NavigationAnalyticsRouteParams {
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
   source_section?: string;
+  /** Optional venue to preselect for this order, when the route provides one. */
+  providerId?: PerpsProviderType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -376,11 +388,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     monitoringIntent,
     source,
     source_section,
+    providerId: routeProviderId,
     transactionActiveAbTests,
     analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
   const activeProvider = useSelector(selectPerpsProvider);
+  // The saved default drives the sheet's Default tag and per-order resolution.
+  const defaultProvider =
+    useSelector(selectPerpsDefaultProvider) ?? PROVIDER_CONFIG.DefaultProvider;
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
@@ -396,9 +412,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const needsEnrichment = !hasFormattedMaxLeverage;
   const needsMarketsForRelated =
     isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
+  // The Trade-on selector resolves which venues list the market from the
+  // venue-aware catalog. Only the markets list passes a route market that
+  // already carries its venue rows, so every other entry point (home,
+  // recently viewed, social, deep links) needs the catalog loaded or the
+  // selector sees a single venue and stays hidden.
+  const routeMarketHasVenueRows = Boolean(
+    (routeMarket as Partial<PerpsMarketRow> | undefined)?.venues?.length,
+  );
   const { markets } = usePerpsMarkets({
     fullCatalog: true,
-    skipInitialFetch: !needsEnrichment && !needsMarketsForRelated,
+    skipInitialFetch:
+      !needsEnrichment && !needsMarketsForRelated && routeMarketHasVenueRows,
   });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
@@ -423,6 +448,70 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
     return fullMarket ?? routeMarket;
   }, [activeProvider, markets, routeMarket, needsEnrichment]);
+
+  // Per-order venue state never switches the global provider or saved default.
+  // Venue rows come from the venue-aware markets list — the route market
+  // carries them when it arrived from the list, and the enrichment catalog
+  // covers the rest.
+  const tradeOnVenues = useMemo(() => {
+    // A grouped route market (from the markets list) carries its venue rows.
+    const routeVenueRows = (routeMarket as Partial<PerpsMarketRow>)?.venues;
+    if (routeVenueRows?.length) {
+      return routeVenueRows;
+    }
+    // The enrichment catalog is ungrouped per-venue listings: every row
+    // matching the symbol is one venue's data for that market. Case-
+    // insensitive, matching the enrichment lookup above.
+    const routeSymbol = routeMarket?.symbol?.toLowerCase();
+    return markets.filter((row) => row.symbol.toLowerCase() === routeSymbol);
+  }, [markets, routeMarket]);
+  const marketVenueIds = useMemo<readonly PerpsProviderType[]>(() => {
+    if (tradeOnVenues.length > 0) {
+      return tradeOnVenues.map(
+        (venue) => venue.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+      );
+    }
+    const single = routeMarket?.providerId;
+    return single ? [single] : [];
+  }, [tradeOnVenues, routeMarket]);
+  const { tradeVenueId, isSelectorVisible, selectVenue, orderProviderId } =
+    usePerpsTradeVenue({
+      marketSymbol: routeMarket?.symbol ?? '',
+      routeProviderId,
+      marketVenueIds,
+    });
+
+  const [tradeOnSheetMarket, setTradeOnSheetMarket] = useState<string | null>(
+    null,
+  );
+  const isTradeOnSheetVisible =
+    isSelectorVisible && tradeOnSheetMarket === routeMarket?.symbol;
+  // Unmounting the sheet when a venue disappears does not invoke onClose.
+  // Clear the open request so a later catalog update cannot reopen it.
+  useEffect(() => {
+    setTradeOnSheetMarket(null);
+  }, [isSelectorVisible, routeMarket?.symbol]);
+  const handleTradeOnRowPress = useCallback(() => {
+    setTradeOnSheetMarket(routeMarket?.symbol ?? null);
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_TRADE_ON_INTERACTION.SHEET_OPENED,
+      [PERPS_EVENT_PROPERTY.PROVIDER]: tradeVenueId,
+      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol,
+    });
+  }, [market?.symbol, routeMarket?.symbol, track, tradeVenueId]);
+  const handleTradeOnSelect = useCallback(
+    (providerId: PerpsProviderType) => {
+      selectVenue(providerId);
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_TRADE_ON_INTERACTION.VENUE_CHANGED,
+        [PERPS_EVENT_PROPERTY.PROVIDER]: providerId,
+        [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol,
+      });
+    },
+    [market?.symbol, selectVenue, track],
+  );
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
   // analytics and gates the section's visibility on an available description.
@@ -674,7 +763,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     throttleMs: 1000,
   });
 
-  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334).
+  // Fast focused price via activeAssetCtx projection (~0.5 s).
   // Prefer focused price on this detail screen; fall back to the allMids
   // baseline so the display is never blank on first render.
   const focusedPrice = usePerpsLiveFocusedPrice({
@@ -1283,7 +1372,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         navigateToOrder({
           direction,
           asset: market.symbol,
-          ...(market.providerId ? { providerId: market.providerId } : {}),
+          // Multi-provider mode routes to the selected venue; flag-off
+          // keeps the route market's original venue.
+          providerId: orderProviderId ?? market.providerId,
           source: resolvePerpsSocialOrderSource(
             source,
             PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -1307,6 +1398,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       navigation,
       track,
       navigateToOrder,
+      orderProviderId,
       source,
       source_section,
       transactionActiveAbTests,
@@ -1906,7 +1998,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         key: 'about',
         // Outer guard avoids mounting the component when there is no
         // description; the component also returns null defensively for
-        // direct/standalone use. Placed below stats per TAT-2308 follow-up.
+        // direct/standalone use. Keep this section below the statistics.
         visible: hasAboutDescription,
         onLayout: handleAboutLayout,
         content: (
@@ -2338,6 +2430,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onIdentityPress={handleMarketListPress}
           onFavoritePress={handleFavoritePress}
           isFavorite={isWatchlist}
+          providerId={orderProviderId}
           mode={isPerpsProModeEnabled ? perpsMode : undefined}
           onModeChange={
             isPerpsProModeEnabled ? handlePerpsModeChange : undefined
@@ -2464,6 +2557,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </PerpsDirectionButton>
             </View>
           )}
+          {/* Show "Trade on" only when multiple venues list the market. */}
+          {shouldShowLongShortButtonsOnly && isSelectorVisible ? (
+            <PerpsTradeOnRow
+              providerId={tradeVenueId}
+              onPress={handleTradeOnRowPress}
+              testID={PerpsTradeOnSelectorsIDs.ROW}
+            />
+          ) : null}
           {edgeInsets && (
             <View
               style={{ height: edgeInsets.bottom }}
@@ -2474,6 +2575,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       )}
 
       {/* More Candle Periods Bottom Sheet - Rendered at root level */}
+      {/* Remount on market change so a draft cannot carry into another market. */}
+      {isTradeOnSheetVisible ? (
+        <PerpsTradeOnSheet
+          key={routeMarket?.symbol}
+          selectedProviderId={tradeVenueId}
+          defaultProviderId={defaultProvider}
+          venues={tradeOnVenues}
+          onSelect={handleTradeOnSelect}
+          onClose={() => setTradeOnSheetMarket(null)}
+          testID={PerpsTradeOnSelectorsIDs.SHEET}
+        />
+      ) : null}
       <CandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
