@@ -29,6 +29,9 @@ import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../sele
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { useNavigation } from '@react-navigation/native';
+
+import type { RootState } from '#app/reducers';
+
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import OldButton, {
@@ -55,9 +58,7 @@ function TransactionsSettings() {
   );
 
   const showHexData = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.showHexData,
+    (state: RootState) => state.settings.showHexData,
   );
 
   function trackMetricsEvent(
@@ -153,7 +154,7 @@ function TransactionsSettings() {
         style={tw`flex-1`}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <Box className="pb-28 px-4">
+        <Box className="px-4 pb-28">
           <Text variant={TextVariant.HeadingMd} className="mb-4">
             {strings('app_settings.transactions_subheading')}
           </Text>
