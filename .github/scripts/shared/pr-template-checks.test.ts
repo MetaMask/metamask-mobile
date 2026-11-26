@@ -13,7 +13,7 @@ jest.mock('fs', () => {
   const fixturePath = nodePath.join(
     __dirname,
     '__fixtures__',
-    'pull-request-template.txt',
+    'pull-request-template.fixture.md',
   );
   return {
     ...actualFs,
