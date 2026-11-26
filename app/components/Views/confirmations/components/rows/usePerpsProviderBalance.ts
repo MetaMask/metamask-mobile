@@ -5,7 +5,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import { usePerpsLiveAccount } from '../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
 import { selectPerpsBalances } from '../../../../UI/Perps/selectors/perpsController';
 import { formatPerpsBalance } from '../../../../UI/Perps/utils/formatUtils';
-import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
+import { useLighterTotalBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 
 /**
  * Hyperliquid uses the live perps account balance. Lighter uses the per-venue
@@ -22,7 +22,9 @@ export function usePerpsProviderBalance(): {
   // TEMPORARY FALLBACK. Remove it once the Perps code fills `perpsBalances`
   // for Lighter in every provider mode. The controller only does so in
   // aggregated mode, so in direct Hyperliquid mode it has no Lighter entry.
-  const fallbackLighterBalance = useLighterWithdrawableBalance(
+  // It is the total balance, like the controller entry and the Hyperliquid
+  // balance, not the withdrawable one.
+  const fallbackLighterBalance = useLighterTotalBalance(
     address,
     controllerLighterBalance === undefined,
   );

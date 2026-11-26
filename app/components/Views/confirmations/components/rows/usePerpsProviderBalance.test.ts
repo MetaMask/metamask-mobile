@@ -1,6 +1,6 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
+import { useLighterTotalBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 import { usePerpsProviderBalance } from './usePerpsProviderBalance';
 
 const mockUsePerpsLiveAccount = jest.fn();
@@ -40,7 +40,7 @@ describe('usePerpsProviderBalance', () => {
   });
 
   it('uses the controller balance for Lighter without enabling the fallback', () => {
-    jest.mocked(useLighterWithdrawableBalance).mockReturnValue('7');
+    jest.mocked(useLighterTotalBalance).mockReturnValue('7');
 
     const { result } = runHook({
       lighter: { totalBalance: '12.349', unrealizedPnl: '0', lastUpdated: 1 },
@@ -50,24 +50,20 @@ describe('usePerpsProviderBalance', () => {
       hyperliquid: '$50.38',
       lighter: '$12.34',
     });
-    expect(jest.mocked(useLighterWithdrawableBalance).mock.lastCall?.[1]).toBe(
-      false,
-    );
+    expect(jest.mocked(useLighterTotalBalance).mock.lastCall?.[1]).toBe(false);
   });
 
   it('falls back to the fetched Lighter balance when the controller has none', () => {
-    jest.mocked(useLighterWithdrawableBalance).mockReturnValue('7.579');
+    jest.mocked(useLighterTotalBalance).mockReturnValue('7.579');
 
     const { result } = runHook({});
 
     expect(result.current.lighter).toBe('$7.57');
-    expect(jest.mocked(useLighterWithdrawableBalance).mock.lastCall?.[1]).toBe(
-      true,
-    );
+    expect(jest.mocked(useLighterTotalBalance).mock.lastCall?.[1]).toBe(true);
   });
 
   it('shows zero while the fallback balance loads', () => {
-    jest.mocked(useLighterWithdrawableBalance).mockReturnValue(undefined);
+    jest.mocked(useLighterTotalBalance).mockReturnValue(undefined);
 
     const { result } = runHook({});
 
