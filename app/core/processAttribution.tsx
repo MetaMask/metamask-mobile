@@ -1,4 +1,5 @@
 import extractURLParams from './DeeplinkManager/utils/extractURLParams';
+import { selectMarketingConsent } from '../selectors/analyticsController';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';
@@ -23,8 +24,7 @@ export function processAttribution({
   currentDeeplink,
   store,
 }: ProcessAttributionParams): AttributionResult | undefined {
-  const { security } = store.getState();
-  if (!security.dataCollectionForMarketing) {
+  if (!selectMarketingConsent(store.getState())) {
     Logger.log(
       'processAttribution:: dataCollectionForMarketing is false, returning undefined',
     );

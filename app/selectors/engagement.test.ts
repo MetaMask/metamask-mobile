@@ -1,5 +1,6 @@
 import { selectDataCollectionForMarketingEnabled } from './engagement';
 import type { RootState } from '../reducers';
+import { engineWithMarketingConsent } from '../util/test/marketingConsentState';
 
 describe('engagement selectors', () => {
   it.each([
@@ -7,13 +8,11 @@ describe('engagement selectors', () => {
     [false, false],
     [false, null],
   ])(
-    'returns %s when dataCollectionForMarketing is %s',
-    (expected, dataCollectionForMarketing) => {
+    'returns %s when marketing consent is %s',
+    (expected, marketingConsent) => {
       const state = {
-        security: {
-          dataCollectionForMarketing,
-        },
-      } as RootState;
+        engine: engineWithMarketingConsent(marketingConsent),
+      } as unknown as RootState;
 
       expect(selectDataCollectionForMarketingEnabled(state)).toBe(expected);
     },

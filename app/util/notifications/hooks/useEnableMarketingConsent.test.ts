@@ -5,6 +5,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountType } from '../../../constants/onboarding';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
+import { analyticsControllerWithMarketingConsent } from '../../test/marketingConsentState';
 import { analytics } from '../../analytics/analytics';
 import { useEnableMarketingConsent } from './useEnableMarketingConsent';
 
@@ -42,6 +43,8 @@ const renderUseEnableMarketingConsent = ({
       state: {
         engine: {
           backgroundState: {
+            AnalyticsController:
+              analyticsControllerWithMarketingConsent(hasMarketingConsent),
             SeedlessOnboardingController: {
               vault: isSeedlessOnboardingLoginFlow ? 'vault' : undefined,
             },
@@ -49,9 +52,6 @@ const renderUseEnableMarketingConsent = ({
         },
         onboarding: {
           accountType,
-        },
-        security: {
-          dataCollectionForMarketing: hasMarketingConsent,
         },
       },
     },

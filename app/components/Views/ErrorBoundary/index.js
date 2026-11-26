@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import {
   TouchableOpacity,
   View,
@@ -148,7 +149,7 @@ export const Fallback = (props) => {
   const [isConsentModalVisible, setConsentModalVisible] = React.useState(false);
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   const dataCollectionForMarketing =
     isDataCollectionForMarketingEnabled && !isOnboardingError;
@@ -532,7 +533,7 @@ class ErrorBoundary extends Component {
   openTicket = () => {
     const navigation = this.props.navigation;
     if (!navigation) {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+      Linking.openURL(METAMASK_SUPPORT_URL).catch(() => undefined);
       return;
     }
 

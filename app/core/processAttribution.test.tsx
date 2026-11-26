@@ -1,6 +1,7 @@
 import { store } from '../store';
 import extractURLParams from './DeeplinkManager/utils/extractURLParams';
 import { processAttribution } from './processAttribution';
+import { engineWithMarketingConsent } from '../util/test/marketingConsentState';
 
 jest.mock('../store', () => ({
   store: {
@@ -20,7 +21,7 @@ describe('processAttribution', () => {
 
   it('returns attribution data when marketing is enabled and deeplink is provided', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
@@ -50,7 +51,7 @@ describe('processAttribution', () => {
 
   it('returns undefined when marketing is disabled', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: false },
+      engine: engineWithMarketingConsent(false),
     });
 
     const result = processAttribution({
@@ -63,7 +64,7 @@ describe('processAttribution', () => {
 
   it('returns undefined when deeplink is null', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
 
     const result = processAttribution({ currentDeeplink: null, store });
@@ -72,7 +73,7 @@ describe('processAttribution', () => {
 
   it('returns partial data when some UTM params are missing', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
@@ -102,7 +103,7 @@ describe('processAttribution', () => {
 
   it('resolves attribution_id (snake_case) when attributionId (camelCase) is absent', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
@@ -128,7 +129,7 @@ describe('processAttribution', () => {
 
   it('prefers camelCase attributionId over snake_case attribution_id', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
@@ -154,7 +155,7 @@ describe('processAttribution', () => {
 
   it('does not populate attributionId when both camelCase and snake_case IDs are blank', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
@@ -182,7 +183,7 @@ describe('processAttribution', () => {
 
   it('handles empty UTM parameters gracefully', () => {
     (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {

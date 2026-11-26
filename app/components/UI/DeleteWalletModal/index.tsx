@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import { InteractionManager, UIManager } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -11,7 +12,6 @@ import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
-import { RootState } from '../../../reducers';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -60,7 +60,7 @@ const DeleteWalletModal: React.FC = () => {
 
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
 
   const [isDeletingWallet, setIsDeletingWallet] = useState<boolean>(false);

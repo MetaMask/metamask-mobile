@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
-import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,7 @@ const usePromptSeedlessRelogin = () => {
   const { signOut } = useSignOut();
   const navigation = useNavigation<AppNavigationProp>();
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   const navigateOnboardingRoot = useCallback((): void => {
     navigation.reset({

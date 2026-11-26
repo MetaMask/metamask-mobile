@@ -132,6 +132,10 @@
         "AddressBookController": {
           "addressBook": {}
         },
+        "AnalyticsController": {
+          "marketingConsentDecisionMade": true,
+          "optedInToMarketing": false
+        },
         "ApprovalController": {
           "approvalFlows": [],
           "pendingApprovalCount": 0,

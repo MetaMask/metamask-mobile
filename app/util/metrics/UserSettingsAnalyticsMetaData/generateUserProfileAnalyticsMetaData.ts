@@ -1,4 +1,5 @@
 import { Appearance } from 'react-native';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -110,7 +111,7 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
   const appThemeStyle =
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
-    reduxState?.security?.dataCollectionForMarketing;
+    selectMarketingConsent(reduxState);
 
   const chainIds = getConfiguredCaipChainIds();
 

@@ -11,7 +11,8 @@ import {
   setCompletedOnboarding,
   setPendingSocialLoginMarketingConsentBackfill,
 } from '../../../actions/onboarding';
-import { setDataCollectionForMarketing } from '../../../actions/security';
+import Engine from '../../../core/Engine';
+import { updateBgState } from '../../../core/redux/slices/engine';
 import {
   clearPendingReferralCode,
   initialState as initialRewardsMoneyState,
@@ -20,6 +21,10 @@ import {
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
+import {
+  analyticsControllerWithMarketingConsent,
+  engineWithMarketingConsent,
+} from '../../test/marketingConsentState';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
 import { usePushPrePromptVariant } from './usePushPrePromptVariant';
@@ -118,9 +123,7 @@ const renderUsePushPrePromptVariant = ({
         completedOnboarding,
         pendingSocialLoginMarketingConsentBackfill,
       },
-      security: {
-        dataCollectionForMarketing: hasMarketingConsent,
-      },
+      engine: engineWithMarketingConsent(hasMarketingConsent),
       rewardsMoney: {
         ...initialRewardsMoneyState,
         pendingReferralCode,
@@ -128,6 +131,21 @@ const renderUsePushPrePromptVariant = ({
       },
     },
   });
+
+const engineWithState = Engine as unknown as {
+  state?: Record<string, unknown>;
+};
+
+// Mirrors MarketingConsentController's AnalyticsController update reaching Redux.
+const syncMarketingConsentToRedux = (
+  store: ReturnType<typeof renderUsePushPrePromptVariant>['store'],
+  consent: boolean,
+) => {
+  engineWithState.state = {
+    AnalyticsController: analyticsControllerWithMarketingConsent(consent),
+  };
+  store.dispatch(updateBgState({ key: 'AnalyticsController' }));
+};
 
 describe('usePushPrePromptVariant', () => {
   beforeEach(() => {
@@ -141,6 +159,7 @@ describe('usePushPrePromptVariant', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    delete engineWithState.state;
   });
 
   it('returns the push permission prompt when onboarding is complete and native push is disabled', async () => {
@@ -424,7 +443,7 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
 
     await act(async () => {
-      store.dispatch(setDataCollectionForMarketing(false));
+      syncMarketingConsentToRedux(store, false);
     });
 
     await waitFor(() => {
@@ -478,7 +497,7 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.variant).toBeNull();
 
     await act(async () => {
-      store.dispatch(setDataCollectionForMarketing(true));
+      syncMarketingConsentToRedux(store, true);
       store.dispatch(setPendingSocialLoginMarketingConsentBackfill(null));
     });
 

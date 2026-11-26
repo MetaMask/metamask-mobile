@@ -17116,7 +17116,7 @@
   },
   "app/components/Views/Settings/SecuritySettings/SecuritySettings.tsx": {
     "typescript/no-floating-promises": {
-      "count": 3
+      "count": 1
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -23622,7 +23622,7 @@
   },
   "app/store/sagas/marketingAttribution.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 2
+      "count": 1
     }
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {

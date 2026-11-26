@@ -1,4 +1,5 @@
 import type { RootState } from '../reducers';
+import { selectMarketingConsent } from './analyticsController';
 
 export const selectDataCollectionForMarketingEnabled = (state: RootState) =>
-  state.security?.dataCollectionForMarketing === true;
+  selectMarketingConsent(state) === true;

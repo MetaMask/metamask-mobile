@@ -17,6 +17,7 @@ import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../../Performance/DeeplinkPerformance';
 import { armMeasuredAppProfilingFromUri } from '../../../Performance/appProfiling';
 import Engine from '../../../Engine';
+import { engineWithMarketingConsent } from '../../../../util/test/marketingConsentState';
 
 jest.mock('../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
@@ -27,9 +28,7 @@ jest.mock('../../../redux', () => ({
   default: {
     store: {
       dispatch: jest.fn(),
-      getState: jest.fn(() => ({
-        security: { dataCollectionForMarketing: true },
-      })),
+      getState: jest.fn(),
     },
   },
 }));
@@ -115,7 +114,7 @@ describe('handleDeeplink', () => {
     mockIsUnlocked.mockReturnValue(false);
     jest.mocked(armMeasuredAppProfilingFromUri).mockReturnValue(false);
     mockGetState.mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+      engine: engineWithMarketingConsent(true),
     });
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -147,7 +146,7 @@ describe('handleDeeplink', () => {
   it('starts a Deeplink Navigated trace at intake when the app is already unlocked', () => {
     mockIsUnlocked.mockReturnValue(true);
     mockGetState.mockReturnValue({
-      security: { dataCollectionForMarketing: false },
+      engine: engineWithMarketingConsent(false),
     });
     const testUri = 'https://link.metamask.io/trending';
 
@@ -162,7 +161,7 @@ describe('handleDeeplink', () => {
 
   it('does not start Deeplink Navigated when Redux login state is stale after locking', () => {
     mockGetState.mockReturnValue({
-      security: { dataCollectionForMarketing: false },
+      engine: engineWithMarketingConsent(false),
       user: { userLoggedIn: true },
     });
 
@@ -189,7 +188,7 @@ describe('handleDeeplink', () => {
 
   it('does not dispatch saveAttribution when marketing consent is off', () => {
     mockGetState.mockReturnValue({
-      security: { dataCollectionForMarketing: false },
+      engine: engineWithMarketingConsent(false),
     });
     const testUri = 'metamask://open?utm_source=email';
 

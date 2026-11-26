@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { selectMarketingConsent } from '../analyticsController';
 import type { AttributionState } from '../../core/redux/slices/attribution';
 import type { RootState } from '../../reducers';
 import type { SecurityState } from '../../reducers/security';
@@ -26,10 +27,7 @@ export const selectAttributionRecord = createSelector(
 
 export const selectWalletSetupCompletedAttributionAnalyticsProps =
   createSelector(
-    [
-      selectAttributionRecord,
-      (state: RootState) => state.security?.dataCollectionForMarketing ?? null,
-    ],
+    [selectAttributionRecord, selectMarketingConsent],
     (record, dataCollectionForMarketing) =>
       getWalletSetupCompletedAttributionAnalyticsProps(
         record,

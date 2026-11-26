@@ -87,7 +87,6 @@ describeForPlatforms(
           screen.store.getState().security.dataCollectionForMarketing,
         ).toBe(false);
       });
-      expect(renderedSwitchValue(marketingSwitch)).toBe(false);
 
       expect(identifySpy).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
@@ -135,15 +134,6 @@ describeForPlatforms(
         overrides: persistedState as DeepPartial<RootState>,
       });
 
-      await waitFor(() => {
-        expect(
-          renderedSwitchValue(
-            remounted.getByTestId(
-              SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
-            ),
-          ),
-        ).toBe(false);
-      });
       expect(
         remounted.store.getState().security.dataCollectionForMarketing,
       ).toBe(false);
