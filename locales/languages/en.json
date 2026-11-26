@@ -10105,7 +10105,8 @@
       "add": "Add",
       "move": "Move",
       "card": "Card",
-      "details": "Details"
+      "details": "Details",
+      "details_new_badge": "New"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -13979,6 +13980,11 @@
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "token_tag": "Token",
+    "perp_tag": "Perp",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "loading_more_results": "Loading more results",
     "load_error": "Unable to load watchlist items",
     "save_error": "Unable to save watchlist order",
     "retry": "Try again",
@@ -13986,6 +13992,8 @@
     "done": "Done",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "no_tokens_found": "No tokens in watchlist",
+    "no_tokens_description": "Tap the star icon on any token to add it to your watchlist",
     "search_placeholder": "Search for any asset to add"
   },
   "asset_spendable_balance": {

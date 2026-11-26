@@ -1108,24 +1108,28 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - name: Skip on docs-only changes
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests == 'true' }}
+        run: echo "Docs-only pull request; skipping this job's work and reporting success."
       # Last job in the Linux cohort still cloning from github.com on Namespace;
       # everything else uses the in-region git mirror. Namespace scales network
       # bandwidth with machine shape, so an internet clone costs roughly twice
       # the wall-clock on the 4x8 profile as it did on 8x16.
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Pack CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload CI JS deps artifact
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v7
         with:
           name: ci-js-deps
@@ -1159,27 +1163,32 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
+      - name: Skip on docs-only changes
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests == 'true' }}
+        run: echo "Docs-only pull request; skipping this job's work and reporting success."
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
@@ -1188,6 +1197,7 @@ jobs:
       # related to the changed files, with coverage scoped to those files
       # (JEST_COVERAGE_ARGS). Everything else runs the full shard below.
       - name: Run unit tests
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
@@ -1217,6 +1227,7 @@ jobs:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
@@ -1235,6 +1246,7 @@ jobs:
       # Namespace stores the full shard dir for merge; GitHub gets jest-results.json
       # only so qa-stats can read it via the GitHub API.
       - name: Upload coverage unit shard (artifact stores)
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-unit-${{ matrix.shard }}
@@ -1244,6 +1256,7 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Require clean working directory
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
           if ! git diff --exit-code; then
@@ -1278,7 +1291,7 @@ jobs:
       - integration-tests
     # Wait for integration shards so coverage can merge into Sonar, but still run
     # when integration fails — missing integration artifacts are tolerated below.
-    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.get_requirements.outputs.skip_jest_tests != 'true' && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1504,29 +1517,35 @@ jobs:
         # The shard list length must match the denominator in --shard below.
         shard: [1, 2, 3, 4, 5, 6]
     steps:
+      - name: Skip on docs-only changes
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests == 'true' }}
+        run: echo "Docs-only pull request; skipping this job's work and reporting success."
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         run: mkdir -p tests/results
       - name: Run component view tests
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
@@ -1555,6 +1574,7 @@ jobs:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
@@ -1568,6 +1588,7 @@ jobs:
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - name: Upload coverage CV shard (artifact stores)
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-cv-${{ matrix.shard }}
@@ -1701,29 +1722,35 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
             heap_mb: 6144
     steps:
+      - name: Skip on docs-only changes
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests == 'true' }}
+        run: echo "Docs-only pull request; skipping this job's work and reporting success."
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
         id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         run: mkdir -p tests/results
       - name: Run integration tests
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
@@ -1752,6 +1779,7 @@ jobs:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
@@ -1765,6 +1793,7 @@ jobs:
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - name: Upload coverage integration shard (artifact stores)
+        if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-integration-${{ matrix.shard }}
@@ -2354,6 +2383,7 @@ jobs:
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
           e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           flakiness-job-regex: '^(component-view-flakiness-detection)$'
+          jest-job-regex: '^(merge-unit-and-component-view-tests)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
