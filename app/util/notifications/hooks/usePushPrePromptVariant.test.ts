@@ -136,7 +136,7 @@ const engineWithState = Engine as unknown as {
   state?: Record<string, unknown>;
 };
 
-// Mirrors MarketingConsentController's AnalyticsController update reaching Redux.
+// Mirrors MarketingConsentSyncService's AnalyticsController update reaching Redux.
 const syncMarketingConsentToRedux = (
   store: ReturnType<typeof renderUsePushPrePromptVariant>['store'],
   consent: boolean,

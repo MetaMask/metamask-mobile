@@ -131,6 +131,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/key-tree',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
+  '@metamask/marketing-consent-sync-service',
   '@metamask/money-account-balance-service',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',

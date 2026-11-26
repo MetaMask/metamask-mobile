@@ -33,7 +33,6 @@ export interface AnalyticsHelper {
   optInToMarketing: () => Promise<void>;
   optOutOfMarketing: () => Promise<void>;
   resetMarketingConsentDecision: () => Promise<void>;
-  setDataCollectionForMarketing: (enabled: boolean) => Promise<void>;
   getAnalyticsId: () => Promise<string>;
   isEnabled: () => boolean;
   isOptedIn: () => Promise<boolean>;
@@ -170,13 +169,6 @@ const resetMarketingConsentDecision = (): Promise<void> =>
   queueMarketingConsent('resetMarketingConsentDecision');
 
 /**
- * Map the Redux marketing preference onto the controller's independent consent.
- * True records an opt-in. False records an opt-out. Both mark the decision made.
- */
-const setDataCollectionForMarketing = (enabled: boolean): Promise<void> =>
-  enabled ? optInToMarketing() : optOutOfMarketing();
-
-/**
  * Get the analytics ID
  *
  * @returns Promise with the analytics ID (UUID string)
@@ -245,7 +237,6 @@ export const analytics: AnalyticsHelper = {
   optInToMarketing,
   optOutOfMarketing,
   resetMarketingConsentDecision,
-  setDataCollectionForMarketing,
   getAnalyticsId,
   isEnabled,
   isOptedIn,

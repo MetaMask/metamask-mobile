@@ -71,7 +71,7 @@ export const selectMarketingConsentDecisionMade = createSelector(
 );
 
 /**
- * Selects the user's marketing consent, which MarketingConsentController keeps
+ * Selects the user's marketing consent, which MarketingConsentSyncService keeps
  * in sync with Authenticated User Storage.
  *
  * @returns True or false once the user decided, null while undecided or when

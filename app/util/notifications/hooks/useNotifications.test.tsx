@@ -133,29 +133,9 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
-      hasMarketingConsent: false,
-      productAnnouncementEnabled: true,
       registerPushNotifications: false,
     });
     expect(mocks.mockTogglePushNotification).toHaveBeenCalledTimes(1);
-  });
-
-  it('passes the current marketing consent when enabling notifications', async () => {
-    const mocks = arrangeMocks();
-
-    const hook = renderHookWithProvider(() => useEnableNotifications(), {
-      state: { security: { dataCollectionForMarketing: true } },
-    });
-    await act(() => hook.result.current.enableNotifications());
-    await waitFor(() =>
-      expect(mocks.mockEnableNotifications).toHaveBeenCalled(),
-    );
-
-    expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
-      hasMarketingConsent: true,
-      productAnnouncementEnabled: true,
-      registerPushNotifications: false,
-    });
   });
 
   it('keeps shared notification setup before push toggling', async () => {
@@ -179,8 +159,6 @@ describe('useNotifications - useEnableNotifications()', () => {
     });
 
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
-      hasMarketingConsent: false,
-      productAnnouncementEnabled: true,
       registerPushNotifications: false,
     });
     expect(mocks.mockTogglePushNotification).toHaveBeenCalled();

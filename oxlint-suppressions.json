@@ -23620,11 +23620,6 @@
       "count": 1
     }
   },
-  "app/store/sagas/marketingAttribution.ts": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -23789,7 +23784,7 @@
   },
   "app/util/analytics/analytics.ts": {
     "typescript/promise-function-async": {
-      "count": 4
+      "count": 3
     }
   },
   "app/util/analytics/analyticsRegion.ts": {
@@ -24219,7 +24214,7 @@
   },
   "app/util/notifications/hooks/useNotifications.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 3
+      "count": 2
     }
   },
   "app/util/notifications/hooks/usePushPermissionNotificationSetup.test.ts": {
