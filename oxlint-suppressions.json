@@ -21622,7 +21622,13 @@
     "typescript/no-floating-promises": {
       "count": 7
     },
+    "typescript/no-unnecessary-boolean-literal-compare": {
+      "count": 1
+    },
     "typescript/no-unnecessary-type-assertion": {
+      "count": 4
+    },
+    "typescript/promise-function-async": {
       "count": 4
     },
     "typescript/unbound-method": {
@@ -24629,7 +24635,7 @@
       "count": 3
     },
     "typescript/promise-function-async": {
-      "count": 1
+      "count": 7
     }
   },
   "app/util/transactions/index.test.ts": {
