@@ -125,6 +125,13 @@ describe('Carousel', () => {
       expect(cellStyle(0)).toMatchObject({ width: 312, paddingRight: 12 });
       expect(lastFlashListProps().snapToInterval).toBe(312);
     });
+
+    it('applies an explicit cardHeight when provided', () => {
+      renderCarousel({ cardWidth: 340, cardHeight: 250 });
+
+      expect(cellStyle(0)).toMatchObject({ minHeight: 250 });
+      expect(cellStyle(2)).toMatchObject({ minHeight: 250 });
+    });
   });
 
   describe('footer', () => {
