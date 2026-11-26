@@ -30,8 +30,12 @@ import {
   readAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from '../../hooks/stream/usePerpsLiveAvailableToTrade';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
-import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import {
+  getIncrementalMarginInsufficientBalanceError,
+  getOpenOrderMarginBalance,
+} from '../../utils/openOrderMarginValidation';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -116,18 +120,28 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   });
 
   const isOpenOrderPriceEdit = restingOrderSize !== undefined;
-  const { availableToTrade, isInitialLoading: isAvailableToTradeLoading } =
-    usePerpsLiveAvailableToTrade({
-      symbol: asset,
-      enabled: isVisible && isOpenOrderPriceEdit,
-    });
-  const venueAvailableToTrade = readAvailableToTradeUsd(
+  const {
     availableToTrade,
-    direction,
-  );
+    isInitialLoading: isAvailableToTradeLoading,
+    isUnavailable: isAvailableToTradeStreamFailed,
+  } = usePerpsLiveAvailableToTrade({
+    symbol: asset,
+    enabled: isVisible && isOpenOrderPriceEdit,
+  });
+  // If the venue stream fails, fall back to the account spendable balance so
+  // an open order's limit price can still be edited.
+  const { account } = usePerpsLiveAccount({
+    enabled:
+      isVisible && isOpenOrderPriceEdit && isAvailableToTradeStreamFailed,
+  });
+  const marginBalance = getOpenOrderMarginBalance({
+    venueAvailableToTrade: readAvailableToTradeUsd(availableToTrade, direction),
+    isAvailableToTradeStreamFailed,
+    accountSpendableBalance: account?.spendableBalance,
+  });
   const isAccountReady =
-    !isAvailableToTradeLoading && venueAvailableToTrade !== undefined;
-  const spendableBalance = venueAvailableToTrade ?? 0;
+    !isAvailableToTradeLoading && marginBalance !== undefined;
+  const spendableBalance = marginBalance ?? 0;
 
   useEffect(() => {
     if (isVisible) {

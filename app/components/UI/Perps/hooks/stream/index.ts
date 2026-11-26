@@ -1,6 +1,4 @@
-// Export individual hooks with proper naming convention.
-// `usePerpsLiveAvailableToTrade` and its readers are imported from their own
-// file, which is the one import style used for that hook.
+// Export individual hooks with proper naming convention
 export { usePerpsLivePrices } from './usePerpsLivePrices';
 export { usePerpsLiveOrders } from './usePerpsLiveOrders';
 export {

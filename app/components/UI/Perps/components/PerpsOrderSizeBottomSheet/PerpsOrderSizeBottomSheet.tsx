@@ -27,7 +27,11 @@ import {
   readAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from '../../hooks/stream/usePerpsLiveAvailableToTrade';
-import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import { usePerpsLiveAccount } from '../../hooks/stream';
+import {
+  getIncrementalMarginInsufficientBalanceError,
+  getOpenOrderMarginBalance,
+} from '../../utils/openOrderMarginValidation';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -50,7 +54,7 @@ interface PerpsOrderSizeBottomSheetProps {
    * confirm and skip margin checks that would use misleading fallbacks. */
   isMarketDataReady?: boolean;
   /** Side of the resting order. Available to trade is reported per side. */
-  direction?: 'long' | 'short';
+  direction: 'long' | 'short';
 }
 
 /**
@@ -89,7 +93,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   leverage = PERPS_CONSTANTS.DefaultMaxLeverage,
   reduceOnly = false,
   isMarketDataReady = true,
-  direction = 'long',
+  direction,
 }) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [orderSize, setOrderSize] = useState(initialOrderSize || '');
@@ -97,20 +101,29 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   const { minimumOrderAmount } = useMinimumOrderAmount({ asset });
   // Only subscribe while the sheet is open; the venue figure is only needed
   // to warn when an edited size would require more margin than is available.
-  const { availableToTrade, isInitialLoading: isAvailableToTradeLoading } =
-    usePerpsLiveAvailableToTrade({
-      symbol: asset,
-      enabled: isVisible,
-    });
-  const venueAvailableToTrade = readAvailableToTradeUsd(
+  const {
     availableToTrade,
-    direction,
-  );
-  // Hold confirm until the venue reports a figure. A missing value is unknown,
-  // not zero, so the margin check must not run against a coerced 0.
+    isInitialLoading: isAvailableToTradeLoading,
+    isUnavailable: isAvailableToTradeStreamFailed,
+  } = usePerpsLiveAvailableToTrade({
+    symbol: asset,
+    enabled: isVisible,
+  });
+  // If the venue stream fails, fall back to the account spendable balance so
+  // an open order can still be resized.
+  const { account } = usePerpsLiveAccount({
+    enabled: isVisible && isAvailableToTradeStreamFailed,
+  });
+  const marginBalance = getOpenOrderMarginBalance({
+    venueAvailableToTrade: readAvailableToTradeUsd(availableToTrade, direction),
+    isAvailableToTradeStreamFailed,
+    accountSpendableBalance: account?.spendableBalance,
+  });
+  // Hold confirm until a figure is known. A missing value is unknown, not
+  // zero, so the margin check must not run against a coerced 0.
   const isAccountReady =
-    !isAvailableToTradeLoading && venueAvailableToTrade !== undefined;
-  const spendableBalance = venueAvailableToTrade ?? 0;
+    !isAvailableToTradeLoading && marginBalance !== undefined;
+  const spendableBalance = marginBalance ?? 0;
   const isInputReady = isMarketDataReady && isAccountReady;
 
   useEffect(() => {

@@ -15,7 +15,6 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsNetwork } from './index';
 import {
-  readAvailableToTradeUsd,
   readMaxAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from './stream/usePerpsLiveAvailableToTrade';
@@ -32,15 +31,12 @@ import {
  *
  * Shows all tokens owned by the user, regardless of balance amount.
  *
- * The Hyperliquid USDC row uses the venue's available to trade for `symbol`:
- * the figure for `direction` when one is given, otherwise the larger side.
- * While the venue figure is unknown, or without a symbol, the row carries no
- * balance instead of showing $0. Withdraw surfaces do not use this hook.
+ * The Hyperliquid USDC row uses the larger side of the venue's available to
+ * trade for `symbol`. While the venue figure is unknown, or without a symbol,
+ * the row carries no balance instead of showing $0. Withdraw surfaces do not
+ * use this hook.
  */
-export function usePerpsPaymentTokens(
-  symbol?: string,
-  direction?: 'long' | 'short',
-): PerpsToken[] {
+export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   // Use ref to store previous token array
@@ -52,10 +48,7 @@ export function usePerpsPaymentTokens(
     enabled: Boolean(symbol),
   });
   // Undefined while the venue has not reported, so the row can omit it.
-  const hyperliquidBalance =
-    direction === undefined
-      ? readMaxAvailableToTradeUsd(availableToTrade)
-      : readAvailableToTradeUsd(availableToTrade, direction);
+  const hyperliquidBalance = readMaxAvailableToTradeUsd(availableToTrade);
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {

@@ -337,29 +337,13 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBeUndefined();
     });
 
-    it('uses the larger side when no direction is given', () => {
+    it('uses the larger side of available to trade', () => {
       mockHyperliquidSides = { long: '100', short: '300' };
 
       const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       expect(result.current[0].balanceFiat).toBe('$300.00');
     });
-
-    it.each([
-      { direction: 'long' as const, expected: '$100.00' },
-      { direction: 'short' as const, expected: '$300.00' },
-    ])(
-      'uses the $direction figure when that direction is given',
-      ({ direction, expected }) => {
-        mockHyperliquidSides = { long: '100', short: '300' };
-
-        const { result } = renderHook(() =>
-          usePerpsPaymentTokens('BTC', direction),
-        );
-
-        expect(result.current[0].balanceFiat).toBe(expected);
-      },
-    );
 
     it('handles empty tokens with balance', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue([]);

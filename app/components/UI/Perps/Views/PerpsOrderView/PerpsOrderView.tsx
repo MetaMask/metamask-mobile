@@ -2685,7 +2685,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : orderForm.amount;
       const currentAmount = parseFloat(effectiveAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
         commitAmount(Math.floor(newMaxAmount).toString());
       } else if (isDraggingSlider) {
         commitAmount(effectiveAmount);
@@ -2718,6 +2718,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
     [
       commitAmount,
+      isAvailableToTradeLoading,
       isDraggingSlider,
       liveDragAmount,
       orderForm.amount,
@@ -3603,7 +3604,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             // Check if current amount exceeds new maximum value and adjust if needed
             const currentAmount = parseFloat(effectiveAmount || '0');
             const newMaxAmount = spendableBalance * leverage;
-            if (currentAmount > newMaxAmount) {
+            if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
               commitAmount(Math.floor(newMaxAmount).toString());
             } else if (isDraggingSlider) {
               commitAmount(effectiveAmount);

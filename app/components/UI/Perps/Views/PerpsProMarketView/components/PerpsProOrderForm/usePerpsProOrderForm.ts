@@ -2298,7 +2298,7 @@ export const usePerpsProOrderForm = ({
     spendableBalance,
     marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isReduceOnlyPositionLoading,
+    skipValidation: isAvailableToTradeLoading || isReduceOnlyPositionLoading,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     triggerPrice: normalizedTriggerPrice,
@@ -2479,6 +2479,7 @@ export const usePerpsProOrderForm = ({
     amount: effectiveUsdAmount,
     leverage: orderForm.leverage,
     spendableBalance,
+    isAvailableToTradeLoading,
     currentPositionIdentity: currentMarketPosition
       ? {
           symbol: currentMarketPosition.symbol,
@@ -3766,7 +3767,11 @@ export const usePerpsProOrderForm = ({
 
         const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
         const newMaxAmount = spendableBalance * leverage;
-        if (!reduceOnly && currentAmount > newMaxAmount) {
+        if (
+          !reduceOnly &&
+          !isAvailableToTradeLoading &&
+          currentAmount > newMaxAmount
+        ) {
           setAmount(Math.floor(newMaxAmount).toString());
         }
 
@@ -3804,6 +3809,7 @@ export const usePerpsProOrderForm = ({
       orderForm.direction,
       orderForm.leverage,
       reduceOnly,
+      isAvailableToTradeLoading,
       spendableBalance,
       track,
       guardScaleMutation,

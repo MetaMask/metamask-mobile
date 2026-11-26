@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import PerpsOrderSizeBottomSheet from './PerpsOrderSizeBottomSheet';
 import { PerpsOrderSizeBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -49,6 +50,18 @@ jest.mock('../../hooks/useMinimumOrderAmount', () => ({
 
 let mockAvailableToTradeUsd = '1000';
 let mockAvailableToTradePending = false;
+let mockAvailableToTradeFails = false;
+let mockAccountSpendableBalance: string | null = null;
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: ({ enabled }: { enabled?: boolean }) => ({
+    account:
+      enabled && mockAccountSpendableBalance !== null
+        ? { spendableBalance: mockAccountSpendableBalance }
+        : null,
+    isInitialLoading: false,
+  }),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -62,8 +75,11 @@ jest.mock('../../../../../core/Engine', () => ({
             long: string;
             short: string;
           }) => void;
+          onError?: (error: Error) => void;
         }) => {
-          if (!mockAvailableToTradePending) {
+          if (mockAvailableToTradeFails) {
+            params.onError?.(new Error('stream failed'));
+          } else if (!mockAvailableToTradePending) {
             params.callback({
               providerId: 'hyperliquid',
               symbol: params.symbol,
@@ -91,11 +107,14 @@ describe('PerpsOrderSizeBottomSheet', () => {
     jest.clearAllMocks();
     mockAvailableToTradeUsd = '1000';
     mockAvailableToTradePending = false;
+    mockAvailableToTradeFails = false;
+    mockAccountSpendableBalance = null;
   });
 
   it('renders and confirms a new size', () => {
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="SOL"
         orderSize="1"
@@ -117,6 +136,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   it('returns null when not visible', () => {
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible={false}
         asset="SOL"
         orderSize="1"
@@ -134,6 +154,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   it('formats large sizes with thousand separators', () => {
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205020"
@@ -150,6 +171,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
   it('shows a single dollar sign in the minimum size error', () => {
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="SOL"
         orderSize="0.001"
@@ -168,6 +190,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205"
@@ -194,6 +217,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="SOL"
         orderSize="10"
@@ -220,6 +244,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205"
@@ -247,6 +272,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="SOL"
         orderSize="1"
@@ -271,6 +297,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="555555555"
@@ -297,6 +324,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="555555555"
@@ -322,6 +350,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205"
@@ -351,6 +380,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
 
     const { rerender } = render(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205"
@@ -371,6 +401,7 @@ describe('PerpsOrderSizeBottomSheet', () => {
     // order; only effective leverage changes.
     rerender(
       <PerpsOrderSizeBottomSheet
+        direction="long"
         isVisible
         asset="CASHCAT"
         orderSize="205"
@@ -388,5 +419,93 @@ describe('PerpsOrderSizeBottomSheet', () => {
     expect(
       screen.getByTestId(PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('falls back to the account spendable balance when the available-to-trade stream fails', () => {
+    mockAvailableToTradeFails = true;
+    mockAccountSpendableBalance = '1000';
+
+    render(
+      <PerpsOrderSizeBottomSheet
+        direction="long"
+        isVisible
+        asset="SOL"
+        orderSize="1"
+        limitPrice="160"
+        szDecimals={3}
+        onClose={onClose}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('mock-keypad-set-size'));
+    fireEvent.press(
+      screen.getByTestId(PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+    );
+
+    expect(onConfirm).toHaveBeenCalledWith('2');
+  });
+
+  it('checks margin against the account spendable balance when the available-to-trade stream fails', () => {
+    mockAvailableToTradeFails = true;
+    mockAccountSpendableBalance = '0.51';
+
+    render(
+      <PerpsOrderSizeBottomSheet
+        direction="long"
+        isVisible
+        asset="CASHCAT"
+        orderSize="205"
+        limitPrice="0.04888"
+        szDecimals={2}
+        leverage={40}
+        onClose={onClose}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('mock-keypad-set-huge-size'));
+
+    expect(
+      screen.getByText(/Insufficient balance\. Required:/),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('checks the short figure for a short order', () => {
+    mockAvailableToTradeUsd = '1000';
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToAvailableToTrade)
+      .mockImplementationOnce((params) => {
+        params.callback({
+          providerId: 'hyperliquid',
+          symbol: params.symbol,
+          long: '1000',
+          short: '0.51',
+        });
+        return jest.fn();
+      });
+
+    render(
+      <PerpsOrderSizeBottomSheet
+        direction="short"
+        isVisible
+        asset="CASHCAT"
+        orderSize="205"
+        limitPrice="0.04888"
+        szDecimals={2}
+        leverage={40}
+        onClose={onClose}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('mock-keypad-set-huge-size'));
+
+    expect(
+      screen.getByText(/Insufficient balance\. Required:/),
+    ).toBeOnTheScreen();
   });
 });
