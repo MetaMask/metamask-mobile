@@ -139,6 +139,9 @@
     "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
+    "lighter_withdraw_minimum": {
+      "message": "Minimum withdrawal is {{amount}}"
+    },
     "lighter_account_lookup_pending": {
       "message": "Verifying Lighter account..."
     },
@@ -2337,8 +2340,8 @@
       "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Switch size denomination",
       "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
-      "available_balance": "{{amount}} available",
-      "available_balance_unavailable": "-- available",
+      "available_balance": "Available to trade {{amount}}",
+      "available_balance_unavailable": "Available to trade --",
       "est_liquidation": "Est Liquidation",
       "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
@@ -8841,6 +8844,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
+    "tron_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again."
+    },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",
@@ -10099,7 +10105,8 @@
       "add": "Add",
       "move": "Move",
       "card": "Card",
-      "details": "Details"
+      "details": "Details",
+      "details_new_badge": "New"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -13698,6 +13705,14 @@
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
+    "crypto_tokens_section": "Tokens",
+    "crypto_token_count": "{{count}} token",
+    "crypto_token_count_plural": "{{count}} tokens",
+    "crypto_pills": {
+      "trending": "Trending",
+      "most_traded": "Most traded",
+      "robinhood": "Robinhood"
+    },
     "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",

@@ -26,6 +26,10 @@ jest.mock('./useLighterDepositMinimumAlert', () => ({
   useLighterDepositMinimumAlert: () => [{ id: 'alert-10' }],
 }));
 
+jest.mock('./useLighterWithdrawMinimumAlert', () => ({
+  useLighterWithdrawMinimumAlert: () => [{ id: 'alert-11' }],
+}));
+
 const useInsufficientPayTokenBalanceAlertMock = jest.mocked(
   useInsufficientPayTokenBalanceAlert,
 );
@@ -46,6 +50,7 @@ describe('usePendingAmountAlerts', () => {
       { id: 'alert-8' },
       { id: 'alert-9' },
       { id: 'alert-10' },
+      { id: 'alert-11' },
       { id: 'alert-6' },
     ]);
   });
