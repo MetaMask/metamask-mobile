@@ -36,6 +36,12 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/assets/market-stats', () => ({
+  useMarketStats: () => [],
+  useMarketStatsSubscription: () => undefined,
+  readLiveQuotes: () => [],
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockHandleFetch = jest.mocked(handleFetch);
 const mockLoggerError = jest.mocked(Logger.error);

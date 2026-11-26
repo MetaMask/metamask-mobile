@@ -73,6 +73,13 @@ jest.mock('@tanstack/react-query', () => {
   };
 });
 
+// The row reads its own streamed quote. Tests set it through `mockUseMarketStats`.
+const mockUseMarketStats = jest.fn();
+jest.mock('../../../../../hooks/assets/market-stats', () => ({
+  ...jest.requireActual('../../../../../hooks/assets/market-stats'),
+  useMarketStats: () => mockUseMarketStats(),
+}));
+
 // TokenListSecurityBadge uses TanStack Query; omit from these TokenList-focused tests.
 jest.mock(
   '../../components/TokenListSecurityBadge/TokenListSecurityBadge',
@@ -266,6 +273,10 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('TokenListItem - Component Rendering Tests for Coverage', () => {
+  beforeEach(() => {
+    mockUseMarketStats.mockReturnValue([]);
+  });
+
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
@@ -447,6 +458,37 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText('$123.00')).toBeOnTheScreen();
       expect(getByText('1.23 TEST')).toBeOnTheScreen();
       expect(getByText('+5.67%')).toBeOnTheScreen();
+    });
+
+    it('replaces the polled price, percent, and fiat balance with the streamed quote', () => {
+      mockUseMarketStats.mockReturnValue([
+        { price: 10, pricePercentChange1d: -1.5 },
+      ]);
+      prepareMocks({
+        asset: { ...defaultAsset, balanceAmount: 4 },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText, getByTestId, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText(/\$10\.00/)).toBeOnTheScreen();
+      expect(queryByText('$123.00')).toBeNull();
+      expect(getByText('40 FORMATTED')).toBeOnTheScreen();
+      expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe(
+        '-1.50%',
+      );
     });
   });
 

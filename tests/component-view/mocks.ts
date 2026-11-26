@@ -755,7 +755,7 @@ jest.mock('../../app/core/Engine', () => {
       },
     },
     controllerMessenger: {
-      subscribe: jest.fn(),
+      subscribe: jest.fn(() => jest.fn()),
       unsubscribe: jest.fn(),
       call: jest.fn((action: string, ...args: unknown[]) => {
         if (action === 'MoneyAccountApiDataService:fetchVaults') {

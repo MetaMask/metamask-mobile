@@ -101,7 +101,6 @@ const TokenListComponent = ({
     () => (tokenKeys || []).slice(0, maxItems || undefined),
     [tokenKeys, maxItems],
   );
-
   // Determine if we should show the "View all tokens" button
   const shouldShowViewAllButton = useMemo(
     () => maxItems !== undefined && tokenKeys && tokenKeys.length > maxItems,
@@ -253,7 +252,9 @@ const TokenListComponent = ({
             />
           )
         }
-        extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+        extraData={{
+          isTokenNetworkFilterEqualCurrentNetwork,
+        }}
         contentContainerStyle={
           isFullView
             ? tw.style('px-4', { paddingBottom: bottomInset })

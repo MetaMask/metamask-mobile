@@ -4,6 +4,7 @@ import { Image } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import Balance from '.';
+import { createRestingHeaderStore } from '../Price/restingHeader';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
@@ -22,6 +23,7 @@ import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 jest.mock('../../../../../locales/i18n', () => ({
+  locale: 'en-US',
   strings: (key: string) =>
     key === 'asset_overview.your_balance' ? 'Your balance' : key,
   I18nEvents: {
@@ -502,6 +504,31 @@ describe('Balance', () => {
       expect(queryByTestId('secondary-balance-test-id')).toBeNull();
       expect(queryByText(/\+.*%/)).toBeNull();
       expect(queryByText(/-.*%/)).toBeNull();
+    });
+  });
+
+  describe('chart header price', () => {
+    it('replaces the polled fiat amount and percent with the header price', () => {
+      mockSelectPricePercentChange1d.mockReturnValue(-1.35);
+      const headerStore = createRestingHeaderStore();
+      headerStore.set({ price: 10, percent: -2.34 });
+
+      const { getByText, queryByText } = render(
+        <Provider store={store}>
+          <Balance
+            asset={mockDAI}
+            mainBalance="$100"
+            balanceAmount={2}
+            fiatCurrency="usd"
+            restingHeaderStore={headerStore}
+            secondaryBalance="2 DAI"
+          />
+        </Provider>,
+      );
+
+      expect(getByText('$20.00')).toBeTruthy();
+      expect(queryByText('$100')).toBeNull();
+      expect(getByText('-2.34%')).toBeTruthy();
     });
   });
 

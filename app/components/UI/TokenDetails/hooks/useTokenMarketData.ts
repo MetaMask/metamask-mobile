@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
@@ -10,6 +10,11 @@ import {
   type TokenMarketData,
 } from '../queries/tokenMarketData';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
+import {
+  readLiveQuotes,
+  useMarketStats,
+  useMarketStatsSubscription,
+} from '../../../../hooks/assets/market-stats';
 
 export interface UseTokenMarketDataResult {
   /** Null until resolved, and when the token has no market data at all. */
@@ -54,6 +59,16 @@ export const useTokenMarketData = (
   const assetsPrice = useSelector(getAssetsPrice);
   const priceApiHost = usePriceApiHost();
 
+  const [liveQuote] = useMarketStats((quotes) =>
+    readLiveQuotes(quotes, [assetId ?? undefined]),
+  );
+  // The price poll only opens channels for holdings. The details page also
+  // opens tokens from Explore, Trending, and Search.
+  const marketStatsAssetIds = useMemo(
+    () => (assetId ? [assetId] : []),
+    [assetId],
+  );
+  useMarketStatsSubscription(marketStatsAssetIds);
   const cachedPrice = assetId ? assetsPrice?.[assetId] : undefined;
   const cachedMarketData =
     cachedPrice?.assetPriceType === 'fungible' ? cachedPrice : undefined;
@@ -77,8 +92,18 @@ export const useTokenMarketData = (
     }
   }, [error]);
 
+  const marketData = cachedMarketData ?? data ?? null;
+  if (!marketData || liveQuote === undefined) {
+    return { marketData, isLoading };
+  }
   return {
-    marketData: cachedMarketData ?? data ?? null,
+    marketData: {
+      ...marketData,
+      price: liveQuote.price,
+      ...(liveQuote.pricePercentChange1d === undefined
+        ? {}
+        : { pricePercentChange1d: liveQuote.pricePercentChange1d }),
+    },
     isLoading,
   };
 };

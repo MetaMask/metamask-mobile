@@ -634,6 +634,7 @@ const TokenDetails: React.FC<{
 
   const {
     balance,
+    balanceAmount,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
@@ -842,6 +843,7 @@ const TokenDetails: React.FC<{
           : undefined
       }
       mainBalance={fiatBalance ?? ''}
+      balanceAmount={balanceAmount}
       secondaryBalance={tokenFormattedBalance}
       currentPrice={currentPrice}
       priceDiff={priceDiff}

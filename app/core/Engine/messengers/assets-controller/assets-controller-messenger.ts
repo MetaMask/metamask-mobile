@@ -85,6 +85,12 @@ export function getAssetsControllerMessenger(
       'AuthenticatedUserStorageService:setUserAssets',
       'AuthenticatedUserStorageService:importTokens',
       'AuthenticatedUserStorageService:hideTokens',
+      // PriceDataSource subscribes the held-asset set. Without these, the stream
+      // reports itself unavailable and every price stays on the poll.
+      'MarketStatsService:subscribe',
+      'MarketStatsService:unsubscribe',
+      'MarketStatsService:getSubscriptions',
+      'MarketStatsService:getChainStatuses',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
