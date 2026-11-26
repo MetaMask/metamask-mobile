@@ -545,21 +545,21 @@ export function useImmersveCardProvisioning(
           resetQuietRecheck();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
           setPendingAction(action);
-          if (
-            !cancelled &&
-            action.type === 'rejected' &&
-            isFocusedRef.current
-          ) {
-            notifyKycRejectedRef
-              .current(action, {
-                source: 'reconcile',
-              })
-              .catch(() => undefined);
-          }
           if (cancelled || lastRoutedActionTypeRef.current === action.type) {
             return;
           }
           lastRoutedActionTypeRef.current = action.type;
+          if (action.type === 'rejected') {
+            // The home row explains the rejection and opens the final screen,
+            // which signs out on leave so Contact support keeps the user id.
+            notifyKycRejectedRef
+              .current(action, {
+                source: 'reconcile',
+                toast: false,
+                signOut: false,
+              })
+              .catch(() => undefined);
+          }
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)

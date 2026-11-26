@@ -1846,7 +1846,34 @@ describe('useImmersveCardProvisioning', () => {
       expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1);
       expect(mockNotifyKycRejected).toHaveBeenCalledWith(
         { type: 'rejected', reasons: [] },
-        { source: 'reconcile' },
+        { source: 'reconcile', toast: false, signOut: false },
+      );
+    });
+
+    it('reports a permanent rejection once and leaves the sign-out to the final screen', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'blocked' }],
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction?.type).toBe('rejected'),
+      );
+      act(() => {
+        result.current.recheck();
+      });
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2),
+      );
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
+
+      expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1);
+      expect(mockNotifyKycRejected).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ signOut: true }),
       );
     });
 
