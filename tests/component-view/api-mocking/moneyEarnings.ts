@@ -7,18 +7,17 @@ import { restoreFetchPath, stubFetchPath } from './fetchStub';
 const MONEY_EARNINGS_PATH =
   '/v1/positions/0x1234567890abcdef1234567890abcdef12345678/interest-history';
 const MONEY_VAULT_COMPOSITION_PATH =
-  '/v1/vaults/0x1c8a336051d2024e318a229d01f9f6cf96efd316/composition';
+  '/v1/vaults/0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae/composition';
 const MONEY_VAULT_APY_HISTORY_PATH = '/v1/vaults/apy-history';
 const MONEY_EARNINGS_ORIGINS = [
   'https://money.dev-api.cx.metamask.io',
   'https://money.uat-api.cx.metamask.io',
   'https://money.api.cx.metamask.io',
 ] as const;
-const MONEY_LOCAL_API_ORIGINS = ['http://localhost:3000'] as const;
 
 export const moneyVaultCompositionResponse: VaultCompositionResponse = {
   chain_id: 143,
-  vault_address: '0x1c8a336051d2024e318a229d01f9f6cf96efd316',
+  vault_address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
   vault_key: 'standard',
   boundary_at: '2026-11-26T00:00:00Z',
   as_of_block: 123456,
@@ -187,7 +186,7 @@ export const setupMoneyAllocationApiMock = ({
   historicalApyResponse = moneyHistoricalVaultApysResponse,
   status = 200,
 }: SetupMoneyAllocationApiMockOptions = {}): void => {
-  MONEY_LOCAL_API_ORIGINS.forEach((origin) => {
+  MONEY_EARNINGS_ORIGINS.forEach((origin) => {
     stubFetchPath(
       origin,
       MONEY_VAULT_COMPOSITION_PATH,
@@ -208,7 +207,7 @@ export const setupMoneyAllocationApiMock = ({
 };
 
 export const clearMoneyAllocationApiMocks = (): void => {
-  MONEY_LOCAL_API_ORIGINS.forEach((origin) => {
+  MONEY_EARNINGS_ORIGINS.forEach((origin) => {
     restoreFetchPath(origin, MONEY_VAULT_COMPOSITION_PATH, { method: 'GET' });
   });
   MONEY_EARNINGS_ORIGINS.forEach((origin) => {
