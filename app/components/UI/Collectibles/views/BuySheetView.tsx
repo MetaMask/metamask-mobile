@@ -18,6 +18,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { useBoolean } from '../../../hooks/useBoolean';
 import { useFormatters } from '../../../hooks/useFormatters';
 import { View } from '../../primitives/View';
 import { useHomePacks } from '../hooks/useHomePacks';
@@ -63,8 +64,8 @@ function BuySheetForm({ priceUsd }: FormProps) {
   const { formatCurrency } = useFormatters();
 
   const [selectedOption, setSelectedOption] = useState(quantityOptions[0]);
-  const [isAutoBuybackOn, setIsAutoBuybackOn] = useState(false);
-  const [isSkipRevealsOn, setIsSkipRevealsOn] = useState(false);
+  const { value: isAutoBuybackOn, setValue: setIsAutoBuybackOn } = useBoolean();
+  const { value: isSkipRevealsOn, setValue: setIsSkipRevealsOn } = useBoolean();
 
   const quantity =
     selectedOption === maxOption ? mockMaxPackQuantity : Number(selectedOption);
