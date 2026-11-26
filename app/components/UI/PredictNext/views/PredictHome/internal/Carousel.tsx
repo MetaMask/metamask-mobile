@@ -116,7 +116,7 @@ export function Carousel<T>({
               minHeight: cardHeight,
               ...(isLastItem ? {} : { paddingRight: gap }),
             })}
-            twClassName="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden"
             testID={`${idPrefix}-card-${index}`}
           >
             {isLoading ? (

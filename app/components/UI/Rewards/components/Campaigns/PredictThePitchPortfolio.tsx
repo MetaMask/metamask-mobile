@@ -37,17 +37,17 @@ const PredictThePitchPortfolioSkeleton: React.FC<{ rowCount: number }> = ({
 
   return (
     <Box
-      twClassName="gap-3 py-1"
+      className="gap-3 py-1"
       testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.LOADING}
     >
       {Array.from({ length: rowCount }, (_, index) => (
-        <Box key={index} twClassName="flex-row items-start gap-4 py-2">
+        <Box key={index} className="flex-row items-start gap-4 py-2">
           <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
-          <Box twClassName="flex-1 gap-2">
+          <Box className="flex-1 gap-2">
             <Skeleton width="100%" height={18} style={tw.style('rounded-md')} />
             <Skeleton width="70%" height={16} style={tw.style('rounded-md')} />
           </Box>
-          <Box twClassName="items-end gap-2">
+          <Box className="items-end gap-2">
             <Skeleton width={64} height={18} style={tw.style('rounded-md')} />
             <Skeleton width={48} height={16} style={tw.style('rounded-md')} />
           </Box>

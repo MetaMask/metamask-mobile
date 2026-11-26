@@ -104,7 +104,7 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
 
   if (showError) {
     return (
-      <Box testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER} twClassName="mt-2">
+      <Box testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER} className="mt-2">
         <RewardsErrorBanner
           title={strings('rewards.campaign_prize_pool.error_title')}
           description={strings('rewards.campaign_prize_pool.error_description')}
@@ -119,7 +119,7 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
   if (showSkeleton) {
     return (
       <Box
-        twClassName="gap-2 mt-2"
+        className="gap-2 mt-2"
         testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER}
       >
         <Skeleton style={tw.style('h-4 rounded-full')} />
@@ -139,7 +139,7 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
 
   return (
     <Box
-      twClassName="gap-2 mt-2"
+      className="gap-2 mt-2"
       testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER}
     >
       <Box
@@ -164,7 +164,7 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
             justifyContent={BoxJustifyContent.End}
           >
             <Box
-              twClassName="bg-success-muted rounded-[6px] px-1.5"
+              className="bg-success-muted rounded-[6px] px-1.5"
               testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE}
             >
               <Text
@@ -193,11 +193,11 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
       </Box>
 
       <Box
-        twClassName="h-3 rounded-full bg-muted overflow-hidden"
+        className="h-3 rounded-full bg-muted overflow-hidden"
         testID={CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR}
       >
         <Box
-          twClassName="h-full rounded-full bg-success-default"
+          className="h-full rounded-full bg-success-default"
           style={{ width: progressPercent }}
         />
       </Box>

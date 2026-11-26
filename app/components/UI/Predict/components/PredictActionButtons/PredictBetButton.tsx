@@ -57,7 +57,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       isDisabled={disabled}
       testID={testID}
       style={{ backgroundColor: getBackgroundColor() }}
-      twClassName={isInline ? 'px-1' : undefined}
+      className={isInline ? 'px-1' : undefined}
       contentWrapperProps={isInline ? { twClassName: 'w-full' } : undefined}
       isFullWidth
       size={size}

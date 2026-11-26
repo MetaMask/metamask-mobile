@@ -185,7 +185,7 @@ export const DepositInProgressSheet = ({
               <BottomSheetHeader onClose={close}>
                 {strings('predict_next.deposit.in_progress.title')}
               </BottomSheetHeader>
-              <Box twClassName="gap-4 px-4 pb-6">
+              <Box className="gap-4 px-4 pb-6">
                 {reviewReference && deposit ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -195,7 +195,7 @@ export const DepositInProgressSheet = ({
                     <Text
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextAlternative}
-                      twClassName="shrink"
+                      className="shrink"
                     >
                       {strings(
                         'predict_next.deposit.in_progress.under_review_label',
@@ -266,7 +266,7 @@ export const DepositInProgressSheet = ({
                   </Text>
                 ) : null}
                 {payable ? (
-                  <Box twClassName="gap-3">
+                  <Box className="gap-3">
                     <Button
                       variant={ButtonVariant.Primary}
                       size={ButtonSize.Lg}

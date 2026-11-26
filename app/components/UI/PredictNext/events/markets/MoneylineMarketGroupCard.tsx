@@ -64,7 +64,7 @@ export const MoneylineMarketGroupCard = React.memo(
             />
           ) : (
             <Box
-              twClassName="h-10 w-10 rounded-full bg-muted"
+              className="h-10 w-10 rounded-full bg-muted"
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               testID={MoneylineMarketGroupCardTestIds.logoFallback(

@@ -66,7 +66,7 @@ export const EventMarketLayoutSectionHeader = React.memo(
     return (
       // Full width: the list pads its rows, the header pads its own content.
       <Box
-        twClassName="-mx-4"
+        className="-mx-4"
         testID={EventMarketLayoutSectionTestIds.section(section.key)}
       >
         {showDivider ? <SectionDivider /> : null}
@@ -77,7 +77,7 @@ export const EventMarketLayoutSectionHeader = React.memo(
           onToggle={handleToggle}
         >
           {chips.length > 1 ? (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <EventMarketPeriodChips
                 items={chips}
                 selectedKey={selectedPeriodKey}

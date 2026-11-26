@@ -17,10 +17,22 @@ import { strings } from '../../../../../../locales/i18n';
  * state: the icon centered above the description, with no action button.
  */
 const BenefitEmptyList = () => (
-  <Box twClassName="items-center px-4 py-4">
+  <Box className="items-center px-4 py-4">
     <TabEmptyState
       icon={
         <AvatarIcon
+          iconName={IconName.Gift}
+          size={AvatarIconSize.Xl}
+          severity={AvatarIconSeverity.Neutral}
+          iconProps={{ color: IconColor.IconDefault }}
+        />
+      }
+      description={strings('rewards.benefits.empty-list')}
+      descriptionProps={{
+        variant: TextVariant.BodyMd,
+        color: TextColor.TextAlternative,
+      }}
+    /><AvatarIcon
           iconName={IconName.Gift}
           size={AvatarIconSize.Xl}
           severity={AvatarIconSeverity.Neutral}

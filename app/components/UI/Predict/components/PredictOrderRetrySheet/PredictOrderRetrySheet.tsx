@@ -307,11 +307,11 @@ const PredictOrderRetrySheet = forwardRef<
                 <Box
                   testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="px-6 pb-8 pt-8 gap-4"
+                  className="px-6 pb-8 pt-8 gap-4"
                 >
                   <Box
                     alignItems={BoxAlignItems.Center}
-                    twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
+                    className={`h-12 w-12 rounded-full ${iconBg} justify-center`}
                   >
                     <Icon
                       name={IconName.Warning}
@@ -322,19 +322,19 @@ const PredictOrderRetrySheet = forwardRef<
                   <Text
                     variant={TextVariant.HeadingMd}
                     color={TextColor.TextDefault}
-                    twClassName="text-center"
+                    className="text-center"
                   >
                     {title}
                   </Text>
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
-                    twClassName="text-center"
+                    className="text-center"
                   >
                     {body}
                   </Text>
                   {isQuoteShown && (
-                    <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
+                    <Box className="w-full gap-2 rounded-lg bg-background-muted p-4">
                       {quoteRows.map((row) => (
                         <Box
                           key={row.label}

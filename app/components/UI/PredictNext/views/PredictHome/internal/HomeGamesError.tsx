@@ -32,7 +32,7 @@ export const HomeGamesError = ({ onRetry }: HomeGamesErrorProps) => {
   return (
     <Box
       testID={PredictHomeTestIds.HOME_GAMES_ERROR}
-      twClassName="items-start gap-2 py-4"
+      className="items-start gap-2 py-4"
     >
       <Text accessibilityRole="alert" accessibilityLiveRegion="polite">
         {strings('predict_next.home_feed.games_error')}

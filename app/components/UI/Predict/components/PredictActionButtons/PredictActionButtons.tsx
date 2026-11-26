@@ -232,7 +232,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 
   if (claimableAmount > 0 && onClaimPress) {
     return (
-      <Box twClassName="w-full mt-4">
+      <Box className="w-full mt-4">
         <PredictClaimButton
           amount={market.game ? undefined : claimableAmount}
           onPress={onClaimPress}
@@ -294,7 +294,7 @@ function PredictBetButtonsContainer(props: {
   );
 
   return (
-    <Box twClassName={buttonContainerClassName}>
+    <Box className={buttonContainerClassName}>
       <PredictBetButtons
         yesLabel={buttonConfig.yesLabel}
         yesPrice={buttonConfig.yesPrice}

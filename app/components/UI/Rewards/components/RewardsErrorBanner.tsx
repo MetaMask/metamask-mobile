@@ -36,7 +36,7 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
-    twClassName="bg-error-muted rounded-2xl p-4 gap-4 w-full"
+    className="bg-error-muted rounded-2xl p-4 gap-4 w-full"
     testID={testID}
   >
     {/* Column 1: Error Icon */}
@@ -47,8 +47,8 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
     />
 
     {/* Column 2: Content */}
-    <Box twClassName="flex-1 gap-4">
-      <Box twClassName="gap-1">
+    <Box className="flex-1 gap-4">
+      <Box className="gap-1">
         {/* Title */}
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
           {title}
@@ -60,7 +60,7 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
 
       {/* Button Section */}
       {(onDismiss || onConfirm) && (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+        <Box flexDirection={BoxFlexDirection.Row} className="gap-3">
           {onDismiss && (
             <Button
               variant={ButtonVariant.Secondary}

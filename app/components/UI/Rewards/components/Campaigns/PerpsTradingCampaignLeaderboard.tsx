@@ -123,7 +123,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 
   if (hasError && entries.length === 0) {
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <RewardsErrorBanner
           title={strings(
             'rewards.perps_trading_campaign.leaderboard_error_loading',
@@ -143,11 +143,11 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 
   if (isLeaderboardNotYetComputed && !isLoading && entries.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED}
         >
           {strings(
@@ -160,11 +160,11 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 
   if (entries.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.EMPTY}
         >
           {strings(
@@ -208,7 +208,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         )}
       </Box>
       <Box
-        twClassName="mt-4 px-4 w-full flex-row items-center"
+        className="mt-4 px-4 w-full flex-row items-center"
         testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY}
       >
         <Text

@@ -146,7 +146,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="relative w-full overflow-hidden"
+            className="relative w-full overflow-hidden"
             style={{ height: heroHeight }}
           >
             <Image
@@ -157,7 +157,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
             />
             <Box
               style={{ paddingTop: insets.top + 8 }}
-              twClassName="absolute right-4 top-0 z-10"
+              className="absolute right-4 top-0 z-10"
             >
               <ButtonIcon
                 iconName={IconName.Close}
@@ -173,31 +173,31 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
 
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="w-full flex-1 gap-2 items-center px-4"
+            className="w-full flex-1 gap-2 items-center px-4"
           >
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="w-full flex-1 items-center justify-center gap-4 px-4"
+              className="w-full flex-1 items-center justify-center gap-4 px-4"
             >
               <Text
                 variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
               >
                 {strings('rewards.campaign_winning.you_won')}
               </Text>
 
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="items-center w-full"
+                className="items-center w-full"
               >
                 {rankDisplay !== null ? (
                   <Text
                     variant={TextVariant.AmountDisplayLg}
                     fontFamily={FontFamily.Hero}
                     color={TextColor.TextDefault}
-                    twClassName="text-center"
+                    className="text-center"
                     testID={`${testID}-rank`}
                   >
                     {rankDisplay}
@@ -211,7 +211,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
                     variant={TextVariant.HeadingMd}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.SuccessDefault}
-                    twClassName="text-center"
+                    className="text-center"
                   >
                     {resultDisplay}
                   </Text>
@@ -223,7 +223,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                twClassName="text-center px-8"
+                className="text-center px-8"
               >
                 {strings('rewards.campaign_winning.email_instructions', {
                   email: prizeEmail,
@@ -231,7 +231,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
               </Text>
             </Box>
 
-            <Box twClassName="w-full max-w-md">
+            <Box className="w-full max-w-md">
               <CopyableField
                 value={winningCode}
                 valueLoading={isLoading}
@@ -239,7 +239,7 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
               />
             </Box>
 
-            <Box twClassName="w-full max-w-md pt-2">
+            <Box className="w-full max-w-md pt-2">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}

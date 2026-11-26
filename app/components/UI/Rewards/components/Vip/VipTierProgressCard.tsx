@@ -159,7 +159,7 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
       testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER}
     >
       <Box
-        twClassName="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-hidden"
         style={vipTierProgressCardBorderStyle}
         testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.BORDER}
       >
@@ -171,7 +171,7 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
           style={tw.style('bg-section')}
           testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT}
         >
-          <Box twClassName="p-4 gap-4">
+          <Box className="p-4 gap-4">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -179,7 +179,7 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
             >
               <VipIcon width={32} height={32} name="VipIcon" />
               {memberId && (
-                <Box twClassName="items-end">
+                <Box className="items-end">
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
@@ -216,10 +216,10 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
                 </Text>
               ) : null}
             </Box>
-            <Box twClassName="gap-1">
-              <Box twClassName="relative pt-5">
+            <Box className="gap-1">
+              <Box className="relative pt-5">
                 <Box
-                  twClassName="absolute items-center"
+                  className="absolute items-center"
                   style={[progressPointerStyle, { left: pointerLeft }]}
                   testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER}
                 >
@@ -245,7 +245,7 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
                   <View style={pointerTriangleStyle} />
                 </Box>
                 <Box
-                  twClassName="h-3 rounded-full bg-muted overflow-hidden"
+                  className="h-3 rounded-full bg-muted overflow-hidden"
                   onLayout={handleProgressBarLayout}
                   testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_BAR}
                 >

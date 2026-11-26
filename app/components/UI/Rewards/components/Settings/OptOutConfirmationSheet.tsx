@@ -60,16 +60,16 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
         enableOnAndroid
         extraScrollHeight={20}
       >
-        <Box twClassName="px-4 pb-4">
+        <Box className="px-4 pb-4">
           {/* Header: centered title + close button */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-4"
+            className="mb-4"
           >
-            <Box twClassName="w-10" />
+            <Box className="w-10" />
             <Box
-              twClassName="flex-1 items-center"
+              className="flex-1 items-center"
               justifyContent={BoxJustifyContent.Center}
             >
               <Text
@@ -91,17 +91,17 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
           {/* Description */}
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-alternative text-center mb-6"
+            className="text-alternative text-center mb-6"
             testID="opt-out-confirmation-description"
           >
             {strings('rewards.optout.modal.confirmation_description')}
           </Text>
 
           {/* Type to confirm input */}
-          <Box twClassName="mb-6 gap-2">
+          <Box className="mb-6 gap-2">
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID="opt-out-confirmation-input-label"
             >
               {strings('rewards.optout.modal.type_to_confirm')}
@@ -118,7 +118,7 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
 
           {/* Error banner */}
           {errorMessage && (
-            <Box twClassName="mb-4">
+            <Box className="mb-4">
               <RewardsErrorBanner
                 testID="opt-out-error-banner"
                 title={strings('rewards.optout.modal.error_title')}
@@ -128,7 +128,7 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
           )}
 
           {/* Action buttons */}
-          <Box twClassName="gap-2">
+          <Box className="gap-2">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
@@ -136,7 +136,7 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
               isDisabled={!phraseMatches || isLoading}
               isLoading={isLoading}
               isDanger
-              twClassName="w-full"
+              className="w-full"
               testID="opt-out-confirmation-confirm"
             >
               {strings('rewards.optout.modal.confirm')}
@@ -146,7 +146,7 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
               size={ButtonSize.Lg}
               onPress={onClose}
               isDisabled={isLoading}
-              twClassName="w-full"
+              className="w-full"
               testID="opt-out-confirmation-cancel"
             >
               {strings('rewards.optout.modal.cancel')}

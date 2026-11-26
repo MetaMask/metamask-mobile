@@ -25,12 +25,12 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName={`bg-section rounded-xl ${isCarousel ? 'p-4 h-full' : 'p-4 mb-3'}`}
+      className={`bg-section rounded-xl ${isCarousel ? 'p-4 h-full' : 'p-4 mb-3'}`}
     >
       {/* Header: Circle Avatar + Title Bar */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName={`items-center gap-4 ${isCarousel ? 'mb-3' : 'mb-4'}`}
+        className={`items-center gap-4 ${isCarousel ? 'mb-3' : 'mb-4'}`}
       >
         {/* Circle Avatar - 40x40 */}
         <Skeleton
@@ -41,7 +41,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
         />
 
         {/* Title Bar - takes remaining space */}
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Skeleton
             width="100%"
             height={isCarousel ? 18 : 20}

@@ -183,21 +183,21 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
         title={strings('predict.feed.popular_today')}
         isInteractive
         onPress={handleSeeAll}
-        twClassName="px-0 pt-0 mb-1"
+        className="px-0 pt-0 mb-1"
       />
 
       {isLoading ? (
-        <Box twClassName="-mx-4">
+        <Box className="-mx-4">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('px-4')}
           >
-            <Box twClassName="gap-2">
+            <Box className="gap-2">
               {skeletonRows.map((row, rowIndex) => (
                 <Box
                   key={`popular-today-skeleton-row-${rowIndex}`}
-                  twClassName="flex-row gap-2"
+                  className="flex-row gap-2"
                 >
                   {row.map((index) => (
                     <Skeleton
@@ -216,18 +216,18 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       ) : null}
 
       {!isLoading && chips.length > 0 ? (
-        <Box twClassName="-mx-4">
+        <Box className="-mx-4">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('px-4')}
           >
-            <Box twClassName="gap-2">
+            <Box className="gap-2">
               {chipRows.map((row, rowIndex) => (
                 <Box
                   key={`popular-today-row-${rowIndex}`}
                   testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
-                  twClassName="flex-row gap-2"
+                  className="flex-row gap-2"
                 >
                   {row.map(({ key, label, option }) => (
                     <Button

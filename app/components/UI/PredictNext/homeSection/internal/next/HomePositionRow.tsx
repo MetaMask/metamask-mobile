@@ -78,11 +78,11 @@ export const HomePositionRow = ({
           style={tw.style('w-10 h-10 rounded-lg mt-1')}
         />
       ) : (
-        <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative items-center justify-center">
+        <Box className="w-10 h-10 rounded-lg mt-1 bg-background-alternative items-center justify-center">
           <Icon name={IconName.Tag} />
         </Box>
       )}
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {title}
         </Text>
@@ -97,7 +97,7 @@ export const HomePositionRow = ({
           {positionInfo(position)}
         </SensitiveText>
       </Box>
-      <Box twClassName="items-end">
+      <Box className="items-end">
         {currentValue === undefined ? (
           <Text
             variant={TextVariant.BodySm}
@@ -122,7 +122,7 @@ export const HomePositionRow = ({
           <SensitiveText
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName={pnlToneClassName(unrealizedPnl)}
+            className={pnlToneClassName(unrealizedPnl)}
             isHidden={isPrivacyMode}
             length={SensitiveTextLength.Short}
             testID={PredictHomeSectionTestIds.POSITION_ROW_PNL}
@@ -138,15 +138,15 @@ export const HomePositionRow = ({
 /** Placeholder with the row's layout while the first Positions read loads. */
 export const HomePositionRowSkeleton = () => (
   <Box
-    twClassName="flex-row items-center px-4 py-3 gap-4"
+    className="flex-row items-center px-4 py-3 gap-4"
     testID={PredictHomeSectionTestIds.POSITION_ROW_SKELETON}
   >
     <Skeleton height={40} width={40} />
-    <Box twClassName="flex-1 gap-1">
+    <Box className="flex-1 gap-1">
       <Skeleton height={16} width={140} />
       <Skeleton height={16} width={180} />
     </Box>
-    <Box twClassName="items-end gap-1">
+    <Box className="items-end gap-1">
       <Skeleton height={16} width={60} />
       <Skeleton height={16} width={45} />
     </Box>

@@ -350,14 +350,14 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {isCampaignsLoading && !campaign && (
-            <Box twClassName="px-4 pt-4 gap-4">
+            <Box className="px-4 pt-4 gap-4">
               <Skeleton style={tw.style('h-48 rounded-xl')} />
               <Skeleton style={tw.style('h-32 rounded-xl')} />
             </Box>
           )}
 
           {!isCampaignsLoading && hasCampaignsError && !campaign && (
-            <Box twClassName="px-4 pt-4">
+            <Box className="px-4 pt-4">
               <RewardsErrorBanner
                 title={strings('rewards.campaigns_view.error_title')}
                 description={strings(
@@ -377,7 +377,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
 
               {showHowItWorksSection && (
                 <Box
-                  twClassName="p-4"
+                  className="p-4"
                   testID={
                     PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS.HOW_IT_WORKS
                   }
@@ -391,7 +391,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
               )}
 
               {showCampaignEndedStats && (
-                <Box twClassName="p-4">
+                <Box className="p-4">
                   <PredictThePitchCampaignEndedStats
                     leaderboard={leaderboard}
                     prizePool={prizePool}
@@ -406,12 +406,12 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
               )}
 
               {showStatsSummarySection && (
-                <Box twClassName="p-4">
+                <Box className="p-4">
                   <Pressable onPress={navigateToStats}>
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
-                      twClassName="gap-2 mb-3"
+                      className="gap-2 mb-3"
                     >
                       <Text
                         variant={TextVariant.HeadingMd}
@@ -444,18 +444,18 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
               )}
 
               {showPortfolioSection && (
-                <Box twClassName="p-4">
+                <Box className="p-4">
                   <Pressable onPress={navigateToPortfolio}>
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       justifyContent={BoxJustifyContent.Between}
-                      twClassName="mb-3"
+                      className="mb-3"
                     >
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2"
+                        className="gap-2"
                       >
                         <Text
                           variant={TextVariant.HeadingMd}
@@ -472,7 +472,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                         />
                       </Box>
                       {positionsCountBadgeLabel != null && (
-                        <Box twClassName="bg-muted rounded px-1.5 py-0">
+                        <Box className="bg-muted rounded px-1.5 py-0">
                           <Text
                             variant={TextVariant.BodySm}
                             fontWeight={FontWeight.Medium}
@@ -508,13 +508,13 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
 
               {showLeaderboardSection && (
                 <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="py-4">
+                  <Box className="my-1 border-b border-border-muted" />
+                  <Box className="py-4">
                     <Pressable onPress={navigateToLeaderboard}>
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="px-4 gap-2 mb-1"
+                        className="px-4 gap-2 mb-1"
                       >
                         <Text
                           variant={TextVariant.HeadingMd}
@@ -532,7 +532,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                       </Box>
                     </Pressable>
                     <Box
-                      twClassName="px-4 gap-0.5 mb-2"
+                      className="px-4 gap-0.5 mb-2"
                       testID={
                         PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.TOTAL_PARTICIPANTS
                       }

@@ -35,7 +35,7 @@ const EarnActionHeader: React.FC<EarnActionHeaderProps> = ({
   subtext,
 }) => (
   <Box
-    twClassName="gap-2 px-4 pb-2 pt-4"
+    className="gap-2 px-4 pb-2 pt-4"
     testID={EARN_ACTION_HEADER_TEST_IDS.CONTAINER}
   >
     <Text
@@ -56,7 +56,7 @@ const EarnActionHeader: React.FC<EarnActionHeaderProps> = ({
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        twClassName="mt-2 self-stretch"
+        className="mt-2 self-stretch"
         onPress={cta.onPress}
         testID={EARN_ACTION_HEADER_TEST_IDS.CTA}
       >
@@ -67,7 +67,7 @@ const EarnActionHeader: React.FC<EarnActionHeaderProps> = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
         testID={EARN_ACTION_HEADER_TEST_IDS.SUBTEXT}
       >
         {subtext}

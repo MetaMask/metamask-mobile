@@ -62,8 +62,8 @@ const PredictGameDetailsTabsContent = memo(
         return null;
       }
       return (
-        <Box twClassName="px-4 py-2">
-          <Text variant={TextVariant.HeadingMd} twClassName="font-medium pt-8">
+        <Box className="px-4 py-2">
+          <Text variant={TextVariant.HeadingMd} className="font-medium pt-8">
             {strings('predict.market_details.your_picks')}
           </Text>
           <PredictPicks
@@ -79,10 +79,10 @@ const PredictGameDetailsTabsContent = memo(
     if (!showTabBar) {
       if (hasPositions) {
         return (
-          <Box twClassName="px-4 py-2">
+          <Box className="px-4 py-2">
             <Text
               variant={TextVariant.HeadingMd}
-              twClassName="font-medium pt-8"
+              className="font-medium pt-8"
             >
               {strings('predict.market_details.your_picks')}
             </Text>
@@ -115,7 +115,7 @@ const PredictGameDetailsTabsContent = memo(
       <>
         {currentKey === 'positions' && (
           <Box
-            twClassName="px-4"
+            className="px-4"
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT}
           >
             <PredictPicks

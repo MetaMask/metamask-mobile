@@ -70,7 +70,7 @@ const PredictBuyAmountSection = ({
 
   return (
     <>
-      <Box twClassName="text-center leading-[72px]">
+      <Box className="text-center leading-[72px]">
         <PredictAmountDisplay
           amount={currentValueUSDString}
           onPress={() =>
@@ -81,7 +81,7 @@ const PredictBuyAmountSection = ({
         />
       </Box>
       {!hideAvailableBalance && (
-        <Box twClassName="text-center mt-2">
+        <Box className="text-center mt-2">
           {isBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
@@ -89,7 +89,7 @@ const PredictBuyAmountSection = ({
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
               >
                 {`${strings('predict.order.available')}: `}
                 {availableBalanceDisplay}
@@ -102,7 +102,7 @@ const PredictBuyAmountSection = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="mt-2"
+        className="mt-2"
       >
         <Text
           variant={TextVariant.BodyMd}

@@ -80,7 +80,7 @@ export const WithdrawAmountStep = ({
   }
 
   return (
-    <Box twClassName="flex-1 items-center justify-center px-6">
+    <Box className="flex-1 items-center justify-center px-6">
       <PredictAmountDisplay
         amount={amount}
         isActive={false}
@@ -90,7 +90,7 @@ export const WithdrawAmountStep = ({
         isHidden={isPrivacyMode}
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="pt-1 text-center"
+        className="pt-1 text-center"
         testID={PredictWithdrawFlowTestIds.AVAILABLE_BALANCE}
       >
         {balanceCopy}
@@ -101,7 +101,7 @@ export const WithdrawAmountStep = ({
           accessibilityLiveRegion="polite"
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="pt-2 text-center"
+          className="pt-2 text-center"
           testID={PredictWithdrawFlowTestIds.AMOUNT_ERROR}
         >
           {amountIssueCopy(amountIssue)}

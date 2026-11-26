@@ -185,7 +185,7 @@ const PredictHome: React.FC = () => {
     >
       <Box
         testID={PredictHomeSelectorsIDs.CONTAINER}
-        twClassName="flex-1"
+        className="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
         {/* Mounted before the content so assistive tech reads the header first. */}
@@ -199,7 +199,7 @@ const PredictHome: React.FC = () => {
         />
 
         {showHomeError ? (
-          <Box twClassName="flex-1" style={{ paddingTop: floatingHeaderInset }}>
+          <Box className="flex-1" style={{ paddingTop: floatingHeaderInset }}>
             <PredictOffline onRetry={retryHome} />
           </Box>
         ) : (
@@ -218,7 +218,7 @@ const PredictHome: React.FC = () => {
             <Box
               testID={PredictHomeSelectorsIDs.TITLE_SECTION}
               onLayout={handleTitleLayout}
-              twClassName="pt-5 pb-1"
+              className="pt-5 pb-1"
             >
               <Text
                 testID={PredictHomeSelectorsIDs.TITLE}
@@ -232,7 +232,7 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />
-              <Box twClassName="pb-3">
+              <Box className="pb-3">
                 <PredictPortfolioModule
                   isGlass={isGlass}
                   onDepositWalletWithdrawPress={
@@ -243,7 +243,7 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPortfolio}
               />
-              <Box twClassName="-mx-4">
+              <Box className="-mx-4">
                 <SectionDivider />
               </Box>
               {!isLiveNowEmpty && (
@@ -252,7 +252,7 @@ const PredictHome: React.FC = () => {
                   onLayout={registerSection(
                     PredictEventValues.SECTION_ID.LIVE_NOW,
                   )}
-                  twClassName="pt-3 pb-3"
+                  className="pt-3 pb-3"
                 >
                   <PredictLiveNowSection />
                 </Box>
@@ -260,7 +260,7 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterLiveNow}
               />
-              <Box twClassName="-mx-4">
+              <Box className="-mx-4">
                 <SectionDivider />
               </Box>
               <Box
@@ -268,14 +268,14 @@ const PredictHome: React.FC = () => {
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.CATEGORIES,
                 )}
-                twClassName="pt-3 pb-3"
+                className="pt-3 pb-3"
               >
                 <PredictCategoriesSection />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterCategories}
               />
-              <Box twClassName="-mx-4">
+              <Box className="-mx-4">
                 <SectionDivider />
               </Box>
               {!isPopularTodayEmpty && (
@@ -284,7 +284,7 @@ const PredictHome: React.FC = () => {
                   onLayout={registerSection(
                     PredictEventValues.SECTION_ID.POPULAR_TODAY,
                   )}
-                  twClassName="pt-3 pb-3"
+                  className="pt-3 pb-3"
                 >
                   <PredictPopularTodaySection />
                 </Box>
@@ -292,7 +292,7 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPopularToday}
               />
-              <Box twClassName="-mx-4">
+              <Box className="-mx-4">
                 <SectionDivider />
               </Box>
               <Box
@@ -300,7 +300,7 @@ const PredictHome: React.FC = () => {
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.TRENDING,
                 )}
-                twClassName="pt-3"
+                className="pt-3"
               >
                 <PredictTrendingSection />
               </Box>
@@ -320,7 +320,7 @@ const PredictHome: React.FC = () => {
           entryPoint={entryPoint}
         />
       </Box>
-      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+      <Box pointerEvents="box-none" className="absolute inset-0 z-50">
         <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>

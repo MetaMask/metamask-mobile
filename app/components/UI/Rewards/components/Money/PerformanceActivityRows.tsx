@@ -52,14 +52,14 @@ export const PerformanceCommissionRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-4"
+      className="gap-4"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${item.id}`}
     >
       <PositionTokenAvatar
         position={commissionTokenAvatar(item.token)}
         size={AvatarTokenSize.Lg}
       />
-      <Box twClassName="min-w-0 flex-1">
+      <Box className="min-w-0 flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -166,7 +166,7 @@ export const PerformanceRebateRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      className="gap-3"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${item.id}`}
     >
       <AvatarIcon
@@ -175,11 +175,11 @@ export const PerformanceRebateRow: React.FC<{
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconAlternative }}
       />
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="shrink"
+          className="shrink"
         >
           {rebateTitle(item, localizedText)}
         </Text>

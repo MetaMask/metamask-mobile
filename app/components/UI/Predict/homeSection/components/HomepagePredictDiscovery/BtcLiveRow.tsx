@@ -95,7 +95,7 @@ const BtcMarketValues = memo(
   }) => (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="min-w-0 flex-1 pl-4"
+      className="min-w-0 flex-1 pl-4"
     >
       <BtcCurrentPrice value={currentPrice} />
       <BtcPriceToBeat value={priceToBeat} />
@@ -182,7 +182,7 @@ const BtcLiveRow = memo(({ series, iconName, onPress }: BtcLiveRowProps) => {
       )}
       testID="homepage-predict-discovery-btc-row"
     >
-      <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+      <Box className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
         <HomepagePredictDiscoveryRowIcon
           iconName={iconName}
           fallbackGlyph="currencyBitcoin"

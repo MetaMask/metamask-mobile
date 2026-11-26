@@ -105,7 +105,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         >
           <Box
             borderColor={BoxBorderColor.BorderDefault}
-            twClassName="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden"
           >
             {isLoading || !item ? (
               <PredictMarketSkeleton
@@ -145,10 +145,10 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         endIconProps={{
           testID: PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON,
         }}
-        twClassName="px-0 pt-0 mb-1"
+        className="px-0 pt-0 mb-1"
       />
 
-      <Box twClassName="-mx-4">
+      <Box className="-mx-4">
         <FlashList<CarouselItem>
           testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.CAROUSEL}
           data={carouselData}

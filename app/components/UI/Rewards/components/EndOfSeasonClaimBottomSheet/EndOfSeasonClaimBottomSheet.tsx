@@ -298,14 +298,14 @@ const EndOfSeasonClaimBottomSheet = ({
   }, [rewardType, handleClaimReward, isClaimingReward]);
 
   const renderActions = () => (
-    <Box twClassName="w-full">
+    <Box className="w-full">
       <Button
         variant={confirmAction.variant || ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={confirmAction.onPress}
         disabled={confirmAction.disabled}
         isLoading={confirmAction.loading}
-        twClassName="w-full"
+        className="w-full"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON}
       >
         {confirmAction.label}
@@ -319,7 +319,7 @@ const EndOfSeasonClaimBottomSheet = ({
     }
 
     return (
-      <Box twClassName="w-full">
+      <Box className="w-full">
         <Text variant={TextVariant.BodyMd}>
           {strings('rewards.metal_card_claim.email_label')}
         </Text>
@@ -337,7 +337,7 @@ const EndOfSeasonClaimBottomSheet = ({
         {emailValidationError && (
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-error-default mt-1"
+            className="text-error-default mt-1"
           >
             {strings('rewards.metal_card_claim.email_validation_error')}
           </Text>
@@ -352,7 +352,7 @@ const EndOfSeasonClaimBottomSheet = ({
     }
 
     return (
-      <Box twClassName="w-full mb-2">
+      <Box className="w-full mb-2">
         <Text variant={TextVariant.BodyMd}>
           {strings('rewards.metal_card_claim.telegram_label')}
         </Text>
@@ -382,10 +382,10 @@ const EndOfSeasonClaimBottomSheet = ({
         ); // TODO: check if this is correct in how we want to display (i.e. very low amounts show up as lower than 0.00001)
         return (
           <Box
-            twClassName="flex-col items-center justify-center w-full"
+            className="flex-col items-center justify-center w-full"
             testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_LOADED}
           >
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+            <Text variant={TextVariant.HeadingLg} className="text-center">
               {strings('rewards.linea_tokens.title_earned', {
                 amount: formattedAmount,
               })}
@@ -397,10 +397,10 @@ const EndOfSeasonClaimBottomSheet = ({
       // Otherwise, show default title (for loading, error, or zero balance cases)
       return (
         <Box
-          twClassName="flex-col items-center justify-center w-full"
+          className="flex-col items-center justify-center w-full"
           testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_DEFAULT_TITLE}
         >
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+          <Text variant={TextVariant.HeadingLg} className="text-center">
             {strings('rewards.linea_tokens.default_title')}
           </Text>
         </Box>
@@ -411,11 +411,11 @@ const EndOfSeasonClaimBottomSheet = ({
   };
 
   const renderDescription = () => (
-    <Box twClassName="w-full">
+    <Box className="w-full">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="text-text-alternative"
+        className="text-text-alternative"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_DESCRIPTION}
       >
         {description}
@@ -440,13 +440,13 @@ const EndOfSeasonClaimBottomSheet = ({
 
     return (
       <Box
-        twClassName="w-full mb-2"
+        className="w-full mb-2"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ACCOUNT_SELECTOR}
       >
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative mb-6"
+          className="text-text-alternative mb-6"
         >
           {strings('rewards.end_of_season_rewards.select_account_description')}
         </Text>
@@ -465,7 +465,7 @@ const EndOfSeasonClaimBottomSheet = ({
           />
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 ml-4"
+            className="flex-1 ml-4"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -490,16 +490,16 @@ const EndOfSeasonClaimBottomSheet = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Start}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="px-4 w-full gap-4"
+      className="px-4 w-full gap-4"
     >
       {renderTitle()}
       {description && renderDescription()}
       {contactInfo && (
-        <Box twClassName="w-full">
+        <Box className="w-full">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
           >
             {contactInfo}
           </Text>

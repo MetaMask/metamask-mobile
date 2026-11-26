@@ -109,7 +109,7 @@ function TradingActivityListView<T extends { id: string }>({
   const renderListItem = useCallback(
     ({ item }: { item: T }) => {
       const row = renderItem(item);
-      return row ? <Box twClassName="px-4 pb-4">{row}</Box> : null;
+      return row ? <Box className="px-4 pb-4">{row}</Box> : null;
     },
     [renderItem],
   );
@@ -119,7 +119,7 @@ function TradingActivityListView<T extends { id: string }>({
       return null;
     }
     return (
-      <Box twClassName="items-center py-4">
+      <Box className="items-center py-4">
         <ActivityIndicator />
       </Box>
     );
@@ -132,7 +132,7 @@ function TradingActivityListView<T extends { id: string }>({
       return null;
     }
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <RewardsErrorBanner
           title={strings('rewards.trading_activity_error.error_fetching_title')}
           description={strings(
@@ -150,7 +150,7 @@ function TradingActivityListView<T extends { id: string }>({
   const renderEmpty = useCallback(() => {
     if (isInitialLoadPending && !error) {
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <TradingActivityListSkeleton rows={SKELETON_ROWS} />
         </Box>
       );
@@ -162,10 +162,35 @@ function TradingActivityListView<T extends { id: string }>({
       return null;
     }
     return (
-      <Box twClassName="items-center px-4 py-4">
+      <Box className="items-center px-4 py-4">
         <TabEmptyState
           icon={
             <AvatarIcon
+              iconName={emptyIconName}
+              size={AvatarIconSize.Xl}
+              severity={AvatarIconSeverity.Neutral}
+              iconProps={{ color: IconColor.IconDefault }}
+            />
+          }
+          description={emptyDescription}
+          descriptionProps={{
+            variant: TextVariant.BodyMd,
+            color: TextColor.TextAlternative,
+          }}
+          {...(emptyActionLabel && emptyOnAction
+            ? {
+                actionButtonText: emptyActionLabel,
+                actionButtonProps: {
+                  variant: ButtonVariant.Primary,
+                  size: ButtonSize.Lg,
+                  twClassName: 'mt-3 self-stretch',
+                  testID: `${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`,
+                },
+                onAction: emptyOnAction,
+              }
+            : {})}
+          testID={TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}
+        /><AvatarIcon
               iconName={emptyIconName}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}

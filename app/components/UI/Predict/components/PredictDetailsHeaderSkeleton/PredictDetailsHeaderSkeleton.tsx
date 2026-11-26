@@ -80,7 +80,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="pb-4"
+      className="pb-4"
       style={{ paddingTop: insets.top + 12 }}
     >
       <Pressable
@@ -91,7 +91,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
       </Pressable>
 
-      <Box twClassName="flex-1 mx-4">
+      <Box className="flex-1 mx-4">
         <Skeleton
           width="60%"
           height={20}

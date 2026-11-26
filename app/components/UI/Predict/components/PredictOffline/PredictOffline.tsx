@@ -43,14 +43,14 @@ const PredictOffline: React.FC<PredictOfflineProps> = ({
       />
       <Text
         variant={TextVariant.HeadingMd}
-        twClassName="text-default"
+        className="text-default"
         style={tw.style('mb-2 text-center')}
       >
         {strings('predict.error.title')}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-alternative"
+        className="text-alternative"
         style={tw.style('mb-6 text-center')}
       >
         {strings('predict.error.description')}

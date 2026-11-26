@@ -192,7 +192,7 @@ const OndoLeaderboardView: React.FC = () => {
           {/* User position */}
           {position && (
             <>
-              <Box twClassName="p-4">
+              <Box className="p-4">
                 <LeaderboardPositionHeader
                   rank={rankValue}
                   tier={tierValue}
@@ -209,7 +209,7 @@ const OndoLeaderboardView: React.FC = () => {
                 />
               </Box>
               {/* Divider */}
-              <Box twClassName="my-1 border-b border-border-muted" />
+              <Box className="my-1 border-b border-border-muted" />
             </>
           )}
 
@@ -219,7 +219,7 @@ const OndoLeaderboardView: React.FC = () => {
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
-              twClassName="px-4 py-3"
+              className="px-4 py-3"
             >
               <Pressable
                 onPress={tierNames.length > 1 ? openTierSelector : undefined}
@@ -228,7 +228,7 @@ const OndoLeaderboardView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="border border-border-default rounded-full px-3 py-1 gap-1"
+                  className="border border-border-default rounded-full px-3 py-1 gap-1"
                 >
                   <Text
                     variant={TextVariant.BodySm}
@@ -259,7 +259,7 @@ const OndoLeaderboardView: React.FC = () => {
           )}
 
           {/* Full leaderboard */}
-          <Box twClassName="pb-4">
+          <Box className="pb-4">
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}

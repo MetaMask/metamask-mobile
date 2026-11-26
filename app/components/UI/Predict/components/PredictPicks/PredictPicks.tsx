@@ -40,7 +40,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
 
   if (usePositionDetail) {
     return (
-      <Box testID={testID} twClassName="flex-col pt-3">
+      <Box testID={testID} className="flex-col pt-3">
         {positions.map((position) => (
           <PredictPositionDetail
             key={position.id}
@@ -62,7 +62,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="flex-col">
+    <Box testID={testID} className="flex-col">
       {positions.map((position) => (
         <PredictPickItem
           key={position.id}

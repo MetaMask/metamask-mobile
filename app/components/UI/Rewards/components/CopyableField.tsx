@@ -41,18 +41,18 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
   };
 
   return (
-    <Box twClassName="flex-col gap-1">
+    <Box className="flex-col gap-1">
       {label && (
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {label}
         </Text>
       )}
       <Box
-        twClassName="w-full min-h-12 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
+        className="w-full min-h-12 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        <Box twClassName="min-w-0 flex-1">
+        <Box className="min-w-0 flex-1">
           {valueLoading ? (
             <Skeleton height={24} width={75} />
           ) : (
@@ -66,7 +66,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
           )}
         </Box>
         {trailingAccessory ? (
-          <Box twClassName="ml-2">{trailingAccessory}</Box>
+          <Box className="ml-2">{trailingAccessory}</Box>
         ) : null}
         <ButtonIcon
           iconName={isCopied ? IconName.Confirmation : IconName.Copy}

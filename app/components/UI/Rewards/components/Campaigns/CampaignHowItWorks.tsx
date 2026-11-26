@@ -48,7 +48,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
   groupSteps = false,
 }) => (
   <Box
-    twClassName={showStepDividers ? 'gap-0' : 'gap-4'}
+    className={showStepDividers ? 'gap-0' : 'gap-4'}
     testID={CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER}
   >
     <Text
@@ -59,13 +59,13 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
       {title ?? strings('rewards.campaign_details.how_it_works')}
     </Text>
 
-    <Box twClassName={groupSteps ? 'rounded-xl bg-muted px-4' : ''}>
+    <Box className={groupSteps ? 'rounded-xl bg-muted px-4' : ''}>
       {howItWorks.steps.map((step, stepIndex) => (
         <Box
           key={`step-${stepIndex}`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
-          twClassName={`gap-3 ${showStepDividers ? 'py-4' : ''} ${
+          className={`gap-3 ${showStepDividers ? 'py-4' : ''} ${
             showStepDividers && stepIndex < howItWorks.steps.length - 1
               ? 'border-b border-border-muted'
               : ''
@@ -77,7 +77,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               backgroundColor={BoxBackgroundColor.PrimaryMuted}
-              twClassName="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full"
             >
               <Icon
                 name={stepIcons[stepIndex]}
@@ -91,7 +91,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               backgroundColor={BoxBackgroundColor.PrimaryMuted}
-              twClassName="w-6 h-6 rounded-full"
+              className="w-6 h-6 rounded-full"
               testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_INDEX}-${stepIndex}`}
             >
               <Text
@@ -103,7 +103,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
               </Text>
             </Box>
           )}
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}

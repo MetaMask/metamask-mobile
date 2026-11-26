@@ -288,10 +288,10 @@ export const PredictDepositScreen = (): React.JSX.Element => {
   let caption: React.JSX.Element;
   if (alertText) {
     caption = (
-      <Box twClassName="items-center gap-1">
+      <Box className="items-center gap-1">
         <Text
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
           accessibilityRole="alert"
           testID={PredictDepositScreenTestIds.ALERT}
         >
@@ -354,8 +354,8 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       {stage.kind === 'processing' ? (
         <DepositProcessing amount={stage.amount} onDone={close} />
       ) : (
-        <Box twClassName="flex-1 justify-between">
-          <Box twClassName="flex-1 items-center justify-center gap-3.5">
+        <Box className="flex-1 justify-between">
+          <Box className="flex-1 items-center justify-center gap-3.5">
             <PredictAmountDisplay
               amount={input}
               isActive={isAmountStage}
@@ -364,9 +364,9 @@ export const PredictDepositScreen = (): React.JSX.Element => {
               accessibilityLabel={strings('predict_next.deposit.amount')}
               testID={PredictDepositScreenTestIds.AMOUNT}
             />
-            <Box twClassName="min-h-[24px] items-center px-4">{caption}</Box>
+            <Box className="min-h-[24px] items-center px-4">{caption}</Box>
           </Box>
-          <Box twClassName="gap-4 px-4 pb-4">
+          <Box className="gap-4 px-4 pb-4">
             {environment ? (
               <DepositPayWithRow network={environment.network} />
             ) : null}
@@ -374,7 +374,7 @@ export const PredictDepositScreen = (): React.JSX.Element => {
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.ErrorDefault}
-                twClassName="text-center"
+                className="text-center"
                 accessibilityRole="alert"
                 testID={PredictDepositScreenTestIds.NOTICE}
               >
@@ -383,7 +383,7 @@ export const PredictDepositScreen = (): React.JSX.Element => {
             ) : null}
             {isAmountStage ? (
               <>
-                <Box twClassName="-mx-4">
+                <Box className="-mx-4">
                   <PredictKeypad
                     onKeyPress={(key) => editAmount(`${input}${key}`)}
                     onDelete={() => editAmount(input.slice(0, -1))}

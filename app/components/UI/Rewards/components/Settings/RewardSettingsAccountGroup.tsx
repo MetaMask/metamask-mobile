@@ -134,7 +134,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   return (
     <View style={tw.style('h-16 w-full flex-row items-center px-4 bg-default')}>
       <Box
-        twClassName="flex-1 flex-row items-center rounded-lg gap-3"
+        className="flex-1 flex-row items-center rounded-lg gap-3"
         flexDirection={BoxFlexDirection.Row}
         testID={
           testID || `rewards-account-group-${accountGroup?.id || 'unknown'}`
@@ -152,7 +152,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
 
         {/* Account Name */}
         <Box
-          twClassName={`flex-1 flex-col`}
+          className={`flex-1 flex-col`}
           testID={`rewards-account-group-info-${accountGroup.id}`}
         >
           <Text
@@ -180,7 +180,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
           {/* Menu button to show account addresses */}
@@ -195,7 +195,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
 
           {isLoading ? (
             <Box
-              twClassName="rounded-xl h-10 w-10 items-center justify-center"
+              className="rounded-xl h-10 w-10 items-center justify-center"
               testID={`rewards-account-group-link-button-loading-${accountGroup.id}`}
             >
               <ActivityIndicator

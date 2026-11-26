@@ -72,7 +72,7 @@ const TradeAmount = ({
       fontWeight={FontWeight.Medium}
       isHidden={isPrivacyMode}
       length={SensitiveTextLength.Short}
-      twClassName={entry.action === 'sell' ? 'text-success-default' : undefined}
+      className={entry.action === 'sell' ? 'text-success-default' : undefined}
       testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT}
     >
       {formatTradeAmount(entry)}
@@ -81,7 +81,7 @@ const TradeAmount = ({
       variant={TextVariant.BodySm}
       isHidden={isPrivacyMode}
       length={SensitiveTextLength.Short}
-      twClassName="text-alternative"
+      className="text-alternative"
     >
       {strings('predict_next.portfolio.activity_rows.shares_at_price', {
         shares: formatSharesAmount(entry.shares),
@@ -103,7 +103,7 @@ const SettlementAmount = ({
     fontWeight={FontWeight.Medium}
     isHidden={isPrivacyMode}
     length={SensitiveTextLength.Short}
-    twClassName={
+    className={
       isNonZeroAmount(entry.proceeds)
         ? 'text-success-default'
         : 'text-alternative'
@@ -142,7 +142,7 @@ export const PortfolioActivityRow = ({
       style={tw.style('flex-row items-center py-2')}
       testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW}
     >
-      <Box twClassName="mr-3 h-10 w-10 overflow-hidden rounded-full bg-muted">
+      <Box className="mr-3 h-10 w-10 overflow-hidden rounded-full bg-muted">
         {context?.imageUrl ? (
           <Image
             source={{ uri: context.imageUrl }}
@@ -151,20 +151,20 @@ export const PortfolioActivityRow = ({
           />
         ) : (
           <Box
-            twClassName="h-full w-full items-center justify-center"
+            className="h-full w-full items-center justify-center"
             testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW_FALLBACK_ICON}
           >
             <Icon name={IconName.Activity} />
           </Box>
         )}
       </Box>
-      <Box twClassName="flex-1 pr-3">
+      <Box className="flex-1 pr-3">
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {title}
         </Text>
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          className="text-alternative"
           numberOfLines={1}
         >
           {subtitle}
@@ -172,7 +172,7 @@ export const PortfolioActivityRow = ({
       </Box>
       <Box alignItems={BoxAlignItems.End}>
         <ActivityAmount entry={entry} isPrivacyMode={isPrivacyMode} />
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-alternative">
           {formatActivityTimestamp(entry.timestamp)}
         </Text>
       </Box>

@@ -129,14 +129,14 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     return (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="w-full gap-3"
+        className="w-full gap-3"
         testID={
           testID
             ? `${testID}-skeleton`
             : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON
         }
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Skeleton
             width="100%"
             height={48}
@@ -148,7 +148,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
             }
           />
         </Box>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Skeleton
             width="100%"
             height={48}

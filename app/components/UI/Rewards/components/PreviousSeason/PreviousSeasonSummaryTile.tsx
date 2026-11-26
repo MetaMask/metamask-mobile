@@ -15,7 +15,7 @@ const PreviousSeasonSummaryTile = ({
   loadingHeight,
   testID,
 }: PreviousSeasonSummaryTileProps) => (
-  <Box twClassName={`bg-section rounded-lg p-4 ${twClassName}`} testID={testID}>
+  <Box className={`bg-section rounded-lg p-4 ${twClassName}`} testID={testID}>
     {isLoading ? (
       <Skeleton height={loadingHeight || '100%'} width="100%" />
     ) : (

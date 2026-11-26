@@ -74,7 +74,7 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
           </Text>
         </Box>
         <BottomSheetFooter
-          twClassName="px-4"
+          className="px-4"
           primaryButtonProps={{
             children: strings('predict.withdraw.unavailable_got_it'),
             onPress: closeSheet,

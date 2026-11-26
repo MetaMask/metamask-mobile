@@ -124,13 +124,13 @@ const BreakdownSkeleton: React.FC<{ rows: number }> = ({ rows }) => {
   const tw = useTailwind();
 
   return (
-    <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON}>
+    <Box className="gap-4" testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON}>
       {Array.from({ length: rows }, (_, index) => (
         <Box
           key={index}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
+          className="gap-3"
         >
           <Skeleton style={tw.style('h-10 w-10 rounded-full')} />
           <Skeleton style={tw.style('h-4 w-28 flex-1 rounded-md')} />
@@ -171,20 +171,20 @@ const BreakdownSection: React.FC<{
     <SectionHeader
       // A payload cached before the server added the key has no yourEarnings.
       title={localizedText.yourEarnings ?? localizedText.breakdown}
-      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
+      className={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
-    <Box twClassName="px-4 pb-8">
+    <Box className="px-4 pb-8">
       {loading ? (
         <BreakdownSkeleton rows={rows.length} />
       ) : (
-        <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN}>
+        <Box className="gap-4" testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN}>
           {rows.map((row) => (
             <Box
               key={row.key}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
+              className="gap-3"
               testID={`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-${row.key}`}
             >
               <AvatarIcon
@@ -193,7 +193,7 @@ const BreakdownSection: React.FC<{
                 severity={AvatarIconSeverity.Neutral}
                 iconProps={{ color: IconColor.IconAlternative }}
               />
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Text variant={TextVariant.BodyMd}>{row.label}</Text>
                 <Text
                   variant={TextVariant.BodySm}
@@ -212,7 +212,7 @@ const BreakdownSection: React.FC<{
           ))}
         </Box>
       )}
-      {errorBanner ? <Box twClassName="pt-4">{errorBanner}</Box> : null}
+      {errorBanner ? <Box className="pt-4">{errorBanner}</Box> : null}
     </Box>
   </>
 );
@@ -310,7 +310,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
         />
       ) : null}
       {!showBreakdown && errorSource ? (
-        <Box twClassName="px-4 pt-4">
+        <Box className="px-4 pt-4">
           <SummaryErrorBanner
             refreshing={summary.refreshing}
             onRetry={retrySummary}

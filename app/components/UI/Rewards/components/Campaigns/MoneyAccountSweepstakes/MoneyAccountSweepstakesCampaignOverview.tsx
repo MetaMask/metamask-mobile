@@ -96,7 +96,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
     if (showStatsError) {
       return (
         <Box
-          twClassName="px-4 pb-5 pt-4"
+          className="px-4 pb-5 pt-4"
           testID={
             MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER
           }
@@ -119,13 +119,13 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
     if (showStatsLoading) {
       return (
         <Box
-          twClassName="px-4 pb-5 pt-4"
+          className="px-4 pb-5 pt-4"
           testID={
             MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER
           }
         >
           <Box
-            twClassName="gap-3 rounded-xl bg-muted p-4"
+            className="gap-3 rounded-xl bg-muted p-4"
             testID={
               MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.STATS_LOADING
             }
@@ -199,11 +199,11 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
 
     return (
       <Box
-        twClassName="px-4 pb-5 pt-4"
+        className="px-4 pb-5 pt-4"
         testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER}
       >
         <Box
-          twClassName="gap-3 rounded-xl bg-muted p-4"
+          className="gap-3 rounded-xl bg-muted p-4"
           testID={
             MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.BALANCE_HEADER
           }
@@ -211,13 +211,13 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           <Box
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text variant={TextVariant.HeadingSm}>
               {localizedText.eligibleBalanceTitle}
             </Text>
             {isQualified && (
-              <Box twClassName="rounded-md bg-success-muted px-2 py-1">
+              <Box className="rounded-md bg-success-muted px-2 py-1">
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.SuccessDefault}
@@ -230,7 +230,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           <Box
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text
               variant={TextVariant.AmountDisplayLg}
@@ -242,9 +242,9 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               <Box
                 alignItems={BoxAlignItems.Center}
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="gap-1"
+                className="gap-1"
               >
-                <Box twClassName="rounded-md bg-info-muted px-2 py-1">
+                <Box className="rounded-md bg-info-muted px-2 py-1">
                   <Text
                     variant={TextVariant.BodyXs}
                     color={TextColor.InfoDefault}
@@ -268,8 +268,8 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               </Box>
             )}
           </Box>
-          <Box twClassName="gap-1">
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+          <Box className="gap-1">
+            <Box flexDirection={BoxFlexDirection.Row} className="gap-1">
               <Text
                 variant={TextVariant.BodyLg}
                 fontWeight={FontWeight.Medium}
@@ -299,8 +299,8 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               </Text>
             )}
           </Box>
-          <Box twClassName="my-1 border-t border-border-muted" />
-          <Box twClassName="gap-1">
+          <Box className="my-1 border-t border-border-muted" />
+          <Box className="gap-1">
             <Box
               alignItems={BoxAlignItems.Center}
               flexDirection={BoxFlexDirection.Row}
@@ -360,10 +360,10 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
 
   return (
     <Box
-      twClassName="px-4 pb-5 pt-4"
+      className="px-4 pb-5 pt-4"
       testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="h-32 overflow-hidden rounded-xl border border-border-muted bg-black">
+      <Box className="h-32 overflow-hidden rounded-xl border border-border-muted bg-black">
         <ImageBackground
           source={{ uri: backgroundImageUrl }}
           resizeMode="cover"
@@ -371,7 +371,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.HERO}
         />
       </Box>
-      <Box twClassName="gap-1 pt-4">
+      <Box className="gap-1 pt-4">
         <Text
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}

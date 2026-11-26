@@ -41,7 +41,7 @@ const CampaignEndedStats: React.FC<CampaignEndedStatsProps> = ({
   hasError,
   onRetry,
 }) => (
-  <Box twClassName="gap-3" testID={CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER}>
+  <Box className="gap-3" testID={CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER}>
     <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
       {strings('rewards.campaign_ended_stats.title')}
     </Text>

@@ -85,7 +85,7 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
 
     if (showSkeleton) {
       return (
-        <Box testID="rewards-settings-bulk-link-progress" twClassName="gap-2">
+        <Box testID="rewards-settings-bulk-link-progress" className="gap-2">
           <Skeleton height={22} width={120} style={tw.style('rounded')} />
           <Skeleton height={8} width="100%" style={tw.style('rounded-full')} />
         </Box>
@@ -95,13 +95,13 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
     return (
       <Box
         testID="rewards-settings-bulk-link-progress"
-        twClassName="rounded-xl bg-background-muted px-4 py-4 mb-4"
+        className="rounded-xl bg-background-muted px-4 py-4 mb-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
           alignItems={BoxAlignItems.Center}
-          twClassName="mb-3"
+          className="mb-3"
         >
           {isBulkLinkRunning ? (
             <>
@@ -133,11 +133,11 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
         {/* Progress bar */}
         <Box
           testID="rewards-settings-progress-bar"
-          twClassName="w-full h-3 rounded-full overflow-hidden"
+          className="w-full h-3 rounded-full overflow-hidden"
           style={{ backgroundColor: colors.background.alternative }}
         >
           <Box
-            twClassName="h-full rounded-full"
+            className="h-full rounded-full"
             style={{
               width: `${progressPercent}%`,
               backgroundColor: colors.success.default,
@@ -151,7 +151,7 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
             variant={ButtonVariant.Secondary}
             onPress={startBulkLink}
             style={tw.style('mt-2')}
-            twClassName="w-full"
+            className="w-full"
           >
             {strings('rewards.settings.add_all_accounts')}
           </Button>
@@ -300,7 +300,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
                   item.walletItem?.wallet?.id?.replace('keyring:', '') ||
                   'unknown'
                 }`}
-                twClassName="flex-row items-center justify-between px-4"
+                className="flex-row items-center justify-between px-4"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -308,7 +308,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
-                  twClassName="text-alternative"
+                  className="text-alternative"
                 >
                   {item.walletItem?.wallet?.metadata?.name || 'Unknown Wallet'}
                 </Text>
@@ -329,7 +329,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
             return (
               <ButtonBase
                 testID={`show-more-button-${walletId}`}
-                twClassName="h-12 bg-background-default"
+                className="h-12 bg-background-default"
                 style={({ pressed }) =>
                   tw.style(pressed && 'bg-background-pressed')
                 }
@@ -339,12 +339,12 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   justifyContent={BoxJustifyContent.Center}
-                  twClassName="gap-2"
+                  className="gap-2"
                 >
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-text-alternative"
+                    className="text-text-alternative"
                   >
                     {isExpanded
                       ? strings('rewards.settings.show_less')
@@ -414,7 +414,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
     <>
       <ReferredByCodeSection showTrailingDivider />
       {offDeviceAccounts && offDeviceAccounts.length > 0 && (
-        <Box twClassName="px-4 pb-4">
+        <Box className="px-4 pb-4">
           <RewardsInfoBanner
             title={strings('rewards.settings.off_device_accounts_banner_title')}
             description={strings(
@@ -429,19 +429,19 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
       )}
       <Box
         testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.HEADER}
-        twClassName="px-4"
+        className="px-4"
       >
-        <Box twClassName="gap-2 pb-2">
+        <Box className="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
           </Text>
 
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+          <Text variant={TextVariant.BodyMd} className="text-alternative">
             {strings('rewards.settings.description')}
           </Text>
         </Box>
 
-        <Box twClassName="pt-3">
+        <Box className="pt-3">
           <AccountProgressSection
             linkedAccounts={linkedAccounts}
             totalAccounts={totalAccounts}
@@ -467,12 +467,12 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
       <Box testID="rewards-settings-loading">
         {listHeader}
 
-        <Box twClassName="mt-4 px-4">
+        <Box className="mt-4 px-4">
           {[...Array(3)].map((_, index) => (
             <Box
               key={`rewards-settings-skeleton-${index}`}
               testID={`rewards-settings-skeleton-${index}`}
-              twClassName="h-16 flex-row items-center gap-3 rounded-lg"
+              className="h-16 flex-row items-center gap-3 rounded-lg"
             >
               <Skeleton
                 height={40}
@@ -494,7 +494,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
       <Box testID="rewards-settings-error">
         {listHeader}
 
-        <Box twClassName="mt-4 px-4">
+        <Box className="mt-4 px-4">
           <RewardsErrorBanner
             testID="rewards-settings-error-banner"
             title={strings(

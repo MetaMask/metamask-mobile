@@ -380,7 +380,7 @@ const PredictHomeView = ({
   });
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
+    <Box className="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
       <HeaderStandardAnimatedGlass
         isGlass={isGlassHeader}
         onLayout={handleHeaderLayout}
@@ -446,7 +446,7 @@ const PredictHomeView = ({
         onMomentumScrollEnd={onScrollSettled}
         scrollEventThrottle={16}
       >
-        <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
+        <Box className="gap-6 px-4 pb-8" onLayout={onContentLayout}>
           <Text
             variant={TextVariant.HeadingLg}
             testID={PredictHomeTestIds.TITLE_SECTION}
@@ -476,7 +476,7 @@ const PredictHomeView = ({
           {visibleItems.length > 0 ? (
             <SectionDivider
               marginVertical={0}
-              twClassName="-mx-4"
+              className="-mx-4"
               testID={PredictHomeTestIds.DIVIDER}
             />
           ) : null}
@@ -489,7 +489,7 @@ const PredictHomeView = ({
               {index > 0 ? (
                 <SectionDivider
                   marginVertical={0}
-                  twClassName="-mx-4"
+                  className="-mx-4"
                   testID={PredictHomeTestIds.DIVIDER}
                 />
               ) : null}

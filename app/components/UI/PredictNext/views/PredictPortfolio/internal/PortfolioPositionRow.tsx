@@ -56,7 +56,7 @@ const PortfolioPositionMetrics = ({
       {currentValue === undefined ? (
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          className="text-alternative"
           testID={PredictPortfolioScreenTestIds.POSITION_ROW_VALUE_UNAVAILABLE}
         >
           {strings('predict_next.portfolio.value_unavailable')}
@@ -75,7 +75,7 @@ const PortfolioPositionMetrics = ({
       {unrealizedPnl === undefined ? null : (
         <SensitiveText
           variant={TextVariant.BodySm}
-          twClassName={pnlToneClassName(unrealizedPnl)}
+          className={pnlToneClassName(unrealizedPnl)}
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
           testID={PredictPortfolioScreenTestIds.POSITION_ROW_PNL}
@@ -110,7 +110,7 @@ export const PortfolioPositionRow = ({
       style={tw.style('flex-row items-center py-2')}
       testID={PredictPortfolioScreenTestIds.POSITION_ROW}
     >
-      <Box twClassName="mr-3 h-10 w-10 overflow-hidden rounded-lg bg-muted">
+      <Box className="mr-3 h-10 w-10 overflow-hidden rounded-lg bg-muted">
         {context?.imageUrl ? (
           <Image
             source={{ uri: context.imageUrl }}
@@ -119,21 +119,21 @@ export const PortfolioPositionRow = ({
           />
         ) : (
           <Box
-            twClassName="h-full w-full items-center justify-center"
+            className="h-full w-full items-center justify-center"
             testID={PredictPortfolioScreenTestIds.POSITION_ROW_FALLBACK_ICON}
           >
             <Icon name={IconName.Tag} />
           </Box>
         )}
       </Box>
-      <Box twClassName="flex-1 pr-3">
+      <Box className="flex-1 pr-3">
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {title}
         </Text>
         {context?.marketQuestion ? (
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-alternative"
+            className="text-alternative"
             numberOfLines={1}
           >
             {context.marketQuestion}
@@ -141,14 +141,14 @@ export const PortfolioPositionRow = ({
         ) : null}
         <SensitiveText
           variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          className="text-alternative"
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
         >
           {metaLine}
         </SensitiveText>
       </Box>
-      <Box twClassName="flex-1 items-end gap-1 pr-1">
+      <Box className="flex-1 items-end gap-1 pr-1">
         <PortfolioPositionMetrics
           position={position}
           isPrivacyMode={isPrivacyMode}
@@ -156,7 +156,7 @@ export const PortfolioPositionRow = ({
         {status === 'open' ? null : (
           <Text
             variant={TextVariant.BodyXs}
-            twClassName="text-alternative"
+            className="text-alternative"
             testID={PredictPortfolioScreenTestIds.POSITION_ROW_STATUS}
           >
             {strings(`predict_next.portfolio.position_status.${status}`)}

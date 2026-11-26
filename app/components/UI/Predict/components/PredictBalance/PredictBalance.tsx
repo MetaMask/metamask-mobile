@@ -177,13 +177,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
 
   if (isLoading || (hasBalanceLoadError && isFetching)) {
     return (
-      <Box twClassName="px-4 gap-3" testID={PREDICT_BALANCE_TEST_IDS.SKELETON}>
-        <Box twClassName="gap-2">
+      <Box className="px-4 gap-3" testID={PREDICT_BALANCE_TEST_IDS.SKELETON}>
+        <Box className="gap-2">
           <Skeleton width={120} height={24} style={tw.style('rounded')} />
           <Skeleton width={160} height={48} style={tw.style('rounded')} />
           <Skeleton width={100} height={16} style={tw.style('rounded')} />
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-4">
+        <Box flexDirection={BoxFlexDirection.Row} className="gap-3 mt-4">
           <Skeleton
             width="50%"
             height={40}
@@ -202,28 +202,28 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   if (hasBalanceLoadError) {
     return (
       <Box
-        twClassName="px-4"
+        className="px-4"
         testID={PREDICT_BALANCE_TEST_IDS.ERROR}
         onLayout={(layoutEvent) => {
           const { height } = layoutEvent.nativeEvent.layout;
           onLayout?.(height);
         }}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
+        <Text variant={TextVariant.HeadingLg} className="text-default">
           {strings('wallet.predict')}
         </Text>
-        <Box twClassName="items-center gap-2 py-4">
+        <Box className="items-center gap-2 py-4">
           <Icon
             name={IconName.Warning}
             size={IconSize.Xl}
             color={IconColor.Muted}
           />
-          <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+          <Text variant={TextVariant.HeadingMd} className="text-default">
             {strings('predict.balance_error.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-alternative text-center"
+            className="text-alternative text-center"
           >
             {strings('predict.balance_error.description')}
           </Text>
@@ -252,7 +252,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-3 border-b border-muted"
+          className="px-4 py-3 border-b border-muted"
         >
           <Text style={tw.style('text-body-sm')}>
             {strings('predict.deposit.adding_your_funds')}
@@ -260,7 +260,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           <Spinner />
         </Box>
       )}
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <TitleHub
           twClassName="w-full"
           title={strings('wallet.predict')}
@@ -280,7 +280,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
             twClassName: 'w-full justify-between items-end',
           }}
         />
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-4">
+        <Box flexDirection={BoxFlexDirection.Row} className="gap-3 mt-4">
           {predictPortfolioEnabled && (
             <Button
               variant={ButtonVariants.Secondary}

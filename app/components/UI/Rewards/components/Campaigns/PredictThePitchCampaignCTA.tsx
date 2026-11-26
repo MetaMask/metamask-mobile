@@ -57,7 +57,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
       return null;
     }
     return (
-      <Box twClassName="p-4 mb-2">
+      <Box className="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

@@ -25,15 +25,15 @@ const PredictBuyBottomContent = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName={`px-4 pb-0${hideBorder ? '' : ' border-t border-muted'}`}
+      className={`px-4 pb-0${hideBorder ? '' : ' border-t border-muted'}`}
     >
-      <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-        <Box twClassName="w-full">{children}</Box>
-        <Box twClassName="items-center justify-center px-1">
+      <Box justifyContent={BoxJustifyContent.Center} className="gap-2">
+        <Box className="w-full">{children}</Box>
+        <Box className="items-center justify-center px-1">
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('predict.consent_sheet.disclaimer')}{' '}
             <Text

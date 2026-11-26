@@ -94,7 +94,7 @@ const RewardsSettingsView: React.FC = () => {
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
-        <Box twClassName="py-4 flex-1 gap-4">
+        <Box className="py-4 flex-1 gap-4">
           <RewardSettingsAccountGroupList
             onRequestOptOut={handleRequestOptOut}
             offDeviceAccounts={offDeviceAccounts}

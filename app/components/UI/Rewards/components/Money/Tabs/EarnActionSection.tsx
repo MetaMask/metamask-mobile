@@ -50,10 +50,10 @@ function EarnActionSection<Key extends string>({
       {followsSection ? <SectionDivider marginVertical={8} /> : null}
       <SectionHeader
         title={title}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
+        className={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={testIDs.header}
       />
-      <Box twClassName="gap-4 px-4" testID={testIDs.container}>
+      <Box className="gap-4 px-4" testID={testIDs.container}>
         {rows.map((row) => (
           <Pressable
             key={row.key}
@@ -65,7 +65,7 @@ function EarnActionSection<Key extends string>({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
+              className="gap-3"
             >
               <AvatarIcon
                 iconName={row.iconName}
@@ -73,7 +73,7 @@ function EarnActionSection<Key extends string>({
                 severity={AvatarIconSeverity.Neutral}
                 iconProps={{ color: IconColor.IconAlternative }}
               />
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Text variant={TextVariant.BodyMd}>{row.title}</Text>
                 <Text
                   variant={TextVariant.BodySm}

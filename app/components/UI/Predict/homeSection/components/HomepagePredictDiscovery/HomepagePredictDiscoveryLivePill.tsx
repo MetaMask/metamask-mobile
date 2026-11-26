@@ -37,21 +37,21 @@ const HomepagePredictDiscoveryLivePill = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
-      twClassName="mx-1 h-7 shrink-0 rounded-full px-2"
+      className="mx-1 h-7 shrink-0 rounded-full px-2"
     >
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         backgroundColor={BoxBackgroundColor.SuccessMuted}
-        twClassName="h-4 w-4 shrink-0 rounded-full"
+        className="h-4 w-4 shrink-0 rounded-full"
       >
-        <Box twClassName="h-2 w-2 rounded-full bg-success-default" />
+        <Box className="h-2 w-2 rounded-full bg-success-default" />
       </Box>
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="ml-2"
+        className="ml-2"
       >
         {strings('predict.homepage_discovery.btc_live')}
       </Text>
@@ -60,7 +60,7 @@ const HomepagePredictDiscoveryLivePill = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.SuccessDefault}
-          twClassName="ml-2"
+          className="ml-2"
           style={styles.countdown}
         >
           {displayValue}

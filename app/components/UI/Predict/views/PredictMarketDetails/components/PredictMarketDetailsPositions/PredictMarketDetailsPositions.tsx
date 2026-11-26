@@ -31,7 +31,7 @@ const PredictMarketDetailsPositions = memo(
       market
     ) {
       return (
-        <Box twClassName="space-y-4">
+        <Box className="space-y-4">
           {activePositions.map((position) => (
             <PredictPositionDetail
               key={position.id}
@@ -53,7 +53,7 @@ const PredictMarketDetailsPositions = memo(
     }
 
     return (
-      <Box twClassName="space-y-4">
+      <Box className="space-y-4">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}

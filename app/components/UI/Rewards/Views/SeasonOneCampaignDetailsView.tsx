@@ -73,14 +73,14 @@ const SeasonOneCampaignDetailsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {isLoading && !hasLoaded && !campaign && (
-            <Box twClassName="px-4 pt-4 gap-4">
+            <Box className="px-4 pt-4 gap-4">
               <Skeleton style={tw.style('h-48 rounded-xl')} />
               <Skeleton style={tw.style('h-32 rounded-xl')} />
             </Box>
           )}
 
           {!isLoading && hasError && !campaign && (
-            <Box twClassName="px-4 pt-4">
+            <Box className="px-4 pt-4">
               <RewardsErrorBanner
                 title={strings('rewards.campaigns_view.error_title')}
                 description={strings(

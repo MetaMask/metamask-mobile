@@ -279,11 +279,11 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     }) => {
       if (itemCtx.type === 'header') {
         return (
-          <Box twClassName="px-4 py-2">
+          <Box className="px-4 py-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="text-alternative"
+              className="text-alternative"
             >
               {itemCtx.title}
             </Text>
@@ -401,14 +401,14 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       )}
 
       {canOptInAddresses.length > 0 && (
-        <Box twClassName="px-4 gap-2 pt-2">
+        <Box className="px-4 gap-2 pt-2">
           <Button
             testID="link-account-group-button"
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isLoading={isLoading}
             onPress={handleLinkAccountGroup}
-            twClassName="w-full"
+            className="w-full"
           >
             {strings('rewards.link_account_group.link_account')}
           </Button>

@@ -24,7 +24,7 @@ import { PredictClaimButtonProps } from './PredictActionButtons.types';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from './PredictClaimButton.testIds';
 
 const LoadingContent = () => (
-  <Box twClassName="flex-row items-center gap-1">
+  <Box className="flex-row items-center gap-1">
     <ActivityIndicator color={useTheme().colors.primary.inverse} size="small" />
     <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
       {strings('predict.claiming_text')}

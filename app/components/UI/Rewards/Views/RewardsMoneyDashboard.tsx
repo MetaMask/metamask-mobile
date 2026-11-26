@@ -310,7 +310,7 @@ const RewardsMoneyDashboard: React.FC = () => {
           // the label's top-right corner.
           <Box
             testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB_DOT}
-            twClassName="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
+            className="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
           />
         ) : undefined,
       },
@@ -349,7 +349,7 @@ const RewardsMoneyDashboard: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="shrink-0 gap-2"
+        className="shrink-0 gap-2"
       >
         {showShareCode ? (
           <ShareCodeHeaderButton
@@ -400,7 +400,7 @@ const RewardsMoneyDashboard: React.FC = () => {
   if (sessionSettledWithoutProfile || referralSettledWithoutData) {
     return (
       <Box
-        twClassName="flex-1 bg-default p-4"
+        className="flex-1 bg-default p-4"
         testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR}
       >
         <RewardsErrorBanner
@@ -436,7 +436,7 @@ const RewardsMoneyDashboard: React.FC = () => {
     }
     if (!subscriptionKnown) {
       return (
-        <Box twClassName="p-4">
+        <Box className="p-4">
           <Skeleton
             style={tw.style('h-50 rounded-xl')}
             testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING}
@@ -445,7 +445,7 @@ const RewardsMoneyDashboard: React.FC = () => {
       );
     }
     return (
-      <Box twClassName="pt-4">
+      <Box className="pt-4">
         <RewardsOptInSection localizedText={referralMe.localized_text} />
       </Box>
     );
@@ -486,7 +486,7 @@ const RewardsMoneyDashboard: React.FC = () => {
         {/* `overflow-hidden` clips the title as the block slides up so it
             disappears under the fixed header (revealing the compact title)
             instead of scrolling over the header actions. */}
-        <Box twClassName="flex-1 overflow-hidden">
+        <Box className="flex-1 overflow-hidden">
           <Animated.View
             style={[
               tw.style('absolute top-0 right-0 bottom-0 left-0'),

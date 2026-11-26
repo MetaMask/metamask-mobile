@@ -105,7 +105,7 @@ const PredictMarketRowItem = ({
       onPress={handlePress}
       testID={testID || `predict-market-row-item-${market.id}`}
     >
-      <Box twClassName="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
+      <Box className="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
         {leadingAccessory ??
           (market.image ? (
             <Image
@@ -139,7 +139,7 @@ const PredictMarketRowItem = ({
       {endAccessory}
       {showChevron && (
         <Box
-          twClassName={endAccessory ? 'justify-center' : 'pl-2 justify-center'}
+          className={endAccessory ? 'justify-center' : 'pl-2 justify-center'}
         >
           <Icon
             name={IconName.ArrowRight}

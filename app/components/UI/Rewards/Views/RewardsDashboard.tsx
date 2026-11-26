@@ -360,7 +360,7 @@ const RewardsDashboard: React.FC = () => {
   );
 
   const headerEndAccessory = (
-    <Box twClassName="flex-row gap-2">
+    <Box className="flex-row gap-2">
       {isVipProgramEnabled && isVipReferee && (
         <Pressable
           accessibilityRole="button"
@@ -455,7 +455,7 @@ const RewardsDashboard: React.FC = () => {
               As a tab it stays in HeaderRoot, unchanged. */}
           {isPushedScreen ? (
             <Box
-              twClassName="px-4 pt-3 pb-3"
+              className="px-4 pt-3 pb-3"
               onLayout={(event) =>
                 setTitleSectionHeight(event.nativeEvent.layout.height)
               }
@@ -471,7 +471,7 @@ const RewardsDashboard: React.FC = () => {
               </Pressable>
             </Box>
           ) : null}
-          <Box twClassName="gap-3">
+          <Box className="gap-3">
             {subscriptionId ? (
               <CampaignsPreview />
             ) : (
@@ -493,10 +493,31 @@ const RewardsDashboard: React.FC = () => {
                 <SectionHeader
                   title={copyTradingText.tradingCommissionsSection}
                 />
-                <Box twClassName="items-center px-4 py-4">
+                <Box className="items-center px-4 py-4">
                   <TabEmptyState
                     icon={
                       <AvatarIcon
+                        iconName={IconName.People}
+                        size={AvatarIconSize.Xl}
+                        severity={AvatarIconSeverity.Neutral}
+                        iconProps={{ color: IconColor.IconDefault }}
+                      />
+                    }
+                    description={copyTradingText.copyTradingEmptyDescription}
+                    descriptionProps={{
+                      variant: TextVariant.BodyMd,
+                      color: TextColor.TextAlternative,
+                    }}
+                    actionButtonText={copyTradingText.copyTradingEmptyAction}
+                    actionButtonProps={{
+                      variant: ButtonVariant.Primary,
+                      size: ButtonSize.Lg,
+                      twClassName: 'mt-3 self-stretch',
+                      testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
+                    }}
+                    onAction={openComposerPress}
+                    testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
+                  /><AvatarIcon
                         iconName={IconName.People}
                         size={AvatarIconSize.Xl}
                         severity={AvatarIconSeverity.Neutral}

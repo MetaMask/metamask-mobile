@@ -47,13 +47,13 @@ const LearnMoreRow: React.FC<LearnMoreRowProps> = ({
     <Box
       alignItems={BoxAlignItems.Start}
       flexDirection={BoxFlexDirection.Row}
-      twClassName={`gap-3 py-4 ${hasTopBorder ? 'border-t border-border-muted' : ''}`}
+      className={`gap-3 py-4 ${hasTopBorder ? 'border-t border-border-muted' : ''}`}
     >
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         backgroundColor={BoxBackgroundColor.PrimaryMuted}
-        twClassName="h-8 w-8 shrink-0 rounded-full"
+        className="h-8 w-8 shrink-0 rounded-full"
       >
         <Icon
           name={iconName}
@@ -61,7 +61,7 @@ const LearnMoreRow: React.FC<LearnMoreRowProps> = ({
           color={IconColor.IconDefault}
         />
       </Box>
-      <Box twClassName="flex-1 gap-1">
+      <Box className="flex-1 gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {title}
         </Text>
@@ -92,7 +92,7 @@ const MoneyAccountSweepstakesLearnMoreRows: React.FC<
   }, []);
 
   return (
-    <Box twClassName="px-4 pt-2">
+    <Box className="px-4 pt-2">
       <LearnMoreRow
         title={localizedText.learnHowItWorksTitle}
         description={localizedText.learnHowItWorksDescription}

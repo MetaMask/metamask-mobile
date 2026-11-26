@@ -59,7 +59,7 @@ const PredictPositionsTabs = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-row" testID={PredictPositionsViewSelectorsIDs.TABS}>
+    <Box className="flex-row" testID={PredictPositionsViewSelectorsIDs.TABS}>
       {tabs.map((tab) => {
         const isActive = tab.key === activeTab;
 
@@ -72,16 +72,16 @@ const PredictPositionsTabs = ({
             style={tw.style('flex-1')}
             testID={tab.testID}
           >
-            <Box twClassName="items-center gap-3">
+            <Box className="items-center gap-3">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={isActive ? FontWeight.Bold : FontWeight.Regular}
-                twClassName={isActive ? 'text-default' : 'text-alternative'}
+                className={isActive ? 'text-default' : 'text-alternative'}
               >
                 {tab.label}
               </Text>
               <Box
-                twClassName={`h-0.5 w-full ${
+                className={`h-0.5 w-full ${
                   isActive ? 'bg-icon-default' : 'bg-transparent'
                 }`}
               />
@@ -214,7 +214,7 @@ const PredictPositionsView = () => {
       edges={['left', 'right', 'bottom']}
       testID={PredictPositionsViewSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Box testID={PredictPositionsViewSelectorsIDs.HEADER}>
           <HeaderStandardGlass
             isGlass={isBrandRefresh}
@@ -228,7 +228,7 @@ const PredictPositionsView = () => {
           />
         </Box>
 
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PredictPositionsViewHeader
             entryPoint={entryPoint}
             isPrivacyMode={Boolean(privacyMode)}
@@ -241,7 +241,7 @@ const PredictPositionsView = () => {
           />
         </Box>
 
-        <Box twClassName="flex-1 px-4">
+        <Box className="flex-1 px-4">
           <Box
             accessibilityElementsHidden={!isPositionsTabActive}
             importantForAccessibility={
