@@ -32,6 +32,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { crossMarginMarketInfo } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import {
   wirePerpsControllerForStore,
   withLighterBuildEnabled,
@@ -175,6 +176,13 @@ describe('PerpsOrderView', () => {
       .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
       .mockReset()
       .mockResolvedValue({ status: 'unavailable', reason: 'provider' });
+    jest
+      .mocked(Engine.context.PerpsController.getMarginModeLock)
+      .mockReset()
+      .mockResolvedValue({
+        status: 'unlocked',
+        providerId: 'hyperliquid',
+      });
     jest
       .mocked(Engine.context.PerpsController.updatePositionTPSL)
       .mockReset()
@@ -1818,12 +1826,6 @@ describe('PerpsOrderView', () => {
     marginUsed: '500',
     notional: '6250',
   });
-  const ethCrossMarket = {
-    name: 'ETH',
-    szDecimals: 2,
-    maxLeverage: 50,
-    marginTableId: 25,
-  };
   const expectedCrossLiquidationPrice = '$2,183.6';
   const mockCrossLiquidationEstimate = (
     estimate: CrossLiquidationEstimate = {
@@ -1846,10 +1848,10 @@ describe('PerpsOrderView', () => {
     orders: [],
     marketData: [ethMarket],
   };
-  const useEthCrossMarket = () => {
+  const installCrossMarginMarket = () => {
     const getMarkets = jest.mocked(Engine.context.PerpsController.getMarkets);
     const previous = getMarkets.getMockImplementation();
-    getMarkets.mockResolvedValue([ethCrossMarket]);
+    getMarkets.mockResolvedValue([crossMarginMarketInfo]);
     return () => {
       if (previous) {
         getMarkets.mockImplementation(previous);
@@ -1898,11 +1900,23 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
-  it('places an order on an existing cross position when cross margin is enabled', async () => {
-    const restoreMarkets = useEthCrossMarket();
-    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
-    const estimateCrossLiquidation = mockCrossLiquidationEstimate();
-    try {
+  describe('cross liquidation estimate', () => {
+    let restoreMarkets: () => void = () => undefined;
+
+    beforeEach(() => {
+      restoreMarkets = installCrossMarginMarket();
+      mockCrossLiquidationEstimate();
+    });
+
+    afterEach(() => {
+      restoreMarkets();
+    });
+
+    it('places an order on an existing cross position when cross margin is enabled', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const estimateCrossLiquidation = jest.mocked(
+        Engine.context.PerpsController.estimateCrossLiquidation,
+      );
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         crossMarginEnabled: true,
@@ -1963,15 +1977,9 @@ describe('PerpsOrderView', () => {
         screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
       ).not.toBeOnTheScreen();
       await waitForDeferredOrderData();
-    } finally {
-      restoreMarkets();
-    }
-  });
+    });
 
-  it('shows the cross liquidation estimate on a lite cross order', async () => {
-    const restoreMarkets = useEthCrossMarket();
-    mockCrossLiquidationEstimate();
-    try {
+    it('shows the cross liquidation estimate on a lite cross order', async () => {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         crossMarginEnabled: true,
@@ -2019,15 +2027,9 @@ describe('PerpsOrderView', () => {
           PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
         ),
       ).toHaveTextContent(expectedCrossLiquidationPrice);
-    } finally {
-      restoreMarkets();
-    }
-  });
+    });
 
-  it('omits the remaining liquidation price from auto close when a cross reduce does not flip', async () => {
-    const restoreMarkets = useEthCrossMarket();
-    mockCrossLiquidationEstimate();
-    try {
+    it('omits the remaining liquidation price from auto close when a cross reduce does not flip', async () => {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         crossMarginEnabled: true,
@@ -2059,18 +2061,13 @@ describe('PerpsOrderView', () => {
           PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
         ),
       ).toHaveTextContent('--');
-    } finally {
-      restoreMarkets();
-    }
-  });
-
-  it('shows no liquidation price when a cross order cannot be liquidated', async () => {
-    const restoreMarkets = useEthCrossMarket();
-    mockCrossLiquidationEstimate({
-      status: 'none',
-      reason: 'covered_by_account',
     });
-    try {
+
+    it('shows no liquidation price when a cross order cannot be liquidated', async () => {
+      mockCrossLiquidationEstimate({
+        status: 'none',
+        reason: 'covered_by_account',
+      });
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         crossMarginEnabled: true,
@@ -2101,9 +2098,91 @@ describe('PerpsOrderView', () => {
       ).toHaveTextContent(
         strings('perps.tooltips.cross_no_liquidation_price.content'),
       );
-    } finally {
-      restoreMarkets();
-    }
+    });
+
+    it('shows the unavailable explainer when the cross estimate cannot be priced', async () => {
+      const estimateCrossLiquidation = mockCrossLiquidationEstimate({
+        status: 'unavailable',
+        reason: 'provider',
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(estimateCrossLiquidation).toHaveBeenCalled();
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+      });
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+      ).toHaveTextContent(
+        strings(
+          'perps.tooltips.cross_liquidation_estimate_unavailable.content',
+        ),
+      );
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.cross_no_liquidation_price.content'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the cross estimate when the market is locked to cross without a position', async () => {
+      const estimateCrossLiquidation = jest.mocked(
+        Engine.context.PerpsController.estimateCrossLiquidation,
+      );
+      jest
+        .mocked(Engine.context.PerpsController.getMarginModeLock)
+        .mockResolvedValue({
+          status: 'locked',
+          providerId: 'hyperliquid',
+          marginMode: 'cross',
+          reason: 'open_order',
+        });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: {
+          ...existingCrossPositionStream,
+          positions: [],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(expectedCrossLiquidationPrice);
+      });
+      expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'long',
+          providerId: 'hyperliquid',
+        }),
+      );
+    });
   });
 
   it('labels the lite trade sheet Isolated for an isolated position', async () => {

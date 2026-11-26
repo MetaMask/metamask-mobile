@@ -4078,18 +4078,6 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('shows no liquidation estimate for a Cross order', () => {
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe(
-        PERPS_CONSTANTS.FallbackDataDisplay,
-      );
-    });
-
     const lastCrossEstimateParams = () =>
       (mockUsePerpsCrossLiquidationEstimate.mock.calls as unknown[][]).at(
         -1,
@@ -4110,49 +4098,6 @@ describe('usePerpsProOrderForm', () => {
         leverage: mockOrderForm.leverage,
         providerId: 'hyperliquid',
       });
-    });
-
-    it('shows the controller Cross liquidation price', () => {
-      mockCrossLiquidationEstimate = { status: 'price', price: '75949.37' };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe('$75,949');
-    });
-
-    it('shows no liquidation price when the cross position cannot be liquidated', () => {
-      mockCrossLiquidationEstimate = {
-        status: 'none',
-        reason: 'covered_by_account',
-      };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe(
-        strings('perps.cross_position.no_liquidation_price'),
-      );
-    });
-
-    it('shows the fallback when the controller has no Cross estimate', () => {
-      mockCrossLiquidationEstimate = {
-        status: 'unavailable',
-        reason: 'provider',
-      };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe(
-        PERPS_CONSTANTS.FallbackDataDisplay,
-      );
     });
 
     it('estimates the exact position size for a Cross max close', () => {
