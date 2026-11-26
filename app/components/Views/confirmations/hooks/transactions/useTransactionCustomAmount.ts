@@ -79,8 +79,6 @@ export function useTransactionCustomAmount({
     TransactionType.membershipSubscription,
   ]);
   const { amount: defaultAmount } = useParams<ConfirmationParams>();
-  const shouldPrefillAddMusdMax =
-    isAddMusdFlow && !isMembershipSubscription && defaultAmount === undefined;
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
@@ -94,9 +92,7 @@ export function useTransactionCustomAmount({
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
-  const [isPrefillPending, setIsPrefillPending] = useState(
-    shouldPrefillAddMusdMax,
-  );
+  const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
   const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
@@ -517,7 +513,8 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (
-      shouldPrefillAddMusdMax &&
+      isAddMusdFlow &&
+      !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
       !hasPrefilled.current
@@ -535,7 +532,8 @@ export function useTransactionCustomAmount({
       setIsPrefillPending(false);
     }
   }, [
-    shouldPrefillAddMusdMax,
+    isAddMusdFlow,
+    isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,
     updatePendingAmountPercentage,

@@ -375,16 +375,6 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
 
-    it('prepares the explicit amount for an Add mUSD deposit', () => {
-      setupMocks({ depositIntent: 'addMusd' });
-      useParamsMock.mockReturnValue({ amount: '0.01' });
-
-      const { result } = runHook();
-
-      expect(result.current.prefillAmount).toBe('0.01');
-      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
-    });
-
     it('waits for a selected payment token before preparing the explicit amount', () => {
       useParamsMock.mockReturnValue({ amount: '5' });
       setupMocks({ payToken: null });

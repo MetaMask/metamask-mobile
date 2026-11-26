@@ -15,6 +15,7 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import type { RootState } from '../../../reducers';
 import configureStore from '../../../util/test/configureStore';
 import ProHub from './ProHub';
@@ -55,6 +56,12 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+const mockInitiateDeposit = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../UI/Money/hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({ initiateDeposit: mockInitiateDeposit }),
 }));
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -631,7 +638,7 @@ describe('ProHub', () => {
       ).toBeNull();
     });
 
-    it('opens Add money with the shortfall when the overdue alert action is pressed', async () => {
+    it('opens a membership top-up for the shortfall when the overdue alert action is pressed', async () => {
       mockCheckMoneyAccountBalance.mockResolvedValueOnce({
         hasSufficientBalance: false,
         balance: '4989989',
@@ -678,9 +685,10 @@ describe('ProHub', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-          params: { amount: '0.01' },
+        expect(mockInitiateDeposit).toHaveBeenCalledWith({
+          amount: '0.01',
+          transactionType: TransactionType.membershipSubscription,
+          forceBottomSheet: true,
         });
       });
     });

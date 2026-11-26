@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { MUSD_DECIMALS } from '../../UI/Earn/constants/musd';
+import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 
 /**
  * Proportional pad applied to the membership top-up, in parts per million

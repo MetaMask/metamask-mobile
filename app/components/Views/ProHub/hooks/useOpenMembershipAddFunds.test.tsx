@@ -7,15 +7,22 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { useOpenMembershipAddFunds } from './useOpenMembershipAddFunds';
 
 const mockNavigate = jest.fn();
+const mockInitiateDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, isFocused: () => true }),
+}));
+
+jest.mock('../../../UI/Money/hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({ initiateDeposit: mockInitiateDeposit }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -61,9 +68,10 @@ describe('useOpenMembershipAddFunds', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     checkBalance.mockReset();
+    mockInitiateDeposit.mockResolvedValue(undefined);
   });
 
-  it('checks the subscription payer and prefills the rounded-up shortfall', async () => {
+  it('checks the subscription payer and opens a membership top-up for the rounded-up shortfall', async () => {
     checkBalance.mockResolvedValue(shortfall);
     const { result } = renderHook(useOpenMembershipAddFunds);
 
@@ -74,9 +82,25 @@ describe('useOpenMembershipAddFunds', () => {
       recurringInterval: subscription.interval,
       payerAddress,
     });
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      amount: '0.01',
+      transactionType: TransactionType.membershipSubscription,
+      forceBottomSheet: true,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows the access notice when Money access is blocked', async () => {
+    checkBalance.mockResolvedValue(shortfall);
+    mockInitiateDeposit.mockRejectedValue(
+      new MoneyAccountAccessBlockedError('geo_blocked'),
+    );
+    const { result } = renderHook(useOpenMembershipAddFunds);
+
+    await act(async () => result.current.openAddFunds(subscription));
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      ...sheet,
-      params: { amount: '0.01' },
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
     });
   });
 
@@ -136,5 +160,6 @@ describe('useOpenMembershipAddFunds', () => {
     await opening;
 
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 });

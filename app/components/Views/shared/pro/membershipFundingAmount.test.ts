@@ -3,7 +3,7 @@ import {
   MEMBERSHIP_FUNDING_PAD_PPM,
   getMembershipFundingAmount,
   getMembershipTopUpAmountUsd,
-} from '../../shared/membershipFundingAmount';
+} from './membershipFundingAmount';
 
 describe('getMembershipTopUpAmountUsd', () => {
   it('rounds the sub-cent renewal shortfall up to one cent', () => {

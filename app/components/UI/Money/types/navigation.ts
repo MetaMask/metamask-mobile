@@ -93,8 +93,6 @@ export type MoneyConfirmationsNavigationParamList = {
 };
 
 export interface MoneyAddMoneySheetParams {
-  /** Initial editable USD amount for deposits started from this sheet. */
-  amount?: string;
   /**
    * Forwarded to the deposit confirmation so it can land somewhere other than
    * the Money tab. Unset for the sheet's usual entry points on Money home.

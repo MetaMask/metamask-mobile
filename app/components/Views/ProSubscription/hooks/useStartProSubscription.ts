@@ -42,7 +42,7 @@ import {
   resolveProSubscriptionStartOutcome,
   type StartProSubscriptionOutcome,
 } from '../utils/proSubscriptionPaymentStatus';
-import { getMembershipTopUpAmountUsd } from '../../shared/membershipFundingAmount';
+import { getMembershipTopUpAmountUsd } from '../../shared/pro/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 

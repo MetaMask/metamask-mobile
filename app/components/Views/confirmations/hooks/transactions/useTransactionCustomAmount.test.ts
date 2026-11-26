@@ -1587,18 +1587,6 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
     });
 
-    it('keeps an explicit Add mUSD amount instead of filling to Max', async () => {
-      useParamsMock.mockReturnValue({ amount: '0.01' });
-      const { result } = runHook({ transactionMeta: addMusdTransactionMeta });
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(result.current.amountFiat).toBe('0.01');
-      expect(result.current.isPrefillPending).toBe(false);
-    });
-
     it('does not auto-fill when intent is not addMusd', async () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
 
