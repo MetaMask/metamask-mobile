@@ -181,11 +181,9 @@ const typeAmount = (amount: string) => {
 /** `Engine.context` types stateless services as optional, so the composed
  * instance is read through one named narrowing rather than an inline cast. */
 const fundingServiceContext = (): {
-  ['PredictFundingService']: PredictFundingService;
+  PredictFundingService: PredictFundingService;
 } =>
-  Engine.context as unknown as {
-    ['PredictFundingService']: PredictFundingService;
-  };
+  Engine.context as unknown as { PredictFundingService: PredictFundingService };
 
 const withdrawService = (): PredictFundingService =>
   fundingServiceContext().PredictFundingService;
