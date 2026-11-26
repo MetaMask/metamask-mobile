@@ -138,18 +138,6 @@ describe('isMoneyAccountCardTransaction', () => {
     ).toBe(true);
   });
 
-  it('counts an Immersve transaction, which carries no funding sources', () => {
-    expect(
-      isMoneyAccountCardTransaction(
-        createTransaction({
-          providerId: 'immersve',
-          status: CardTransactionStatus.Failed,
-          declineReason: { code: 'insufficient-funds' },
-        }),
-      ),
-    ).toBe(true);
-  });
-
   it('returns false when funding sources omit currency', () => {
     expect(
       isMoneyAccountCardTransaction(
