@@ -70,6 +70,7 @@ describe('cashbackClaimDisplayInfo', () => {
       primaryAmount: '+0.00 mUSD',
       fiatAmount: '+$0.00',
       status: 'failed',
+      showPrimaryAmount: false,
     });
   });
 });

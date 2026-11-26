@@ -29,7 +29,7 @@ export function cashbackClaimDisplayInfo(
     isIncoming: true,
     icon: IconName.Card,
     status: failed ? 'failed' : 'pending',
-    showPrimaryAmount: true,
+    showPrimaryAmount: !failed,
   };
 }
 

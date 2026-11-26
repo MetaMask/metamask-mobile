@@ -113,8 +113,9 @@ export interface UseMoneyActivityItemsOptions {
  * tiebreak would sort them above an already-rendered row. In-flight VBA rows
  * are exempt: they are pinned at the top of the list, so the gate cannot
  * reorder them, and withholding one would hide a deposit already known to be
- * in progress. Microdeposits are exempt too: their list is fetched whole, so
- * there is no un-fetched page they could pop in above.
+ * in progress. Pending cashback claims are exempt for the same reason.
+ * Microdeposits are exempt too: their list is fetched whole, so there is no
+ * un-fetched page they could pop in above.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -127,6 +128,7 @@ function safeItems(
     (item) =>
       item.time > watermark ||
       (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)) ||
+      (item.kind === 'cashbackClaim' && item.claim.status === 'pending') ||
       item.kind === 'microdeposit',
   );
 }
@@ -135,6 +137,9 @@ function safeItems(
 function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
   return items.filter((item) => item.kind === 'onchain');
 }
+
+const byTimeDescending = (a: MoneyActivityItem, b: MoneyActivityItem): number =>
+  b.time - a.time || a.id.localeCompare(b.id);
 
 /**
  * Merge local on-chain Money transactions with Accounts-API activity,
@@ -186,7 +191,7 @@ export function mergeMoneyActivity(
     ...declinedCardTxs.map(cardProviderItem),
     ...neobank,
     ...microdeposits.map(microdepositItem),
-  ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
+  ].sort(byTimeDescending);
 }
 
 export function buildMoneyActivityBuckets(
@@ -205,7 +210,9 @@ export function buildMoneyActivityBuckets(
   const withCashbackClaim = (
     items: MoneyActivityItem[],
   ): MoneyActivityItem[] =>
-    cashbackClaim ? [cashbackClaimItem(cashbackClaim), ...items] : items;
+    cashbackClaim
+      ? [...items, cashbackClaimItem(cashbackClaim)].sort(byTimeDescending)
+      : items;
   return {
     [MoneyActivityFilter.All]: safeItems(
       withCashbackClaim(

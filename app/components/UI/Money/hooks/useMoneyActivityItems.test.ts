@@ -590,6 +590,45 @@ describe('buildMoneyActivityBuckets', () => {
     expect(containsClaim(MoneyActivityFilter.Deposits)).toBe(false);
     expect(containsClaim(MoneyActivityFilter.Transfers)).toBe(false);
   });
+
+  it('keeps a pending cashback claim at the watermark', () => {
+    const claim = createCashbackClaim({ submittedAt: 200 });
+
+    const buckets = buildMoneyActivityBuckets(
+      { all: [], deposits: [], transfers: [] },
+      [],
+      200,
+      [],
+      [],
+      [],
+      claim,
+    );
+
+    expect(buckets[MoneyActivityFilter.All]).toEqual([
+      expect.objectContaining({ kind: 'cashbackClaim' }),
+    ]);
+  });
+
+  it('sorts a failed cashback claim with the confirmed rows', () => {
+    const claim = createCashbackClaim({ status: 'failed', submittedAt: 100 });
+    const newerHash: Hex =
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+    const buckets = buildMoneyActivityBuckets(
+      { all: [], deposits: [], transfers: [] },
+      [cardTx(newerHash, 200)],
+      Number.NEGATIVE_INFINITY,
+      [],
+      [],
+      [],
+      claim,
+    );
+
+    expect(buckets[MoneyActivityFilter.All].map((item) => item.id)).toEqual([
+      newerHash,
+      'cashback-claim-100',
+    ]);
+  });
 });
 
 describe('useMoneyActivityItems', () => {
