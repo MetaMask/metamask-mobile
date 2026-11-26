@@ -102,6 +102,11 @@ export interface WalletHomeOnboardingStepsProps {
   /** Fund step: opens buy / on-ramp and advances after the completed flow returns. */
   onFundPrimaryPress?: (onLaunchFailure: () => void) => void;
   /**
+   * Fund step: opens the receiving address list. Navigation only — never advances the step.
+   * The Receive button renders next to Add funds only when this is set.
+   */
+  onReceivePress?: () => void;
+  /**
    * True when aggregated balance is settled and positive (on-ramp complete, incoming transfer, etc.).
    * Enables passive fund-step advance when funds arrive without leaving the wallet.
    */
@@ -126,6 +131,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
   onFundPrimaryPress,
+  onReceivePress,
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
@@ -275,9 +281,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     if (suspendRiveForCurtain) {
-      checklistRiveRef.current?.pause();
+      checklistRiveRef.current?.pause().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to pause checklist Rive for curtain',
+        );
+      });
     } else if (prevSuspendRiveForCurtainRef.current) {
-      checklistRiveRef.current?.play();
+      checklistRiveRef.current?.play().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to resume checklist Rive after curtain',
+        );
+      });
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
   }, [suspendRiveForCurtain, checklistRiveRef]);
@@ -354,7 +370,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         // fallback — so always fire the trigger and let the catch below absorb a miss.
         // TODO(#33825): Re-export v07 with Main on every artboard.
         rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
-        rive.play();
+        rive.play().catch((playError: unknown) => {
+          Logger.error(
+            playError as Error,
+            'WalletHomeOnboardingSteps: failed to play checklist Rive at main after deferred nav',
+          );
+        });
       } catch (error) {
         Logger.error(
           error as Error,
@@ -756,6 +777,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
   const primaryTestID = `${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
   const stepHero = WALLET_HOME_ONBOARDING_STEP_HERO[currentStep.kind];
+  /**
+   * Receive takes the secondary slot next to Add funds on the fund step. It follows the
+   * same disabled states as Add funds (balance shell, transitions), so the layout does not
+   * shift once the balance resolves.
+   */
+  const fundStepReceivePress =
+    currentStep.kind === 'fund' ? onReceivePress : undefined;
 
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';
@@ -834,7 +862,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
-        {currentStep.buttonLayout === 'full_width_primary' ? (
+        {currentStep.buttonLayout === 'full_width_primary' &&
+        !fundStepReceivePress ? (
           <Button
             size={ButtonSize.Lg}
             onPress={handlePrimaryPress}
@@ -858,7 +887,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             <ButtonGlass
               isGlass={isGlass}
               size={ButtonSize.Lg}
-              onPress={() => goNextOrComplete()}
+              onPress={fundStepReceivePress ?? (() => goNextOrComplete())}
               twClassName="min-w-0 flex-1"
               containerStyle={tw.style('min-w-0 flex-1')}
               isDisabled={
@@ -866,9 +895,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
                 isBalanceShellVisible ||
                 isAwaitingDeferredNavResumeHold
               }
-              testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
+              testID={
+                fundStepReceivePress
+                  ? WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON
+                  : WalletHomeOnboardingStepsSelectors.SKIP_BUTTON
+              }
             >
-              {strings('wallet.home_onboarding_steps.skip')}
+              {fundStepReceivePress
+                ? strings('asset_overview.receive_button')
+                : strings('wallet.home_onboarding_steps.skip')}
             </ButtonGlass>
             <Button
               size={ButtonSize.Lg}
