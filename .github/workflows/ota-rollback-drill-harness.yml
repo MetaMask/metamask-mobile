@@ -1,0 +1,90 @@
+##############################################################################################
+#
+# OTA Rollback drill harness (test/ota-rollback-drill only, do not merge)
+#
+# workflow_dispatch only works for workflows on the default branch, so this branch runs its
+# copy of ota-rollback.yml on push instead. A push runs nothing unless the head commit message
+# has a line starting with `ota-rollback-test:`, for example:
+#
+#   git commit --allow-empty -m "test: drill" -m "ota-rollback-test: channel=production mode=embedded"
+#   git commit --allow-empty -m "test: drill" -m "ota-rollback-test: channel=production mode=republish group=<id>"
+#   git commit --allow-empty -m "test: device" -m "ota-rollback-test: channel=exp mode=embedded drill=false"
+#
+# Keys: channel (exp|rc|production), mode (republish|embedded), group, platform (default all),
+# drill (default true). ota-rollback.yml validates every value and refuses non-drill
+# production or RC runs from this branch.
+#
+# The environment the run uses has to allow this branch: add test/ota-rollback-drill to the
+# branch policy of build-production and/or build-exp for the test, then remove it.
+#
+##############################################################################################
+name: OTA Rollback drill harness
+
+on:
+  push:
+    branches:
+      - test/ota-rollback-drill
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    name: Read test request from commit message
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.parse.outputs.run }}
+      channel: ${{ steps.parse.outputs.channel }}
+      mode: ${{ steps.parse.outputs.mode }}
+      group: ${{ steps.parse.outputs.group }}
+      platform: ${{ steps.parse.outputs.platform }}
+      drill: ${{ steps.parse.outputs.drill }}
+    steps:
+      - name: Parse ota-rollback-test line
+        id: parse
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          line=$(grep -m1 '^ota-rollback-test:' <<< "$MESSAGE" || true)
+          if [[ -z "$line" ]]; then
+            echo "No ota-rollback-test line in the commit message; nothing to run."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          get() {
+            sed -nE "s/.*[[:space:]]$1=([^[:space:]]+).*/\1/p" <<< " ${line#ota-rollback-test:} "
+          }
+          channel=$(get channel)
+          mode=$(get mode)
+          group=$(get group)
+          platform=$(get platform)
+          drill=$(get drill)
+
+          {
+            echo "run=true"
+            echo "channel=${channel}"
+            echo "mode=${mode}"
+            echo "group=${group}"
+            echo "platform=${platform:-all}"
+            echo "drill=${drill:-true}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Requested: channel=${channel} mode=${mode} group=${group:-n/a} platform=${platform:-all} drill=${drill:-true}"
+
+  rollback:
+    name: OTA Rollback
+    needs: parse
+    if: needs.parse.outputs.run == 'true'
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the code-signing key in ota-rollback.yml
+    uses: ./.github/workflows/ota-rollback.yml
+    with:
+      channel: ${{ needs.parse.outputs.channel }}
+      mode: ${{ needs.parse.outputs.mode }}
+      group_id: ${{ needs.parse.outputs.group }}
+      platform: ${{ needs.parse.outputs.platform }}
+      reason: Pre-merge test of the OTA rollback workflow (${{ github.sha }})
+      drill: ${{ needs.parse.outputs.drill != 'false' }}
+    secrets: inherit
