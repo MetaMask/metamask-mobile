@@ -18,10 +18,14 @@ import {
   buildRetypedRequest,
   readEnteredUsdcAmount,
   replacePerpsTransaction,
+  replacePerpsWithdrawBatch,
   snapshotHyperliquidConfirmation,
   type HyperliquidConfirmationSnapshot,
 } from '../../temp-lighter/perps-lighter-transactions';
-import { perpsTransactionTypeForSelection } from '../../utils/perps-lighter-transaction-type';
+import {
+  getPerpsWithdrawType,
+  perpsTransactionTypeForSelection,
+} from '../../utils/perps-lighter-transaction-type';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const RECREATE_ERROR = 'Failed to recreate the Perps transaction';
@@ -356,6 +360,11 @@ async function replaceWithSelectedType({
   snapshot: HyperliquidConfirmationSnapshot | undefined;
   transactionMeta: TransactionMeta;
 }): Promise<void> {
+  if (transactionMeta.type === TransactionType.batch) {
+    await replacePerpsWithdrawBatch(transactionMeta, nextType);
+    return;
+  }
+
   if (!isLighterPerpsDeposit(transactionMeta.type)) {
     await replacePerpsTransaction(
       buildRetypedRequest(transactionMeta, nextType),
@@ -400,7 +409,8 @@ export function useSyncPerpsLighterTransactionType({
 }): void {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
-  const currentType = transactionMeta?.type;
+  const currentType =
+    getPerpsWithdrawType(transactionMeta) ?? transactionMeta?.type;
   const appliedKeyRef = useRef<string | undefined>(undefined);
   const lookupKeyRef = useRef<string | undefined>(undefined);
   const lookupGenerationRef = useRef(0);

@@ -5,8 +5,12 @@ import {
   AvatarBase,
   AvatarBaseShape,
   AvatarBaseSize,
+  BadgeNetwork,
+  Box,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
+import { VENUE_DISPLAY } from '../PerpsProviderLogos/venueDisplay';
 import { useTheme } from '../../../../../util/theme';
 import { getAssetIconUrls } from '../../utils/marketUtils';
 import {
@@ -38,6 +42,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   size = 32,
   testID,
   recyclingKey,
+  providerId,
 }) => {
   const { colors, themeAppearance } = useTheme();
   // Pass this revision into the selector. React Compiler memoizes on the
@@ -96,7 +101,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
 
   const imageKey = `${recyclingKey || symbol}-${imageUri}`;
 
-  return (
+  const avatar = (
     <AvatarBase
       size={mapToAvatarBaseSize(size)}
       shape={AvatarBaseShape.Circle}
@@ -126,6 +131,26 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
         />
       ) : null}
     </AvatarBase>
+  );
+
+  if (!providerId) {
+    return avatar;
+  }
+  // Venue mark on the token: the design's BadgeNetwork with its
+  // background ring, overlapping the bottom-right corner. It names the
+  // exchange the trade goes to.
+  return (
+    <Box twClassName="relative" testID={testID ? `${testID}-venue` : undefined}>
+      {avatar}
+      <Box twClassName="absolute -bottom-1 -right-1">
+        <BadgeNetwork
+          src={VENUE_DISPLAY[providerId].logo}
+          name={PROVIDER_DISPLAY_INFO[providerId].name}
+          accessible={false}
+          testID={testID ? `${testID}-venue-badge` : undefined}
+        />
+      </Box>
+    </Box>
   );
 };
 

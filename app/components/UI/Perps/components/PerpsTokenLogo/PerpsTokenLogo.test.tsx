@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, act, fireEvent, screen } from '@testing-library/react-native';
 import { Image } from 'expo-image';
+import { BadgeNetwork } from '@metamask/design-system-react-native';
 import { clearFailedPerpsIconUrls } from './failedPerpsIconUrls';
 import PerpsTokenLogo from './PerpsTokenLogo';
+import { VENUE_DISPLAY } from '../PerpsProviderLogos/venueDisplay';
 
 // PerpsTokenLogo now uses AvatarBase from MMDS with expo-image for image rendering.
 // Unit, not component-view: the session cache is a narrow expo-image onError
@@ -16,6 +18,47 @@ describe('PerpsTokenLogo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearFailedPerpsIconUrls();
+  });
+
+  it('shows the selected venue badge, but no badge when there is no venue', () => {
+    const { rerender, UNSAFE_getByType } = render(
+      <PerpsTokenLogo symbol="ETH" providerId="lighter" testID="venue-logo" />,
+    );
+
+    expect(
+      screen.getByTestId('venue-logo-venue-badge', {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(UNSAFE_getByType(BadgeNetwork).props.src).toBe(
+      VENUE_DISPLAY.lighter.logo,
+    );
+
+    rerender(<PerpsTokenLogo symbol="ETH" testID="venue-logo" />);
+
+    expect(
+      screen.queryByTestId('venue-logo-venue-badge', {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+  });
+
+  it('renders the other venue badge when the venue changes', () => {
+    const { rerender, UNSAFE_getByType } = render(
+      <PerpsTokenLogo symbol="ETH" providerId="lighter" testID="venue-logo" />,
+    );
+
+    rerender(
+      <PerpsTokenLogo
+        symbol="ETH"
+        providerId="hyperliquid"
+        testID="venue-logo"
+      />,
+    );
+
+    expect(UNSAFE_getByType(BadgeNetwork).props.src).toBe(
+      VENUE_DISPLAY.hyperliquid.logo,
+    );
   });
 
   it('renders loading state initially', () => {

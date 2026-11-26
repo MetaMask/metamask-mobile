@@ -909,6 +909,52 @@ describe('PredictDepositScreen', () => {
       Engine.context.TransactionController.addTransaction,
     ).not.toHaveBeenCalled();
     expect(cancelDeposit).toHaveBeenCalledWith(KALSHI_VENUE_ID, 'op-1');
+    expect(view.getByTestId(TestIds.ADD_FUNDS)).toBeEnabled();
+  });
+
+  it('refuses to report and shows an error when transaction data is altered before broadcast', async () => {
+    const cancelDeposit = jest.fn(async () => undefined);
+    const reportDepositTransfer = jest.fn(async () =>
+      makeDeposit({ status: 'processing' }),
+    );
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => makeDeposit(),
+      'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+      'PredictFundingService:cancelDeposit': cancelDeposit,
+    });
+    jest
+      .mocked(Engine.context.TransactionController.addTransaction)
+      .mockImplementation(async (txParams, options) => {
+        const alteredMeta = {
+          id: 'tx-altered',
+          chainId: '0x2105',
+          networkClientId: 'base-mainnet',
+          status: TransactionStatus.submitted,
+          hash: TX_HASH,
+          time: Date.now(),
+          type: TransactionType.tokenMethodTransfer,
+          requestId: options?.requestId,
+          txParams: {
+            ...txParams,
+            data: '0xdeadbeef',
+          },
+        } as TransactionMeta;
+        Engine.context.TransactionController.state.transactions = [alteredMeta];
+        return {
+          result: Promise.resolve(TX_HASH),
+          transactionMeta: alteredMeta,
+        };
+      });
+    const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+    await typeAmount(view, '25');
+    await addFunds(view);
+
+    expect(await view.findByTestId(TestIds.NOTICE)).toHaveTextContent(
+      strings('predict_next.deposit.transfer_mismatch'),
+    );
+    expect(reportDepositTransfer).not.toHaveBeenCalled();
+    expect(cancelDeposit).toHaveBeenCalledWith(KALSHI_VENUE_ID, 'op-1');
   });
 
   it('cancels the deposit when the user rejects the confirmation, and lets them try again', async () => {
@@ -1068,6 +1114,11 @@ describe('PredictDepositScreen', () => {
     expect(announceForAccessibility).toHaveBeenCalledWith(
       strings('predict_next.deposit.status.reference_copied'),
     );
+    expect(view.queryByTestId(TestIds.IN_PROGRESS_RETRY)).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(TestIds.IN_PROGRESS_CONTINUE),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(TestIds.IN_PROGRESS_CLOSE)).toBeOnTheScreen();
   });
 
   it('marks the processing title as a heading', async () => {

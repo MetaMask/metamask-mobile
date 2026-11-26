@@ -53,6 +53,16 @@ import DottedUnderline from '../../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../../util/theme';
 import { decodeEvmAssetId } from '../../../../../../util/transactions/payment-token';
 
+// TODO: temporary cast. Read `fees.lighter` directly once this app depends on a
+// `@metamask/transaction-pay-controller` release with MetaMask/core#11730,
+// which adds it to `TransactionPayFees`.
+function getLighterFee(
+  fees: TransactionPayTotals['fees'],
+): { usd: string } | undefined {
+  return (fees as TransactionPayTotals['fees'] & { lighter?: { usd: string } })
+    .lighter;
+}
+
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
@@ -114,7 +124,14 @@ function TransactionFeeRow({
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
-  const hasFeeTooltip = Boolean(!paidByMetaMask && hasQuotes && totals);
+  // Only offer the fee tooltip when there is copy to show, so the sheet never
+  // opens with an empty body.
+  const hasFeeTooltip = Boolean(
+    !paidByMetaMask &&
+      hasQuotes &&
+      totals &&
+      getTooltipMessageKey(transactionMeta),
+  );
   const useDottedFeeTooltip = isMoneyAccountDeposit && hasFeeTooltip;
 
   const handleOpenFeeTooltip = useCallback(() => {
@@ -139,9 +156,11 @@ function TransactionFeeRow({
     const provider = totals.fees.provider.usd;
     const sourceNetwork = totals.fees.sourceNetwork.estimate.usd;
     const targetNetwork = totals.fees.targetNetwork.usd;
+    const lighter = getLighterFee(totals.fees)?.usd ?? 0;
 
     return formatFiat(
       new BigNumber(metaMask)
+        .plus(lighter)
         .plus(provider)
         .plus(sourceNetwork)
         .plus(targetNetwork),
@@ -280,6 +299,8 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
     'confirm.tooltip.money_account_deposit.transaction_fee',
+  [TransactionType.membershipSubscription]:
+    'confirm.tooltip.money_account_deposit.transaction_fee',
   [TransactionType.perpsDeposit]:
     'confirm.tooltip.perps_deposit.transaction_fee',
   [TransactionType.perpsLighterDeposit]:
@@ -287,6 +308,19 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
   [TransactionType.perpsLighterWithdraw]:
     'confirm.tooltip.perps_withdraw.swap_to_token',
 };
+
+function getTooltipMessageKey(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
+
+  return transactionType !== undefined
+    ? TOOLTIP_MESSAGE_KEY[transactionType]
+    : undefined;
+}
 
 function Tooltip({
   quotes,
@@ -297,15 +331,7 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  const transactionType = resolveTransactionType(
-    transactionMeta,
-    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
-  );
-
-  const key =
-    transactionType !== undefined
-      ? TOOLTIP_MESSAGE_KEY[transactionType]
-      : undefined;
+  const key = getTooltipMessageKey(transactionMeta);
 
   if (!key) return null;
 
@@ -390,6 +416,11 @@ function FeesTooltip({
     [totals, formatFiat],
   );
 
+  const lighterFeeUsd = useMemo(() => {
+    const lighterFee = getLighterFee(totals.fees);
+    return lighterFee ? formatFiat(new BigNumber(lighterFee.usd)) : undefined;
+  }, [totals, formatFiat]);
+
   return (
     <Box gap={14}>
       <Text>{message}</Text>
@@ -434,6 +465,17 @@ function FeesTooltip({
         </Text>
         <Text color={TextColor.TextAlternative}>{metaMaskFeeUsd}</Text>
       </Box>
+      {lighterFeeUsd !== undefined && (
+        <Box
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Text color={TextColor.TextAlternative}>
+            {strings('confirm.label.lighter_fee')}
+          </Text>
+          <Text color={TextColor.TextAlternative}>{lighterFeeUsd}</Text>
+        </Box>
+      )}
     </Box>
   );
 }
