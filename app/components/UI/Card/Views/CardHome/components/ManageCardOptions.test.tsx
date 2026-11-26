@@ -14,10 +14,18 @@ import {
 
 jest.mock('../../../components/ManageCardListItem', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
-  return (props: { testID?: string; title?: string; onPress?: () => void }) => (
-    <Pressable testID={props.testID} onPress={props.onPress}>
-      <Text>{props.title}</Text>
-    </Pressable>
+  return (props: {
+    testID?: string;
+    title?: string;
+    description?: React.ReactNode;
+    onPress?: () => void;
+  }) => (
+    <>
+      <Pressable testID={props.testID} onPress={props.onPress}>
+        <Text>{props.title}</Text>
+      </Pressable>
+      {props.description}
+    </>
   );
 });
 
@@ -80,11 +88,15 @@ const renderComponent = (
     providerId?: string;
     account?: { verificationStatus: string | null };
     hiddenQuickActionRows?: CardHomeActionVisibility;
-    showCashbackAutoPayout?: boolean;
-    isCashbackAutoPayoutOn?: boolean;
-    onToggleCashbackAutoPayout?: (value: boolean) => void;
-    isCashbackRingOn?: boolean;
-    onToggleCashbackRing?: (value: boolean) => void;
+    spendingLimitReadOnly?: boolean;
+    spendingLimitOnly?: boolean;
+    privacyMode?: boolean;
+    isSpendingLimitActive?: boolean;
+    showLimitedSpendingAmounts?: boolean;
+    spendingLimitRemaining?: string;
+    spendingLimitTotal?: string;
+    spendingLimitSymbol?: string;
+    onManageSpendingLimit?: () => void;
   } = {},
 ) =>
   render(
@@ -109,7 +121,15 @@ const renderComponent = (
       onViewPin={jest.fn()}
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
-      onManageSpendingLimit={jest.fn()}
+      onManageSpendingLimit={overrides.onManageSpendingLimit ?? jest.fn()}
+      spendingLimitReadOnly={overrides.spendingLimitReadOnly}
+      spendingLimitOnly={overrides.spendingLimitOnly}
+      privacyMode={overrides.privacyMode}
+      isSpendingLimitActive={overrides.isSpendingLimitActive ?? true}
+      showLimitedSpendingAmounts={overrides.showLimitedSpendingAmounts}
+      spendingLimitRemaining={overrides.spendingLimitRemaining}
+      spendingLimitTotal={overrides.spendingLimitTotal}
+      spendingLimitSymbol={overrides.spendingLimitSymbol}
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
@@ -120,18 +140,11 @@ const renderComponent = (
       onRevokeAllowance={overrides.onRevokeAllowance}
       fundingAccountName={overrides.fundingAccountName}
       onOrderMetalCard={jest.fn()}
-      isSpendingLimitActive
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
       hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
       providerId={overrides.providerId}
-      showCashbackAutoPayout={overrides.showCashbackAutoPayout}
-      isCashbackAutoPayoutOn={overrides.isCashbackAutoPayoutOn}
-      onToggleCashbackAutoPayout={overrides.onToggleCashbackAutoPayout}
-      isCashbackRingOn={overrides.isCashbackRingOn}
-      onToggleCashbackRing={overrides.onToggleCashbackRing}
-      cashbackPayoutIncrementLabel="$5"
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
       showTransactionHistoryDuringSetup={
@@ -182,6 +195,49 @@ describe('ManageCardOptions contact details gating', () => {
 });
 
 describe('ManageCardOptions funding-limit gating', () => {
+  it('shows a blocked card spending limit without opening the limit screen', () => {
+    const onManageSpendingLimit = jest.fn();
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      {
+        spendingLimitReadOnly: true,
+        spendingLimitOnly: true,
+        onManageSpendingLimit,
+      },
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM));
+    expect(onManageSpendingLimit).not.toHaveBeenCalled();
+  });
+
+  it('hides spending limit amounts in privacy mode', () => {
+    const amountProps = {
+      isSpendingLimitActive: false,
+      showLimitedSpendingAmounts: true,
+      spendingLimitRemaining: '40',
+      spendingLimitTotal: '100',
+      spendingLimitSymbol: 'USDC',
+      spendingLimitOnly: true,
+    };
+    const amounts = strings(
+      'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
+      { remaining: '40', total: '100', symbol: 'USDC' },
+    );
+
+    const shown = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      amountProps,
+    );
+    expect(shown.getByText(amounts)).toBeOnTheScreen();
+
+    const hidden = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { ...amountProps, privacyMode: true },
+    );
+    expect(hidden.queryByText(amounts)).toBeNull();
+    expect(hidden.getByText('••••••')).toBeOnTheScreen();
+  });
+
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: true }),
@@ -706,68 +762,12 @@ describe('ManageCardOptions transaction history gating', () => {
   });
 });
 
-describe('ManageCardOptions cashback auto payout (prototype)', () => {
-  it('shows the auto payout row with the payout increment when enabled', () => {
-    const { getByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: true,
-      onToggleCashbackAutoPayout: jest.fn(),
-    });
-
-    const row = getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM);
-    expect(row).toHaveTextContent(
-      strings('card.card_home.cashback_panel.auto_payout_title'),
-    );
-  });
-
-  it('hides the auto payout row when the prototype is off', () => {
-    const { queryByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: false,
-      onToggleCashbackAutoPayout: jest.fn(),
-    });
+describe('ManageCardOptions cashback prototypes', () => {
+  it('shows no auto payout row (it lives in the More sheet)', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}));
 
     expect(
       queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
     ).toBeNull();
-  });
-
-  it('hides the auto payout row when no toggle handler is provided', () => {
-    const { queryByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: true,
-    });
-
-    expect(
-      queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
-    ).toBeNull();
-  });
-});
-
-describe('ManageCardOptions cashback ring layout (prototype)', () => {
-  it('shows the ring layout row next to auto payout', () => {
-    const { getByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: true,
-      onToggleCashbackAutoPayout: jest.fn(),
-      onToggleCashbackRing: jest.fn(),
-    });
-
-    expect(getByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toHaveTextContent(
-      strings('card.card_home.cashback_panel.ring_title'),
-    );
-  });
-
-  it('hides the ring layout row when the prototype is off', () => {
-    const { queryByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: false,
-      onToggleCashbackRing: jest.fn(),
-    });
-
-    expect(queryByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toBeNull();
-  });
-
-  it('hides the ring layout row when no toggle handler is provided', () => {
-    const { queryByTestId } = renderComponent(buildCapabilities({}), {
-      showCashbackAutoPayout: true,
-    });
-
-    expect(queryByTestId(CardHomeSelectors.CASHBACK_RING_ITEM)).toBeNull();
   });
 });

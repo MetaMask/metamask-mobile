@@ -7,10 +7,7 @@ import { useSyncExternalStore } from 'react';
  * out each time the balance reaches the payout increment). Until then this is
  * a local toggle so Card home can show the auto payout state.
  *
- * Ring layout: shows cashback as a radial ring above the card instead of the
- * panel, so both layouts can be compared on a device.
- *
- * Both are in-memory, call no API, are not persisted and only exist in
+ * It is in-memory, calls no API, is not persisted and only exists in
  * development builds.
  */
 export const IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED = __DEV__;
@@ -43,14 +40,8 @@ const createPrototypeToggle = () => {
 };
 
 const autoPayout = createPrototypeToggle();
-const ringLayout = createPrototypeToggle();
 
 export const setCashbackAutoPayoutPrototype = autoPayout.set;
 
 /** Whether the prototype auto payout toggle is on (always false in production). */
 export const useCashbackAutoPayoutPrototype = autoPayout.useValue;
-
-export const setCashbackRingPrototype = ringLayout.set;
-
-/** Whether the prototype ring layout is on (always false in production). */
-export const useCashbackRingPrototype = ringLayout.useValue;

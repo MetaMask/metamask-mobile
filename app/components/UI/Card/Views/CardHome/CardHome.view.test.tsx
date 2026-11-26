@@ -1,12 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
-import { RefreshControl } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
-import {
-  CardTransactionStatus,
-  CardTransactionType,
-  type CardTransaction,
-} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
@@ -536,12 +530,41 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show logout on Card home after the footer loads', async () => {
+    it('shows contact support in the More sheet', async () => {
       const { findByTestId, queryByTestId } = renderCardHomeView();
 
       expect(
-        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+        queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      const sheet = await findByTestId(CardHomeSelectors.MORE_SHEET);
+      expect(
+        within(sheet).getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('opens the More sheet outside the scrolling content', async () => {
+      const { findByTestId, getByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      expect(
+        await findByTestId(CardHomeSelectors.MORE_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(CardHomeSelectors.CARD_VIEW_TITLE)).queryByTestId(
+          CardHomeSelectors.MORE_SHEET,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('never shows log out on Card home', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+      await findByTestId(CardHomeSelectors.MORE_SHEET);
 
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
@@ -549,22 +572,9 @@ describe('CardHome', () => {
     });
   });
 
-  describe('Home segments', () => {
-    const listTransactions = Engine.context.CardController
-      .listTransactions as jest.Mock;
-
-    const recentTransaction: CardTransaction = {
-      id: 'view-tx-1',
-      providerId: 'baanx',
-      timestamp: Date.now(),
-      status: CardTransactionStatus.Completed,
-      type: CardTransactionType.Purchase,
-      isDebit: true,
-      billingAmount: { value: '6.45', currency: 'USD' },
-      merchant: { name: 'Pret A Manger' },
-      fundingSources: [],
-    };
-
+  // Prototype: Card home has no Activity / Manage segments. Manage rows sit
+  // under the cashback panel and history is a Manage row.
+  describe('Manage rows without segments', () => {
     const historyOverrides = {
       engine: {
         backgroundState: {
@@ -585,61 +595,32 @@ describe('CardHome', () => {
         ...defaultCapabilities,
         supportsTransactionHistory: true,
       });
-      listTransactions.mockReset();
-      listTransactions.mockResolvedValue({ items: [] });
     });
 
     afterEach(() => {
       mockGetCapabilities.mockReturnValue(defaultCapabilities);
     });
 
-    const openActivity = async (
-      view: ReturnType<typeof renderCardHomeView>,
-    ) => {
-      fireEvent.press(
-        await view.findByTestId(CardHomeSelectors.ACTIVITY_SEGMENT),
-      );
-    };
-
-    it('shows Manage by default and the latest transactions on Activity', async () => {
-      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+    it('shows the Manage rows and the history row without an Activity panel', async () => {
       const view = renderCardHomeView({ overrides: historyOverrides });
 
       expect(
-        await view.findByTestId(CardHomeSelectors.HOME_SEGMENTS),
+        await view.findByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        view.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+        view.getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
       ).toBeOnTheScreen();
       expect(view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY)).toBeNull();
-
-      await openActivity(view);
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY),
-      ).toBeOnTheScreen();
-      expect(await view.findByText('Pret A Manger')).toBeOnTheScreen();
-      expect(
-        view.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
-      ).toBeOnTheScreen();
-      expect(
-        view.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-      ).toBeNull();
     });
 
-    it('opens Transaction history from See all', async () => {
-      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+    it('opens Transaction history from the history row', async () => {
       const view = renderCardHomeView({
         overrides: historyOverrides,
-        extraRoutes: [
-          { name: Routes.CARD.TRANSACTION_HISTORY },
-          { name: Routes.CARD.TRANSACTION_DETAILS },
-        ],
+        extraRoutes: [{ name: Routes.CARD.TRANSACTION_HISTORY }],
       });
 
-      await openActivity(view);
       fireEvent.press(
-        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+        await view.findByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
       );
       expect(
         await view.findByTestId(
@@ -648,96 +629,7 @@ describe('CardHome', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens transaction details from a recent row', async () => {
-      listTransactions.mockResolvedValue({ items: [recentTransaction] });
-      const view = renderCardHomeView({
-        overrides: historyOverrides,
-        extraRoutes: [{ name: Routes.CARD.TRANSACTION_DETAILS }],
-      });
-
-      await openActivity(view);
-      fireEvent.press(
-        await view.findByTestId(
-          `${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}view-tx-1`,
-        ),
-      );
-
-      expect(
-        await view.findByTestId(
-          getRouteProbeTestId(Routes.CARD.TRANSACTION_DETAILS),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows the empty state when the feed has no transactions', async () => {
-      const view = renderCardHomeView({ overrides: historyOverrides });
-
-      await openActivity(view);
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
-      ).toBeOnTheScreen();
-      expect(
-        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_LOADING),
-      ).toBeNull();
-    });
-
-    it('shows a spinner while the first page is loading', async () => {
-      listTransactions.mockReturnValue(new Promise(() => undefined));
-      const view = renderCardHomeView({ overrides: historyOverrides });
-
-      await openActivity(view);
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_LOADING),
-      ).toBeOnTheScreen();
-      expect(
-        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
-      ).toBeNull();
-    });
-
-    it('shows an error and retries the feed', async () => {
-      listTransactions.mockRejectedValue(new Error('unavailable'));
-      const view = renderCardHomeView({ overrides: historyOverrides });
-
-      await openActivity(view);
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_ERROR),
-      ).toBeOnTheScreen();
-      expect(
-        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
-      ).toBeNull();
-
-      listTransactions.mockResolvedValue({ items: [recentTransaction] });
-      fireEvent.press(
-        view.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_RETRY),
-      );
-
-      expect(await view.findByText('Pret A Manger')).toBeOnTheScreen();
-    });
-
-    it('refetches activity when the Activity tab is pulled to refresh', async () => {
-      listTransactions.mockResolvedValue({ items: [recentTransaction] });
-      const view = renderCardHomeView({ overrides: historyOverrides });
-
-      await openActivity(view);
-      await view.findByText('Pret A Manger');
-      const callsBeforeRefresh = listTransactions.mock.calls.length;
-
-      const refreshControl = view.UNSAFE_getByType(RefreshControl);
-      await act(async () => {
-        await refreshControl.props.onRefresh();
-      });
-
-      await waitFor(() =>
-        expect(listTransactions.mock.calls.length).toBeGreaterThan(
-          callsBeforeRefresh,
-        ),
-      );
-    });
-
-    it('shows the segments when the card is frozen', async () => {
+    it('shows the Manage rows when the card is frozen', async () => {
       const view = renderCardHomeView({
         overrides: {
           engine: {
@@ -754,105 +646,8 @@ describe('CardHome', () => {
       });
 
       expect(
-        await view.findByTestId(CardHomeSelectors.HOME_SEGMENTS),
+        await view.findByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeOnTheScreen();
-    });
-
-    it('hides the segments while the card still needs enabling', async () => {
-      const view = renderCardHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              ...historyOverrides.engine.backgroundState,
-              CardController: {
-                cardHomeData: {
-                  actions: [{ type: 'enable_card' }],
-                },
-              },
-            },
-          },
-        },
-      });
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeOnTheScreen();
-      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
-    });
-
-    it('hides the segments while identity is in review', async () => {
-      const view = renderCardHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              ...historyOverrides.engine.backgroundState,
-              CardController: {
-                cardHomeData: {
-                  alerts: [{ type: 'kyc_pending', dismissable: false }],
-                },
-              },
-            },
-          },
-        },
-      });
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.CARD_ART),
-      ).toBeOnTheScreen();
-      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
-    });
-
-    it('hides the segments when signed out during identity review', async () => {
-      const view = renderCardHomeView({
-        initialParams: { fromKycPending: true },
-        overrides: {
-          engine: {
-            backgroundState: {
-              CardController: { isAuthenticated: false },
-            },
-          },
-        },
-      });
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.CARD_ART),
-      ).toBeOnTheScreen();
-      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
-    });
-
-    it('hides the segments during forced UK migration', async () => {
-      const view = renderCardHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              CardController: {
-                cardHomeData: {
-                  account: { countryOfResidence: 'GB' },
-                },
-              },
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  cardTransactionHistory: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                  cardUkMigration: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                    startDate: '2020-01-01T00:00:00.000Z',
-                    endDate: '2020-06-01T00:00:00.000Z',
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      expect(
-        await view.findByTestId(CardHomeSelectors.CARD_ART),
-      ).toBeOnTheScreen();
-      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
     });
   });
 

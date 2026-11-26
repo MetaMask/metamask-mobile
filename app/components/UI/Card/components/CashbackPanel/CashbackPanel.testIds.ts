@@ -7,11 +7,6 @@ export const CashbackPanelSelectors = {
   PROGRESS: 'card-cashback-panel-progress',
   PROGRESS_FILL: 'card-cashback-panel-progress-fill',
   SKELETON: 'card-cashback-panel-skeleton',
-  PROGRESS_SHIMMER: 'cashback-panel-progress-shimmer',
+  PILL_SHIMMER: 'cashback-panel-pill-shimmer',
   COIN_RAIN: 'cashback-panel-coin-rain',
-  RING_CONTAINER: 'card-cashback-ring',
-  RING: 'card-cashback-ring-progress',
-  RING_FILL: 'card-cashback-ring-fill',
-  RING_AMOUNT: 'card-cashback-ring-amount',
-  RING_SPINNER: 'card-cashback-ring-spinner',
 } as const;

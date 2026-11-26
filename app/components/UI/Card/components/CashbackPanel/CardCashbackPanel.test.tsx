@@ -8,7 +8,11 @@ import { CashbackPanelSelectors } from './CashbackPanel.testIds';
 import useRedeemableWallet from '../../hooks/useRedeemableWallet';
 import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { withBiometricAuth } from '../../util/withBiometricAuth';
-import { playSuccessNotification } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  fireImpact,
+  playSuccessNotification,
+} from '../../../../../util/haptics';
 import { useCashbackAutoPayoutPrototype } from '../../util/cashbackAutoPayoutPrototype';
 
 const mockNavigate = jest.fn();
@@ -63,9 +67,7 @@ jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
 jest.mock('../../util/withBiometricAuth', () => ({
   withBiometricAuth: jest.fn(async ({ onSuccess }) => onSuccess()),
 }));
-jest.mock('../../../../../util/haptics', () => ({
-  playSuccessNotification: jest.fn(() => Promise.resolve()),
-}));
+jest.mock('../../../../../util/haptics');
 
 const mockWithdraw = jest.fn();
 const mockResetWithdraw = jest.fn();
@@ -134,15 +136,6 @@ describe('CardCashbackPanel', () => {
     jest.mocked(useCashbackAutoPayoutPrototype).mockReturnValue(false);
   });
 
-  it('shows the ring layout instead of the panel for the ring variant', () => {
-    const { getByTestId, queryByTestId } = renderPanel({ variant: 'ring' });
-
-    expect(
-      getByTestId(CashbackPanelSelectors.RING_CONTAINER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(CashbackPanelSelectors.CONTAINER)).toBeNull();
-  });
-
   it('shows the whole-increment amount as ready to claim', () => {
     const { getByTestId } = renderPanel();
 
@@ -198,6 +191,31 @@ describe('CardCashbackPanel', () => {
       }),
     );
     expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+  });
+
+  it('taps lightly on the pill, then firmer once the claim is confirmed', async () => {
+    const { getByTestId } = renderPanel();
+    fireEvent.press(getByTestId(CashbackPanelSelectors.PILL));
+
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenLastCalledWith(ImpactMoment.SecondaryCTA);
+
+    await act(async () => {
+      alertButtons()[1].onPress?.();
+    });
+
+    expect(fireImpact).toHaveBeenCalledTimes(2);
+    expect(fireImpact).toHaveBeenLastCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('plays no haptic when the greyed pill is pressed', () => {
+    jest.mocked(useCashbackAutoPayoutPrototype).mockReturnValue(true);
+    const { getByTestId } = renderPanel();
+
+    fireEvent.press(getByTestId(CashbackPanelSelectors.PILL));
+
+    expect(fireImpact).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 
   it('names the wallet in the confirmation for Linea and Base', () => {
@@ -277,11 +295,11 @@ describe('CardCashbackPanel', () => {
     );
   });
 
-  it('refills the bar after Card home comes into focus, then shimmers', async () => {
+  it('refills the bar after Card home comes into focus, then shimmers the pill', async () => {
     const { findByTestId, queryByTestId } = renderPanel();
 
     // Empty while Card home is still transitioning in.
-    expect(queryByTestId(CashbackPanelSelectors.PROGRESS_SHIMMER)).toBeNull();
+    expect(queryByTestId(CashbackPanelSelectors.PILL_SHIMMER)).toBeNull();
     expect(mockAddListener).toHaveBeenCalledWith(
       'transitionEnd',
       expect.any(Function),
@@ -290,7 +308,7 @@ describe('CardCashbackPanel', () => {
     // The transition fallback fires, the fill runs, then the shimmer starts.
     expect(
       await findByTestId(
-        CashbackPanelSelectors.PROGRESS_SHIMMER,
+        CashbackPanelSelectors.PILL_SHIMMER,
         {},
         { timeout: 3000 },
       ),

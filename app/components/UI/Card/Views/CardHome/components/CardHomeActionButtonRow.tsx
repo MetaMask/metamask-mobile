@@ -31,8 +31,11 @@ export interface CardHomeActionButtonRowProps {
   freeze?: ActionButtonConfig & { isFrozen: boolean };
   /** Brand refresh Liquid Glass tiles; resolved by the screen. */
   isGlass?: boolean;
-  /** Tighter top gap when something (e.g. Add to Apple Wallet) sits directly above. */
-  isTightTop?: boolean;
+  /**
+   * Add to Apple Wallet sits directly above: 16pt below the button (the
+   * native button frame adds ~10pt to this row's top padding).
+   */
+  followsWalletButton?: boolean;
 }
 
 export interface CardHomeActionVisibilityInput {
@@ -102,7 +105,7 @@ const CardHomeActionButtonRow = ({
   pin,
   freeze,
   isGlass = false,
-  isTightTop = false,
+  followsWalletButton = false,
 }: CardHomeActionButtonRowProps) => {
   const tw = useTailwind();
   if (!add && !details && !pin && !freeze) return null;
@@ -111,7 +114,7 @@ const CardHomeActionButtonRow = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName={`px-4 ${isTightTop ? 'pt-2' : 'pt-4'} pb-2 gap-2`}
+      twClassName={`px-4 ${followsWalletButton ? 'pt-1.5' : 'pt-4'} pb-2 gap-2`}
       testID={CardHomeSelectors.ACTION_BUTTON_ROW}
     >
       {add ? (

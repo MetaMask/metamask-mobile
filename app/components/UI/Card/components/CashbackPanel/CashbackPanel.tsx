@@ -5,6 +5,8 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withRepeat,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -54,6 +56,13 @@ export interface CashbackPanelProps {
   incrementLabel: string;
   /** Progress towards the next increment, 0 to 1. */
   progress: number;
+  /**
+   * Lifetime cashback earned from card spend, formatted. Shown in the empty
+   * state (nothing accrued yet, e.g. right after a claim) when above zero.
+   */
+  lifetimeEarnedLabel?: string;
+  /** Card cashback rate in percent (e.g. "1"), shown in the title. */
+  percentageLabel?: string;
   onClaim: () => void;
   onSetup: () => void;
   /**
@@ -68,6 +77,9 @@ export interface CashbackPanelProps {
 /** Fill duration when Card home comes into focus or the value changes. */
 export const CASHBACK_FILL_DURATION_MS = 700;
 
+/** Half a cycle of the claiming pulse on the full green bar. */
+export const CASHBACK_PULSE_HALF_MS = 650;
+
 /**
  * Animates a 0..1 fill value: empty while a refill is pending, then eases out
  * to `progress`. Reduce Motion jumps straight to the value. Returns whether
@@ -77,10 +89,13 @@ export const useCashbackFill = ({
   progress,
   refillKey = 0,
   isRefillPending = false,
+  isHeld = false,
 }: {
   progress: number;
   refillKey?: number;
   isRefillPending?: boolean;
+  /** Hold the fill at `progress` with no refill (e.g. while claiming). */
+  isHeld?: boolean;
 }): { fill: SharedValue<number>; isFilled: boolean; clamped: number } => {
   const reduceMotion = useReducedMotion();
   const clamped = Math.min(1, Math.max(0, progress));
@@ -89,6 +104,11 @@ export const useCashbackFill = ({
 
   useEffect(() => {
     if (reduceMotion) {
+      fill.value = clamped;
+      setIsFilled(true);
+      return;
+    }
+    if (isHeld) {
       fill.value = clamped;
       setIsFilled(true);
       return;
@@ -110,16 +130,20 @@ export const useCashbackFill = ({
         }
       },
     );
-  }, [clamped, fill, isRefillPending, reduceMotion, refillKey]);
+  }, [clamped, fill, isHeld, isRefillPending, reduceMotion, refillKey]);
 
   return { fill, isFilled, clamped };
 };
+
+const getLifetimeLabel = (amount: string) =>
+  strings('card.card_home.cashback_panel.lifetime', { amount });
 
 // The pill shows the amount, so the sublabel never repeats it.
 export const getCashbackSublabel = ({
   status,
   progress,
   incrementLabel,
+  lifetimeEarnedLabel,
 }: CashbackPanelProps): string => {
   switch (status) {
     case 'claimable':
@@ -143,31 +167,107 @@ export const getCashbackSublabel = ({
         ? strings('card.card_home.cashback_panel.getting_there', {
             target: incrementLabel,
           })
-        : strings('card.card_home.cashback_panel.zero');
+        : lifetimeEarnedLabel
+          ? getLifetimeLabel(lifetimeEarnedLabel)
+          : strings('card.card_home.cashback_panel.zero');
   }
 };
 
-// Fully rounded ends to match the track's rounded-full.
-const PROGRESS_BAR_RADIUS = 999;
-// Soft white sweep over the green fill (same shape as ShimmerOverlay's default,
-// a little brighter so it reads on the thin bar).
-const PROGRESS_SHIMMER_COLORS = [
+/** "1% cashback" when the rate is known, otherwise "Cashback". */
+export const getCashbackTitle = (percentageLabel?: string): string =>
+  percentageLabel
+    ? strings('card.card_home.cashback_panel.title_rate', {
+        percentage: percentageLabel,
+      })
+    : strings('card.card_home.cashback_panel.title');
+
+/** Hold time for each line of the empty-state crossfade. */
+export const CASHBACK_CROSSFADE_HOLD_MS = 5000;
+/** Fade out / fade in time for the empty-state crossfade. */
+export const CASHBACK_CROSSFADE_FADE_MS = 400;
+
+/**
+ * Empty state for a returning user: alternates the lifetime total with the
+ * spend prompt, fading between them. Reduce Motion keeps the lifetime line.
+ */
+const CrossfadeSublabel = ({ lines }: { lines: [string, string] }) => {
+  const reduceMotion = useReducedMotion();
+  const [index, setIndex] = useState(0);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setIndex(0);
+      opacity.value = 1;
+      return undefined;
+    }
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const cycle = () => {
+      timers.push(
+        setTimeout(() => {
+          opacity.value = withTiming(0, {
+            duration: CASHBACK_CROSSFADE_FADE_MS,
+          });
+          timers.push(
+            setTimeout(() => {
+              setIndex((current) => (current + 1) % 2);
+              opacity.value = withTiming(1, {
+                duration: CASHBACK_CROSSFADE_FADE_MS,
+              });
+              cycle();
+            }, CASHBACK_CROSSFADE_FADE_MS),
+          );
+        }, CASHBACK_CROSSFADE_HOLD_MS),
+      );
+    };
+    cycle();
+    return () => timers.forEach(clearTimeout);
+  }, [opacity, reduceMotion]);
+
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View style={style}>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        accessibilityLabel={lines.join('. ')}
+        testID={CashbackPanelSelectors.SUBLABEL}
+      >
+        {lines[index]}
+      </Text>
+    </Animated.View>
+  );
+};
+
+// Clips the claim pill's shimmer to ButtonBase's rounded-full.
+// Softer than ShimmerOverlay's default (0.25) peak: the pill is small and
+// green, so the default read as too intense (design call, 26 Nov 2026).
+const PILL_SHIMMER_COLORS = [
   'rgba(255,255,255,0)',
-  'rgba(255,255,255,0.45)',
+  'rgba(255,255,255,0.08)',
   'rgba(255,255,255,0)',
 ] as const;
+
+const PILL_RADIUS = 999;
 
 const ProgressBar = ({
   progress,
   isComplete,
-  isShimmering,
+  onFilledChange,
+  isPulsing = false,
   refillKey,
   isRefillPending,
+  accessibilityLabel,
 }: {
   progress: number;
   isComplete: boolean;
-  /** Subtle sweep over the full bar while a payout is ready to claim. */
-  isShimmering: boolean;
+  /** Spoken name, e.g. "Cashback progress, $2.30 of $5". */
+  accessibilityLabel: string;
+  /** Soft opacity pulse on a held, full bar while a claim is in flight. */
+  isPulsing?: boolean;
+  /** Reports when the fill has reached its value (the pill shimmers after). */
+  onFilledChange?: (isFilled: boolean) => void;
   refillKey?: number;
   isRefillPending?: boolean;
 }) => {
@@ -176,17 +276,48 @@ const ProgressBar = ({
     fill: width,
     isFilled,
     clamped,
-  } = useCashbackFill({ progress, refillKey, isRefillPending });
+  } = useCashbackFill({
+    progress,
+    refillKey,
+    isRefillPending,
+    isHeld: isPulsing,
+  });
+  useEffect(() => {
+    onFilledChange?.(isFilled);
+  }, [isFilled, onFilledChange]);
+
+  const reduceMotion = useReducedMotion();
+  const pulse = useSharedValue(1);
+  useEffect(() => {
+    if (!isPulsing || reduceMotion) {
+      pulse.value = withTiming(1, { duration: 150 });
+      return;
+    }
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(0.45, {
+          duration: CASHBACK_PULSE_HALF_MS,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        withTiming(1, {
+          duration: CASHBACK_PULSE_HALF_MS,
+          easing: Easing.inOut(Easing.quad),
+        }),
+      ),
+      -1,
+    );
+  }, [isPulsing, pulse, reduceMotion]);
 
   const fillStyle = useAnimatedStyle(() => ({
     width: `${width.value * 100}%`,
+    opacity: pulse.value,
   }));
 
   const fill = (
     <Animated.View
       style={[
         tw.style(
-          'h-1.5 rounded-full',
+          'h-2 rounded-full',
           isComplete ? 'bg-success-default' : 'bg-primary-default',
         ),
         fillStyle,
@@ -199,35 +330,31 @@ const ProgressBar = ({
   // with an animated fill on semantic tokens.
   return (
     <Box
-      twClassName="mt-3 h-1.5 w-full rounded-full bg-border-muted overflow-hidden"
+      twClassName="mt-4 h-2 w-full rounded-full bg-border-muted overflow-hidden"
       testID={CashbackPanelSelectors.PROGRESS}
+      accessible
       accessibilityRole="progressbar"
+      accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
     >
-      {/* The shimmer starts once the fill has reached its value. */}
-      {isShimmering && isFilled ? (
-        <Box testID={CashbackPanelSelectors.PROGRESS_SHIMMER}>
-          <ShimmerOverlay
-            borderRadius={PROGRESS_BAR_RADIUS}
-            colors={PROGRESS_SHIMMER_COLORS}
-          >
-            {fill}
-          </ShimmerOverlay>
-        </Box>
-      ) : (
-        fill
-      )}
+      {fill}
     </Box>
   );
 };
 
-/** Claim / set up / amount pill, shared by the panel and the ring layout. */
-export const CashbackPill = (props: CashbackPanelProps) => {
+/** Claim / set up / amount pill. */
+export const CashbackPill = ({
+  isShimmering = false,
+  ...props
+}: CashbackPanelProps & {
+  /** Sweep over the claim pill while a payout is ready to claim. */
+  isShimmering?: boolean;
+}) => {
   const { status, availableLabel, claimableLabel, onClaim, onSetup } = props;
 
   if (status === 'claimable' || status === 'claiming') {
     const isClaiming = status === 'claiming';
-    return (
+    const claimButton = (
       <ButtonSemantic
         severity={ButtonSemanticSeverity.Success}
         size={ButtonSize.Sm}
@@ -245,6 +372,20 @@ export const CashbackPill = (props: CashbackPanelProps) => {
       >
         {claimableLabel}
       </ButtonSemantic>
+    );
+    return isShimmering && !isClaiming ? (
+      <Box testID={CashbackPanelSelectors.PILL_SHIMMER}>
+        <ShimmerOverlay
+          borderRadius={PILL_RADIUS}
+          colors={PILL_SHIMMER_COLORS}
+          sweepDurationMs={2000}
+          pauseDurationMs={2500}
+        >
+          {claimButton}
+        </ShimmerOverlay>
+      </Box>
+    ) : (
+      claimButton
     );
   }
 
@@ -285,10 +426,18 @@ const CashbackPanel = (props: CashbackPanelProps) => {
 
   const isLoading = status === 'loading';
   const isComplete = status === 'claimable' || status === 'claiming';
+  // Nothing accrued and nothing to claim, but cashback earned before.
+  const isReturningEmpty =
+    status === 'accruing' && progress <= 0 && !!props.lifetimeEarnedLabel;
+  // The claim pill shimmers once the bar has filled, unless Reduce Motion is on.
+  const reduceMotion = useReducedMotion();
+  const [isBarFilled, setIsBarFilled] = useState(false);
+  const isPillShimmering =
+    status === 'claimable' && isBarFilled && !reduceMotion;
 
   return (
     <Box
-      twClassName="mx-4 mt-4 rounded-xl bg-background-muted p-4"
+      twClassName="mx-4 rounded-xl bg-background-muted p-4"
       testID={CashbackPanelSelectors.CONTAINER}
     >
       <Box
@@ -306,14 +455,22 @@ const CashbackPanel = (props: CashbackPanelProps) => {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
+            numberOfLines={1}
             testID={CashbackPanelSelectors.TITLE}
           >
-            {strings('card.card_home.cashback_panel.title')}
+            {getCashbackTitle(props.percentageLabel)}
           </Text>
           {isLoading ? (
             <Skeleton
               twClassName="h-4 w-32 rounded-md mt-1"
               testID={CashbackPanelSelectors.SKELETON}
+            />
+          ) : isReturningEmpty ? (
+            <CrossfadeSublabel
+              lines={[
+                getLifetimeLabel(props.lifetimeEarnedLabel as string),
+                strings('card.card_home.cashback_panel.zero'),
+              ]}
             />
           ) : (
             <Text
@@ -328,14 +485,26 @@ const CashbackPanel = (props: CashbackPanelProps) => {
         {isLoading ? (
           <Skeleton twClassName="h-8 w-20 rounded-full" />
         ) : (
-          <CashbackPill {...props} />
+          // MMDS buttons default to self-start, which would pin the pill to the
+          // top of this row; the wrapper is centred by the row instead.
+          <Box>
+            <CashbackPill {...props} isShimmering={isPillShimmering} />
+          </Box>
         )}
       </Box>
       {!isLoading && status !== 'unavailable' ? (
         <ProgressBar
           progress={progress}
           isComplete={isComplete}
-          isShimmering={status === 'claimable'}
+          onFilledChange={setIsBarFilled}
+          isPulsing={status === 'claiming'}
+          accessibilityLabel={strings(
+            'card.card_home.cashback_panel.progress_a11y',
+            {
+              amount: isComplete ? props.incrementLabel : props.remainderLabel,
+              target: props.incrementLabel,
+            },
+          )}
           refillKey={refillKey}
           isRefillPending={isRefillPending}
         />

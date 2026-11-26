@@ -12246,10 +12246,6 @@
         "freeze": "Freeze",
         "unfreeze": "Unfreeze"
       },
-      "segments": {
-        "activity": "Activity",
-        "manage": "Manage"
-      },
       "recent_activity": {
         "see_all": "See all"
       },
@@ -12270,6 +12266,10 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
+      "more_button_label": "More options",
+      "more_sheet": {
+        "title": "More"
+      },
       "enable_card_error": "Failed to enable card. Try again later.",
       "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
@@ -12349,25 +12349,26 @@
       },
       "cashback_panel": {
         "title": "Cashback",
-        "zero": "Earn mUSD every time you spend",
+        "title_rate": "{{percentage}}% cashback",
+        "zero": "Spend to start earning",
+        "lifetime": "{{amount}} lifetime",
         "getting_there": "Getting there, unlocks at {{target}}",
         "ready": "Your cashback is ready",
         "claiming": "On its way…",
         "setup_money_account": "Set up Money account to claim",
         "setup_funding": "Set up Linea funding to claim",
-        "auto_payout": "Pays out on its own at {{target}}",
+        "auto_payout": "Pays out at {{target}}",
         "unavailable": "Cashback isn't available right now",
         "set_up": "Set up",
         "claim_a11y": "Claim {{amount}} cashback",
+        "progress_a11y": "Cashback progress, {{amount}} of {{target}}",
         "password_description": "Enter your password to claim your cashback.",
         "payout_toast": "{{amount}} cashback added to your Money account",
         "payout_toast_wallet": "{{amount}} cashback sent to {{wallet}}",
         "payout_toast_generic": "Cashback paid out",
         "payout_failed": "Cashback payout failed. Try again.",
         "auto_payout_title": "Auto payout",
-        "auto_payout_description": "Pay out cashback each time you reach {{target}}",
-        "ring_title": "Ring layout",
-        "ring_description": "Show cashback as a ring beside your balance",
+        "auto_payout_description": "Every {{target}} you earn",
         "confirm_title": "Claim {{amount}} cashback?",
         "confirm_message": "It goes to your Money account.",
         "confirm_message_wallet": "It goes to {{wallet}}.",
@@ -12385,6 +12386,7 @@
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",

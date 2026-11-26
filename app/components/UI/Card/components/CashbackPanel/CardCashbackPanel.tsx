@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,7 +25,11 @@ import type { RootState } from '../../../../../reducers';
 import { useTheme } from '../../../../../util/theme';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { formatAddress } from '../../../../../util/address';
-import { playSuccessNotification } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  fireImpact,
+  playSuccessNotification,
+} from '../../../../../util/haptics';
 import useRedeemableWallet from '../../hooks/useRedeemableWallet';
 import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
@@ -34,12 +38,22 @@ import { withBiometricAuth } from '../../util/withBiometricAuth';
 import { useCashbackAutoPayoutPrototype } from '../../util/cashbackAutoPayoutPrototype';
 import { getRedeemWithdrawalAmounts } from '../../Views/RedeemWallet/RedeemWallet.utils';
 import CashbackPanel, { type CashbackPanelStatus } from './CashbackPanel';
-import CashbackRing from './CashbackRing';
 import {
   CASHBACK_PAYOUT_INCREMENT,
   formatClaimAmount,
   getCashbackPayoutBreakdown,
 } from './CashbackPanel.utils';
+import { Box } from '@metamask/design-system-react-native'; // PROTOTYPE-DO-NOT-MERGE
+import { useTailwind } from '@metamask/design-system-twrnc-preset'; // PROTOTYPE-DO-NOT-MERGE
+import NavigationService from '../../../../../core/NavigationService'; // PROTOTYPE-DO-NOT-MERGE
+import { handleCardHome } from '../../../../../core/DeeplinkManager/handlers/legacy/handleCardHome'; // PROTOTYPE-DO-NOT-MERGE
+import {
+  CASHBACK_PROTOTYPE,
+  cycleMockCashbackState,
+  mockPushPayout,
+  mockUnblock,
+  setMockCashbackState,
+} from '../../cashbackPanelPrototype'; // PROTOTYPE-DO-NOT-MERGE
 
 // Cashback is always USD-denominated (mUSD), so show plain "$10.00" in every
 // locale rather than "US$10.00".
@@ -117,8 +131,8 @@ export interface CardCashbackPanelProps {
    * whole view). Call `onDone` when it has finished.
    */
   onCelebrate?: (onDone: () => void) => void;
-  /** PROTOTYPE: 'ring' shows the radial ring layout (option 2) instead of the panel. */
-  variant?: 'panel' | 'ring';
+  /** Card cashback rate in percent (e.g. "1"), shown in the panel title. */
+  cashbackPercentage?: string;
 }
 
 /**
@@ -130,7 +144,7 @@ const CardCashbackPanel = ({
   pushPayoutAmount,
   onPushPayoutHandled,
   onCelebrate,
-  variant = 'panel',
+  cashbackPercentage,
 }: CardCashbackPanelProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
@@ -174,7 +188,15 @@ const CardCashbackPanel = ({
     : undefined;
 
   const breakdown = useMemo(
-    () => getCashbackPayoutBreakdown(wallet?.balance),
+    () =>
+      CASHBACK_PROTOTYPE // PROTOTYPE-DO-NOT-MERGE: mock claims the full balance
+        ? getCashbackPayoutBreakdown(
+            wallet?.balance,
+            Number(wallet?.balance) >= CASHBACK_PAYOUT_INCREMENT
+              ? 0
+              : undefined,
+          ) // PROTOTYPE-DO-NOT-MERGE
+        : getCashbackPayoutBreakdown(wallet?.balance),
     [wallet?.balance],
   );
   const fee = getRedeemWithdrawalAmounts(
@@ -195,15 +217,22 @@ const CardCashbackPanel = ({
     !destination.hasApprovedDestination;
   const showSetup =
     needsSetup &&
-    (!destination.isMoneyAccountDestination || canLinkMoneyAccount);
+    (!destination.isMoneyAccountDestination ||
+      canLinkMoneyAccount ||
+      CASHBACK_PROTOTYPE); // PROTOTYPE-DO-NOT-MERGE
 
   let status: CashbackPanelStatus;
-  if (isLoading || (!estimation && isEstimating && breakdown.claimable > 0)) {
+  // A claim in flight wins over refetches, so the bar never drops to a
+  // skeleton or refills mid-claim.
+  if (isWithdrawing || monitoringStatus === 'monitoring') {
+    status = 'claiming';
+  } else if (
+    isLoading ||
+    (!estimation && isEstimating && breakdown.claimable > 0)
+  ) {
     status = 'loading';
   } else if (error) {
     status = 'unavailable';
-  } else if (isWithdrawing || monitoringStatus === 'monitoring') {
-    status = 'claiming';
   } else if (showSetup) {
     status = destination.isMoneyAccountDestination
       ? 'setupMoneyAccount'
@@ -361,6 +390,8 @@ const CardCashbackPanel = ({
           'card.card_home.cashback_panel.password_description',
         ),
         onSuccess: () => {
+          // Claim confirmed: the full bar starts its pulse.
+          fireImpact(ImpactMoment.PrimaryCTA);
           pendingClaimRef.current = { amount, destinationName };
           // Pays out whole increments only; the rest carries over.
           withdraw(amount);
@@ -372,7 +403,9 @@ const CardCashbackPanel = ({
 
   // Native confirm first; only "Claim" goes on to biometrics.
   const handleClaim = useCallback(() => {
+    // A greyed pill (accruing, auto payout) never claims, so no haptic either.
     if (status !== 'claimable') return;
+    fireImpact(ImpactMoment.SecondaryCTA);
     const amount = formatClaimAmount(breakdown.claimable);
     Alert.alert(
       strings('card.card_home.cashback_panel.confirm_title', {
@@ -397,6 +430,10 @@ const CardCashbackPanel = ({
   }, [breakdown.claimable, destinationName, runClaim, status]);
 
   const handleSetup = useCallback(() => {
+    if (CASHBACK_PROTOTYPE) {
+      mockUnblock();
+      return;
+    } // PROTOTYPE-DO-NOT-MERGE
     if (destination.isMoneyAccountDestination) {
       startLinkFlow(CASHBACK_MONEY_ACCOUNT_ORIGIN);
       return;
@@ -414,23 +451,56 @@ const CardCashbackPanel = ({
     startLinkFlow,
   ]);
 
-  const Layout = variant === 'ring' ? CashbackRing : CashbackPanel;
-
-  return (
-    <Layout
-      status={status}
-      availableLabel={formatUsd(breakdown.available)}
-      claimableLabel={formatUsd(breakdown.claimable)}
-      remainderLabel={formatUsd(breakdown.remainder)}
-      incrementLabel={formatUsd(CASHBACK_PAYOUT_INCREMENT, true)}
-      // Full once a payout is ready; otherwise progress toward the next increment.
-      progress={breakdown.claimable > 0 ? 1 : breakdown.progress}
-      onClaim={handleClaim}
-      onSetup={handleSetup}
-      refillKey={refill.key}
-      isRefillPending={refill.isPending}
-    />
+  // Lifetime card-spend cashback for the empty state, when the wallet has it
+  // (only the prototype mock provides it today).
+  const lifetimeEarned = Number(
+    (wallet as { lifetimeEarned?: string } | null)?.lifetimeEarned,
   );
+  const lifetimeEarnedLabel =
+    Number.isFinite(lifetimeEarned) && lifetimeEarned > 0
+      ? formatUsd(lifetimeEarned)
+      : undefined;
+
+  const tw = useTailwind(); // PROTOTYPE-DO-NOT-MERGE: tap target below
+  const panel = // PROTOTYPE-DO-NOT-MERGE
+    (
+      <CashbackPanel
+        status={status}
+        availableLabel={formatUsd(breakdown.available)}
+        claimableLabel={formatUsd(breakdown.claimable)}
+        remainderLabel={formatUsd(breakdown.remainder)}
+        incrementLabel={formatUsd(CASHBACK_PAYOUT_INCREMENT, true)}
+        lifetimeEarnedLabel={lifetimeEarnedLabel}
+        percentageLabel={cashbackPercentage}
+        // Full once a payout is ready; otherwise progress toward the next increment.
+        progress={breakdown.claimable > 0 ? 1 : breakdown.progress}
+        onClaim={handleClaim}
+        onSetup={handleSetup}
+        refillKey={refill.key}
+        isRefillPending={refill.isPending}
+      />
+    );
+  if (!CASHBACK_PROTOTYPE) return panel; // PROTOTYPE-DO-NOT-MERGE
+  // PROTOTYPE-DO-NOT-MERGE: tap the icon to cycle states, long-press to simulate a push tap.
+  return (
+    // PROTOTYPE-DO-NOT-MERGE
+    <Box>
+      {panel}
+      <Pressable
+        testID="prototype-cashback-cycle"
+        style={tw.style('absolute left-4 top-4 h-16 w-16')}
+        onPress={cycleMockCashbackState}
+        onLongPress={() => {
+          setMockCashbackState('CLAIMABLE');
+          NavigationService.navigation?.navigate(Routes.WALLET.HOME as never);
+          setTimeout(() => {
+            mockPushPayout(10);
+            handleCardHome({ cashbackPayoutAmount: '10.00' });
+          }, 1500);
+        }}
+      />
+    </Box>
+  ); // PROTOTYPE-DO-NOT-MERGE
 };
 
 export default CardCashbackPanel;

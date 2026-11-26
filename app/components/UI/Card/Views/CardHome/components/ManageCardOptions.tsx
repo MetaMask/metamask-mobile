@@ -4,9 +4,14 @@ import {
   Box,
   IconName,
   Switch as DSSwitch,
+  SensitiveText,
+  SensitiveTextLength,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ManageCardListItem from '../../../components/ManageCardListItem';
+import { formatSpendingLimitDisplayValue } from '../../../util/formatSpendingLimitDisplayValue';
 import applePayMark from '../../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
 
 const APPLE_PAY_MARK_ASPECT_RATIO = 170 / 109;
@@ -21,22 +26,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardType } from '../../../types';
+import { getCashbackPercentage } from '../../../util/cashbackRate';
 import {
   CardStatus,
   type CardDetails,
   type CardAccountStatus,
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-
-function cashbackRateLabel(
-  providerId: string | null | undefined,
-  cardType: CardType | undefined,
-): string {
-  if (providerId === 'immersve' || cardType === CardType.METAL) {
-    return '3';
-  }
-  return '1';
-}
 
 /**
  * The mUSD Back row is only for Immersve now. Baanx cards show the Card home
@@ -85,6 +81,19 @@ interface ManageCardOptionsProps {
   fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
+  /**
+   * When true (authenticated, Limited, supported token), the Manage limit
+   * row shows the remaining/total amounts when they are present and the
+   * total is greater than zero (including none left).
+   */
+  showLimitedSpendingAmounts?: boolean;
+  /** Blocked cards still show the amounts, without a way to change them. */
+  spendingLimitReadOnly?: boolean;
+  /** Hides the remaining and total amounts, matching the balance privacy mode. */
+  privacyMode?: boolean;
+  spendingLimitRemaining?: string;
+  spendingLimitTotal?: string;
+  spendingLimitSymbol?: string;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   /**
@@ -93,22 +102,19 @@ interface ManageCardOptionsProps {
    */
   hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
-  /** PROTOTYPE: shows the local-only cashback auto payout toggle. */
-  showCashbackAutoPayout?: boolean;
-  isCashbackAutoPayoutOn?: boolean;
-  onToggleCashbackAutoPayout?: (value: boolean) => void;
-  /** Payout increment for the auto payout description, e.g. "$5". */
-  cashbackPayoutIncrementLabel?: string;
-  /** PROTOTYPE: ring layout toggle, shown alongside auto payout. */
-  isCashbackRingOn?: boolean;
-  onToggleCashbackRing?: (value: boolean) => void;
   providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
   /**
-   * Keeps the history row for a fully set-up card whose history has no
-   * Activity panel on Card home (history lives in Money activity).
+   * Render only the spending-limit row. Card home uses this on the Activity
+   * tab, and for a blocked card, so the amounts stay visible where the old
+   * progress bar was.
+   */
+  spendingLimitOnly?: boolean;
+  /**
+   * Shows the history row for a fully set-up card (Card home has no
+   * Activity panel).
    */
   showTransactionHistoryRow?: boolean;
 }
@@ -145,20 +151,21 @@ const ManageCardOptions = ({
   fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
+  showLimitedSpendingAmounts = false,
+  spendingLimitReadOnly = false,
+  privacyMode = false,
+  spendingLimitRemaining,
+  spendingLimitTotal,
+  spendingLimitSymbol,
   onChangeAsset,
   hasPriorityTokenBalance,
   hiddenQuickActionRows,
   onCashback,
-  showCashbackAutoPayout = false,
-  isCashbackAutoPayoutOn = false,
-  onToggleCashbackAutoPayout,
-  cashbackPayoutIncrementLabel = '',
-  isCashbackRingOn = false,
-  onToggleCashbackRing,
   providerId,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
+  spendingLimitOnly = false,
   showTransactionHistoryRow = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
@@ -189,13 +196,25 @@ const ManageCardOptions = ({
     !hasPriorityTokenBalance &&
     (capabilities?.supportsFundingLimits ?? true);
 
+  const spendingLimitRemainingValue = parseFloat(spendingLimitRemaining ?? '');
+  const spendingLimitTotalValue = parseFloat(spendingLimitTotal ?? '');
+  const hasSpendingLimitAmounts =
+    showLimitedSpendingAmounts &&
+    Boolean(spendingLimitSymbol) &&
+    spendingLimitRemaining != null &&
+    spendingLimitRemaining !== '' &&
+    Number.isFinite(spendingLimitRemainingValue) &&
+    Number.isFinite(spendingLimitTotalValue) &&
+    spendingLimitTotalValue > 0;
+
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-    : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
+    : hasSpendingLimitAmounts
+      ? 'card.card_home.manage_card_options.manage_spending_limit_description_remaining'
+      : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
-  // Recent activity panel (with its own "See all"). This row only remains for
-  // the setup override (Immersve while setup actions are pending), where the
-  // panel is not shown.
+  // History row: the setup override (Immersve while setup actions are
+  // pending) and fully set-up cards when Card home asks for it.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
@@ -204,6 +223,49 @@ const ManageCardOptions = ({
     !hideManageOptions &&
     ((showTransactionHistoryDuringSetup && !isFullySetUp) ||
       (showTransactionHistoryRow && isFullySetUp));
+
+  // Amounts follow the old progress bar: a limited, supported allowance stays
+  // visible at a zero balance. The other manage rows still wait for funds.
+  const showSpendingLimitRow =
+    isAuthenticated &&
+    Boolean(capabilities?.supportsFundingLimits) &&
+    !isLoading &&
+    (!hideManageOptions || showLimitedSpendingAmounts);
+
+  const spendingLimitRow = showSpendingLimitRow ? (
+    <ManageCardListItem
+      title={strings(
+        'card.card_home.manage_card_options.manage_spending_limit',
+      )}
+      description={
+        hasSpendingLimitAmounts ? (
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+          >
+            {strings(showSpendingLimitDescription, {
+              remaining: formatSpendingLimitDisplayValue(
+                spendingLimitRemainingValue,
+              ),
+              total: formatSpendingLimitDisplayValue(spendingLimitTotalValue),
+              symbol: spendingLimitSymbol ?? '',
+            })}
+          </SensitiveText>
+        ) : (
+          strings(showSpendingLimitDescription)
+        )
+      }
+      rightIcon={spendingLimitReadOnly ? undefined : IconName.ArrowRight}
+      onPress={spendingLimitReadOnly ? undefined : onManageSpendingLimit}
+      testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+    />
+  ) : null;
+
+  if (spendingLimitOnly) {
+    return spendingLimitRow;
+  }
 
   return (
     <>
@@ -258,7 +320,7 @@ const ManageCardOptions = ({
         ) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.cashback', {
-              cashbackPercentage: cashbackRateLabel(providerId, card?.type),
+              cashbackPercentage: getCashbackPercentage(providerId, card?.type),
             })}
             description={strings(
               'card.card_home.manage_card_options.cashback_description',
@@ -268,45 +330,6 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.CASHBACK_ITEM}
           />
         )}
-        {showCashbackAutoPayout &&
-          !hideManageOptions &&
-          onToggleCashbackAutoPayout && (
-            <ManageCardListItem
-              title={strings('card.card_home.cashback_panel.auto_payout_title')}
-              description={strings(
-                'card.card_home.cashback_panel.auto_payout_description',
-                { target: cashbackPayoutIncrementLabel },
-              )}
-              rightElement={
-                <DSSwitch
-                  isOn={isCashbackAutoPayoutOn}
-                  onValueChange={onToggleCashbackAutoPayout}
-                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                  testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_TOGGLE}
-                />
-              }
-              testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM}
-            />
-          )}
-        {showCashbackAutoPayout &&
-          !hideManageOptions &&
-          onToggleCashbackRing && (
-            <ManageCardListItem
-              title={strings('card.card_home.cashback_panel.ring_title')}
-              description={strings(
-                'card.card_home.cashback_panel.ring_description',
-              )}
-              rightElement={
-                <DSSwitch
-                  isOn={isCashbackRingOn}
-                  onValueChange={onToggleCashbackRing}
-                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                  testID={CardHomeSelectors.CASHBACK_RING_TOGGLE}
-                />
-              }
-              testID={CardHomeSelectors.CASHBACK_RING_ITEM}
-            />
-          )}
         {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&
@@ -402,20 +425,7 @@ const ManageCardOptions = ({
               testID="freeze-card-list-item"
             />
           )}
-        {isAuthenticated &&
-          capabilities?.supportsFundingLimits &&
-          !isLoading &&
-          !hideManageOptions && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(showSpendingLimitDescription)}
-              rightIcon={IconName.ArrowRight}
-              onPress={onManageSpendingLimit}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {spendingLimitRow}
         {isFullySetUp &&
           capabilities?.supportsContactDetails &&
           !hideManageOptions && (

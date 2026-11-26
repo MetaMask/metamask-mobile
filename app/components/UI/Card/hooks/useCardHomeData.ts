@@ -9,12 +9,14 @@ import {
   selectCardFundingTokens,
   selectIsCardAuthenticated,
   selectCardHomeDataFetchedThisSession,
+  CARD_HOME_PROTOTYPE_VIEW, // PROTOTYPE-DO-NOT-MERGE
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
 import { ensureCardFundingTokensImported } from '../util/ensureCardFundingTokensImported';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import type { CardFundingTokenWithBalance } from '../types';
+import { useMockCashback } from '../cashbackPanelPrototype'; // PROTOTYPE-DO-NOT-MERGE
 
 export const useCardHomeData = () => {
   const data = useSelector(selectCardHomeData);
@@ -67,6 +69,7 @@ export const useCardHomeData = () => {
   }, [tokensForBalanceLookup, ensureNetworkExists]);
 
   const balanceMap = useAssetBalances(tokensForBalanceLookup);
+  const mockCashback = useMockCashback(); // PROTOTYPE-DO-NOT-MERGE
 
   // Merge balance info into enriched token objects.
   const primaryToken = useMemo((): CardFundingTokenWithBalance | null => {
@@ -80,8 +83,26 @@ export const useCardHomeData = () => {
       rawFiatNumber: info?.rawFiatNumber,
       rawTokenBalance: info?.rawTokenBalance,
       isUnavailable: info?.isUnavailable,
+      // PROTOTYPE-DO-NOT-MERGE: the test wallet is empty, so fake the card balance.
+      ...(CARD_HOME_PROTOTYPE_VIEW && CARD_HOME_PROTOTYPE_VIEW !== 'LOADING'
+        ? CARD_HOME_PROTOTYPE_VIEW === 'ZERO'
+          ? {
+              balanceFiat: '$0.00',
+              balanceFormatted: '0 USDC',
+              rawFiatNumber: 0,
+              rawTokenBalance: 0,
+              isUnavailable: false,
+            } // PROTOTYPE-DO-NOT-MERGE
+          : {
+              balanceFiat: `$${(125.4 + mockCashback.claimedTotal).toFixed(2)}`,
+              balanceFormatted: `${(125.4 + mockCashback.claimedTotal).toFixed(2)} USDC`,
+              rawFiatNumber: 125.4 + mockCashback.claimedTotal,
+              rawTokenBalance: 125.4 + mockCashback.claimedTotal,
+              isUnavailable: false,
+            } // PROTOTYPE-DO-NOT-MERGE
+        : {}),
     };
-  }, [primaryTokenRaw, balanceMap]);
+  }, [primaryTokenRaw, balanceMap, mockCashback.claimedTotal]); // PROTOTYPE-DO-NOT-MERGE
 
   const availableTokens = useMemo(
     (): CardFundingTokenWithBalance[] =>

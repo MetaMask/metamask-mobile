@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   runOnJS,
@@ -10,14 +10,18 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 import { CashbackPanelSelectors } from './CashbackPanel.testIds';
 
 const COIN_COUNT = 24;
+/** Coin edge in pt; matches w-8 / h-8 on the coin image. */
 const COIN_SIZE = 32;
 const RAIN_DURATION_MS = 2200;
 /** Share of the timeline used for staggered starts; each coin falls in the rest. */
 const STAGGER_SHARE = 0.45;
+/** `onClearing` fires once this share of the coins has fallen off-screen. */
+const CLEARED_COIN_SHARE = 0.75;
 
 interface CoinDrop {
   /** Start x as a share of the view width (0–1). */
@@ -59,6 +63,7 @@ const Coin = ({
   width: number;
   height: number;
 }) => {
+  const tw = useTailwind();
   const style = useAnimatedStyle(() => {
     const local = Math.min(
       1,
@@ -80,7 +85,7 @@ const Coin = ({
   return (
     <Animated.Image
       source={MUSD_TOKEN.imageSource}
-      style={[styles.coin, style]}
+      style={[tw.style('absolute left-0 top-0 w-8 h-8'), style]}
     />
   );
 };
@@ -88,17 +93,47 @@ const Coin = ({
 interface CashbackCoinRainProps {
   /** Called once the last coin has fallen (or straight away under Reduce Motion). */
   onComplete: () => void;
+  /**
+   * Called once most coins have fallen off-screen (see CLEARED_COIN_SHARE),
+   * a little before `onComplete`, or straight away under Reduce Motion.
+   */
+  onClearing?: () => void;
 }
+
+/** Milliseconds into the rain when CLEARED_COIN_SHARE of the coins are gone. */
+export const getCoinRainClearingMs = (drops: CoinDrop[]): number => {
+  const exits = drops
+    .map((drop) => drop.delay + (1 - STAGGER_SHARE))
+    .sort((a, b) => a - b);
+  const index = Math.min(
+    exits.length - 1,
+    Math.ceil(exits.length * CLEARED_COIN_SHARE) - 1,
+  );
+  return Math.round((exits[Math.max(0, index)] ?? 1) * RAIN_DURATION_MS);
+};
 
 /**
  * mUSD coins raining down across the whole view when a cashback payout lands.
  * Full-screen overlay that never takes touches.
  */
-const CashbackCoinRain = ({ onComplete }: CashbackCoinRainProps) => {
+const CashbackCoinRain = ({
+  onComplete,
+  onClearing,
+}: CashbackCoinRainProps) => {
   const reduceMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
   const progress = useSharedValue(0);
   const drops = useMemo(buildDrops, []);
+
+  useEffect(() => {
+    if (!onClearing) return undefined;
+    if (reduceMotion) {
+      onClearing();
+      return undefined;
+    }
+    const timer = setTimeout(onClearing, getCoinRainClearingMs(drops));
+    return () => clearTimeout(timer);
+  }, [drops, onClearing, reduceMotion]);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -123,7 +158,7 @@ const CashbackCoinRain = ({ onComplete }: CashbackCoinRainProps) => {
   return (
     <Box
       pointerEvents="none"
-      style={StyleSheet.absoluteFill}
+      twClassName="absolute inset-0"
       testID={CashbackPanelSelectors.COIN_RAIN}
     >
       {drops.map((drop, index) => (
@@ -138,15 +173,5 @@ const CashbackCoinRain = ({ onComplete }: CashbackCoinRainProps) => {
     </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  coin: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    width: COIN_SIZE,
-    height: COIN_SIZE,
-  },
-});
 
 export default CashbackCoinRain;

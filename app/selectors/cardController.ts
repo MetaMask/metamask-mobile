@@ -1,3 +1,18 @@
+// PROTOTYPE-DO-NOT-MERGE: Card home prototype switch, dev builds only.
+// Set CARD_HOME_PROTOTYPE_SETTING to 'FUNDED' | 'ZERO' | 'LOADING' |
+// 'SPENDING_LIMIT' to fake a signed-in Baanx cardholder with an active card
+// (and the cashback panel prototype states). null = real behaviour. Release
+// builds always get null, so nothing fake can ship.
+export type CardHomePrototypeView =
+  | 'FUNDED'
+  | 'ZERO'
+  | 'LOADING'
+  | 'SPENDING_LIMIT'
+  | null;
+const CARD_HOME_PROTOTYPE_SETTING = null as CardHomePrototypeView;
+export const CARD_HOME_PROTOTYPE_VIEW: CardHomePrototypeView = __DEV__
+  ? CARD_HOME_PROTOTYPE_SETTING
+  : null;
 import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
 import { deepEqual } from 'fast-equals';
 import { type CaipChainId } from '@metamask/utils';
@@ -100,8 +115,87 @@ const sortCardFundingTokens = (
     );
   });
 
-const selectCardControllerState = (state: RootState) =>
-  state.engine?.backgroundState?.CardController;
+// PROTOTYPE-DO-NOT-MERGE: fake a signed-in cardholder with an active card so
+// Card home opens straight away (only while CARD_HOME_PROTOTYPE_VIEW is set).
+const buildMockCardHomeData = (walletAddress: string) => {
+  // PROTOTYPE-DO-NOT-MERGE
+  const isLimit = CARD_HOME_PROTOTYPE_VIEW === 'SPENDING_LIMIT';
+  const balance = CARD_HOME_PROTOTYPE_VIEW === 'ZERO' ? '0' : '125.40';
+  const primaryFundingAsset = {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+    walletAddress,
+    decimals: 6,
+    chainId: 'eip155:59144',
+    spendableBalance: balance,
+    spendingCap: isLimit ? '375' : '1000000000',
+    ...(isLimit ? { originalSpendingCap: '500' } : {}),
+    priority: 1,
+    status: isLimit ? FundingAssetStatus.Limited : FundingAssetStatus.Active,
+  };
+  return {
+    primaryFundingAsset,
+    fundingAssets: [primaryFundingAsset],
+    availableFundingAssets: [],
+    card: {
+      id: 'mock-card-id',
+      status: 'ACTIVE',
+      type: 'VIRTUAL',
+      lastFour: '4821',
+      holderName: 'Alex Prototype',
+      isFreezable: true,
+      hasPin: true,
+    },
+    account: {
+      verificationStatus: 'VERIFIED',
+      holderName: 'Alex Prototype',
+      shippingAddress: null,
+      countryOfResidence: null,
+      usState: null,
+      createdAt: '2026-01-15T10:00:00.000Z',
+    },
+    walletProvisioning: null,
+    alerts: [],
+    actions: [{ type: 'add_funds', enabled: true }],
+    delegationSettings: null,
+  } as unknown as CardHomeData;
+};
+let mockLastInput: CardControllerState | undefined; // PROTOTYPE-DO-NOT-MERGE
+let mockLastAddress: string | undefined; // PROTOTYPE-DO-NOT-MERGE
+let mockLastOutput: CardControllerState | undefined; // PROTOTYPE-DO-NOT-MERGE
+const selectCardControllerState = (state: RootState) => {
+  // PROTOTYPE-DO-NOT-MERGE
+  const real = state.engine?.backgroundState?.CardController;
+  if (!CARD_HOME_PROTOTYPE_VIEW) return real;
+  const evm = selectSelectedInternalAccountByScope(state)('eip155:0');
+  const address = evm?.address ?? '0x0000000000000000000000000000000000c0ffee';
+  if (mockLastOutput && real === mockLastInput && address === mockLastAddress)
+    return mockLastOutput;
+  mockLastInput = real;
+  mockLastAddress = address;
+  const isLoadingView = CARD_HOME_PROTOTYPE_VIEW === 'LOADING';
+  mockLastOutput = {
+    ...(real ?? {}),
+    activeProviderId: 'baanx',
+    isAuthenticated: true,
+    lastUnauthenticatedReason: null,
+    cardholderAccounts: [`eip155:0:${address}`],
+    providerData: {
+      ...(real?.providerData ?? {}),
+      baanx: {
+        ...((real?.providerData as Record<string, object> | undefined)?.baanx ??
+          {}),
+        location: 'international',
+      },
+    },
+    cardHomeData: isLoadingView ? null : buildMockCardHomeData(address),
+    cardHomeDataStatus: isLoadingView ? 'loading' : 'success',
+    cardHomeDataError: null,
+    cardHomeDataFetchedThisSession: true,
+  } as unknown as CardControllerState;
+  return mockLastOutput;
+};
 
 export const selectCardSelectedCountry = createSelector(
   selectCardControllerState,
