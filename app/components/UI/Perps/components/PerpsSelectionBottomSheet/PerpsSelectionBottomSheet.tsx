@@ -86,7 +86,7 @@ const PerpsSelectionBottomSheet: React.FC<PerpsSelectionBottomSheetProps> = ({
         </Box>
       </Box>
       <BottomSheetFooter
-        className="pt-2"
+        twClassName="pt-2"
         primaryButtonProps={{
           children: saveButtonLabel ?? strings('perps.selection_sheet.save'),
           onPress: handleSave,

@@ -187,9 +187,7 @@ const OrderBookRow = ({
       fontWeight={FontWeight.Medium}
       color={sideColor}
       numberOfLines={1}
-      className={
-        isMirrored ? PRICE_COLUMN_CLASS_MIRRORED : PRICE_COLUMN_CLASS
-      }
+      className={isMirrored ? PRICE_COLUMN_CLASS_MIRRORED : PRICE_COLUMN_CLASS}
       testID={`${testID}-price`}
     >
       {priceLabel}
@@ -202,9 +200,7 @@ const OrderBookRow = ({
       fontWeight={FontWeight.Medium}
       color={sideColor}
       numberOfLines={1}
-      className={
-        isMirrored ? VALUE_COLUMN_CLASS_MIRRORED : VALUE_COLUMN_CLASS
-      }
+      className={isMirrored ? VALUE_COLUMN_CLASS_MIRRORED : VALUE_COLUMN_CLASS}
       testID={`${testID}-value`}
     >
       {formatColumnValue(level, currency, metric, szDecimals)}
@@ -406,10 +402,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
         </Box>
       ))}
 
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        className="gap-1 pt-2 pb-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} className="gap-1 pt-2 pb-1">
         <Skeleton height={4} width="100%" twClassName="rounded-full" />
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -697,10 +690,10 @@ const PerpsProOrderBookPanel = ({
         aggregatedOrderBook?.lastUpdated);
   const hasLadder = Boolean(
     isMarketContextReady &&
-      isOrderBookForCurrentSymbol &&
-      hasFreshContextDelivery &&
-      grouped &&
-      (grouped.bids.length > 0 || grouped.asks.length > 0),
+    isOrderBookForCurrentSymbol &&
+    hasFreshContextDelivery &&
+    grouped &&
+    (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
   const hasConnectionError =
     isOrderBookForCurrentSymbol && connectionStatus === 'error';

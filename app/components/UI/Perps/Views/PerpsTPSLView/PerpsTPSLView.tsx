@@ -1189,10 +1189,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          className={isSheet ? undefined : 'flex-1'}
-          testID="scroll-content"
-        >
+        <Box className={isSheet ? undefined : 'flex-1'} testID="scroll-content">
           {isPositionReviewUnavailable && (
             <HelpText
               severity={HelpTextSeverity.Warning}
@@ -1207,7 +1204,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             {position && (
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
-                className={isSheet ? 'h-8' : undefined}
+                twClassName={isSheet ? 'h-8' : undefined}
                 keyLabel={strings('perps.tpsl.entry_price')}
                 value={entryPriceDisplay}
                 keyTextProps={keyTextProps}
@@ -1216,7 +1213,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             )}
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
-              className={isSheet ? 'h-8' : undefined}
+              twClassName={isSheet ? 'h-8' : undefined}
               keyLabel={
                 orderType === 'limit' &&
                 limitPrice &&
@@ -1230,7 +1227,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             />
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
-              className={isSheet ? 'h-8' : undefined}
+              twClassName={isSheet ? 'h-8' : undefined}
               keyLabel={strings('perps.tpsl.liquidation_price')}
               value={
                 liquidationDistanceDisplay ? (
@@ -1323,10 +1320,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 </Box>
               )}
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                className="mb-2 gap-2"
-              >
+              <Box flexDirection={BoxFlexDirection.Row} className="mb-2 gap-2">
                 <TextField
                   className="flex-1"
                   inputRef={takeProfitPriceRef}
@@ -1470,10 +1464,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 </Box>
               )}
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                className="mb-2 gap-2"
-              >
+              <Box flexDirection={BoxFlexDirection.Row} className="mb-2 gap-2">
                 <TextField
                   className="flex-1"
                   inputRef={stopLossPriceRef}
@@ -1579,7 +1570,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         goBack={navigation.goBack}
         // The dialog surface defaults to `bg-elevated1`; this sheet sits on
         // `background.default`.
-        className="bg-default"
+        twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
         <BottomSheetHeaderGlass isGlass={isGlassHeader}>

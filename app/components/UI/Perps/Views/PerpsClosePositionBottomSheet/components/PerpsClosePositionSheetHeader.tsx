@@ -75,7 +75,7 @@ const PerpsClosePositionSheetHeader: React.FC<
         {leverage ? (
           <Tag
             severity={TagSeverity.Neutral}
-            className="self-center"
+            twClassName="self-center"
             testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_LEVERAGE}
           >
             {`${leverage}x`}

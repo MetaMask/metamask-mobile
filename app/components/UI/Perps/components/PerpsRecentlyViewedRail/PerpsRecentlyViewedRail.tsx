@@ -136,11 +136,7 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
         showsHorizontalScrollIndicator={false}
         testID={PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          gap={3}
-          className="px-4 pb-1"
-        >
+        <Box flexDirection={BoxFlexDirection.Row} gap={3} className="px-4 pb-1">
           {visibleMarkets.map((market, index) => (
             <PerpsRecentlyViewedPill
               key={market.symbol}

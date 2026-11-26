@@ -211,7 +211,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
         secondaryButtonProps={secondaryButtonProps}
-        className="pt-4"
+        twClassName="pt-4"
       />
     </BottomSheet>
   );

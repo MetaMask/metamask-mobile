@@ -35,11 +35,7 @@ const PerpsValidationErrors: React.FC<PerpsValidationErrorsProps> = ({
   alignment = 'center',
   testID,
 }) => (
-  <Box
-    className={twClassName}
-    testID={testID}
-    accessibilityLiveRegion="polite"
-  >
+  <Box className={twClassName} testID={testID} accessibilityLiveRegion="polite">
     {errors.map((error) => (
       <HelpText
         key={error}

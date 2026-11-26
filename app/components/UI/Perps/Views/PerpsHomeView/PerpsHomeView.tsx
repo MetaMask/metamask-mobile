@@ -1357,7 +1357,7 @@ const PerpsHomeView = () => {
         <Tag
           severity={TagSeverity.Warning}
           testID={`${homeHeadingTestID}-testnet-badge`}
-          className="self-center"
+          twClassName="self-center"
         >
           Testnet
         </Tag>

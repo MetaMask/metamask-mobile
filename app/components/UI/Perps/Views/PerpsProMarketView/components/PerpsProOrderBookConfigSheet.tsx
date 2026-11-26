@@ -461,7 +461,7 @@ const PerpsProOrderBookConfigSheet = ({
 
         <BottomSheetFooter
           primaryButtonProps={primaryButtonProps}
-          className="pt-4"
+          twClassName="pt-4"
         />
       </BottomSheet>
     </PerpsProModalPortal>

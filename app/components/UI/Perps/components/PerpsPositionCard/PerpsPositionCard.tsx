@@ -322,7 +322,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {/* Accessible cards expose each label with its value natively. */}
             <Card
-              className="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
               accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
@@ -350,7 +350,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Card>
 
             <Card
-              className="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
               accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
@@ -384,7 +384,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Card
               isInteractive
               onPress={handleSizeToggle}
-              className="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
+              twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
             >
               <Box className="flex-1 gap-1">
@@ -421,7 +421,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               isInteractive
               onPress={marginPress}
               disabled={!marginPress}
-              className="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
+              twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
             >
               <Box className="flex-1 gap-1">
@@ -483,7 +483,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             isInteractive
             onPress={handleAutoCloseButtonPress}
             disabled={!onAutoClosePress}
-            className={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
+            twClassName={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
               isTabsVariant ? 'mb-2' : 'mb-3'
             }`}
             testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
@@ -523,7 +523,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <Box testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            className={detailRowClassName}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.direction_label')}
             value={`${
               direction === 'long'
@@ -537,7 +537,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            className={detailRowClassName}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.entry_label')}
             value={
               <SensitiveText
@@ -558,7 +558,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.liquidation_price_label')}
-            className={
+            twClassName={
               isCross
                 ? `h-auto py-2 ${isTabsVariant ? 'min-h-12' : 'min-h-10'}`
                 : detailRowClassName
@@ -579,7 +579,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            className={detailRowClassName}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.funding_payments_label')}
             value={
               <SensitiveText

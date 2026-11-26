@@ -78,7 +78,7 @@ const PerpsSocialFeedSectionInner: React.FC<
         <FilterButtonGroup
           value={tab}
           onChange={(value) => setSelectedTab(value as SocialFeedTab)}
-          className="gap-2"
+          twClassName="gap-2"
         >
           {showLiveTrades ? (
             <FilterButton

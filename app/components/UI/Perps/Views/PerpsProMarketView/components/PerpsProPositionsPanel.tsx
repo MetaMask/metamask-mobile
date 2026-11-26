@@ -917,10 +917,7 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderTwapTab = () => (
-    <Box
-      className="pt-3"
-      testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}
-    >
+    <Box className="pt-3" testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}>
       <PerpsProTwapPanel
         view={twapView}
         activeTwapOrders={activeTwapOrders}

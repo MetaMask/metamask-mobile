@@ -167,11 +167,7 @@ const PriceField = ({
     isHidden={isHidden}
     placeholder="0.00"
     startAccessory={
-      <Text
-        variant={TextVariant.BodySm}
-        className="mr-1"
-        testID={prefixTestID}
-      >
+      <Text variant={TextVariant.BodySm} className="mr-1" testID={prefixTestID}>
         $
       </Text>
     }
@@ -263,7 +259,7 @@ const OrderSummary = ({
             ...summaryValueTextProps,
             testID: ids.SUMMARY_TWAP_RUNTIME_VALUE,
           }}
-          className={summaryRowClassName}
+          twClassName={summaryRowClassName}
           style={summaryRowStyle}
           testID={ids.SUMMARY_TWAP_RUNTIME}
         />
@@ -277,7 +273,7 @@ const OrderSummary = ({
             ...summaryValueTextProps,
             testID: ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE,
           }}
-          className={summaryRowClassName}
+          twClassName={summaryRowClassName}
           style={summaryRowStyle}
           testID={ids.SUMMARY_TWAP_SIZE_PER_SUBORDER}
         />
@@ -288,7 +284,7 @@ const OrderSummary = ({
       value={margin}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryBeforeAfterValueTextProps}
-      className={summaryBeforeAfterRowClassName}
+      twClassName={summaryBeforeAfterRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
@@ -298,7 +294,7 @@ const OrderSummary = ({
         value={liquidationPrice}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryBeforeAfterValueTextProps}
-        className={summaryBeforeAfterRowClassName}
+        twClassName={summaryBeforeAfterRowClassName}
         style={summaryRowStyle}
         testID={ids.SUMMARY_LIQUIDATION}
       />
@@ -321,7 +317,7 @@ const OrderSummary = ({
         }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
-        className={summaryRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
         testID={ids.SUMMARY_SLIPPAGE}
       />
@@ -350,7 +346,7 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      className={summaryFeesRowClassName}
+      twClassName={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
@@ -436,7 +432,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_START_VALUE,
         }}
-        className={summaryRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -451,7 +447,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_END_VALUE,
         }}
-        className={summaryRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -462,7 +458,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_MARGIN_VALUE,
         }}
-        className={summaryRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -473,7 +469,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
         }}
-        className={summaryRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
@@ -489,7 +485,7 @@ const ScalePreview = ({
           ...summaryValueTextProps,
           testID: ids.SCALE_PREVIEW_FEES_VALUE,
         }}
-        className={summaryFeesRowClassName}
+        twClassName={summaryFeesRowClassName}
         style={summaryRowStyle}
       />
     </Box>
@@ -1052,7 +1048,7 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked}
               onChange={handleReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
-              className="w-full flex-row-reverse justify-between"
+              twClassName="w-full flex-row-reverse justify-between"
             />
           </Box>
           {showsTpSl ? (

@@ -96,9 +96,7 @@ const ModeCard = ({
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            className={`size-14 rounded-full ${
-              isLite ? 'bg-error-muted' : ''
-            }`}
+            className={`size-14 rounded-full ${isLite ? 'bg-error-muted' : ''}`}
             style={isLite ? undefined : proIconTileStyle}
             testID={
               isLite

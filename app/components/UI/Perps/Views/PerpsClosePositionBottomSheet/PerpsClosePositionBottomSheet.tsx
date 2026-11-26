@@ -295,7 +295,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 ),
               }),
             }}
-            className="pt-3"
+            twClassName="pt-3"
           />
 
           {feePercentage ? (

@@ -1221,9 +1221,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const marketHasResolvedMetadata = Boolean(
     market?.symbol &&
-      ((typeof market.maxLeverage === 'string' &&
-        market.maxLeverage.endsWith('x')) ||
-        marketData?.name === market.symbol),
+    ((typeof market.maxLeverage === 'string' &&
+      market.maxLeverage.endsWith('x')) ||
+      marketData?.name === market.symbol),
   );
   const detailMarketSource = resolveMarketSource(
     typeof market?.maxLeverage === 'string' && market.maxLeverage.endsWith('x'),
@@ -1246,9 +1246,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     advancedState: currentAdvancedChartState,
     isFallbackReady: Boolean(
       market?.symbol &&
-        candleData?.symbol === market.symbol &&
-        candleData.interval === selectedCandlePeriod &&
-        !isLoadingHistory,
+      candleData?.symbol === market.symbol &&
+      candleData.interval === selectedCandlePeriod &&
+      !isLoadingHistory,
     ),
     hasFallbackData: hasHistoricalData,
   });

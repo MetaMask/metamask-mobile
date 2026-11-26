@@ -148,7 +148,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
             value={groupValue}
             onChange={handleFilterChange}
             variant={FilterButtonVariant.Primary}
-            className="grow justify-center gap-2"
+            twClassName="grow justify-center gap-2"
           >
             {PERPS_SLIPPAGE_QUICK_PICKS_BPS.map((bps) => {
               const pct = bpsToPercent(bps);

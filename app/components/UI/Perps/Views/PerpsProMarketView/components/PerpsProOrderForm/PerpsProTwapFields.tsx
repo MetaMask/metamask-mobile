@@ -159,7 +159,7 @@ const PerpsProTwapFields = ({
           'perps.pro_order_form.twap.randomize_description',
           PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
         )}
-        className="w-full flex-row-reverse justify-between"
+        twClassName="w-full flex-row-reverse justify-between"
       />
     </Box>
   </Box>

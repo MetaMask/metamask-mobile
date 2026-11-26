@@ -575,12 +575,12 @@ const PerpsProMarketView = ({
   const marketSectionState = resolveProMarketSectionState(
     Boolean(
       currentSymbol &&
-        (hasFormattedMaxLeverage ||
-          (enrichedMarket?.symbol === currentSymbol &&
-            (enrichedMarket.providerId ??
-              (activeProvider === 'aggregated'
-                ? PROVIDER_CONFIG.DefaultProvider
-                : activeProvider)) === currentProviderId)),
+      (hasFormattedMaxLeverage ||
+        (enrichedMarket?.symbol === currentSymbol &&
+          (enrichedMarket.providerId ??
+            (activeProvider === 'aggregated'
+              ? PROVIDER_CONFIG.DefaultProvider
+              : activeProvider)) === currentProviderId)),
     ),
     Boolean(marketsError),
     areMarketsLoading || !haveMarketsResolved,

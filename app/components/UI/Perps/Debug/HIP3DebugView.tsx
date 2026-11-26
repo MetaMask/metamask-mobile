@@ -550,7 +550,7 @@ const HIP3DebugView: React.FC = () => {
               value={selectedDex ?? ''}
               onChange={setSelectedDex}
               variant={FilterButtonVariant.Secondary}
-              className="px-4"
+              twClassName="px-4"
             >
               {availableDexs.slice(0, 10).map((dex) => (
                 <FilterButton key={dex} value={dex}>
@@ -596,7 +596,7 @@ const HIP3DebugView: React.FC = () => {
                   value={selectedMarket ?? ''}
                   onChange={setSelectedMarket}
                   variant={FilterButtonVariant.Secondary}
-                  className="px-4"
+                  twClassName="px-4"
                 >
                   {markets.slice(0, 5).map((market) => (
                     <FilterButton key={market.name} value={market.name}>

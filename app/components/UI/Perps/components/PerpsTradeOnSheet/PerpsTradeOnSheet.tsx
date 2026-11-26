@@ -192,7 +192,7 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
         </Box>
       </Box>
       <BottomSheetFooter
-        className="pt-2"
+        twClassName="pt-2"
         primaryButtonProps={{
           children: strings('perps.selection_sheet.save'),
           onPress: handleSave,

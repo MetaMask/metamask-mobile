@@ -235,7 +235,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 keyLabel={statusText}
-                className="mt-3 h-6"
+                twClassName="mt-3 h-6"
                 value={
                   transactionAmountDisplay ? (
                     <SensitiveText

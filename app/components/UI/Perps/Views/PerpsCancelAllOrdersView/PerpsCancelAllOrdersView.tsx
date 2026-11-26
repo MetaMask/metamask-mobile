@@ -214,7 +214,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={secondaryButtonProps}
           primaryButtonProps={primaryButtonProps}
-          className="pt-6"
+          twClassName="pt-6"
         />
       ) : null}
     </BottomSheet>

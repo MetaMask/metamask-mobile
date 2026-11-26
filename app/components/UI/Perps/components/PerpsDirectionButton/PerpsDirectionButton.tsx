@@ -6,11 +6,10 @@ import {
 
 export type PerpsDirection = 'long' | 'short';
 
-interface PerpsDirectionButtonProps
-  extends Omit<
-    ButtonBaseProps,
-    'iconClassName' | 'textClassName' | 'textProps' | 'twClassName'
-  > {
+interface PerpsDirectionButtonProps extends Omit<
+  ButtonBaseProps,
+  'iconClassName' | 'textClassName' | 'textProps' | 'twClassName'
+> {
   direction: PerpsDirection;
   twClassName?: string;
 }

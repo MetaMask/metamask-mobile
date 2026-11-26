@@ -136,9 +136,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
               />
             </Pressable>
           ) : (
-            <Box className="flex-row items-center gap-1">
-              {marketCountText}
-            </Box>
+            <Box className="flex-row items-center gap-1">{marketCountText}</Box>
           )}
           <Box className="flex-row items-center gap-2">
             <PerpsMarketSortDropdowns
