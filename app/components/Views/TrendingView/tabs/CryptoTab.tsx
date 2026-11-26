@@ -202,6 +202,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
           <>
             <SectionHeader
               title={strings('trending.trending_tokens')}
+              contentTopInset={2}
               onViewAll={() =>
                 navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
               }

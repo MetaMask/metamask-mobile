@@ -12,6 +12,55 @@ describe('TrendingView SectionHeader', () => {
     jest.clearAllMocks();
   });
 
+  it.each([false, true])(
+    'leaves the homepage 20px content gap when interactive is %s',
+    (interactive) => {
+      const { getByTestId } = render(
+        <SectionHeader
+          title="Predictions"
+          testID="header"
+          onViewAll={interactive ? jest.fn() : undefined}
+        />,
+      );
+
+      expect(getByTestId('header')).toHaveStyle({ paddingBottom: 20 });
+    },
+  );
+
+  it.each([
+    [2, 12],
+    [3, 8],
+  ] as const)(
+    'accounts for content with a %s-token top inset',
+    (contentTopInset, paddingBottom) => {
+      const { getByTestId } = render(
+        <SectionHeader
+          title="Trending tokens"
+          testID="header"
+          contentTopInset={contentTopInset}
+        />,
+      );
+
+      expect(getByTestId('header')).toHaveStyle({ paddingBottom });
+      expect(paddingBottom + contentTopInset * 4).toBe(20);
+    },
+  );
+
+  it('preserves subtitle hierarchy and spaces content below the subtitle', () => {
+    const { getByTestId, getByText } = render(
+      <SectionHeader
+        title="Ecosystems"
+        subtitle="Explore sites across networks"
+        testID="header"
+      />,
+    );
+
+    expect(getByTestId('header')).toHaveStyle({ paddingBottom: 4 });
+    expect(getByText('Explore sites across networks')).toHaveStyle({
+      paddingBottom: 20,
+    });
+  });
+
   it('renders subtitle when provided', () => {
     const { getByText } = render(
       <SectionHeader
