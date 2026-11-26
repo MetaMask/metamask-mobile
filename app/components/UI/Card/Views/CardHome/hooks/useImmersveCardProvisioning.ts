@@ -273,8 +273,7 @@ export function useImmersveCardProvisioning(
     // Under review, and a permanent rejection, can change without the user
     // opening another Card screen. Recheck those on every return.
     const reviewsKyc =
-      pendingAction?.type === 'pending' ||
-      (pendingAction?.type === 'rejected' && !pendingAction.canRetry);
+      pendingAction?.type === 'pending' || pendingAction?.type === 'rejected';
     if (
       (!openedCardFlow && !reviewsKyc) ||
       !isProvisioning ||
@@ -549,7 +548,6 @@ export function useImmersveCardProvisioning(
           if (
             !cancelled &&
             action.type === 'rejected' &&
-            !action.canRetry &&
             isFocusedRef.current
           ) {
             notifyKycRejectedRef

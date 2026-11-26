@@ -1840,14 +1840,12 @@ describe('useImmersveCardProvisioning', () => {
       await waitFor(() =>
         expect(result.current.pendingAction).toEqual({
           type: 'rejected',
-          canRetry: false,
-          retryUrl: undefined,
           reasons: [],
         }),
       );
       expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1);
       expect(mockNotifyKycRejected).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'rejected', canRetry: false }),
+        { type: 'rejected', reasons: [] },
         { source: 'reconcile' },
       );
     });
@@ -1894,13 +1892,18 @@ describe('useImmersveCardProvisioning', () => {
       );
     });
 
-    it('keeps a retryable rejection without toasting', async () => {
+    it('keeps a failed check Immersve allows to retry as KYC, without toasting', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [
           {
             stage: 'kyc',
-            status: 'kyc_check_failed',
-            params: { kycUrl: 'https://verify.immersve.com/retry' },
+            status: 'action-required',
+            actionType: 'follow_kyc_url',
+            params: {
+              kycUrl: 'https://verify.immersve.com/retry',
+              ctaHint: 'KYC_INFORMATION_NEEDED',
+              reasons: [{ code: 'ID_DOCUMENT_EXPIRED', description: 'x' }],
+            },
           },
         ],
       });
@@ -1911,10 +1914,10 @@ describe('useImmersveCardProvisioning', () => {
 
       await waitFor(() =>
         expect(result.current.pendingAction).toEqual({
-          type: 'rejected',
-          canRetry: true,
-          retryUrl: 'https://verify.immersve.com/retry',
-          reasons: [],
+          type: 'kyc',
+          url: 'https://verify.immersve.com/retry',
+          ctaHint: 'KYC_INFORMATION_NEEDED',
+          reasons: ['ID_DOCUMENT_EXPIRED'],
         }),
       );
       expect(mockNotifyKycRejected).not.toHaveBeenCalled();
