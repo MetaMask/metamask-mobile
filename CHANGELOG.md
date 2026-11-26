@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added the verified badge next to trader names across Social, token details and Perps (#40169)
+- Added a success toast when copying bank transfer details, moved Share into the header, and fixed the US bank details loading skeleton (#39920)
 - Added a "Powered by HyperTracker" attribution line to the Perps trading campaign leaderboard (#40106)
 - Added a hint to Quick Buy showing the $10 minimum needed to post a trade to Social (#39624)
 - Enabled opening a trader's position by tapping a trade in the Perps home Live trades tab (#40101)
@@ -70,6 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug that sent users back to the MetaMask Card sign-in screen after they signed in (#40536)
+- Fixed a bug that could create two MetaMask Cards for one card request (#40495)
+- Fixed networks added from the config registry showing a letter fallback instead of their network logo in the network selector, tokens page, and networks management screens (#39669)
 - Fixed the cross margin confirmation appearing every time Cross is selected (#39999)
 - Fixed a bug where the Close all positions preview could lose its You'll receive and PnL values, and matched its totals to the position close bottom sheet (#40179)
 - Fixed oversized or squeezed layout of custom HTML in-app messages on Android devices with 3-button navigation (#40209)
@@ -129,6 +134,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Predict withdrawals from Safe accounts failing after confirmation by blocking them before signing when pUSD couldn't be confirmed to pay network fees (#39746)
 - Fixed a gray placeholder shown while token details load by showing price, chart, and action skeletons in the same layout as the loaded page (#39501)
 - Fixed Android skipping the biometric prompt for a few seconds after the phone was unlocked (#39163)
+
+### Security
+
+- Hid Warning, Spam, and Malicious tokens from the Swap screen Trending list and post-trade token suggestions (#40439)
 
 ## [8.21.1]
 
