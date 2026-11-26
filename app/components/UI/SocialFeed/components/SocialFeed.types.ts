@@ -73,8 +73,6 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
     post: SocialV1FeedPost,
     context?: SocialFeedPositionPressContext,
   ) => void;
-  /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
-  requireSocialProfile?: boolean;
   testID?: string;
 }
 
