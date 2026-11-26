@@ -70,6 +70,8 @@ describe('mobilePasskeyAdapter', () => {
   it.each([
     ['iOS', { code: 'ERR_USER_CANCELLED' }],
     ['Android', { code: 'Passkey Create', message: 'UserCancelled' }],
+    ['Android cancel text', { message: 'User canceled the operation' }],
+    ['Android cancelled', { message: 'Cancelled by user' }],
   ])(
     'reports a sheet dismissed on %s as cancelled',
     async (_platform, error) => {

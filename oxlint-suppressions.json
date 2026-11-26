@@ -1404,11 +1404,6 @@
       "count": 9
     }
   },
-  "app/components/UI/Bridge/components/AvatarGroup.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Bridge/components/BatchSellDestinationTokenSelectorModal/BatchSellDestinationTokenSelectorModal.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -16815,7 +16810,7 @@
   },
   "app/components/Views/ResetPassword/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 3
+      "count": 2
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1

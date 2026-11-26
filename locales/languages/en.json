@@ -674,7 +674,9 @@
     "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Try again",
+    "verify_description": "Choose a way to confirm it's you before you change your password.",
+    "password_changed": "Password changed"
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -10402,7 +10404,7 @@
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You add funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_a1_no_apy": "An account that earns variable APY. You add funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
-"faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
       "faq_a3": "You do. MetaMask is self-custodial, so MetaMask can't access, freeze, or move your funds. That's what sets us apart from banks and custodial crypto platforms. No third party holds your funds. Your Money account is tied to your Secret Recovery Phrase, so back it up and keep it somewhere safe. Importing an account with a Private Key won't restore your Money account. If you lose your Secret Recovery Phrase, you lose access to your Money account funds.",
       "faq_q4": "What are MetaMask Money account fees?",
@@ -11026,8 +11028,7 @@
       "try_again": "Try again",
       "today": "Today"
     },
-          "money_name": "MetaMask USD",
-
+    "money_name": "MetaMask USD",
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expires after: {{timeLeft}}",
@@ -14144,5 +14145,30 @@
       "cta": "Continue",
       "continue_error": "We couldn't confirm your membership. Try again."
     }
+  },
+  "wallet_recovery_mfa": {
+    "header": "Wallet recovery",
+    "verify_title": "Verify it's you",
+    "verify_description": "Choose a security method to recover your wallet.",
+    "use_passkey": "Use passkey",
+    "or": "or",
+    "method_password": "Password",
+    "method_email": "Email",
+    "method_totp": "Authenticator app",
+    "method_failed": "Verification failed. Try again or choose another method.",
+    "offline_reason": "Connect to the internet to use these methods.",
+    "cant_use_these": "Can't use any of these?",
+    "password_description": "Enter your password to continue",
+    "create_password_title": "Create a password",
+    "create_password_description": "Use this password to unlock MetaMask on this device. It doesn’t replace your Secret Recovery Phrase.",
+    "create_password_cta": "Create password",
+    "enter_password_title": "Enter password",
+    "enter_password_biometric_rejected": "Since {{biometryType}} isn't enabled, enter your MetaMask password to unlock this device.",
+    "biometry_fingerprint": "Fingerprint",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "recovery_failed": "We couldn't recover your wallet. Try again or use your old password.",
+    "recovery_password_already_set": "Your new password is set. Unlock your wallet with it.",
+    "confirm_passkey_to_recover": "Confirm with your passkey to recover your wallet"
   }
 }

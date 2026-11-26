@@ -8,6 +8,7 @@ import {
   selectSeedlessOnboardingUserEmail,
   selectSeedlessOnboardingAuthConnection,
   selectSeedlessOnboardingLoginFlow,
+  selectSeedlessIsLocalPassword,
 } from './seedlessOnboardingController';
 
 const createMockState = (
@@ -106,6 +107,25 @@ describe('Seedless Onboarding Controller Selectors', () => {
       const result = selectSeedlessOnboardingLoginFlow(mockState);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectSeedlessIsLocalPassword', () => {
+    it('returns true when isLocalPassword is true', () => {
+      const mockState = createMockState({
+        isLocalPassword: true,
+      });
+
+      expect(selectSeedlessIsLocalPassword(mockState)).toBe(true);
+    });
+
+    it('returns false when isLocalPassword is missing or false', () => {
+      expect(selectSeedlessIsLocalPassword(createMockState())).toBe(false);
+      expect(
+        selectSeedlessIsLocalPassword(
+          createMockState({ isLocalPassword: false }),
+        ),
+      ).toBe(false);
     });
   });
 });
