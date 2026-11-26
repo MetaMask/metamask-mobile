@@ -5,6 +5,7 @@ import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
+import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
 
 export function usePendingAmountAlerts({
   pendingFiatAmount,
@@ -27,6 +28,10 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingFiatAmount,
   });
 
+  const lighterWithdrawMinimumAlert = useLighterWithdrawMinimumAlert({
+    pendingAmount: pendingFiatAmount,
+  });
+
   const accountNoFundsAlert = useAccountNoFundsAlert();
 
   return useMemo(
@@ -35,6 +40,7 @@ export function usePendingAmountAlerts({
       ...fiatBuyLimitAlert,
       ...depositLimitAlert,
       ...lighterDepositMinimumAlert,
+      ...lighterWithdrawMinimumAlert,
       ...accountNoFundsAlert,
     ],
     [
@@ -42,6 +48,7 @@ export function usePendingAmountAlerts({
       fiatBuyLimitAlert,
       depositLimitAlert,
       lighterDepositMinimumAlert,
+      lighterWithdrawMinimumAlert,
       accountNoFundsAlert,
     ],
   );

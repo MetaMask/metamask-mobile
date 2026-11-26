@@ -80,6 +80,7 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useVbaDetailsNewDot } from '../../hooks/useVbaDetailsNewDot';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyCardSetupPollIntervalMs,
@@ -260,6 +261,8 @@ const MoneyHomeView = () => {
   // screen hydrates and forwards to the first incomplete module.
   const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
   const hasPendingDetailsOpenRef = useRef(false);
+  const { showNewDot: showDetailsNewDot, markSeen: markDetailsNewDotSeen } =
+    useVbaDetailsNewDot();
   const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
@@ -749,6 +752,8 @@ const MoneyHomeView = () => {
       return;
     }
     startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW);
+    // The #39029 discovery dot clears on first engagement.
+    markDetailsNewDotSeen();
     hasPendingDetailsOpenRef.current = true;
     // Self-clears so the button recovers if no navigator presents the route.
     setTimeout(() => {
@@ -770,7 +775,12 @@ const MoneyHomeView = () => {
     openVbaEntry(navigation, {
       source: 'vba-action-row-details',
     });
-  }, [navigation, trackButtonClicked, actionButtonRowCount]);
+  }, [
+    navigation,
+    trackButtonClicked,
+    actionButtonRowCount,
+    markDetailsNewDotSeen,
+  ]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1336,6 +1346,7 @@ const MoneyHomeView = () => {
             showVbaDetailsButton
               ? {
                   onPress: handleActionButtonDetailsPress,
+                  showNewDot: showDetailsNewDot,
                 }
               : undefined
           }
