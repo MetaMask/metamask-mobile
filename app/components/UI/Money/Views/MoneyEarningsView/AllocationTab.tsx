@@ -46,17 +46,17 @@ const AllocationTab = (): React.ReactElement => {
   }, [refetch]);
 
   const renderContent = (): React.ReactElement => {
-    if (isError) {
+    if (isError || (!data && !isCompositionLoading)) {
       return (
         <Box
           testID={MoneyEarningsViewTestIds.ALLOCATION_ERROR}
           accessibilityRole="alert"
-          twClassName="items-center justify-center gap-3 px-4 py-8"
+          twClassName="w-full flex-1 items-center justify-center gap-3 px-4 py-8"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('money.earnings.allocation_error')}
           </Text>
@@ -64,31 +64,7 @@ const AllocationTab = (): React.ReactElement => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={handleRetry}
-          >
-            {strings('money.earnings.allocation_retry')}
-          </Button>
-        </Box>
-      );
-    }
-
-    if (!data && !isCompositionLoading) {
-      return (
-        <Box
-          testID={MoneyEarningsViewTestIds.ALLOCATION_ERROR}
-          accessibilityRole="alert"
-          twClassName="items-center justify-center gap-3 px-4 py-8"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings('money.earnings.allocation_error')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={handleRetry}
+            className="justify-center self-center"
           >
             {strings('money.earnings.allocation_retry')}
           </Button>
@@ -105,7 +81,7 @@ const AllocationTab = (): React.ReactElement => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('money.earnings.allocation_empty')}
           </Text>

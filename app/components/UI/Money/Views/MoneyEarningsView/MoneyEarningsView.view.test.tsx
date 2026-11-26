@@ -333,6 +333,28 @@ describe('MoneyEarningsView', () => {
 
       expect(
         rowQueries.getByTestId(
+          MoneyVaultCompositionMarketRowTestIds.PRIMARY_LABEL(
+            component.component_key,
+          ),
+        ),
+      ).toHaveTextContent(
+        component.component_key === 'direct_idle_usdc'
+          ? 'Cash reserve'
+          : 'Aave v3 • Monad',
+      );
+      expect(
+        rowQueries.getByTestId(
+          MoneyVaultCompositionMarketRowTestIds.SECONDARY_LABEL(
+            component.component_key,
+          ),
+        ),
+      ).toHaveTextContent(
+        component.component_key === 'direct_idle_usdc'
+          ? 'USDC'
+          : 'MetaMask USD',
+      );
+      expect(
+        rowQueries.getByTestId(
           MoneyVaultCompositionMarketRowTestIds.ALLOCATION(
             component.component_key,
           ),
@@ -364,6 +386,94 @@ describe('MoneyEarningsView', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(strings('money.earnings.risks_and_disclosures.title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Allocation tab from the allocation route parameter', async () => {
+    const { findByTestId, queryByTestId } = renderMoneyEarningsView({
+      initialParams: { activeTab: 'allocation' },
+    });
+
+    expect(
+      await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows allocation loading state before composition data resolves', async () => {
+    const { findByTestId, getByTestId } = renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows allocation error and recovers after retry', async () => {
+    setupMoneyAllocationApiMock({ status: 500 });
+    const { findByTestId, getByTestId, getByText } = renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_ERROR),
+    ).toBeOnTheScreen();
+
+    setupMoneyAllocationApiMock();
+    fireEvent.press(getByText(strings('money.earnings.allocation_retry')));
+
+    expect(
+      await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows an empty state when allocation composition has no components', async () => {
+    setupMoneyAllocationApiMock({
+      compositionResponse: {
+        ...moneyVaultCompositionResponse,
+        components: [],
+      },
+    });
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows degraded-data notice with allocation content', async () => {
+    setupMoneyAllocationApiMock({
+      compositionResponse: {
+        ...moneyVaultCompositionResponse,
+        data_freshness: 'degraded',
+        stale_reason: 'snapshot_lag',
+      },
+    });
+    const { findByTestId, getByTestId } = renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_DEGRADED),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
     ).toBeOnTheScreen();
   });
 

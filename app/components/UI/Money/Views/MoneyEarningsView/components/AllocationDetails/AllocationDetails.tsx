@@ -11,13 +11,7 @@ import { useHistoricalVaultApys } from '../../../../hooks/useHistoricalVaultApys
 import { parseApy, toApyPercent } from '../../../../utils/apy';
 import { AllocationDetailsTestIds } from './AllocationDetails.testIds';
 
-interface AllocationDetailsProps {
-  isLoading?: boolean;
-}
-
-const AllocationDetails = ({
-  isLoading = false,
-}: AllocationDetailsProps): React.ReactElement => {
+const AllocationDetails = (): React.ReactElement => {
   const { data, isLoading: isApyLoading } = useHistoricalVaultApys();
   const historicalVault = data?.vaults[0];
   const averageApy =
@@ -100,7 +94,7 @@ const AllocationDetails = ({
             >
               {label}
             </Text>
-            {key === 'average-apy' && (isLoading || isApyLoading) ? (
+            {key === 'average-apy' && isApyLoading ? (
               <Skeleton
                 testID={AllocationDetailsTestIds.VALUE(key)}
                 width="75"

@@ -57,7 +57,7 @@ describe('AllocationDetails', () => {
       isLoading: true,
     } as ReturnType<typeof useHistoricalVaultApys>);
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <AllocationDetails />,
     );
 
@@ -67,6 +67,9 @@ describe('AllocationDetails', () => {
     expect(
       getByText(strings('money.earnings.allocation_details.average_apy')),
     ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('money.earnings.unavailable')),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders detail rows in the specified order', () => {

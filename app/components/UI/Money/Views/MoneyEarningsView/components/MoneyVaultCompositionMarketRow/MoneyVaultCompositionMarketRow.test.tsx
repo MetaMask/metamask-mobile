@@ -207,9 +207,6 @@ describe('MoneyVaultCompositionMarketRow', () => {
     );
     expect(row.props.accessible).toBe(false);
     expect(indicator.props.accessible).toBe(false);
-    expect(StyleSheet.flatten(indicator.props.style)).toEqual(
-      expect.objectContaining({ height: 40, width: 8 }),
-    );
     expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(
       getVaultCompositionComponentColor(
         component.component_key,

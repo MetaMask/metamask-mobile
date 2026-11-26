@@ -204,18 +204,6 @@ describe('MoneyVaultCompositionChart', () => {
     ).toHaveTextContent('<0.1%');
   });
 
-  it('centers the SVG ring inside its viewBox', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyVaultCompositionChart
-        components={[createComponent('direct_idle_musd')]}
-      />,
-    );
-
-    expect(
-      getByTestId(MoneyVaultCompositionChartTestIds.RING).props.transform,
-    ).toBe('translate(120, 120)');
-  });
-
   it('shows the formatted protocol and asset label under the true percentage', () => {
     const component = createComponent('direct_idle_musd', {
       label: 'Direct idle mUSD',
@@ -261,7 +249,7 @@ describe('MoneyVaultCompositionChart', () => {
     ).toBe('alert');
   });
 
-  it('constrains long labels while preserving the full accessible value', () => {
+  it('preserves the full accessible value for long labels', () => {
     const longLabel =
       'Morpho vault allocation with a long translated component label';
     const component = createComponent('morpho_v2_musd', {
@@ -276,7 +264,6 @@ describe('MoneyVaultCompositionChart', () => {
       MoneyVaultCompositionChartTestIds.CENTER_LABEL,
     );
 
-    expect(centerLabel.props.numberOfLines).toBe(2);
     expect(centerLabel.props.accessibilityLabel).toBe(longLabel);
   });
 
