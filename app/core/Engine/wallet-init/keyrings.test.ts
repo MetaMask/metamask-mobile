@@ -188,7 +188,7 @@ describe('wallet-init/keyrings', () => {
 
       messenger.registerActionHandler(
         'KeyringController:withKeyringV2Unsafe',
-        (_selector, operation) =>
+        async (_selector, operation) =>
           operation({
             keyring: emptyHd as unknown as Keyring,
             metadata: { id: 'entropy-1', name: 'main' },
@@ -309,10 +309,10 @@ describe('wallet-init/keyrings', () => {
       const byV2Type = Object.fromEntries(
         v2Builders.map((builder) => [builder.type, builder]),
       );
-      const wrapper = byV2Type[MpcMoneyKeyring.type](
-        new MpcMoneyKeyring(),
-        { id: 'metadata-id', name: 'name' },
-      );
+      const wrapper = byV2Type[MpcMoneyKeyring.type](new MpcMoneyKeyring(), {
+        id: 'metadata-id',
+        name: 'name',
+      });
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
 
@@ -384,7 +384,7 @@ describe('wallet-init/keyrings', () => {
       const messenger = getRootMessenger();
       messenger.registerActionHandler(
         'KeyringController:withKeyringV2Unsafe',
-        (_selector, operation) =>
+        async (_selector, operation) =>
           operation({
             keyring: new HdKeyringV2({
               legacyKeyring: new LegacyHdKeyring() as never,

@@ -60,38 +60,34 @@ export const MpcMoneyDeveloperOptionsSection = () => {
     [],
   );
 
-  const create = useCallback(
-    () =>
-      run('Create MPC Money account', async () => {
-        const account =
-          await Engine.context.MoneyAccountController.createMoneyAccount({
-            type: KeyringAccountEntropyTypeOption.Mpc,
-          });
-        return account.address;
-      }),
-    [run],
-  );
+  const create = useCallback(() => {
+    void run('Create MPC Money account', async () => {
+      const account =
+        await Engine.context.MoneyAccountController.createMoneyAccount({
+          type: KeyringAccountEntropyTypeOption.Mpc,
+        });
+      return account.address;
+    });
+  }, [run]);
 
-  const sign = useCallback(
-    () =>
-      run('Sign test message', async () => {
-        const address = getMoneyAccountAddresses().mpc;
-        if (!address) {
-          throw new Error('No MPC Money account, create one first');
-        }
-        const data = bytesToHex(new TextEncoder().encode(TEST_MESSAGE));
-        const signature =
-          await Engine.context.KeyringController.signPersonalMessage({
-            from: address,
-            data,
-          });
-        const recovered = recoverPersonalSignature({ data, signature });
-        return `${signature}\nRecovers to the account: ${
-          recovered.toLowerCase() === address.toLowerCase()
-        }`;
-      }),
-    [run],
-  );
+  const sign = useCallback(() => {
+    void run('Sign test message', async () => {
+      const address = getMoneyAccountAddresses().mpc;
+      if (!address) {
+        throw new Error('No MPC Money account, create one first');
+      }
+      const data = bytesToHex(new TextEncoder().encode(TEST_MESSAGE));
+      const signature =
+        await Engine.context.KeyringController.signPersonalMessage({
+          from: address,
+          data,
+        });
+      const recovered = recoverPersonalSignature({ data, signature });
+      return `${signature}\nRecovers to the account: ${
+        recovered.toLowerCase() === address.toLowerCase()
+      }`;
+    });
+  }, [run]);
 
   const { mpc, mnemonic } = getMoneyAccountAddresses();
 
