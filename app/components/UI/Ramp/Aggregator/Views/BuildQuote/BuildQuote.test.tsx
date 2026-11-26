@@ -1518,6 +1518,21 @@ describe('BuildQuote View', () => {
       );
     });
 
+    it('skips the estimate when the selected address is not an EVM address', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      };
+
+      expect(() => render(BuildQuote)).not.toThrow();
+
+      expect(useRampSellGasFee).toHaveBeenLastCalledWith(
+        expect.objectContaining({ transaction: undefined }),
+      );
+    });
+
     it('disables native Max while the estimate is loading or failed', () => {
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
