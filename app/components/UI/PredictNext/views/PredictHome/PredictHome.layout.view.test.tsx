@@ -610,11 +610,16 @@ describe('PredictHome layout from the Venue catalog', () => {
 
       await view.findByTestId(PredictHomeTestIds.CATEGORIES);
 
-      expect(layoutOrder(view)).toEqual([
-        PredictHomeTestIds.ACTIONS,
-        PredictHomeTestIds.DIVIDER,
-        PredictHomeTestIds.CATEGORIES,
-      ]);
+      // The catalog lists Trending and the Sports row, so they mount first
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.CATEGORIES,
+        ]),
+      );
     });
 
     it('renders only Divider 1 above a single visible Feed preview section', async () => {
@@ -627,11 +632,16 @@ describe('PredictHome layout from the Venue catalog', () => {
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
 
-      expect(layoutOrder(view)).toEqual([
-        PredictHomeTestIds.ACTIONS,
-        PredictHomeTestIds.DIVIDER,
-        PredictHomeTestIds.section('politics'),
-      ]);
+      // Trending and the Sports row are listed by the default catalog home
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.section('politics'),
+        ]),
+      );
     });
 
     it('renders zero dividers while capabilities are loading', async () => {
