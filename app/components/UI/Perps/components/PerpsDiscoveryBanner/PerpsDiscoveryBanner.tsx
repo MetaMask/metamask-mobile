@@ -76,7 +76,7 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
             twClassName="shrink-0"
             testID={`${testID}-logo`}
           />
-          <Box twClassName="min-w-0 flex-1 gap-0.5">
+          <Box className="min-w-0 flex-1 gap-0.5">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('perps.discovery_banner.title', { symbol })}
             </Text>

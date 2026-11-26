@@ -50,14 +50,14 @@ const PerpsProUnrealizedPnl = ({
         : TextColor.TextDefault;
 
   return (
-    <Box twClassName="px-2 py-3">
+    <Box className="px-2 py-3">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4 rounded-xl bg-muted px-4 py-3"
+        className="gap-4 rounded-xl bg-muted px-4 py-3"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
@@ -76,7 +76,7 @@ const PerpsProUnrealizedPnl = ({
           variant={ButtonVariant.Tertiary}
           size={ButtonSize.Sm}
           isDanger
-          twClassName="self-center"
+          className="self-center"
           onPress={onCloseAll}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL}
         >

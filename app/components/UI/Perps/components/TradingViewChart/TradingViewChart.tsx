@@ -610,7 +610,7 @@ const TradingViewChart = React.forwardRef<
     if (webViewError) {
       return (
         <Box
-          twClassName="flex-1 items-center justify-center bg-error-muted"
+          className="flex-1 items-center justify-center bg-error-muted"
           style={{ height }}
           testID={`${testID}-error`}
         >
@@ -649,12 +649,12 @@ const TradingViewChart = React.forwardRef<
 
     return (
       <Box
-        twClassName="bg-default rounded-lg"
+        className="bg-default rounded-lg"
         testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
       >
         {/* Chart WebView */}
         <Box
-          twClassName="overflow-hidden rounded-lg"
+          className="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
           {/* Candle skeleton covers the WebView until CHART_READY. No delay. */}

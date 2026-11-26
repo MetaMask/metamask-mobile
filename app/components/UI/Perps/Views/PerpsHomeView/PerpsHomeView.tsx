@@ -956,7 +956,7 @@ const PerpsHomeView = () => {
             <View>
               {ordersError && (
                 <Box
-                  twClassName="px-4 py-3 gap-2"
+                  className="px-4 py-3 gap-2"
                   testID={PerpsHomeViewSelectorsIDs.ORDERS_ERROR}
                 >
                   <Text
@@ -1357,7 +1357,7 @@ const PerpsHomeView = () => {
         <Tag
           severity={TagSeverity.Warning}
           testID={`${homeHeadingTestID}-testnet-badge`}
-          twClassName="self-center"
+          className="self-center"
         >
           Testnet
         </Tag>
@@ -1459,7 +1459,7 @@ const PerpsHomeView = () => {
         </PerpsMarketBalanceActions>
 
         {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
-          <Box twClassName="px-4 pb-3">
+          <Box className="px-4 pb-3">
             <PerpsCrossMarginRatioBanner
               ratio={formatCrossMarginRatio(crossMarginRatio)}
               severity={crossMarginBannerSeverity}
@@ -1494,7 +1494,7 @@ const PerpsHomeView = () => {
           its title row once the content is scrolled. Outer flag guard avoids
           mounting the padded wrapper (and banner hooks) when disabled. */}
       {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2">
+        <Box className="px-4 pb-2">
           <PerpsServiceInterruptionBanner
             includesTopInset={!outreachCampaign}
             scrollY={headerScrollY}

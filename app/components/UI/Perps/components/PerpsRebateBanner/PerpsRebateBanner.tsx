@@ -54,7 +54,7 @@ const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
   return containerTwClassName ? (
     <Box
       testID={PERPS_REBATE_BANNER_CONTAINER_TEST_ID}
-      twClassName={containerTwClassName}
+      className={containerTwClassName}
     >
       {banner}
     </Box>

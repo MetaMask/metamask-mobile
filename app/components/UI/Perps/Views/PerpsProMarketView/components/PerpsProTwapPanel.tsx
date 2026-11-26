@@ -127,7 +127,7 @@ const PerpsProTwapPanel = ({
     if (isInitialLoading) {
       return (
         <Box
-          twClassName="items-center justify-center px-2 pt-6"
+          className="items-center justify-center px-2 pt-6"
           testID={PerpsProMarketViewSelectorsIDs.TWAP_LOADING}
         >
           <Spinner />
@@ -142,7 +142,7 @@ const PerpsProTwapPanel = ({
     const emptyMetadata = emptyMetadataByView?.[activeView];
 
     return (
-      <Box twClassName="items-center justify-center px-2 pt-6">
+      <Box className="items-center justify-center px-2 pt-6">
         <PerpsProTwapEmptyState
           view={activeView}
           filteredTicker={emptyMetadata?.filteredTicker}
@@ -202,12 +202,12 @@ const PerpsProTwapPanel = ({
     pageCount > 1 ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="items-center gap-2 px-2"
+        className="items-center gap-2 px-2"
       >
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
-          twClassName="flex-1"
+          className="flex-1"
           isDisabled={page === 0}
           onPress={onPrevious}
           testID={previousTestID}
@@ -227,7 +227,7 @@ const PerpsProTwapPanel = ({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
-          twClassName="flex-1"
+          className="flex-1"
           isDisabled={page >= pageCount - 1}
           onPress={onNext}
           testID={nextTestID}
@@ -290,7 +290,7 @@ const PerpsProTwapPanel = ({
     <Box>
       {error ? (
         <Box
-          twClassName="mx-2 mt-3 gap-2 rounded-xl bg-error-muted p-3"
+          className="mx-2 mt-3 gap-2 rounded-xl bg-error-muted p-3"
           testID={PerpsProMarketViewSelectorsIDs.TWAP_ERROR}
         >
           <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>

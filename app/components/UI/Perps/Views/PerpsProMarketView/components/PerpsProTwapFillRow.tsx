@@ -65,7 +65,7 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
 
   return (
     <Box
-      twClassName="gap-1 px-2 py-3"
+      className="gap-1 px-2 py-3"
       testID={getPerpsProTwapFillRowSelector(
         providerId,
         twapOrder.orderId,
@@ -76,12 +76,12 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-2"
+        className="gap-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -119,7 +119,7 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-2"
+        className="gap-2"
       >
         <Text
           variant={TextVariant.BodySm}

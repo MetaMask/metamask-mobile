@@ -89,7 +89,7 @@ const PerpsTooltipView: React.FC = () => {
           size: ButtonSize.Lg,
           testID: 'perps-tooltip-bottom-sheet-footer-got-it-button',
         }}
-        twClassName="pt-6"
+        className="pt-6"
       />
     </BottomSheet>
   );

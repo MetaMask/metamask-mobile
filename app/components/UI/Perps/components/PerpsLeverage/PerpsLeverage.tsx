@@ -10,7 +10,7 @@ const PerpsLeverage = ({
   maxLeverage,
   testID = 'perps-leverage',
 }: PerpsLeverageProps) => (
-  <Tag severity={TagSeverity.Neutral} testID={testID} twClassName="self-center">
+  <Tag severity={TagSeverity.Neutral} testID={testID} className="self-center">
     {maxLeverage}
   </Tag>
 );

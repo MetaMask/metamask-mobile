@@ -128,7 +128,7 @@ const PerpsOutreachBannerContent = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
         gap={2}
-        twClassName="px-4 pb-3"
+        className="px-4 pb-3"
       >
         {/*
           The close button stays a sibling of this Pressable rather than a
@@ -151,7 +151,7 @@ const PerpsOutreachBannerContent = ({
             {showImage ? (
               <Box
                 alignItems={BoxAlignItems.Center}
-                twClassName="h-[72px] w-[72px] overflow-hidden rounded-lg p-2"
+                className="h-[72px] w-[72px] overflow-hidden rounded-lg p-2"
               >
                 <Image
                   source={{ uri: campaign.imageUrl }}
@@ -166,7 +166,7 @@ const PerpsOutreachBannerContent = ({
               </Box>
             ) : null}
 
-            <Box twClassName="min-w-0 flex-1 gap-0.5">
+            <Box className="min-w-0 flex-1 gap-0.5">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}

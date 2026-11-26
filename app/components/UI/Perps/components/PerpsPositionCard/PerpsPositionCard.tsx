@@ -225,7 +225,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full"
+        className="w-full"
         accessible={false}
       >
         <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
@@ -304,7 +304,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   return (
     <Box paddingBottom={3}>
-      <Box twClassName="bg-background-default rounded-xl" testID={cardTestID}>
+      <Box className="bg-background-default rounded-xl" testID={cardTestID}>
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
@@ -318,11 +318,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             gap={2}
-            twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
+            className={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
           >
             {/* Accessible cards expose each label with its value natively. */}
             <Card
-              twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              className="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
               accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
@@ -350,7 +350,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Card>
 
             <Card
-              twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              className="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
               accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
@@ -380,14 +380,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Box>
 
           {/* Size/Margin Row */}
-          <Box flexDirection={BoxFlexDirection.Row} gap={2} twClassName="mb-2">
+          <Box flexDirection={BoxFlexDirection.Row} gap={2} className="mb-2">
             <Card
               isInteractive
               onPress={handleSizeToggle}
-              twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
+              className="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
             >
-              <Box twClassName="flex-1 gap-1">
+              <Box className="flex-1 gap-1">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
@@ -421,10 +421,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               isInteractive
               onPress={marginPress}
               disabled={!marginPress}
-              twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
+              className="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
             >
-              <Box twClassName="flex-1 gap-1">
+              <Box className="flex-1 gap-1">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
@@ -483,12 +483,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             isInteractive
             onPress={handleAutoCloseButtonPress}
             disabled={!onAutoClosePress}
-            twClassName={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
+            className={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
               isTabsVariant ? 'mb-2' : 'mb-3'
             }`}
             testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
           >
-            <Box twClassName="flex-1 gap-1">
+            <Box className="flex-1 gap-1">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
@@ -502,7 +502,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Sm}
                 onPress={handleAutoCloseButtonPress}
-                twClassName="self-center"
+                className="self-center"
               >
                 {resolvedTPSL.hasTPSLConfigured
                   ? strings('perps.auto_close.edit_button')
@@ -523,7 +523,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <Box testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            twClassName={detailRowClassName}
+            className={detailRowClassName}
             keyLabel={strings('perps.position.card.direction_label')}
             value={`${
               direction === 'long'
@@ -537,10 +537,23 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            twClassName={detailRowClassName}
+            className={detailRowClassName}
             keyLabel={strings('perps.position.card.entry_label')}
             value={
               <SensitiveText
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
+              >
+                {formatPerpsFiat(position.entryPrice, {
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })}
+              </SensitiveText>
+            }
+          /><SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
@@ -558,7 +571,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.liquidation_price_label')}
-            twClassName={
+            className={
               isCross
                 ? `h-auto py-2 ${isTabsVariant ? 'min-h-12' : 'min-h-10'}`
                 : detailRowClassName
@@ -575,14 +588,35 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               ) : undefined
             }
             value={liquidationValue}
+          /><PerpsCrossMarginInfoButton
+                  hasLiquidationPrice={position.liquidationPrice != null}
+                  testID={getPerpsCrossLiquidationInfoSelector(
+                    'lite',
+                    position.symbol,
+                  )}
+                />
+              ) : undefined
+            }
+            value={liquidationValue}
           />
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
-            twClassName={detailRowClassName}
+            className={detailRowClassName}
             keyLabel={strings('perps.position.card.funding_payments_label')}
             value={
               <SensitiveText
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={privacyMode ? TextColor.TextDefault : fundingColor}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
+              >
+                {fundingDisplay}
+              </SensitiveText>
+            }
+          /><SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={privacyMode ? TextColor.TextDefault : fundingColor}

@@ -77,14 +77,14 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
       {startAccessory ? (
         <Box
           accessible={false}
-          twClassName="h-10 w-10 overflow-hidden rounded-xl"
+          className="h-10 w-10 overflow-hidden rounded-xl"
         >
           {startAccessory}
         </Box>
       ) : (
         icon
       )}
-      <Box accessible={false} twClassName="flex-1">
+      <Box accessible={false} className="flex-1">
         <Box
           accessible={false}
           flexDirection={BoxFlexDirection.Row}
@@ -96,7 +96,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
           >
             {title}
           </Text>

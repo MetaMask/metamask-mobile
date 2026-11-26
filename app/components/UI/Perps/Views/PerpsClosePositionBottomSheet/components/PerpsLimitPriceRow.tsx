@@ -74,7 +74,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
         onPress={onPress}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
       >
-        <Box twClassName="flex-row items-center justify-between px-4 py-2">
+        <Box className="flex-row items-center justify-between px-4 py-2">
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.order.limit_price')}
           </Text>
@@ -120,7 +120,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
       </TouchableOpacity>
 
       {error ? (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <HelpText severity={HelpTextSeverity.Danger} showIcon>
             {error}
           </HelpText>

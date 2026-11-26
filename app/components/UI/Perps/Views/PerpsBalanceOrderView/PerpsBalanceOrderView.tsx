@@ -120,7 +120,7 @@ const PerpsBalanceOrderView = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={tw.style({ paddingTop: insets.top, paddingBottom: insets.bottom })}
       accessible={false}
       testID={PerpsBalanceOrderViewSelectorsIDs.CONTAINER}

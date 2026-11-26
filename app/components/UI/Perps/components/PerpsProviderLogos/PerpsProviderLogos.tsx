@@ -88,7 +88,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
       importantForAccessibility={isDecorative ? 'no-hide-descendants' : 'auto'}
       accessibilityElementsHidden={isDecorative}
       testID={testID}
-      twClassName={twClassName}
+      className={twClassName}
     >
       {drawableIds.map((providerId, index) => {
         const isCoveredByNextLogo = index < drawableIds.length - 1;
@@ -101,7 +101,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
             key={providerId}
             accessible={false}
             testID={PROVIDER_LOGO_TEST_IDS[providerId]}
-            twClassName={zClass}
+            className={zClass}
             style={[
               markStyle.clip,
               {

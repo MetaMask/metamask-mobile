@@ -61,12 +61,21 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   return (
     <View testID={testID}>
       {isPromotionalDiscount && discountPercentage !== undefined ? (
-        <Box twClassName="mb-3">
+        <Box className="mb-3">
           <BannerBase
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
-            twClassName="gap-2"
+            className="gap-2"
             startAccessory={
               <SealPercentIcon
+                size={SEAL_PERCENT_ICON_SIZE.banner}
+                testID={PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL}
+              />
+            }
+            title={strings(discountMessage, {
+              percentage: discountPercentage.toString(),
+            })}
+            titleProps={{ color: TextColor.TextDefault }}
+          /><SealPercentIcon
                 size={SEAL_PERCENT_ICON_SIZE.banner}
                 testID={PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL}
               />
