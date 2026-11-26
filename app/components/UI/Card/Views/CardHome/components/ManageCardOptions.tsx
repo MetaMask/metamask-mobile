@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
 });
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardType } from '../../../types';
 import {
   CardStatus,
@@ -57,10 +58,20 @@ interface ManageCardOptionsProps {
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
+  /**
+   * Quick-action tiles the Card home row is showing. Each matching row is
+   * hidden so the same action does not appear twice. Omitted: rows unchanged.
+   */
+  hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
+  /**
+   * Keeps the history row for a fully set-up card whose history has no
+   * Activity panel on Card home (history lives in Money activity).
+   */
+  showTransactionHistoryRow?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -97,10 +108,12 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
+  hiddenQuickActionRows,
   onCashback,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
+  showTransactionHistoryRow = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -134,13 +147,17 @@ const ManageCardOptions = ({
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
+  // Recent activity panel (with its own "See all"). This row only remains for
+  // the setup override (Immersve while setup actions are pending), where the
+  // panel is not shown.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
     isAuthenticated &&
     Boolean(card) &&
     !hideManageOptions &&
-    (isFullySetUp || showTransactionHistoryDuringSetup);
+    ((showTransactionHistoryDuringSetup && !isFullySetUp) ||
+      (showTransactionHistoryRow && isFullySetUp));
 
   return (
     <>
@@ -204,20 +221,24 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {isAuthenticated && !isLoading && card && !hideManageOptions && (
-          <ManageCardListItem
-            title={strings(
-              cardDetailsVisible
-                ? 'card.card_home.manage_card_options.hide_card_details'
-                : 'card.card_home.manage_card_options.view_card_details',
-            )}
-            description={strings(
-              'card.card_home.manage_card_options.view_card_details_description',
-            )}
-            onPress={onViewCardDetails}
-            testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
-          />
-        )}
+        {!hiddenQuickActionRows?.details &&
+          isAuthenticated &&
+          !isLoading &&
+          card &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                cardDetailsVisible
+                  ? 'card.card_home.manage_card_options.hide_card_details'
+                  : 'card.card_home.manage_card_options.view_card_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.view_card_details_description',
+              )}
+              onPress={onViewCardDetails}
+              testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
+            />
+          )}
         {isFullySetUp &&
           !hideManageOptions &&
           showDigitalWalletInstructions && (
@@ -233,7 +254,8 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {isAuthenticated &&
+        {!hiddenQuickActionRows?.pin &&
+          isAuthenticated &&
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
@@ -265,7 +287,8 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.SET_PIN_BUTTON}
             />
           )}
-        {isAuthenticated &&
+        {!hiddenQuickActionRows?.freeze &&
+          isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
           card?.status !== CardStatus.BLOCKED &&

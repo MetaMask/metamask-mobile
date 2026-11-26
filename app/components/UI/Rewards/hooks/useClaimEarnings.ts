@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
@@ -180,6 +180,9 @@ export function useClaimEarnings(
   const claimLockRef = useRef(claimLock);
   claimLockRef.current = claimLock;
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
+  // The render-time `moneyAccount` can be stale after an await, so a retry
+  // reads the store directly.
+  const store = useStore<RootState>();
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -411,11 +414,16 @@ export function useClaimEarnings(
               throw new Error('SIGN_FAILED');
             }
           },
-          submitVoucher: async (voucher: ClaimVoucherDto) => {
+          getMoneyAccountAddress: () =>
+            selectPrimaryMoneyAccount(store.getState())?.address,
+          submitVoucher: async (
+            voucher: ClaimVoucherDto,
+            voucherMoneyAccountAddress: string,
+          ) => {
             await submitClaimVoucher({
               voucher,
               vaultConfig,
-              moneyAccountAddress,
+              moneyAccountAddress: voucherMoneyAccountAddress,
               onBatchSubmitted: (batchId) => {
                 submittedBatchId = batchId;
               },
@@ -546,6 +554,7 @@ export function useClaimEarnings(
       followTradeClaimOpen,
       revShareClaimOpen,
       moneyAccount?.address,
+      store,
       vaultConfig,
       isSponsorshipEnabled,
       onOpened,

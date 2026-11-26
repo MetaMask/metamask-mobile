@@ -3,8 +3,11 @@ import { StyleSheet, Text } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { makeMutable } from 'react-native-reanimated';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HeaderStandardGlass from './HeaderStandardGlass';
+import { useIsNativeHeader } from '../../../components/hooks/useNativeHeader';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
 import { backdropFadeOpacity } from '../HeaderGlass/test-utils';
 
@@ -18,7 +21,39 @@ jest.mock('../CapsuleGlass', () => {
   };
 });
 
+jest.mock('../../../components/hooks/useNativeHeader', () => ({
+  useIsNativeHeader: jest.fn(() => false),
+  useNativeHeader: jest.fn(() => true),
+}));
+
+const mockNativeHeader = jest.fn();
+jest.mock('./HeaderStandardNative', () => ({
+  __esModule: true,
+  default: (props: unknown) => {
+    mockNativeHeader(props);
+    return null;
+  },
+}));
+
+const Stack = createNativeStackNavigator();
+
+const renderInStack = (ui: React.ReactElement) => {
+  const Screen = () => ui;
+  return render(
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Screen" component={Screen} />
+      </Stack.Navigator>
+    </NavigationContainer>,
+  );
+};
+
 describe('HeaderStandardGlass', () => {
+  beforeEach(() => {
+    jest.mocked(useIsNativeHeader).mockReturnValue(false);
+    mockNativeHeader.mockClear();
+  });
+
   it('overrides the header horizontal padding to px-4', () => {
     const { getByTestId } = render(
       <HeaderStandardGlass title="Accounts" testID="header" />,
@@ -167,5 +202,120 @@ describe('HeaderStandardGlass', () => {
     fireEvent(getByTestId('header'), 'layout', event);
 
     expect(onLayout).toHaveBeenCalledWith(event);
+  });
+
+  describe('native bar', () => {
+    beforeEach(() => {
+      jest.mocked(useIsNativeHeader).mockReturnValue(true);
+    });
+
+    const screenHeader = (
+      <HeaderStandardGlass
+        title="Settings"
+        onBack={jest.fn()}
+        backButtonProps={{ testID: 'back' }}
+        isFloating={false}
+        includesTopInset
+        isNativeHeaderEnabled
+      />
+    );
+
+    it('hands a screen header to the native bar', () => {
+      const { queryByTestId } = renderInStack(screenHeader);
+
+      expect(queryByTestId('back')).toBeNull();
+      expect(mockNativeHeader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({ title: 'Settings' }),
+          fallback: expect.anything(),
+        }),
+      );
+    });
+
+    it('passes the inset callback on, so content can scroll under the bar', () => {
+      const onNativeHeaderInset = jest.fn();
+
+      renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          isFloating={false}
+          includesTopInset
+          isNativeHeaderEnabled
+          onNativeHeaderInset={onNativeHeaderInset}
+        />,
+      );
+
+      expect(mockNativeHeader).toHaveBeenCalledWith(
+        expect.objectContaining({ onInset: onNativeHeaderInset }),
+      );
+    });
+
+    it('keeps the JS header where the OS has no native glass bar', () => {
+      jest.mocked(useIsNativeHeader).mockReturnValue(false);
+
+      const { getByTestId } = renderInStack(screenHeader);
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+      expect(mockNativeHeader).not.toHaveBeenCalled();
+    });
+
+    it('keeps the JS header in a sheet, which has no top inset', () => {
+      const { getByTestId } = renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          onBack={jest.fn()}
+          backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
+          isFloating={false}
+        />,
+      );
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+    });
+
+    it('keeps the JS header for a floating header', () => {
+      const { getByTestId } = renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          onBack={jest.fn()}
+          backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
+          includesTopInset
+        />,
+      );
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+    });
+
+    it('keeps the JS header unless the screen opts in', () => {
+      const { getByTestId } = renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          onBack={jest.fn()}
+          backButtonProps={{ testID: 'back' }}
+          isFloating={false}
+          includesTopInset
+        />,
+      );
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+      expect(mockNativeHeader).not.toHaveBeenCalled();
+    });
+
+    it('keeps the JS header when glass is off', () => {
+      const { getByTestId } = renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          onBack={jest.fn()}
+          backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
+          isFloating={false}
+          includesTopInset
+          isGlass={false}
+        />,
+      );
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+    });
   });
 });

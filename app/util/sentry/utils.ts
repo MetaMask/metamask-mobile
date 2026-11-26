@@ -713,6 +713,10 @@ export async function setupSentry(
       Sentry.extraErrorDataIntegration(),
       Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
+      // Sentry Spotlight integration for observing Sentry span and perforance metrics locally.
+      ...(isDev && process.env.SENTRY_SPOTLIGHT === 'true'
+        ? [Sentry.spotlightIntegration()]
+        : []),
     ];
     const environment = deriveSentryEnvironment(
       __DEV__,
@@ -756,8 +760,6 @@ export async function setupSentry(
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,
-      // Local sidecar only. Opt in with SENTRY_SPOTLIGHT=true and __DEV__ is true
-      spotlight: isDev && process.env.SENTRY_SPOTLIGHT === 'true',
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
       _experiments: {

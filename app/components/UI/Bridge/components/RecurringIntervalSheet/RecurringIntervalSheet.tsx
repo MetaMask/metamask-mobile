@@ -15,6 +15,7 @@ import type { RecurringIntervalSheetProps } from './RecurringIntervalSheet.types
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { playSelection } from '../../../../../util/haptics';
 
 /** Matches the limit-order expiration sheet, so the new check is visible before close. */
 const RECURRING_INTERVAL_CLOSE_DELAY_MS = 250;
@@ -45,8 +46,9 @@ const RecurringIntervalSheet = ({
 
   const handleSelect = useCallback(
     (unit: RecurringIntervalUnit) => {
-      setSelectedUnit(unit);
-      if (unit !== currentUnit) {
+      if (unit !== selectedUnit) {
+        playSelection().catch(() => undefined);
+        setSelectedUnit(unit);
         onSelect(unit);
       }
       if (closeTimeoutRef.current) {
@@ -57,7 +59,7 @@ const RecurringIntervalSheet = ({
         RECURRING_INTERVAL_CLOSE_DELAY_MS,
       );
     },
-    [closeSheet, currentUnit, onSelect],
+    [closeSheet, onSelect, selectedUnit],
   );
 
   return (

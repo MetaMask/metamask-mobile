@@ -49,6 +49,7 @@ import {
   startRecurringOrderCreateTrace,
 } from '../../utils/recurringOrderTrace';
 import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -130,6 +131,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
     }
 
     isSubmittingRef.current = true;
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     let isAccountUpgraded = false;
     let failurePhase: RecurringOrderCreateFailurePhase = 'account_upgrade';

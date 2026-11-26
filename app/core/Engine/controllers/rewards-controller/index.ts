@@ -42,7 +42,6 @@ export type { RewardsControllerMessenger };
 export type { RewardsControllerGetStateAction } from './types';
 export type {
   RewardsControllerAddPointsEstimateToHistoryAction,
-  RewardsControllerApplyBonusCodeAction,
   RewardsControllerCalculateTierStatusAction,
   RewardsControllerCanChangeRewardsEnvUrlAction,
   RewardsControllerCheckOptInStatusAgainstCacheAction,
@@ -96,5 +95,4 @@ export type {
   RewardsControllerSetRewardsEnvUrlAction,
   RewardsControllerShouldSkipSilentAuthAction,
   RewardsControllerSignRewardsMessageAction,
-  RewardsControllerValidateBonusCodeAction,
 } from './RewardsController-method-action-types';
