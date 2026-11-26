@@ -53,6 +53,21 @@ describe('useRequireSocialProfileOnboarding', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 
+  it('hands the onboarding navigation to runNavigation when one is given', () => {
+    mockLinkedAddress(null);
+    const runNavigation = jest.fn();
+    const { result } = renderHook(() =>
+      useRequireSocialProfileOnboarding({ runNavigation }),
+    );
+
+    const canContinue = result.current.ensureSocialProfileOnboarding();
+
+    expect(canContinue).toBe(false);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    runNavigation.mock.calls[0][0]();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+  });
+
   it('returns true without navigation when a linked wallet exists', () => {
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 

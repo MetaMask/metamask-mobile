@@ -229,7 +229,6 @@ describe('TrendingView', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade,
-        requireSocialProfile: true,
         testID: 'trending-content',
         scrollTestID: 'trending-scroll',
       }),

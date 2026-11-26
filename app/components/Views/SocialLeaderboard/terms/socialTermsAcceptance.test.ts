@@ -134,6 +134,19 @@ describe('socialTermsAcceptance', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
     });
 
+    it('opens profile onboarding through runNavigation when one is given', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+      const runNavigation = jest.fn();
+
+      expect(
+        ensureSocialTermsAccepted(navigate, undefined, runNavigation),
+      ).toBe(false);
+      expect(navigate).not.toHaveBeenCalled();
+      runNavigation.mock.calls[0][0]();
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    });
+
     it('records the current version and skips the sheet when a profile exists and nothing is stored', () => {
       mockGetItemSync.mockReturnValue(null);
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({

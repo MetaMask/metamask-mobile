@@ -212,7 +212,6 @@ describe('FollowingView', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade,
-        requireSocialProfile: true,
         testID: 'following-content',
         scrollTestID: 'following-scroll',
       }),
