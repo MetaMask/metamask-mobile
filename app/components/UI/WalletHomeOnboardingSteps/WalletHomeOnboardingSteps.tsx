@@ -884,40 +884,55 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             gap={3}
             twClassName="w-full"
           >
-            <ButtonGlass
-              isGlass={isGlass}
-              size={ButtonSize.Lg}
-              onPress={fundStepReceivePress ?? (() => goNextOrComplete())}
-              twClassName="min-w-0 flex-1"
-              containerStyle={tw.style('min-w-0 flex-1')}
-              isDisabled={
-                isStepTransitioning ||
-                isBalanceShellVisible ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={
-                fundStepReceivePress
-                  ? WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON
-                  : WalletHomeOnboardingStepsSelectors.SKIP_BUTTON
-              }
+            {/*
+              Equal slots own the 50/50 split. The glass wrapper and the plain button differ
+              in padding and node type, so sizing the buttons directly made the row unequal
+              in glass mode and reflow when glass resolved after the first frame.
+            */}
+            <View
+              style={tw.style('flex-1 min-w-0')}
+              testID={`${testID}-${WalletHomeOnboardingStepsSelectors.SECONDARY_BUTTON_SLOT}`}
             >
-              {fundStepReceivePress
-                ? strings('asset_overview.receive_button')
-                : strings('wallet.home_onboarding_steps.skip')}
-            </ButtonGlass>
-            <Button
-              size={ButtonSize.Lg}
-              onPress={handlePrimaryPress}
-              twClassName="min-w-0 flex-1"
-              isDisabled={
-                isStepTransitioning ||
-                isBalanceShellVisible ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={primaryTestID}
+              <ButtonGlass
+                isGlass={isGlass}
+                size={ButtonSize.Lg}
+                onPress={fundStepReceivePress ?? (() => goNextOrComplete())}
+                isFullWidth
+                containerStyle={tw.style('w-full')}
+                isDisabled={
+                  isStepTransitioning ||
+                  isBalanceShellVisible ||
+                  isAwaitingDeferredNavResumeHold
+                }
+                testID={
+                  fundStepReceivePress
+                    ? WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON
+                    : WalletHomeOnboardingStepsSelectors.SKIP_BUTTON
+                }
+              >
+                {fundStepReceivePress
+                  ? strings('asset_overview.receive_button')
+                  : strings('wallet.home_onboarding_steps.skip')}
+              </ButtonGlass>
+            </View>
+            <View
+              style={tw.style('flex-1 min-w-0')}
+              testID={`${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON_SLOT}`}
             >
-              {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
-            </Button>
+              <Button
+                size={ButtonSize.Lg}
+                onPress={handlePrimaryPress}
+                isFullWidth
+                isDisabled={
+                  isStepTransitioning ||
+                  isBalanceShellVisible ||
+                  isAwaitingDeferredNavResumeHold
+                }
+                testID={primaryTestID}
+              >
+                {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
+              </Button>
+            </View>
           </Box>
         )}
       </Box>
