@@ -84,7 +84,9 @@ const Pna25BottomSheet = () => {
   };
 
   const handleLearnMore = () => {
-    void Linking.openURL('https://metamask.io/news/updating-metamask-analytics');
+    void Linking.openURL(
+      'https://metamask.io/news/updating-metamask-analytics',
+    );
   };
 
   // Track bottom sheet display
