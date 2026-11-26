@@ -189,6 +189,24 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
 
       expect(result.current?.address).toBe('0xusdc');
     });
+
+    it('returns null when the stream reports no value and the account has not loaded', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: false,
+        isUnavailable: true,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: null,
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current).toBeNull();
+    });
   });
 
   it('returns null when available perps balance is above threshold', () => {

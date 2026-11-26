@@ -56,6 +56,15 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
     if (!featureEnabled || isAvailableToTradeLoading) {
       return null;
     }
+    // After a stream error the market ticket waits for the account: a token
+    // applied now would stick after the real balance arrives.
+    if (
+      symbol &&
+      venueAvailableToTrade === undefined &&
+      perpsAccount?.spendableBalance == null
+    ) {
+      return null;
+    }
     const perpsBalance =
       venueAvailableToTrade ??
       Number.parseFloat(perpsAccount?.spendableBalance?.toString() ?? '0');
@@ -107,6 +116,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
     };
   }, [
     featureEnabled,
+    symbol,
     isAvailableToTradeLoading,
     venueAvailableToTrade,
     perpsAccount?.spendableBalance,
