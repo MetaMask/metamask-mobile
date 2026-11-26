@@ -10,7 +10,7 @@ import {
   SLOW_CONNECTION_MAX_RETRIES,
   SLOW_CONNECTION_POLL_FACTOR,
 } from './constants';
-import { HttpError, InvalidResponseError } from './errors';
+import { HttpError, InvalidResponseError, NetworkTimeoutError } from './errors';
 
 // Read when called, so a connection change does not need a re-render.
 function isSlowConnection(): boolean {
@@ -34,11 +34,16 @@ export function resolveGcTime(): number {
 
 /**
  * Same request, same answer: client errors (except 408/429) and invalid
- * bodies are not retried. Otherwise two retries, one on a slow connection.
+ * bodies are not retried. Timeouts get one retry at most and none on slow links.
+ * Other transient failures get two retries, or one on slow links.
  */
 export function shouldRetry(failureCount: number, error: Error): boolean {
   if (!isRetryable(error)) return false;
-  if (isSlowConnection()) return failureCount < SLOW_CONNECTION_MAX_RETRIES;
+  const slowConnection = isSlowConnection();
+  if (error instanceof NetworkTimeoutError) {
+    return !slowConnection && failureCount === 0;
+  }
+  if (slowConnection) return failureCount < SLOW_CONNECTION_MAX_RETRIES;
   return failureCount < MAX_RETRIES;
 }
 

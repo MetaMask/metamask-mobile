@@ -10,7 +10,9 @@ import {
   getLatencyThresholds,
 } from '../../util/deviceCapability/latencyStore';
 import { HttpError, InvalidResponseError, NetworkTimeoutError } from './errors';
-import type { NetworkQueryOptions } from './types';
+import StorageWrapper from '../../store/storage-wrapper';
+import { CACHE_KEY_PREFIX } from './constants';
+import { NetworkCache, type NetworkQueryOptions } from './types';
 import { useNetworkQuery } from './useNetworkQuery';
 
 jest.mock('../../util/deviceCapability', () => ({
@@ -122,6 +124,91 @@ describe('useNetworkQuery', () => {
     });
   });
 
+  describe('cache', () => {
+    const STORAGE_KEY = `${CACHE_KEY_PREFIX}${JSON.stringify(queryKey)}`;
+
+    function givenSaved(body: unknown, ageMs: number): void {
+      jest
+        .mocked(StorageWrapper.getItemSync)
+        .mockReturnValue(JSON.stringify({ savedAt: Date.now() - ageMs, body }));
+    }
+
+    beforeEach(() => {
+      jest.mocked(StorageWrapper.getItemSync).mockReturnValue(null);
+      jest.mocked(StorageWrapper.setItem).mockResolvedValue(undefined);
+      jest.mocked(StorageWrapper.removeItem).mockResolvedValue(undefined);
+    });
+
+    it('does not read or write the device by default', async () => {
+      respondWith(42);
+
+      const { result } = renderQuery();
+
+      await waitFor(() => expect(result.current.data).toBe(42));
+      expect(StorageWrapper.getItemSync).not.toHaveBeenCalled();
+      expect(StorageWrapper.setItem).not.toHaveBeenCalled();
+    });
+
+    it('saves a validated response', async () => {
+      respondWith(42);
+
+      const { result } = renderQuery({ cache: NetworkCache.SHORT });
+
+      await waitFor(() => expect(result.current.data).toBe(42));
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        STORAGE_KEY,
+        expect.stringMatching(/^\{"savedAt":\d+,"body":42\}$/),
+        { emitEvent: false },
+      );
+    });
+
+    it('does not save a body that fails parse', async () => {
+      respondWith('not a number');
+
+      const { result } = renderQuery({ cache: NetworkCache.SHORT });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(StorageWrapper.setItem).not.toHaveBeenCalled();
+    });
+
+    it('shows a fresh saved response with no request', async () => {
+      givenSaved(7, 1_000);
+      respondWith(42);
+
+      const { result } = renderQuery({
+        cache: NetworkCache.SHORT,
+        staleTime: 60_000,
+      });
+
+      expect(result.current.data).toBe(7);
+      expect(result.current.isLoading).toBe(false);
+      await act(async () => jest.advanceTimersByTimeAsync(1_000));
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('shows an older saved response while it refetches', async () => {
+      givenSaved(7, 1_000);
+      respondWith(42);
+
+      const { result } = renderQuery({ cache: NetworkCache.SHORT });
+
+      expect(result.current.data).toBe(7);
+      await waitFor(() => expect(result.current.data).toBe(42));
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a saved response that no longer passes parse', async () => {
+      givenSaved('stale shape', 1_000);
+      respondWith(42);
+
+      const { result } = renderQuery({ cache: NetworkCache.SHORT });
+
+      expect(result.current.data).toBeUndefined();
+      await waitFor(() => expect(result.current.data).toBe(42));
+      expect(StorageWrapper.removeItem).toHaveBeenCalledWith(STORAGE_KEY);
+    });
+  });
+
   describe('retries', () => {
     it.each([
       ['a fast connection', 3, 'WIFI', 'OK'],
@@ -223,18 +310,45 @@ describe('useNetworkQuery', () => {
       expect(signals[0].aborted).toBe(true);
     });
 
-    it('fails with NetworkTimeoutError when the request ignores the abort', async () => {
-      givenDevice('HIGH', 'SLOW_CELLULAR');
-      stallRequests();
+    it.each([
+      ['normal', 2, 'WIFI', 'OK'],
+      ['unknown', 2, null, 'UNKNOWN'],
+      ['slow cellular', 1, 'SLOW_CELLULAR', 'UNKNOWN'],
+      ['slow measured latency', 1, 'WIFI', 'SLOW'],
+    ] as const)(
+      'ends a stalled request on %s with NetworkTimeoutError after %i attempts',
+      async (_, attempts, network, latency) => {
+        givenDevice('HIGH', network, latency);
+        stallRequests();
 
-      const { result } = renderQuery();
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2 * HUNG_MS);
+        const { result } = renderQuery();
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(attempts * HUNG_MS);
+        });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(result.current.error).toBeInstanceOf(NetworkTimeoutError);
+        expect(fetch).toHaveBeenCalledTimes(attempts);
+      },
+    );
+
+    it('gives the fetch latency sampler a full hung threshold before aborting', async () => {
+      let elapsedMsAtAbort: number | undefined;
+      jest.mocked(fetch).mockImplementation(async (_url, init) => {
+        // The fetch wrapper starts sampling after its synchronous setup.
+        jest.advanceTimersByTime(2);
+        const sampleStart = performance.now();
+        init?.signal?.addEventListener('abort', () => {
+          elapsedMsAtAbort = performance.now() - sampleStart;
+        });
+        return new Promise<Response>(() => undefined);
       });
 
-      await waitFor(() => expect(result.current.isError).toBe(true));
-      expect(result.current.error).toBeInstanceOf(NetworkTimeoutError);
-      expect(fetch).toHaveBeenCalledTimes(2);
+      renderQuery();
+      await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+      await act(async () => jest.advanceTimersByTimeAsync(HUNG_MS));
+
+      expect(elapsedMsAtAbort).toBe(HUNG_MS);
     });
 
     it('aborts the request when the query is cancelled', async () => {
