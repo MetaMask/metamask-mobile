@@ -22,6 +22,13 @@ const mockState = {
 };
 const mockCreateClient = jest.fn(() => ({ getStatus: jest.fn() }));
 const mockUseOnboarding = jest.fn();
+let mockDestination: {
+  status: string;
+  mode?: { kind: string; address?: string; network: string };
+  reason?: string;
+};
+let mockAccounts: unknown[];
+let mockSelectedAddress: string | undefined;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
@@ -36,7 +43,8 @@ jest.mock('../../../../selectors/keyringController', () => ({
   selectIsUnlocked: () => mockState.unlocked,
 }));
 jest.mock('../../../../selectors/accountsController', () => ({
-  selectEvmAddress: () => '0x44934055428d2eF7E3F97D98187f2459007fa49F',
+  selectInternalEvmAccounts: () => mockAccounts,
+  selectEvmAddress: () => mockSelectedAddress,
 }));
 jest.mock('../config/predictConfig', () => ({
   resolveVenueAuthProfile: () => mockState.authProfile,
@@ -57,11 +65,18 @@ jest.mock('./internal/createKalshiOnboardingClient', () => ({
 jest.mock('./internal/useKalshiDemoOnboarding', () => ({
   useKalshiDemoOnboarding: (options: unknown) => mockUseOnboarding(options),
 }));
+jest.mock('./internal/useKalshiPayoutDestinationMode', () => ({
+  useKalshiPayoutDestinationMode: () => mockDestination,
+}));
 jest.mock('./internal/KalshiDemoOnboardingModal', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const { Text } = jest.requireActual('react-native');
   return {
-    KalshiDemoOnboardingModal: () => <Text testID="demo-modal">modal</Text>,
+    KalshiDemoOnboardingModal: ({
+      walletAddress,
+    }: {
+      walletAddress?: string;
+    }) => <Text testID="demo-modal">{walletAddress ?? 'no-address'}</Text>,
   };
 });
 
@@ -83,6 +98,16 @@ describe('KalshiDemoOnboardingGate', () => {
     mockState.signedIn = true;
     mockState.unlocked = true;
     mockState.authProfile = { id: 'kalshi-a2t-v1' };
+    mockDestination = {
+      status: 'ready',
+      mode: {
+        kind: 'demo',
+        address: '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c',
+        network: 'base',
+      },
+    };
+    mockAccounts = [];
+    mockSelectedAddress = undefined;
     mockUseOnboarding.mockReturnValue({ state: { step: 'link' } });
   });
 
@@ -92,6 +117,38 @@ describe('KalshiDemoOnboardingGate', () => {
     expect(view.getByTestId('child')).toBeOnTheScreen();
     expect(view.getByTestId('demo-modal')).toBeOnTheScreen();
     expect(mockCreateClient).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults the production destination to the selected account', () => {
+    const address = '0x2f318c334780961fb129d2a6c30d0763d9a5c970';
+    mockDestination = {
+      status: 'ready',
+      mode: { kind: 'production', network: 'base' },
+    };
+    mockAccounts = [{ address, metadata: { name: 'Account 3' } }];
+    mockSelectedAddress = address;
+
+    const view = renderGate();
+
+    expect(
+      view.getByText('0x2f318C334780961FB129D2a6c30D0763d9a5C970'),
+    ).toBeOnTheScreen();
+  });
+  it('stays closed when the catalog has no environment', () => {
+    mockDestination = { status: 'unavailable', reason: 'missing_environment' };
+    const view = renderGate();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
+    expect(mockUseOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('stays closed in production without an EVM account', () => {
+    mockDestination = {
+      status: 'ready',
+      mode: { kind: 'production', network: 'base' },
+    };
+    const view = renderGate();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
+    expect(mockUseOnboarding).not.toHaveBeenCalled();
   });
 
   it('stays closed when the remote configuration selects no venue auth profile', () => {

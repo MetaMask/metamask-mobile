@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a Max button for native TRX sends that asks the Tron Snap for the largest amount that still leaves room for network fees
 - Added Gold and Silver 15-minute Up/Down markets under a 15m filter on the Predict Finance feed (#40313)
+- Predict Kalshi onboarding now sends production withdrawals to the account currently selected in MetaMask
 
 ### Fixed
 

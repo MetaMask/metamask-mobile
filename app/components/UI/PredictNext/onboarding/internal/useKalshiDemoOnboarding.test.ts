@@ -88,6 +88,50 @@ describe('createOnboardingController', () => {
     jest.useRealTimers();
   });
 
+  it('pins the confirmed destination and key across activation retries', async () => {
+    let address: string | undefined;
+    let network: 'base' | 'polygon' = 'base';
+    client.activate.mockRejectedValueOnce(
+      new KalshiOnboardingHttpError(503, 'onboarding_unavailable'),
+    );
+    const controller = createOnboardingController(
+      () => ({
+        client,
+        walletAddress: address,
+        network,
+        pollIntervalMs: 0,
+        onActivated: jest.fn(),
+        newKey: () => 'pinned-key',
+        now: () => {
+          clock += 10000;
+          return clock;
+        },
+      }),
+      (event) => events.push(event),
+    );
+    controller.activate();
+    expect(client.activate).not.toHaveBeenCalled();
+    address = WALLET;
+    controller.activate();
+    await flush();
+    address = '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c';
+    network = 'polygon';
+    controller.retry();
+    await flush();
+    expect(client.activate).toHaveBeenNthCalledWith(
+      1,
+      WALLET,
+      'base',
+      'pinned-key',
+    );
+    expect(client.activate).toHaveBeenNthCalledWith(
+      2,
+      WALLET,
+      'base',
+      'pinned-key',
+    );
+  });
+
   it('reuses the intent and link keys when the same email action is retried', async () => {
     client.submitEmail
       .mockRejectedValueOnce(

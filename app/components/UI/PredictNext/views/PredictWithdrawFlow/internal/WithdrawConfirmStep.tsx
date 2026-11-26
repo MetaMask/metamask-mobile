@@ -40,8 +40,8 @@ export const withdrawAmountValue = (preview: PredictWithdrawPreview): string =>
 /**
  * Confirmation step: exactly what the Commit will move, and where. The
  * destination is venue-owned and read-only — this client cannot set one — and
- * the sandbox notice says so when the address is the demo wallet registered
- * at setup rather than a binding the Venue reported.
+ * the notice covers both: the sandbox notice for the demo wallet registered
+ * at setup, neutral copy for the wallet registered during production setup.
  */
 export const WithdrawConfirmStep = ({
   preview,
@@ -117,6 +117,15 @@ export const WithdrawConfirmStep = ({
         description={strings('predict_next.withdraw.sandbox_notice.body')}
         testID={PredictWithdrawFlowTestIds.SANDBOX_NOTICE}
       />
+    ) : null}
+    {preview.destination.source === 'registered' ? (
+      <Text
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        testID={PredictWithdrawFlowTestIds.REGISTERED_DESTINATION_NOTICE}
+      >
+        {strings('predict_next.withdraw.registered_notice')}
+      </Text>
     ) : null}
   </Box>
 );

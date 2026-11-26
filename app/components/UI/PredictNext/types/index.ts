@@ -580,9 +580,13 @@ export type PredictWithdrawMode = 'fixed' | 'sweep_all';
 export type PredictWithdrawNetwork = 'base';
 
 /** Where the payout destination came from: the sandbox wallet this client
- * registered during demo setup, or a binding the Venue itself reported. A
+ * registered during demo setup, the wallet the user registered with the
+ * venue during production setup, or a binding the Venue itself reported. A
  * destination is always read-only; the phone never supplies one. */
-export type PredictWithdrawDestinationSource = 'configured_demo' | 'venue';
+export type PredictWithdrawDestinationSource =
+  | 'configured_demo'
+  | 'venue'
+  | 'registered';
 
 export interface PredictWithdrawDestination {
   address: string;

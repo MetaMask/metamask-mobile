@@ -18,6 +18,7 @@ import type { KalshiMfaChallenge } from '../../contracts/v1/onboarding';
 import type { OnboardingMessage } from './kalshiDemoOnboardingMachine';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
+import type { KalshiPayoutDestinationMode } from './kalshiPayoutDestination';
 
 /** Literal error copy. Temporary slice: no locale entries. */
 const MESSAGES: Record<OnboardingMessage, string> = {
@@ -53,10 +54,18 @@ const mfaTitle = (mfa: KalshiMfaChallenge | undefined): string => {
   }
 };
 
+/** A wallet account that can receive Kalshi withdrawals. */
+export interface KalshiPayoutAccount {
+  address: string;
+  name: string;
+}
+
 interface KalshiDemoOnboardingModalProps {
   onboarding: KalshiDemoOnboarding;
   walletAddress?: string;
   network: string;
+  mode: KalshiPayoutDestinationMode;
+  account?: KalshiPayoutAccount;
 }
 
 /** Disables the buttons for `Retry-After` seconds after a rate limit. */
@@ -83,6 +92,8 @@ export const KalshiDemoOnboardingModal = ({
   onboarding,
   walletAddress,
   network,
+  mode,
+  account,
 }: KalshiDemoOnboardingModalProps) => {
   const { state } = onboarding;
   const [email, setEmail] = useState('');
@@ -109,7 +120,7 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <>
             <Text variant={TextVariant.HeadingSm}>
-              Link a Kalshi demo account
+              Link a Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account
             </Text>
             <TextField
               value={email}
@@ -128,8 +139,8 @@ export const KalshiDemoOnboardingModal = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Use your own Kalshi demo account. Linking moves it from any other
-              MetaMask profile.
+              Use your own Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account.
+              Linking moves it from any other MetaMask profile.
             </Text>
             {message}
             <Button
@@ -242,7 +253,8 @@ export const KalshiDemoOnboardingModal = ({
           <Box twClassName="items-center gap-3 py-6" testID={TestIds.WORKING}>
             <ActivityIndicator />
             <Text variant={TextVariant.BodyMd}>
-              Setting up your Kalshi demo account…
+              Setting up your Kalshi {mode.kind === 'demo' ? 'demo ' : ''}
+              account…
             </Text>
           </Box>
         );
@@ -250,6 +262,11 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <>
             <Text variant={TextVariant.HeadingSm}>Withdrawal wallet</Text>
+            {mode.kind === 'production' && account ? (
+              <Text variant={TextVariant.BodyMd} testID={TestIds.WALLET_NAME}>
+                {account.name}
+              </Text>
+            ) : null}
             {walletAddress ? (
               <Text
                 variant={TextVariant.BodyMd}
@@ -270,7 +287,10 @@ export const KalshiDemoOnboardingModal = ({
               isFullWidth
               isLoading={state.busy}
               isDisabled={disabled || !walletAddress}
-              onPress={onboarding.activate}
+              onPress={() => {
+                setActivationStarted(true);
+                onboarding.activate();
+              }}
               testID={TestIds.ACTIVATE}
             >
               Activate
@@ -281,7 +301,8 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <>
             <Text variant={TextVariant.BodyMd} testID={TestIds.DONE}>
-              Your Kalshi demo account is linked.
+              Your Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account is
+              linked.
             </Text>
             <Button
               variant={ButtonVariant.Primary}

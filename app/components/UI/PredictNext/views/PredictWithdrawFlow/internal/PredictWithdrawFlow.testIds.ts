@@ -17,6 +17,7 @@ export const PredictWithdrawFlowTestIds = {
   FEE: 'predict-withdraw-fee',
   EXPIRY: 'predict-withdraw-expiry',
   SANDBOX_NOTICE: 'predict-withdraw-sandbox-notice',
+  REGISTERED_DESTINATION_NOTICE: 'predict-withdraw-registered-notice',
   SUBMITTING: 'predict-withdraw-submitting',
   STATUS: 'predict-withdraw-status',
   STATUS_AMOUNT: 'predict-withdraw-status-amount',
