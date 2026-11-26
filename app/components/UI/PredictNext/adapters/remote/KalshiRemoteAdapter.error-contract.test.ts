@@ -16,6 +16,8 @@ import {
   VenueReadBudgetExhaustedError,
   VenueSigningUnavailableError,
 } from './signedVenueCall';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
+import { setVenueProfileResolverForTesting } from '../../auth/venueSigningProfiles';
 
 // Deliberate consumer decisions, not a second emitted-code inventory: the API
 // artifact supplies every case, and an unrecognized addition fails this table.
@@ -205,6 +207,11 @@ const cases = Object.entries(contract.codes).flatMap(([code, definition]) =>
 );
 
 describe('API emitted error contract at the mobile adapter boundary', () => {
+  beforeEach(() => {
+    installVenueProfileFixture();
+  });
+  afterEach(() => setVenueProfileResolverForTesting(undefined));
+
   it.each(cases)(
     '$phase maps $code on $route',
     async ({ code, phase, definition, depositCall }) => {

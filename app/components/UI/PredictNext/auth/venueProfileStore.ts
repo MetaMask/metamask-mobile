@@ -1,4 +1,5 @@
 import StorageWrapper from '../../../../store/storage-wrapper';
+import { VENUE_PROFILE_REGISTRY_URL } from './venueProfileRegistryUrl';
 
 /** Persisted cache for one Predict cluster and profile id. */
 export interface PersistedVenueProfiles {
@@ -49,29 +50,35 @@ const parseFloor = (value: unknown): number =>
     : 0;
 
 /**
- * MMKV-backed cache of raw registry bytes and the admitted floor. It holds
- * no secrets: revocations and profiles are public and already in the bundle.
+ * MMKV-backed cache of raw registry bytes and the admitted floor. Overrides
+ * are memory-only so local registry state cannot replace the official cache.
  */
 export class VenueProfileStore {
-  readonly #storage: VenueProfileStorage;
+  readonly #storage: VenueProfileStorage | undefined;
   readonly #environment: 'dev' | 'uat';
   readonly #profileId: string;
 
   constructor({
     environment,
     profileId,
+    registryUrl = VENUE_PROFILE_REGISTRY_URL,
     storage = StorageWrapper,
   }: {
     environment: 'dev' | 'uat';
     profileId: string;
+    registryUrl?: string;
     storage?: VenueProfileStorage;
   }) {
-    this.#storage = storage;
+    this.#storage =
+      registryUrl === VENUE_PROFILE_REGISTRY_URL ? storage : undefined;
     this.#environment = environment;
     this.#profileId = profileId;
   }
 
   async load(): Promise<PersistedVenueProfiles | undefined> {
+    if (!this.#storage) {
+      return undefined;
+    }
     let raw: string | null;
     try {
       raw = await this.#storage.getItem(this.#key());
@@ -111,6 +118,9 @@ export class VenueProfileStore {
   }
 
   async save(value: PersistedVenueProfiles): Promise<void> {
+    if (!this.#storage) {
+      return;
+    }
     try {
       await this.#storage.setItem(this.#key(), JSON.stringify(value));
     } catch {
@@ -119,6 +129,9 @@ export class VenueProfileStore {
   }
 
   async clear(): Promise<void> {
+    if (!this.#storage) {
+      return;
+    }
     try {
       await this.#storage.removeItem(this.#key());
     } catch {

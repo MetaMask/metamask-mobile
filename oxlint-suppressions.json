@@ -9571,11 +9571,6 @@
       "count": 2
     }
   },
-  "app/components/UI/PredictNext/services/PredictDeviceAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 7
-    }
-  },
   "app/components/UI/PredictNext/services/PredictDeviceAuthService.ts": {
     "typescript/promise-function-async": {
       "count": 3

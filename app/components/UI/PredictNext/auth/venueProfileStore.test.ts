@@ -5,6 +5,11 @@ import {
   type PersistedVenueProfiles,
   type VenueProfileStorage,
 } from './venueProfileStore';
+import {
+  TEST_VENUE_PROFILE_RAW,
+  TEST_VENUE_REVOKED_RAW,
+} from '../../../../../tests/fixtures/predict/venueProfiles';
+import { VENUE_PROFILE_REGISTRY_URL } from './venueProfileRegistryUrl';
 
 const PROFILE_ID = 'kalshi-demo-signing';
 const KEY = 'predict.venue-profiles.dev.kalshi-demo-signing';
@@ -42,11 +47,11 @@ describe('venueProfileStore', () => {
   it('round-trips a saved snapshot', async () => {
     const storage = memoryStorage();
     const saved: PersistedVenueProfiles = {
-      targetVersion: 2,
-      revokedRaw: '{"revokedVersions":[3]}',
+      targetVersion: 1,
+      revokedRaw: TEST_VENUE_REVOKED_RAW,
       revokedEtag: '"revoked"',
-      profiles: { '1': '{"version":1}', '2': '{"version":2}' },
-      floor: 2,
+      profiles: { '1': TEST_VENUE_PROFILE_RAW },
+      floor: 1,
       fetchedAt: 1_700_000_000,
     };
 
@@ -113,5 +118,41 @@ describe('venueProfileStore', () => {
 
     expect(storage.removeItem).toHaveBeenCalledWith(KEY);
     expect(storage.value()).toBeNull();
+  });
+
+  it('does not read, write or clear official storage for an override URL', async () => {
+    const storage = memoryStorage('official cache');
+    const store = new VenueProfileStore({
+      environment: 'dev',
+      profileId: PROFILE_ID,
+      registryUrl: 'http://localhost:8787/profiles',
+      storage,
+    });
+
+    await expect(store.load()).resolves.toBeUndefined();
+    await store.save(emptyVenueProfiles());
+    await store.clear();
+
+    expect(storage.getItem).not.toHaveBeenCalled();
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expect(storage.removeItem).not.toHaveBeenCalled();
+    expect(storage.value()).toBe('official cache');
+  });
+
+  it('persists when an explicit URL exactly matches the official registry', async () => {
+    const storage = memoryStorage();
+    const store = new VenueProfileStore({
+      environment: 'dev',
+      profileId: PROFILE_ID,
+      registryUrl: VENUE_PROFILE_REGISTRY_URL,
+      storage,
+    });
+
+    await store.save(emptyVenueProfiles());
+
+    expect(storage.setItem).toHaveBeenCalledWith(
+      KEY,
+      JSON.stringify(emptyVenueProfiles()),
+    );
   });
 });

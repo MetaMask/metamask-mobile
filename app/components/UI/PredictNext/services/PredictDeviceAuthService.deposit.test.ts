@@ -8,7 +8,6 @@ import {
 } from './PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
 import {
-  resetVenueProfile,
   setVenueProfileResolverForTesting,
   VenueProfileResolver,
   venueProfileSha256,
@@ -18,9 +17,10 @@ import { RemoteVenueProfileClient } from '../auth/RemoteVenueProfileClient';
 import { VenueProfileStore } from '../auth/venueProfileStore';
 import { VENUE_PROFILE_REGISTRY_URL } from '../auth/venueProfileRegistryUrl';
 import {
-  BUNDLED_REVOKED_RAW,
-  BUNDLED_V1_RAW,
-} from '../auth/venue-profiles/kalshi-demo-signing.raw';
+  TEST_VENUE_REVOKED_RAW,
+  TEST_VENUE_PROFILE_RAW,
+} from '../../../../../tests/fixtures/predict/venueProfiles';
+import { installVenueProfileFixture } from '../../../../../tests/helpers/predict/venueProfile';
 import { kalshiDepositSigningInputs } from '../adapters/remote/kalshiDepositSigning';
 import type { PredictAmount } from '../types';
 import envelope from '../contracts/v1/fixtures/funding-contract/deposit-envelope.json';
@@ -162,8 +162,7 @@ beforeEach(() => {
     ledger = null;
     return true;
   });
-  setVenueProfileResolverForTesting(undefined);
-  resetVenueProfile();
+  installVenueProfileFixture();
   jest.requireMock('uuid').v4.mockReturnValue(envelope.requestId);
   mockEnsureA2t.mockResolvedValue(envelope.a2t);
   mockDeviceKey.ensure.mockResolvedValue(DEVICE);
@@ -176,6 +175,8 @@ beforeEach(() => {
         .toBytes('compact'),
     );
 });
+
+afterEach(() => setVenueProfileResolverForTesting(undefined));
 
 describe('funding.deposit signing', () => {
   it('produces the backend envelope byte for byte', async () => {
@@ -203,7 +204,7 @@ describe('funding.deposit signing', () => {
   });
 
   it('signs under a profile adopted from the registry', async () => {
-    const remote = BUNDLED_V1_RAW;
+    const remote = TEST_VENUE_PROFILE_RAW;
     const respond = (body: string): Response =>
       ({
         ok: true,
@@ -212,7 +213,7 @@ describe('funding.deposit signing', () => {
         arrayBuffer: async () => new TextEncoder().encode(body).buffer,
       }) as unknown as Response;
     const fetchMock = jest.fn(async (url: string) =>
-      respond(url.endsWith('/revoked') ? BUNDLED_REVOKED_RAW : remote),
+      respond(url.endsWith('/revoked') ? TEST_VENUE_REVOKED_RAW : remote),
     );
     const resolver = new VenueProfileResolver({
       getSigningProfile: async () => ({ id: VENUE_PROFILE_ID, version: 1 }),
@@ -230,8 +231,6 @@ describe('funding.deposit signing', () => {
           removeItem: async () => undefined,
         },
       }),
-      bundledRevokedRaw: BUNDLED_REVOKED_RAW,
-      bundledProfiles: {},
     });
     setVenueProfileResolverForTesting(resolver);
     await resolver.refresh();

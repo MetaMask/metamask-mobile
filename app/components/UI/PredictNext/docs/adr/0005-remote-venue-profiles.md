@@ -1,7 +1,7 @@
 # Remote venue profiles: readable JSON in the registry, exact bytes pinned by hash
 
 Status: accepted, 2026-11-20; amended for per-environment venue profiles,
-2026-11-23. Supersedes the signed-document and bundled-copy
+2026-11-23, and registry-only signing profiles, 2026-11-26. Supersedes the signed-document and bundled-copy
 parts of [ADR-0004](./0004-signed-venue-profiles.md). ADR-0004's read/mutation
 model, envelope, invalidity and reconciliation rules stand.
 
@@ -33,14 +33,13 @@ phone's code checks before it signs.
    deploy runs; which one is used is decided by predict-api, not by the
    registry.
 2. **predict-api names the version.** Each environment's workload sets the
-   positive integer `VENUE_PROFILE_VERSION`, capped at 100; when unset,
-   predict-api uses the highest bundled version. `GET
+   positive integer `VENUE_PROFILE_VERSION`, capped at 100. `GET
 /v1/venues/kalshi/signing-profile` is listed in predict-api's public auth
    paths, so a phone can call it without a token; it returns `{id, version}`,
    not profile content or revocations. At boot and every 15 minutes
    predict-api reads `revoked` and published profile files up to the
-   configured version, four at a time, keeping its last good snapshot (or its
-   bundled byte copies) when the revocation list or a read fails. A missing
+   configured version, four at a time, keeping its last good snapshot
+   when the revocation list or a read fails. A missing
    version is skipped; a single malformed version is logged and skipped
    without discarding the versions that parsed. It accepts any published,
    non-revoked version at or below the configured one. A version above it gets
@@ -54,12 +53,16 @@ phone's code checks before it signs.
    registry. It validates the profile and its id and version, applies the build
    ceiling, checks revocation and the stored floor, and signs with a pinned
    snapshot carrying `profile.{id,version,sha256}`. It raises the floor after
-   admitting a version. For both the target version and bytes, the fallback is
-   the last predict-api answer and downloads, then the persisted cache, then
-   bundled `v1.json` and `revoked.json`. When the target cannot be downloaded
-   or is refused, the phone keeps signing with the last admitted version. A
-   revocation list that drops a version the phone already saw as revoked is
-   ignored. A target below the stored floor is ignored and logged
+   admitting a version. The fallback is the last predict-api answer and
+   downloaded bytes, including the persisted cache. No signing profile or
+   empty revocation list is bundled. When the target cannot be downloaded
+   or is refused, the phone keeps signing with the last admitted version,
+   provided it remains eligible. On first use, buy sizing and confirmation
+   review acquire a profile within a ten-second deadline. Without a valid
+   profile and revocation list, signed actions are unavailable; unsigned
+   browsing remains available. A revocation list that drops a version the
+   phone already saw as revoked is ignored. A target below the stored floor
+   is ignored and logged
    (`profile_below_floor`): the phone never moves back, so it keeps its
    previous target and the version it last used, and the floor is only raised.
    A cached revocation `ETag` is discarded when the cached list is not
@@ -70,10 +73,14 @@ phone's code checks before it signs.
    `https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles`.
    Public paths are extensionless (`<id>/v<N>`, `<id>/revoked`); the Worker
    maps them to the `.json` objects in R2 and serves the same bytes. Nothing from predict-api,
-   remote config or a profile can change the phone's URL. The phone reads the
-   registry and predict-api only when it resolves a dev or uat Predict
-   cluster; any other build uses bundled version 1 alone. The mobile cache and
-   floor are keyed by predict cluster and profile id.
+   remote config or a profile can change the phone's URL. A build-time
+   `MM_VENUE_PROFILES_URL` override remains available for development and
+   uses non-persistent state when it differs from the official registry.
+   Without an override, remote reads require a dev or uat Predict cluster;
+   other builds have no signing profile. The official mobile cache and floor
+   remain keyed by Predict cluster and profile id. Previously validated
+   persisted bytes remain usable; removing the bundle does not reset floors
+   or revocation history.
 5. **The exact bytes are the required hash identity.** The phone always sends
    `profile.sha256`, an unpadded base64url SHA-256 of the profile bytes.
    predict-api rejects a missing or mismatched hash as
@@ -85,9 +92,12 @@ phone's code checks before it signs.
    unchanged: the phone refreshes on entry and foreground after 15 minutes
    (skipped only on a known offline network tier), once after a
    `venue_profile_*` refusal before retrying once, and once when no version is
-   admitted at signing time. The target lookup and the post-refusal refresh
-   each stop after 10 seconds: a hung registry call must not hold the
-   confirmation screen or turn into a second send.
+   admitted at signing time. First-use acquisition and post-refusal refresh
+   each stop after ten seconds. A profile change never bypasses the reviewed
+   version/hash pin. If renewed signing cannot proceed before another request
+   is sent, the original refusal and its mutation outcome are preserved.
+   In-flight signing checks the captured profile's eligibility before crypto
+   and before returning an envelope, so a learned revocation fences it.
 
 Logs contain reason codes only, never bodies, envelopes or signatures.
 
@@ -98,8 +108,9 @@ Logs contain reason codes only, never bodies, envelopes or signatures.
 - **Fetch the profile through predict-api.** The API that requests signatures
   must not choose or serve the content the phone signs under. Profile content
   and revocations never travel through predict-api.
-- **Fail closed with no bundle.** A cold start offline would make PredictNext
-  unusable even though a known-good copy shipped with the binary.
+- **Keep bundled profile fallback.** The registry is deployed. A local copy
+  would duplicate the published source and hide missing first-use downloads.
+  Previously downloaded, validated bytes remain the outage fallback.
 - **Re-serialize JSON at publish time.** The hash must cover the bytes the
   registry repo reviews, so the pipeline preserves them.
 
@@ -112,7 +123,8 @@ Logs contain reason codes only, never bodies, envelopes or signatures.
   `VENUE_PROFILE_VERSION` below a version phones have used does not move them
   back; predict-api then refuses their version as `venue_profile_not_ready`
   and signing fails until the setting is raised again.
-- Changing the registry URL requires an app release.
+- Changing the default registry URL requires an app release; development can
+  override the base URL without serving fake profiles from predict-api.
 - Registry files are served with `Cache-Control: public, max-age=900`, so a
   revocation can take up to about 30 minutes (cache plus refresh cadence) to
   reach every phone and API pod. Moving the configured version off the

@@ -14,7 +14,7 @@ import type {
   SignRead,
 } from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
 import {
-  loadVenueProfile,
+  validateSigningProfile,
   VENUE_AUTHORIZATION_HEADER,
 } from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
 import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
@@ -36,6 +36,8 @@ import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext
 import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
 import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
 import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
+import { TEST_VENUE_PROFILE_RAW } from '../../fixtures/predict/venueProfiles';
+import { installVenueProfileFixture } from '../../helpers/predict/venueProfile';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -732,13 +734,12 @@ const signRead: SignRead = async ({ method, path, query }) => ({
   value: JSON.stringify({ method, path, query }),
 });
 
-/** Renders one intent from the bundled profile exactly as the Engine
- * signer does, invariant included. */
+/** Renders one intent from the fixture as the Engine signer does. */
 const renderIntent = async (
   operation: string,
   input?: Parameters<SignOperation>[1],
 ) => {
-  const profile = await loadVenueProfile();
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   const intent = profile?.intents.find(({ id }) => id === operation);
   const payloadName = intent?.payloads[0];
   const payload = payloadName && profile?.payloads[payloadName];
@@ -770,10 +771,8 @@ const previewIntent = async (
   operation: string,
   input?: Parameters<SignOperation>[1],
 ) => {
-  const [request, profile] = await Promise.all([
-    renderIntent(operation, input),
-    loadVenueProfile(),
-  ]);
+  const request = await renderIntent(operation, input);
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   if (!request.display) {
     return undefined;
   }
@@ -785,6 +784,7 @@ const previewIntent = async (
 
 /** Installs the Engine rendering seam used by the adapter's review dependency. */
 export const installPredictNextPreviewOperation = (): void => {
+  installVenueProfileFixture();
   (
     Engine.context as unknown as Record<string, unknown>
   ).PredictDeviceAuthService = {
@@ -1236,6 +1236,7 @@ export const configurePredictNextFeeds = ({
   summary?: unknown;
   depositStatus?: unknown;
 } = {}) => {
+  installVenueProfileFixture();
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),

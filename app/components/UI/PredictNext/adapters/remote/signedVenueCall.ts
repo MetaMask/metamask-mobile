@@ -70,9 +70,8 @@ export class VenueSigningUnavailableError extends Error {
 /** A profile refetch in a signing path cannot outlive this. */
 const VENUE_PROFILE_REFRESH_TIMEOUT_MS = 10_000;
 
-/** One refetch, bounded: a hung registry or target request must not hold a
- * user's order open. On timeout the caller reports signing unavailable
- * rather than retrying with a profile the server just refused. */
+/** A hung registry or target request must not hold a user's order open.
+ * On timeout the caller retains any response already received. */
 const refreshProfileOnce = async (requestSent: boolean): Promise<void> => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -161,9 +160,17 @@ export const sendSigned = async <Response>(
   const sign = async (
     signInput: SignOperationInput | undefined,
   ): Promise<SignedOperation> => {
-    let signed: SignedOperation | undefined;
     try {
-      signed = await deps.signOperation(intent, signInput);
+      let signed = await deps.signOperation(intent, signInput);
+      if (!signed && !(await resolveVenueProfile())) {
+        // A missing profile can be fixed by one bounded refresh.
+        await refreshProfileOnce(requestSent);
+        signed = await deps.signOperation(intent, signInput);
+      }
+      if (!signed) {
+        throw new VenueSigningUnavailableError(requestSent);
+      }
+      return signed;
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: venue signing refused', error.rule);
@@ -171,47 +178,35 @@ export const sendSigned = async <Response>(
       }
       throw error;
     }
-    if (!signed) {
-      // No admitted profile is the one refusal a refetch can fix. Locked,
-      // signed-out and disabled sessions resolve to undefined just the same;
-      // one refresh is harmless and the second answer is final.
-      if (!(await resolveVenueProfile())) {
-        await refreshProfileOnce(requestSent);
-        signed = await deps.signOperation(intent, signInput);
-      }
-    }
-    if (!signed) {
-      throw new VenueSigningUnavailableError(requestSent);
-    }
-    return signed;
   };
 
   // The first signature already pinned a confirmed intent. Signing it again
   // is not a new confirmation by the user.
   const renewed = input && { ...input, confirmed: false };
 
-  const attempt = async (retried: boolean): Promise<Response> => {
-    const signed = await sign(retried ? renewed : input);
-    requestSent = true;
-    const response = await send(signed);
-    if (retried) {
-      return response;
-    }
-    const described = await readAttempt(response);
-    if (!retried && isProfileStale(described)) {
-      await refreshProfileOnce(requestSent);
-      return attempt(true);
-    }
-    if (!isRenewable(described)) {
-      return response;
-    }
-    if (described.code === 'venue_authorization_invalid') {
-      deps.invalidateSigningSession();
-    }
-    return attempt(true);
-  };
+  const signed = await sign(input);
+  requestSent = true;
+  const response = await send(signed);
+  const described = await readAttempt(response);
+  const stale = isProfileStale(described);
+  if (!stale && !isRenewable(described)) {
+    return response;
+  }
+  if (described.code === 'venue_authorization_invalid') {
+    deps.invalidateSigningSession();
+  }
 
-  return attempt(false);
+  let retrySigned: SignedOperation;
+  try {
+    if (stale) {
+      await refreshProfileOnce(requestSent);
+    }
+    retrySigned = await sign(renewed);
+  } catch {
+    // No second request was sent, so the first response remains authoritative.
+    return response;
+  }
+  return send(retrySigned);
 };
 
 /**
@@ -240,9 +235,16 @@ export const sendSignedRead = async <Response>(
   let requestSent = false;
 
   const sign = async (proposed: ProposedRead): Promise<DeviceAuthHeader> => {
-    let header: DeviceAuthHeader | undefined;
     try {
-      header = await deps.signRead(proposed);
+      let header = await deps.signRead(proposed);
+      if (!header && !(await resolveVenueProfile())) {
+        await refreshProfileOnce(requestSent);
+        header = await deps.signRead(proposed);
+      }
+      if (!header) {
+        throw new VenueSigningUnavailableError(requestSent);
+      }
+      return header;
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: venue read signing refused', error.rule);
@@ -250,14 +252,6 @@ export const sendSignedRead = async <Response>(
       }
       throw error;
     }
-    if (!header && !(await resolveVenueProfile())) {
-      await refreshProfileOnce(requestSent);
-      header = await deps.signRead(proposed);
-    }
-    if (!header) {
-      throw new VenueSigningUnavailableError(requestSent);
-    }
-    return header;
   };
 
   /** The response's `sign_required` proposal, when it names one. */
@@ -303,7 +297,11 @@ export const sendSignedRead = async <Response>(
     if (proposed === undefined) {
       const action = await retryAction(first, retried, false);
       if (action === 'refresh') {
-        await refreshProfileOnce(requestSent);
+        try {
+          await refreshProfileOnce(requestSent);
+        } catch {
+          return first;
+        }
         return attempt(true);
       }
       return first;
@@ -318,7 +316,11 @@ export const sendSignedRead = async <Response>(
       if (next === undefined) {
         const action = await retryAction(response, retried, true);
         if (action === 'refresh') {
-          await refreshProfileOnce(requestSent);
+          try {
+            await refreshProfileOnce(requestSent);
+          } catch {
+            return response;
+          }
         }
         if (action) {
           return attempt(true);

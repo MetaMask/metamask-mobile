@@ -29,6 +29,8 @@ import type { PredictErrorPhase } from '../../errors/commitOutcome';
 import type {
   FetchOrderPreviewParams,
   PredictDepositOperation,
+  PredictOrderPreview,
+  PredictOrderPreviewParams,
   PredictOrderReview,
   PredictVenueId,
   PredictWithdrawReceipt,
@@ -282,6 +284,11 @@ interface PinnedOrderPreview {
   approvalGeneration: number | undefined;
   signing: KalshiOrderSigningInput | undefined;
   snapshot: string;
+  /** Retained only while a missing profile prevents local buy sizing. */
+  pendingSigning?: {
+    params: PredictOrderPreviewParams;
+    preview: PredictOrderPreview;
+  };
   review?: PredictOrderReview;
   /** The profile snapshot the review's figures came from. */
   profile?: VenueProfilePin;
@@ -314,9 +321,6 @@ export class KalshiRemoteAdapter {
       ) {
         this.#previews.delete(previewId);
         throw unsentCommitError(PredictErrorCode.UNAUTHENTICATED);
-      }
-      if (!pinned.signing) {
-        throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
       }
       return pinned;
     };
@@ -394,6 +398,11 @@ export class KalshiRemoteAdapter {
               this.#previews.delete(id);
             }
           }
+          const signingInput = kalshiOrderSigningInput(
+            params,
+            result,
+            feeCeilingCentsPerContract,
+          );
           const snapshot = JSON.stringify({ params, preview: result });
           const existing = this.#previews.get(result.previewId);
           if (
@@ -412,11 +421,10 @@ export class KalshiRemoteAdapter {
             this.#previews.set(result.previewId, {
               expiresAt: Date.parse(result.expiresAt),
               approvalGeneration,
-              signing: kalshiOrderSigningInput(
-                params,
-                result,
-                feeCeilingCentsPerContract,
-              ),
+              signing: signingInput,
+              ...(!signingInput
+                ? { pendingSigning: { params, preview: { ...result } } }
+                : {}),
               snapshot,
             });
           }
@@ -431,6 +439,23 @@ export class KalshiRemoteAdapter {
       },
       reviewOrder: async (previewId) => {
         const pinned = currentPreview(previewId);
+        if (!pinned.signing && pinned.pendingSigning) {
+          const { params, preview: quote } = pinned.pendingSigning;
+          const feeCeiling =
+            params.action === 'buy'
+              ? await loadFeeCeilingCentsPerContract()
+              : undefined;
+          if (currentPreview(previewId) !== pinned) {
+            throw unsentCommitError(PredictErrorCode.PREVIEW_EXPIRED);
+          }
+          pinned.signing = kalshiOrderSigningInput(params, quote, feeCeiling);
+          if (pinned.signing) {
+            delete pinned.pendingSigning;
+          }
+        }
+        if (!pinned.signing) {
+          throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
+        }
         const preview = await signing?.previewOperation?.('order.place', {
           ...pinned.signing,
           approvalGeneration: pinned.approvalGeneration,
@@ -452,6 +477,9 @@ export class KalshiRemoteAdapter {
       commitOrder: async (previewId, approval, options) => {
         try {
           const pinned = currentPreview(previewId);
+          if (!pinned.signing) {
+            throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
+          }
           if (approval.kind !== 'user-approved' || !pinned.review) {
             throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
           }

@@ -3,10 +3,10 @@ import {
   validateSigningProfile,
   type SigningProfile,
 } from './venueSigningProfiles';
-import { BUNDLED_V1_RAW } from './venue-profiles/kalshi-demo-signing.raw';
+import { TEST_VENUE_PROFILE_RAW } from '../../../../../tests/fixtures/predict/venueProfiles';
 
 const bundled = (): SigningProfile => {
-  const profile = validateSigningProfile(JSON.parse(BUNDLED_V1_RAW));
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   if (!profile) {
     throw new Error('bundled profile is invalid');
   }

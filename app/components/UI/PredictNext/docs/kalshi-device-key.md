@@ -85,8 +85,10 @@ The profile that renders and signs venue requests is readable JSON served by
 mm-config-registry (see [ADR-0005](./adr/0005-remote-venue-profiles.md)). The
 phone asks predict-api for the version its cluster is configured to use, then
 downloads that version and `revoked` from the registry URL constant,
-falling back to the last answer, the MMKV cache, and finally a bundled byte
-copy of version 1. It reads documents as bytes and decodes UTF-8 fatally: a
+falling back only to previously downloaded, validated bytes in memory or the
+MMKV cache. First-use buy sizing and review acquire a profile within ten
+seconds; there is no bundled signing profile or assumed empty revocation list.
+It reads documents as bytes and decodes UTF-8 fatally: a
 body with invalid encoding is rejected, and a BOM is preserved so the hash
 covers what was served. It applies the build ceiling, refuses a revoked version
 or one below the stored floor (a lower target is ignored and logged, never
@@ -95,13 +97,18 @@ sheet preview returns the profile version and hash it rendered; signing with a
 different resolved snapshot refuses rather than approving unseen figures.
 The profile is public: it contains no key material, and it cannot widen what
 this build signs beyond `venueProfileCeiling.ts`. Only builds that resolve a
-dev or uat Predict cluster read predict-api or the registry; other builds use
-the bundled version 1.
+dev or uat Predict cluster read predict-api or the registry by default.
+`MM_VENUE_PROFILES_URL` retains the development base URL override, with
+non-persistent cache state when it differs from the official registry.
+Without a supported cluster or override, no signing profile is available.
 
 A `venue_profile_update_required` or `venue_profile_not_ready` refusal forces
 one profile refresh and one retry; the target lookup and that refresh each give
-up after 10 seconds, so a hung registry call cannot hold the screen or trigger
-a second send. A cached revocation ETag is dropped when its list is not
+up after ten seconds, so a hung registry call cannot hold the screen or trigger
+a second send. If refreshed signing cannot proceed before another dispatch,
+the first refusal's mutation outcome is preserved. A profile revoked during
+A2T issuance or crypto cannot produce a returned envelope. A cached revocation
+ETag is dropped when its list is not
 adopted, so a 304 cannot preserve a list the phone rejected. Failures are
 logged as reason codes, never with envelope or body contents. When no copy is
 admissible, signed actions and signed reads fail with the unavailable error

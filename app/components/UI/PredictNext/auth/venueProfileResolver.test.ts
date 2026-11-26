@@ -1,13 +1,13 @@
 import {
+  TEST_VENUE_PROFILE_RAW,
+  TEST_VENUE_REVOKED_RAW,
+} from '../../../../../tests/fixtures/predict/venueProfiles';
+import {
   VENUE_PROFILE_ID,
-  VENUE_PROFILE_TARGET_TIMEOUT_MS,
+  VENUE_PROFILE_ACQUISITION_TIMEOUT_MS,
   VenueProfileResolver,
   venueProfileSha256,
 } from './venueSigningProfiles';
-import {
-  BUNDLED_V1_RAW,
-  BUNDLED_REVOKED_RAW,
-} from './venue-profiles/kalshi-demo-signing.raw';
 import type { RemoteVenueProfileClient } from './RemoteVenueProfileClient';
 import {
   VenueProfileStore,
@@ -15,8 +15,10 @@ import {
   type VenueProfileStorage,
 } from './venueProfileStore';
 
+// The app's ES2022 library target does not include Promise.withResolvers.
+// Timer-driven request doubles below run only while Jest fake timers are active.
 const profileWith = (version: number, patch: object = {}): string =>
-  JSON.stringify({ ...JSON.parse(BUNDLED_V1_RAW), version, ...patch });
+  JSON.stringify({ ...JSON.parse(TEST_VENUE_PROFILE_RAW), version, ...patch });
 const revoked = (versions: number[] = []) =>
   JSON.stringify({ id: VENUE_PROFILE_ID, revokedVersions: versions });
 type MemoryStorage = VenueProfileStorage & { value: string | null };
@@ -32,26 +34,38 @@ const memoryStorage = (): MemoryStorage => ({
     this.value = null;
   },
 });
+const cachedStorage = (version = 1): MemoryStorage => ({
+  ...memoryStorage(),
+  value: JSON.stringify({
+    targetVersion: version,
+    revokedRaw: TEST_VENUE_REVOKED_RAW,
+    revokedEtag: '"cached"',
+    profiles: { [version]: profileWith(version) },
+    floor: version,
+  }),
+});
 
 class FakeClient {
   result:
     | { status: 'modified'; raw: string; etag?: string }
     | { status: 'not-modified'; etag?: string } = {
     status: 'modified',
-    raw: BUNDLED_REVOKED_RAW,
+    raw: TEST_VENUE_REVOKED_RAW,
     etag: '"revoked"',
   };
-  readonly bodies = new Map<number, string>();
+  readonly bodies = new Map<number, string>([[1, TEST_VENUE_PROFILE_RAW]]);
   readonly fetched: number[] = [];
   readonly fetchRevoked = jest.fn(async () => this.result);
-  async fetchProfile({ version }: { version: number }): Promise<string> {
-    this.fetched.push(version);
-    const raw = this.bodies.get(version);
-    if (raw === undefined) {
-      throw new Error('not found');
-    }
-    return raw;
-  }
+  readonly fetchProfile = jest.fn(
+    async ({ version }: { version: number; signal?: AbortSignal }) => {
+      this.fetched.push(version);
+      const raw = this.bodies.get(version);
+      if (raw === undefined) {
+        throw new Error('not found');
+      }
+      return raw;
+    },
+  );
 }
 
 type GetSigningProfile = (options?: {
@@ -65,6 +79,7 @@ const build = (
     target?: number;
     now?: () => number;
     environment?: 'dev' | 'uat';
+    registryUrl?: string;
     getSigningProfile?: GetSigningProfile;
   } = {},
 ) => {
@@ -72,14 +87,17 @@ const build = (
   const store = new VenueProfileStore({
     environment: options.environment ?? 'dev',
     profileId: VENUE_PROFILE_ID,
+    registryUrl: options.registryUrl,
     storage,
   });
   const client = options.client ?? new FakeClient();
-  const getSigningProfile = (options.getSigningProfile ??
-    jest.fn(async () => ({
-      id: VENUE_PROFILE_ID,
-      version: options.target ?? 1,
-    }))) as jest.MockedFunction<GetSigningProfile>;
+  const getSigningProfile = jest.fn(
+    options.getSigningProfile ??
+      (async () => ({
+        id: VENUE_PROFILE_ID,
+        version: options.target ?? 1,
+      })),
+  );
   const log = jest.fn();
   const resolver = new VenueProfileResolver({
     client: client as unknown as RemoteVenueProfileClient,
@@ -92,21 +110,103 @@ const build = (
 };
 
 describe('VenueProfileResolver', () => {
-  it('resolves the exact bundled bytes without a network request', async () => {
-    const { resolver, getSigningProfile } = build();
-    await expect(resolver.resolve()).resolves.toMatchObject({
-      version: 1,
-      sha256: venueProfileSha256(BUNDLED_V1_RAW),
-    });
+  it('returns no profile from a fresh cache without making network requests', async () => {
+    const { resolver, client, getSigningProfile } = build();
+
+    const snapshot = await resolver.resolve();
+
+    expect(snapshot).toBeUndefined();
     expect(getSigningProfile).not.toHaveBeenCalled();
+    expect(client.fetchRevoked).not.toHaveBeenCalled();
+    expect(client.fetchProfile).not.toHaveBeenCalled();
   });
 
-  it('gets the target from predict-api, downloads it, and persists the floor', async () => {
+  it('returns immediately with no profile when remote clients are unavailable', async () => {
+    const resolver = new VenueProfileResolver({ log: jest.fn() });
+
+    const snapshot = await resolver.ensure();
+
+    expect(snapshot).toBeUndefined();
+  });
+
+  it('downloads the exact v1 bytes on first acquisition', async () => {
+    const { resolver, client, storage, getSigningProfile } = build();
+
+    const snapshot = await resolver.ensure();
+
+    expect(snapshot).toMatchObject({
+      version: 1,
+      sha256: venueProfileSha256(TEST_VENUE_PROFILE_RAW),
+    });
+    expect(getSigningProfile).toHaveBeenCalledTimes(1);
+    expect(client.fetchRevoked).toHaveBeenCalledTimes(1);
+    expect(client.fetched).toEqual([1]);
+    expect(JSON.parse(String(storage.value))).toMatchObject({
+      targetVersion: 1,
+      revokedRaw: TEST_VENUE_REVOKED_RAW,
+      profiles: { 1: TEST_VENUE_PROFILE_RAW },
+      floor: 1,
+    });
+  });
+
+  it('uses a valid downloaded cache before attempting any acquisition', async () => {
+    const { resolver, client, getSigningProfile } = build({
+      storage: cachedStorage(4),
+    });
+
+    const snapshot = await resolver.ensure();
+
+    expect(snapshot).toMatchObject({ version: 4 });
+    expect(getSigningProfile).not.toHaveBeenCalled();
+    expect(client.fetchRevoked).not.toHaveBeenCalled();
+  });
+
+  it.each(['target', 'revocations', 'profile'] as const)(
+    'cannot sign on a fresh install when the %s request fails',
+    async (stage) => {
+      const { resolver, client, getSigningProfile } = build();
+      if (stage === 'target') {
+        getSigningProfile.mockRejectedValue(new Error('offline'));
+      } else if (stage === 'revocations') {
+        client.fetchRevoked.mockRejectedValue(new Error('offline'));
+      } else {
+        client.bodies.clear();
+      }
+
+      const snapshot = await resolver.ensure();
+
+      expect(snapshot).toBeUndefined();
+      if (stage !== 'profile') {
+        expect(client.fetchProfile).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it.each([
+    { status: 'modified' as const, raw: 'not JSON' },
+    { status: 'not-modified' as const, etag: '"unadopted"' },
+  ])(
+    'requires a valid revocation body before a cold download: %j',
+    async (result) => {
+      const { resolver, client, storage } = build();
+      client.result = result;
+
+      const snapshot = await resolver.ensure();
+
+      expect(snapshot).toBeUndefined();
+      expect(client.fetchProfile).not.toHaveBeenCalled();
+      expect(JSON.parse(String(storage.value)).revokedEtag).toBeUndefined();
+    },
+  );
+
+  it('gets a newer target, downloads it, and persists the floor', async () => {
     const { resolver, client, storage, getSigningProfile } = build({
       target: 4,
     });
     client.bodies.set(4, profileWith(4));
+
     await resolver.refresh();
+
     expect(getSigningProfile).toHaveBeenCalledTimes(1);
     await expect(resolver.resolve()).resolves.toMatchObject({
       version: 4,
@@ -115,53 +215,60 @@ describe('VenueProfileResolver', () => {
     expect(JSON.parse(String(storage.value))).toMatchObject({
       targetVersion: 4,
       floor: 4,
-      revokedRaw: BUNDLED_REVOKED_RAW,
+      revokedRaw: TEST_VENUE_REVOKED_RAW,
       revokedEtag: '"revoked"',
     });
   });
 
-  it('keeps the last used version when the target is not yet published and retries the missing download', async () => {
-    const { resolver, client } = build({ target: 4 });
+  it('keeps the last downloaded version until an unpublished target can be fetched', async () => {
+    const { resolver, client } = build({ storage: cachedStorage(), target: 4 });
+
     await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
+    expect(client.fetched).toEqual([4]);
     client.result = { status: 'not-modified' };
     client.bodies.set(4, profileWith(4));
+
     await resolver.refresh();
+    await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
     expect(client.fetched).toEqual([4, 4]);
-    await resolver.refresh();
-    expect(client.fetched).toEqual([4, 4]);
-    expect(client.fetchRevoked).toHaveBeenLastCalledWith({
-      id: VENUE_PROFILE_ID,
-      etag: '"revoked"',
-    });
+    expect(client.fetchRevoked).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: VENUE_PROFILE_ID, etag: '"revoked"' }),
+    );
   });
 
-  it('never signs with a revoked target', async () => {
-    const { resolver, client } = build({ target: 4 });
+  it('does not fetch a revoked target', async () => {
+    const { resolver, client } = build({ storage: cachedStorage(), target: 4 });
     client.result = { status: 'modified', raw: revoked([4]) };
     client.bodies.set(4, profileWith(4));
+
     await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
     expect(client.fetched).toEqual([]);
   });
 
-  it('becomes unavailable when the only held profile is revoked', async () => {
-    const { resolver, client, storage } = build();
+  it('becomes unavailable when its only downloaded profile is revoked', async () => {
+    const { resolver, client, storage } = build({ storage: cachedStorage() });
     client.result = { status: 'modified', raw: revoked([1]) };
+
     await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toBeUndefined();
     expect(JSON.parse(String(storage.value)).floor).toBe(1);
   });
 
-  it('ignores a target below the floor and keeps signing with the version it used', async () => {
-    const { resolver, client, getSigningProfile, log, storage } = build({
-      target: 4,
+  it('ignores a target below the persisted floor', async () => {
+    const { resolver, log, storage } = build({
+      storage: cachedStorage(4),
+      target: 1,
     });
-    client.bodies.set(4, profileWith(4));
+
     await resolver.refresh();
-    getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 1 });
-    await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
     expect(log).toHaveBeenCalledWith(
       'PredictNext: venue profile refused',
@@ -173,197 +280,340 @@ describe('VenueProfileResolver', () => {
     });
   });
 
-  it('shares one in-flight refresh so an older answer cannot land last', async () => {
-    const { resolver, client, getSigningProfile } = build({ target: 4 });
-    client.bodies.set(4, profileWith(4));
-    let answer: (value: { id: string; version: number }) => void = () =>
-      undefined;
-    getSigningProfile.mockImplementationOnce(
-      async () =>
-        new Promise((resolve) => {
-          answer = resolve;
-        }),
-    );
-    const first = resolver.refresh();
-    const second = resolver.refresh();
-    while (getSigningProfile.mock.calls.length === 0) {
-      await Promise.resolve();
-    }
-    answer({ id: VENUE_PROFILE_ID, version: 4 });
-    await Promise.all([first, second]);
+  it('shares one refresh between concurrent cold acquisitions and refresh callers', async () => {
+    const { resolver, client, getSigningProfile } = build();
+
+    const snapshots = await Promise.all([
+      resolver.ensure(),
+      resolver.ensure(),
+      resolver.refresh(),
+    ]);
+
+    expect(snapshots.slice(0, 2)).toEqual([
+      expect.objectContaining({ version: 1 }),
+      expect.objectContaining({ version: 1 }),
+    ]);
     expect(getSigningProfile).toHaveBeenCalledTimes(1);
-    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
+    expect(client.fetchRevoked).toHaveBeenCalledTimes(1);
+    expect(client.fetched).toEqual([1]);
   });
 
-  it('keeps the last target when predict-api is unreachable', async () => {
-    const { resolver, client, getSigningProfile } = build({ target: 4 });
-    client.bodies.set(4, profileWith(4));
-    await resolver.refresh();
+  it('preserves the official downloaded cache during target and registry outages', async () => {
+    const storage = cachedStorage(4);
+    const { resolver, client, getSigningProfile } = build({ storage });
     getSigningProfile.mockRejectedValue(new Error('offline'));
-    await resolver.refresh();
-    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
-  });
+    client.fetchRevoked.mockRejectedValue(new Error('offline'));
 
-  it('uses persisted bytes during registry and predict-api outages, then the bundle with an empty cache', async () => {
-    const storage = memoryStorage();
-    storage.value = JSON.stringify({
+    await resolver.refresh();
+
+    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
+    expect(JSON.parse(String(storage.value))).toMatchObject({
       targetVersion: 4,
-      revokedRaw: revoked(),
+      revokedRaw: TEST_VENUE_REVOKED_RAW,
+      revokedEtag: '"cached"',
       profiles: { 4: profileWith(4) },
       floor: 4,
-    });
-    const cached = build({ storage });
-    cached.getSigningProfile.mockRejectedValue(new Error('offline'));
-    cached.client.fetchRevoked.mockRejectedValue(new Error('offline'));
-    await cached.resolver.refresh();
-    await expect(cached.resolver.resolve()).resolves.toMatchObject({
-      version: 4,
-    });
-    const empty = build();
-    empty.getSigningProfile.mockRejectedValue(new Error('offline'));
-    empty.client.fetchRevoked.mockRejectedValue(new Error('offline'));
-    await empty.resolver.refresh();
-    await expect(empty.resolver.resolve()).resolves.toMatchObject({
-      version: 1,
     });
   });
 
   it('keeps the last used cached version across restart when the new target is missing', async () => {
-    const storage = memoryStorage();
+    const storage = cachedStorage(4);
     storage.value = JSON.stringify({
+      ...JSON.parse(String(storage.value)),
       targetVersion: 5,
-      revokedRaw: revoked(),
-      profiles: { 4: profileWith(4) },
-      floor: 4,
     });
     const { resolver } = build({ storage });
-    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
+
+    const snapshot = await resolver.resolve();
+
+    expect(snapshot).toMatchObject({ version: 4 });
   });
 
-  it('does not lower a persisted floor when no eligible profile remains', async () => {
-    const storage = memoryStorage();
+  it('does not lower the floor when no eligible profile remains', async () => {
+    const storage = cachedStorage(4);
     storage.value = JSON.stringify({
-      targetVersion: 4,
+      ...JSON.parse(String(storage.value)),
       revokedRaw: revoked([4]),
       profiles: {},
-      floor: 4,
     });
-    const { resolver, getSigningProfile } = build({ storage });
-    getSigningProfile.mockRejectedValue(new Error('offline'));
+    const { resolver } = build({ storage, target: 1 });
+
     await resolver.refresh();
+
     await expect(resolver.resolve()).resolves.toBeUndefined();
     expect(JSON.parse(String(storage.value)).floor).toBe(4);
   });
 
-  it('rejects an incompatible or mismatched profile and keeps the bundle', async () => {
-    for (const patch of [
-      { minDsl: 'dsl-2' },
-      { id: 'other' },
-      { version: 5 },
-    ]) {
+  it.each([{ minDsl: 'dsl-2' }, { id: 'other' }, { version: 5 }])(
+    'rejects incompatible downloaded profiles without a local fallback: %j',
+    async (patch) => {
       const { resolver, client } = build({ target: 4 });
       client.bodies.set(4, profileWith(4, patch));
-      await resolver.refresh();
-      await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
-    }
-  });
 
-  it('preserves revocations on malformed or regressing registry responses', async () => {
-    const { resolver, client } = build();
-    client.result = { status: 'modified', raw: revoked([1]) };
-    await resolver.refresh();
-    for (const raw of ['not JSON', revoked()]) {
-      client.result = { status: 'modified', raw };
-      await resolver.refresh();
+      const snapshot = await resolver.ensure();
+
+      expect(snapshot).toBeUndefined();
+    },
+  );
+
+  it.each(['not JSON', profileWith(3), profileWith(4, { minDsl: 'dsl-2' })])(
+    'refetches corrupt cached bytes at the same floor: %s',
+    async (raw) => {
+      const storage = cachedStorage(4);
+      storage.value = JSON.stringify({
+        ...JSON.parse(String(storage.value)),
+        profiles: { 4: raw },
+      });
+      const { resolver, client } = build({ storage, target: 4 });
+      client.bodies.set(4, profileWith(4));
+
       await expect(resolver.resolve()).resolves.toBeUndefined();
+      const snapshot = await resolver.ensure();
+
+      expect(snapshot).toMatchObject({ version: 4 });
+      expect(client.fetched).toEqual([4]);
+      expect(JSON.parse(String(storage.value)).floor).toBe(4);
+    },
+  );
+
+  it('preserves revocations and ETag on malformed or regressing responses', async () => {
+    const { resolver, client, storage } = build({ storage: cachedStorage() });
+    client.result = { status: 'modified', raw: revoked([1]), etag: '"grown"' };
+    await resolver.refresh();
+
+    for (const raw of ['not JSON', revoked()]) {
+      client.result = { status: 'modified', raw, etag: '"rejected"' };
+      await resolver.refresh();
+
+      await expect(resolver.resolve()).resolves.toBeUndefined();
+      expect(JSON.parse(String(storage.value))).toMatchObject({
+        revokedRaw: revoked([1]),
+        revokedEtag: '"grown"',
+      });
     }
   });
 
-  it('isolates cluster cache keys and supports a future dev fixture while uat stays bundled', async () => {
-    // Synthetic future profile fixture, not an old bundled profile.
-    const nextVersion = 2;
-    const dev = build({ target: nextVersion, environment: 'dev' });
-    dev.client.bodies.set(nextVersion, profileWith(nextVersion));
-    const uat = build({ environment: 'uat' });
-    await dev.resolver.refresh();
-    await uat.resolver.refresh();
-    await expect(dev.resolver.resolve()).resolves.toMatchObject({
-      version: nextVersion,
-    });
-    await expect(uat.resolver.resolve()).resolves.toMatchObject({ version: 1 });
-    expect(venueProfileCacheKey('dev', VENUE_PROFILE_ID)).toBe(
-      `predict.venue-profiles.dev.${VENUE_PROFILE_ID}`,
-    );
-    expect(venueProfileCacheKey('uat', VENUE_PROFILE_ID)).toBe(
-      `predict.venue-profiles.uat.${VENUE_PROFILE_ID}`,
-    );
-  });
-
-  it('drops a cached revocation ETag whose list was rejected', async () => {
-    const storage = memoryStorage();
+  it('drops a cached ETag when the cached revocation list cannot be parsed', async () => {
+    const storage = cachedStorage();
     storage.value = JSON.stringify({
-      revokedRaw: revoked([]),
+      ...JSON.parse(String(storage.value)),
+      revokedRaw: 'not JSON',
       revokedEtag: '"stale"',
-      profiles: {},
-      floor: 0,
     });
-    const client = new FakeClient();
-    client.result = {
-      status: 'modified',
-      raw: revoked([2]),
-      etag: '"fresh"',
-    };
-    const resolver = new VenueProfileResolver({
-      client: client as unknown as RemoteVenueProfileClient,
-      store: new VenueProfileStore({
-        environment: 'dev',
-        profileId: VENUE_PROFILE_ID,
-        storage,
-      }),
-      getSigningProfile: jest.fn(async () => ({
-        id: VENUE_PROFILE_ID,
-        version: 1,
-      })),
-      bundledRevokedRaw: revoked([2]),
-      log: jest.fn(),
-    });
+    const { resolver, client } = build({ storage });
 
-    await resolver.resolve();
     await resolver.refresh();
 
-    expect(client.fetchRevoked).toHaveBeenCalledWith({
-      id: VENUE_PROFILE_ID,
-      etag: undefined,
+    expect(client.fetchRevoked).toHaveBeenCalledWith(
+      expect.objectContaining({ id: VENUE_PROFILE_ID, etag: undefined }),
+    );
+    await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
+    expect(JSON.parse(String(storage.value)).revokedEtag).toBe('"revoked"');
+  });
+
+  it('isolates cluster cache keys while each cluster downloads its target', async () => {
+    const dev = build({ target: 2, environment: 'dev' });
+    dev.client.bodies.set(2, profileWith(2));
+    const uat = build({ environment: 'uat' });
+
+    await Promise.all([dev.resolver.ensure(), uat.resolver.ensure()]);
+
+    await expect(dev.resolver.resolve()).resolves.toMatchObject({ version: 2 });
+    await expect(uat.resolver.resolve()).resolves.toMatchObject({ version: 1 });
+    expect(venueProfileCacheKey('dev', VENUE_PROFILE_ID)).not.toBe(
+      venueProfileCacheKey('uat', VENUE_PROFILE_ID),
+    );
+  });
+
+  it('keeps an override memory-only without poisoning the official cache', async () => {
+    const storage = cachedStorage();
+    const officialBytes = storage.value;
+    const override = build({
+      storage,
+      target: 4,
+      registryUrl: 'http://localhost:8787/profiles',
     });
-    expect(JSON.parse(String(storage.value))).toMatchObject({
-      revokedEtag: '"fresh"',
+    override.client.bodies.set(4, profileWith(4));
+    override.client.result = { status: 'modified', raw: revoked([1]) };
+
+    await expect(override.resolver.resolve()).resolves.toBeUndefined();
+    await override.resolver.ensure();
+    await override.store.clear();
+
+    await expect(override.resolver.resolve()).resolves.toMatchObject({
+      version: 4,
+    });
+    expect(storage.value).toBe(officialBytes);
+    const official = build({ storage });
+    await expect(official.resolver.resolve()).resolves.toMatchObject({
+      version: 1,
     });
   });
 
-  it('gives up on a hung target lookup and still resolves', async () => {
+  it('keeps captured bytes eligible after a refresh changes only the target', async () => {
+    const { resolver } = build({ storage: cachedStorage(), target: 4 });
+    const snapshot = await resolver.resolve();
+    if (!snapshot) {
+      throw new Error('Expected cached profile');
+    }
+
+    await resolver.refresh();
+
+    expect(snapshot).toBeDefined();
+    expect(resolver.isSnapshotEligible(snapshot)).toBe(true);
+    expect(resolver.isSnapshotEligible({ ...snapshot, sha256: 'other' })).toBe(
+      false,
+    );
+  });
+
+  it('rejects a captured snapshot after its version is revoked', async () => {
+    const { resolver, client } = build({ storage: cachedStorage() });
+    const snapshot = await resolver.resolve();
+    if (!snapshot) {
+      throw new Error('Expected cached profile');
+    }
+    client.result = { status: 'modified', raw: revoked([1]) };
+
+    await resolver.refresh();
+
+    expect(resolver.isSnapshotEligible(snapshot)).toBe(false);
+  });
+
+  it('rejects a captured snapshot after a newer version raises the floor', async () => {
+    const { resolver, client } = build({ storage: cachedStorage(), target: 4 });
+    const snapshot = await resolver.resolve();
+    if (!snapshot) {
+      throw new Error('Expected cached profile');
+    }
+    client.bodies.set(4, profileWith(4));
+
+    await resolver.refresh();
+
+    expect(resolver.isSnapshotEligible(snapshot)).toBe(false);
+    const current = await resolver.resolve();
+    if (!current) {
+      throw new Error('Expected refreshed profile');
+    }
+    expect(resolver.isSnapshotEligible(current)).toBe(true);
+  });
+
+  it('rejects a captured snapshot after in-memory state is reset', async () => {
+    const { resolver } = build({ storage: cachedStorage() });
+    const snapshot = await resolver.resolve();
+    if (!snapshot) {
+      throw new Error('Expected cached profile');
+    }
+
+    resolver.reset();
+
+    expect(resolver.isSnapshotEligible(snapshot)).toBe(false);
+  });
+
+  it.each(['target', 'revocations', 'profile'] as const)(
+    'bounds cold acquisition when the %s request ignores cancellation',
+    async (stage) => {
+      jest.useFakeTimers();
+      try {
+        const { resolver, client, getSigningProfile } = build();
+        if (stage === 'target') {
+          getSigningProfile.mockImplementation(
+            async () =>
+              new Promise<{ id: string; version: number }>(() => undefined),
+          );
+        } else if (stage === 'revocations') {
+          client.fetchRevoked.mockImplementation(
+            async () => new Promise<FakeClient['result']>(() => undefined),
+          );
+        } else {
+          client.fetchProfile.mockImplementation(
+            async () => new Promise<string>(() => undefined),
+          );
+        }
+
+        const acquiring = resolver.ensure();
+        await jest.advanceTimersByTimeAsync(
+          VENUE_PROFILE_ACQUISITION_TIMEOUT_MS + 1,
+        );
+
+        await expect(acquiring).resolves.toBeUndefined();
+        await expect(resolver.resolve()).resolves.toBeUndefined();
+      } finally {
+        jest.useRealTimers();
+      }
+    },
+  );
+
+  it('uses one total deadline across target, revocations and profile download', async () => {
     jest.useFakeTimers();
     try {
-      const captured: { signal?: AbortSignal } = {};
-      const { resolver, log } = build({
-        getSigningProfile: async ({ signal: lookupSignal } = {}) => {
-          captured.signal = lookupSignal;
-          return new Promise((_resolve, reject) => {
-            lookupSignal?.addEventListener('abort', () =>
-              reject(new Error('aborted')),
-            );
-          });
+      const { resolver, client, getSigningProfile } = build();
+      getSigningProfile.mockImplementation(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 4_000));
+        return { id: VENUE_PROFILE_ID, version: 1 };
+      });
+      client.fetchRevoked.mockImplementation(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 4_000));
+        return client.result;
+      });
+      client.fetchProfile.mockImplementation(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 4_000));
+        return TEST_VENUE_PROFILE_RAW;
+      });
+
+      const acquiring = resolver.ensure();
+      await jest.advanceTimersByTimeAsync(
+        VENUE_PROFILE_ACQUISITION_TIMEOUT_MS + 1,
+      );
+
+      await expect(acquiring).resolves.toBeUndefined();
+      await jest.advanceTimersByTimeAsync(4_000);
+      await expect(resolver.resolve()).resolves.toBeUndefined();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('aborts a hung target lookup and releases the shared refresh for retry', async () => {
+    jest.useFakeTimers();
+    try {
+      let signal: AbortSignal | undefined;
+      const { resolver, getSigningProfile } = build({
+        getSigningProfile: async (options) => {
+          signal = options?.signal;
+          return new Promise<{ id: string; version: number }>(() => undefined);
         },
       });
 
       const refreshing = resolver.refresh();
-      await jest.advanceTimersByTimeAsync(VENUE_PROFILE_TARGET_TIMEOUT_MS + 1);
+      await jest.advanceTimersByTimeAsync(
+        VENUE_PROFILE_ACQUISITION_TIMEOUT_MS + 1,
+      );
 
       await expect(refreshing).resolves.toBeUndefined();
-      expect(captured.signal?.aborted).toBe(true);
-      expect(log).toHaveBeenCalledWith(
-        'PredictNext: venue profile target fetch failed',
+      expect(signal?.aborted).toBe(true);
+      getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 1 });
+
+      await expect(resolver.ensure()).resolves.toMatchObject({ version: 1 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps downloaded bytes usable when a background refresh exceeds its deadline', async () => {
+    jest.useFakeTimers();
+    try {
+      const { resolver, client } = build({ storage: cachedStorage(4) });
+      client.fetchRevoked.mockImplementation(
+        async () => new Promise<FakeClient['result']>(() => undefined),
       );
-      await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
+
+      const refreshing = resolver.refresh();
+      await jest.advanceTimersByTimeAsync(
+        VENUE_PROFILE_ACQUISITION_TIMEOUT_MS + 1,
+      );
+      await refreshing;
+
+      await expect(resolver.ensure()).resolves.toMatchObject({ version: 4 });
     } finally {
       jest.useRealTimers();
     }
@@ -373,7 +623,9 @@ describe('VenueProfileResolver', () => {
     let now = 0;
     const { resolver } = build({ now: () => now });
     expect(resolver.isRefreshDue()).toBe(true);
+
     await resolver.refresh();
+
     expect(resolver.isRefreshDue()).toBe(false);
     now = 15 * 60 * 1000;
     expect(resolver.isRefreshDue()).toBe(true);

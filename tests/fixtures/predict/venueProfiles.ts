@@ -1,21 +1,10 @@
-/**
- * Bundled venue profile bytes, copied unchanged from mm-config-registry
- * `predict/venue-profiles/kalshi-demo-signing/`.
- *
- * The hash in `Venue-Authorization` covers these exact bytes, so this file
- * must never be reformatted. Copy the registry files in unchanged by hand;
- * `venueProfileBundled.test.ts` pins the SHA-256 of each copy.
- * `minDsl` is `dsl-1`; the build ceiling in `venueProfileCeiling.ts` decides
- * whether the profile may be used.
- */
-
-export const BUNDLED_REVOKED_RAW = `{
+export const TEST_VENUE_REVOKED_RAW = `{
   "id": "kalshi-demo-signing",
   "revokedVersions": []
 }
 `;
 
-export const BUNDLED_V1_RAW = `{
+export const TEST_VENUE_PROFILE_RAW = `{
   "id": "kalshi-demo-signing",
   "version": 1,
   "minDsl": "dsl-1",

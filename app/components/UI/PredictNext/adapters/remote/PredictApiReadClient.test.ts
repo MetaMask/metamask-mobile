@@ -8,6 +8,10 @@ import type {
 } from '../../types';
 import { TemplateError } from '../../auth/signing/profileTemplates';
 import {
+  refreshVenueProfileAfterRefusal,
+  resolveVenueProfile,
+} from '../../auth/venueSigningProfiles';
+import {
   PredictApiReadClient,
   PredictHttpError,
   PredictReadBudgetExhaustedError,
@@ -23,6 +27,12 @@ import {
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { log: jest.fn(), error: jest.fn() },
+}));
+
+jest.mock('../../auth/venueSigningProfiles', () => ({
+  VENUE_READ_HEADER: 'venue-read',
+  resolveVenueProfile: jest.fn().mockResolvedValue({}),
+  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockLoggerError = jest.mocked(Logger.error);
@@ -104,6 +114,8 @@ describe('PredictApiReadClient', () => {
 
   beforeEach(() => {
     mockLoggerError.mockClear();
+    jest.mocked(resolveVenueProfile).mockClear();
+    jest.mocked(refreshVenueProfileAfterRefusal).mockClear();
     fetchMock = jest.fn();
     client = new PredictApiReadClient({
       baseUrl: 'https://predict.example/api/',
@@ -1167,7 +1179,7 @@ describe('PredictApiReadClient', () => {
       },
       { status: 409, code: 'venue_signature_expired', failure: 'refused' },
     ])(
-      'never marks the mutation unsent when $code renewal is $failure',
+      'preserves the HTTP failure when $code renewal is $failure',
       async ({ status, code, failure }) => {
         const signOperation = jest.fn().mockResolvedValueOnce(SIGNED_OPERATION);
         if (failure === 'refused') {
@@ -1192,13 +1204,12 @@ describe('PredictApiReadClient', () => {
           undefined,
           signing,
         );
-        await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
-        await expect(failed).rejects.not.toBeInstanceOf(
-          PredictRequestNotSentError,
-        );
+        await expect(failed).rejects.toBeInstanceOf(PredictHttpError);
+        await expect(failed).rejects.not.toBeInstanceOf(PredictSigningError);
         await expect(failed).rejects.toMatchObject({
-          bodyCode: `venue_signing_${failure}`,
-          requestSent: true,
+          status,
+          bodyCode: code,
+          outcome: 'unknown',
         });
         expect(signOperation).toHaveBeenCalledTimes(2);
         expect(signOperation).toHaveBeenLastCalledWith(
@@ -1218,6 +1229,43 @@ describe('PredictApiReadClient', () => {
         );
       },
     );
+
+    it('preserves the server not_placed outcome when refreshed signing refuses the reviewed profile', async () => {
+      const profile = { version: 1, sha256: 'reviewed-profile-hash' };
+      const pinnedSigning = { ...signing, profile };
+      const signOperation = jest
+        .fn()
+        .mockResolvedValueOnce(SIGNED_OPERATION)
+        .mockRejectedValueOnce(new TemplateError('input'));
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      const body = {
+        code: 'venue_profile_update_required',
+        outcome: 'not_placed',
+      };
+      const response = createResponse({ status: 409, json: body });
+      response.clone = () => createResponse({ status: 409, json: body });
+      fetchMock.mockResolvedValueOnce(response);
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, pinnedSigning),
+      ).rejects.toMatchObject({
+        status: 409,
+        bodyCode: 'venue_profile_update_required',
+        outcome: 'not_placed',
+      });
+      expect(signOperation).toHaveBeenLastCalledWith('order.place', {
+        ...pinnedSigning,
+        confirmed: false,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(refreshVenueProfileAfterRefusal).toHaveBeenCalledTimes(1);
+    });
 
     it('never re-posts a mutation after an ambiguous fetch failure', async () => {
       const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);

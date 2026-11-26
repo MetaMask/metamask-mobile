@@ -12,6 +12,11 @@ import type {
   VenueOperationPreview,
 } from '../../auth/signing/signOperationTypes';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
+import {
+  setVenueProfileResolverForTesting,
+  VenueProfileResolver,
+} from '../../auth/venueSigningProfiles';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
 
 const USER_APPROVAL = { kind: 'user-approved' as const };
 const REVIEW_DISPLAY = {
@@ -114,6 +119,7 @@ describe('KalshiRemoteAdapter', () => {
   let approvalGeneration: number | undefined;
 
   beforeEach(() => {
+    installVenueProfileFixture();
     approvalGeneration = 0;
     reviewOperation.mockReset().mockResolvedValue({
       display: { ...REVIEW_DISPLAY },
@@ -1281,6 +1287,29 @@ describe('KalshiRemoteAdapter', () => {
       );
 
       expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
+        profile: REVIEW_PROFILE,
+      });
+    });
+
+    it('recovers buy sizing after an initially unavailable profile without trusting returned-preview drift', async () => {
+      adapter.trading.invalidatePreviews();
+      setVenueProfileResolverForTesting(new VenueProfileResolver());
+      const preview = await adapter.trading.previewOrder(previewParams);
+
+      await expect(
+        adapter.trading.reviewOrder(preview.previewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
+      if (preview.action === 'buy') {
+        preview.estimatedContracts = 999;
+        preview.limitPrice = '0.0100' as PredictDecimal;
+      }
+      installVenueProfileFixture();
+      await adapter.trading.reviewOrder(preview.previewId);
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      await adapter.trading.commitOrder(preview.previewId, USER_APPROVAL);
+
+      expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
+        values: { count: '40.00', price: '0.4700' },
         profile: REVIEW_PROFILE,
       });
     });

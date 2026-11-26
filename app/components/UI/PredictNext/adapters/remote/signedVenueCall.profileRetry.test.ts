@@ -1,3 +1,4 @@
+import { TemplateError } from '../../auth/signing/profileTemplates';
 import {
   refreshVenueProfileAfterRefusal,
   resolveVenueProfile,
@@ -71,15 +72,17 @@ describe('profile refetch retry', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
-  it('reports signing unavailable when the profile refetch hangs', async () => {
+  it('returns the initial response when the profile refetch hangs', async () => {
     jest.useFakeTimers();
     try {
       refresh.mockImplementation(async () => new Promise(() => undefined));
       const sign = jest.fn().mockResolvedValue(SIGNED);
-      const send = jest.fn().mockResolvedValue({
+      const response = {
         status: 409,
         code: 'venue_profile_update_required',
-      });
+        outcome: 'not_placed',
+      };
+      const send = jest.fn().mockResolvedValue(response);
 
       const pending = sendSigned(
         { signOperation: sign, invalidateSigningSession: jest.fn() },
@@ -88,13 +91,9 @@ describe('profile refetch retry', () => {
         send,
         (reply: SignedAttempt): SignedAttempt => reply,
       );
-      const refusal = pending.catch((error: unknown) => error);
       await jest.advanceTimersByTimeAsync(10_000);
-      await expect(refusal).resolves.toMatchObject({
-        name: 'VenueSigningUnavailableError',
-        requestSent: true,
-      });
 
+      await expect(pending).resolves.toBe(response);
       expect(send).toHaveBeenCalledTimes(1);
       expect(sign).toHaveBeenCalledTimes(1);
     } finally {
@@ -138,6 +137,185 @@ describe('profile refetch retry', () => {
     expect(result).toEqual({ status: 200 });
     expect(refresh).toHaveBeenCalledTimes(1);
     expect(sign).toHaveBeenCalledTimes(2);
+  });
+
+  it('normalizes a mutation refusal after acquiring a missing profile', async () => {
+    resolve.mockResolvedValue(undefined);
+    const sign = jest
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new TemplateError('input'));
+    const send = jest.fn();
+
+    await expect(
+      sendSigned(
+        { signOperation: sign, invalidateSigningSession: jest.fn() },
+        'order.place',
+        undefined,
+        send,
+        (reply: SignedAttempt) => reply,
+      ),
+    ).rejects.toMatchObject({
+      name: 'VenueSigningRefusedError',
+      rule: 'input',
+      requestSent: false,
+    });
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(sign).toHaveBeenCalledTimes(2);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('normalizes a read refusal after acquiring a missing profile', async () => {
+    resolve.mockResolvedValue(undefined);
+    const signRead = jest
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new TemplateError('class'));
+    const request = { method: 'GET', path: '/upstream/balance', query: '' };
+    const response = { status: 200, signRequired: { request } };
+    const send = jest.fn().mockResolvedValue(response);
+
+    await expect(
+      sendSignedRead(
+        { signRead, invalidateSigningSession: jest.fn() },
+        send,
+        (reply: SignedAttempt) => reply,
+      ),
+    ).rejects.toMatchObject({
+      name: 'VenueSigningRefusedError',
+      rule: 'class',
+      requestSent: true,
+    });
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(signRead).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the profile refusal when the reviewed pin cannot be signed after refresh', async () => {
+    const profile = { version: 1, sha256: 'reviewed-profile-hash' };
+    const input = { confirmed: true, profile };
+    const sign = jest
+      .fn()
+      .mockResolvedValueOnce(SIGNED)
+      .mockRejectedValueOnce(new TemplateError('input'));
+    const response = {
+      status: 409,
+      code: 'venue_profile_update_required',
+      outcome: 'not_placed',
+    };
+    const send = jest.fn().mockResolvedValue(response);
+
+    const result = await sendSigned(
+      { signOperation: sign, invalidateSigningSession: jest.fn() },
+      'order.place',
+      input,
+      send,
+      (reply: SignedAttempt) => reply,
+    );
+
+    expect(result).toBe(response);
+    expect(sign).toHaveBeenNthCalledWith(1, 'order.place', input);
+    expect(sign).toHaveBeenNthCalledWith(2, 'order.place', {
+      ...input,
+      confirmed: false,
+    });
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the profile refusal when refresh fails before retrying', async () => {
+    refresh.mockRejectedValueOnce(new Error('registry unavailable'));
+    const sign = jest.fn().mockResolvedValue(SIGNED);
+    const response = {
+      status: 409,
+      code: 'venue_profile_update_required',
+      outcome: 'not_placed',
+    };
+    const send = jest.fn().mockResolvedValue(response);
+
+    const result = await sendSigned(
+      { signOperation: sign, invalidateSigningSession: jest.fn() },
+      'order.place',
+      undefined,
+      send,
+      (reply: SignedAttempt) => reply,
+    );
+
+    expect(result).toBe(response);
+    expect(sign).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates a transport failure from the second mutation send', async () => {
+    const failure = new Error('network disconnected');
+    const send = jest
+      .fn()
+      .mockResolvedValueOnce({
+        status: 409,
+        code: 'venue_profile_update_required',
+        outcome: 'not_placed',
+      })
+      .mockRejectedValueOnce(failure);
+    const sign = jest.fn().mockResolvedValue(SIGNED);
+
+    await expect(
+      sendSigned(
+        { signOperation: sign, invalidateSigningSession: jest.fn() },
+        'order.place',
+        undefined,
+        send,
+        (reply: SignedAttempt) => reply,
+      ),
+    ).rejects.toBe(failure);
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(sign).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(['bearer', 'signed'])(
+    'returns the %s read response when profile refresh fails',
+    async (phase) => {
+      refresh.mockRejectedValueOnce(new Error('registry unavailable'));
+      const request = { method: 'GET', path: '/upstream/balance', query: '' };
+      const proposal = { status: 200, signRequired: { request } };
+      const response = { status: 503, code: 'venue_profile_not_ready' };
+      const signRead = jest.fn().mockResolvedValue(HEADER);
+      const send = jest.fn();
+      if (phase === 'signed') {
+        send.mockResolvedValueOnce(proposal).mockResolvedValueOnce(response);
+      } else {
+        send.mockResolvedValueOnce(response);
+      }
+
+      const result = await sendSignedRead(
+        { signRead, invalidateSigningSession: jest.fn() },
+        send,
+        (reply: SignedAttempt) => reply,
+      );
+
+      expect(result).toBe(response);
+      expect(send).toHaveBeenCalledTimes(phase === 'signed' ? 2 : 1);
+      expect(signRead).toHaveBeenCalledTimes(phase === 'signed' ? 1 : 0);
+    },
+  );
+
+  it('propagates a transport failure from the retried bearer read', async () => {
+    const failure = new Error('network disconnected');
+    const send = jest
+      .fn()
+      .mockResolvedValueOnce({
+        status: 503,
+        code: 'venue_profile_not_ready',
+      })
+      .mockRejectedValueOnce(failure);
+
+    await expect(
+      sendSignedRead(
+        { signRead: jest.fn(), invalidateSigningSession: jest.fn() },
+        send,
+        (reply: SignedAttempt) => reply,
+      ),
+    ).rejects.toBe(failure);
+    expect(send).toHaveBeenCalledTimes(2);
   });
 
   it('does not spend a second signature when a profile is already admitted', async () => {
