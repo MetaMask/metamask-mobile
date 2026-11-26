@@ -1,6 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { RefreshControl } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import {
   CardTransactionStatus,
@@ -547,12 +547,41 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show logout on Card home after the footer loads', async () => {
+    it('shows contact support in the More sheet', async () => {
       const { findByTestId, queryByTestId } = renderCardHomeView();
 
       expect(
-        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+        queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      const sheet = await findByTestId(CardHomeSelectors.MORE_SHEET);
+      expect(
+        within(sheet).getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('opens the More sheet outside the scrolling content', async () => {
+      const { findByTestId, getByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      expect(
+        await findByTestId(CardHomeSelectors.MORE_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(CardHomeSelectors.CARD_VIEW_TITLE)).queryByTestId(
+          CardHomeSelectors.MORE_SHEET,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('never shows log out on Card home', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+      await findByTestId(CardHomeSelectors.MORE_SHEET);
 
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
