@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.21.2]
+
+### Changed
+
+- Allowed browsing Social V1 without creating a profile, and required Social terms and profile onboarding for follow, copy trade, reactions, and trade actions (#40539)
+- Refined random username generation word list (#40533)
+
 ## [8.21.1]
 
 ### Changed
@@ -15428,7 +15435,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.2...HEAD
+[8.21.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...v8.21.2
 [8.21.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.21.1
 [8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
 [8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2
