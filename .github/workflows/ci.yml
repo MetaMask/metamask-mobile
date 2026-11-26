@@ -2292,6 +2292,7 @@ jobs:
       - scripts
       - lint-shards
       - lint
+      - knip-check
       - unit-tests
       - component-view-tests
       - component-view-flakiness-detection
