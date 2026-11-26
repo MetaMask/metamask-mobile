@@ -633,89 +633,107 @@ const BuildQuote = () => {
     [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
   );
 
+  const fetchTronMaxAmount = useCallback(
+    async (requestToken: number): Promise<bigint | null> => {
+      if (
+        !fromAccount ||
+        !selectedAsset?.network?.chainId ||
+        !selectedAsset?.assetId
+      ) {
+        return null;
+      }
+
+      try {
+        const maxResult = await getTronMaxSendableAmount(fromAccount, {
+          accountId: fromAccount.id,
+          assetId:
+            `${selectedAsset.network.chainId}/${selectedAsset.assetId}` as CaipAssetType,
+        });
+
+        if (maxRequestTokenRef.current !== requestToken) {
+          return null;
+        }
+
+        return maxResult.amount
+          ? toTokenMinimalUnit(maxResult.amount, selectedAsset.decimals ?? 0)
+          : null;
+      } catch {
+        return maxRequestTokenRef.current === requestToken ? null : null;
+      }
+    },
+    [fromAccount, selectedAsset],
+  );
+
+  const calculatePercentageAmount = useCallback(
+    (percentage: number): bigint | undefined => {
+      if (balanceBN === null || balanceBN === undefined) {
+        return undefined;
+      }
+      return (balanceBN * BigInt(percentage)) / 100n;
+    },
+    [balanceBN],
+  );
+
+  const applyNativeAssetMaxSell = useCallback(
+    (amountPercentage: bigint): bigint => {
+      const isNativeAsset = selectedAsset?.address === NATIVE_ADDRESS;
+      const hasMaxSell =
+        maxSellAmount !== null && maxSellAmount < amountPercentage;
+      return isNativeAsset && hasMaxSell
+        ? (maxSellAmount as bigint)
+        : amountPercentage;
+    },
+    [selectedAsset?.address, maxSellAmount],
+  );
+
   const handleQuickAmountPress = useCallback(
     async ({ value }: QuickAmount) => {
-      // Invalidate any in-flight Max request from a previous quick amount
       maxRequestTokenRef.current = 0;
 
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
-      } else {
-        const percentage = value * 100;
-        const amountPercentage =
-          balanceBN !== null && balanceBN !== undefined
-            ? (balanceBN * BigInt(percentage)) / 100n
-            : undefined;
+        return;
+      }
 
-        if (amountPercentage === undefined) {
+      const amountPercentage = calculatePercentageAmount(value * 100);
+      if (amountPercentage === undefined) {
+        return;
+      }
+
+      let amountToSet = amountPercentage;
+
+      const isTronMax = value === 1 && isTron && isOffRampNonEvmEnabled;
+      if (isTronMax) {
+        const requestToken = Date.now();
+        maxRequestTokenRef.current = requestToken;
+        const tronMax = await fetchTronMaxAmount(requestToken);
+
+        if (maxRequestTokenRef.current !== requestToken) {
           return;
         }
 
-        let amountToSet = amountPercentage;
-
-        if (value === 1 && isTron && isOffRampNonEvmEnabled && fromAccount) {
-          const assetChainId = selectedAsset?.network?.chainId;
-          const assetReference = selectedAsset?.assetId;
-
-          if (assetChainId && assetReference) {
-            // Track this request to detect if user changed amount during the async call
-            const requestToken = Date.now();
-            maxRequestTokenRef.current = requestToken;
-
-            try {
-              const maxResult = await getTronMaxSendableAmount(fromAccount, {
-                accountId: fromAccount.id,
-                assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
-              });
-
-              // Discard if user changed amount during request
-              if (maxRequestTokenRef.current !== requestToken) {
-                return;
-              }
-
-              // Use Snap result if available, otherwise fall through to balance-based
-              if (maxResult.amount) {
-                amountToSet = toTokenMinimalUnit(
-                  maxResult.amount,
-                  selectedAsset?.decimals ?? 0,
-                );
-              }
-            } catch {
-              // Fall back to the balance-based calculation only if request still valid
-              if (maxRequestTokenRef.current !== requestToken) {
-                return;
-              }
-            }
-          }
-        } else if (
-          selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount !== null &&
-          maxSellAmount < amountPercentage
-        ) {
-          amountToSet = maxSellAmount;
-        }
-
-        const newAmountString = fromTokenMinimalUnitString(
-          amountToSet.toString(10),
-          selectedAsset?.decimals ?? 18,
-        );
-        setAmountBNMinimalUnit(amountToSet);
-        setAmount(newAmountString);
-        setAmountNumber(Number(newAmountString));
+        amountToSet = tronMax ?? amountPercentage;
+      } else {
+        amountToSet = applyNativeAssetMaxSell(amountPercentage);
       }
+
+      const newAmountString = fromTokenMinimalUnitString(
+        amountToSet.toString(10),
+        selectedAsset?.decimals ?? 18,
+      );
+      setAmountBNMinimalUnit(amountToSet);
+      setAmount(newAmountString);
+      setAmountNumber(Number(newAmountString));
     },
     [
-      balanceBN,
       isBuy,
       isTron,
       isOffRampNonEvmEnabled,
-      fromAccount,
-      maxSellAmount,
-      selectedAsset?.address,
       selectedAsset?.decimals,
-      selectedAsset?.network?.chainId,
-      selectedAsset?.assetId,
+      calculatePercentageAmount,
+      fetchTronMaxAmount,
+      applyNativeAssetMaxSell,
     ],
   );
 
