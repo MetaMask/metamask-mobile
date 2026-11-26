@@ -17124,7 +17124,7 @@
   },
   "app/components/Views/Settings/SecuritySettings/SecuritySettings.tsx": {
     "typescript/no-floating-promises": {
-      "count": 3
+      "count": 1
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -18309,7 +18309,7 @@
   },
   "app/components/Views/Wallet/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 4

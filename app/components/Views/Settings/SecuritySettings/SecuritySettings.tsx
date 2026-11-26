@@ -160,7 +160,7 @@ const Settings: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    handleHintText();
+    handleHintText().catch(() => undefined);
     setAnalyticsEnabled(isEnabled());
   }, [handleHintText, setAnalyticsEnabled, isEnabled]);
 
@@ -323,7 +323,9 @@ const Settings: React.FC = () => {
             size={OldButtonSize.Auto}
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
-              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL).catch(
+                () => undefined,
+              );
               trackExternalLinkClicked(trackEvent, createEventBuilder, {
                 location: 'app_settings',
                 text: strings('app_settings.simulation_details_learn_more'),
