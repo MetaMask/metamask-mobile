@@ -10,6 +10,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const FLAG_ABOVE = 0.2;
 /** Fewer pooled runs than this, about half a normal week, is no baseline. */
 const MIN_BASELINE_RUNS = 10;
+/** With fewer used runs this week, one slow run moves the median too far to flag. */
+const MIN_WEEK_RUNS = 5;
 
 /** The previous complete UTC week, Monday 00:00 to Monday 00:00. */
 export function lastWeek(now = new Date()) {
@@ -202,16 +204,20 @@ const NOT_NAMED = "the analysis doesn't name the function";
 
 /** This week's widest-span median against the median of every run's widest span in the earlier weeks, `{ [label]: number[] }` each. */
 function compareWithBaseline(summary, label, weeks = []) {
+  if (summary.runs.length < MIN_WEEK_RUNS) {
+    return { flagged: false, text: 'too few runs this week to compare' };
+  }
   const spans = weeks.flatMap((week) => week[label] || []);
   if (spans.length < MIN_BASELINE_RUNS) {
     return { flagged: false, text: 'no baseline yet' };
   }
   const baseline = percentile(spans, 0.5);
-  const change = summary.widestSpanMs.median / baseline - 1;
-  const percent = Math.round(change * 100);
+  const percent = Math.round(
+    (summary.widestSpanMs.median / baseline - 1) * 100,
+  );
   const count = weeks.filter((week) => week[label]?.length).length;
   return {
-    flagged: change > FLAG_ABOVE,
+    flagged: percent > FLAG_ABOVE * 100,
     text: `${percent < 0 ? 'down' : 'up'} ${Math.abs(percent)}% from the ${formatMs(baseline)} median of ${count === 1 ? 'last week' : `the previous ${count} weeks`}`,
   };
 }
