@@ -78,8 +78,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.money_account_label': 'Money account',
       'card.cashback_screen.withdraw': 'Withdraw',
       'card.cashback_screen.withdraw_unavailable': 'Withdrawal unavailable',
-      'card.cashback_screen.withdrawal_success':
-        'Withdrawal completed successfully',
+      'card.cashback_screen.withdrawal_success': 'Withdrawal completed',
+      'card.cashback_screen.withdrawal_success_description':
+        'It may take up to a few minutes for these funds to appear in your account.',
       'card.cashback_screen.withdrawal_failed':
         'Withdrawal failed. Please try again.',
       'card.cashback_screen.loading_error':
@@ -994,7 +995,14 @@ describe('Cashback Component', () => {
         expect.objectContaining({
           variant: 'Icon',
           hasNoTimeout: false,
-          labelOptions: [{ label: 'Withdrawal completed successfully' }],
+          labelOptions: [
+            { label: 'Withdrawal completed' },
+            { label: '\n' },
+            {
+              label:
+                'It may take up to a few minutes for these funds to appear in your account.',
+            },
+          ],
         }),
       );
     });

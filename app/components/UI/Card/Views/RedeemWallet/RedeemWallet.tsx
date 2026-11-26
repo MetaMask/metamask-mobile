@@ -246,9 +246,20 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     if (monitoringStatus === 'monitoring' || isWithdrawing) return;
 
     if (isSuccess) {
+      const successLabels = [
+        { label: strings(config.strings.withdrawalSuccess) },
+      ];
+      if (config.strings.withdrawalSuccessDescription) {
+        successLabels.push(
+          { label: '\n' },
+          {
+            label: strings(config.strings.withdrawalSuccessDescription),
+          },
+        );
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalSuccess) }],
+        labelOptions: successLabels,
         iconName: ToastIconName.Confirmation,
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
