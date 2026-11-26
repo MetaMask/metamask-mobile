@@ -9,6 +9,7 @@ import { PERPS_MARKET_LIST_CONSTANTS } from '../../constants/marketListConfig';
 import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
 import { type PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketRow } from '../../hooks/usePerpsMarkets';
 import {
   Text,
   TextColor,
@@ -136,7 +137,11 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   const keyExtractor = useCallback(
     (item: MarketListRow) =>
-      item.type === 'sticky' ? STICKY_HEADER_KEY : item.market.symbol,
+      // TAT-4407: `rowId` is unique per venue row and per backend market key,
+      // so two venues listing the same symbol never collide as list keys.
+      item.type === 'sticky'
+        ? STICKY_HEADER_KEY
+        : ((item.market as PerpsMarketRow).rowId ?? item.market.symbol),
     [],
   );
 

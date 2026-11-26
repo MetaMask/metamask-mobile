@@ -7,13 +7,19 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
-jest.mock('../../rows/bridge-fee-row', () => ({
-  BridgeFeeRow: () => null,
-}));
+jest.mock('../../rows/bridge-fee-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    BridgeFeeRow: () => <View testID="bridge-fee-row" />,
+  };
+});
 
-jest.mock('../../rows/bridge-time-row', () => ({
-  BridgeTimeRow: () => null,
-}));
+jest.mock('../../rows/bridge-time-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    BridgeTimeRow: () => <View testID="bridge-time-row" />,
+  };
+});
 
 jest.mock('../../rows/total-row', () => {
   const { View } = jest.requireActual('react-native');
@@ -22,13 +28,22 @@ jest.mock('../../rows/total-row', () => {
   };
 });
 
-function render(props: { stage: CustomAmountStage }) {
+function render(props: { stage: CustomAmountStage; type?: string }) {
   return renderWithProvider(<CustomAmountTotals stage={props.stage} />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      props.type && {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: props.type }],
+            },
+          },
+        },
+      },
     ),
   });
 }
@@ -58,5 +73,20 @@ describe('CustomAmountTotals', () => {
     expect(getByTestId('total-row')).toBeOnTheScreen();
     expect(queryByTestId('bridge-fee-row-skeleton')).toBeNull();
     expect(queryByTestId('total-row-skeleton')).toBeNull();
+  });
+
+  it('orders Est. time before Transaction fees for moneyAccountDeposit', () => {
+    const { toJSON } = render({
+      stage: CustomAmountStage.ShowTotals,
+      type: 'moneyAccountDeposit',
+    });
+
+    const json = JSON.stringify(toJSON());
+    expect(json.indexOf('bridge-time-row')).toBeLessThan(
+      json.indexOf('bridge-fee-row'),
+    );
+    expect(json.indexOf('bridge-fee-row')).toBeLessThan(
+      json.indexOf('total-row'),
+    );
   });
 });

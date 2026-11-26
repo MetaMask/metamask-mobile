@@ -1,6 +1,3 @@
-import { CaipChainId } from '@metamask/utils';
-import { AccountType } from '../../../constants/onboarding';
-
 export enum UserProfileProperty {
   ENABLE_OPENSEA_API = 'Enable OpenSea API',
   NFT_AUTODETECTION = 'NFT Autodetection',
@@ -30,32 +27,4 @@ export enum UserProfileProperty {
   CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
   ACCOUNT_TYPE = 'account_type',
   INSTALL_DATE_MOBILE = 'InstallDateMobile',
-}
-
-export interface UserProfileMetaData {
-  [UserProfileProperty.ENABLE_OPENSEA_API]: string;
-  [UserProfileProperty.NFT_AUTODETECTION]: string;
-  //Appearance.getColorScheme() can return null or undefined
-  [UserProfileProperty.THEME]: string | null | undefined;
-  [UserProfileProperty.TOKEN_DETECTION]: string;
-  [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
-  [UserProfileProperty.SECURITY_PROVIDERS]: string;
-  [UserProfileProperty.PRIMARY_CURRENCY]?: string;
-  [UserProfileProperty.CURRENT_CURRENCY]?: string;
-  [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
-  [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]?: boolean;
-  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
-  [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: number;
-  [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: number;
-  [UserProfileProperty.NUMBER_OF_LEDGER_ACCOUNTS]: number;
-  [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: number;
-  [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: number;
-  [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
-  [UserProfileProperty.CANONICAL_PROFILE_ID]?: string;
-  [UserProfileProperty.HAS_REWARDS_OPTED_IN]?: string;
-  [UserProfileProperty.REWARDS_REFERRED]?: boolean;
-  [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]?: string;
-  [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]?: number;
-  [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]?: boolean;
-  [UserProfileProperty.ACCOUNT_TYPE]?: AccountType;
 }

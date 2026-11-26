@@ -35,6 +35,7 @@ import {
   claimWaitCaption,
   claimWaitMinutesRemaining,
   displayClaimTotals,
+  familyDisplayTotals,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
@@ -59,6 +60,7 @@ import {
   mergeInFlightClaims,
   runEarningsClaim,
   submitClaimVoucher,
+  type ClaimRouteOutcome,
 } from './claimEarnings';
 
 jest.mock('@metamask/eth-snap-keyring/v2', () => ({
@@ -1288,6 +1290,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher,
     });
 
@@ -1297,7 +1300,7 @@ describe('runEarningsClaim', () => {
       claim_intent_id: 'intent-1',
       proofs: [{ earning_address: 'eip155:0xabc', signature: '0xsig' }],
     });
-    expect(submitVoucher).toHaveBeenCalledWith(voucher);
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xmoney');
     expect(outcomes).toEqual([
       {
         route: 'referral-trade-fee-cashback',
@@ -1319,6 +1322,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: partial }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1394,6 +1398,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         earningAddress === 'eip155:0xabc',
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1444,6 +1449,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         evmAddressFromEarningAddress(earningAddress) !== null,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1491,6 +1497,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: (earningAddress) => earningAddress === bitcoin,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1529,6 +1536,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => false,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1551,6 +1559,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1606,6 +1615,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1626,6 +1636,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1647,6 +1658,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1674,6 +1686,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: opened() }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: async () => {
         throw new Error('rejected');
       },
@@ -1688,6 +1701,131 @@ describe('runEarningsClaim', () => {
       },
     ]);
     expect(claimToastKey(outcomes)).toBe('claimFailureRetryToast');
+  });
+});
+
+describe('PAYOUT_ADDRESS_MIGRATED', () => {
+  const migrated = () =>
+    new RewardsMoneyClaimRefusalError(422, 'PAYOUT_ADDRESS_MIGRATED');
+  const migratedOutcome: ClaimRouteOutcome = {
+    route: 'referral-trade-fee-cashback',
+    submitted: false,
+    opened: false,
+    reason: 'PAYOUT_ADDRESS_MIGRATED',
+  };
+
+  it('shows its own toast and reports its own failure bucket', () => {
+    expect(claimToastKey([migratedOutcome])).toBe(
+      'claimFailurePayoutMigratedToast',
+    );
+    expect(claimFailureReason('PAYOUT_ADDRESS_MIGRATED')).toBe(
+      'payout_migrated',
+    );
+  });
+
+  it('falls back to the generic sentence when the server does not send the key', () => {
+    const localizedText = {
+      claimFailureToast: 'Earnings could not be claimed.',
+    } as unknown as Parameters<typeof claimToastText>[0];
+
+    expect(claimToastText(localizedText, [migratedOutcome])).toBe(
+      'Earnings could not be claimed.',
+    );
+  });
+
+  it('retries the route once with the address the store now names', async () => {
+    const initiateClaim = jest.fn(
+      async (_route, body): Promise<InitiateClaimResult> => {
+        if (body.money_account_address === '0xold') {
+          throw migrated();
+        }
+        return { kind: 'authorized', body: opened() };
+      },
+    );
+    const submitVoucher = jest.fn().mockResolvedValue(undefined);
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(initiateClaim.mock.calls[1][1]).toEqual({
+      money_account_address: '0xnew',
+    });
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xnew');
+    expect(outcomes).toEqual([
+      {
+        route: 'referral-trade-fee-cashback',
+        submitted: true,
+        opened: true,
+      },
+    ]);
+  });
+
+  it('keeps the refusal when the store still names the same address', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xOLD',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xold',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('stops after one retry when the new address is refused too', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('does not retry a route refused for another reason', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw new RewardsMoneyClaimRefusalError(422, 'UNDER_REVIEW');
+    });
+
+    await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -2109,5 +2247,89 @@ describe('isPendingClaimRow', () => {
         payout_method: 'VOUCHER',
       }),
     ).toBe(false);
+  });
+});
+
+describe('familyDisplayTotals', () => {
+  const familySummary = (
+    family: Record<string, string>,
+    minimum = ONE_DOLLAR,
+  ) =>
+    ({
+      minimum_musd_base_units: minimum,
+      self_earned: { by_claim_family: {} },
+      earned_by_others: {
+        by_claim_family: { REFERRAL_REV_SHARE: family },
+      },
+    }) as unknown as EarningsSummaryDto;
+
+  it('reads each field of the named family and branch', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({
+          claimable: '2000000',
+          pending: '300000',
+          held: '40',
+          blocked: '5',
+          voided: '6',
+          claimed: '7000000',
+        }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toEqual({
+      claimable: '2000000',
+      pending: '300000',
+      held: '40',
+      blocked: '5',
+      voided: '6',
+      claimed: '7000000',
+    });
+  });
+
+  it('moves a claimable under the minimum into pending', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({ claimable: UNDER_DOLLAR, pending: '100000' }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: '0', pending: '1099999' });
+  });
+
+  it('keeps a claimable when the minimum is unknown', () => {
+    const summaryWithoutMinimum = familySummary({ claimable: UNDER_DOLLAR });
+    delete (summaryWithoutMinimum as Partial<EarningsSummaryDto>)
+      .minimum_musd_base_units;
+
+    expect(
+      familyDisplayTotals(
+        summaryWithoutMinimum,
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: UNDER_DOLLAR, pending: '0' });
+  });
+
+  it('reads zero for a missing family or summary', () => {
+    const zero = {
+      claimable: '0',
+      pending: '0',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      claimed: '0',
+    };
+
+    expect(
+      familyDisplayTotals(
+        familySummary({}),
+        'self_earned',
+        'REFERRAL_TRADE_FEE_CASHBACK',
+      ),
+    ).toEqual(zero);
+    expect(
+      familyDisplayTotals(null, 'earned_by_others', 'SOCIAL_FOLLOW_TRADE'),
+    ).toEqual(zero);
   });
 });

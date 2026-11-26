@@ -44,7 +44,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPolygonStableTokensForPredictSmoke(),
     ...remoteFeatureFlagWithdrawAnyTokenDisabled(),
     carouselBanners: false,
-  }); // we need to mock the confirmations redesign Feature flag
+  });
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   // Keep this smoke test on the legacy Safe withdraw path.
   await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);

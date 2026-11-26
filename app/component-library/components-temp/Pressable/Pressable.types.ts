@@ -1,5 +1,4 @@
 import type { PressableProps as RNPressableProps } from 'react-native';
-import type { PressableProps as RNGHPressableProps } from 'react-native-gesture-handler';
 
 /**
  * Visual feedback applied on press.
@@ -26,9 +25,5 @@ export type PressableVariant =
   (typeof PressableVariant)[keyof typeof PressableVariant];
 
 export type PressableProps = RNPressableProps & {
-  variant?: PressableVariant;
-};
-
-export type PressableGHProps = RNGHPressableProps & {
   variant?: PressableVariant;
 };

@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../../providers/venueKeys';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLivePrices } from './index';
@@ -451,9 +452,39 @@ describe('usePerpsLivePrices', () => {
     // Change to completely different symbols
     rerender({ symbols: ['SOL-PERP', 'AVAX-PERP'] });
 
-    // Prices should be reset (implementation may vary)
-    // This test assumes prices are maintained across symbol changes
-    // Update if the implementation clears prices on symbol change
-    expect(result.current['BTC-PERP']).toBeDefined();
+    expect(result.current).toEqual({});
+  });
+
+  it('keeps shared BTC prices separate and delivers a Lighter-only symbol', () => {
+    mockSubscribeToSymbols.mockReturnValue(jest.fn());
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({
+        symbols: [
+          buildVenueSymbolKey('BTC', 'hyperliquid'),
+          buildVenueSymbolKey('BTC', 'lighter'),
+          buildVenueSymbolKey('kPEPE', 'lighter'),
+        ],
+      }),
+    );
+    const [hyper, lighter] = mockSubscribeToSymbols.mock.calls.map(
+      ([subscription]) => subscription,
+    );
+    expect(hyper).toMatchObject({
+      providerId: 'hyperliquid',
+      symbols: ['BTC'],
+    });
+    expect(lighter).toMatchObject({
+      providerId: 'lighter',
+      symbols: ['BTC', 'kPEPE'],
+    });
+    act(() => {
+      hyper.callback({ BTC: { price: '100' } });
+      lighter.callback({ BTC: { price: '101' }, kPEPE: { price: '2' } });
+    });
+    expect(result.current).toMatchObject({
+      [buildVenueSymbolKey('BTC', 'hyperliquid')]: { price: '100' },
+      [buildVenueSymbolKey('BTC', 'lighter')]: { price: '101' },
+      [buildVenueSymbolKey('kPEPE', 'lighter')]: { price: '2' },
+    });
   });
 });

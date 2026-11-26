@@ -10,6 +10,7 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { translatePerpsError } from '../utils/translatePerpsError';
@@ -49,10 +50,17 @@ export function usePerpsMarginAdjustment(
   const getFreshRemovableMargin = useCallback(
     async (
       symbol: string,
+      providerId?: PerpsProviderType,
     ): Promise<{ exchangeMax: number; safeMax: number } | null> => {
       try {
         const positions = await getPositions({ skipCache: true });
-        const position = positions.find((p) => p.symbol === symbol);
+        // The same symbol can be open on two venues; re-check the one being
+        // adjusted.
+        const position = positions.find(
+          (p) =>
+            p.symbol === symbol &&
+            (!p.providerId || !providerId || p.providerId === providerId),
+        );
         if (!position) {
           return null;
         }
@@ -92,7 +100,12 @@ export function usePerpsMarginAdjustment(
   );
 
   const handleMarginUpdate = useCallback(
-    async (symbol: string, amount: number, action: 'add' | 'remove') => {
+    async (
+      symbol: string,
+      amount: number,
+      action: 'add' | 'remove',
+      providerId?: PerpsProviderType,
+    ) => {
       if (isAdjustingRef.current) {
         return;
       }
@@ -125,7 +138,7 @@ export function usePerpsMarginAdjustment(
         if (action === 'remove') {
           // The position can move between opening the form and submitting,
           // so re-check the amount against a fresh read before sending it.
-          const fresh = await getFreshRemovableMargin(symbol);
+          const fresh = await getFreshRemovableMargin(symbol, providerId);
           if (fresh && amount > fresh.exchangeMax) {
             showToast(
               PerpsToastOptions.positionManagement.margin.removeAmountChanged(
@@ -137,9 +150,11 @@ export function usePerpsMarginAdjustment(
           }
         }
 
+        // Two-venue mode refuses a margin write that names no venue.
         const result = await updateMargin({
           symbol,
           amount: adjustmentAmount.toString(),
+          ...(providerId ? { providerId } : {}),
         });
 
         if (result.success) {
@@ -166,8 +181,11 @@ export function usePerpsMarginAdjustment(
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = translatePerpsError(result.error);
-          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
+          const errorMessage = translatePerpsError(result);
+          trackAdjustment(
+            PERPS_EVENT_VALUE.STATUS.FAILED,
+            result.errorCode ?? result.error,
+          );
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -206,7 +224,10 @@ export function usePerpsMarginAdjustment(
         });
 
         const errorMessage = translatePerpsError(error);
-        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
+        trackAdjustment(
+          PERPS_EVENT_VALUE.STATUS.FAILED,
+          ensureError(error).message,
+        );
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -233,14 +254,14 @@ export function usePerpsMarginAdjustment(
   );
 
   const handleAddMargin = useCallback(
-    (symbol: string, amount: number) =>
-      handleMarginUpdate(symbol, amount, 'add'),
+    (symbol: string, amount: number, providerId?: PerpsProviderType) =>
+      handleMarginUpdate(symbol, amount, 'add', providerId),
     [handleMarginUpdate],
   );
 
   const handleRemoveMargin = useCallback(
-    (symbol: string, amount: number) =>
-      handleMarginUpdate(symbol, amount, 'remove'),
+    (symbol: string, amount: number, providerId?: PerpsProviderType) =>
+      handleMarginUpdate(symbol, amount, 'remove', providerId),
     [handleMarginUpdate],
   );
 

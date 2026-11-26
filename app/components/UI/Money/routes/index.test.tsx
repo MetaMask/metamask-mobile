@@ -135,6 +135,9 @@ jest.mock('../components/MoneyTransferSheet', () => () => (
 jest.mock('../components/MoneyApyInfoSheet', () => () => (
   <MockView testID="mock-money-apy-info-sheet" />
 ));
+jest.mock('../components/MoneyEstimatedBalanceSheet', () => () => (
+  <MockView testID="mock-money-estimated-balance-sheet" />
+));
 jest.mock('../components/MoneyEarningsInfoSheet', () => () => (
   <MockView testID="mock-money-earnings-info-sheet" />
 ));
@@ -264,15 +267,13 @@ describe('MoneyConfirmationScreenStack', () => {
     jest.clearAllMocks();
   });
 
-  it('registers the redesigned confirmations screen', () => {
+  it('registers the confirmations screen', () => {
     const { getByTestId } = renderWithProvider(
       <MoneyConfirmationScreenStack />,
       { theme: themeWithCustomBackground },
     );
 
-    expect(
-      getByTestId('money-screen-RedesignedConfirmations'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('money-screen-Confirmations')).toBeOnTheScreen();
   });
 
   it('hides the stack header', () => {
@@ -347,6 +348,16 @@ describe('MoneyModalStack', () => {
     });
 
     expect(getByTestId('money-screen-MoneyApyInfoSheet')).toBeOnTheScreen();
+  });
+
+  it('registers the estimated balance sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyEstimatedBalanceSheet'),
+    ).toBeOnTheScreen();
   });
 
   it('registers the Earnings info sheet as a modal screen', () => {

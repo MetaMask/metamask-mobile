@@ -1,50 +1,34 @@
 import React from 'react';
-import {
-  FontWeight,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { TextColor, TextVariant } from '@metamask/design-system-react-native';
 import type { HomePack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
 import { Text } from '../../primitives/Text';
-import { CapsuleGlass } from '../../primitives/CapsuleGlass';
+import { PackArt } from './PackArt';
 
-// Tile width in px. The carousel snaps by it too.
 export const packTileWidth = 192;
 
 interface Props {
   pack: HomePack;
+  width?: number;
 }
 
-export function PackTile({ pack }: Props) {
+export function PackTile({ pack, width = packTileWidth }: Props) {
   return (
     <View
       className="gap-2"
-      style={{ width: packTileWidth }}
+      style={{ width }}
       testID={collectiblesTestIds.tile(pack.code)}
     >
-      <View className="overflow-hidden rounded-xl bg-muted p-3">
-        {/* Grey placeholder until pack art comes from a remote host */}
-        <View className="h-[276px] w-full rounded-lg bg-alternative" />
-        <View className="absolute left-2 top-2">
-          <CapsuleGlass className="h-6 px-2">
-            <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
-              {pack.counterLabel}
-            </Text>
-          </CapsuleGlass>
-        </View>
-      </View>
+      <PackArt
+        code={pack.code}
+        openedCount={pack.openedCount}
+        className="p-3"
+        artClassName="h-[276px]"
+      />
       <View>
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {pack.name}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {pack.subtitle}
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {pack.priceLabel}
