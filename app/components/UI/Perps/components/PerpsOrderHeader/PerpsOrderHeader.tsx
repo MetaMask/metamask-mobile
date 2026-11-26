@@ -51,8 +51,8 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   // Only show the venue mark in multi-provider mode, preserving flag-off UI.
   const { isMultiProviderEnabled } = usePerpsProvider();
 
-  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
-  // TAT-3334) — the same source PerpsOrderView already uses for its own
+  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence) —
+  // the same source PerpsOrderView already uses for its own
   // fee/margin/validation calculations. Subscribing again here (rather than
   // only reading the `price` prop) puts the resulting setState inside
   // PerpsOrderHeader's own subtree, so its render is independent of the

@@ -750,7 +750,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     throttleMs: 1000,
   });
 
-  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334).
+  // Fast focused price via activeAssetCtx projection (~0.5 s).
   // Prefer focused price on this detail screen; fall back to the allMids
   // baseline so the display is never blank on first render.
   const focusedPrice = usePerpsLiveFocusedPrice({
@@ -1972,7 +1972,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         key: 'about',
         // Outer guard avoids mounting the component when there is no
         // description; the component also returns null defensively for
-        // direct/standalone use. Placed below stats per TAT-2308 follow-up.
+        // direct/standalone use. Keep this section below the statistics.
         visible: hasAboutDescription,
         onLayout: handleAboutLayout,
         content: (
