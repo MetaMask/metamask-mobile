@@ -40,6 +40,7 @@ import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import { PASSCODE_DISABLED } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import Logger from '../../../util/Logger';
+import { selectMfaUiKitEnabled } from '../../../selectors/featureFlagController/mfaUiKit';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -75,6 +76,8 @@ const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
 >;
 
 const mockExportSeedPhrase = jest.fn();
+const mockRefreshEnrolledCredentials = jest.fn().mockResolvedValue([]);
+const mockVerifyOrEnroll = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -82,8 +85,18 @@ jest.mock('../../../core/Engine', () => ({
       createNewVaultAndKeychain: jest.fn().mockResolvedValue(true),
       exportSeedPhrase: () => mockExportSeedPhrase(),
     },
+    AuthenticationController: {
+      refreshEnrolledCredentials: (...args: unknown[]) =>
+        mockRefreshEnrolledCredentials(...args),
+    },
   },
 }));
+
+jest.mock('../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitEnabled: jest.fn(() => false),
+}));
+
+const mockSelectMfaUiKitEnabled = jest.mocked(selectMfaUiKitEnabled);
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
@@ -177,7 +190,7 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
 jest.mock('../../../util/identity/mfa/useMfa', () => ({
   useMfa: () => ({
     credentials: [],
-    verifyOrEnroll: jest.fn(),
+    verifyOrEnroll: (...args: unknown[]) => mockVerifyOrEnroll(...args),
     enroll: jest.fn(),
     listActiveSocialLoginMethods: jest.fn(),
     verifyForSocialLogin: jest.fn(),
@@ -188,18 +201,27 @@ jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: () => ({ isConnected: true, isInternetReachable: true }),
 }));
 
-jest.mock('../shared/WalletRecoveryVerify', () => ({
-  WalletRecoveryVerify: () =>
-    React.createElement(View, {
-      testID: 'wallet-recovery-verify-screen',
-    }),
-}));
+jest.mock('../shared/WalletRecoveryVerify', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View: MockView } = require('react-native');
+  return {
+    WalletRecoveryVerify: () =>
+      mockReact.createElement(MockView, {
+        testID: 'wallet-recovery-verify-screen',
+      }),
+  };
+});
 
 const mockStore = configureMockStore();
+
+const ACTIVE_PASSKEY = [{ type: 'passkey', status: 'active' }];
 
 const createState = (
   seedlessVault: string | null = 'vault string',
   authConnection?: AuthConnection,
+  options?: { isLocalPassword?: boolean },
 ) => ({
   user: {
     passwordSet: true,
@@ -212,6 +234,9 @@ const createState = (
       SeedlessOnboardingController: {
         vault: seedlessVault,
         ...(authConnection ? { authConnection } : {}),
+        ...(options?.isLocalPassword !== undefined
+          ? { isLocalPassword: options.isLocalPassword }
+          : {}),
       },
     },
   },
@@ -255,9 +280,12 @@ const renderComponent = (
   props: ResetPasswordProps = defaultProps,
   seedlessVault: string | null = 'vault string',
   authConnection?: AuthConnection,
+  options?: { isLocalPassword?: boolean },
 ) =>
   render(
-    <Provider store={mockStore(createState(seedlessVault, authConnection))}>
+    <Provider
+      store={mockStore(createState(seedlessVault, authConnection, options))}
+    >
       <ThemeContext.Provider value={mockTheme}>
         <ResetPassword {...props} />
       </ThemeContext.Provider>
@@ -373,6 +401,9 @@ describe('ResetPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasTestOverrides = false;
+    mockSelectMfaUiKitEnabled.mockReturnValue(false);
+    mockRefreshEnrolledCredentials.mockResolvedValue([]);
+    mockVerifyOrEnroll.mockResolvedValue(undefined);
     // Earlier tests use persistent getType spies (mockResolvedValue); reset so
     // later cases do not inherit Face ID auto-reauth.
     jest.mocked(Authentication.getType).mockResolvedValue({
@@ -1452,6 +1483,113 @@ describe('ResetPassword', () => {
       });
 
       mockAuthModule.authData = originalAuthData;
+    });
+  });
+
+  describe('MFA-1012 password vs recovery gate', () => {
+    const enableGatedFlow = () => {
+      mockSelectMfaUiKitEnabled.mockReturnValue(true);
+      mockRefreshEnrolledCredentials.mockResolvedValue(ACTIVE_PASSKEY);
+    };
+
+    it('password_device (global password): Face ID alone — no passkey first', async () => {
+      enableGatedFlow();
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+
+      const component = renderComponent(
+        defaultProps,
+        'vault string',
+        undefined,
+        { isLocalPassword: false },
+      );
+      await flushMicrotasks();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      // Biometric path calls Authentication.reauthenticate(undefined).
+      expect(Authentication.reauthenticate).toHaveBeenCalledWith(undefined);
+      await waitFor(() => {
+        expect(
+          component.getByTestId(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        component.queryByTestId('wallet-recovery-verify-screen'),
+      ).toBeNull();
+    });
+
+    it('recovery_device (local password): passkey first, then Face ID for keychain', async () => {
+      enableGatedFlow();
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+      mockVerifyOrEnroll.mockResolvedValue(undefined);
+
+      const component = renderComponent(
+        defaultProps,
+        'vault string',
+        undefined,
+        { isLocalPassword: true },
+      );
+      await flushMicrotasks();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          methods: ['passkey'],
+          verifyWith: 'passkey',
+          verifyOnly: true,
+        }),
+      );
+      expect(Authentication.reauthenticate).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(
+          component.getByTestId(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it("password_device Face ID cancel opens Verify it's you", async () => {
+      enableGatedFlow();
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+      jest
+        .spyOn(Authentication, 'reauthenticate')
+        .mockRejectedValueOnce(
+          new Error(
+            `${ReauthenticateErrorType.BIOMETRIC_ERROR}: User canceled the operation`,
+          ),
+        );
+
+      const component = renderComponent(
+        defaultProps,
+        'vault string',
+        undefined,
+        { isLocalPassword: false },
+      );
+      await flushMicrotasks();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(
+        component.getByTestId('wallet-recovery-verify-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });

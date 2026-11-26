@@ -11,8 +11,8 @@ export type ChangePasswordTwoStepMethod =
  * Settings change-password gate (MFA-1012).
  *
  * - `legacy`: SRP / no seedless / MFA kit off / no active 2SV — today's flow.
- * - `password_device`: local password is the global password; Face ID alone can unlock the change-password form.
- * - `recovery_device`: recovered with 2SV only; Face ID alone is not enough.
+ * - `password_device`: vault password is global (`isLocalPassword` false) — Face ID alone unlocks.
+ * - `recovery_device`: vault password is recovery-local (`isLocalPassword` true) — 2SV first.
  */
 export type ChangePasswordGateKind =
   | 'legacy'
@@ -22,6 +22,10 @@ export type ChangePasswordGateKind =
 export interface ChangePasswordGateInput {
   isSeedlessLoginFlow: boolean;
   isMfaUiKitEnabled: boolean;
+  /**
+   * From SeedlessOnboardingController: `true` after MFA recovery while the
+   * vault password is still local to this device; `false` when it is global.
+   */
   isLocalPassword: boolean;
   /**
    * Active passkey / totp / email_otp from the profile. Empty → legacy.
@@ -56,5 +60,6 @@ export const getChangePasswordGateKind = ({
   ) {
     return 'legacy';
   }
-  return isLocalPassword ? 'password_device' : 'recovery_device';
+  // Global password → Face ID alone. Recovery-local password → 2SV first.
+  return isLocalPassword ? 'recovery_device' : 'password_device';
 };

@@ -43,7 +43,7 @@ describe('getChangePasswordGateKind', () => {
       getChangePasswordGateKind({
         ...withTwoStep,
         isSeedlessLoginFlow: false,
-        isLocalPassword: true,
+        isLocalPassword: false,
       }),
     ).toBe('legacy');
   });
@@ -53,7 +53,7 @@ describe('getChangePasswordGateKind', () => {
       getChangePasswordGateKind({
         ...withTwoStep,
         isMfaUiKitEnabled: false,
-        isLocalPassword: true,
+        isLocalPassword: false,
       }),
     ).toBe('legacy');
   });
@@ -63,25 +63,25 @@ describe('getChangePasswordGateKind', () => {
       getChangePasswordGateKind({
         ...withTwoStep,
         activeTwoStepMethods: [],
-        isLocalPassword: true,
+        isLocalPassword: false,
       }),
     ).toBe('legacy');
   });
 
-  it('returns password_device when local password matches global', () => {
-    expect(
-      getChangePasswordGateKind({
-        ...withTwoStep,
-        isLocalPassword: true,
-      }),
-    ).toBe('password_device');
-  });
-
-  it('returns recovery_device when this device has no local password', () => {
+  it('returns password_device when vault password is global (Face ID alone)', () => {
     expect(
       getChangePasswordGateKind({
         ...withTwoStep,
         isLocalPassword: false,
+      }),
+    ).toBe('password_device');
+  });
+
+  it('returns recovery_device when vault password is recovery-local (2SV first)', () => {
+    expect(
+      getChangePasswordGateKind({
+        ...withTwoStep,
+        isLocalPassword: true,
       }),
     ).toBe('recovery_device');
   });
