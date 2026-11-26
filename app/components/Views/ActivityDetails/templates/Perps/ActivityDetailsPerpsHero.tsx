@@ -1,6 +1,4 @@
 import React from 'react';
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
 import {
   AvatarBase,
   AvatarBaseShape,
@@ -11,12 +9,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { Image } from '../../../../UI/primitives/Image';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { getPerpsAssetIconUrls } from './ActivityDetailsPerps.utils';
-
-const imageStyle = StyleSheet.create({
-  fill: { width: '100%', height: '100%' },
-});
 
 function PerpsHeroIcon({ symbol }: { symbol: string | undefined }) {
   const [useFallbackUrl, setUseFallbackUrl] = React.useState(false);
@@ -50,7 +45,7 @@ function PerpsHeroIcon({ symbol }: { symbol: string | undefined }) {
         {!showFallback && imageUri ? (
           <Image
             source={{ uri: imageUri }}
-            style={imageStyle.fill}
+            className="size-full"
             contentFit="contain"
             cachePolicy="memory-disk"
             onError={() => {
@@ -82,7 +77,7 @@ export function ActivityDetailsPerpsHero({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      className="flex-row items-center gap-3"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
       <PerpsHeroIcon symbol={symbol} />

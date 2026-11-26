@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, type ImageSourcePropType } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -20,25 +20,8 @@ import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 import TagColored, {
   TagColor,
 } from '../../../../component-library/components-temp/TagColored';
+import { Image } from '../../../UI/primitives/Image';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-
-const FEE_NETWORK_BADGE_SIZE = 12;
-const FEE_NETWORK_BADGE_RADIUS = 4;
-
-const styles = StyleSheet.create({
-  networkBadge: {
-    width: FEE_NETWORK_BADGE_SIZE,
-    height: FEE_NETWORK_BADGE_SIZE,
-    borderRadius: FEE_NETWORK_BADGE_RADIUS,
-  },
-  networkBadgeImage: {
-    width: '100%',
-    height: '100%',
-  },
-  tokenAvatarWrapper: {
-    transform: [{ translateY: 4 }],
-  },
-});
 
 /**
  * A fee amount followed by its token and network badge (`$1.23 (◆)ETH`). Shows
@@ -56,32 +39,28 @@ export function ActivityFeeTokenValue({
   networkImageSource?: ImageSourcePropType;
 }) {
   return (
-    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
+    <Box className="shrink flex-row items-center justify-end gap-2">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="shrink"
+        className="shrink"
         numberOfLines={1}
         ellipsizeMode="tail"
       >
         {value}
       </Text>
       {symbol ? (
-        <Box twClassName="flex-row items-center gap-1 shrink">
+        <Box className="shrink flex-row items-center gap-1">
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
-            style={styles.tokenAvatarWrapper}
+            twClassName="translate-y-1"
             badge={
               networkImageSource ? (
                 <Box
-                  twClassName="overflow-hidden border border-background-default bg-default"
-                  style={styles.networkBadge}
+                  className="size-3 overflow-hidden rounded border border-background-default bg-default"
                   testID="fee-network-badge"
                 >
-                  <Image
-                    source={networkImageSource}
-                    style={styles.networkBadgeImage}
-                  />
+                  <Image source={networkImageSource} className="size-full" />
                 </Box>
               ) : null
             }
@@ -96,7 +75,7 @@ export function ActivityFeeTokenValue({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="ml-1 shrink"
+            className="ml-1 shrink"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
