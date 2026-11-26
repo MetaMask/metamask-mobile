@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PullToRefreshTestIds } from '../../../../component-library/components-temp/PullToRefresh';
 import ExploreScroll from './ExploreScroll';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -19,6 +20,14 @@ jest.mock('../../../../util/theme', () => ({
       primary: { default: 'blue' },
     },
   }),
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
 }));
 
 describe('ExploreScroll', () => {
@@ -59,5 +68,23 @@ describe('ExploreScroll', () => {
     expect(scrollView.props.scrollEventThrottle).toBe(50);
     expect(scrollView.props.onScroll).toEqual(expect.any(Function));
     expect(scrollView.props.onLayout).toEqual(expect.any(Function));
+  });
+
+  it('unmounts the Rive pull-to-refresh indicator when inactive', () => {
+    const { queryByTestId, rerender } = render(
+      <ExploreScroll refreshing={false} onRefresh={jest.fn()} isActive>
+        <Text>child</Text>
+      </ExploreScroll>,
+    );
+
+    expect(queryByTestId(PullToRefreshTestIds.RIVE)).toBeOnTheScreen();
+
+    rerender(
+      <ExploreScroll refreshing={false} onRefresh={jest.fn()} isActive={false}>
+        <Text>child</Text>
+      </ExploreScroll>,
+    );
+
+    expect(queryByTestId(PullToRefreshTestIds.RIVE)).toBeNull();
   });
 });

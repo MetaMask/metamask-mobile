@@ -13096,7 +13096,7 @@
   },
   "app/components/UI/SocialFeed/components/SocialFeedVirtualized.tsx": {
     "typescript/no-misused-promises": {
-      "count": 3
+      "count": 2
     },
     "typescript/promise-function-async": {
       "count": 2
