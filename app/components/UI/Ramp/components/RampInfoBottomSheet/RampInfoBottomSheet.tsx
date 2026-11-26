@@ -80,13 +80,13 @@ function RampInfoBottomSheet({
         <Text variant={titleVariant}>{title}</Text>
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-6 pb-6">
+      <Box className="px-6 pb-6">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {description}
         </Text>
       </Box>
 
-      <Box twClassName="gap-4 px-6 pb-6">
+      <Box className="gap-4 px-6 pb-6">
         {actions.map((action) => (
           <Button
             key={action.label}

@@ -197,7 +197,7 @@ const MoneyPotentialEarningsView = () => {
 
   const listHeader = useMemo(
     () => (
-      <Box twClassName="px-4 pt-3 pb-3 gap-1">
+      <Box className="px-4 pt-3 pb-3 gap-1">
         <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
@@ -299,7 +299,7 @@ const MoneyPotentialEarningsView = () => {
           />
         }
       />
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <FlashList
           testID={MoneyPotentialEarningsViewTestIds.SCROLL_VIEW}
           data={eligibleTokens}
@@ -310,7 +310,7 @@ const MoneyPotentialEarningsView = () => {
         />
       </Box>
       <Box
-        twClassName="px-4 pt-3"
+        className="px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Button

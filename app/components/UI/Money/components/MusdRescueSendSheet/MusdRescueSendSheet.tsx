@@ -199,7 +199,7 @@ const MusdRescueSendScreen = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-2"
+      className="py-2"
       testID={testID}
     >
       <Text
@@ -215,7 +215,7 @@ const MusdRescueSendScreen = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: insets.top }}
       testID={MusdRescueSendTestIds.CONTAINER}
     >
@@ -227,14 +227,14 @@ const MusdRescueSendScreen = () => {
         backButtonProps={{ testID: MusdRescueSendTestIds.BACK_BUTTON }}
       />
 
-      <Box twClassName="flex-1 gap-6 px-4 pt-8">
-        <Box twClassName="flex-1 items-center justify-center">
+      <Box className="flex-1 gap-6 px-4 pt-8">
+        <Box className="flex-1 items-center justify-center">
           <Text
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             adjustsFontSizeToFit
             numberOfLines={1}
-            twClassName="w-full text-center"
+            className="w-full text-center"
             testID={MusdRescueSendTestIds.AMOUNT}
             accessibilityLabel={strings('money.musd_rescue_send.receive_label')}
           >
@@ -253,10 +253,10 @@ const MusdRescueSendScreen = () => {
           testID={MusdRescueSendTestIds.BANNER}
         />
 
-        <Box twClassName="flex-1" />
+        <Box className="flex-1" />
       </Box>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         {renderSummaryRow({
           label: strings('money.musd_rescue_send.to_label'),
           testID: MusdRescueSendTestIds.TO_ROW,
@@ -267,13 +267,13 @@ const MusdRescueSendScreen = () => {
               accessibilityLabel={strings(
                 'money.musd_rescue_send.recipient_label',
               )}
-              twClassName="flex-row items-center gap-3 bg-transparent px-0 py-1"
+              className="flex-row items-center gap-3 bg-transparent px-0 py-1"
             >
               {selectedRecipient ? (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-2"
+                  className="gap-2"
                 >
                   <AvatarAccount
                     address={selectedRecipient.address}
@@ -306,7 +306,7 @@ const MusdRescueSendScreen = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
+              className="gap-3"
             >
               <BadgeWrapper
                 position={BadgeWrapperPosition.BottomRight}
@@ -353,7 +353,7 @@ const MusdRescueSendScreen = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
+              className="gap-1"
             >
               <Icon
                 name={IconName.CheckBold}
@@ -389,7 +389,7 @@ const MusdRescueSendScreen = () => {
           </Text>
         ) : null}
 
-        <Box style={{ paddingBottom: insets.bottom + 12 }} twClassName="pt-3">
+        <Box style={{ paddingBottom: insets.bottom + 12 }} className="pt-3">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

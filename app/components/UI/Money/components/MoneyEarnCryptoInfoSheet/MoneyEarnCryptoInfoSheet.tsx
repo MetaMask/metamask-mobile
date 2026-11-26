@@ -107,7 +107,7 @@ const MoneyEarnCryptoInfoSheet = () => {
             size={ButtonSize.Lg}
             testID={MoneyEarnCryptoInfoSheetTestIds.MONEY_HOME_BUTTON}
             variant={ButtonVariant.Secondary}
-            twClassName="mt-4"
+            className="mt-4"
           >
             {strings('money.earn_crypto_info_sheet.go_to_money_account')}
           </Button>

@@ -82,7 +82,7 @@ const VbaChooseCurrency = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaChooseCurrencySelectorsIDs.CONTAINER}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
+        <Box alignItems={BoxAlignItems.Center} className="w-full">
           <Image
             source={bankTransferImage}
             accessibilityIgnoresInvertColors
@@ -91,17 +91,17 @@ const VbaChooseCurrency = () => {
             style={tw.style('h-[88px] w-[88px]')}
           />
         </Box>
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
+        <Text variant={TextVariant.HeadingLg} className="mt-6 text-center">
           {strings('virtual_bank_account.choose_currency.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
+          className="mt-2 text-center"
         >
           {strings('virtual_bank_account.choose_currency.description')}
         </Text>
-        <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+        <Box className="mt-6 overflow-hidden rounded-xl bg-muted">
           {VBA_SOURCE_CURRENCIES.map((currency) => {
             const name = getCurrencyName(currency);
             return (
@@ -118,7 +118,7 @@ const VbaChooseCurrency = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-3 px-4 py-3"
+                  className="gap-3 px-4 py-3"
                 >
                   <Text
                     variant={TextVariant.HeadingLg}
@@ -127,7 +127,7 @@ const VbaChooseCurrency = () => {
                   >
                     {CURRENCY_FLAGS[currency]}
                   </Text>
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     <Text variant={TextVariant.BodyMd}>{name}</Text>
                     <Text
                       variant={TextVariant.BodySm}
@@ -149,7 +149,7 @@ const VbaChooseCurrency = () => {
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="mt-4"
+          className="mt-4"
         >
           {strings('virtual_bank_account.choose_currency.footnote')}
         </Text>

@@ -110,6 +110,31 @@ const RecipientRow = ({
           </SensitiveText>
         ) : undefined
       }
+    /><AvatarAccount
+          address={address}
+          size={AvatarAccountSize.Md}
+          variant={avatarVariant}
+        />
+      }
+      title={
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {groupName || name || address}
+        </Text>
+      }
+      description={undefined}
+      value={
+        totalBalance ? (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Long}
+          >
+            {displayBalance}
+          </SensitiveText>
+        ) : undefined
+      }
     />
   );
 };
@@ -168,7 +193,7 @@ const MusdRescueRecipientScreen = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: insets.top }}
       testID={MusdRescueRecipientTestIds.CONTAINER}
     >
@@ -180,7 +205,7 @@ const MusdRescueRecipientScreen = () => {
         backButtonProps={{ testID: MusdRescueRecipientTestIds.BACK_BUTTON }}
       />
 
-      <Box twClassName="px-4 pb-3 pt-1">
+      <Box className="px-4 pb-3 pt-1">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -193,7 +218,7 @@ const MusdRescueRecipientScreen = () => {
         />
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <FlashList
           data={filteredRecipients}
           keyExtractor={(recipient) => recipient.id}
@@ -211,7 +236,7 @@ const MusdRescueRecipientScreen = () => {
             />
           )}
           ListEmptyComponent={
-            <Box twClassName="items-center px-4 py-8">
+            <Box className="items-center px-4 py-8">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}

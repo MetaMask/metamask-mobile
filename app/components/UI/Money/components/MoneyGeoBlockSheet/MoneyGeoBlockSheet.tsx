@@ -100,7 +100,7 @@ const MoneyGeoBlockSheet = () => {
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={MoneyGeoBlockSheetTestIds.BODY}
-          twClassName="text-center"
+          className="text-center"
         >
           {description}
         </Text>
@@ -108,7 +108,7 @@ const MoneyGeoBlockSheet = () => {
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
-        twClassName="pt-6"
+        className="pt-6"
       />
     </BottomSheet>
   );

@@ -69,7 +69,7 @@ const VbaCreatingAccount = ({
       />
       <Box
         gap={6}
-        twClassName="flex-1 px-8"
+        className="flex-1 px-8"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         accessible
@@ -84,10 +84,10 @@ const VbaCreatingAccount = ({
           style={tw.style('h-[88px] w-[94px]')}
           testID={VbaCreatingAccountSelectorsIDs.ILLUSTRATION}
         />
-        <Box gap={1} alignItems={BoxAlignItems.Center} twClassName="w-full">
+        <Box gap={1} alignItems={BoxAlignItems.Center} className="w-full">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-center"
+            className="text-center"
             testID={VbaCreatingAccountSelectorsIDs.TITLE}
           >
             {title}
@@ -97,7 +97,7 @@ const VbaCreatingAccount = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
               testID={VbaCreatingAccountSelectorsIDs.DESCRIPTION}
             >
               {strings('virtual_bank_account.creating_account.description')}

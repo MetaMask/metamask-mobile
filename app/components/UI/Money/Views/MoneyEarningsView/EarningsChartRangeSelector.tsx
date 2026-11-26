@@ -30,7 +30,7 @@ const EarningsChartRangeSelector = ({
     value={selectedRange}
     onChange={(range) => onRangeChange(range as EarningsRange)}
     variant={FilterButtonVariant.Secondary}
-    twClassName="w-full justify-between"
+    className="w-full justify-between"
     testID={MoneyEarningsViewTestIds.RANGE_SELECTOR}
     scrollEnabled={false}
   >

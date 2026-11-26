@@ -103,7 +103,7 @@ const MoneyPotentialEarnings = ({
 
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
-      <Box twClassName="px-4 py-3 gap-3">
+      <Box className="px-4 py-3 gap-3">
         <MoneySectionHeader
           testID={MoneyPotentialEarningsTestIds.HEADER}
           title={strings('money.potential_earnings.title')}
@@ -122,7 +122,7 @@ const MoneyPotentialEarnings = ({
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Regular}
               color={TextColor.TextAlternative}
-              twClassName="shrink-0"
+              className="shrink-0"
             >
               {`${strings(
                 'money.potential_earnings.description_with_amounts_prefix',

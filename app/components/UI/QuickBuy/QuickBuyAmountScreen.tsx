@@ -33,7 +33,7 @@ const QuickBuyAmountScreen: React.FC = () => {
 
   if (isUnsupportedChain) {
     return (
-      <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+      <Box className="px-4 py-8" alignItems={BoxAlignItems.Center}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('social_leaderboard.quick_buy.unsupported_chain')}
         </Text>
@@ -49,7 +49,7 @@ const QuickBuyAmountScreen: React.FC = () => {
       <SwapsBanners onAdjustSourceAmount={noopAdjustSourceAmount}>
         <TokenWarningBanner />
       </SwapsBanners>
-      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
+      <Box className="flex-1" justifyContent={BoxJustifyContent.Center}>
         <QuickBuyDisabledSection
           isDisabled={hasNoPayWithFunds}
           testID="quick-buy-disabled-amount"
