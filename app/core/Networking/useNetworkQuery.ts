@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   useQuery,
+  type QueryFunction,
   type QueryKey,
   type UseQueryOptions,
   type UseQueryResult,
@@ -15,12 +16,20 @@ import { LATENCY_THRESHOLDS } from '../../util/deviceCapability/thresholds';
 
 const MINUTE = 60 * 1000;
 
-type QueryFn<QueryFnData, Key extends QueryKey> = UseQueryOptions<
-  QueryFnData,
-  Error,
-  QueryFnData,
-  Key
->['queryFn'];
+// The timeout is the tier's hung threshold (production `http.client` p99).
+// Unknown hardware gets the MID timeout and the app's 24 h cache.
+const HARDWARE_LIMITS: Record<
+  HardwareTier | 'UNKNOWN',
+  { timeoutMs: number; gcTime: number }
+> = {
+  LOW: { timeoutMs: LATENCY_THRESHOLDS.LOW.hungMs, gcTime: 5 * MINUTE },
+  MID: { timeoutMs: LATENCY_THRESHOLDS.MID.hungMs, gcTime: 60 * MINUTE },
+  HIGH: { timeoutMs: LATENCY_THRESHOLDS.HIGH.hungMs, gcTime: 24 * 60 * MINUTE },
+  UNKNOWN: {
+    timeoutMs: LATENCY_THRESHOLDS.MID.hungMs,
+    gcTime: 24 * 60 * MINUTE,
+  },
+};
 
 export class NetworkTimeoutError extends Error {
   constructor() {
@@ -29,27 +38,16 @@ export class NetworkTimeoutError extends Error {
   }
 }
 
-const GC_TIME: Record<HardwareTier, number> = {
-  LOW: 5 * MINUTE,
-  MID: 60 * MINUTE,
-  HIGH: 24 * 60 * MINUTE,
-};
-
-function isSlowConnection(): boolean {
-  return (
-    getNetworkTierSnapshot() === 'SLOW_CELLULAR' ||
-    getLatencySnapshot() === 'SLOW'
-  );
-}
-
 export type NetworkQueryOptions<
   QueryFnData,
   Data = QueryFnData,
   Key extends QueryKey = QueryKey,
 > = Omit<
   UseQueryOptions<QueryFnData, Error, Data, Key>,
-  'retry' | 'gcTime' | 'refetchInterval'
+  'queryFn' | 'retry' | 'gcTime' | 'refetchInterval'
 > & {
+  /** Pass `signal` to `fetch` so a timeout or cancellation stops the request. */
+  queryFn: QueryFunction<QueryFnData, Key>;
   /** Poll interval in ms on a good connection. Tripled on a slow one. */
   refetchInterval?: number;
 };
@@ -71,28 +69,27 @@ export function useNetworkQuery<
   ...options
 }: NetworkQueryOptions<QueryFnData, Data, Key>): UseQueryResult<Data, Error> {
   // RAM does not change while the app runs.
-  const [hardwareTier] = useState(getHardwareTier);
+  const [{ timeoutMs, gcTime }] = useState(
+    () => HARDWARE_LIMITS[getHardwareTier() ?? 'UNKNOWN'],
+  );
 
   return useQuery({
     ...options,
-    queryFn: withTimeout(queryFn, resolveTimeout(hardwareTier)),
-    gcTime: resolveGcTime(hardwareTier),
+    queryFn: withTimeout(queryFn, timeoutMs),
+    gcTime,
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),
   });
 }
 
 /**
- * Aborts the attempt after the timeout and fails it with
- * `NetworkTimeoutError`, even when the fetcher ignores the abort signal.
- * TanStack's own cancellation still aborts the request.
+ * Fails the attempt with `NetworkTimeoutError` even when the fetcher ignores
+ * the abort, so a stalled request still reaches retry and the error state.
  */
 function withTimeout<QueryFnData, Key extends QueryKey>(
-  queryFn: QueryFn<QueryFnData, Key>,
+  queryFn: QueryFunction<QueryFnData, Key>,
   timeoutMs: number,
-): QueryFn<QueryFnData, Key> {
-  if (typeof queryFn !== 'function') return queryFn;
-
+): QueryFunction<QueryFnData, Key> {
   return async (context) => {
     const controller = new AbortController();
     const abort = (): void => controller.abort();
@@ -100,7 +97,7 @@ function withTimeout<QueryFnData, Key extends QueryKey>(
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timedOut = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
-        controller.abort();
+        abort();
         reject(new NetworkTimeoutError());
       }, timeoutMs);
     });
@@ -114,16 +111,11 @@ function withTimeout<QueryFnData, Key extends QueryKey>(
   };
 }
 
-// Calibrated per hardware tier from production `http.client` p99 durations.
-function resolveTimeout(hardwareTier: HardwareTier | null): number {
-  if (hardwareTier === null) return LATENCY_THRESHOLDS.MID.hungMs;
-  return LATENCY_THRESHOLDS[hardwareTier].hungMs;
-}
-
-function resolveGcTime(hardwareTier: HardwareTier | null): number {
-  // Unknown hardware keeps the app's 24 h default.
-  if (hardwareTier === null) return GC_TIME.HIGH;
-  return GC_TIME[hardwareTier];
+function isSlowConnection(): boolean {
+  return (
+    getNetworkTierSnapshot() === 'SLOW_CELLULAR' ||
+    getLatencySnapshot() === 'SLOW'
+  );
 }
 
 function shouldRetry(failureCount: number): boolean {
