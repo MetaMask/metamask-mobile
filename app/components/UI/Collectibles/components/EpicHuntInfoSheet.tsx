@@ -19,7 +19,7 @@ interface Props {
   onClose: () => void;
 }
 
-export function EpicOddsInfoSheet({ onClose }: Props) {
+export function EpicHuntInfoSheet({ onClose }: Props) {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -40,31 +40,31 @@ export function EpicOddsInfoSheet({ onClose }: Props) {
             ref={sheetRef}
             goBack={onClose}
             keyboardAvoidingViewEnabled={false}
-            testID={collectiblesTestIds.epicOddsInfoSheet}
+            testID={collectiblesTestIds.epicHuntInfoSheet}
           >
             <BottomSheetHeader
               onClose={close}
               closeButtonProps={{
-                testID: collectiblesTestIds.epicOddsInfoClose,
+                testID: collectiblesTestIds.epicHuntInfoClose,
               }}
             >
-              {strings('collectibles.landing.epic_vs_odds')}
+              {strings('collectibles.landing.epic_hunt')}
             </BottomSheetHeader>
             <View className="gap-4 px-4 pb-6">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('collectibles.epic_vs_odds.info_ranking')}
+                {strings('collectibles.epic_hunt.info_ranking')}
               </Text>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('collectibles.epic_vs_odds.info_gauge')}
+                {strings('collectibles.epic_hunt.info_gauge')}
               </Text>
               <Text variant={TextVariant.BodyMd}>
-                {strings('collectibles.epic_vs_odds.info_independent')}
+                {strings('collectibles.epic_hunt.info_independent')}
               </Text>
             </View>
           </BottomSheet>

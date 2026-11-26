@@ -7,28 +7,28 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import type { EpicOddsPack } from '../types/packs';
-import { useEpicOddsPacks } from '../hooks/useEpicOddsPacks';
+import type { EpicHuntPack } from '../types/packs';
+import { useEpicHuntPacks } from '../hooks/useEpicHuntPacks';
 import {
   CollectiblesCarousel,
   CollectiblesCarouselEmpty,
   CollectiblesCarouselSkeleton,
 } from './CollectiblesCarousel';
-import { EpicOddsGauge } from './EpicOddsGauge';
-import { EpicOddsInfoSheet } from './EpicOddsInfoSheet';
+import { EpicOverdueBadge } from './EpicOverdueBadge';
+import { EpicHuntInfoSheet } from './EpicHuntInfoSheet';
 import { LandingSection } from './LandingSection';
 import { PackTile } from './PackTile';
 
-const renderItem = ({ item }: { item: EpicOddsPack }) => (
+const renderItem = ({ item }: { item: EpicHuntPack }) => (
   <PackTile
     pack={item}
-    badge={<EpicOddsGauge code={item.code} value={item.gaugeValue} />}
+    badge={<EpicOverdueBadge code={item.code} value={item.pullsOverAverage} />}
     caption={item.subtitle}
   />
 );
 
 export function EpicHuntSection() {
-  const { packs, isPending } = useEpicOddsPacks();
+  const { data: packs, isPending } = useEpicHuntPacks();
 
   const {
     value: isInfoOpen,
@@ -38,15 +38,15 @@ export function EpicHuntSection() {
 
   return (
     <LandingSection
-      name="epic-vs-odds"
-      title={strings('collectibles.landing.epic_vs_odds')}
+      name="epic-hunt"
+      title={strings('collectibles.landing.epic_hunt')}
       titleAccessory={
         <ButtonIcon
           iconName={IconName.Info}
           size={ButtonIconSize.Sm}
-          accessibilityLabel={strings('collectibles.epic_vs_odds.info')}
+          accessibilityLabel={strings('collectibles.epic_hunt.info')}
           onPress={openInfo}
-          testID={collectiblesTestIds.epicOddsInfoButton}
+          testID={collectiblesTestIds.epicHuntInfoButton}
         />
       }
     >
@@ -57,7 +57,7 @@ export function EpicHuntSection() {
       ) : (
         <CollectiblesCarouselEmpty />
       )}
-      {isInfoOpen && <EpicOddsInfoSheet onClose={closeInfo} />}
+      {isInfoOpen && <EpicHuntInfoSheet onClose={closeInfo} />}
     </LandingSection>
   );
 }

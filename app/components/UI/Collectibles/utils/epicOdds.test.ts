@@ -1,11 +1,11 @@
-import type { EpicOddsMachine } from '#app/components/UI/Collectibles/types/packs';
+import type { EpicHuntMachine } from '#app/components/UI/Collectibles/types/packs';
 import {
   getAveragePullsPerEpic,
-  getEpicGaugeValue,
+  getPullsOverAverage,
   rankEpicOddsPacks,
 } from '#app/components/UI/Collectibles/utils/epicOdds';
 
-function machine(overrides: Partial<EpicOddsMachine> = {}): EpicOddsMachine {
+function machine(overrides: Partial<EpicHuntMachine> = {}): EpicHuntMachine {
   return {
     code: 'pack-1',
     name: 'Lorem ipsum',
@@ -19,7 +19,7 @@ function machine(overrides: Partial<EpicOddsMachine> = {}): EpicOddsMachine {
   };
 }
 
-function rankedCodes(machines: EpicOddsMachine[]) {
+function rankedCodes(machines: EpicHuntMachine[]) {
   return rankEpicOddsPacks(machines).map((pack) => pack.code);
 }
 
@@ -34,7 +34,7 @@ describe('getAveragePullsPerEpic', () => {
   });
 });
 
-describe('getEpicGaugeValue', () => {
+describe('getPullsOverAverage', () => {
   it.each([
     [32, -68],
     [100, 0],
@@ -42,7 +42,7 @@ describe('getEpicGaugeValue', () => {
   ])('shows %d pulls on a 100 average as %d', (pullsSinceEpic, value) => {
     const [pack] = rankEpicOddsPacks([machine({ pullsSinceEpic })]);
 
-    expect(getEpicGaugeValue(pack)).toBe(value);
+    expect(getPullsOverAverage(pack)).toBe(value);
   });
 });
 

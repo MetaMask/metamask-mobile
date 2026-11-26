@@ -16,8 +16,8 @@ jest.mock('#app/components/UI/Collectibles/hooks/usePacksCatalog', () => ({
   usePacksCatalog: () => ({ packs: [], categories: [], isPending: true }),
 }));
 
-jest.mock('#app/components/UI/Collectibles/hooks/useEpicOddsPacks', () => ({
-  useEpicOddsPacks: () => ({ packs: [], isPending: true }),
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
+  useEpicHuntPacks: () => ({ data: [], isPending: true }),
 }));
 
 interface MockPagerProps {

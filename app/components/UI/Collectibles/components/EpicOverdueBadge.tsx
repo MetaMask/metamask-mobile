@@ -15,17 +15,17 @@ interface Props {
   value: number;
 }
 
-export function EpicOddsGauge({ code, value }: Props) {
+export function EpicOverdueBadge({ code, value }: Props) {
   const { formatNumber } = useFormatters();
   const label = formatNumber(value, { signDisplay: 'exceptZero' });
 
   return (
     <View
       accessible
-      accessibilityLabel={strings('collectibles.epic_vs_odds.gauge_label', {
+      accessibilityLabel={strings('collectibles.epic_hunt.gauge_label', {
         value: label,
       })}
-      testID={collectiblesTestIds.epicOddsGauge(code)}
+      testID={collectiblesTestIds.epicHuntGauge(code)}
     >
       <CapsuleGlass className="h-6 px-2">
         <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>

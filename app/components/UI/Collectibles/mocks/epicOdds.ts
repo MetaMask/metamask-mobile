@@ -1,9 +1,9 @@
-import type { EpicOddsMachine } from '../types/packs';
+import type { EpicHuntMachine } from '../types/packs';
 import { mockCatalogPacks } from './packsCatalog';
 
 const mockEpicStats: Record<
   string,
-  Pick<EpicOddsMachine, 'epicOdds' | 'pullsSinceEpic'>
+  Pick<EpicHuntMachine, 'epicOdds' | 'pullsSinceEpic'>
 > = {
   'pack-1': { epicOdds: 0.01, pullsSinceEpic: 32 },
   'pack-2': { epicOdds: 0.0275, pullsSinceEpic: 41 },
@@ -19,7 +19,7 @@ const mockEpicStats: Record<
   'pack-12': { epicOdds: 0.025, pullsSinceEpic: 3 },
 };
 
-export const mockEpicOddsMachines: EpicOddsMachine[] = mockCatalogPacks.map(
+export const mockEpicOddsMachines: EpicHuntMachine[] = mockCatalogPacks.map(
   (pack) => ({
     ...pack,
     isApproved: pack.code !== 'pack-12',

@@ -5,8 +5,8 @@ import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { PopularView } from './PopularView';
 
-jest.mock('#app/components/UI/Collectibles/hooks/useEpicOddsPacks', () => ({
-  useEpicOddsPacks: () => ({ packs: [], isPending: true }),
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
+  useEpicHuntPacks: () => ({ data: [], isPending: true }),
 }));
 
 describe('PopularView', () => {
@@ -16,7 +16,7 @@ describe('PopularView', () => {
     expect(
       screen.getByTestId(collectiblesTestIds.landingHero),
     ).toBeOnTheScreen();
-    for (const name of ['just-opened', 'epic-vs-odds', 'greatest-hits']) {
+    for (const name of ['just-opened', 'epic-hunt', 'greatest-hits']) {
       expect(
         screen.getByTestId(collectiblesTestIds.landingSection(name)),
       ).toBeOnTheScreen();
@@ -25,7 +25,7 @@ describe('PopularView', () => {
       screen.getByText(strings('collectibles.landing.just_opened')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('collectibles.landing.epic_vs_odds')),
+      screen.getByText(strings('collectibles.landing.epic_hunt')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('collectibles.landing.greatest_hits')),

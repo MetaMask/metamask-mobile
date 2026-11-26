@@ -1,4 +1,4 @@
-import type { EpicOddsMachine, RankedEpicOddsPack } from '../types/packs';
+import type { EpicHuntMachine, RankedEpicHuntPack } from '../types/packs';
 
 const maxEpicOddsPacks = 10;
 const floatTolerance = 1e-9;
@@ -6,11 +6,11 @@ const floatTolerance = 1e-9;
 export const getAveragePullsPerEpic = (epicOdds: number) =>
   Math.ceil(1 / epicOdds - floatTolerance);
 
-export const getEpicGaugeValue = (pack: RankedEpicOddsPack) =>
+export const getPullsOverAverage = (pack: RankedEpicHuntPack) =>
   pack.pullsSinceEpic - pack.averagePulls;
 
-export function rankEpicOddsPacks(machines: EpicOddsMachine[]) {
-  const ranked: RankedEpicOddsPack[] = machines.flatMap((machine) => {
+export function rankEpicOddsPacks(machines: EpicHuntMachine[]) {
+  const ranked: RankedEpicHuntPack[] = machines.flatMap((machine) => {
     const { epicOdds, priceUsd } = machine;
 
     if (

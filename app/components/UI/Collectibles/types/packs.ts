@@ -34,19 +34,19 @@ export interface PackCategoryMapping {
   packCategories: Record<string, string>;
 }
 
-export interface EpicOddsMachine extends CatalogPack {
+export interface EpicHuntMachine extends CatalogPack {
   isApproved: boolean;
   epicOdds?: number;
   pullsSinceEpic: number;
 }
 
-export interface RankedEpicOddsPack extends EpicOddsMachine {
+export interface RankedEpicHuntPack extends EpicHuntMachine {
   priceUsd: number;
   epicOdds: number;
   averagePulls: number;
   ratio: number;
 }
 
-export interface EpicOddsPack extends HomePack {
-  gaugeValue: number;
+export interface EpicHuntPack extends HomePack {
+  pullsOverAverage: number;
 }
