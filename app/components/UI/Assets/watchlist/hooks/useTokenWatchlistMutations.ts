@@ -136,18 +136,29 @@ interface InvalidateOnSettledOptions {
   hydrated?: boolean;
 }
 
+export interface WatchlistMutationHookOptions<TInput> {
+  /**
+   * Hook-level success callback wired into React Query's `useMutation`
+   * options. Unlike mutate-level callbacks, this still fires if the calling
+   * component unmounts before the batched write settles.
+   */
+  onSuccess?: (input: TInput) => void;
+}
+
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
   optimisticTokens,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
   shouldInvalidateHydrated,
+  onSuccess,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
   optimisticTokens?: (input: TInput) => readonly WatchlistTokenMetadata[];
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
   shouldInvalidateHydrated?: (input: TInput) => boolean;
+  onSuccess?: (input: TInput) => void;
 }) => {
   const queryClient = useQueryClient();
 
@@ -192,6 +203,9 @@ const useWatchlistMutation = <TInput>({
 
       return { prevBlob, prevHydrated };
     },
+    onSuccess: (_data, input) => {
+      onSuccess?.(input);
+    },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prevBlob !== undefined) {
         queryClient.setQueryData(tokenWatchlistQueryKeys.blob, ctx.prevBlob);
@@ -229,7 +243,9 @@ const useWatchlistMutation = <TInput>({
  * optimistic cache updates with rollback and enqueues an `add` op into
  * the shared {@link tokenWatchlistBatcher}.
  */
-export const useTokenWatchlistAddItemMutation = () => {
+export const useTokenWatchlistAddItemMutation = (
+  options?: WatchlistMutationHookOptions<WatchlistAddInput>,
+) => {
   const queryClient = useQueryClient();
 
   return useWatchlistMutation<WatchlistAddInput>({
@@ -253,6 +269,7 @@ export const useTokenWatchlistAddItemMutation = () => {
         blob.assets.some((asset) => asset.toLowerCase() === id.toLowerCase()),
       );
     },
+    onSuccess: options?.onSuccess,
   });
 };
 
@@ -260,13 +277,16 @@ export const useTokenWatchlistAddItemMutation = () => {
  * Remove one or more `CaipAssetType` ids from the watchlist. Mirrors
  * {@link useTokenWatchlistAddItemMutation} but enqueues a `remove` op.
  */
-export const useTokenWatchlistRemoveItemMutation = () =>
+export const useTokenWatchlistRemoveItemMutation = (
+  options?: WatchlistMutationHookOptions<WatchlistRemoveInput>,
+) =>
   useWatchlistMutation<WatchlistRemoveInput>({
     applyOptimistic: (current, input) =>
       filterAssets(current, toStrings(asArray(input))),
     toOp: (input) => ({ kind: 'remove', ids: toStrings(asArray(input)) }),
     // Optimistic blob + hydrated updates are sufficient; no Token API refetch.
     invalidateOnSettled: { blob: false, hydrated: false },
+    onSuccess: options?.onSuccess,
   });
 
 /**
