@@ -409,14 +409,6 @@ export interface MobileOptinDto {
   signature: `0x${string}`;
 }
 
-export interface ApplyBonusCodeDto {
-  /**
-   * The bonus code to apply
-   * @example 'BNS123'
-   */
-  bonusCode: string;
-}
-
 /**
  * Campaign type enum matching the backend CampaignType
  */

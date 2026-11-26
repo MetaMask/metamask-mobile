@@ -30,10 +30,7 @@ import images from '../../../../../../images/image-icons';
 import LighterLogo from 'images/lighter.svg';
 import type { SvgProps } from 'react-native-svg';
 import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
-import {
-  isLighterProviderEnabled,
-  isPerpsLighterConfirmationEnabled,
-} from '../../../../../UI/Perps/utils/lighterFeatureFlags';
+import { isLighterProviderEnabled } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { PerpsWithdrawFromSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { usePerpsProviderBalance } from '../usePerpsProviderBalance';
@@ -235,7 +232,6 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
   );
 
   const isVisible =
-    isPerpsLighterConfirmationEnabled() &&
     isLighterProviderEnabled() &&
     providerFlagEnabled &&
     hasTransactionType(transactionMeta, [

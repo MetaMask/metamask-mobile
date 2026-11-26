@@ -47,12 +47,22 @@ describe('PredictFeedView (component view)', () => {
   });
 
   beforeEach(() => {
+    (Engine.context.PredictController.listMarkets as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ markets: [], nextCursor: null });
+    (Engine.context.PredictController.listFilterOptions as jest.Mock)
+      .mockReset()
+      .mockResolvedValue([]);
     (
-      Engine.context.PredictController.listMarkets as jest.Mock
-    ).mockResolvedValue({ markets: [], nextCursor: null });
+      Engine.context.PredictController.trackSearchInteracted as jest.Mock
+    ).mockClear();
+    (Engine.context.PredictController.trackFeedViewed as jest.Mock).mockClear();
     (
-      Engine.context.PredictController.listFilterOptions as jest.Mock
-    ).mockResolvedValue([]);
+      Engine.context.PredictController.trackFeedTabChanged as jest.Mock
+    ).mockClear();
+    (
+      Engine.context.PredictController.trackFeedFilterChanged as jest.Mock
+    ).mockClear();
   });
 
   it('renders the configured feed header, tabs, and filters for a multi-tab feed', async () => {
@@ -148,11 +158,9 @@ describe('PredictFeedView (component view)', () => {
   });
 
   it('shows the offline state and loads markets after Try again', async () => {
-    const listMarketsSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'listMarkets',
-    );
-    listMarketsSpy.mockRejectedValue(new Error('Network error'));
+    const listMarketsMock = Engine.context.PredictController
+      .listMarkets as jest.Mock;
+    listMarketsMock.mockRejectedValue(new Error('Network error'));
 
     const { findByTestId, findByText, queryByTestId } = renderPredictFeedView({
       initialParams: { feedId: 'sports' },
@@ -169,8 +177,8 @@ describe('PredictFeedView (component view)', () => {
       await findByTestId(PREDICT_OFFLINE_TEST_IDS.ERROR_STATE),
     ).toBeOnTheScreen();
 
-    const callCountBeforeRetry = listMarketsSpy.mock.calls.length;
-    listMarketsSpy.mockResolvedValue({
+    const callCountBeforeRetry = listMarketsMock.mock.calls.length;
+    listMarketsMock.mockResolvedValue({
       markets: [createMarket('market-1', 'Lakers to win the title')],
       nextCursor: null,
     });
@@ -178,7 +186,7 @@ describe('PredictFeedView (component view)', () => {
     fireEvent.press(await findByText('Try again'));
 
     await waitFor(() => {
-      expect(listMarketsSpy.mock.calls.length).toBeGreaterThan(
+      expect(listMarketsMock.mock.calls.length).toBeGreaterThan(
         callCountBeforeRetry,
       );
     });
@@ -192,16 +200,9 @@ describe('PredictFeedView (component view)', () => {
     expect(
       queryByTestId(PredictFeedViewSelectorsIDs.ERROR_STATE),
     ).not.toBeOnTheScreen();
-
-    listMarketsSpy.mockRestore();
   });
 
   it('opens search and tracks search opened from the header', async () => {
-    const trackSearchSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'trackSearchInteracted',
-    );
-
     const { getByTestId, findByPlaceholderText } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
     });
@@ -209,21 +210,16 @@ describe('PredictFeedView (component view)', () => {
     fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
     expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
-    expect(trackSearchSpy).toHaveBeenCalledWith({
+    expect(
+      Engine.context.PredictController.trackSearchInteracted,
+    ).toHaveBeenCalledWith({
       interactionType: 'opened',
       predictFeedTab: 'all',
       entryPoint: 'home_section',
     });
-
-    trackSearchSpy.mockRestore();
   });
 
   it('tracks feed viewed on focus with feed, tab, filter, and entry point', async () => {
-    const trackFeedViewedSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'trackFeedViewed',
-    );
-
     const { findByText } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
     });
@@ -231,7 +227,9 @@ describe('PredictFeedView (component view)', () => {
     await findByText('Sports');
 
     await waitFor(() => {
-      expect(trackFeedViewedSpy).toHaveBeenCalledWith({
+      expect(
+        Engine.context.PredictController.trackFeedViewed,
+      ).toHaveBeenCalledWith({
         feedId: 'sports',
         tabId: 'all',
         filterId: 'games',
@@ -239,16 +237,9 @@ describe('PredictFeedView (component view)', () => {
         entryPoint: 'home_section',
       });
     });
-
-    trackFeedViewedSpy.mockRestore();
   });
 
   it('tracks a tab change when the user selects a different tab', async () => {
-    const trackTabSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'trackFeedTabChanged',
-    );
-
     const { findByText, getAllByText } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
     });
@@ -257,35 +248,27 @@ describe('PredictFeedView (component view)', () => {
     fireEvent.press(getAllByText('Basketball')[0]);
 
     await waitFor(() => {
-      expect(trackTabSpy).toHaveBeenCalledWith({
+      expect(
+        Engine.context.PredictController.trackFeedTabChanged,
+      ).toHaveBeenCalledWith({
         feedId: 'sports',
         tabId: 'basketball',
         entryPoint: 'home_section',
       });
     });
-
-    trackTabSpy.mockRestore();
   });
 
   it('refetches markets and tracks filter change when a filter chip is pressed', async () => {
-    const listMarketsSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'listMarkets',
-    );
-    const trackFilterSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'trackFeedFilterChanged',
-    );
     const gamesMarket = createMarket('games-1', 'Lakers game market');
     const propsMarket = createMarket('props-1', 'Player props market');
-    listMarketsSpy.mockImplementation(
-      async (params?: { excludedTags?: string[] }) => {
-        if (params?.excludedTags?.length) {
-          return { markets: [propsMarket], nextCursor: null };
-        }
-        return { markets: [gamesMarket], nextCursor: null };
-      },
-    );
+    (
+      Engine.context.PredictController.listMarkets as jest.Mock
+    ).mockImplementation(async (params?: { excludedTags?: string[] }) => {
+      if (params?.excludedTags?.length) {
+        return { markets: [propsMarket], nextCursor: null };
+      }
+      return { markets: [gamesMarket], nextCursor: null };
+    });
 
     const { findByText, getByText, queryByText } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
@@ -298,16 +281,15 @@ describe('PredictFeedView (component view)', () => {
 
     expect(await findByText('Player props market')).toBeOnTheScreen();
     expect(queryByText('Lakers game market')).not.toBeOnTheScreen();
-    expect(trackFilterSpy).toHaveBeenCalledWith({
+    expect(
+      Engine.context.PredictController.trackFeedFilterChanged,
+    ).toHaveBeenCalledWith({
       feedId: 'sports',
       tabId: 'all',
       filterId: 'props',
       isDynamicFilter: false,
       entryPoint: 'home_section',
     });
-
-    listMarketsSpy.mockRestore();
-    trackFilterSpy.mockRestore();
   });
 
   it('shows the 15 Min chip on finance and collapses paginated Gold and Silver 15m windows to one card each', async () => {
@@ -381,11 +363,9 @@ describe('PredictFeedView (component view)', () => {
     const unrelated1 = createMarket('fed-rates', 'Fed cuts rates');
     const unrelated2 = createMarket('sp500-close', 'S&P 500 above 6000');
 
-    const listMarketsSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'listMarkets',
-    );
-    listMarketsSpy.mockImplementation(
+    (
+      Engine.context.PredictController.listMarkets as jest.Mock
+    ).mockImplementation(
       async (params?: { series?: string[]; afterCursor?: string | null }) => {
         if (!params?.series?.length) {
           return { markets: [], nextCursor: null };
@@ -403,24 +383,23 @@ describe('PredictFeedView (component view)', () => {
       },
     );
 
-    const { findByText, findByTestId, getByTestId, queryByTestId } =
-      renderPredictFeedView({
-        initialParams: { feedId: 'finance' },
-        overrides: {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictUpDown: {
-                    enabled: true,
-                    minimumVersion: '0.0.1',
-                  },
+    const { findByText, getByTestId, queryByTestId } = renderPredictFeedView({
+      initialParams: { feedId: 'finance' },
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictUpDown: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
                 },
               },
             },
           },
         },
-      });
+      },
+    });
 
     const chip = await findByText('15 Min');
     expect(chip).toBeOnTheScreen();
@@ -436,25 +415,29 @@ describe('PredictFeedView (component view)', () => {
 
     expect(await findByText('S&P 500 above 6000')).toBeOnTheScreen();
 
-    expect(
-      await findByTestId(getPredictFeedViewSelector.marketCard(1)),
-    ).toHaveAccessibleName('Gold Up or Down 15m');
-    expect(
-      within(getByTestId(getPredictFeedViewSelector.marketCard(2))).getByText(
-        'Fed cuts rates',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(getPredictFeedViewSelector.marketCard(3)),
-    ).toHaveAccessibleName('Silver Up or Down 15m');
-    expect(
-      within(getByTestId(getPredictFeedViewSelector.marketCard(4))).getByText(
-        'S&P 500 above 6000',
-      ),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(getPredictFeedViewSelector.marketCard(5))).toBeNull();
-
-    listMarketsSpy.mockRestore();
+    // Wait for both Gold and Silver skeletons to unmount after usePredictSeries
+    // settles before asserting accessible names on the marketCard testIDs.
+    await waitFor(() => {
+      expect(
+        getByTestId(getPredictFeedViewSelector.marketCard(1)),
+      ).toHaveAccessibleName('Gold Up or Down 15m');
+      expect(
+        within(getByTestId(getPredictFeedViewSelector.marketCard(2))).getByText(
+          'Fed cuts rates',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getPredictFeedViewSelector.marketCard(3)),
+      ).toHaveAccessibleName('Silver Up or Down 15m');
+      expect(
+        within(getByTestId(getPredictFeedViewSelector.marketCard(4))).getByText(
+          'S&P 500 above 6000',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(getPredictFeedViewSelector.marketCard(5)),
+      ).toBeNull();
+    });
   });
 
   it('orders Gold before Silver on the Finance 15 Min feed even when the API returns Silver first', async () => {
@@ -511,57 +494,56 @@ describe('PredictFeedView (component view)', () => {
     );
     const unrelated1 = createMarket('fed-rates', 'Fed cuts rates');
 
-    const listMarketsSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'listMarkets',
-    );
-    listMarketsSpy.mockImplementation(
-      async (params?: { series?: string[] }) => {
-        if (!params?.series?.length) {
-          return { markets: [], nextCursor: null };
-        }
-        return {
-          markets: [silver1, unrelated1, gold1, silver2, gold2],
-          nextCursor: null,
-        };
-      },
-    );
+    (
+      Engine.context.PredictController.listMarkets as jest.Mock
+    ).mockImplementation(async (params?: { series?: string[] }) => {
+      if (!params?.series?.length) {
+        return { markets: [], nextCursor: null };
+      }
+      return {
+        markets: [silver1, unrelated1, gold1, silver2, gold2],
+        nextCursor: null,
+      };
+    });
 
-    const { findByText, findByTestId, getByTestId, queryByTestId } =
-      renderPredictFeedView({
-        initialParams: { feedId: 'finance' },
-        overrides: {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictUpDown: {
-                    enabled: true,
-                    minimumVersion: '0.0.1',
-                  },
+    const { findByText, getByTestId, queryByTestId } = renderPredictFeedView({
+      initialParams: { feedId: 'finance' },
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictUpDown: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
                 },
               },
             },
           },
         },
-      });
+      },
+    });
 
     fireEvent.press(await findByText('15 Min'));
 
-    expect(
-      await findByTestId(getPredictFeedViewSelector.marketCard(1)),
-    ).toHaveAccessibleName('Gold Up or Down 15m');
-    expect(
-      within(getByTestId(getPredictFeedViewSelector.marketCard(2))).getByText(
-        'Fed cuts rates',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(getPredictFeedViewSelector.marketCard(3)),
-    ).toHaveAccessibleName('Silver Up or Down 15m');
-    expect(queryByTestId(getPredictFeedViewSelector.marketCard(4))).toBeNull();
-
-    listMarketsSpy.mockRestore();
+    // Wait for both Gold and Silver skeletons to unmount after usePredictSeries
+    // settles before asserting accessible names on the marketCard testIDs.
+    await waitFor(() => {
+      expect(
+        getByTestId(getPredictFeedViewSelector.marketCard(1)),
+      ).toHaveAccessibleName('Gold Up or Down 15m');
+      expect(
+        within(getByTestId(getPredictFeedViewSelector.marketCard(2))).getByText(
+          'Fed cuts rates',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getPredictFeedViewSelector.marketCard(3)),
+      ).toHaveAccessibleName('Silver Up or Down 15m');
+      expect(
+        queryByTestId(getPredictFeedViewSelector.marketCard(4)),
+      ).toBeNull();
+    });
   });
 
   it('does not render a ready feed shell when the feed id is unknown', async () => {

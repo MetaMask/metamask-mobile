@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import ShareAddressQR from '.';
+import { ShareAddressQR } from './ShareAddressQR';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // The design-system sheet closes on an animation. Run goBack, then the

@@ -4,6 +4,7 @@ import {
   earnedByOthersLifetime,
   isVoidedEarning,
   selfEarnedLifetime,
+  taxHeldBaseUnits,
   underReviewBlockedBaseUnits,
 } from './earningsSummaryTotals';
 
@@ -217,5 +218,126 @@ describe('earningsSummaryTotals', () => {
     } as unknown as EarningsSummaryDto;
 
     expect(underReviewBlockedBaseUnits(summary)).toBeNull();
+  });
+
+  describe('scoped to one family', () => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: {
+        ...emptyBranch,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            blocked: '2000000',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+        },
+      },
+      earned_by_others: {
+        ...emptyBranch,
+        by_claim_family: {
+          SOCIAL_FOLLOW_TRADE: {
+            ...emptyBranch,
+            blocked: '5000000',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    it('reads only the scoped family', () => {
+      expect(
+        underReviewBlockedBaseUnits(summary, {
+          branch: 'self_earned',
+          family: 'REFERRAL_TRADE_FEE_CASHBACK',
+        }),
+      ).toBe('2000000');
+      expect(
+        underReviewBlockedBaseUnits(summary, {
+          branch: 'earned_by_others',
+          family: 'SOCIAL_FOLLOW_TRADE',
+        }),
+      ).toBe('5000000');
+    });
+
+    it('returns null for a family the summary does not list', () => {
+      expect(
+        underReviewBlockedBaseUnits(summary, {
+          branch: 'earned_by_others',
+          family: 'REFERRAL_REV_SHARE',
+        }),
+      ).toBeNull();
+    });
+  });
+});
+
+describe('taxHeldBaseUnits', () => {
+  const summary = {
+    ...SUMMARY,
+    self_earned: {
+      ...emptyBranch,
+      by_claim_family: {
+        REFERRAL_TRADE_FEE_CASHBACK: {
+          ...emptyBranch,
+          held: '9000000',
+          blocking_reason: 'SUSPENDED',
+        },
+      },
+    },
+    earned_by_others: {
+      ...emptyBranch,
+      by_claim_family: {
+        REFERRAL_REV_SHARE: {
+          ...emptyBranch,
+          held: '3000000',
+          blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          ...emptyBranch,
+          held: '56000000',
+          blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+      },
+    },
+  } as unknown as EarningsSummaryDto;
+
+  it('sums held base units on families held for tax and ignores other reasons', () => {
+    expect(taxHeldBaseUnits(summary)).toBe('59000000');
+  });
+
+  it('reads only the scoped family', () => {
+    expect(
+      taxHeldBaseUnits(summary, {
+        branch: 'earned_by_others',
+        family: 'SOCIAL_FOLLOW_TRADE',
+      }),
+    ).toBe('56000000');
+    expect(
+      taxHeldBaseUnits(summary, {
+        branch: 'self_earned',
+        family: 'REFERRAL_TRADE_FEE_CASHBACK',
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null without a summary or a positive held amount', () => {
+    expect(taxHeldBaseUnits(null)).toBeNull();
+    expect(taxHeldBaseUnits(undefined)).toBeNull();
+    expect(taxHeldBaseUnits(SUMMARY)).toBeNull();
+    expect(
+      taxHeldBaseUnits({
+        ...SUMMARY,
+        earned_by_others: {
+          ...emptyBranch,
+          by_claim_family: {
+            SOCIAL_FOLLOW_TRADE: {
+              ...emptyBranch,
+              held: '0',
+              blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+            },
+          },
+        },
+      } as unknown as EarningsSummaryDto),
+    ).toBeNull();
   });
 });

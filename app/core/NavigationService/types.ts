@@ -30,7 +30,6 @@ import type {
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
-  BrowserTabHomeParamList,
   HomeTabsParamList,
   RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
@@ -38,7 +37,6 @@ import type {
   SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
-  WalletTabHomeParamList,
   WalletTabStackParamList,
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
@@ -502,7 +500,7 @@ export type RootStackParamList = {
   // Top-level routes
   ReviewModal: undefined;
   WalletView: undefined;
-  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  BrowserTabHome: HomeTabsParamList['BrowserTabHome'];
   BrowserView: BrowserParams | undefined;
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
@@ -697,9 +695,6 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal:
-    | RewardsNavigationParamList['RewardsBottomSheetModal']
-    | undefined;
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
@@ -887,7 +882,7 @@ export type RootStackParamList = {
   SimpleWebview: WebviewStackParamList['SimpleWebview'];
 
   // Wallet routes
-  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
+  WalletTabHome: HomeTabsParamList['WalletTabHome'];
   WalletTabStackFlow:
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
@@ -1173,7 +1168,7 @@ export type RootStackParamList = {
   // Full screen confirmation routes
   // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
   // covers Perps deposit+order navigation that reuses the same root route key.
-  RedesignedConfirmations:
+  Confirmations:
     | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;

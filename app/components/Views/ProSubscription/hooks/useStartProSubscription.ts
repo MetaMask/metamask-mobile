@@ -26,7 +26,6 @@ import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
-import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
@@ -43,7 +42,7 @@ import {
   resolveProSubscriptionStartOutcome,
   type StartProSubscriptionOutcome,
 } from '../utils/proSubscriptionPaymentStatus';
-import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
+import { getMembershipTopUpAmountUsd } from '../../shared/pro/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
@@ -52,25 +51,6 @@ const PAYMENT_UNAVAILABLE_ERROR =
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
-}
-
-/**
- * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Pads the shortfall so vault deposit rounding still covers the price, then
- * rounds that safe amount up to the next cent. The deposit sheet truncates
- * anything past two decimals, which would drop the pad or show a sub-cent
- * top-up as $0.00.
- *
- * @param balance - Current mUSD balance in base units (6 decimals).
- * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Padded shortfall in USD, rounded up to two decimal places.
- */
-function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
-  const shortfall = BigInt(requiredBalance) - BigInt(balance);
-  return new BigNumber(getMembershipFundingAmount(shortfall).toString())
-    .shiftedBy(-MUSD_DECIMALS)
-    .decimalPlaces(2, BigNumber.ROUND_CEIL)
-    .toFixed(2);
 }
 
 type InitiateDeposit = ReturnType<
@@ -107,7 +87,7 @@ async function topUpMembershipShortfall(
   try {
     await initiateDeposit({
       batchId,
-      amount: getTopUpAmountUsd(balance, requiredBalance),
+      amount: getMembershipTopUpAmountUsd(balance, requiredBalance),
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });

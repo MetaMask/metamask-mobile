@@ -32,7 +32,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontFamily,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   useHeaderStandardAnimated,
   SensitiveText,
   SensitiveTextLength,
@@ -449,7 +452,20 @@ const PerpsHomeView = () => {
         accessibilityRole="button"
         testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
       >
-        {availableBalanceLabel}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          accessible={false}
+        >
+          {availableBalanceLabel}
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+            testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON}
+          />
+        </Box>
       </Pressable>
     ) : (
       availableBalanceLabel
@@ -605,8 +621,6 @@ const PerpsHomeView = () => {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
     if (ordersError || isLoading.orders || orders.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
-    if (isWhatsHappeningVisible)
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
     if (isExploreVisible) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE);
     } else if (!showExploreTable) {
@@ -618,6 +632,8 @@ const PerpsHomeView = () => {
       if (isProductsVisible)
         sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     }
+    if (showExploreTable && isWhatsHappeningVisible)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
@@ -628,6 +644,8 @@ const PerpsHomeView = () => {
     // single Explore section recorded above.
     if (!showExploreTable && (isLoading.markets || perpsMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
+    if (!showExploreTable && isWhatsHappeningVisible)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
     if (
       !showExploreTable &&
       (isLoading.markets || commoditiesMarkets.length > 0)
@@ -971,8 +989,18 @@ const PerpsHomeView = () => {
         ),
       },
       {
+        key: 'explore',
+        visible: isExploreVisible,
+        onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE),
+        content: (
+          <PerpsExploreSection
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        ),
+      },
+      {
         key: 'whats-happening',
-        visible: isWhatsHappeningVisible,
+        visible: showExploreTable && isWhatsHappeningVisible,
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
         ),
@@ -981,16 +1009,6 @@ const PerpsHomeView = () => {
             source={WhatsHappeningSource.Perps}
             feed={whatsHappeningFeed}
             onHeaderPress={handleWhatsHappeningHeaderPress}
-          />
-        ),
-      },
-      {
-        key: 'explore',
-        visible: isExploreVisible,
-        onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE),
-        content: (
-          <PerpsExploreSection
-            transactionActiveAbTests={transactionActiveAbTests}
           />
         ),
       },
@@ -1064,6 +1082,20 @@ const PerpsHomeView = () => {
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
             source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO}
             transactionActiveAbTests={transactionActiveAbTests}
+          />
+        ),
+      },
+      {
+        key: 'whats-happening',
+        visible: !showExploreTable && isWhatsHappeningVisible,
+        onLayout: handleSectionLayout(
+          PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
+        ),
+        content: (
+          <WhatsHappeningSection
+            source={WhatsHappeningSource.Perps}
+            feed={whatsHappeningFeed}
+            onHeaderPress={handleWhatsHappeningHeaderPress}
           />
         ),
       },

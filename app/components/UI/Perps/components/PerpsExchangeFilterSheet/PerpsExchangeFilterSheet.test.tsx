@@ -22,8 +22,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'navigation.close': 'Close',
       'perps.selection_sheet.save': 'Save',
       'perps.exchange_filter.title': 'Filter by exchange',
-      'perps.exchange_filter.tagline_lighter': 'Low fee, high leverage',
-      'perps.exchange_filter.tagline_hyperliquid': 'High volume, low slippage',
+      'perps.exchange_filter.tagline_lighter': 'Lower fee, higher leverage',
+      'perps.exchange_filter.tagline_hyperliquid':
+        'Higher volume, lower slippage',
     };
     return translations[key] || key;
   }),
@@ -79,8 +80,8 @@ describe('PerpsExchangeFilterSheet', () => {
   it('renders the tagline for each exchange and keeps the logo decorative', () => {
     renderSheet();
 
-    expect(screen.getByText('Low fee, high leverage')).toBeOnTheScreen();
-    expect(screen.getByText('High volume, low slippage')).toBeOnTheScreen();
+    expect(screen.getByText('Lower fee, higher leverage')).toBeOnTheScreen();
+    expect(screen.getByText('Higher volume, lower slippage')).toBeOnTheScreen();
     // The logos render but are decorative (the row announces the exchange
     // name), so they are hidden from the accessibility tree. They are only
     // findable when hidden elements are included.

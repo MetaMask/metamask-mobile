@@ -1,4 +1,7 @@
-import { renderHook } from '@testing-library/react-native';
+import {
+  renderHook,
+  type RenderHookResult,
+} from '@testing-library/react-native';
 import { useQueries } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import type { Hex } from '@metamask/utils';
@@ -25,7 +28,10 @@ import {
   getVaultShareValuationCacheIdentity,
   type VaultShareValuationCacheEntry,
 } from '../utils/vaultShareValuations';
-import { useMoneyActivityValuations } from './useMoneyActivityValuations';
+import {
+  useMoneyActivityValuations,
+  type UseMoneyActivityValuationsResult,
+} from './useMoneyActivityValuations';
 
 jest.mock('@tanstack/react-query', () => ({
   useQueries: jest.fn(),
@@ -89,7 +95,9 @@ function cacheEntry(
   };
 }
 
-function queryResult(overrides: Record<string, unknown> = {}) {
+function queryResult(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     data: undefined,
     isLoading: false,
@@ -107,7 +115,7 @@ function renderValuations({
   pages: AccountsApiActivity[][];
   enabled?: boolean;
   tokens?: readonly VaultShareToken[];
-}) {
+}): RenderHookResult<UseMoneyActivityValuationsResult, unknown> {
   return renderHook(() =>
     useMoneyActivityValuations({
       pageActivities: pages,
@@ -118,7 +126,12 @@ function renderValuations({
   );
 }
 
-function getQueryOptions(callIndex: number) {
+function getQueryOptions(callIndex: number): {
+  queryKey: unknown[];
+  enabled: boolean;
+  initialData?: VaultShareValuationCacheEntry[];
+  queryFn?: () => Promise<VaultShareValuationCacheEntry[]>;
+}[] {
   const options = mockUseQueries.mock.calls[callIndex][0] as unknown as {
     queries: {
       queryKey: unknown[];
@@ -136,13 +149,15 @@ describe('useMoneyActivityValuations', () => {
     mockNetworkTier.mockReturnValue('WIFI');
     mockReadCache.mockReturnValue([]);
     mockWriteCache.mockResolvedValue(undefined);
-    mockUseQueries.mockImplementation(((options: {
-      queries: unknown[];
-      combine?: (results: unknown[]) => unknown;
-    }) => {
-      const results = options.queries.map(() => queryResult());
-      return options.combine ? options.combine(results) : results;
-    }) as typeof useQueries);
+    mockUseQueries.mockImplementation(
+      (options: {
+        queries: unknown[];
+        combine?: (results: unknown[]) => unknown;
+      }) => {
+        const results = options.queries.map(() => queryResult());
+        return options.combine ? options.combine(results) : results;
+      },
+    );
   });
 
   it('requests each page once and returns historical amounts from the response', async () => {
@@ -162,7 +177,7 @@ describe('useMoneyActivityValuations', () => {
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Vault Share Valuations',
-        tags: { page_index: 0 },
+        tags: { page_indices: '0' },
       }),
       expect.any(Function),
     );
@@ -184,13 +199,19 @@ describe('useMoneyActivityValuations', () => {
     const [query] = getQueryOptions(0);
     await query.queryFn?.();
 
-    expect(JSON.stringify(query.queryKey)).toContain(TX_HASH_2);
-    expect(JSON.stringify(query.queryKey)).not.toContain(TX_HASH);
+    expect(JSON.stringify(query.queryKey[2])).toContain(TX_HASH_2);
+    expect(JSON.stringify(query.queryKey[2])).not.toContain(TX_HASH);
     expect(mockEngineCall).toHaveBeenCalledWith(
       'MoneyAccountApiDataService:fetchVaultShareValuations',
       ACCOUNT,
       { chainId: 143, txHashes: [TX_HASH_2] },
     );
+  });
+
+  it('omits valuation queries for pages without missing targets', () => {
+    renderValuations({ pages: [[], []] });
+
+    expect(getQueryOptions(0)).toHaveLength(0);
   });
 
   it('splits an oversized page at 50 hashes without dropping rows', async () => {
@@ -227,7 +248,7 @@ describe('useMoneyActivityValuations', () => {
     renderValuations({ pages: [[first], [second]] });
 
     const queries = getQueryOptions(0);
-    await Promise.all(queries.map((query) => query.queryFn?.()));
+    await Promise.all(queries.map(async (query) => query.queryFn?.()));
 
     expect(queries).toHaveLength(2);
     expect(mockEngineCall).toHaveBeenCalledTimes(2);
@@ -245,6 +266,106 @@ describe('useMoneyActivityValuations', () => {
     );
   });
 
+  it('keeps partially overlapping pages in separate query groups', async () => {
+    const first = activity(txHash(0), '1');
+    const second = activity(txHash(1), '2');
+    const third = activity(txHash(2), '3');
+    mockEngineCall.mockResolvedValue(valuationResponse([first, second, third]));
+
+    renderValuations({
+      pages: [
+        [first, second],
+        [second, third],
+      ],
+    });
+
+    const queries = getQueryOptions(0);
+    const entries = await queries[0].queryFn?.();
+    await queries[1].queryFn?.();
+    const requestedHashes = mockEngineCall.mock.calls.flatMap(
+      ([, , params]) => (params as { txHashes: string[] }).txHashes,
+    );
+
+    expect(queries).toHaveLength(2);
+    expect(requestedHashes).toEqual([
+      first.hash,
+      second.hash,
+      second.hash,
+      third.hash,
+    ]);
+    expect(
+      entries?.map((entry) => getVaultShareValuationCacheIdentity(entry)),
+    ).toEqual(
+      [first, second].map((row) =>
+        getVaultShareValuationCacheIdentity(cacheEntry(row)),
+      ),
+    );
+  });
+
+  it('merges identical request groups without dropping vault targets', async () => {
+    const standard = activity(TX_HASH);
+    const premium: AccountsApiActivity = {
+      ...activity(TX_HASH),
+      token: { address: PREMIUM_VAULT, symbol: 'pvmUSD', decimals: 6 },
+    };
+    mockEngineCall.mockResolvedValue(valuationResponse([standard, premium]));
+
+    renderValuations({
+      pages: [[standard], [premium]],
+      tokens: VAULT_SHARE_TOKENS,
+    });
+
+    const queries = getQueryOptions(0);
+    expect(queries).toHaveLength(1);
+    expect(queries[0].queryKey[2]).toEqual([
+      {
+        chainId: 143,
+        txHashes: [TX_HASH],
+        vaultKeys: [
+          `0x8f:${VAULT.toLowerCase()}`,
+          `0x8f:${PREMIUM_VAULT}`,
+        ].sort(),
+      },
+    ]);
+
+    const entries = await queries[0].queryFn?.();
+
+    expect(entries).toHaveLength(2);
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: { page_indices: '0,1' },
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it('retains distinct activities sharing a valuation cache identity', async () => {
+    const missing = activity(TX_HASH, '1');
+    const cached = activity(TX_HASH, '2');
+    mockReadCache
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([cacheEntry(cached)]);
+    mockEngineCall.mockResolvedValue(valuationResponse([missing]));
+
+    renderValuations({ pages: [[missing], [cached]] });
+
+    const [query] = getQueryOptions(0);
+    await query.queryFn?.();
+
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'MoneyAccountApiDataService:fetchVaultShareValuations',
+      ACCOUNT,
+      { chainId: 143, txHashes: [TX_HASH] },
+    );
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      requested_count: 1,
+      cache_hit_count: 1,
+      chunk_count: 1,
+      failed_chunk_count: 0,
+    });
+  });
+
   it('skips the request when another writer filled the cache before query execution', async () => {
     const row = activity(TX_HASH);
     mockReadCache
@@ -257,6 +378,12 @@ describe('useMoneyActivityValuations', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockWriteCache).not.toHaveBeenCalled();
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      requested_count: 0,
+      cache_hit_count: 1,
+      chunk_count: 0,
+      failed_chunk_count: 0,
+    });
   });
 
   it('keeps successful chunks when a later chunk fails', async () => {
@@ -309,9 +436,7 @@ describe('useMoneyActivityValuations', () => {
     mockReadCache.mockReturnValue([cacheEntry(row)]);
     const { result } = renderValuations({ pages: [[row]] });
 
-    const [query] = getQueryOptions(0);
-
-    expect(query.enabled).toBe(false);
+    expect(getQueryOptions(0)).toHaveLength(0);
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(result.current.getDisplayAmount(row)).toEqual({
       type: 'historical',
@@ -324,11 +449,11 @@ describe('useMoneyActivityValuations', () => {
   it('uses the current rate while historical data is unresolved', () => {
     const row = activity(TX_HASH);
     mockUseQueries
-      .mockReturnValueOnce({ entries: [], isFetching: true } as never)
+      .mockReturnValueOnce({ entries: [], isFetching: true })
       .mockReturnValueOnce({
         data: [{ rate: '1.017488' }],
         isFetching: false,
-      } as never);
+      });
     const { result } = renderValuations({ pages: [[row]] });
 
     expect(result.current.getDisplayAmount(row)).toEqual({
@@ -342,8 +467,8 @@ describe('useMoneyActivityValuations', () => {
   it('returns pending while the current rate is still loading', () => {
     const row = activity(TX_HASH);
     mockUseQueries
-      .mockReturnValueOnce({ entries: [], isFetching: true } as never)
-      .mockReturnValueOnce({ data: [], isFetching: true } as never);
+      .mockReturnValueOnce({ entries: [], isFetching: true })
+      .mockReturnValueOnce({ data: [], isFetching: true });
     const { result } = renderValuations({ pages: [[row]] });
 
     expect(result.current.getDisplayAmount(row)).toEqual({ type: 'pending' });
@@ -357,11 +482,11 @@ describe('useMoneyActivityValuations', () => {
       token: { address: PREMIUM_VAULT, symbol: 'pvmUSD', decimals: 6 },
     };
     mockUseQueries
-      .mockReturnValueOnce({ entries: [], isFetching: false } as never)
+      .mockReturnValueOnce({ entries: [], isFetching: false })
       .mockReturnValueOnce({
         data: [undefined, { rate: '2' }],
         isFetching: false,
-      } as never);
+      });
     const { result } = renderValuations({
       pages: [[standard, premium]],
       tokens: [
@@ -380,6 +505,20 @@ describe('useMoneyActivityValuations', () => {
     });
   });
 
+  it('creates one rate query for duplicate vault tokens', () => {
+    const duplicateTokens = [
+      VAULT_SHARE_TOKENS[0],
+      { ...VAULT_SHARE_TOKENS[0] },
+    ];
+
+    renderValuations({
+      pages: [[activity(TX_HASH)]],
+      tokens: duplicateTokens,
+    });
+
+    expect(getQueryOptions(1)).toHaveLength(1);
+  });
+
   it('shows unavailable rather than raw shares when no rate is available', () => {
     const row = activity(TX_HASH);
     const { result } = renderValuations({ pages: [[row]] });
@@ -395,7 +534,7 @@ describe('useMoneyActivityValuations', () => {
     mockNetworkTier.mockReturnValue('NONE');
     const { result } = renderValuations({ pages: [[row]] });
 
-    expect(getQueryOptions(0)[0].enabled).toBe(false);
+    expect(getQueryOptions(0)).toHaveLength(0);
     expect(result.current.getDisplayAmount(row)).toEqual({
       type: 'historical',
       value: '968399999',
@@ -407,11 +546,11 @@ describe('useMoneyActivityValuations', () => {
     const row = activity(TX_HASH);
     row.blockNumber = undefined;
     mockUseQueries
-      .mockReturnValueOnce({ entries: [], isFetching: false } as never)
+      .mockReturnValueOnce({ entries: [], isFetching: false })
       .mockReturnValueOnce({
         data: [{ rate: '1.017488' }],
         isFetching: false,
-      } as never);
+      });
     const { result } = renderValuations({ pages: [[row]] });
 
     expect(result.current.getDisplayAmount(row)).toEqual({

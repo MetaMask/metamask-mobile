@@ -21,7 +21,7 @@ import { navigateToActivityAfterConfirmation } from './navigateToActivityAfterCo
 const RootStack = createNativeStackNavigator();
 const NestedStack = createNativeStackNavigator();
 
-const REDESIGNED = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+const CONFIRMATIONS_ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS;
 
 const Probe = ({ label }: { label: string }) => <Text>{label}</Text>;
 
@@ -44,7 +44,10 @@ const StakeScreensNavigator = () => (
     <NestedStack.Screen name={Routes.STAKING.STAKE}>
       {() => <Probe label="stake-input" />}
     </NestedStack.Screen>
-    <NestedStack.Screen name={REDESIGNED} component={ConfirmationScreen} />
+    <NestedStack.Screen
+      name={CONFIRMATIONS_ROUTE}
+      component={ConfirmationScreen}
+    />
   </NestedStack.Navigator>
 );
 
@@ -65,7 +68,10 @@ const SendNavigator = () => (
     <NestedStack.Screen name={Routes.SEND.RECIPIENT}>
       {() => <Probe label="send-recipient" />}
     </NestedStack.Screen>
-    <NestedStack.Screen name={REDESIGNED} component={ConfirmationScreen} />
+    <NestedStack.Screen
+      name={CONFIRMATIONS_ROUTE}
+      component={ConfirmationScreen}
+    />
   </NestedStack.Navigator>
 );
 
@@ -124,7 +130,10 @@ describe('navigateToActivityAfterConfirmation', () => {
             name: 'StakeScreens',
             state: {
               index: 1,
-              routes: [{ name: Routes.STAKING.STAKE }, { name: REDESIGNED }],
+              routes: [
+                { name: Routes.STAKING.STAKE },
+                { name: CONFIRMATIONS_ROUTE },
+              ],
             },
           },
         ],
@@ -202,7 +211,7 @@ describe('navigateToActivityAfterConfirmation', () => {
               routes: [
                 { name: Routes.SEND.AMOUNT },
                 { name: Routes.SEND.RECIPIENT },
-                { name: REDESIGNED },
+                { name: CONFIRMATIONS_ROUTE },
               ],
             },
           },
@@ -238,7 +247,10 @@ describe('navigateToActivityAfterConfirmation', () => {
             name: Routes.SEND.DEFAULT,
             state: {
               index: 1,
-              routes: [{ name: Routes.SEND.RECIPIENT }, { name: REDESIGNED }],
+              routes: [
+                { name: Routes.SEND.RECIPIENT },
+                { name: CONFIRMATIONS_ROUTE },
+              ],
             },
           },
         ],

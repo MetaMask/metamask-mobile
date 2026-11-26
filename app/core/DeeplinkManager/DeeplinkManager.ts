@@ -5,11 +5,13 @@ import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
+import { AndroidShortlinkGate } from './utils/androidShortlinkGate';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
   getBrazeInitialPush,
@@ -181,8 +183,13 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    const getBranchDeeplink = async (uri?: string) => {
+    const shortlinkGate = new AndroidShortlinkGate((uri) =>
+      handleDeeplink({ uri }),
+    );
+
+    const getBranchDeeplink = async (uri?: string, rawUri?: string) => {
       if (uri) {
+        shortlinkGate.recordBranchResolution(rawUri ?? uri);
         handleDeeplink({ uri });
         return;
       }
@@ -191,17 +198,22 @@ export class DeeplinkManager {
         const latestParams = await branch.getLatestReferringParams();
 
         // Cold start: params may contain a resolved Branch link with $deeplink_path.
+        const referringLink = latestParams?.['~referring_link'] as
+          | string
+          | undefined;
         const rewritten = rewriteBranchUri(
-          latestParams?.['~referring_link'] as string | undefined,
+          referringLink,
           latestParams as Record<string, unknown> | undefined,
         );
         if (rewritten) {
+          shortlinkGate.recordBranchResolution(referringLink ?? rewritten);
           handleDeeplink({ uri: rewritten });
           return;
         }
 
         const deeplink = latestParams?.['+non_branch_link'] as string;
         if (deeplink) {
+          shortlinkGate.recordBranchResolution(deeplink);
           handleDeeplink({ uri: deeplink });
         }
       } catch (error) {
@@ -284,17 +296,21 @@ export class DeeplinkManager {
       onPushTap(AppOpenedPushProvider.Braze, { deeplink });
     });
 
-    Linking.getInitialURL().then((url) => {
-      if (!url) {
-        return;
-      }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
-      handleDeeplink({ uri: url });
-    });
+    Linking.getInitialURL()
+      .then((url) => {
+        if (!url) {
+          return;
+        }
+        Logger.log(`handleDeeplink:: got initial URL ${url}`);
+        shortlinkGate.handleLinkingUrl(url);
+      })
+      .catch((error: unknown) => {
+        Logger.error(ensureError(error), 'Error handling initial deeplink');
+      });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
-      handleDeeplink({ uri: url });
+      shortlinkGate.handleLinkingUrl(url);
     });
 
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
@@ -312,7 +328,11 @@ export class DeeplinkManager {
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri);
+      getBranchDeeplink(rewritten ?? opts.uri, opts.uri).catch(
+        (error: unknown) => {
+          Logger.error(ensureError(error), 'Error handling Branch deeplink');
+        },
+      );
     });
   }
 }

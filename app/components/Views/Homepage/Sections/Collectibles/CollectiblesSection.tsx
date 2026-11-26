@@ -14,10 +14,10 @@ import {
   IconSize,
   SectionDivider,
   SectionHeader,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Text } from '../../../../UI/primitives/Text';
 import { View } from '../../../../UI/primitives/View';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
@@ -95,6 +95,7 @@ export function CollectiblesSection({
     sectionId: HomeSectionNames.COLLECTIBLES,
     contentReady: !isPending,
     isEmpty,
+    demandStarted: isPending || Boolean(packs?.length),
     isLoading: isPending,
   });
 
