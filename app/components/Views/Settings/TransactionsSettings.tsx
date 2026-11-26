@@ -18,7 +18,6 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
-import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../app/core/AppConstants';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -124,8 +123,8 @@ function TransactionsSettings() {
             onPress={() => {
               void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackExternalLinkClicked(
-                (...args) => analytics.trackEvent(...args),
-                (...args) => analytics.createEventBuilder(...args),
+                (event) => analytics.trackEvent(event),
+                (event) => analytics.createEventBuilder(event),
                 {
                   location: 'app_settings',
                   text: strings('app_settings.simulation_details_learn_more'),
@@ -207,8 +206,8 @@ function TransactionsSettings() {
                       onPress={() => {
                         void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
                         trackExternalLinkClicked(
-                          (...args) => analytics.trackEvent(...args),
-                          (...args) => analytics.createEventBuilder(...args),
+                          (event) => analytics.trackEvent(event),
+                          (event) => analytics.createEventBuilder(event),
                           {
                             location: 'app_settings',
                             text: strings(
