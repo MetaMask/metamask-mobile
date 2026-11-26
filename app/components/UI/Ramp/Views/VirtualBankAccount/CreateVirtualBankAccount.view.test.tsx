@@ -91,9 +91,11 @@ const disclaimer = {
 describeForPlatforms('CreateVirtualBankAccount view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetGeoCountry.mockResolvedValue('BR');
-    mockFetchVendorDisclaimers.mockResolvedValue([disclaimer]);
-    mockHydrateVbaOnboarding.mockResolvedValue({
+    // Reset first so a previous test's queued Once implementations cannot
+    // pre-empt this test's base implementations.
+    mockGetGeoCountry.mockReset().mockResolvedValue('BR');
+    mockFetchVendorDisclaimers.mockReset().mockResolvedValue([disclaimer]);
+    mockHydrateVbaOnboarding.mockReset().mockResolvedValue({
       sessionExists: false,
       vendorDisclaimersComplete: false,
       sessionDisclaimersComplete: false,
@@ -101,7 +103,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       kycStatus: 'none',
       autorampStatus: 'not_ready',
     });
-    mockGetPaymentMethodsForContext.mockResolvedValue({
+    mockGetPaymentMethodsForContext.mockReset().mockResolvedValue({
       methods: [manualBankTransfer as never],
       selected: null,
       providerIds: [],
