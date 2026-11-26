@@ -102,7 +102,11 @@ const TopTradersSection = forwardRef<
     chains = SPOT_CHAINS,
   } = props;
   const sectionViewRef = useRef<View>(null);
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const isSocialV1 = useSelector(selectHasSocialV1Access);
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: isSocialV1,
+    requireSocialProfile: isSocialV1,
+  });
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -241,7 +245,6 @@ const TopTradersSection = forwardRef<
   // TSA-1042: where this entry point lands inside Follow Trading. Exposure is
   // emitted by the destination once it receives these params, so rendering the
   // homepage carousel does not count a user as exposed.
-  const isSocialV1 = useSelector(selectHasSocialV1Access);
   const { variant: landingVariant } = useABTest(
     LEADERBOARD_LANDING_FEED_AB_KEY,
     LEADERBOARD_LANDING_FEED_VARIANTS,

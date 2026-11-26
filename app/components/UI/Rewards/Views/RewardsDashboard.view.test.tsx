@@ -11,7 +11,10 @@ import Engine from '../../../../core/Engine';
 import { updateBgState } from '../../../../core/redux/slices/engine';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../tests/component-view/render';
 import {
   renderRewardsDashboard,
   restoreRewardsDashboardStore,
@@ -45,10 +48,12 @@ describe('RewardsDashboard copy trading', () => {
     restoreRewardsDashboardStore();
   });
 
-  it('opens Social profile onboarding from Start sharing while Social V1 is on', async () => {
-    const { findByTestId, getByTestId } = renderRewardsDashboard({
-      socialV1: true,
-    });
+  it('opens the Social tab from Start sharing while Social V1 is on', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = renderRewardsDashboard(
+      {
+        socialV1: true,
+      },
+    );
 
     expect(
       await findByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION),
@@ -62,9 +67,15 @@ describe('RewardsDashboard copy trading', () => {
 
     fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION));
 
+    const homeTabsProbe = await findByTestId(
+      getRouteParamsProbeTestId(Routes.HOME_TABS),
+    );
+    expect(JSON.parse(homeTabsProbe.props.children as string)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+    });
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING)),
-    ).toBeOnTheScreen();
+      queryByTestId(getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING)),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows Earn rewards while Social V1 is off', async () => {

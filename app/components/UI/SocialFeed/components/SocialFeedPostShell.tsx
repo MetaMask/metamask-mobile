@@ -83,13 +83,6 @@ export interface SocialFeedPostShellProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   /** Opens the position details. The card's own buttons keep their press. */
   onPositionPress?: (post: SocialV1FeedPost) => void;
-  /** Gates interactions when the post is rendered on a Social V1 surface. */
-  requireSocialTerms?: boolean;
-  /**
-   * Gates Copy trade behind a linked social wallet. Social V1 hosts pass
-   * this; token details and other embeds leave it off.
-   */
-  requireSocialProfile?: boolean;
   /**
    * Set `false` to hide Copy trade on an open card. The owner's profile posts
    * pass this so they cannot copy their own trade.
@@ -281,8 +274,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onReactionPickerOpened,
   onAuthorPress,
   onPositionPress,
-  requireSocialTerms = false,
-  requireSocialProfile = false,
   showCopyTrade = true,
 }) => {
   const tracked = useSocialFeedTracking();
@@ -299,26 +290,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
-  const ensureSocialTermsForInteraction = useCallback(
-    (onAccepted?: () => void) =>
-      !requireSocialTerms || ensureSocialTermsAccepted(onAccepted),
-    [ensureSocialTermsAccepted, requireSocialTerms],
-  );
   const getCopyTradeBlockedReason = useCallback(
     (onAccepted?: () => void): SocialBlockedReason | null => {
-      if (!ensureSocialTermsForInteraction(onAccepted)) {
+      if (!ensureSocialTermsAccepted(onAccepted)) {
         return SocialEvent.BlockedReason.TERMS;
       }
-      if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
+      if (!ensureSocialProfileOnboarding()) {
         return SocialEvent.BlockedReason.PROFILE_ONBOARDING;
       }
       return null;
     },
-    [
-      ensureSocialProfileOnboarding,
-      ensureSocialTermsForInteraction,
-      requireSocialProfile,
-    ],
+    [ensureSocialProfileOnboarding, ensureSocialTermsAccepted],
   );
   const postAnalytics = useMemo(() => socialFeedPostAnalytics(post), [post]);
   const optionsTarget = useMemo(
@@ -331,19 +313,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     [post.authorHandle, post.commentId, post.id, post.item.author.id],
   );
   const {
-    open: openEntryOptions,
+    open: openOptions,
     sheet: optionsSheet,
     isHidden,
   } = useSocialEntryOptions(optionsTarget);
-  const openOptions = useCallback(
-    function open(): void {
-      if (!ensureSocialTermsForInteraction(open)) {
-        return;
-      }
-      openEntryOptions();
-    },
-    [ensureSocialTermsForInteraction, openEntryOptions],
-  );
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -403,7 +376,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const openPicker = useCallback(
     function open(): void {
       if (
-        !ensureSocialTermsForInteraction(open) ||
+        !ensureSocialTermsAccepted(open) ||
         !ensureSocialProfileOnboarding()
       ) {
         return;
@@ -418,7 +391,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     },
     [
       ensureSocialProfileOnboarding,
-      ensureSocialTermsForInteraction,
+      ensureSocialTermsAccepted,
       notifyPicker,
       windowOffsetY,
     ],
@@ -431,7 +404,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const toggleEmotion = useCallback(
     function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsForInteraction(() => toggle(emotion, withHaptic)) ||
+        !ensureSocialTermsAccepted(() => toggle(emotion, withHaptic)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -460,7 +433,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     [
       celebrateReaction,
       ensureSocialProfileOnboarding,
-      ensureSocialTermsForInteraction,
+      ensureSocialTermsAccepted,
       isPending,
       notifyReaction,
       pickEmotion,
@@ -477,39 +450,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     [toggleEmotion],
   );
 
-  const handleIdentityPress = useCallback(
-    function pressIdentity(): void {
-      if (!ensureSocialTermsForInteraction(pressIdentity)) {
-        return;
-      }
-      tracked.onAuthorTap?.(postAnalytics);
-      onAuthorPress?.(post);
-    },
-    [
-      ensureSocialTermsForInteraction,
-      onAuthorPress,
-      post,
-      postAnalytics,
-      tracked,
-    ],
-  );
+  const handleIdentityPress = useCallback(() => {
+    tracked.onAuthorTap?.(postAnalytics);
+    onAuthorPress?.(post);
+  }, [onAuthorPress, post, postAnalytics, tracked]);
 
-  const handlePositionPress = useCallback(
-    function pressPosition(): void {
-      if (!ensureSocialTermsForInteraction(pressPosition)) {
-        return;
-      }
-      tracked.onPositionTap?.(postAnalytics);
-      onPositionPress?.(post);
-    },
-    [
-      ensureSocialTermsForInteraction,
-      onPositionPress,
-      post,
-      postAnalytics,
-      tracked,
-    ],
-  );
+  const handlePositionPress = useCallback(() => {
+    tracked.onPositionTap?.(postAnalytics);
+    onPositionPress?.(post);
+  }, [onPositionPress, post, postAnalytics, tracked]);
 
   if (isHidden) {
     return null;
