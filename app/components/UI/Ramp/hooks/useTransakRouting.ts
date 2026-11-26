@@ -41,6 +41,7 @@ import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import { MICA_FORM_ROUTES, MICA_FORM_TYPES } from '../utils/micaForms';
 import { useRampsOrders } from './useRampsOrders';
 import {
   closeSession,
@@ -973,6 +974,20 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
+            const micaFormType = MICA_FORM_TYPES.find((type) =>
+              formsRequired.some((f) => f.type === type),
+            );
+            const micaForm = formsRequired.find((f) => f.type === micaFormType);
+            if (micaFormType && micaForm) {
+              navigation.navigate(MICA_FORM_ROUTES[micaFormType], {
+                quote,
+                quoteId: quote.quoteId,
+                metadata: micaForm.metadata ?? {},
+                ...baseRouteParams,
+              });
+              return;
+            }
+
             const purposeOfUsageForm = formsRequired.find(
               (f) => f.type === 'PURPOSE_OF_USAGE',
             );
@@ -1011,8 +1026,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
               navigateToAdditionalVerificationCallback({
                 quote,
-                kycUrl: metadata.kycUrl,
-                workFlowRunId: metadata.workFlowRunId,
+                kycUrl: metadata.kycUrl ?? '',
+                workFlowRunId: metadata.workFlowRunId ?? '',
                 amount,
               });
               return;

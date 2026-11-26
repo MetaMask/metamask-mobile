@@ -2299,4 +2299,69 @@ describe('BuildQuote', () => {
       expect(continueButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
+
+  describe('MiCA disclaimer', () => {
+    const mockQuoteWithTerms = (termsIds: unknown): void => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [
+            {
+              ...WIDGET_PROVIDER_QUOTE,
+              quote: { ...WIDGET_PROVIDER_QUOTE.quote, termsIds },
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+    };
+
+    it('shows the MiCA buy disclaimer when the selected quote carries MICA_EEA_BUY terms', () => {
+      mockQuoteWithTerms(['MICA_EEA_BUY']);
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByTestId('mica-disclaimer-MICA_EEA_BUY')).toBeOnTheScreen();
+    });
+
+    it('does not show a disclaimer when the selected quote has no terms ids', () => {
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show a disclaimer when the terms ids are not a list', () => {
+      mockQuoteWithTerms('MICA_EEA_BUY');
+
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show a disclaimer when there is no selected quote', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: { success: [] },
+        loading: false,
+        error: null,
+      });
+
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+  });
 });

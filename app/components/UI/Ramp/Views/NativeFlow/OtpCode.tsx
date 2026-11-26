@@ -43,6 +43,8 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { useKycProgress } from '../../hooks/useKycProgress';
+import { KYC_STEP } from '../../utils/kycProgress';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -105,6 +107,7 @@ const ResendButton: FC<{
 };
 
 const V2OtpCode = () => {
+  const kycProgress = useKycProgress(KYC_STEP.OTP);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -260,7 +263,9 @@ const V2OtpCode = () => {
   ]);
 
   const handleContactSupport = useCallback(() => {
-    Linking.openURL(TRANSAK_SUPPORT_URL);
+    Linking.openURL(TRANSAK_SUPPORT_URL).catch((err) =>
+      Logger.error(err as Error, 'Failed to open Transak support URL'),
+    );
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -406,7 +411,7 @@ const V2OtpCode = () => {
   useEffect(() => {
     if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
       setLatestValueSubmitted(value);
-      handleSubmit();
+      void handleSubmit();
     }
   }, [value, handleSubmit, latestValueSubmitted]);
 
@@ -427,7 +432,7 @@ const V2OtpCode = () => {
           includesTopInset
         />
         <ScreenLayout.Content grow>
-          <DepositProgressBar steps={4} currentStep={1} />
+          <DepositProgressBar {...kycProgress} />
           <Text variant={TextVariant.HeadingLg} style={styles.title}>
             {strings('deposit.otp_code.title')}
           </Text>

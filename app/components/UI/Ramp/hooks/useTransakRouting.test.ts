@@ -961,6 +961,124 @@ describe('useTransakRouting', () => {
       );
     });
 
+    describe('MiCA additional forms', () => {
+      const mockAdditionalForms = (forms: unknown[]): void => {
+        mockGetUserDetails.mockResolvedValue({
+          firstName: 'John',
+          address: {},
+        });
+        mockGetKycRequirement.mockResolvedValue({
+          status: 'ADDITIONAL_FORMS_REQUIRED',
+          kycType: 'STANDARD',
+        });
+        mockGetAdditionalRequirements.mockResolvedValue({
+          formsRequired: forms,
+        });
+      };
+
+      const route = async (
+        config?: Parameters<typeof useTransakRouting>[0],
+      ): Promise<void> => {
+        const { result } = renderHook(() => useTransakRouting(config));
+        await act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never, 25);
+        });
+      };
+
+      const micaForms = [
+        ['CONSENT', 'RampMicaConsent'],
+        ['SOURCE_OF_INCOME', 'RampSourceOfIncome'],
+        ['ADDITIONAL_DETAILS_NATIONALITY', 'RampAdditionalDetailsNationality'],
+      ];
+
+      it.each(micaForms)(
+        'navigates to the screen for a %s form with its metadata',
+        async (type, screen) => {
+          const metadata = { options: [{ name: 'Savings', value: 'savings' }] };
+          mockAdditionalForms([{ type, metadata }]);
+
+          await route();
+
+          expect(mockNavigate).toHaveBeenCalledWith(screen, {
+            quote: mockQuote,
+            quoteId: 'test-quote-id',
+            metadata,
+          });
+        },
+      );
+
+      it.each(micaForms)(
+        'forwards the headless session and empty metadata for a %s form',
+        async (type, screen) => {
+          mockAdditionalForms([{ type }]);
+
+          await route({
+            baseRoute: 'RampHeadlessHost',
+            baseRouteParams: { headlessSessionId: 'hs-1' },
+          });
+
+          expect(mockNavigate).toHaveBeenCalledWith(screen, {
+            quote: mockQuote,
+            quoteId: 'test-quote-id',
+            metadata: {},
+            headlessSessionId: 'hs-1',
+          });
+        },
+      );
+
+      it('routes to the consent form before the other MiCA forms', async () => {
+        mockAdditionalForms([
+          { type: 'ADDITIONAL_DETAILS_NATIONALITY' },
+          { type: 'SOURCE_OF_INCOME' },
+          { type: 'CONSENT' },
+        ]);
+
+        await route();
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampMicaConsent',
+          expect.objectContaining({ quoteId: 'test-quote-id' }),
+        );
+      });
+    });
+
+    it('falls back to empty strings when the IDPROOF metadata has no kycUrl or workFlowRunId', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [{ type: 'IDPROOF', metadata: {} }],
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                kycUrl: '',
+                workFlowRunId: '',
+                amount: 25,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
     it('handles ADDITIONAL_FORMS_REQUIRED with IDPROOF when user amount is omitted', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',

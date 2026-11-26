@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import Logger from '../../../../../util/Logger';
 import V2OtpCode, { type V2OtpCodeParams } from './OtpCode';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -157,6 +159,19 @@ const renderWithTheme = (component: React.ReactElement) =>
       {component}
     </ThemeContext.Provider>,
   );
+
+const waitForCooldownAndResend = async (
+  getByText: ReturnType<typeof renderWithTheme>['getByText'],
+) => {
+  for (let i = 0; i < 60; i++) {
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+  }
+  await act(async () => {
+    fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+  });
+};
 
 describe('V2OtpCode', () => {
   beforeEach(() => {
@@ -547,15 +562,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(mockSendUserOtp).toHaveBeenCalledWith('test@example.com');
@@ -567,15 +574,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('deposit.otp_code.resend_cooldown')).toBeOnTheScreen();
@@ -634,15 +633,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('Network error')).toBeOnTheScreen();
@@ -718,18 +709,55 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('deposit.otp_code.resend_code_error')).toBeOnTheScreen();
+    });
+  });
+  describe('contact support', () => {
+    const exhaustResendAttempts = async (
+      getByText: ReturnType<typeof renderWithTheme>['getByText'],
+    ) => {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await waitForCooldownAndResend(getByText);
+      }
+    };
+
+    let openURL: jest.SpyInstance;
+
+    beforeEach(() => {
+      mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+      openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    });
+
+    afterEach(() => {
+      openURL.mockRestore();
+    });
+
+    it('opens Transak support once resend attempts are exhausted', async () => {
+      const { getByText } = renderWithTheme(<V2OtpCode />);
+
+      await exhaustResendAttempts(getByText);
+      fireEvent.press(getByText('deposit.otp_code.contact_support'));
+
+      expect(openURL).toHaveBeenCalledWith('https://support.transak.com');
+    });
+
+    it('logs when the support URL cannot be opened', async () => {
+      const openError = new Error('cannot open');
+      openURL.mockRejectedValue(openError);
+      const { getByText } = renderWithTheme(<V2OtpCode />);
+
+      await exhaustResendAttempts(getByText);
+      await act(async () => {
+        fireEvent.press(getByText('deposit.otp_code.contact_support'));
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        openError,
+        'Failed to open Transak support URL',
+      );
     });
   });
 });

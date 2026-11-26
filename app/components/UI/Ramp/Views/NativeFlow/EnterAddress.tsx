@@ -18,6 +18,8 @@ import { strings } from '../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { useKycProgress } from '../../hooks/useKycProgress';
+import { KYC_STEP } from '../../utils/kycProgress';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { VALIDATION_REGEX } from '../../constants/transak';
@@ -56,6 +58,7 @@ export interface V2EnterAddressParams {
 }
 
 const V2EnterAddress = (): React.JSX.Element => {
+  const kycProgress = useKycProgress(KYC_STEP.ADDRESS);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -267,7 +270,7 @@ const V2EnterAddress = (): React.JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content grow>
-            <DepositProgressBar steps={4} currentStep={3} />
+            <DepositProgressBar {...kycProgress} />
             <View style={styles.textContainer}>
               <Text variant={TextVariant.HeadingLg}>
                 {strings('deposit.enter_address.title')}

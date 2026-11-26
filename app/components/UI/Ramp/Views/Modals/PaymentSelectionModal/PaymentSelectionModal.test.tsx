@@ -541,4 +541,89 @@ describe('PaymentSelectionModal', () => {
     expect(queryByText(/0\.12345/)).toBeNull();
     expect(queryByText(/67\.89/)).toBeNull();
   });
+
+  describe('MiCA disclaimer', () => {
+    const quoteWithTerms = (
+      termsIds?: string[],
+    ): { provider: string; quote: Record<string, unknown> } => ({
+      provider: 'transak',
+      quote: { paymentMethod: 'debit-credit-card-1', termsIds },
+    });
+
+    const mockSuccessQuotes = (success: unknown[]): void => {
+      mockUseRampsQuotes.mockImplementation(() => ({
+        ...defaultQuotesReturn,
+        data: { success, error: [], sorted: [], customActions: [] },
+        loading: false,
+      }));
+    };
+
+    it('shows the MiCA buy disclaimer above the payment methods when a quote carries MICA terms', () => {
+      mockSuccessQuotes([quoteWithTerms(['MICA_EEA_BUY'])]);
+
+      const { getByTestId, getAllByText } = renderWithProvider(
+        PaymentSelectionModal,
+      );
+
+      expect(getByTestId('mica-disclaimer-MICA_EEA_BUY')).toBeOnTheScreen();
+      expect(getAllByText('Debit or Credit').length).toBe(2);
+    });
+
+    it('shows each disclaimer once when several quotes share the same terms', () => {
+      mockSuccessQuotes([
+        quoteWithTerms(['MICA_EEA_BUY']),
+        quoteWithTerms(['MICA_EEA_BUY', 'MICA_EEA_SELL']),
+      ]);
+
+      const { getAllByTestId, getByTestId } = renderWithProvider(
+        PaymentSelectionModal,
+      );
+
+      expect(getAllByTestId('mica-disclaimer-MICA_EEA_BUY')).toHaveLength(1);
+      expect(getByTestId('mica-disclaimer-MICA_EEA_SELL')).toBeOnTheScreen();
+    });
+
+    it('does not show a disclaimer when quotes have no terms', () => {
+      mockSuccessQuotes([quoteWithTerms(undefined)]);
+
+      const { queryByTestId } = renderWithProvider(PaymentSelectionModal);
+
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_SELL'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not crash when a quote has no quote payload or non-array terms', () => {
+      mockSuccessQuotes([
+        { provider: 'transak' },
+        { provider: 'transak', quote: { termsIds: 'MICA_EEA_BUY' } },
+        quoteWithTerms(['MICA_EEA_SELL']),
+      ]);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        PaymentSelectionModal,
+      );
+
+      expect(getByTestId('mica-disclaimer-MICA_EEA_SELL')).toBeOnTheScreen();
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show a disclaimer for unrelated terms', () => {
+      mockSuccessQuotes([quoteWithTerms(['SOMETHING_ELSE'])]);
+
+      const { queryByTestId } = renderWithProvider(PaymentSelectionModal);
+
+      expect(
+        queryByTestId('mica-disclaimer-SOMETHING_ELSE'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+  });
 });

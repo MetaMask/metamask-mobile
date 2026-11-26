@@ -37,6 +37,9 @@ jest.mock('../../../../core/Engine', () => ({
       transakSubmitPurposeOfUsageForm: jest.fn(),
       transakPatchUser: jest.fn(),
       transakSubmitSsnDetails: jest.fn(),
+      transakSubmitMicaConsent: jest.fn(),
+      transakSubmitSourceOfIncome: jest.fn(),
+      transakSubmitAdditionalDetailsNationality: jest.fn(),
       transakConfirmPayment: jest.fn(),
       transakGetTranslation: jest.fn(),
       transakGetIdProofStatus: jest.fn(),
@@ -139,6 +142,11 @@ describe('useTransakController', () => {
       expect(typeof result.current.submitPurposeOfUsageForm).toBe('function');
       expect(typeof result.current.patchUser).toBe('function');
       expect(typeof result.current.submitSsnDetails).toBe('function');
+      expect(typeof result.current.submitMicaConsent).toBe('function');
+      expect(typeof result.current.submitSourceOfIncome).toBe('function');
+      expect(typeof result.current.submitAdditionalDetailsNationality).toBe(
+        'function',
+      );
       expect(typeof result.current.confirmPayment).toBe('function');
       expect(typeof result.current.getTranslation).toBe('function');
       expect(typeof result.current.getIdProofStatus).toBe('function');
@@ -550,6 +558,64 @@ describe('useTransakController', () => {
         'pm-1',
       );
       expect(response).toEqual({ success: true });
+    });
+  });
+
+  describe('MiCA KYC submissions', () => {
+    const renderController = () =>
+      renderHook(() => useTransakController(), {
+        wrapper: createWrapper(createMockStore()),
+      });
+
+    it('submits MiCA consent with the consent timestamp', async () => {
+      (
+        getRampsController().transakSubmitMicaConsent as jest.Mock
+      ).mockResolvedValue({ status: 'SUBMITTED' });
+      const { result } = renderController();
+
+      const response = await result.current.submitMicaConsent(
+        '2026-11-23T10:00:00.000Z',
+      );
+
+      expect(
+        getRampsController().transakSubmitMicaConsent,
+      ).toHaveBeenCalledWith('2026-11-23T10:00:00.000Z');
+      expect(response).toEqual({ status: 'SUBMITTED' });
+    });
+
+    it('submits source of income with monthly volume and source of funds', async () => {
+      (
+        getRampsController().transakSubmitSourceOfIncome as jest.Mock
+      ).mockResolvedValue({ status: 'SUBMITTED' });
+      const { result } = renderController();
+
+      const response = await result.current.submitSourceOfIncome(
+        '1000',
+        'savings',
+      );
+
+      expect(
+        getRampsController().transakSubmitSourceOfIncome,
+      ).toHaveBeenCalledWith('1000', 'savings');
+      expect(response).toEqual({ status: 'SUBMITTED' });
+    });
+
+    it('submits employment status and country of citizenship', async () => {
+      (
+        getRampsController()
+          .transakSubmitAdditionalDetailsNationality as jest.Mock
+      ).mockResolvedValue({ status: 'FAILED' });
+      const { result } = renderController();
+
+      const response = await result.current.submitAdditionalDetailsNationality(
+        'employed',
+        'DE',
+      );
+
+      expect(
+        getRampsController().transakSubmitAdditionalDetailsNationality,
+      ).toHaveBeenCalledWith('employed', 'DE');
+      expect(response).toEqual({ status: 'FAILED' });
     });
   });
 });

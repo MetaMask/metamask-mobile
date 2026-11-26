@@ -97,6 +97,17 @@ export interface UseTransakControllerResult {
   submitPurposeOfUsageForm: (purpose: string[]) => Promise<void>;
   patchUser: (data: TransakPatchUserRequestBody) => Promise<unknown>;
   submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
+  submitMicaConsent: (
+    consentedAt: string,
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
+  submitSourceOfIncome: (
+    monthlyVolume: string,
+    sourceOfFundsType: string,
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
+  submitAdditionalDetailsNationality: (
+    employmentStatus: string,
+    countryOfCitizenship: string,
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
   confirmPayment: (
     orderId: string,
     paymentMethodId: string,
@@ -347,6 +358,38 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
+  const submitMicaConsent = useCallback(
+    async (consentedAt: string): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitMicaConsent(consentedAt) as Promise<{
+        status: 'SUBMITTED' | 'FAILED';
+      }>,
+    [],
+  );
+
+  const submitSourceOfIncome = useCallback(
+    async (
+      monthlyVolume: string,
+      sourceOfFundsType: string,
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitSourceOfIncome(
+        monthlyVolume,
+        sourceOfFundsType,
+      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' }>,
+    [],
+  );
+
+  const submitAdditionalDetailsNationality = useCallback(
+    async (
+      employmentStatus: string,
+      countryOfCitizenship: string,
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitAdditionalDetailsNationality(
+        employmentStatus,
+        countryOfCitizenship,
+      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' }>,
+    [],
+  );
+
   return {
     transak: transakState,
     isAuthenticated: transakState.isAuthenticated,
@@ -385,6 +428,9 @@ export function useTransakController(): UseTransakControllerResult {
     cancelOrder,
     cancelAllActiveOrders,
     getActiveOrders,
+    submitMicaConsent,
+    submitSourceOfIncome,
+    submitAdditionalDetailsNationality,
   };
 }
 

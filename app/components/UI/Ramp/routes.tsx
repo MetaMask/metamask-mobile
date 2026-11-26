@@ -16,6 +16,9 @@ import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
 import V2KycWebview from './Views/NativeFlow/KycWebview';
+import MicaConsent from './Views/NativeFlow/MicaConsent';
+import SourceOfIncome from './Views/NativeFlow/SourceOfIncome';
+import AdditionalDetailsNationality from './Views/NativeFlow/AdditionalDetailsNationality';
 import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
@@ -27,6 +30,7 @@ import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingIn
 import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
+import OptionSelectorModal from './Views/Modals/OptionSelectorModal';
 import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import {
@@ -101,9 +105,25 @@ const InstrumentedStateSelectorModal = withRampScreenPerformance(
   StateSelectorModal,
   RAMP_V2_SCREEN_ID.STATE_SELECTOR_MODAL,
 );
+const InstrumentedOptionSelectorModal = withRampScreenPerformance(
+  OptionSelectorModal,
+  RAMP_V2_SCREEN_ID.OPTION_SELECTOR_MODAL,
+);
 const InstrumentedUnsupportedStateModal = withRampScreenPerformance(
   UnsupportedStateModal,
   RAMP_V2_SCREEN_ID.UNSUPPORTED_STATE_MODAL,
+);
+const InstrumentedMicaConsent = withRampScreenPerformance(
+  MicaConsent,
+  RAMP_V2_SCREEN_ID.MICA_CONSENT,
+);
+const InstrumentedSourceOfIncome = withRampScreenPerformance(
+  SourceOfIncome,
+  RAMP_V2_SCREEN_ID.SOURCE_OF_INCOME,
+);
+const InstrumentedAdditionalDetailsNationality = withRampScreenPerformance(
+  AdditionalDetailsNationality,
+  RAMP_V2_SCREEN_ID.ADDITIONAL_DETAILS_NATIONALITY,
 );
 
 const overlayScreenOptions = {
@@ -151,6 +171,18 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.ADDITIONAL_VERIFICATION}
       component={InstrumentedAdditionalVerification}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.MICA_CONSENT}
+      component={InstrumentedMicaConsent}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.SOURCE_OF_INCOME}
+      component={InstrumentedSourceOfIncome}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY}
+      component={InstrumentedAdditionalDetailsNationality}
     />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
@@ -224,6 +256,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
       component={InstrumentedUnsupportedStateModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.OPTION_SELECTOR}
+      component={InstrumentedOptionSelectorModal}
     />
   </ModalsStack.Navigator>
 );

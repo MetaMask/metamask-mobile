@@ -570,6 +570,9 @@ export type RootStackParamList = {
   RampKycProcessing: RampNavigationParamList['RampKycProcessing'];
   RampAdditionalVerification: RampNavigationParamList['RampAdditionalVerification'];
   RampKycWebview: RampNavigationParamList['RampKycWebview'];
+  RampMicaConsent: RampNavigationParamList['RampMicaConsent'];
+  RampSourceOfIncome: RampNavigationParamList['RampSourceOfIncome'];
+  RampAdditionalDetailsNationality: RampNavigationParamList['RampAdditionalDetailsNationality'];
   RampPaymentSelectionModal: RampNavigationParamList['RampPaymentSelectionModal'];
   RampTokenNotAvailableModal: RampNavigationParamList['RampTokenNotAvailableModal'];
   RampProviderSelectionModal: RampNavigationParamList['RampProviderSelectionModal'];
@@ -578,6 +581,7 @@ export type RootStackParamList = {
   RampSsnInfoModal: RampNavigationParamList['RampSsnInfoModal'];
   RampStateSelectorModal: RampNavigationParamList['RampStateSelectorModal'];
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
+  RampOptionSelectorModal: RampNavigationParamList['RampOptionSelectorModal'];
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
