@@ -178,13 +178,11 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           JEST_SKIPPABLE_DOCS_COUNT: ${{ steps.filter.outputs.jest_skippable_docs_count }}
-          JEST_MARKDOWN_INPUTS_COUNT: ${{ steps.filter.outputs.jest_markdown_inputs_count }}
         run: |
           skip=false
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]] &&
              [[ "${ALL_CHANGES_COUNT:-0}" -gt 0 ]] &&
-             [[ "${JEST_SKIPPABLE_DOCS_COUNT:-0}" -eq "${ALL_CHANGES_COUNT:-0}" ]] &&
-             [[ "${JEST_MARKDOWN_INPUTS_COUNT:-0}" -eq 0 ]]; then
+             [[ "${JEST_SKIPPABLE_DOCS_COUNT:-0}" -eq "${ALL_CHANGES_COUNT:-0}" ]]; then
             skip=true
             echo "-> Skipping Jest jobs (docs-only changes)"
           fi
