@@ -80,6 +80,7 @@ const service = Engine.context.KycService as unknown as Record<
   jest.Mock
 >;
 const kycController = Engine.context.KycController as unknown as {
+  state: { geoCountry?: string };
   fetchSessionDisclaimers: jest.Mock;
 };
 
@@ -212,6 +213,7 @@ describe('KalshiOnboarding', () => {
       flow[name].mockResolvedValue('sumsub');
     }
     flow.launchProviderFlow.mockResolvedValue('submitted');
+    kycController.state = { geoCountry: 'USA' };
     service.getGeoCountry.mockResolvedValue('USA');
     service.fetchVendorDisclaimers.mockResolvedValue(KALSHI_TERMS);
     kycController.fetchSessionDisclaimers.mockResolvedValue({
@@ -341,6 +343,39 @@ describe('KalshiOnboarding', () => {
       expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
         vendor: 'kalshi',
         country: 'USA',
+      });
+    });
+
+    it('loads the Kalshi terms for the country stored on the KYC controller', async () => {
+      kycController.state = { geoCountry: 'CAN' };
+      service.getGeoCountry.mockResolvedValue('USA');
+
+      const screen = render('terms');
+      await agreeToMetaMaskTerms(screen);
+      await agreeToPartnerTerms(screen);
+
+      expect(await screen.findByText('Kalshi terms')).toBeOnTheScreen();
+      expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
+        vendor: 'kalshi',
+        country: 'CAN',
+      });
+      expect(kycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+        country: 'CAN',
+      });
+    });
+
+    it('falls back to the detected country when none is stored', async () => {
+      kycController.state = {};
+      service.getGeoCountry.mockResolvedValue('FRA');
+
+      const screen = render('terms');
+      await agreeToMetaMaskTerms(screen);
+      await agreeToPartnerTerms(screen);
+
+      expect(await screen.findByText('Kalshi terms')).toBeOnTheScreen();
+      expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
+        vendor: 'kalshi',
+        country: 'FRA',
       });
     });
 

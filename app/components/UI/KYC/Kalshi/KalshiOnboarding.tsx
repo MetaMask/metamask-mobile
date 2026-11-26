@@ -94,7 +94,15 @@ const getKycService = () => {
   return KycService;
 };
 
-const getGeoCountry = (): Promise<string> => getKycService().getGeoCountry();
+/**
+ * Same country resolution as the shared consent pages
+ * (`useKycSessionDisclaimers`): the country stored on the KYC controller wins,
+ * and the detected one is only a fallback. This keeps the Kalshi agreements in
+ * the country as the idOS and SumSub documents sent in the same `submitTerms`.
+ */
+const getGeoCountry = async (): Promise<string> =>
+  Engine.context.KycController?.state?.geoCountry ??
+  (await getKycService().getGeoCountry());
 
 const errorMessage = (error: unknown): string => {
   const kalshiMessage = describeKalshiError(error);

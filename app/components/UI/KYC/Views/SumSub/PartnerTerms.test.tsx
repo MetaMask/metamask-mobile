@@ -166,6 +166,18 @@ describe('KycPartnerTerms', () => {
     const indicator = getByTestId(KycPartnerTermsSelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 2 of 3');
     expect(indicator.props.accessibilityLabel).toBe('Step 2 of 3');
+  });
+
+  it('turns screen performance tracking off when a longer flow passes a different total', () => {
+    renderWithProvider(
+      <KycPartnerTerms
+        disclaimers={DISCLAIMERS}
+        onAgree={mockOnAgree}
+        onBack={mockOnBack}
+        totalSteps={3}
+      />,
+    );
+
     expect(mockUseScreenPerformance).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
