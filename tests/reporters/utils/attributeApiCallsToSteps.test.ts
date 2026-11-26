@@ -127,14 +127,13 @@ describe('attributeApiCallsToSteps', () => {
 
   describe('clock skew', () => {
     const steps = [step('s', 100_000, 110_000)];
-    const testWin = { start: 90_000, end: 120_000 };
+    const testWin = { start: 40_000, end: 130_000 };
+    const many = (count: number, time: number) =>
+      Array.from({ length: count }, () => call(time));
 
-    it('flags skewed when many calls fall outside the test window', () => {
-      const offset = testWin.end + TEST_WINDOW_TOLERANCE_MS + 60_000;
-      const calls = [
-        ...Array.from({ length: 6 }, () => call(offset)),
-        ...Array.from({ length: 6 }, () => call(105_000)),
-      ];
+    it('flags skewed when many calls fall outside the real test window', () => {
+      const late = testWin.end + TEST_WINDOW_TOLERANCE_MS + 60_000;
+      const calls = [...many(6, late), ...many(6, 105_000)];
 
       const { attribution } = attributeApiCallsToSteps(calls, steps, testWin);
 
@@ -145,56 +144,98 @@ describe('attributeApiCallsToSteps', () => {
       expect(attribution.reason).toContain('outside the test window');
     });
 
-    it('flags skewed when nearly all calls match no step', () => {
-      const calls = [
-        ...Array.from({ length: 11 }, () => call(95_000)),
-        call(105_000),
-      ];
-
-      const { attribution } = attributeApiCallsToSteps(calls, steps, testWin);
-
-      expect(attribution.status).toBe('skewed');
-      expect(attribution.reason).toContain('match no step');
-    });
-
-    it('stays ok when calls before the first step are inside the test window', () => {
-      const calls = [
-        ...Array.from({ length: 5 }, () => call(95_000)),
-        ...Array.from({ length: 6 }, () => call(105_000)),
-      ];
+    it('does not flag unattributed calls inside the test window (launch, login)', () => {
+      const calls = [...many(416, 50_000), ...many(68, 105_000)];
 
       expect(
         attributeApiCallsToSteps(calls, steps, testWin).attribution,
-      ).toEqual(
-        expect.objectContaining({ status: 'ok', outsideTestWindow: 0 }),
-      );
+      ).toMatchObject({
+        status: 'ok',
+        outsideTestWindow: 0,
+        unattributed: 416,
+      });
     });
 
-    it('does not judge skew on very few calls', () => {
+    it('allows HAR start before and teardown after the test within the tolerance', () => {
+      const calls = [
+        ...many(5, testWin.start - TEST_WINDOW_TOLERANCE_MS),
+        ...many(5, testWin.end + TEST_WINDOW_TOLERANCE_MS),
+        ...many(5, 105_000),
+      ];
+
       expect(
-        attributeApiCallsToSteps([call(1)], steps, testWin).attribution.status,
+        attributeApiCallsToSteps(calls, steps, testWin).attribution.status,
       ).toBe('ok');
+    });
+
+    it('never flags outside-window skew without a real test window', () => {
+      expect(
+        attributeApiCallsToSteps(
+          [...many(20, 50_000), call(105_000)],
+          steps,
+          null,
+        ).attribution,
+      ).toMatchObject({ status: 'ok', outsideTestWindow: 0 });
+    });
+
+    it('does not judge the outside-window share on very few calls', () => {
+      expect(
+        attributeApiCallsToSteps([call(1_000_000)], steps, testWin).attribution
+          .status,
+      ).toBe('no_overlap');
+      expect(
+        attributeApiCallsToSteps(
+          [call(1_000_000), call(105_000)],
+          steps,
+          testWin,
+        ).attribution.status,
+      ).toBe('ok');
+    });
+
+    it('reports no_overlap when the HAR ends before the first step', () => {
+      const { attribution } = attributeApiCallsToSteps(
+        [call(10_000), call(20_000)],
+        steps,
+        testWin,
+      );
+
+      expect(attribution).toMatchObject({
+        status: 'no_overlap',
+        attributed: 0,
+      });
+    });
+
+    it('uses the request duration when checking HAR / step overlap', () => {
+      const slow = { ...call(99_000), time: 5_000 };
+
+      expect(
+        attributeApiCallsToSteps([slow], steps, testWin).attribution.status,
+      ).toBe('ok');
+    });
+
+    it('stays ok when steps are quiet but the HAR spans them', () => {
+      const calls = [call(50_000), call(120_000)];
+
+      expect(
+        attributeApiCallsToSteps(calls, steps, testWin).attribution,
+      ).toMatchObject({ status: 'ok', attributed: 0 });
     });
   });
 });
 
 describe('getTestWindow', () => {
-  it('derives the window from the end timestamp and test duration', () => {
-    expect(
-      getTestWindow({
-        timestamp: '2026-11-26T11:00:10.000Z',
-        testDuration: 10_000,
-      }),
-    ).toEqual({
-      start: Date.parse('2026-11-26T11:00:00.000Z'),
-      end: Date.parse('2026-11-26T11:00:10.000Z'),
-    });
+  it('uses the recorded test start and end', () => {
+    expect(getTestWindow({ testStartedAt: 1_000, testEndedAt: 5_000 })).toEqual(
+      { start: 1_000, end: 5_000 },
+    );
   });
 
-  it('returns null when timestamp or duration is missing or invalid', () => {
-    expect(getTestWindow({ testDuration: 1 })).toBeNull();
-    expect(getTestWindow({ timestamp: 'nope', testDuration: 1 })).toBeNull();
-    expect(getTestWindow({ timestamp: '2026-11-26T11:00:10Z' })).toBeNull();
+  it('returns null when either bound is missing or invalid', () => {
+    expect(getTestWindow({ testStartedAt: 1_000 })).toBeNull();
+    expect(getTestWindow({ testEndedAt: 5_000 })).toBeNull();
+    expect(
+      getTestWindow({ testStartedAt: Number.NaN, testEndedAt: 5_000 }),
+    ).toBeNull();
   });
 });
 
@@ -203,6 +244,8 @@ describe('summarizeApiCallsByStep', () => {
     const summary = summarizeApiCallsByStep({
       apiCalls: [call(1_500)],
       steps: [step('open TDP', 1_000, 2_000)],
+      testStartedAt: 0,
+      testEndedAt: 3_000,
     });
 
     expect(summary).toMatchObject({

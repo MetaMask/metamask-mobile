@@ -752,6 +752,98 @@ describe('PerformanceReporter', () => {
         );
       });
 
+      describe('step attribution against the real test window', () => {
+        const startTime = new Date('2026-07-22T11:55:00.000Z');
+        const start = startTime.getTime();
+        const timedStep = {
+          name: 'open TDP',
+          duration: 2000,
+          baseThreshold: null,
+          threshold: null,
+          startedAt: start + 200_000,
+          endedAt: start + 202_000,
+        };
+        const record = (networkLogsEntries: unknown[]) => {
+          const test = makeTest();
+          const result = makeResult({
+            startTime,
+            duration: 300_000,
+            attachments: [
+              makeSessionAttachment({ networkLogsEntries }),
+              makeMetricsAttachment({
+                steps: [timedStep],
+                timestamp: '2026-07-22T12:00:00.000Z',
+              }),
+            ],
+          });
+          const args = [test, result] as unknown as Parameters<
+            PerformanceReporter['onTestEnd']
+          >;
+          reporter.onTestEnd(...args);
+        };
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+
+        it('keeps ok when many calls precede the first step inside the test window', async () => {
+          record([
+            ...Array.from({ length: 40 }, () => callAt(10_000)),
+            callAt(201_000),
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'ok',
+                  attributed: 1,
+                  unattributed: 40,
+                  outsideTestWindow: 0,
+                }),
+              }),
+            }),
+          );
+        });
+
+        it('flags skewed when the HAR is far outside the test window', async () => {
+          record(Array.from({ length: 12 }, () => callAt(-3_600_000)));
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'skewed',
+                  outsideTestWindow: 12,
+                }),
+              }),
+            }),
+          );
+        });
+
+        it('reports no_overlap when the HAR ends well before the first step', async () => {
+          record([callAt(10_000), callAt(60_000)]);
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'no_overlap',
+                }),
+              }),
+            }),
+          );
+        });
+      });
+
       it('keeps generating reports when publishing throws', async () => {
         (publishApiCallsSummaryToSentry as jest.Mock).mockRejectedValueOnce(
           new Error('sentry down'),

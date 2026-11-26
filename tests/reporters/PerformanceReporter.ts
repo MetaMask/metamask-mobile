@@ -46,12 +46,23 @@ interface PlaywrightTestCase {
 interface PlaywrightTestResult {
   status: string;
   duration: number;
+  startTime?: Date;
   attachments: { name: string; body?: Buffer }[];
   annotations?: { type: string; description?: string }[];
   retry?: number;
   error?: { message?: string };
   errors?: { message?: string }[];
 }
+
+/** Real attempt window (runner clock) used to sanity-check HAR alignment. */
+const getTestWindowFields = (
+  result: PlaywrightTestResult,
+): Pick<MetricsEntry, 'testStartedAt' | 'testEndedAt'> => {
+  const startedAt = result.startTime?.getTime();
+  return startedAt !== undefined && Number.isFinite(startedAt)
+    ? { testStartedAt: startedAt, testEndedAt: startedAt + result.duration }
+    : {};
+};
 
 const isTestFailureStatus = (status: string): boolean =>
   status === 'failed' || status === 'timedOut' || status === 'interrupted';
@@ -347,6 +358,7 @@ class PerformanceReporter {
           tags: testTags,
           ...metrics,
           projectName,
+          ...getTestWindowFields(result),
         };
 
         // Mark actual failures
@@ -717,10 +729,11 @@ class PerformanceReporter {
 
       if (
         summary.status === 'captured' &&
-        summary.stepAttribution?.status === 'skewed'
+        (summary.stepAttribution?.status === 'skewed' ||
+          summary.stepAttribution?.status === 'no_overlap')
       ) {
         logger.warn(
-          `API step attribution looks skewed for "${metric.testName}": ${summary.stepAttribution.reason}. HAR (TestMu) and test-runner clocks may differ.`,
+          `API step attribution is ${summary.stepAttribution.status} for "${metric.testName}": ${summary.stepAttribution.reason}. HAR (TestMu) and test-runner clocks may differ.`,
         );
       }
 

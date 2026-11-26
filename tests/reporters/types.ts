@@ -61,6 +61,10 @@ export interface MetricsEntry {
   timestamp?: string;
   message?: string;
   testDuration?: number;
+  /** Epoch ms the Playwright attempt started (test-runner clock). */
+  testStartedAt?: number;
+  /** Epoch ms the Playwright attempt ended, teardown included. */
+  testEndedAt?: number;
   qualityGates?: QualityGatesResult | null;
   videoURL?: string | null;
   sessionId?: string | null;
@@ -215,11 +219,12 @@ export interface ApiStepSummary {
 
 export interface ApiStepAttribution {
   /**
-   * `ok`: usable. `skewed`: many calls fall outside the test window or no
-   * step, so HAR and test-runner clocks probably disagree. `unavailable`:
-   * no step windows or no request timestamps to attribute with.
+   * `ok`: usable. `skewed`: many calls fall outside the real test window, so
+   * HAR and test-runner clocks probably disagree. `no_overlap`: no call
+   * landed in a step and the HAR timespan does not intersect the steps'.
+   * `unavailable`: no step windows or no request timestamps.
    */
-  status: 'ok' | 'skewed' | 'unavailable';
+  status: 'ok' | 'skewed' | 'no_overlap' | 'unavailable';
   attributed: number;
   unattributed: number;
   /** Calls starting outside the test window (+ tolerance). */

@@ -10,12 +10,14 @@ import { DEFAULT_TOP_ENDPOINTS, summarizeApiCalls } from './summarizeApiCalls';
 
 export const UNATTRIBUTED_STEP = 'unattributed';
 
-/** HAR clock (TestMu) vs test-runner clock can differ by a few seconds. */
+/**
+ * Slack around the real test window: the HAR starts with the TestMu session
+ * (before the test) and keeps recording through teardown (after it), and the
+ * two clocks can differ by a few seconds.
+ */
 export const TEST_WINDOW_TOLERANCE_MS = 30_000;
 /** Share of calls (0-1) outside the test window that flags clock skew. */
 export const SKEW_OUTSIDE_WINDOW_SHARE = 0.3;
-/** Share of calls (0-1) matching no step that flags clock skew. */
-export const SKEW_UNATTRIBUTED_SHARE = 0.8;
 /** Below this many timestamped calls the share thresholds are not trusted. */
 export const SKEW_MIN_CALLS = 10;
 
@@ -76,28 +78,45 @@ function findOwningStep(windows: StepWindow[], time: number): string | null {
   return best?.name ?? null;
 }
 
+/**
+ * Calls before the first step or between steps (app launch, login, setup) are
+ * normal, so the share of unattributed calls says nothing about alignment.
+ * Skew is judged only against the real test window, and `no_overlap` when
+ * the HAR timespan and the step timespan do not intersect at all.
+ */
 function evaluateSkew(
   attribution: Omit<ApiStepAttribution, 'status' | 'reason'>,
-  timestamped: number,
+  timestamped: NetworkLogEntry[],
+  windows: StepWindow[],
 ): Pick<ApiStepAttribution, 'status' | 'reason'> {
-  if (timestamped < SKEW_MIN_CALLS) {
-    return { status: 'ok' };
-  }
-  const outsideShare = attribution.outsideTestWindow / timestamped;
-  if (outsideShare >= SKEW_OUTSIDE_WINDOW_SHARE) {
+  if (
+    timestamped.length >= SKEW_MIN_CALLS &&
+    attribution.outsideTestWindow / timestamped.length >=
+      SKEW_OUTSIDE_WINDOW_SHARE
+  ) {
     return {
       status: 'skewed',
-      reason: `${attribution.outsideTestWindow}/${timestamped} calls start outside the test window`,
+      reason: `${attribution.outsideTestWindow}/${timestamped.length} calls start outside the test window`,
     };
   }
-  const unattributedShare =
-    (timestamped - attribution.attributed) / timestamped;
-  if (unattributedShare >= SKEW_UNATTRIBUTED_SHARE) {
-    return {
-      status: 'skewed',
-      reason: `${timestamped - attribution.attributed}/${timestamped} calls match no step`,
-    };
+
+  if (attribution.attributed === 0) {
+    const harStart = Math.min(
+      ...timestamped.map((call) => call.startedAt ?? 0),
+    );
+    const harEnd = Math.max(
+      ...timestamped.map((call) => (call.startedAt ?? 0) + (call.time ?? 0)),
+    );
+    const stepsStart = Math.min(...windows.map((win) => win.startedAt));
+    const stepsEnd = Math.max(...windows.map((win) => win.endedAt));
+    if (harEnd < stepsStart || harStart > stepsEnd) {
+      return {
+        status: 'no_overlap',
+        reason: 'the network log and the measured steps do not overlap in time',
+      };
+    }
   }
+
   return { status: 'ok' };
 }
 
@@ -105,8 +124,8 @@ function evaluateSkew(
  * Assigns each call to the measured step whose [startedAt, endedAt] window
  * contains the call's start time; the rest go to `unattributed`.
  *
- * `testWindow` (epoch ms, plus a tolerance) only feeds the clock-skew check;
- * when omitted, the bounding box of the step windows is used.
+ * `testWindow` (the real test start/end, epoch ms) only feeds the clock-skew
+ * check; without it, calls are never flagged as outside the test window.
  */
 export function attributeApiCallsToSteps(
   apiCalls: NetworkLogEntry[],
@@ -136,11 +155,6 @@ export function attributeApiCallsToSteps(
     };
   }
 
-  const bounds = testWindow ?? {
-    start: Math.min(...windows.map((win) => win.startedAt)),
-    end: Math.max(...windows.map((win) => win.endedAt)),
-  };
-
   const buckets = new Map<string, NetworkLogEntry[]>(
     windows.map((win) => [win.name, []]),
   );
@@ -158,13 +172,14 @@ export function attributeApiCallsToSteps(
       continue;
     }
     unattributedCalls.push(call);
-    if (
-      typeof time === 'number' &&
-      (time < bounds.start - TEST_WINDOW_TOLERANCE_MS ||
-        time > bounds.end + TEST_WINDOW_TOLERANCE_MS)
-    ) {
-      outsideTestWindow += 1;
-    }
+  }
+
+  if (testWindow) {
+    outsideTestWindow = timestamped.filter(
+      ({ startedAt }) =>
+        (startedAt as number) < testWindow.start - TEST_WINDOW_TOLERANCE_MS ||
+        (startedAt as number) > testWindow.end + TEST_WINDOW_TOLERANCE_MS,
+    ).length;
   }
 
   const summaries: ApiStepSummary[] = [];
@@ -193,22 +208,24 @@ export function attributeApiCallsToSteps(
 
   return {
     steps: summaries,
-    attribution: { ...base, ...evaluateSkew(base, timestamped.length) },
+    attribution: { ...base, ...evaluateSkew(base, timestamped, windows) },
   };
 }
 
 /**
- * Test window from the entry's end timestamp and Playwright duration.
- * Returns null when either is missing.
+ * Real test window recorded by the reporter from Playwright's `startTime` and
+ * `duration`. Returns null when either bound is missing.
  */
 export function getTestWindow(
-  metric: Pick<MetricsEntry, 'timestamp' | 'testDuration'>,
+  metric: Pick<MetricsEntry, 'testStartedAt' | 'testEndedAt'>,
 ): TestWindow | null {
-  const end = metric.timestamp ? Date.parse(metric.timestamp) : NaN;
-  if (Number.isNaN(end) || !metric.testDuration) {
-    return null;
-  }
-  return { start: end - metric.testDuration, end };
+  const { testStartedAt: start, testEndedAt: end } = metric;
+  return typeof start === 'number' &&
+    typeof end === 'number' &&
+    Number.isFinite(start) &&
+    Number.isFinite(end)
+    ? { start, end }
+    : null;
 }
 
 /**
@@ -219,7 +236,7 @@ export function summarizeApiCallsByStep(
   metric: Partial<
     Pick<
       MetricsEntry,
-      'apiCalls' | 'apiCallsError' | 'steps' | 'timestamp' | 'testDuration'
+      'apiCalls' | 'apiCallsError' | 'steps' | 'testStartedAt' | 'testEndedAt'
     >
   >,
 ): ApiCallsSummary | null {

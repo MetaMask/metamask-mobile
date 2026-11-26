@@ -695,7 +695,7 @@ interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
  * step). The latter carries `api.step`, `api.endpoint` and the combined
  * `api.step_endpoint` ("<step> | <METHOD> <endpoint>") and puts the step in
  * the span description, so grouping by one field shows both in a chart
- * legend. The `api_step_attribution` tag (ok | skewed | unavailable) says
+ * legend. The `api_step_attribution` tag (ok | skewed | no_overlap | unavailable) says
  * whether the HAR and test-runner clocks line up.
  *
  * A failed capture sends `api.capture.status = "error"` with no counts, so a
