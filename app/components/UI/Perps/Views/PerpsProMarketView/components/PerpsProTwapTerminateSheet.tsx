@@ -115,7 +115,7 @@ const PerpsProTwapTerminateSheet = ({
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={secondaryButtonProps}
           primaryButtonProps={primaryButtonProps}
-          twClassName="pt-6"
+          className="pt-6"
         />
       </BottomSheet>
     </PerpsProModalPortal>

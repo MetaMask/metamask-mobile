@@ -45,7 +45,7 @@ const FeatureRow = ({ iconName, title, subtitle, testID }: FeatureRowProps) => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
     gap={4}
-    twClassName="py-2"
+    className="py-2"
     testID={testID}
   >
     <Icon
@@ -53,7 +53,7 @@ const FeatureRow = ({ iconName, title, subtitle, testID }: FeatureRowProps) => (
       size={IconSize.Md}
       twClassName="mt-0.5 text-icon-default"
     />
-    <Box twClassName="min-w-0 flex-1 gap-0.5">
+    <Box className="min-w-0 flex-1 gap-0.5">
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {title}
       </Text>
@@ -225,7 +225,7 @@ const PerpsOutreachDetailsView = () => {
           }}
         />
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-4">
+        <Box alignItems={BoxAlignItems.Center} className="px-4 pb-4">
           <Image
             source={outreachFoxImage}
             resizeMode="contain"
@@ -237,7 +237,7 @@ const PerpsOutreachDetailsView = () => {
 
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="mt-4 text-center"
+            className="mt-4 text-center"
             testID={PerpsOutreachDetailsViewSelectorsIDs.TITLE}
           >
             {strings('perps.outreach_details.title')}
@@ -246,13 +246,13 @@ const PerpsOutreachDetailsView = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-2 text-center"
+            className="mt-2 text-center"
             testID={PerpsOutreachDetailsViewSelectorsIDs.BODY}
           >
             {strings('perps.outreach_details.subtitle')}
           </Text>
 
-          <Box twClassName="mt-6 w-full gap-1">
+          <Box className="mt-6 w-full gap-1">
             <FeatureRow
               iconName={IconName.Trophy}
               title={strings('perps.outreach_details.features.vip.title')}
@@ -289,14 +289,14 @@ const PerpsOutreachDetailsView = () => {
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="mt-6 text-center"
+              className="mt-6 text-center"
               testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_TEXT}
             >
               {contactCopy.before}
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.PrimaryDefault}
-                twClassName="underline"
+                className="underline"
                 onPress={handleEmailPress}
                 testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_EMAIL}
               >

@@ -192,7 +192,7 @@ const PerpsProTwapDurationBottomSheet = ({
       onClose={handleSheetClose}
       testID={ids.TWAP_DURATION_SHEET}
     >
-      <Box twClassName="items-end px-4 pt-1">
+      <Box className="items-end px-4 pt-1">
         <ButtonIcon
           iconName={IconName.ArrowDown}
           size={ButtonIconSize.Md}
@@ -201,7 +201,7 @@ const PerpsProTwapDurationBottomSheet = ({
           accessibilityLabel={strings('perps.pro_order_form.twap.running_time')}
         />
       </Box>
-      <Box twClassName="items-center gap-3 px-4 pb-4">
+      <Box className="items-center gap-3 px-4 pb-4">
         <DateTimePicker
           testID={ids.TWAP_DURATION_PICKER}
           value={pickerValue}

@@ -116,7 +116,7 @@ const PerpsProPositionsOptionSheet = ({
           buttonsAlignment={
             secondaryButtonProps ? ButtonsAlignment.Horizontal : undefined
           }
-          twClassName="pt-4"
+          className="pt-4"
         />
       </BottomSheet>
     </PerpsProModalPortal>

@@ -94,15 +94,15 @@ const PerpsProTwapFields = ({
   twap,
   onDurationPress,
 }: PerpsProTwapFieldsProps) => (
-  <Box twClassName="border-t border-muted" testID={ids.TWAP_DURATION_SECTION}>
+  <Box className="border-t border-muted" testID={ids.TWAP_DURATION_SECTION}>
     <ButtonBase
       size={ButtonBaseSize.Sm}
       onPress={onDurationPress}
-      twClassName="h-[54px] w-full bg-transparent px-3"
+      className="h-[54px] w-full bg-transparent px-3"
       contentWrapperProps={{ twClassName: 'w-full justify-start' }}
       testID={ids.TWAP_DURATION_BUTTON}
     >
-      <Box twClassName="items-start">
+      <Box className="items-start">
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
@@ -124,7 +124,7 @@ const PerpsProTwapFields = ({
     </ButtonBase>
     {/* Sibling of the runtime button, not a child: a nested button collapses
         into the parent's accessibility node and competes for the tap. */}
-    <Box twClassName="absolute right-3 top-1.5">
+    <Box className="absolute right-3 top-1.5">
       <ButtonIcon
         iconName={IconName.Info}
         size={ButtonIconSize.Xs}
@@ -134,7 +134,7 @@ const PerpsProTwapFields = ({
         accessibilityLabel={strings('perps.pro_order_form.twap.runtime_info')}
       />
     </Box>
-    <Box twClassName="h-[54px] justify-center border-t border-muted px-3">
+    <Box className="h-[54px] justify-center border-t border-muted px-3">
       <Checkbox
         // A string label is wrapped in the design system's own Text with a
         // hardcoded `ml-3` that overrides `labelProps`. Under
@@ -146,7 +146,31 @@ const PerpsProTwapFields = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextAlternative}
-            twClassName="flex-1"
+            className="flex-1"
+          >
+            {strings('perps.pro_order_form.twap.randomize')}
+          </Text>
+        }
+        isSelected={twap.randomize}
+        onChange={twap.onRandomizeChange}
+        testID={ids.TWAP_RANDOMIZE}
+        accessibilityLabel={strings('perps.pro_order_form.twap.randomize')}
+        accessibilityHint={strings(
+          'perps.pro_order_form.twap.randomize_description',
+          PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
+        )}
+        className="w-full flex-row-reverse justify-between"
+      />
+    </Box>
+  </Box>
+);
+
+export default PerpsProTwapFields;
+<Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            className="flex-1"
           >
             {strings('perps.pro_order_form.twap.randomize')}
           </Text>

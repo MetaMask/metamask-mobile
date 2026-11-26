@@ -456,16 +456,16 @@ const PerpsProChartPanel = ({
         >
           <Box
             testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-            twClassName="my-2 h-[344px] px-2 py-2"
+            className="my-2 h-[344px] px-2 py-2"
           >
             <Box
               testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
-              twClassName="flex-1 gap-2"
+              className="flex-1 gap-2"
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-6"
+                className="gap-6"
                 testID={PerpsProMarketViewSelectorsIDs.CHART_NAV}
               >
                 <CandlePeriodSelector
@@ -497,9 +497,9 @@ const PerpsProChartPanel = ({
                 componentLabel="PerpsProMarketChart"
                 onError={onChartError}
               >
-                <Box twClassName="relative flex-1">
+                <Box className="relative flex-1">
                   {isMarketContextReady && ohlcData ? (
-                    <Box twClassName="absolute left-0 right-0 top-0 z-10">
+                    <Box className="absolute left-0 right-0 top-0 z-10">
                       <PerpsOHLCVBar
                         open={ohlcData.open}
                         high={ohlcData.high}
