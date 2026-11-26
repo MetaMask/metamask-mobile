@@ -1177,19 +1177,38 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        id: setup-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          jest_cache_name: unit
+          jest_cache_key_suffix: shard-${{ matrix.shard }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      # Run from the pinned workspace so babel-jest's absolute paths match main.
+      - name: Run unit tests
+        shell: bash
         env:
           NODE_OPTIONS: --max_old_space_size=12288
+        run: |
+          set -euo pipefail
+          cd "${JEST_WORKSPACE:-$GITHUB_WORKSPACE}"
+          yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - name: Save Jest cache on main
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.setup-js-deps.outputs.jest_cache_hit != 'true' && steps.setup-js-deps.outputs.jest_cache_key != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: /opt/jest-cache/unit
+          key: ${{ steps.setup-js-deps.outputs.jest_cache_key }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
@@ -1479,20 +1498,37 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        id: setup-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          jest_cache_name: cv
+          jest_cache_key_suffix: shard-${{ matrix.shard }}
       - name: Prepare results directory
         run: mkdir -p tests/results
-      - run: |
+      - name: Run component view tests
+        shell: bash
+        env:
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+        run: |
+          set -euo pipefail
+          cd "${JEST_WORKSPACE:-$GITHUB_WORKSPACE}"
           yarn test:view:ci \
             --shard=${{ matrix.shard }}/6 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
-        env:
-          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+      - name: Save Jest cache on main
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.setup-js-deps.outputs.jest_cache_hit != 'true' && steps.setup-js-deps.outputs.jest_cache_key != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: /opt/jest-cache/cv
+          key: ${{ steps.setup-js-deps.outputs.jest_cache_key }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
@@ -1649,20 +1685,37 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
+        id: setup-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          jest_cache_name: integration
+          jest_cache_key_suffix: shard-${{ matrix.shard }}
       - name: Prepare results directory
         run: mkdir -p tests/results
-      - run: |
+      - name: Run integration tests
+        shell: bash
+        env:
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
+        run: |
+          set -euo pipefail
+          cd "${JEST_WORKSPACE:-$GITHUB_WORKSPACE}"
           yarn test:integration:ci \
             --shard=${{ matrix.shard }}/2 \
             --json \
             --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
-        env:
-          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
+      - name: Save Jest cache on main
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.setup-js-deps.outputs.jest_cache_hit != 'true' && steps.setup-js-deps.outputs.jest_cache_key != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: /opt/jest-cache/integration
+          key: ${{ steps.setup-js-deps.outputs.jest_cache_key }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-integration-${{ matrix.shard }}.json
           cp tests/results/integration-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
