@@ -8,3 +8,5 @@ export const useStakeContext = () => {
   }
   return context;
 };
+
+// related-jest probe: comment-only change to exercise the fast tier
