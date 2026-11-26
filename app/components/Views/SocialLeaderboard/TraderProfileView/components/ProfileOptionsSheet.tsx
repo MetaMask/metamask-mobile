@@ -106,7 +106,7 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
           onSubmit={handleSubmitReport}
         />
       ) : (
-        <Box twClassName="px-4 pb-4" gap={4}>
+        <Box className="px-4 pb-4" gap={4}>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}

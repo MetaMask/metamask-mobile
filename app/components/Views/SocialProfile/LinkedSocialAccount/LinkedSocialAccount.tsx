@@ -94,12 +94,12 @@ const LinkedSocialAccount = () => {
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
-                  twClassName="mb-2"
+                  className="mb-2"
                   accessibilityRole="header"
                 >
                   {wallet.name}
                 </Text>
-                <Box twClassName="overflow-hidden rounded-2xl bg-muted">
+                <Box className="overflow-hidden rounded-2xl bg-muted">
                   {wallet.groups.map((accountGroup, index) => (
                     <AccountSelectRow
                       key={accountGroup.id}
