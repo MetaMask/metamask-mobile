@@ -24,9 +24,11 @@ const ADDRESS = walletCards.filterNFtCard[0].owner.wallet;
 const OTHER_ADDRESS = 'AnotherWallet1111111111111111111111111111111';
 const NOW = Date.parse('2026-11-12T10:00:00.000Z');
 const NAMESPACE = 'PackPartnerDataService';
-const storageKey = (environment = ENVIRONMENT, address = ADDRESS) =>
+const storageKey = (environment = ENVIRONMENT, address = ADDRESS): string =>
   `ownedCards:${environment}:${address}`;
-const card = (mint = 'owned-mint') => ({
+const card = (
+  mint = 'owned-mint',
+): (typeof walletCards.filterNFtCard)[number] => ({
   ...walletCards.filterNFtCard[0],
   nftAddress: mint,
 });
@@ -36,18 +38,20 @@ const response = (body: unknown, httpStatus = 200): Response =>
     status: httpStatus,
     text: async () => JSON.stringify(body),
   }) as Response;
-const cardsResponse = (cards = [card()]) =>
+const cardsResponse = (cards = [card()]): Response =>
   response({ filterNFtCard: cards, nextCursor: null });
 
 /** Storage, transport validation and the UI query bridge run for real. */
 describe('PackPartner collection persistence', () => {
   const cleanups: (() => void)[] = [];
-  const setup = (storage = new InMemoryStorageAdapter()) => {
+  const setup = (
+    storage = new InMemoryStorageAdapter(),
+  ): ReturnType<typeof buildPackPartnerPersistenceHarness> => {
     const harness = buildPackPartnerPersistenceHarness(storage);
     cleanups.push(harness.cleanup);
     return harness;
   };
-  const flush = async () => jest.advanceTimersByTimeAsync(0);
+  const flush = async (): Promise<void> => jest.advanceTimersByTimeAsync(0);
 
   beforeEach(() => {
     jest.useFakeTimers({ now: NOW, advanceTimers: true });
@@ -112,7 +116,7 @@ describe('PackPartner collection persistence', () => {
     onlineManager.setOnline(false);
     const restarted = setup(storage);
 
-    const restored = await restarted.ui.fetchQuery<PackPartnerCard[]>({
+    const restored = await restarted.ui.query<PackPartnerCard[]>({
       queryKey: packPartnerQueries.getOwnedCards(ENVIRONMENT, ADDRESS).queryKey,
       networkMode: 'always',
     });

@@ -1,9 +1,18 @@
 import { createDeferredPromise } from '@metamask/utils';
 import { createLimiter, dedupe, mapWithConcurrency } from './async';
 
-const heldCalls = (names: string[]) => {
+interface HeldCall {
+  started: Promise<void>;
+  resolve: () => void;
+  reject: (error: Error) => void;
+  run: () => Promise<string>;
+}
+
+const heldCalls = (
+  names: string[],
+): { calls: HeldCall[]; started: string[] } => {
   const started: string[] = [];
-  const calls = names.map((name) => {
+  const calls = names.map((name): HeldCall => {
     const start = createDeferredPromise();
     const result = createDeferredPromise<string>();
     return {

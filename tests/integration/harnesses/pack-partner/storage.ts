@@ -16,6 +16,7 @@ import {
   type StorageServiceEvents,
 } from '@metamask/storage-service';
 import { createUIQueryClient } from '@metamask/react-data-query';
+import type { QueryClient } from '@tanstack/query-core';
 import {
   PackPartnerDataService,
   type PackPartnerDataServiceActions,
@@ -30,10 +31,23 @@ type ReadActionType = Extract<
   { type: `PackPartnerDataService:${string}` }
 >['type'];
 
+interface PackPartnerStorageHarness {
+  messenger: PackPartnerDataServiceMessenger;
+  storage: StorageAdapter;
+  storageService: StorageService;
+}
+
+interface PackPartnerPersistenceHarness extends PackPartnerStorageHarness {
+  service: PackPartnerDataService;
+  ui: QueryClient;
+  fetchMock: jest.MockedFunction<typeof fetch>;
+  cleanup: () => void;
+}
+
 /** Mirrors ReactQueryService's dynamic query-key to typed messenger boundary. */
 export const createPackPartnerUIQueryClient = (
   messenger: PackPartnerDataServiceMessenger,
-) =>
+): QueryClient =>
   createUIQueryClient(['PackPartnerDataService'] as const, {
     call: async (
       method: `PackPartnerDataService:${string}`,
@@ -47,7 +61,7 @@ export const createPackPartnerUIQueryClient = (
 
 export const buildPackPartnerStorageHarness = (
   storage: StorageAdapter = new InMemoryStorageAdapter(),
-) => {
+): PackPartnerStorageHarness => {
   const root = new Messenger<
     MockAnyNamespace,
     PackPartnerDataServiceActions | StorageServiceActions,
@@ -67,12 +81,9 @@ export const buildPackPartnerStorageHarness = (
 /** Full read path; only HTTP and disk I/O are substituted. */
 export const buildPackPartnerPersistenceHarness = (
   storage: StorageAdapter = new InMemoryStorageAdapter(),
-) => {
+): PackPartnerPersistenceHarness => {
   const harness = buildPackPartnerStorageHarness(storage);
-  const fetchMock = jest.fn<
-    ReturnType<typeof fetch>,
-    Parameters<typeof fetch>
-  >();
+  const fetchMock: PackPartnerPersistenceHarness['fetchMock'] = jest.fn();
   const service = new PackPartnerDataService({
     messenger: harness.messenger,
     api: createPackPartnerApi({
@@ -88,7 +99,7 @@ export const buildPackPartnerPersistenceHarness = (
     service,
     ui,
     fetchMock,
-    cleanup: () => {
+    cleanup: (): void => {
       ui.clear();
       service.destroy();
     },

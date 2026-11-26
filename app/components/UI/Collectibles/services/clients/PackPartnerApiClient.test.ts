@@ -17,7 +17,10 @@ import {
   walletCards,
 } from '../../providers/pack-partner/services/api.fixtures';
 import { toPackPartnerError } from '../../providers/pack-partner/services/errors';
-import { createPackPartnerApi } from './PackPartnerApiClient';
+import {
+  createPackPartnerApi,
+  type PackPartnerApi,
+} from './PackPartnerApiClient';
 
 jest.mock('../../providers/pack-partner/constants/environment', () => ({
   ...jest.requireActual('../../providers/pack-partner/constants/environment'),
@@ -31,7 +34,7 @@ const PLAYER = '2euLumARMfXPW4REBXoYrLdLoWqTmXaHUNXD4ZJiPpAe';
 const MEMO = packStatus.memo;
 const WALLET = walletCards.filterNFtCard[0].owner.wallet;
 
-type FetchMock = jest.Mock<Promise<Response>, Parameters<typeof fetch>>;
+type FetchMock = jest.MockedFunction<typeof fetch>;
 
 /** Minimal `Response` with a JSON (or raw text) body. */
 const createResponse = (httpStatus: number, body?: unknown): Response =>
@@ -52,7 +55,7 @@ const setup = ({
 }: {
   responses?: (Response | Error)[];
   apiKey?: string;
-} = {}) => {
+} = {}): { api: PackPartnerApi; fetchMock: FetchMock } => {
   const fetchMock: FetchMock = jest.fn();
   responses.forEach((response) =>
     response instanceof Error
@@ -79,7 +82,16 @@ const getRejection = async (promise: Promise<unknown>): Promise<unknown> => {
   throw new Error('Expected a rejection');
 };
 
-const getRequest = (fetchMock: FetchMock, index = 0) => {
+const getRequest = (
+  fetchMock: FetchMock,
+  index = 0,
+): {
+  url: string;
+  method?: string;
+  headers: Record<string, string>;
+  body: unknown;
+  signal: RequestInit['signal'];
+} => {
   const [url, init] = fetchMock.mock.calls[index];
   if (typeof url !== 'string') {
     throw new Error('Expected the client to call fetch with a URL string');
@@ -1230,7 +1242,9 @@ describe('createPackPartnerApi', () => {
   describe('getWalletCards', () => {
     // Transport pagination is a narrow client contract: exercise real validation
     // and aggregation here with only HTTP mocked, independently of screen state.
-    const cardAt = (index: number) => ({
+    const cardAt = (
+      index: number,
+    ): (typeof walletCards.filterNFtCard)[number] => ({
       ...walletCards.filterNFtCard[0],
       nftAddress: `mint-${index}`,
     });

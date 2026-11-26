@@ -66,7 +66,7 @@ export const mapWithConcurrency = async <Item, Result>(
 export const createLimiter = (concurrency: number) => {
   let running = 0;
   const waiting: (() => void)[] = [];
-  const release = () => {
+  const release = (): void => {
     const next = waiting.shift();
     if (next) {
       // Transfer the occupied slot; a new arrival cannot take it first.

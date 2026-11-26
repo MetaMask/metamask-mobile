@@ -5,7 +5,6 @@ import {
   type EventConstraint,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { create } from '@metamask/superstruct';
 import {
   InMemoryStorageAdapter,
   StorageService,
@@ -13,19 +12,15 @@ import {
   type StorageServiceEvents,
 } from '@metamask/storage-service';
 import { PACK_PARTNER_ENVIRONMENT } from '../../../components/UI/Collectibles/providers/pack-partner/constants/environment';
-import { PpWinnerStruct } from '../../../components/UI/Collectibles/providers/pack-partner/schemas/packPartner';
-import { recentOpening } from '../../../components/UI/Collectibles/providers/pack-partner/services/api.fixtures';
 import {
   createPackPartnerApi,
   type PackPartnerApi,
 } from '../../../components/UI/Collectibles/services/clients/PackPartnerApiClient';
-import type { CollectiblesOpening } from '../../../components/UI/Collectibles/types/collectibles';
 import {
   PackPartnerDataService,
   type PackPartnerDataServiceActions,
   type PackPartnerDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
-import { packPartnerQueries } from '../../../components/UI/Collectibles/services/data/packPartnerQueries';
 import { getPackPartnerDataServiceMessenger } from '../messengers/collectibles-data-services-messenger';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
@@ -64,7 +59,7 @@ const buildRequest = <
   Events extends EventConstraint,
 >(
   rootMessenger: Messenger<MockAnyNamespace, Actions, Events>,
-) =>
+): ReturnType<typeof buildMessengerClientInitRequestMock> =>
   buildMessengerClientInitRequestMock(
     rootMessenger as unknown as RootExtendedMessenger,
   );

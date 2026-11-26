@@ -50,7 +50,10 @@ import {
   parseInsuredValue,
   parseTimestamp,
 } from '../../providers/pack-partner/utils/format';
-import { createPackPartnerError } from '../../providers/pack-partner/services/errors';
+import {
+  createPackPartnerError,
+  type PackPartnerError,
+} from '../../providers/pack-partner/services/errors';
 import {
   defaultFetch,
   parseItems,
@@ -259,7 +262,7 @@ const toHttpError = (
   result: PackPartnerHttpResult,
   context: string,
   override?: StatusOverride,
-) => {
+): PackPartnerError => {
   const { status } = result;
   if (status === 429 || status === 503) {
     return createPackPartnerError({
@@ -373,7 +376,7 @@ const toBuybackCheck = (
 };
 
 /** Cards whose owner is known and differs from the address are stale. */
-const isOwnedBy = (address: string) => (card: PpWalletCard) =>
+const isOwnedBy = (address: string, card: PpWalletCard): boolean =>
   !card.owner?.wallet || card.owner.wallet === address;
 
 // ---------- Factory ----------
@@ -580,7 +583,7 @@ export const createPackPartnerApi = ({
     };
   };
 
-  const openPack = async ({ memo }: { memo: string }) =>
+  const openPack: PackPartnerApi['openPack'] = async ({ memo }) =>
     toOpenPackResult(
       parseResponse(
         PpOpenPackResponseStruct,
@@ -740,7 +743,7 @@ export const createPackPartnerApi = ({
       }
       cursor = body.nextCursor;
     } while (cursor !== null);
-    return [...byMint.values()].filter(isOwnedBy(address));
+    return [...byMint.values()].filter((card) => isOwnedBy(address, card));
   };
 
   return {

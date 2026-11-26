@@ -26,7 +26,9 @@ import {
 import { PACK_PARTNER_RARITIES } from '../constants/packPartner';
 
 /** Optional and nullable, the default for fields we only read. */
-const maybe = <T, S>(struct: Struct<T, S>) => optional(nullable(struct));
+const maybe = <Value, Schema>(
+  struct: Struct<Value, Schema>,
+): Struct<Value | null | undefined, Schema> => optional(nullable(struct));
 
 /** A value sent either as a number or as a numeric string. */
 const NumberOrStringStruct = union([number(), string()]);
@@ -49,13 +51,15 @@ const AttributeValueStruct = coerce(
 export const TierKeyStruct = enums(PACK_PARTNER_RARITIES);
 
 /** One value per tier, keyed by the lower-cased tier name. */
-const tierRecord = <T, S>(struct: Struct<T, S>) =>
-  type({
-    common: struct,
-    uncommon: struct,
-    rare: struct,
-    epic: struct,
-  });
+const tierFields = <Value, Schema>(
+  field: Struct<Value, Schema>,
+): Record<Infer<typeof TierKeyStruct>, typeof field> => ({
+  common: field,
+  uncommon: field,
+  rare: field,
+  epic: field,
+});
+const TierNumbersStruct = type(tierFields(number()));
 
 // ---------- GET /machines ----------
 
@@ -79,10 +83,10 @@ export const PpMachineStruct = type({
   instantBuyback: number(),
   turboMode: maybe(boolean()),
   /** Probability of each tier, fractions summing to 1. */
-  odds: tierRecord(number()),
+  odds: TierNumbersStruct,
   /** Whole-USD insured value range per tier. */
-  tierRanges: tierRecord(type({ start: number(), end: number() })),
-  stock: maybe(tierRecord(number())),
+  tierRanges: type(tierFields(type({ start: number(), end: number() }))),
+  stock: maybe(TierNumbersStruct),
   ev: maybe(number()),
 });
 export type PpMachine = Infer<typeof PpMachineStruct>;

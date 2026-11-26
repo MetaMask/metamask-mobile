@@ -1,18 +1,13 @@
-import {
-  buildPackPartnerStorageHarness,
-  createPackPartnerUIQueryClient,
-} from '../../../../../../tests/integration/harnesses/pack-partner/storage';
+import { buildPackPartnerPersistenceHarness } from '../../../../../../tests/integration/harnesses/pack-partner/storage';
 import {
   hashKey,
   QueryObserver,
   type QueryObserverResult,
 } from '@tanstack/query-core';
-import { PackPartnerDataService } from './PackPartnerDataService';
 import {
   packPartnerQueries,
   packPartnerQueryFamilies,
 } from './packPartnerQueries';
-import { createPackPartnerApi } from '../clients/PackPartnerApiClient';
 import {
   PACK_PARTNER_ENVIRONMENT,
   type PackPartnerEnvironment,
@@ -63,16 +58,20 @@ describe('PackPartner data service integration', () => {
   /** One page of the cards API, owned by the test wallet. */
   const cardsPage = (
     cards: { nftAddress: string; lastTransferredAt: string }[],
-  ) => ({
+  ): typeof walletCards => ({
     ...walletCards,
     totalPages: 1,
     filterNFtCard: cards.map((card) => ({
       ...walletCards.filterNFtCard[0],
       ...card,
-      owner: { wallet: ADDRESS, name: 'collector' },
+      owner: {
+        ...walletCards.filterNFtCard[0].owner,
+        wallet: ADDRESS,
+        name: 'collector',
+      },
     })),
   });
-  const delay = async (ms: number) =>
+  const delay = async (ms: number): Promise<void> =>
     new Promise<void>((resolve) => {
       setTimeout(resolve, ms);
     });
@@ -85,28 +84,16 @@ describe('PackPartner data service integration', () => {
     }
     throw new Error('Timed out waiting for the observed query');
   };
-  const setup = () => {
-    const fetchMock = jest.fn<
-      ReturnType<typeof fetch>,
-      Parameters<typeof fetch>
-    >();
-    const api = createPackPartnerApi({
-      fetch: fetchMock,
-      baseUrl: 'https://pack-partner.test/api',
-      cardsBaseUrl: 'https://cards.test',
-      apiKey: '',
-    });
-    const { messenger } = buildPackPartnerStorageHarness();
-    const service = new PackPartnerDataService({ messenger, api });
-    const ui = createPackPartnerUIQueryClient(messenger);
-    cleanups.push(() => {
-      ui.clear();
-      service.destroy();
-    });
-    const calls = (path: string) =>
-      fetchMock.mock.calls.filter(([url]) => requestUrl(url).includes(path))
-        .length;
-    return { service, fetchMock, messenger, ui, calls };
+  const setup = (): ReturnType<typeof buildPackPartnerPersistenceHarness> & {
+    calls: (path: string) => number;
+  } => {
+    const harness = buildPackPartnerPersistenceHarness();
+    cleanups.push(harness.cleanup);
+    const calls = (path: string): number =>
+      harness.fetchMock.mock.calls.filter(([url]) =>
+        requestUrl(url).includes(path),
+      ).length;
+    return { ...harness, calls };
   };
 
   it('aborts a wallet read on reset without retrying the cancelled request', async () => {
@@ -157,14 +144,14 @@ describe('PackPartner data service integration', () => {
     ).queryKey;
 
     const [uiPacks, servicePacks] = await Promise.all([
-      ui.fetchQuery({ queryKey: catalogueKey }),
+      ui.query({ queryKey: catalogueKey }),
       messenger.call(
         'PackPartnerDataService:getPacks',
         PACK_PARTNER_ENVIRONMENT,
       ),
     ]);
     const [uiPage, servicePage] = await Promise.all([
-      ui.fetchQuery({ queryKey: inventoryKey }),
+      ui.query({ queryKey: inventoryKey }),
       messenger.call(
         'PackPartnerDataService:getPackInventory',
         PACK_PARTNER_ENVIRONMENT,
@@ -208,7 +195,7 @@ describe('PackPartner data service integration', () => {
       return response(200, buybackAvailable);
     });
 
-    const cards = await ui.fetchQuery<PackPartnerCard[]>({
+    const cards = await ui.query<PackPartnerCard[]>({
       queryKey: packPartnerQueries.getOwnedCards(
         PACK_PARTNER_ENVIRONMENT,
         ADDRESS,
@@ -240,14 +227,14 @@ describe('PackPartner data service integration', () => {
         );
       return response(200, buybackAvailable);
     });
-    await ui.fetchQuery<PackPartnerCard[]>({
+    await ui.query<PackPartnerCard[]>({
       queryKey: packPartnerQueries.getOwnedCards(
         PACK_PARTNER_ENVIRONMENT,
         ADDRESS,
       ).queryKey,
     });
 
-    const offer = await ui.fetchQuery({
+    const offer = await ui.query({
       queryKey: packPartnerQueries.getBuybackOffer(
         PACK_PARTNER_ENVIRONMENT,
         recentMint,
@@ -283,7 +270,7 @@ describe('PackPartner data service integration', () => {
     });
     const results: QueryObserverResult<PackPartnerCard[]>[] = [];
     cleanups.push(observer.subscribe((result) => results.push(result)));
-    const mints = () =>
+    const mints = (): string[] =>
       observer.getCurrentResult().data?.map(({ mint }) => mint) ?? [];
     await waitFor(() => mints().length === 1);
     owned = [
@@ -345,7 +332,7 @@ describe('PackPartner data service integration', () => {
       retry: false,
     });
     cleanups.push(observer.subscribe(() => undefined));
-    const mints = () =>
+    const mints = (): string[] =>
       observer.getCurrentResult().data?.map(({ mint }) => mint) ?? [];
     await waitFor(() => mints().length === 1);
     const removals: string[] = [];
@@ -388,7 +375,7 @@ describe('PackPartner data service integration', () => {
       }),
     );
 
-    const openings = await ui.fetchQuery<PackPartnerOpening[]>({
+    const openings = await ui.query<PackPartnerOpening[]>({
       queryKey: packPartnerQueries.getRecentOpenings(PACK_PARTNER_ENVIRONMENT, {
         packType: machinePokemon50.code,
       }).queryKey,

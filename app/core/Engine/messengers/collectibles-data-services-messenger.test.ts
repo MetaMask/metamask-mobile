@@ -1,14 +1,9 @@
-import type {
-  DataServiceGranularCacheUpdatedPayload,
-  DataServiceInvalidateQueriesAction,
-} from '@metamask/base-data-service';
+import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { PACK_PARTNER_ENVIRONMENT } from '../../../components/UI/Collectibles/providers/pack-partner/constants/environment';
-import type { CollectiblesOpening } from '../../../components/UI/Collectibles/types/collectibles';
 import type {
   PackPartnerDataServiceActions,
   PackPartnerDataServiceEvents,

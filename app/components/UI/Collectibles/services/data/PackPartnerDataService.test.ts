@@ -27,7 +27,10 @@ import {
   walletCards,
 } from '../../providers/pack-partner/services/api.fixtures';
 import type { PackPartnerApi } from '../clients/PackPartnerApiClient';
-import { createPackPartnerError } from '../../providers/pack-partner/services/errors';
+import {
+  createPackPartnerError,
+  type PackPartnerError,
+} from '../../providers/pack-partner/services/errors';
 import {
   PackPartnerDataService,
   type PackPartnerDataServiceMessenger,
@@ -36,7 +39,6 @@ import {
   PACK_PARTNER_BUYBACK_OFFER_STALE_TIME,
   PACK_PARTNER_INVENTORY_STALE_TIME,
   PACK_PARTNER_OWNED_CARDS_STALE_TIME,
-  PACK_PARTNER_RECENT_OPENINGS_STALE_TIME,
   packPartnerQueries,
 } from './packPartnerQueries';
 
@@ -100,14 +102,14 @@ const walletCard = (
   ...(lastTransferredAt ? { lastTransferredAt } : {}),
 });
 
-const retryableError = () =>
+const retryableError = (): PackPartnerError =>
   createPackPartnerError({
     code: 'RATE_LIMITED',
     retryable: true,
     status: 503,
   });
 
-const nonRetryableError = () =>
+const nonRetryableError = (): PackPartnerError =>
   createPackPartnerError({
     code: 'INVALID_RESPONSE',
   });
@@ -118,7 +120,7 @@ const winner = (overrides: Partial<PpWinner> = {}): PpWinner => ({
 });
 
 /** Network failure as the HTTP client raises it. */
-const networkError = () =>
+const networkError = (): PackPartnerError =>
   createPackPartnerError({
     code: 'NETWORK_ERROR',
     retryable: true,
@@ -134,7 +136,10 @@ class ServiceWithForeignEntry extends PackPartnerDataService {
   }
 }
 
-const inventoryPage = (nfts: (typeof inventoryNft)[], nextCursor?: string) => ({
+const inventoryPage = (
+  nfts: (typeof inventoryNft)[],
+  nextCursor?: string,
+): Awaited<ReturnType<PackPartnerApi['getInventory']>> => ({
   nfts,
   hasMore: nextCursor !== undefined,
   ...(nextCursor ? { nextCursor } : {}),
@@ -167,7 +172,13 @@ const withBackoffElapsed = async <Result>(
  * @param api - API whose offer reads are held.
  * @returns The concurrency record and release controls.
  */
-const holdOfferReads = (api: jest.Mocked<PackPartnerApi>) => {
+const holdOfferReads = (
+  api: jest.Mocked<PackPartnerApi>,
+): {
+  concurrency: { max: number };
+  releaseOldest: () => Promise<void>;
+  releaseAll: () => Promise<void>;
+} => {
   const releases: (() => void)[] = [];
   const concurrency = { running: 0, max: 0 };
   api.getBuybackAvailability.mockImplementation(async () => {
@@ -210,14 +221,19 @@ describe('PackPartnerDataService', () => {
     jest.restoreAllMocks();
   });
 
-  const buildService = (api: PackPartnerApi = createApi()) => {
+  const buildService = (
+    api: PackPartnerApi,
+  ): {
+    service: PackPartnerDataService;
+    messenger: PackPartnerDataServiceMessenger;
+  } => {
     const messenger = createMessenger();
     const service = new PackPartnerDataService({ messenger, api });
     services.push(service);
     return { service, messenger };
   };
 
-  const arrangePacks = (api: jest.Mocked<PackPartnerApi>) => {
+  const arrangePacks = (api: jest.Mocked<PackPartnerApi>): void => {
     api.getMachines.mockResolvedValue([
       machinePokemon50,
       machineSealed80,
@@ -583,7 +599,7 @@ describe('PackPartnerDataService', () => {
         service.getBuybackOffer(ENVIRONMENT, mint),
       );
       reads.forEach((read) => {
-        void read.catch(() => undefined);
+        read.catch(() => undefined);
       });
       await flush();
 
@@ -601,7 +617,12 @@ describe('PackPartnerDataService', () => {
     describe('with four offer reads retrying a transient failure', () => {
       const failingMints = ['mint-0', 'mint-1', 'mint-2', 'mint-3'];
 
-      const arrangeRetryingReads = () => {
+      const arrangeRetryingReads = (): {
+        api: jest.Mocked<PackPartnerApi>;
+        error: PackPartnerError;
+        service: PackPartnerDataService;
+        failing: ReturnType<PackPartnerDataService['getBuybackOffer']>[];
+      } => {
         const api = createApi();
         const error = retryableError();
         api.getBuybackAvailability.mockImplementation(async ({ mint }) => {
@@ -615,7 +636,7 @@ describe('PackPartnerDataService', () => {
           service.getBuybackOffer(ENVIRONMENT, mint),
         );
         failing.forEach((read) => {
-          void read.catch(() => undefined);
+          read.catch(() => undefined);
         });
         return { api, error, service, failing };
       };
@@ -1187,7 +1208,11 @@ describe('PackPartnerDataService', () => {
        *
        * @returns The API, the service and the instant the circuit opened.
        */
-      const breakOwnedCardsCircuit = async () => {
+      const breakOwnedCardsCircuit = async (): Promise<{
+        api: jest.Mocked<PackPartnerApi>;
+        service: PackPartnerDataService;
+        openedAt: number;
+      }> => {
         const api = createApi();
         const error = retryableError();
         let openedAt = 0;
@@ -1565,7 +1590,9 @@ describe('PackPartnerDataService', () => {
         }
       };
 
-      const arrangeRegistry = () => {
+      const arrangeRegistry = (): ReturnType<typeof buildService> & {
+        api: jest.Mocked<PackPartnerApi>;
+      } => {
         const api = createApi();
         api.getWalletCards.mockResolvedValue([
           walletCard('old-mint', isoAgo(100 * HOUR)),
