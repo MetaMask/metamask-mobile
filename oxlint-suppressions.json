@@ -10349,6 +10349,9 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelectorModal/PaymentMethodSelectorModal.tsx": {
