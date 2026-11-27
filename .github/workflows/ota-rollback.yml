@@ -1,0 +1,325 @@
+##############################################################################################
+#
+# OTA Rollback
+#
+# Republishes an earlier update group, or publishes a roll-back-to-embedded directive, signed
+# with the channel's code-signing key, without rebuilding. Production runs need the
+# `build-production` environment approval. Runbook: docs/ota-rollback.md.
+#
+##############################################################################################
+name: OTA Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'OTA channel to roll back'
+        type: choice
+        options:
+          - exp
+          - rc
+          - production
+        default: exp
+      mode:
+        description: 'republish: serve an earlier update group again. embedded: return devices to their store bundle.'
+        type: choice
+        options:
+          - republish
+          - embedded
+        required: true
+      group_id:
+        description: 'Update group ID to republish (republish only)'
+        type: string
+        required: false
+        default: ''
+      platform:
+        description: 'Platform to roll back'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+        default: all
+      reason:
+        description: 'Why this rollback is needed (stored in the update message)'
+        type: string
+        required: true
+      drill:
+        description: 'Rehearsal: targets a runtime version no store build uses, so no device can receive it'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ota-rollback-${{ inputs.channel }}
+  cancel-in-progress: false
+
+env:
+  DRILL_RUNTIME_VERSION: 0.0.0-rollback-drill
+
+jobs:
+  plan:
+    name: Validate rollback request
+    runs-on: ubuntu-latest
+    outputs:
+      github_environment: ${{ steps.plan.outputs.github_environment }}
+      build_name: ${{ steps.plan.outputs.build_name }}
+      signer_secret_name: ${{ steps.plan.outputs.signer_secret_name }}
+      runtime_version: ${{ steps.plan.outputs.runtime_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate inputs
+        id: plan
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          MODE: ${{ inputs.mode }}
+          GROUP_ID: ${{ inputs.group_id }}
+          PLATFORM: ${{ inputs.platform }}
+          REASON: ${{ inputs.reason }}
+          DRILL: ${{ inputs.drill }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+
+          case "$CHANNEL" in
+            production)
+              ENVIRONMENT_NAME="build-production"
+              BUILD_NAME="main-prod"
+              SIGNER_SECRET_NAME="metamask-prod-expo-signer"
+              ;;
+            rc)
+              ENVIRONMENT_NAME="build-rc"
+              BUILD_NAME="main-rc"
+              SIGNER_SECRET_NAME="metamask-rc-expo-signer"
+              ;;
+            exp)
+              ENVIRONMENT_NAME="build-exp"
+              BUILD_NAME="main-exp"
+              SIGNER_SECRET_NAME="metamask-exp-expo-signer"
+              ;;
+            *)
+              echo "::error::Unknown channel: ${CHANNEL}"
+              exit 1
+              ;;
+          esac
+
+          # The reason is shown to approvers in the run summary, so keep it to one line.
+          if [[ -z "${REASON// /}" || "$REASON" == *$'\n'* || "$REASON" == *$'\r'* ]]; then
+            echo "::error::reason is required and must be a single line."
+            exit 1
+          fi
+
+          if [[ "$MODE" == "republish" ]]; then
+            if [[ ! "$GROUP_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+              echo "::error::republish needs group_id set to an update group ID (a UUID)."
+              exit 1
+            fi
+          elif [[ -n "$GROUP_ID" ]]; then
+            echo "::error::group_id is only used with republish."
+            exit 1
+          fi
+
+          if [[ "$DRILL" == "true" ]]; then
+            RUNTIME_VERSION="$DRILL_RUNTIME_VERSION"
+          else
+            RUNTIME_VERSION=$(jq -r .version package.json)
+            # The runtime version comes from package.json, so a real rollback runs from the
+            # release branch of the store version it targets. Same pattern as push-eas-update.yml.
+            RELEASE_REF_PATTERN='^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$'
+            if [[ "$CHANNEL" != "exp" && ! "$GITHUB_REF" =~ $RELEASE_REF_PATTERN ]]; then
+              echo "::error::Run from the release/X.Y.Z or release/X.Y.Z-ota branch of the affected store version, not ${GITHUB_REF}."
+              exit 1
+            fi
+          fi
+
+          {
+            echo "github_environment=${ENVIRONMENT_NAME}"
+            echo "build_name=${BUILD_NAME}"
+            echo "signer_secret_name=${SIGNER_SECRET_NAME}"
+            echo "runtime_version=${RUNTIME_VERSION}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### OTA rollback requested$([[ "$DRILL" == "true" ]] && echo " (drill)")"
+            echo
+            echo "| Channel | Mode | Update group | Platform | Runtime version | Ref | Requested by |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
+            echo "| \`${CHANNEL}\` | \`${MODE}\` | \`${GROUP_ID:-n/a}\` | \`${PLATFORM}\` | \`${RUNTIME_VERSION}\` | \`${GITHUB_REF}\` | @${ACTOR} |"
+            echo
+            echo "**Reason:** ${REASON}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  setup-dependencies:
+    name: Setup dependencies
+    needs: plan
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ github.sha }}
+      fetch-depth: 1
+      upload-artifact: true
+      artifact-name: node-modules-ota-rollback
+      artifact-retention-days: 1
+
+  rollback:
+    name: Publish signed rollback (${{ inputs.channel }})
+    needs: [plan, setup-dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ needs.plan.outputs.github_environment }}
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the code-signing key
+    env:
+      CHANNEL: ${{ inputs.channel }}
+      MODE: ${{ inputs.mode }}
+      GROUP_ID: ${{ inputs.group_id }}
+      PLATFORM: ${{ inputs.platform }}
+      DRILL: ${{ inputs.drill }}
+      RUNTIME_VERSION: ${{ needs.plan.outputs.runtime_version }}
+      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Validate artifact compatibility
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.ARTIFACT_NAME }}
+          artifact-prefix: node-modules-ota-rollback
+          validation-context: artifact
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+
+      - name: Restore executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+
+      # Sets METAMASK_ENVIRONMENT, which app.config.js uses to pick the code-signing certificate.
+      - name: Apply build config from builds.yml
+        env:
+          BUILD_NAME: ${{ needs.plan.outputs.build_name }}
+        run: node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
+
+      - name: Use drill runtime version
+        if: ${{ inputs.drill }}
+        run: |
+          jq --arg v "$RUNTIME_VERSION" '.version = $v' package.json > "$RUNNER_TEMP/package.json"
+          mv "$RUNNER_TEMP/package.json" package.json
+
+      - name: Check runtime version
+        run: |
+          resolved=$(node -p "require('./ota.config.js').RUNTIME_VERSION")
+          if [[ "$resolved" != "$RUNTIME_VERSION" ]]; then
+            echo "::error::Project resolves runtime version '${resolved}', expected '${RUNTIME_VERSION}'."
+            exit 1
+          fi
+
+      - name: Check update group
+        if: ${{ inputs.mode == 'republish' }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          group=$(yarn eas update:view "$GROUP_ID" --json)
+          channel_branches=$(yarn eas channel:view "$CHANNEL" --json --non-interactive | jq -r '.currentPage.updateBranches[].name')
+          branch=$(jq -r '.[0].branch' <<< "$group")
+          runtimes=$(jq -r '[.[].runtimeVersion] | unique | join(",")' <<< "$group")
+
+          if ! grep -qxF "$branch" <<< "$channel_branches"; then
+            echo "::error::Update group is on branch '${branch}', which channel '${CHANNEL}' does not serve."
+            exit 1
+          fi
+          if [[ "$runtimes" != "$RUNTIME_VERSION" ]]; then
+            echo "::error::Update group targets runtime '${runtimes}', expected '${RUNTIME_VERSION}'."
+            exit 1
+          fi
+
+          echo "**Republishing:** $(jq -r '.[0].message // ""' <<< "$group") (commit \`$(jq -r '.[0].gitCommitHash // "unknown"' <<< "$group")\`)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Credentials go to step outputs, not the job environment, so later steps cannot
+      # re-read the signer secret from Secrets Manager.
+      - name: Configure AWS credentials
+        id: aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: 'us-east-2'
+          output-credentials: true
+          output-env-credentials: false
+
+      # The key goes to a 0600 file in RUNNER_TEMP, which is emptied at the end of every job.
+      - name: Fetch code-signing key
+        id: signer
+        env:
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
+          SIGNER_SECRET_NAME: ${{ needs.plan.outputs.signer_secret_name }}
+        run: |
+          set -euo pipefail
+          key_b64=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "$SIGNER_SECRET_NAME" \
+            --query SecretString \
+            --output text | jq -r '.EXPO_KEY_PRIV_B64 // empty')
+          if [[ -z "$key_b64" ]]; then
+            echo "::error::EXPO_KEY_PRIV_B64 is missing from ${SIGNER_SECRET_NAME}."
+            exit 1
+          fi
+          echo "::add-mask::$key_b64"
+
+          key_path="$RUNNER_TEMP/expo-private-key.pem"
+          (umask 077 && base64 --decode <<< "$key_b64" > "$key_path")
+          echo "key-path=$key_path" >> "$GITHUB_OUTPUT"
+
+      - name: Publish rollback
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          KEY_PATH: ${{ steps.signer.outputs.key-path }}
+          REASON: ${{ inputs.reason }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          prefix="Rollback"
+          if [[ "$DRILL" == "true" ]]; then prefix="Rollback drill"; fi
+          message="${prefix} (${MODE}) by ${ACTOR}: ${REASON}"
+          result="$RUNNER_TEMP/rollback-result.json"
+
+          if [[ "$MODE" == "republish" ]]; then
+            yarn eas update:republish --group "$GROUP_ID" --platform "$PLATFORM" \
+              --message "$message" --private-key-path "$KEY_PATH" --non-interactive --json > "$result"
+          else
+            yarn eas update:roll-back-to-embedded --channel "$CHANNEL" --platform "$PLATFORM" \
+              --message "$message" --private-key-path "$KEY_PATH" --non-interactive --json > "$result"
+          fi
+
+          {
+            echo "### Rollback published"
+            echo
+            echo "| Platform | Update ID | Update group | Runtime version |"
+            echo "| --- | --- | --- | --- |"
+            jq -r '.[] | "| \(.platform // "?") | `\(.id // "?")` | `\(.group // "?")` | `\(.runtimeVersion // "?")` |"' "$result"
+          } >> "$GITHUB_STEP_SUMMARY"
