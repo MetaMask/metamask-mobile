@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import {
   FeatureId,
@@ -356,5 +357,192 @@ describe('useSourceAmountInput money token', () => {
     rerender({ tokenFiatRate: 1, sourceAmount: undefined });
 
     expect(onSourceAmountChange).toHaveBeenCalledWith('10.25');
+  });
+});
+
+// The live rate ticks every few seconds, which CV cannot drive.
+describe('useSourceAmountInput typed fiat amount', () => {
+  const actualSourceAmountInputMode = jest.requireActual<
+    typeof import('../../utils/sourceAmountInputMode')
+  >('../../utils/sourceAmountInputMode');
+  const sourceToken = {
+    address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    symbol: 'ETH',
+    chainId: '0x1' as const,
+    decimals: 18,
+  };
+
+  // The source amount lives in state, as in Redux, so the hook reads back
+  // what it writes.
+  const renderTypedFiatHook = (typedFiatRateTolerance?: number) =>
+    renderHook(
+      ({ tokenFiatRate }: { tokenFiatRate: number }) => {
+        const [sourceAmount, setSourceAmount] = useState<string>();
+        const input = useSourceAmountInput({
+          isFiatToggleEnabled: true,
+          sourceAmount,
+          sourceToken,
+          tokenFiatRate,
+          typedFiatRateTolerance,
+          onSourceAmountChange: setSourceAmount,
+        });
+
+        return { ...input, sourceAmount, setSourceAmount };
+      },
+      { initialProps: { tokenFiatRate: 2000 } },
+    );
+
+  const typeFiatAmount = (
+    result: ReturnType<typeof renderTypedFiatHook>['result'],
+    value: string,
+  ) => {
+    act(() => {
+      result.current.handleToggle();
+    });
+    act(() => {
+      result.current.handleKeypadChange({
+        value,
+        valueAsNumber: Number(value),
+        pressedKey: Keys.Digit0,
+      });
+    });
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+    mockUseTokenFiatRate.mockReturnValue(2000);
+    jest
+      .mocked(formatFiatInputAmount)
+      .mockImplementation(actualSourceAmountInputMode.formatFiatInputAmount);
+    jest
+      .mocked(formatTokenInputAmountFromFiat)
+      .mockImplementation(
+        actualSourceAmountInputMode.formatTokenInputAmountFromFiat,
+      );
+  });
+
+  afterAll(() => {
+    jest.mocked(formatFiatInputAmount).mockImplementation(() => '2000');
+    jest.mocked(formatTokenInputAmountFromFiat).mockImplementation(() => '1');
+  });
+
+  it('keeps the typed fiat amount and re-derives the token amount when the rate moves', () => {
+    const { result, rerender } = renderTypedFiatHook(0);
+    typeFiatAmount(result, '100');
+    expect(result.current.sourceAmount).toBe('0.05');
+
+    rerender({ tokenFiatRate: 2500 });
+
+    expect(result.current.amount).toBe('100');
+    expect(result.current.sourceAmount).toBe('0.04');
+  });
+
+  it('keeps the token amount while the rate stays within the tolerance', () => {
+    const { result, rerender } = renderTypedFiatHook(0.005);
+    typeFiatAmount(result, '100');
+
+    rerender({ tokenFiatRate: 2008 });
+
+    expect(result.current.amount).toBe('100');
+    expect(result.current.sourceAmount).toBe('0.05');
+  });
+
+  it('re-derives the token amount once the rate drifts past the tolerance since it was last derived', () => {
+    const { result, rerender } = renderTypedFiatHook(0.005);
+    typeFiatAmount(result, '100.8');
+    expect(result.current.sourceAmount).toBe('0.0504');
+
+    rerender({ tokenFiatRate: 2008 });
+    rerender({ tokenFiatRate: 2016 });
+
+    expect(result.current.amount).toBe('100.8');
+    expect(result.current.sourceAmount).toBe('0.05');
+  });
+
+  it('lets the fiat amount follow the rate when no tolerance is given', () => {
+    const { result, rerender } = renderTypedFiatHook();
+    typeFiatAmount(result, '100');
+
+    rerender({ tokenFiatRate: 2500 });
+
+    expect(result.current.amount).toBe('125');
+    expect(result.current.sourceAmount).toBe('0.05');
+  });
+
+  it('lets the fiat amount follow the rate after a preset replaces the typed amount', () => {
+    const { result, rerender } = renderTypedFiatHook(0);
+    typeFiatAmount(result, '100');
+    act(() => {
+      result.current.syncFiatAmountToTokenAmount('0.5');
+      result.current.setSourceAmount('0.5');
+    });
+
+    rerender({ tokenFiatRate: 2500 });
+
+    expect(result.current.amount).toBe('1250');
+    expect(result.current.sourceAmount).toBe('0.5');
+  });
+
+  it('lets the fiat amount follow the rate after toggling back to fiat', () => {
+    const { result, rerender } = renderTypedFiatHook(0);
+    typeFiatAmount(result, '100');
+    act(() => {
+      result.current.handleToggle();
+    });
+    act(() => {
+      result.current.handleToggle();
+    });
+
+    rerender({ tokenFiatRate: 2500 });
+
+    expect(result.current.amount).toBe('125');
+    expect(result.current.sourceAmount).toBe('0.05');
+  });
+
+  it('does not refill a source amount cleared outside the input', () => {
+    const { result, rerender } = renderTypedFiatHook(0);
+    typeFiatAmount(result, '100');
+    act(() => {
+      result.current.setSourceAmount(undefined);
+    });
+
+    rerender({ tokenFiatRate: 2500 });
+
+    expect(result.current.amount).toBeUndefined();
+    expect(result.current.sourceAmount).toBeUndefined();
+  });
+
+  it('writes the token amount when a rate arrives after typing', () => {
+    mockUseTokenFiatRate.mockReturnValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ tokenFiatRate }: { tokenFiatRate: number | undefined }) => {
+        const [sourceAmount, setSourceAmount] = useState<string>();
+        const input = useSourceAmountInput({
+          isFiatToggleEnabled: true,
+          sourceAmount,
+          sourceToken: { ...sourceToken, decimals: 6, isMoneyToken: true },
+          tokenFiatRate,
+          typedFiatRateTolerance: 0,
+          onSourceAmountChange: setSourceAmount,
+        });
+
+        return { ...input, sourceAmount };
+      },
+      { initialProps: { tokenFiatRate: undefined as number | undefined } },
+    );
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '10',
+        valueAsNumber: 10,
+        pressedKey: Keys.Digit0,
+      });
+    });
+    expect(result.current.sourceAmount).toBeUndefined();
+
+    rerender({ tokenFiatRate: 2 });
+
+    expect(result.current.amount).toBe('10');
+    expect(result.current.sourceAmount).toBe('5');
   });
 });

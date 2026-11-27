@@ -28,6 +28,7 @@ import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSource
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { useEnsureSameChainDestToken } from '../../../hooks/useEnsureSameChainDestToken';
 import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
+import { QUOTED_TYPED_FIAT_RATE_TOLERANCE } from '../BridgeView.constants';
 
 export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
@@ -55,21 +56,27 @@ export const useRecurringBuySwapInputs = () => {
     [dispatch],
   );
 
+  const recurringOrderMinAmount = useRecurringOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
+
   // The API checks the order minimum at the live rate, so a fiat amount is
   // converted at that same rate for the amount entered to be the one checked.
+  // Below the minimum no quote is requested, so the tolerance drops to 0 there
+  // and a fiat amount typed at the minimum is never held under it.
   const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
     sourceAmount,
     sourceToken,
     tokenFiatRate: sourceTokenFiatRate,
+    typedFiatRateTolerance: recurringOrderMinAmount.isBelowMinAmount
+      ? 0
+      : QUOTED_TYPED_FIAT_RATE_TOLERANCE,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
-  const recurringOrderMinAmount = useRecurringOrderMinAmount({
-    sourceToken,
-    sourceAmount,
-  });
 
   const { destTokenAmount, isLoading } = useBridgeQuoteDataContext();
   const { handleSwitchTokens } = useSwitchTokens();

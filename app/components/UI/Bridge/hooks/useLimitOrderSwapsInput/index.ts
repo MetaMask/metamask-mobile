@@ -61,6 +61,7 @@ export const useLimitOrderSwapInputs = () => {
     sourceAmount,
     sourceToken,
     tokenFiatRate: sourceTokenFiatRate,
+    typedFiatRateTolerance: 0,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;

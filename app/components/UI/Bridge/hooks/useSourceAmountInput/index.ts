@@ -37,6 +37,11 @@ import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-o
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
 
+interface TypedFiatConversion {
+  rate: number | undefined;
+  sourceAmount: string | undefined;
+}
+
 const getFiatToggleEventProperties = ({
   previousPrimaryDenomination,
   nextPrimaryDenomination,
@@ -87,12 +92,19 @@ export const useSourceAmountInput = ({
   sourceAmount,
   sourceToken,
   tokenFiatRate,
+  typedFiatRateTolerance,
   onSourceAmountChange,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   tokenFiatRate?: number;
+  /**
+   * Keeps a fiat amount the user typed fixed while the rate moves. Its token
+   * amount is re-derived once the rate has moved by more than this fraction
+   * since it was last derived. Unset, the fiat amount follows the rate.
+   */
+  typedFiatRateTolerance?: number;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
@@ -124,6 +136,7 @@ export const useSourceAmountInput = ({
     : sourceAmount;
   const amount = isFiatMode ? fiatAmount : tokenInputAmount;
   const isFiatInputChangeRef = useRef(false);
+  const typedFiatConversionRef = useRef<TypedFiatConversion | null>(null);
 
   useEffect(() => {
     setActiveInputPrimaryDenomination(inputPrimaryDenomination);
@@ -169,15 +182,26 @@ export const useSourceAmountInput = ({
 
       setFiatAmount(value);
       isFiatInputChangeRef.current = true;
-      onSourceAmountChange(
-        formatTokenInputAmountFromFiat({
-          fiatAmount: value,
-          tokenFiatRate: fiatRate,
-          tokenDecimals: sourceToken?.decimals,
-        }),
-      );
+      const nextSourceAmount = formatTokenInputAmountFromFiat({
+        fiatAmount: value,
+        tokenFiatRate: fiatRate,
+        tokenDecimals: sourceToken?.decimals,
+      });
+      if (typedFiatRateTolerance !== undefined) {
+        typedFiatConversionRef.current = {
+          rate: fiatRate,
+          sourceAmount: nextSourceAmount,
+        };
+      }
+      onSourceAmountChange(nextSourceAmount);
     },
-    [fiatRate, isFiatMode, onSourceAmountChange, sourceToken?.decimals],
+    [
+      fiatRate,
+      isFiatMode,
+      onSourceAmountChange,
+      sourceToken?.decimals,
+      typedFiatRateTolerance,
+    ],
   );
 
   const {
@@ -197,10 +221,45 @@ export const useSourceAmountInput = ({
 
   // Keep the visible fiat amount aligned when the canonical token amount
   // changes outside fiat typing, such as Max, presets, token, or rate updates.
+  // A fiat amount held by typedFiatRateTolerance stays put on rate updates and
+  // moves the token amount instead.
   // Gate on hasFiatRate, not canToggle: money tokens lock fiat mode with
   // canToggle off, but still need this copy so the field matches Redux.
   useEffect(() => {
     if (!isFiatMode || !hasFiatRate) {
+      return;
+    }
+
+    const typedFiatConversion = typedFiatConversionRef.current;
+    if (
+      typedFiatConversion &&
+      typedFiatConversion.sourceAmount !== sourceAmount
+    ) {
+      // Replaced outside this input, e.g. picking another token clears it.
+      typedFiatConversionRef.current = null;
+      isFiatInputChangeRef.current = false;
+    } else if (typedFiatConversion) {
+      const { rate } = typedFiatConversion;
+      if (
+        rate &&
+        fiatRate &&
+        Math.abs(fiatRate - rate) <= rate * (typedFiatRateTolerance ?? 0)
+      ) {
+        return;
+      }
+
+      const nextSourceAmount = formatTokenInputAmountFromFiat({
+        fiatAmount,
+        tokenFiatRate: fiatRate,
+        tokenDecimals: sourceToken?.decimals,
+      });
+      typedFiatConversionRef.current = {
+        rate: fiatRate,
+        sourceAmount: nextSourceAmount,
+      };
+      if (nextSourceAmount !== sourceAmount) {
+        onSourceAmountChange(nextSourceAmount);
+      }
       return;
     }
 
@@ -241,12 +300,14 @@ export const useSourceAmountInput = ({
     resetSourceAmountCursorPosition,
     sourceAmount,
     sourceToken?.decimals,
+    typedFiatRateTolerance,
   ]);
 
   const syncFiatAmountToTokenAmount = useCallback(
     (tokenAmount: string | undefined) => {
       resetSourceAmountCursorPosition();
       isFiatInputChangeRef.current = false;
+      typedFiatConversionRef.current = null;
       if (isFiatMode) {
         setFiatAmount(formatFiatInputAmount(tokenAmount, fiatRate));
       }
@@ -259,6 +320,7 @@ export const useSourceAmountInput = ({
     setInputPrimaryDenomination(TOKEN_AMOUNT_DENOMINATION);
     setFiatAmount(undefined);
     isFiatInputChangeRef.current = false;
+    typedFiatConversionRef.current = null;
   }, [resetSourceAmountCursorPosition, setInputPrimaryDenomination]);
 
   const handleToggle = useCallback(() => {
@@ -267,6 +329,7 @@ export const useSourceAmountInput = ({
     }
 
     playSelection().catch(() => undefined);
+    typedFiatConversionRef.current = null;
 
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);
