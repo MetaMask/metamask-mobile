@@ -130,6 +130,7 @@ import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarCon
 import { selectHasSocialV1Access } from '../../../selectors/featureFlagController/socialV1';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
+import ScrubTabBar from './HomeTabs/ScrubTabBar';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
@@ -789,7 +790,9 @@ const HomeTabs = () => {
     homeNavBarConfig.trailingNavBarAction === 'none'
       ? undefined
       : homeNavBarConfig.trailingNavBarAction;
-  const isNativeTabBar = useIsNativeTabBar();
+  // POC: the custom scrub bar replaces both the native and floating bars.
+  const isScrubTabBar = true;
+  const isNativeTabBar = useIsNativeTabBar() && !isScrubTabBar;
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
     getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
@@ -891,6 +894,16 @@ const HomeTabs = () => {
       // bottom-tab options.
       const extendedDescriptors =
         descriptors as unknown as TabBarProps['descriptors'];
+
+      if (isScrubTabBar) {
+        return (
+          <ScrubTabBar
+            state={state}
+            descriptors={extendedDescriptors}
+            navigation={navigation}
+          />
+        );
+      }
 
       return isFloatingTabBar ? (
         <TabBarFloating
@@ -1012,11 +1025,13 @@ const HomeTabs = () => {
             // can drop the activityState commit when a tab is left mid-mount,
             // leaving the old screen (usually Money) stuck on top.
             freezeOnBlur: false,
+            // POC: fade and nudge sideways, toward the tab being scrubbed to.
+            animation: isScrubTabBar ? 'shift' : 'none',
           }}
         >
           {tabs.slice(0, 3).map(renderJsTabScreen)}
 
-          {isFloatingTabBar ? null : (
+          {isFloatingTabBar || isScrubTabBar ? null : (
             <JsTab.Screen
               name={Routes.MODAL.TRADE_WALLET_ACTIONS}
               options={tradeOptions}
