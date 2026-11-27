@@ -29,6 +29,8 @@ const NATIVE_TAB_LABELS = {
 
 const NATIVE_TAB_BAR_MIN_IOS_VERSION = 26;
 
+const INTERACTIVE_TAP_TIMEOUT_MS = 15_000;
+
 class TabBarComponent {
   private tabItem(
     testId: string,
@@ -250,6 +252,7 @@ class TabBarComponent {
    * button to exist, then tap a fresh node, instead of probing a missing
    * header until the UiAutomator session dies.
    */
+  // waitUntilInteractive needs 3 consecutive reads (~2.8s each on CI).
   private async openActivityFromWalletHeader(): Promise<void> {
     const isWalletActivityButtonVisible = await Utilities.isElementVisible(
       WalletView.activityButton,
@@ -257,7 +260,7 @@ class TabBarComponent {
     );
     if (!isWalletActivityButtonVisible) {
       await Gestures.waitAndTap(this.tabBarWalletButton, {
-        timeout: 2_000,
+        timeout: INTERACTIVE_TAP_TIMEOUT_MS,
         elemDescription: 'Tab Bar - Wallet Button',
         waitForInteractive: true,
       });
@@ -267,7 +270,7 @@ class TabBarComponent {
       timeout: 10_000,
     });
     await Gestures.waitAndTap(WalletView.activityButton, {
-      timeout: 5_000,
+      timeout: INTERACTIVE_TAP_TIMEOUT_MS,
       elemDescription: 'Wallet Activity button',
       waitForInteractive: true,
     });

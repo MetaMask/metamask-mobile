@@ -1,7 +1,7 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import NotificationDetailsView from '../../page-objects/Notifications/NotificationDetailsView.js';
 import NotificationMenuView from '../../page-objects/Notifications/NotificationMenuView.js';
-import { SmokeNetworkAbstractions } from '../../tags.js';
+import { SmokeWalletPlatform } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import {
@@ -13,7 +13,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu.js';
 
-appiumTest.describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+appiumTest.describe(SmokeWalletPlatform('Notification Onboarding'), () => {
   appiumTest.describe.configure({ timeout: 240000 });
 
   // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
