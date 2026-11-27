@@ -23,7 +23,11 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  isSolanaPayAsset,
+} from '../../../utils/transaction-pay';
+import { useIsSolanaPaySourceEnabled } from '../../../hooks/pay/useIsSolanaPaySourceEnabled';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -69,6 +73,7 @@ export function PayWithModal() {
   );
   const { payToken, setPayToken } = useTransactionPayToken();
   const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
+  const isSolanaPayEnabled = useIsSolanaPaySourceEnabled();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -96,6 +101,9 @@ export function PayWithModal() {
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
   ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
   const tagRenderers = useMemo(
@@ -155,7 +163,11 @@ export function PayWithModal() {
       // choosing a token leaves the previous selection intact.
       if (isSameAssetId(payToken?.assetId, assetId)) {
         close(() => {
-          clearPaymentOverride();
+          // A selected Solana source on a Money Account deposit carries the
+          // Money Account override for its vault second leg; keep it.
+          if (!(isSolanaPayAsset(token) && isMoneyAccountDeposit)) {
+            clearPaymentOverride();
+          }
           if (dismissOnSelectCount > 1) {
             navigation.dispatch(StackActions.pop(dismissOnSelectCount));
           }
@@ -212,6 +224,7 @@ export function PayWithModal() {
       close,
       dismissOnSelectCount,
       ensurePayToken,
+      isMoneyAccountDeposit,
       isPredictContext,
       isWithdraw,
       navigation,
@@ -237,6 +250,7 @@ export function PayWithModal() {
         tokens,
         blockedTokens,
         fiatPayment,
+        isSolanaPayEnabled,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -257,6 +271,7 @@ export function PayWithModal() {
       blockedTokens,
       fiatPayment,
       withdrawTokenFilter,
+      isSolanaPayEnabled,
       payToken,
       requiredTokens,
       transactionMeta,

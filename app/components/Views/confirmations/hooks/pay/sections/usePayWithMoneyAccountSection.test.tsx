@@ -2,7 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import BigNumber from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -382,6 +385,62 @@ describe('usePayWithMoneyAccountSection', () => {
       );
     },
   );
+
+  describe('selection state', () => {
+    const SOLANA_PAY_TOKEN_MOCK = {
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    };
+
+    function mockMoneyAccountDeposit(payToken?: object) {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: {},
+      } as TransactionMeta);
+
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: { moneyAccountDeposit: true },
+          };
+        }
+        return selector({
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  'tx-1': {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                    paymentToken: payToken,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+    }
+
+    it('marks the money account selected when it funds the deposit', () => {
+      mockMoneyAccountDeposit();
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows[0].isSelected).toBe(true);
+    });
+
+    it('does not mark the money account selected for a deposit funded from Solana', () => {
+      mockMoneyAccountDeposit(SOLANA_PAY_TOKEN_MOCK);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows[0].isSelected).toBe(false);
+      expect(result.current?.rows[0].trailingElement).toBe('none');
+    });
+  });
 
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({

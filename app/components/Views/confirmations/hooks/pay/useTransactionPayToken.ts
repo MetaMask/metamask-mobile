@@ -4,7 +4,10 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import {
+  PaymentOverride,
+  type TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import { noop } from 'lodash';
 import { useCallback, useMemo } from 'react';
@@ -23,6 +26,36 @@ import Logger from '../../../../../util/Logger';
 /** Payment token selection, identified by its `AssetsController` asset ID. */
 export interface PayTokenSelection {
   assetId: CaipAssetType;
+}
+
+/**
+ * Configures a Money Account deposit for a non-EVM source, or clears that
+ * configuration when switching back to an EVM token.
+ *
+ * Core runs the vault deposit as a non-atomic second leg only for a request
+ * with the Money Account override and `atomic: false`, so it must be set before
+ * the non-EVM token is selected for the first quote to include it. An armed Max
+ * deposit keeps its own atomic hint (see `useTransactionCustomAmount`).
+ *
+ * @param transactionId - ID of the Money Account deposit.
+ * @param isNonEvmSource - Whether the newly selected payment token is non-EVM.
+ */
+function setMoneyAccountDepositNonEvmSource(
+  transactionId: string,
+  isNonEvmSource: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.paymentOverride = isNonEvmSource
+        ? PaymentOverride.MoneyAccount
+        : undefined;
+
+      if (isNonEvmSource || !config.isMaxAmount) {
+        config.atomic = isNonEvmSource ? false : undefined;
+      }
+    },
+  );
 }
 
 export function useTransactionPayToken(): {
@@ -51,33 +84,50 @@ export function useTransactionPayToken(): {
     payTokenAsset &&
     payTokenAsset.address === getNativeTokenAddress(payTokenAsset.chainId);
 
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
+  // The current token is non-EVM when it is selected but has no EVM chain.
+  const isNonEvmPayTokenSelected = Boolean(payToken) && !payTokenAsset;
+
   const setPayToken = useCallback(
     ({ assetId }: PayTokenSelection) => {
-      // Mobile only offers EVM payment tokens.
       const newPayToken = decodeEvmAssetId(assetId);
+      const isNonEvmSource = !newPayToken;
 
-      if (!newPayToken) {
-        throw new Error(`Unsupported payment token: ${assetId}`);
+      // Switching to or from a non-EVM source on a Money Account deposit
+      // reconfigures its vault second leg.
+      if (
+        isMoneyAccountDeposit &&
+        (isNonEvmSource || isNonEvmPayTokenSelected)
+      ) {
+        setMoneyAccountDepositNonEvmSource(transactionId, isNonEvmSource);
       }
 
-      const { GasFeeController, NetworkController, TransactionPayController } =
-        Engine.context;
+      // Gas fee estimates and the predict gas fee token only apply to EVM
+      // sources. Core resolves a non-EVM source from the account in the
+      // transaction account group that supports its chain.
+      if (newPayToken) {
+        const networkClientId =
+          Engine.context.NetworkController.findNetworkClientIdByChainId(
+            newPayToken.chainId,
+          );
 
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        newPayToken.chainId,
-      );
-
-      GasFeeController.fetchGasFeeEstimates({
-        networkClientId,
-      }).catch(noop);
+        Engine.context.GasFeeController.fetchGasFeeEstimates({
+          networkClientId,
+        }).catch(noop);
+      }
 
       try {
-        TransactionPayController.updatePaymentToken({
+        Engine.context.TransactionPayController.updatePaymentToken({
           transactionId: transactionId as string,
           assetId,
         });
 
-        syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
+        if (newPayToken) {
+          syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
+        }
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
       }
@@ -88,7 +138,7 @@ export function useTransactionPayToken(): {
         TransactionType.predictDepositAndOrder,
       ]);
 
-      if (isPredictDepositTransaction && transactionMeta) {
+      if (newPayToken && isPredictDepositTransaction && transactionMeta) {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
@@ -110,6 +160,8 @@ export function useTransactionPayToken(): {
       EngineService.flushState();
     },
     [
+      isMoneyAccountDeposit,
+      isNonEvmPayTokenSelected,
       transactionId,
       transactionMeta,
       primaryRequiredToken?.chainId,
