@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
+import { buildV5TransactionRecord } from '#app/util/test/v5TransactionFixtures';
 import { useApiTransaction } from './useApiTransaction';
 import { useCachedEvmTransaction } from './useCachedEvmTransaction';
 import { useTransactionQuery } from './useTransactionQuery';

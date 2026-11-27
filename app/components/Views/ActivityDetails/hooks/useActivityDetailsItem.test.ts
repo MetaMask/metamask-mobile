@@ -7,7 +7,7 @@ import {
   toCaipAccountId,
   toCaipChainId,
 } from '@metamask/utils';
-import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
+import { buildV5TransactionRecord } from '#app/util/test/v5TransactionFixtures';
 import {
   mapRampOrder,
   type ActivityListItem,

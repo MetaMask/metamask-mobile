@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
+import { buildV5TransactionRecord } from '#app/util/test/v5TransactionFixtures';
 import { selectEvmAddress } from '#app/selectors/accountsController';
 import { apiClient } from '../../../../../core/apiClient';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';

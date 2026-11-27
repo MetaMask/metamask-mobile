@@ -7,7 +7,7 @@ import {
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
-import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
+import { buildV5TransactionRecord } from '#app/util/test/v5TransactionFixtures';
 import {
   isBridgeHistoryForEvmTransaction,
   mapNonEvmTransactions,

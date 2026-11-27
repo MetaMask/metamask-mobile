@@ -1,4 +1,16 @@
 import type { V5TransactionRecord } from '@metamask/core-backend';
+import {
+  KnownCaipNamespace,
+  toCaipAccountId,
+  toCaipChainId,
+} from '@metamask/utils';
+
+const DEFAULT_ACCOUNT_ID = toCaipAccountId(
+  KnownCaipNamespace.Eip155,
+  '1',
+  '0x0000000000000000000000000000000000000001',
+);
+const DEFAULT_CHAIN_ID = toCaipChainId(KnownCaipNamespace.Eip155, '1');
 
 export const buildV5TransactionRecord = (
   overrides: {
@@ -19,12 +31,10 @@ export const buildV5TransactionRecord = (
     fee?: V5TransactionRecord['fee'];
   } = {},
 ): V5TransactionRecord => ({
-  accountId: (overrides.accountId ??
-    'eip155:1:0x0000000000000000000000000000000000000001') as V5TransactionRecord['accountId'],
+  accountId: overrides.accountId ?? DEFAULT_ACCOUNT_ID,
   tx: {
     id: overrides.id ?? '0xhash',
-    chainId: (overrides.chainId ??
-      'eip155:1') as V5TransactionRecord['tx']['chainId'],
+    chainId: overrides.chainId ?? DEFAULT_CHAIN_ID,
     status: overrides.status ?? 'confirmed',
     timestamp: overrides.timestamp ?? 1778593067000,
     date: overrides.date ?? '2026-05-13T14:34:23.000Z',
