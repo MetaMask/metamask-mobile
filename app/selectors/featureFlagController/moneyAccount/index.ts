@@ -313,10 +313,9 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
 export const getMoneyAccountVaultConfig = (
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): MoneyAccountVaultConfig | undefined => {
-  const remoteConfig =
-    remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
-      | MoneyAccountVaultConfig
-      | undefined;
+  const remoteConfig = remoteFeatureFlags?.moneyAccountVaultConfig as
+    | MoneyAccountVaultConfig
+    | undefined;
   if (remoteConfig) {
     return remoteConfig;
   }

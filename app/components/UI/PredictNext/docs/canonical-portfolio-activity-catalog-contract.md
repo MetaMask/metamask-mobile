@@ -221,6 +221,8 @@ interface PredictVenueFeedScreen {
   id: string;
   title: string;
   subtitle?: string;
+  /** Optional (PRED-1606). A design-system icon name, kept as a string. */
+  icon?: string;
   /** In display order, 1 to 8, ids unique within the screen. */
   tabs: readonly { id: string; title: string; feed: PredictFeedKey }[];
 }
@@ -239,9 +241,16 @@ interface PredictVenueCatalog {
   home?: { sections: readonly PredictHomeSection[] };
 }
 
-/** In display order; at most 8. `screen` names a Feed Screen in `screens`. */
+/** In display order; at most 8. `screen` names a Feed Screen in `screens`.
+ * `title` and `limit` are optional (PRED-1606); `limit` is 1 to 10. */
 type PredictHomeSection =
-  | { kind: 'trending'; sources: readonly PredictFeedKey[]; screen?: string }
+  | {
+      kind: 'trending';
+      sources: readonly PredictFeedKey[];
+      title?: string;
+      limit?: number;
+      screen?: string;
+    }
   | {
       kind: 'games-row';
       id: string;
@@ -255,6 +264,7 @@ type PredictHomeSection =
       id: string;
       title: string;
       feed: PredictFeedKey;
+      limit?: number;
       screen: string;
     };
 ```
@@ -275,7 +285,7 @@ PRED-1376 implements the client side:
 
 - **Vocabulary.** The Predict API owns the Feed-key vocabulary, as decided under PRED-1522. Since PRED-1526 mobile types `PredictFeedKey` as an open string and accepts any kebab-case key the API serves, so a Feed the API adds reaches mobile without a release. `PREDICT_VENUE_ACTIONS` stays a closed list: actions are not Feed keys.
 - **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots and Explore tabs to keys. PredictNext Home is not in it: since PRED-1528 Home renders the parsed `home` sections in catalog order, each with its existing component, and each header opens the section's `screen` while `screens` has it. Feed Screens and their tabs are not in it: `navigation/feedScreens.ts` looks them up in the parsed `screens`, and a Feed Screen route or deep link names a screen ID the screen resolves against the catalog once it loads, showing its unavailable state when the catalog lacks it. A Rewards campaign's Venue is decided by `campaigns/campaignVenues.ts`, not by a Feed key.
-- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions and fields. A malformed `venueId`, `environment`, `actions`, `feeds` object or `searchSupported`, or another Venue's `venueId`, rejects the whole catalog; when `environment` is omitted on the wire, it remains `undefined` so browsing, trading, portfolio, and search stay available while deposits remain disabled until an explicit `environment` is served. Single entries never reject the catalog: each is dropped and logged (`Logger.log`) and the rest kept. That covers a `feeds` entry whose key is not kebab-case or that has no Feed ID; a Category that is not a string, not a Feed key in `feeds`, or a repeat (and a `categories` that is not an array); and a Feed Screen that is malformed, repeats an earlier ID, or has no usable tab, or a tab that is malformed, repeats an ID within its screen, or names a Feed key missing from `feeds` (and a `screens` that is not an array). Home is parsed the same way, because the API will add section kinds and fields after a build ships: a section that is malformed, of an unknown kind, reads a Feed key missing from `feeds`, repeats an earlier ID (or is a second Trending or Categories), comes after the eighth kept section, or would take Home past eight distinct Feed reads is dropped and logged; a Trending source missing from `feeds` or repeated is dropped and the section kept; a `screen` missing from `screens` is kept and the header opens nothing. A `home` that is not an object with a `sections` array is dropped and logged, and Home then shows Balance, the Portfolio actions and its unavailable state.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions and fields. A malformed `venueId`, `environment`, `actions`, `feeds` object or `searchSupported`, or another Venue's `venueId`, rejects the whole catalog; when `environment` is omitted on the wire, it remains `undefined` so browsing, trading, portfolio, and search stay available while deposits remain disabled until an explicit `environment` is served. Single entries never reject the catalog: each is dropped and logged (`Logger.log`) and the rest kept. That covers a `feeds` entry whose key is not kebab-case or that has no Feed ID; a Category that is not a string, not a Feed key in `feeds`, or a repeat (and a `categories` that is not an array); and a Feed Screen that is malformed, repeats an earlier ID, or has no usable tab, or a tab that is malformed, repeats an ID within its screen, or names a Feed key missing from `feeds` (and a `screens` that is not an array). Home is parsed the same way, because the API will add section kinds and fields after a build ships: a section that is malformed, of an unknown kind, reads a Feed key missing from `feeds`, repeats an earlier ID (or is a second Trending or Categories), comes after the eighth kept section, or would take Home past eight distinct Feed reads is dropped and logged; a Trending source missing from `feeds` or repeated is dropped and the section kept; a `screen` missing from `screens` is kept and the header opens nothing. An optional field that is unusable is dropped and logged, and its section or screen kept: a Trending `title`, or a Feed Screen `subtitle` or `icon`, that is not a non-empty string, or a Trending or preview `limit` that is not an integer. An integer `limit` outside 1 to 10 is clamped into that range. A `home` that is not an object with a `sections` array is dropped and logged, and Home then shows Balance, the Portfolio actions and its unavailable state.
 - **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method calls `GET /v1/venues/{venueId}/catalog`; there is no bundled Kalshi catalog in production. The deployment's `actions` are authoritative, including `withdraw`, which the API advertises only while its withdrawals fence serves the route. `KALSHI_STATIC_VENUE_CATALOG` (`contracts/v1/fixtures/kalshiVenueCatalog.ts`) is a test fixture only.
 - **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
 

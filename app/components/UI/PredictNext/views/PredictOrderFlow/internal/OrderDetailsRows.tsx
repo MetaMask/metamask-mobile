@@ -1,5 +1,5 @@
-import React from 'react';
 import BigNumber from 'bignumber.js';
+import React from 'react';
 import {
   Box,
   FontWeight,
@@ -8,109 +8,159 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictBuyOrderPreview, PredictDecimal } from '../../../types';
+import type { PredictDecimal, PredictOrderPreview } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 /** A price in [0, 1] as odds, with formatCents' rounding: '0.53' → '53%',
- * '0.4651' → '46.5%'. */
-const formatOdds = (price: PredictDecimal): string => {
+ * '0.4651' → '46.5%'. Returns undefined when no finite price is present. */
+export const formatOdds = (price?: PredictDecimal): string | undefined => {
+  if (price === undefined) {
+    return undefined;
+  }
   const percent = new BigNumber(price).times(100);
-  if (percent.isNaN()) {
-    return '0%';
+  if (!percent.isFinite()) {
+    return undefined;
   }
   const rounded = percent.decimalPlaces(1);
   return `${rounded.toFixed(rounded.isInteger() ? 0 : 1)}%`;
 };
 
-interface DetailsRowProps {
-  label: string;
-  value: string;
+interface FeeRowProps {
+  title: string;
+  description?: string;
+  amount: string;
   testID: string;
-  valueColor?: TextColor;
 }
 
-/** One 56px details row: muted key on the left, value on the right. */
-const DetailsRow = ({
-  label,
-  value,
-  testID,
-  valueColor = TextColor.TextDefault,
-}: DetailsRowProps) => (
-  <Box twClassName="h-14 flex-row items-center justify-between gap-4">
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={valueColor}
-      testID={testID}
-    >
-      {value}
-    </Text>
-  </Box>
+const FeeRow = ({ title, description, amount, testID }: FeeRowProps) => (
+  <>
+    <Box twClassName="flex-row items-start py-4">
+      <Box twClassName="flex-1 pr-4 gap-1">
+        <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+          {title}
+        </Text>
+        {description ? (
+          <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
+            {description}
+          </Text>
+        ) : null}
+      </Box>
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        testID={testID}
+      >
+        {amount}
+      </Text>
+    </Box>
+    <Box twClassName="border-t border-muted" />
+  </>
 );
 
 /**
- * The buy details sheet's rows, read verbatim from the quoted Preview.
- * Deliberately separate from OrderPreviewRows, which the approval step
- * renders with the full fee breakdown.
+ * The Price details sheet's rows, matching Legacy's layout and reading
+ * quoted values verbatim from the Preview. A buy and a Cash Out share the
+ * row list; only the order and total figures differ by action.
  *
- * The entered amount is the maximum spend, fees included, and the backend
- * quotes a debit within it. These rows split that debit: Fees plus You'll
- * receive is exactly Total debit, the same figure the approval step shows.
- * Whole contracts usually leave the debit a few cents under the entered
- * amount, so the total is shown rather than left for the user to add up.
- *
- * - Odds: the quoted average price as a percentage.
- * - Contracts: the quoted contract estimate.
- * - Fees: the quoted fee.
- * - You'll receive: the quoted contract cost with the average price.
- * - Total debit: the quoted total debit, contract cost plus fee.
- * - Est. payout: the quoted potential payout.
+ * - Prediction order: contracts, per-contract average price, and the order cost (buy) or gross Proceeds (sell).
+ * - MetaMask fee / Exchange fee: from `preview.feeBreakdown` when present, falling back to a single Fees row using `preview.fee` when absent/empty.
+ * - Total: bold `totalDebit` (buy) or `estimatedNetProceeds` (sell), plus the partial-fill disclaimer note.
  */
 export const OrderDetailsRows = ({
   preview,
 }: {
-  preview: PredictBuyOrderPreview;
-}) => (
-  <Box testID={PredictOrderFlowTestIds.DETAILS}>
-    <DetailsRow
-      label={strings('predict_next.order_preview.odds')}
-      value={formatOdds(preview.averagePrice)}
-      testID={PredictOrderFlowTestIds.DETAILS_ODDS}
-    />
-    <DetailsRow
-      label={strings('predict_next.order_preview.contracts_row')}
-      value={String(preview.estimatedContracts)}
-      testID={PredictOrderFlowTestIds.DETAILS_CONTRACTS}
-    />
-    <DetailsRow
-      label={strings('predict_next.order_preview.fees')}
-      value={formatUsd(preview.fee)}
-      testID={PredictOrderFlowTestIds.DETAILS_FEES}
-    />
-    <DetailsRow
-      label={strings('predict_next.order_preview.you_will_receive')}
-      value={strings('predict_next.order_preview.you_will_receive_value', {
-        amount: formatUsd(preview.orderAmount),
-        price: formatCents(preview.averagePrice),
-      })}
-      testID={PredictOrderFlowTestIds.DETAILS_RECEIVE}
-    />
-    <DetailsRow
-      label={strings('predict_next.order_preview.total_debit')}
-      value={formatUsd(preview.totalDebit)}
-      testID={PredictOrderFlowTestIds.DETAILS_TOTAL}
-    />
-    <DetailsRow
-      label={strings('predict_next.order_preview.estimated_payout')}
-      value={formatUsd(preview.potentialPayout)}
-      testID={PredictOrderFlowTestIds.DETAILS_PAYOUT}
-      valueColor={TextColor.SuccessDefault}
-    />
-  </Box>
-);
+  preview: PredictOrderPreview;
+}) => {
+  const orderAmount =
+    preview.action === 'buy' ? preview.orderAmount : preview.estimatedProceeds;
+  const total =
+    preview.action === 'buy'
+      ? preview.totalDebit
+      : preview.estimatedNetProceeds;
+  const metamaskFee = preview.feeBreakdown?.find(
+    (component) => component.source === 'metamask',
+  );
+  const exchangeFee = preview.feeBreakdown?.find(
+    (component) => component.source === 'venue',
+  );
+  const hasFeeBreakdown =
+    metamaskFee !== undefined || exchangeFee !== undefined;
+
+  return (
+    <Box testID={PredictOrderFlowTestIds.DETAILS}>
+      <FeeRow
+        title={strings('predict.fee_summary.prediction_order')}
+        description={strings(
+          'predict_next.order_preview.prediction_order_description',
+          {
+            count: String(preview.estimatedContracts),
+            price: formatCents(preview.averagePrice),
+          },
+        )}
+        amount={formatUsd(orderAmount)}
+        testID={PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT}
+      />
+
+      {hasFeeBreakdown ? (
+        <>
+          {metamaskFee ? (
+            <FeeRow
+              title={strings('predict.fee_summary.metamask_fee')}
+              description={strings(
+                'predict.fee_summary.metamask_fee_description',
+              )}
+              amount={formatUsd(metamaskFee.amount)}
+              testID={PredictOrderFlowTestIds.DETAILS_METAMASK_FEE}
+            />
+          ) : null}
+          {exchangeFee ? (
+            <FeeRow
+              title={strings('predict.fee_summary.exchange_fee')}
+              description={strings(
+                'predict.fee_summary.exchange_fee_description',
+              )}
+              amount={formatUsd(exchangeFee.amount)}
+              testID={PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE}
+            />
+          ) : null}
+        </>
+      ) : (
+        <FeeRow
+          title={strings('predict_next.order_preview.fees')}
+          amount={formatUsd(preview.fee)}
+          testID={PredictOrderFlowTestIds.DETAILS_FEES}
+        />
+      )}
+
+      <Box twClassName="flex-row justify-between items-center pt-4">
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+        >
+          {strings('predict.fee_summary.total')}
+        </Text>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          testID={PredictOrderFlowTestIds.DETAILS_TOTAL}
+        >
+          {formatUsd(total)}
+        </Text>
+      </Box>
+
+      <Text
+        testID={PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        className="pt-2"
+      >
+        {strings('predict.fee_summary.fak_partial_fill_note')}
+      </Text>
+    </Box>
+  );
+};
