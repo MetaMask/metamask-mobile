@@ -41,8 +41,8 @@ export const clearSitesCache = (): void => {
 };
 
 // Assets team is now hosting the explore-sites endpoint on the NFT API (Temporarily)
-const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
-const DEFAULT_SITES_LIMIT = 100;
+export const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
+const DEFAULT_SITES_LIMIT = 200;
 const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
 
 /**
