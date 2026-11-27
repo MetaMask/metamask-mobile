@@ -80,8 +80,10 @@ const eligibleOverrides = {
 };
 
 /**
- * Drain microtasks and pending timers so fire-and-forget toast/haptic work
- * finishes before Jest tears down the test environment.
+ * Teardown settle, not an assertion race: fire-and-forget toast/haptic work
+ * must finish before Jest tears down the test environment, and there is no
+ * observable signal for "no more completions pending". Drain a macrotask turn
+ * so those completions cannot surface after teardown.
  */
 const flushAsyncSideEffects = async (delayMs = 50) => {
   await act(async () => {
@@ -94,6 +96,12 @@ const flushAsyncSideEffects = async (delayMs = 50) => {
 
 describeForPlatforms('Position Close Flow', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    // Tests below swap the closePosition implementation; re-establish the
+    // framework default so later cases never inherit an earlier swap.
+    (Engine.context.PerpsController.closePosition as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ success: true, orderId: 'component-view-close' });
     // The close waits for a fee quote before it can be confirmed.
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
