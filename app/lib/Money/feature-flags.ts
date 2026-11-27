@@ -1,3 +1,4 @@
+import { isMfaForceDisabled } from '../../util/identity/mfa/isMfaForceDisabled';
 import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
@@ -30,7 +31,8 @@ export function isMoneyAccountEnabled(
 
 /**
  * Checks if Money MFA (MPC-backed 2FA) is enabled.
- * Remote `isMoneyMfaEnabled` takes precedence when valid; otherwise
+ * `MM_MFA_DISABLED` force-disables it regardless of the remote flag. Otherwise
+ * remote `isMoneyMfaEnabled` takes precedence when valid, and
  * `MM_MONEY_MFA_ENABLED` is used as a local fallback (default off).
  *
  * @param remoteFeatureFlags - The remote feature flags object.
@@ -39,6 +41,10 @@ export function isMoneyAccountEnabled(
 export function isMoneyMfaEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
+  if (isMfaForceDisabled()) {
+    return false;
+  }
+
   const localFlag = process.env.MM_MONEY_MFA_ENABLED === 'true';
   const remoteFlag = remoteFeatureFlags?.[
     IS_MONEY_MFA_ENABLED_FLAG_NAME

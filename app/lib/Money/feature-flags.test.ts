@@ -1,10 +1,15 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
+import { isMfaForceDisabled } from '../../util/identity/mfa/isMfaForceDisabled';
 import { isMoneyAccountEnabled, isMoneyMfaEnabled } from './feature-flags';
 
 jest.mock('../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../util/remoteFeatureFlag'),
   validatedVersionGatedFeatureFlag: jest.fn(),
+}));
+
+jest.mock('../../util/identity/mfa/isMfaForceDisabled', () => ({
+  isMfaForceDisabled: jest.fn(),
 }));
 
 const mockedValidate =
@@ -101,6 +106,7 @@ describe('isMoneyMfaEnabled', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isMfaForceDisabled).mockReturnValue(false);
     delete process.env.MM_MONEY_MFA_ENABLED;
   });
 
@@ -110,6 +116,17 @@ describe('isMoneyMfaEnabled', () => {
     } else {
       process.env.MM_MONEY_MFA_ENABLED = originalEnv;
     }
+  });
+
+  it('returns false when the build force-disables MFA, even with the remote flag on', () => {
+    mockedValidate.mockReturnValue(true);
+    jest.mocked(isMfaForceDisabled).mockReturnValue(true);
+
+    expect(
+      isMoneyMfaEnabled({
+        isMoneyMfaEnabled: { enabled: true, minimumVersion: '1.0.0' },
+      }),
+    ).toBe(false);
   });
 
   it('returns true when remote flag is enabled and version requirement is met', () => {

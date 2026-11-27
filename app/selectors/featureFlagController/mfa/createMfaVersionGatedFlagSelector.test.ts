@@ -1,6 +1,7 @@
 import { createMfaVersionGatedFlagSelector } from './createMfaVersionGatedFlagSelector';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaForceDisabled } from '../../../util/identity/mfa/isMfaForceDisabled';
 import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
 import { selectMfaUiKitEnabled } from '../mfaUiKit';
 import { selectMfaRecoveryEnabled } from '../mfaRecovery';
@@ -18,6 +19,10 @@ jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
   isMfaDevBuild: jest.fn(),
 }));
 
+jest.mock('../../../util/identity/mfa/isMfaForceDisabled', () => ({
+  isMfaForceDisabled: jest.fn(),
+}));
+
 describe.each([
   ['selectMfaUiKitEnabled', selectMfaUiKitEnabled, FeatureFlagNames.mfaUiKit],
   [
@@ -30,6 +35,24 @@ describe.each([
     jest.clearAllMocks();
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
     jest.mocked(isMfaDevBuild).mockReturnValue(false);
+    jest.mocked(isMfaForceDisabled).mockReturnValue(false);
+  });
+
+  it('stays off when the build force-disables MFA, even with the remote flag on', () => {
+    jest.mocked(isMfaForceDisabled).mockReturnValue(true);
+
+    expect(
+      selector.resultFunc({
+        [flagName]: { enabled: true, minimumVersion: '1.0.0' },
+      }),
+    ).toBe(false);
+  });
+
+  it('stays off when the build force-disables MFA on a dev build', () => {
+    jest.mocked(isMfaForceDisabled).mockReturnValue(true);
+    jest.mocked(isMfaDevBuild).mockReturnValue(true);
+
+    expect(selector.resultFunc({})).toBe(false);
   });
 
   it.each([true, false])(
@@ -76,6 +99,7 @@ describe('createMfaVersionGatedFlagSelector', () => {
   it('builds a selector for the given flag name', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
     jest.mocked(isMfaDevBuild).mockReturnValue(false);
+    jest.mocked(isMfaForceDisabled).mockReturnValue(false);
 
     const selector = createMfaVersionGatedFlagSelector(
       FeatureFlagNames.mfaRecovery,
