@@ -6,7 +6,7 @@ import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -30,7 +30,6 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '@metamask/transaction-controller';
@@ -55,6 +54,8 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
 import { decodePaymentTokenAssetId } from '../../../../../../util/transactions/payment-token';
+import { isMoneyAccountFunding } from '../../../utils/transaction-pay';
+import { parseCaipAssetType } from '@metamask/utils';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -79,8 +80,16 @@ function PayWithRowComponent({
     return null;
   }
 
-  // Explicit selection via controller — always honor it.
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
+  // Explicit selection via controller — always honor it. A Money Account
+  // deposit funded from Solana keeps the override for its second leg but shows
+  // the Solana source.
+  if (
+    isMoneyAccountFunding({
+      paymentOverride,
+      payToken,
+      transactionMeta,
+    })
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -238,6 +247,39 @@ function PayWithRowInteractive() {
         hasFrom={Boolean(from)}
         onPress={handleClick}
       />
+    );
+  }
+
+  // A non-EVM source, such as Solana, has no Hex chain and address to look up.
+  if (payToken && !decodePaymentTokenAssetId(payToken) && !hasAccountNoFunds) {
+    return (
+      <PayWithRowLayout
+        label={label}
+        disabled={isDisabled}
+        showArrow={Boolean(from)}
+        onPress={handleClick}
+      >
+        <NonEvmTokenIcon
+          assetId={payToken.assetId}
+          chainId={parseCaipAssetType(payToken.assetId).chainId}
+          symbol={payToken.symbol}
+          variant={TokenIconVariant.Row}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
+          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+        >
+          {payToken.symbol}
+          <Text
+            color={TextColor.TextAlternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+          >
+            {` (${balanceUsdFormatted})`}
+          </Text>
+        </Text>
+      </PayWithRowLayout>
     );
   }
 

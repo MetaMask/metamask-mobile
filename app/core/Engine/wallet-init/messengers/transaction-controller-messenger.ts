@@ -3,6 +3,8 @@ import {
   AccountsControllerGetStateAction,
 } from '@metamask/accounts-controller';
 import { ApprovalControllerActions } from '@metamask/approval-controller';
+import type { ConfigRegistryControllerGetNetworkConfigByCaip2ChainIdAction } from '@metamask/config-registry-controller';
+import type { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
@@ -78,6 +80,7 @@ export type TransactionControllerInitMessengerActions =
   | AssetsControllerGetStateAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
+  | ConfigRegistryControllerGetNetworkConfigByCaip2ChainIdAction
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
   | GasFeeControllerFetchGasFeeEstimatesAction
@@ -97,6 +100,7 @@ export type TransactionControllerInitMessengerActions =
   | SmartTransactionsControllerGetSmartTransactionByMinedTxHashAction
   | SmartTransactionsControllerSetStatusRefreshIntervalAction
   | SmartTransactionsControllerSubmitSignedTransactionsAction
+  | SnapControllerHandleRequestAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerApproveTransactionsWithSameNonceAction
@@ -146,12 +150,14 @@ export function getTransactionControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountsController:getSelectedAccount',
+      'AccountsController:getState',
       'ApprovalController:addRequest',
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
       'BridgeStatusController:getState',
       'BridgeStatusController:submitTx',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'CurrencyRateController:getState',
       'DelegationController:signDelegation',
       'GasFeeController:fetchGasFeeEstimates',
@@ -172,6 +178,7 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:getSmartTransactionByMinedTxHash',
       'SmartTransactionsController:setStatusRefreshInterval',
       'SmartTransactionsController:submitSignedTransactions',
+      'SnapController:handleRequest',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:approveTransactionsWithSameNonce',
@@ -184,6 +191,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getClientId',
       'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getFiatOptions',
+      'TransactionPayController:getInfuraProjectId',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',

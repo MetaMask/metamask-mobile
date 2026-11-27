@@ -119,6 +119,47 @@ export interface PayHardwareFlags {
   overrides?: Record<string, PayHardwareConfig>;
 }
 
+/**
+ * Whether Solana SOL and SPL balances may be offered as MetaMask Pay sources
+ * for a transaction. Mirrors the Core gates for Solana sources under
+ * `confirmations_pay_extended.payStrategies.server`: the server strategy is
+ * `enabled`, the transaction type (including nested batch types) is in
+ * `enabledTransactionTypes`, and `solanaEnabled` is `true`.
+ */
+export const selectSolanaPayEnabled = createSelector(
+  [
+    selectRemoteFeatureFlags,
+    (_state: RootState, transactionMeta?: TransactionMeta) => transactionMeta,
+  ],
+  (featureFlags, transactionMeta): boolean => {
+    const server = (
+      featureFlags?.confirmations_pay_extended as
+        | {
+            payStrategies?: {
+              server?: {
+                enabled?: unknown;
+                enabledTransactionTypes?: unknown;
+                solanaEnabled?: unknown;
+              };
+            };
+          }
+        | undefined
+    )?.payStrategies?.server;
+
+    const enabledTransactionTypes = Array.isArray(
+      server?.enabledTransactionTypes,
+    )
+      ? (server.enabledTransactionTypes as TransactionType[])
+      : [];
+
+    return (
+      server?.enabled === true &&
+      server.solanaEnabled === true &&
+      hasTransactionType(transactionMeta, enabledTransactionTypes)
+    );
+  },
+);
+
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags & MetaMaskPayExtendedFlags => {

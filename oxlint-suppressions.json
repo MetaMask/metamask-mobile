@@ -18723,6 +18723,11 @@
       "count": 2
     }
   },
+  "app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.test.tsx": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
@@ -19053,7 +19058,7 @@
   },
   "app/components/Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 22
+      "count": 23
     }
   },
   "app/components/Views/confirmations/hooks/alerts/useMMPayHardwareAccountAlert.test.ts": {
@@ -19893,7 +19898,7 @@
   },
   "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
+      "count": 6
     }
   },
   "app/components/Views/confirmations/utils/transaction.test.ts": {

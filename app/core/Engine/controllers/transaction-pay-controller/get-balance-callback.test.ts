@@ -6,6 +6,7 @@ import {
   PaymentOverride,
   type GetBalanceRequest,
   type TransactionData,
+  type TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -31,15 +32,27 @@ jest.mock('../../../../components/UI/Perps/selectors/perpsController');
 
 const ACCOUNT_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 
+const SOLANA_PAY_TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  balanceFiat: '300',
+  balanceHuman: '2',
+  balanceRaw: '2000000000',
+  balanceUsd: '300',
+  decimals: 9,
+  symbol: 'SOL',
+};
+
 function buildRequest({
   type,
   paymentOverride,
+  paymentToken,
   decimals = 6,
   from = ACCOUNT_ADDRESS,
   omitFrom = false,
 }: {
   type?: TransactionType;
   paymentOverride?: PaymentOverride;
+  paymentToken?: TransactionPaymentToken;
   decimals?: number;
   from?: string;
   omitFrom?: boolean;
@@ -51,6 +64,7 @@ function buildRequest({
     } as TransactionMeta,
     transactionData: {
       paymentOverride,
+      paymentToken,
       tokens: [{ decimals }],
     } as TransactionData,
   };
@@ -175,6 +189,18 @@ describe('getBalance', () => {
       ).toStrictEqual({
         balanceRaw: '15019083',
       });
+    });
+
+    it('returns undefined for a Money Account deposit funded by a Solana source', () => {
+      expect(
+        getBalance(
+          buildRequest({
+            type: TransactionType.moneyAccountDeposit,
+            paymentOverride: PaymentOverride.MoneyAccount,
+            paymentToken: SOLANA_PAY_TOKEN_MOCK,
+          }),
+        ),
+      ).toBeUndefined();
     });
 
     it('returns undefined when the redeemable is for a different account', () => {

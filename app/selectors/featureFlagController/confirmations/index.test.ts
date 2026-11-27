@@ -31,6 +31,7 @@ import {
   getPreferredTokenOverride,
   selectRelayFixedSpread,
   selectRelayAtomicMaxEnabled,
+  selectSolanaPayEnabled,
   selectPerpsMoneyAccountNoFeeRouteEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -110,6 +111,71 @@ describe('selectRelayAtomicMaxEnabled', () => {
       },
     } as unknown as RootState;
   }
+});
+
+describe('selectSolanaPayEnabled', () => {
+  const TRANSACTION_META = {
+    type: TransactionType.perpsDeposit,
+  } as TransactionMeta;
+
+  const ENABLED_SERVER = {
+    enabled: true,
+    enabledTransactionTypes: [TransactionType.perpsDeposit],
+    solanaEnabled: true,
+  };
+
+  function buildState(server: unknown) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: { payStrategies: { server } },
+      };
+
+    return state as unknown as RootState;
+  }
+
+  it('returns true when the server strategy, transaction type and Solana gates are on', () => {
+    expect(
+      selectSolanaPayEnabled(buildState(ENABLED_SERVER), TRANSACTION_META),
+    ).toBe(true);
+  });
+
+  it('matches a nested transaction type', () => {
+    expect(
+      selectSolanaPayEnabled(buildState(ENABLED_SERVER), {
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: TransactionType.perpsDeposit }],
+      } as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['the server strategy is disabled', { ...ENABLED_SERVER, enabled: false }],
+    [
+      'the transaction type is not enabled',
+      { ...ENABLED_SERVER, enabledTransactionTypes: [] },
+    ],
+    [
+      'the enabled transaction types are not a list',
+      { ...ENABLED_SERVER, enabledTransactionTypes: 'perpsDeposit' },
+    ],
+    ['solanaEnabled is false', { ...ENABLED_SERVER, solanaEnabled: false }],
+    ['solanaEnabled is a string', { ...ENABLED_SERVER, solanaEnabled: 'true' }],
+  ])('fails closed when %s', (_title, server) => {
+    expect(selectSolanaPayEnabled(buildState(server), TRANSACTION_META)).toBe(
+      false,
+    );
+  });
+
+  it('returns false when no feature flags are set', () => {
+    expect(
+      selectSolanaPayEnabled(
+        mockedEmptyFlagsState as unknown as RootState,
+        TRANSACTION_META,
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('MetaMask Pay Feature Flags', () => {

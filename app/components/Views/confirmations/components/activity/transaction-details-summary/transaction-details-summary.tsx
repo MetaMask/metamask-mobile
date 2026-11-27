@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, { useMemo } from 'react';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import { isStrictHexString } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   selectTransactionsByBatchId,
@@ -74,7 +75,11 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
-  const showSourceHash = !hasDepositTransactions && sourceHash;
+  // A non-EVM source hash, such as a Solana signature, has no EVM bridge line.
+  const evmSourceHash =
+    sourceHash && isStrictHexString(sourceHash) ? sourceHash : undefined;
+
+  const showSourceHash = !hasDepositTransactions && evmSourceHash;
 
   const txCompletedCount = transactions.filter(
     (tx) => tx.status === TransactionStatus.confirmed,
@@ -118,7 +123,7 @@ export function TransactionDetailsSummary() {
         {showSourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
-            sourceHash={sourceHash}
+            sourceHash={evmSourceHash}
           />
         ) : null}
         {transactions.map((transaction) => (

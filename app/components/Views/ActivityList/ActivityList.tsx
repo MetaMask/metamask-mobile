@@ -281,6 +281,20 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       return byKey;
     }, [localTransactions]);
 
+    // The MetaMask Pay transaction already represents its non-EVM source
+    // transaction, such as the Solana signature of a Solana Pay source.
+    const paySourceHashes = useMemo(
+      () =>
+        new Set(
+          localTransactions
+            .map((tx) =>
+              'metamaskPay' in tx ? tx.metamaskPay?.sourceHash : undefined,
+            )
+            .filter((hash): hash is string => Boolean(hash)),
+        ),
+      [localTransactions],
+    );
+
     const nonEvmState = useSelector(
       selectNonEvmTransactionsForSelectedAccountGroup,
     );
@@ -447,6 +461,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       const seenNonEvmTransactionIds = new Set<string>();
       const filteredNonEvmTransactions = nonEvmTransactions.filter((tx) => {
         if (seenNonEvmTransactionIds.has(tx.id)) return false;
+        if (paySourceHashes.has(tx.id)) return false;
 
         const bridge = getBridgeHistoryItemByHash(tx.id);
         const shouldInclude =
@@ -507,6 +522,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       isPerpsEnabled,
       selectedAccountGroupInternalAccounts,
       localTransactionByLookupKey,
+      paySourceHashes,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
