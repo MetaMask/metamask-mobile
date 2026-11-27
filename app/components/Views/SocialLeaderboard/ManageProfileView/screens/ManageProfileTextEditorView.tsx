@@ -1,9 +1,4 @@
-import {
-  type NavigationProp,
-  type RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { type RouteProp, useRoute } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
@@ -21,7 +16,6 @@ import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const ManageProfileTextEditorView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'ManageProfileTextEditorView'>>();
   const { profile } = useMyProfile();
@@ -37,9 +31,9 @@ const ManageProfileTextEditorView: React.FC = () => {
   const config = MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG[route.params.field];
 
   const handleSave = useCallback(
-    async (value: string): Promise<void> => {
+    async (value: string): Promise<boolean> => {
       if (!isControllerBacked || route.params.field === 'socials') {
-        return;
+        return false;
       }
 
       setIsSaving(true);
@@ -55,7 +49,7 @@ const ManageProfileTextEditorView: React.FC = () => {
             );
             if (displayNameError) {
               setErrorMessage(displayNameError);
-              return;
+              return false;
             }
             await updateProfile({ display_name: displayName });
             break;
@@ -66,14 +60,14 @@ const ManageProfileTextEditorView: React.FC = () => {
               const localRuleError = getHandleLocalRuleError(username);
               if (localRuleError) {
                 setErrorMessage(localRuleError);
-                return;
+                return false;
               }
               const availability = await checkUsernameAvailability(username);
               const availabilityError =
                 getHandleAvailabilityError(availability);
               if (availabilityError) {
                 setErrorMessage(availabilityError);
-                return;
+                return false;
               }
             }
             await updateProfile({ username });
@@ -85,12 +79,13 @@ const ManageProfileTextEditorView: React.FC = () => {
         }
 
         trackProfileEdited();
-        navigation.goBack();
+        return true;
       } catch (error) {
         setErrorMessage(
           getProfileSaveError(error, route.params.field) ??
             strings('social_leaderboard.manage_profile.save_error'),
         );
+        return false;
       } finally {
         setIsSaving(false);
       }
@@ -99,7 +94,6 @@ const ManageProfileTextEditorView: React.FC = () => {
       checkDisplayNameValidity,
       checkUsernameAvailability,
       isControllerBacked,
-      navigation,
       profile?.handle,
       route.params.field,
       trackProfileEdited,
