@@ -9,6 +9,7 @@ import {
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyEnableMfaFlag,
+  selectMoneyEnableMfaV2Flag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectIsMoneyEarningsHistoryEnabledFlag,
@@ -45,6 +46,7 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
 jest.mock('../../../../lib/Money/feature-flags', () => ({
   isMoneyAccountEnabled: jest.fn(),
   isMoneyMfaEnabled: jest.fn(),
+  isMoneyMfaV2Enabled: jest.fn(),
 }));
 
 const mockedValidate =
@@ -59,6 +61,10 @@ const mockedIsMoneyAccountEnabled = jest.requireMock(
 const mockedIsMoneyMfaEnabled = jest.requireMock(
   '../../../../lib/Money/feature-flags',
 ).isMoneyMfaEnabled as jest.Mock;
+
+const mockedIsMoneyMfaV2Enabled = jest.requireMock(
+  '../../../../lib/Money/feature-flags',
+).isMoneyMfaV2Enabled as jest.Mock;
 
 const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   engine: {
@@ -405,6 +411,36 @@ describe('selectMoneyEnableMfaFlag', () => {
 
     expect(mockedIsMoneyMfaEnabled).toHaveBeenCalledWith({});
     expect(result).toBe(true);
+  });
+});
+
+describe('selectMoneyEnableMfaV2Flag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when isMoneyMfaV2Enabled returns true', () => {
+    mockedIsMoneyMfaV2Enabled.mockReturnValue(true);
+    const remoteFeatureFlags = {
+      isMoneyMfaEnabledV2: { enabled: true, minimumVersion: '0.0.0' },
+    };
+    const state = createState(remoteFeatureFlags);
+
+    const result = selectMoneyEnableMfaV2Flag(state as never);
+
+    expect(mockedIsMoneyMfaV2Enabled).toHaveBeenCalledWith(remoteFeatureFlags);
+    expect(result).toBe(true);
+  });
+
+  it('returns false when isMoneyMfaV2Enabled returns false', () => {
+    mockedIsMoneyMfaV2Enabled.mockReturnValue(false);
+    const state = createState({
+      isMoneyMfaEnabledV2: { enabled: false, minimumVersion: '0.0.0' },
+    });
+
+    const result = selectMoneyEnableMfaV2Flag(state as never);
+
+    expect(result).toBe(false);
   });
 });
 
