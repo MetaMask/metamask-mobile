@@ -90,7 +90,7 @@ const MoneyEstimatedBalanceSheet = () => {
         showsVerticalScrollIndicator={false}
         testID={MoneyEstimatedBalanceSheetTestIds.SCROLL_VIEW}
       >
-        <Box className="px-4 pt-4 pb-4 gap-6">
+        <Box className="gap-6 p-4">
           <Box className="gap-2">
             <Text
               variant={TextVariant.HeadingLg}

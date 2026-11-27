@@ -249,7 +249,7 @@ const MoneyBalanceSummary = ({
   // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
     <Box
-      className="px-4 pt-1 gap-1"
+      className="gap-1 px-4 pt-1"
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}

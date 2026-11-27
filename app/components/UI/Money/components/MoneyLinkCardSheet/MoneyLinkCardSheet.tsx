@@ -230,7 +230,7 @@ const MoneyLinkCardSheet = () => {
         onClose={handleClose}
         closeButtonProps={{ testID: MoneyLinkCardSheetTestIds.CLOSE_BUTTON }}
       />
-      <Box className="px-4 pb-2 gap-4 items-center">
+      <Box className="items-center gap-4 px-4 pb-2">
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
@@ -241,7 +241,7 @@ const MoneyLinkCardSheet = () => {
             shouldPlay={hasSheetOpened}
           />
         </Box>
-        <Box className="gap-2 items-center">
+        <Box className="items-center gap-2">
           <MoneySheetEntrance
             isActive={hasSheetOpened}
             delayMs={moneySheetEntranceDelay(MoneySheetEntranceStep.Title)}
@@ -284,7 +284,7 @@ const MoneyLinkCardSheet = () => {
             onPress: handleConfirm,
             testID: MoneyLinkCardSheetTestIds.CTA_BUTTON,
           }}
-          className="px-4 pt-4 pb-6"
+          className="px-4 pb-6 pt-4"
         />
       </MoneySheetEntrance>
     </BottomSheet>

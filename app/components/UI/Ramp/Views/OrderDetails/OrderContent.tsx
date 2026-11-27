@@ -379,7 +379,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   return (
     <Box className="w-full flex-1">
-      <Box className="items-center pt-8 pb-6">
+      <Box className="items-center pb-6 pt-8">
         <BadgeWrapper
           // AvatarToken Lg is h-10 w-10. BadgeWrapper places the badge with
           // percentage insets, and Yoga resolves an inset against the stretched
@@ -509,7 +509,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       />
 
       {hasBankDetails && bankDetailFields && !isLoading && (
-        <Box className="mt-4 pt-4 border-t border-alternative">
+        <Box className="mt-4 border-t border-alternative pt-4">
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
@@ -581,17 +581,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Box>
       )}
 
-      <Box
-        className={
-          showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
-        }
-      >
+      <Box className={showCloseButton ? 'mt-auto w-full pb-4' : 'w-full py-4'}>
         {order.statusDescription && isTerminal && (
           <Box className={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
-                className="text-alternative text-center"
+                className="text-center text-alternative"
               >
                 {order.statusDescription}{' '}
                 <Icon

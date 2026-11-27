@@ -71,7 +71,7 @@ const EarningsSummary = ({
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         testID={MoneyEarningsViewTestIds.SUMMARY_NOTE}
-        className="pt-2 pb-1"
+        className="pb-1 pt-2"
       >
         {strings('money.earnings.payouts_disclaimer')}
       </Text>

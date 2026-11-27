@@ -140,7 +140,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       <Box className="mb-6 items-center">
         <Box className="mb-5 flex-row items-center gap-4">
           <Box
-            className={`h-10 w-10 items-center justify-center rounded-full ${statusIconClassName}`}
+            className={`size-10 items-center justify-center rounded-full ${statusIconClassName}`}
           >
             {statusIcon}
           </Box>

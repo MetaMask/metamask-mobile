@@ -49,7 +49,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
   <Box className="px-4 py-3" testID={MoneyWhatYouGetTestIds.CONTAINER}>
     <MoneySectionHeader title={strings('money.what_you_get.title')} />
 
-    <Box className="mt-3 mb-3 gap-3">
+    <Box className="my-3 gap-3">
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
           {`${strings('money.what_you_get.benefit_auto_earn')} `}

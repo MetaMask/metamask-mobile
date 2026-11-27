@@ -310,7 +310,7 @@ const CreateVirtualBankAccount = ({
         </Box>
       </ScrollView>
 
-      <Box className="gap-4 px-4 pt-4 pb-2">
+      <Box className="gap-4 px-4 pb-2 pt-4">
         {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}

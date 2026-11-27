@@ -47,7 +47,7 @@ const MoneyHowItWorks = ({
   }
 
   return (
-    <Box className="px-4 pt-7 pb-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
+    <Box className="px-4 pb-3 pt-7" testID={MoneyHowItWorksTestIds.CONTAINER}>
       <MoneySectionHeader
         title={strings('money.how_it_works.title')}
         onPress={onHeaderPress}

@@ -232,7 +232,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      className="px-4 pt-6 pb-4"
+      className="px-4 pb-4 pt-6"
       testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA}
     >
       <AnimatedAmountDisplay
@@ -304,7 +304,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            className="mt-3 px-2 py-1 rounded-lg border border-muted"
+            className="mt-3 rounded-lg border border-muted px-2 py-1"
             testID={QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT}
           >
             <Icon

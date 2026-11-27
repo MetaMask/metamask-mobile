@@ -76,7 +76,7 @@ const FaqItem = ({
 
   return (
     <Pressable onPress={handlePress} testID={testID}>
-      <Box className="py-5 px-4">
+      <Box className="px-4 py-5">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

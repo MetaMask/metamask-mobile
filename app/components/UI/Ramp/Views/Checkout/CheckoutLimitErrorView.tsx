@@ -27,7 +27,7 @@ const CheckoutLimitErrorView = ({
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      className="text-center mb-6"
+      className="mb-6 text-center"
     >
       {strings(
         'fiat_on_ramp_aggregator.checkout_guest_limit_reached_description',

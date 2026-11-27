@@ -68,7 +68,7 @@ const QuickBuyKeypad: React.FC = () => {
       unmountWhenCollapsed={false}
       testID={QuickBuySheetSelectorsIDs.KEYPAD_REVEAL}
     >
-      <Box className="px-4 py-4" testID={QuickBuySheetSelectorsIDs.KEYPAD}>
+      <Box className="p-4" testID={QuickBuySheetSelectorsIDs.KEYPAD}>
         <Keypad
           value={keypadValue}
           onChange={handleChange}

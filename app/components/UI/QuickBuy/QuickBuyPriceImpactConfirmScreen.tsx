@@ -69,7 +69,7 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
 
         {formattedPriceImpactFiat && (
           <Box
-            className="bg-error-muted rounded-2xl pl-6 pr-4 py-3"
+            className="rounded-2xl bg-error-muted py-3 pl-6 pr-4"
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={4}

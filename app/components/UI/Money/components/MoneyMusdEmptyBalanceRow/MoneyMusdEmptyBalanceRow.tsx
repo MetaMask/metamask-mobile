@@ -39,7 +39,7 @@ const MoneyMusdEmptyBalanceRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      className="px-4 py-3 gap-4"
+      className="gap-4 px-4 py-3"
     >
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}

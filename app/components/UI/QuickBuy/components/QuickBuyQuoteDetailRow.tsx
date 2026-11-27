@@ -83,7 +83,7 @@ export const QuickBuyQuoteDetailRow: React.FC<QuickBuyQuoteDetailRowProps> = ({
         </TouchableOpacity>
         {labelAccessory}
       </Box>
-      <Box className="flex-1 min-w-0" alignItems={BoxAlignItems.End}>
+      <Box className="min-w-0 flex-1" alignItems={BoxAlignItems.End}>
         {value}
       </Box>
     </Box>

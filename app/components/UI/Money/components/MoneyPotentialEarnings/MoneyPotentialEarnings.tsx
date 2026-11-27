@@ -103,7 +103,7 @@ const MoneyPotentialEarnings = ({
 
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
-      <Box className="px-4 py-3 gap-3">
+      <Box className="gap-3 px-4 py-3">
         <MoneySectionHeader
           testID={MoneyPotentialEarningsTestIds.HEADER}
           title={strings('money.potential_earnings.title')}

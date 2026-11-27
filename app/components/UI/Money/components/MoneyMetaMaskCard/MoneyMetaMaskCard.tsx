@@ -137,7 +137,7 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    className="self-start gap-1"
+    className="gap-1 self-start"
     testID={testID}
   >
     <Icon
@@ -205,7 +205,7 @@ const LinkContent = ({
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           {apyBullet ? (
-            <Box className="gap-2 flex-1 justify-center">{apyBullet}</Box>
+            <Box className="flex-1 justify-center gap-2">{apyBullet}</Box>
           ) : null}
         </Box>
       )}
@@ -231,11 +231,11 @@ const ManageContent = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      className="pt-3 gap-3"
+      className="gap-3 pt-3"
       testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
-      <Box alignItems={BoxAlignItems.End} className="gap-1 flex-1">
+      <Box alignItems={BoxAlignItems.End} className="flex-1 gap-1">
         {isBalanceLoading ? (
           <Skeleton
             height={24}
@@ -336,7 +336,7 @@ const SetupContent = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        className="pt-3 gap-4"
+        className="gap-4 pt-3"
       >
         {/* Muted while pending so the card doesn't read as ready to use. */}
         <Box
@@ -345,7 +345,7 @@ const SetupContent = ({
         >
           <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
         </Box>
-        <Box className="gap-1 flex-1">
+        <Box className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -372,12 +372,12 @@ const SignInContent = () => (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      className="pt-3 gap-4"
+      className="gap-4 pt-3"
     >
       <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART}>
         <MoneyCardTiltAnimation isMetalCard={false} />
       </Box>
-      <Box className="gap-1 flex-1">
+      <Box className="flex-1 gap-1">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -646,7 +646,7 @@ const MoneyMetaMaskCard = ({
 
   return (
     <Box
-      className="px-4 py-3 gap-3"
+      className="gap-3 px-4 py-3"
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
       <MoneySectionHeader

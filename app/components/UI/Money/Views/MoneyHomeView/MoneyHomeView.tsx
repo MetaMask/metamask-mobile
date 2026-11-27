@@ -158,7 +158,7 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-const Divider = () => <Box className="h-px bg-border-muted my-5" />;
+const Divider = () => <Box className="my-5 h-px bg-border-muted" />;
 
 /** Row is Add + Send + Card, plus Details once the VBA account is ready. */
 const ACTION_BUTTON_ROW_BASE_COUNT = 3;
@@ -1296,7 +1296,7 @@ const MoneyHomeView = () => {
           onLayout={isPushed ? handleTitleSectionLayout : undefined}
         >
           {showBalanceUnavailableBanner && (
-            <Box className="px-4 pt-2 pb-2">
+            <Box className="px-4 py-2">
               <BannerAlert
                 severity={BannerAlertSeverity.Warning}
                 title={strings('money.balance_unavailable')}

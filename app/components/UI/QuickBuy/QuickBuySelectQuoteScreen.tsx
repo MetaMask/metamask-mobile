@@ -100,7 +100,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
-          <Box className="px-4 pb-2 mb-2">
+          <Box className="mb-2 px-4 pb-2">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

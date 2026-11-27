@@ -72,7 +72,7 @@ const EarningsChartPlot = ({
           <Box
             key={`gridline-${CHART_LEVEL_IDS[index]}`}
             testID={MoneyEarningsViewTestIds.CHART_GRIDLINE(index)}
-            className={`absolute left-0 right-0 h-px bg-border-muted ${
+            className={`absolute inset-x-0 h-px bg-border-muted ${
               index === 0 ? 'top-0' : 'top-1/2'
             }`}
           />
@@ -81,7 +81,7 @@ const EarningsChartPlot = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.End}
-          className="absolute bottom-0 left-0 right-0 h-40"
+          className="absolute inset-x-0 bottom-0 h-40"
         >
           {points.map((point, index) => {
             const isAvailable = isAvailableBucket(point);

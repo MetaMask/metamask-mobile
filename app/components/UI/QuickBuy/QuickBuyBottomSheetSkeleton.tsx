@@ -24,16 +24,13 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
-    <Box
-      className="flex-1"
-      testID={QuickBuySheetSelectorsIDs.CONTENT_LOADING}
-    >
+    <Box className="flex-1" testID={QuickBuySheetSelectorsIDs.CONTENT_LOADING}>
       {/* QuickBuyToolbar — token avatar + title/price | settings */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        className="px-4 pt-1 pb-3"
+        className="px-4 pb-3 pt-1"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -50,10 +47,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
             <Box className="h-6" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={80} height={16} style={tw.style('rounded-md')} />
             </Box>
-            <Box
-              className="h-[22px]"
-              justifyContent={BoxJustifyContent.Center}
-            >
+            <Box className="h-[22px]" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={64} height={14} style={tw.style('rounded-md')} />
             </Box>
           </Box>
@@ -63,7 +57,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
       {/* QuickBuyAmountSection — centered in the remaining space */}
       <Box className="flex-1" justifyContent={BoxJustifyContent.Center}>
-        <Box alignItems={BoxAlignItems.Center} className="px-4 pt-6 pb-4">
+        <Box alignItems={BoxAlignItems.Center} className="px-4 pb-4 pt-6">
           <Box className="h-[88px]" justifyContent={BoxJustifyContent.Center}>
             <Skeleton width={120} height={52} style={tw.style('rounded-xl')} />
           </Box>
@@ -105,7 +99,7 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
       </Box>
 
       {/* QuickBuyKeypad — 4 rows of 48px keys, gap-3 */}
-      <Box className="px-4 py-4" gap={3} testID="quick-buy-skeleton-keypad">
+      <Box className="p-4" gap={3} testID="quick-buy-skeleton-keypad">
         {KEYPAD_ROWS.map((row) => (
           <Box key={row} flexDirection={BoxFlexDirection.Row} gap={3}>
             {KEYPAD_COLUMNS.map((column) => (

@@ -142,9 +142,6 @@ function DisplayOrderListItem({
         <Text variant={TextVariant.BodySM}>{toDateFormat(item.createdAt)}</Text>
       }
       topAccessoryGap={10}
-    ><Text variant={TextVariant.BodySM}>{toDateFormat(item.createdAt)}</Text>
-      }
-      topAccessoryGap={10}
     >
       <ListItemColumn widthType={WidthType.Fill}>
         <Text variant={TextVariant.BodyMD}>{title}</Text>
@@ -308,7 +305,7 @@ function OrdersList() {
   return (
     <FlatList
       ListHeaderComponent={
-        <Box className="px-4 py-2 bg-default">
+        <Box className="bg-default px-4 py-2">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

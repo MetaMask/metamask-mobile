@@ -417,7 +417,7 @@ function TokenSelection() {
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
           includesTopInset
         />
-        <Box className="px-4 pt-1 pb-3">
+        <Box className="px-4 pb-3 pt-1">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -429,7 +429,7 @@ function TokenSelection() {
             )}
           />
         </Box>
-        <Box className="pt-2 pb-4 pl-4">
+        <Box className="pb-4 pl-4 pt-2">
           <TokenNetworkFilterBar
             networks={uniqueNetworks}
             networkFilter={networkFilter}

@@ -223,7 +223,7 @@ const MoneyActivityView = () => {
   const sections = useMemo(() => buildSections(filtered), [filtered]);
 
   const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
-    <Box className="px-4 pt-2 pb-1 bg-default">
+    <Box className="bg-default px-4 pb-1 pt-2">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}

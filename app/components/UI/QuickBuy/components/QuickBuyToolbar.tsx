@@ -57,7 +57,7 @@ const QuickBuyToolbar: React.FC = () => {
 
   return (
     <Box
-      className="px-4 pt-1 pb-3"
+      className="px-4 pb-3 pt-1"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
@@ -70,7 +70,7 @@ const QuickBuyToolbar: React.FC = () => {
         {headerToken ? (
           <QuickBuyTokenIcon token={headerToken} size={AvatarTokenSize.Lg} />
         ) : (
-          <Box className="h-10 w-10" />
+          <Box className="size-10" />
         )}
         <Box>
           <TouchableOpacity

@@ -81,7 +81,7 @@ const MoneyApyInfoSheet = () => {
         showsVerticalScrollIndicator={false}
         testID={MoneyApyInfoSheetTestIds.SCROLL_VIEW}
       >
-        <Box className="px-4 pt-4 pb-4 gap-5">
+        <Box className="gap-5 p-4">
           <Box className="gap-1">
             {hasApy ? (
               <Text

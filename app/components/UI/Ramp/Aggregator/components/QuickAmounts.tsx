@@ -30,7 +30,7 @@ const Amount = ({ amount, onPress, isBuy, disabled }: AmountProps) => {
       onPress={handlePress}
       isDisabled={disabled}
       isFullWidth
-      className="px-0 flex-1"
+      className="flex-1 px-0"
       startIconName={showSparkleIcon ? IconName.Sparkle : undefined}
     >
       {label}

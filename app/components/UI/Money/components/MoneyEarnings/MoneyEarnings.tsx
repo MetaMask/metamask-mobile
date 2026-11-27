@@ -119,7 +119,7 @@ const MoneyEarnings = ({
   onLifetimeInfoPress,
   privacyMode = false,
 }: MoneyEarningsProps) => (
-  <Box className="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
+  <Box className="px-4 pb-3 pt-7" testID={MoneyEarningsTestIds.CONTAINER}>
     <MoneySectionHeader
       testID={MoneyEarningsTestIds.HEADER}
       title={strings('money.earnings.title')}

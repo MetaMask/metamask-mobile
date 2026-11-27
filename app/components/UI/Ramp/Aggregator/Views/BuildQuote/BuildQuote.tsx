@@ -1324,7 +1324,7 @@ const BuildQuote = () => {
           isInteractable={false}
           onClose={handleKeypadClose}
         >
-          <Box className="content-end px-4 gap-4 pt-4">
+          <Box className="content-end gap-4 px-4 pt-4">
             {amount && amount !== '0' ? (
               <Button
                 variant={ButtonVariant.Primary}

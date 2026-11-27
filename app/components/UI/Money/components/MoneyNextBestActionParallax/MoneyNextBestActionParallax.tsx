@@ -214,8 +214,8 @@ const MoneyNextBestActionParallax = ({
       style={[style, isRivePending ? styles.hidden : undefined]}
       className={
         animate
-          ? 'w-full aspect-video overflow-hidden rounded-2xl'
-          : 'w-full aspect-video'
+          ? 'aspect-video w-full overflow-hidden rounded-2xl'
+          : 'aspect-video w-full'
       }
       testID={testID ?? MoneyNextBestActionParallaxTestIds.CONTAINER}
     >

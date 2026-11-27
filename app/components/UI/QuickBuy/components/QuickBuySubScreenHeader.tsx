@@ -44,7 +44,7 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
       {title}
     </Text>
     {/* Same size as the back button so the title stays centered. */}
-    <Box className="h-8 w-8" />
+    <Box className="size-8" />
   </Box>
 );
 

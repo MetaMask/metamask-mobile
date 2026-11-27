@@ -72,7 +72,7 @@ const PaymentMethodBanner: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      className="mx-4 mt-1 mb-2 rounded-lg bg-background-muted px-3 py-3"
+      className="mx-4 mb-2 mt-1 rounded-lg bg-background-muted p-3"
     >
       <Box
         alignItems={BoxAlignItems.Center}
@@ -366,7 +366,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   if (providers.length === 0) {
     return (
-      <Box className="flex-1 min-h-0">
+      <Box className="min-h-0 flex-1">
         <HeaderStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={showBackButton ? onBack : undefined}
@@ -386,7 +386,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   }
 
   return (
-    <Box className="flex-1 min-h-0">
+    <Box className="min-h-0 flex-1">
       <HeaderStandard
         title={strings('fiat_on_ramp.providers')}
         onBack={showBackButton ? onBack : undefined}
