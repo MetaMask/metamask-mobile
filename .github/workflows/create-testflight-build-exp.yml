@@ -1,0 +1,336 @@
+# Bot command to build a PR's branch on the `exp` track and upload it to TestFlight.
+#
+# Usage: comment on a pull request with this as the first line of the comment:
+#   @metamaskbot create-testflight-build-exp
+#
+# Who can use it: anyone with write, maintain, or admin permission on this repository.
+# Pull requests from forks are rejected.
+#
+# issue_comment always runs this file from the default branch, and nothing here checks out
+# or runs PR code. The dispatch job starts build-and-upload-to-testflight.yml on `main`
+# with source_branch=<PR head branch> and the same inputs the team uses for manual exp
+# dispatches. Later jobs wait for that run and post its link, version, and build number on
+# the PR.
+#
+# Keep all PR reporting in this workflow. build-and-upload-to-testflight.yml and
+# upload-to-testflight.yml are reusable workflows, and GitHub fails every caller with
+# startup_failure when a nested job asks for a permission the caller doesn't grant, even
+# when that job would be skipped (see #34177).
+
+name: Create TestFlight exp build (bot command)
+
+on:
+  # zizmor: ignore[dangerous-triggers] runs the default branch's workflow, never PR code; rejects forks and commenters without write access before dispatching
+  issue_comment:
+    types:
+      - created
+
+permissions: {}
+
+jobs:
+  authorize:
+    name: Authorize command
+    if: >-
+      ${{
+        github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '@metamaskbot create-testflight-build-exp')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      authorized: ${{ steps.check.outputs.authorized }}
+      reason: ${{ steps.check.outputs.reason }}
+      branch: ${{ steps.check.outputs.branch }}
+    steps:
+      - name: Check command, commenter, and pull request
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENTER_LOGIN: ${{ github.event.comment.user.login }}
+          COMMENTER_TYPE: ${{ github.event.comment.user.type }}
+        run: |
+          set -euo pipefail
+          shopt -s extglob
+
+          # Reasons are fixed codes; the reply job maps them to messages.
+          deny() {
+            echo "::error::TestFlight exp build not dispatched: $1"
+            {
+              echo "authorized=false"
+              echo "reason=$1"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          FIRST_LINE="${COMMENT_BODY%%$'\n'*}"
+          FIRST_LINE="${FIRST_LINE%%+([[:space:]])}"
+          if [ "$FIRST_LINE" != '@metamaskbot create-testflight-build-exp' ]; then
+            deny not_command
+          fi
+
+          [ "$COMMENTER_TYPE" = 'User' ] || deny permission
+
+          # `permission` is the legacy value (maintain reports as write); `role_name`
+          # names the actual role.
+          PERMISSION="$(gh api "repos/${REPO}/collaborators/${COMMENTER_LOGIN}/permission" --jq '.permission + " " + .role_name')" || deny permission
+          echo "Commenter permission: ${PERMISSION}"
+          case " ${PERMISSION} " in
+            *' admin '* | *' maintain '* | *' write '*) ;;
+            *) deny permission ;;
+          esac
+
+          PR_JSON="$(gh api "repos/${REPO}/pulls/${PR_NUMBER}")"
+          PR_STATE="$(jq -r '.state' <<< "$PR_JSON")"
+          HEAD_REPO="$(jq -r '.head.repo.full_name // ""' <<< "$PR_JSON")"
+          BASE_REPO="$(jq -r '.base.repo.full_name' <<< "$PR_JSON")"
+          BRANCH="$(jq -r '.head.ref' <<< "$PR_JSON")"
+          if [ "$PR_STATE" != 'open' ]; then
+            deny closed
+          fi
+          if [ "$HEAD_REPO" != "$REPO" ] || [ "$BASE_REPO" != "$REPO" ]; then
+            deny fork
+          fi
+
+          # A valid branch name can't contain newlines or other characters that could
+          # inject into GITHUB_OUTPUT.
+          if ! git check-ref-format --branch "$BRANCH" > /dev/null; then
+            deny branch
+          fi
+
+          {
+            echo "authorized=true"
+            echo "branch=${BRANCH}"
+          } >> "$GITHUB_OUTPUT"
+
+  dispatch:
+    name: Dispatch exp TestFlight build
+    needs: [authorize]
+    if: ${{ needs.authorize.outputs.authorized == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write # Starts build-and-upload-to-testflight.yml; no other job gets this.
+    outputs:
+      run_id: ${{ steps.dispatch.outputs.run_id }}
+      run_url: ${{ steps.dispatch.outputs.run_url }}
+    steps:
+      - name: Dispatch build-and-upload-to-testflight.yml on main
+        id: dispatch
+        env:
+          # workflow_dispatch is the documented exception to GITHUB_TOKEN events not
+          # starting workflow runs.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ needs.authorize.outputs.branch }}
+        run: |
+          set -euo pipefail
+
+          # Dispatch on `main` so the pipeline definition is the reviewed main version;
+          # source_branch makes build.yml check out the PR's code.
+          RESPONSE="$(gh api --method POST "repos/${REPO}/actions/workflows/build-and-upload-to-testflight.yml/dispatches" \
+            -f ref=main \
+            -F return_run_details=true \
+            -f "inputs[source_branch]=${BRANCH}" \
+            -f "inputs[environment]=exp" \
+            -f "inputs[testflight_group]=MetaMask BETA & Release Candidates" \
+            -f "inputs[distribute_external]=true" \
+            -f "inputs[build_attribution]=unofficial" \
+            -f "inputs[runner_provider]=inherit")"
+
+          RUN_ID="$(jq -r '.workflow_run_id // empty' <<< "$RESPONSE")"
+          RUN_URL="$(jq -r '.html_url // empty' <<< "$RESPONSE")"
+          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]] || [[ "$RUN_URL" != "${GITHUB_SERVER_URL}/${REPO}/actions/runs/"* ]]; then
+            echo "::error::Dispatch response did not include run details: ${RESPONSE}"
+            exit 1
+          fi
+
+          echo "Dispatched ${RUN_URL} for ${BRANCH}"
+          {
+            echo "run_id=${RUN_ID}"
+            echo "run_url=${RUN_URL}"
+          } >> "$GITHUB_OUTPUT"
+
+  reply:
+    name: Reply on pull request
+    needs: [authorize, dispatch]
+    if: ${{ always() && needs.authorize.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: React to the comment
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          DISPATCH_RESULT: ${{ needs.dispatch.result }}
+        run: |
+          REACTION='confused'
+          if [ "$DISPATCH_RESULT" = 'success' ]; then
+            REACTION='rocket'
+          fi
+          gh api --method POST "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" -f "content=${REACTION}"
+
+      - name: Comment dispatch status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENTER_LOGIN: ${{ github.event.comment.user.login }}
+          REASON: ${{ needs.authorize.outputs.reason }}
+          BRANCH: ${{ needs.authorize.outputs.branch }}
+          DISPATCH_RESULT: ${{ needs.dispatch.result }}
+          RUN_ID: ${{ needs.dispatch.outputs.run_id }}
+          RUN_URL: ${{ needs.dispatch.outputs.run_url }}
+          THIS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Never @-mention the commenter: "@cursor" mentions start a Cursor agent on the PR.
+          if [ "$DISPATCH_RESULT" = 'success' ]; then
+            BODY="<!-- testflight-exp-build:dispatched run_id=${RUN_ID} -->
+          🚀 **TestFlight \`exp\` build started** for branch \`${BRANCH}\` (requested by \`${COMMENTER_LOGIN}\`).
+
+          [View build run](${RUN_URL}). The version and build number will be posted here when the run finishes."
+          else
+            case "$REASON" in
+              not_command) MESSAGE="Unrecognized command. Put \`@metamaskbot create-testflight-build-exp\` alone on the first line of the comment." ;;
+              permission) MESSAGE="\`${COMMENTER_LOGIN}\` can't start TestFlight builds. The command needs write, maintain, or admin permission on this repository." ;;
+              closed) MESSAGE="TestFlight builds can only be started from open pull requests." ;;
+              fork) MESSAGE="TestFlight builds can't run for pull requests from forks." ;;
+              branch) MESSAGE="The pull request's head branch name isn't a valid branch name." ;;
+              *) MESSAGE="The build could not be dispatched. See [the workflow run](${THIS_RUN_URL})." ;;
+            esac
+            BODY="<!-- testflight-exp-build:rejected -->
+          ⚠️ **TestFlight \`exp\` build not started.** ${MESSAGE}"
+          fi
+
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$BODY"
+
+  wait-for-build:
+    name: Wait for TestFlight build
+    needs: [dispatch]
+    if: ${{ needs.dispatch.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      actions: read # Run status and the upload summary job's log.
+    outputs:
+      conclusion: ${{ steps.result.outputs.conclusion }}
+      build_version: ${{ steps.result.outputs.build_version }}
+      build_number: ${{ steps.result.outputs.build_number }}
+      build_commit_sha: ${{ steps.result.outputs.build_commit_sha }}
+    steps:
+      - name: Wait for the run and read its build metadata
+        id: result
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ needs.dispatch.outputs.run_id }}
+        run: |
+          set -euo pipefail
+
+          while :; do
+            if RUN_STATE="$(gh api "repos/${REPO}/actions/runs/${RUN_ID}" --jq '.status + " " + (.conclusion // "")')"; then
+              read -r STATUS CONCLUSION <<< "$RUN_STATE"
+              echo "Run ${RUN_ID}: ${STATUS} ${CONCLUSION:-}"
+              if [ "$STATUS" = 'completed' ]; then
+                break
+              fi
+            else
+              echo "::warning::Could not read run ${RUN_ID}; retrying"
+            fi
+            sleep 60
+          done
+          echo "conclusion=${CONCLUSION:-unknown}" >> "$GITHUB_OUTPUT"
+
+          # The shared workflows expose no outputs to a workflow_dispatch run, but the
+          # runner prints a reusable workflow's inputs at the top of each of its job logs.
+          # upload-to-testflight.yml's summary job receives build_number, build_version,
+          # and build_commit_sha as inputs.
+          SUMMARY_JOB_ID="$(gh api --paginate "repos/${REPO}/actions/runs/${RUN_ID}/jobs" \
+            --jq '.jobs[] | select(.name | endswith("TestFlight upload summary")) | .id')"
+          SUMMARY_JOB_ID="${SUMMARY_JOB_ID%%$'\n'*}"
+          if [ -z "$SUMMARY_JOB_ID" ]; then
+            echo "::warning::Run ${RUN_ID} has no TestFlight upload summary job; the build likely failed before upload"
+            exit 0
+          fi
+
+          # gh api refuses to print logs that contain terminal escape sequences.
+          if ! curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -o summary-job-raw.log \
+            "${GITHUB_API_URL}/repos/${REPO}/actions/jobs/${SUMMARY_JOB_ID}/logs"; then
+            echo "::warning::Could not download the log of job ${SUMMARY_JOB_ID}"
+            exit 0
+          fi
+          tr -d '\r' < summary-job-raw.log > summary-job.log
+
+          # Each value is matched against a strict pattern before it reaches GITHUB_OUTPUT.
+          BUILD_NUMBER="$(grep -m 1 -oE ' build_number: [0-9]+$' summary-job.log | grep -oE '[0-9]+$' || true)"
+          BUILD_VERSION="$(grep -m 1 -oE ' build_version: [0-9]+\.[0-9]+\.[0-9]+$' summary-job.log | grep -oE '[0-9.]+$' || true)"
+          BUILD_COMMIT_SHA="$(grep -m 1 -oE ' build_commit_sha: [0-9a-f]{40}$' summary-job.log | grep -oE '[0-9a-f]{40}$' || true)"
+          echo "Build version: ${BUILD_VERSION:-unknown}, build number: ${BUILD_NUMBER:-unknown}, commit: ${BUILD_COMMIT_SHA:-unknown}"
+          {
+            echo "build_version=${BUILD_VERSION}"
+            echo "build_number=${BUILD_NUMBER}"
+            echo "build_commit_sha=${BUILD_COMMIT_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+  report-result:
+    name: Report TestFlight build result
+    needs: [authorize, dispatch, wait-for-build]
+    if: ${{ always() && needs.dispatch.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment build result
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          BRANCH: ${{ needs.authorize.outputs.branch }}
+          RUN_ID: ${{ needs.dispatch.outputs.run_id }}
+          RUN_URL: ${{ needs.dispatch.outputs.run_url }}
+          WAIT_RESULT: ${{ needs.wait-for-build.result }}
+          CONCLUSION: ${{ needs.wait-for-build.outputs.conclusion }}
+          BUILD_VERSION: ${{ needs.wait-for-build.outputs.build_version }}
+          BUILD_NUMBER: ${{ needs.wait-for-build.outputs.build_number }}
+          BUILD_COMMIT_SHA: ${{ needs.wait-for-build.outputs.build_commit_sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "$WAIT_RESULT" != 'success' ]; then
+            HEADLINE="⚠️ **TestFlight \`exp\` build status unknown.** Stopped waiting for the run; check it directly."
+            CONCLUSION='unknown'
+          elif [ "$CONCLUSION" = 'success' ]; then
+            HEADLINE="📲 **TestFlight \`exp\` build uploaded.**"
+          else
+            HEADLINE="❌ **TestFlight \`exp\` build did not finish successfully** (\`${CONCLUSION}\`)."
+          fi
+
+          {
+            echo "<!-- testflight-exp-build:result run_id=${RUN_ID} conclusion=${CONCLUSION} build_number=${BUILD_NUMBER} -->"
+            echo "${HEADLINE}"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Source branch** | \`${BRANCH}\` |"
+            echo "| **Build version** | \`${BUILD_VERSION:-unknown}\` |"
+            echo "| **Build number** | \`${BUILD_NUMBER:-unknown}\` |"
+            echo "| **Build commit SHA** | \`${BUILD_COMMIT_SHA:-unknown}\` |"
+            echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
+            echo "| **Run** | [${RUN_ID}](${RUN_URL}) |"
+          } > testflight-result-comment.md
+
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file testflight-result-comment.md
