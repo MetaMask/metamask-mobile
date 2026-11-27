@@ -1615,6 +1615,41 @@ describe('AdvancedChart', () => {
     expect(addIndicatorCall).toBeDefined();
   });
 
+  it('posts SET_MA_VISIBILITY without MA200 when it is removed from selectedMAs', () => {
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} selectedMAs={['MA200', 'MA50']} />,
+    );
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+    const maMessages = () =>
+      mockPostMessage.mock.calls
+        .map((call) => JSON.parse(call[0] as string))
+        .filter((m) => m.type === 'SET_MA_VISIBILITY');
+    expect(maMessages().at(-1)?.payload.visible).toEqual(['MA200', 'MA50']);
+
+    mockPostMessage.mockClear();
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} selectedMAs={['MA50']} />);
+
+    expect(maMessages()).toHaveLength(1);
+    expect(maMessages()[0].payload.visible).toEqual(['MA50']);
+  });
+
   it('displays error screen for errors before CHART_READY', () => {
     const { getByTestId, getByText } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} />,

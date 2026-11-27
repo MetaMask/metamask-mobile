@@ -27,15 +27,24 @@ describe('resolveStudyPreset', () => {
     expect(preset.overrides).toMatchObject({
       'MACD.color': 'rgb(3,3,3)',
       'Signal.color': 'rgb(4,4,4)',
-      'Histogram.color.0': 'rgb(5,5,5)',
-      'Histogram.color.1': 'rgb(6,6,6)',
     });
+  });
+
+  it('sets all four MACD histogram palette slots (v30.1.0 colorer)', () => {
+    const preset = resolveStudyPreset('MACD', colors);
+    // 0 = above zero rising, 1 = above zero falling,
+    // 2 = below zero rising, 3 = below zero falling.
+    expect(preset.overrides['Histogram.color.0']).toBe('rgb(5,5,5)');
+    expect(preset.overrides['Histogram.color.1']).toBe('rgb(5,5,5)');
+    expect(preset.overrides['Histogram.color.2']).toBe('rgb(6,6,6)');
+    expect(preset.overrides['Histogram.color.3']).toBe('rgb(6,6,6)');
   });
 
   it('returns RSI preset with default 14 period', () => {
     const preset = resolveStudyPreset('RSI', colors);
     expect(preset.studyName).toBe('Relative Strength Index');
-    expect(preset.inputs).toEqual({ in_0: 14 });
+    // v30.1.0 RSI input id is `length`; `in_0` is silently ignored by TV.
+    expect(preset.inputs).toEqual({ length: 14 });
     expect(preset.overrides['Plot.color']).toBe('rgb(7,7,7)');
   });
 
@@ -44,13 +53,20 @@ describe('resolveStudyPreset', () => {
     expect(preset.studyName).toBe('Bollinger Bands');
     expect(preset.inputs).toEqual({ in_0: 20, in_1: 2 });
     expect(preset.overrides['Upper.color']).toBe('rgb(8,8,8)');
+    expect(preset.overrides['Lower.color']).toBe('rgb(10,10,10)');
   });
 
-  it('returns MA200 preset without colour override', () => {
+  it('colours the BOL middle band via Median.color (v30.1.0 plot title)', () => {
+    const preset = resolveStudyPreset('BOL', colors);
+    expect(preset.overrides['Median.color']).toBe('rgb(9,9,9)');
+    expect(Object.keys(preset.overrides)).not.toContain('Basis.color');
+  });
+
+  it('returns MA200 preset with its legend colour so line and pill match', () => {
     const preset = resolveStudyPreset('MA200', colors);
     expect(preset.studyName).toBe('Moving Average');
     expect(preset.inputs).toEqual({ length: 200 });
-    expect(preset.overrides).not.toHaveProperty('Plot.color');
+    expect(preset.overrides['Plot.color']).toBe('rgb(2,2,2)');
   });
 
   it('returns MA variants with the right length and colour', () => {
@@ -98,6 +114,15 @@ describe('createIndicatorStudy', () => {
       false,
       preset.inputs,
       preset.overrides,
+    );
+  });
+
+  it('rejects when createStudy resolves null (v30.1.0 failure signal)', async () => {
+    const createStudy = jest.fn().mockResolvedValue(null);
+    const chart = { createStudy } as unknown as TVActiveChart;
+    const preset = resolveStudyPreset('RSI', colors);
+    await expect(createIndicatorStudy(chart, preset)).rejects.toThrow(
+      'createStudy returned null',
     );
   });
 });

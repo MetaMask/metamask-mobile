@@ -3793,11 +3793,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/__tests__/legend.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 60
-    }
-  },
   "app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts": {
     "typescript/no-floating-promises": {
       "count": 1

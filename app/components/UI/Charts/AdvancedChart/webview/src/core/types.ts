@@ -72,7 +72,18 @@ export interface LegendPlotCfg {
 export interface LegendIndicatorCfg {
   plots: LegendPlotCfg[];
   isMA?: boolean;
-  useIndex?: boolean;
+  /**
+   * 'tv' (default): show the value exactly as TradingView formats it
+   * (displayedData / crosshair entityValues). 'compact': K/M/B abbreviation
+   * computed from the raw number (used for Volume).
+   */
+  valueFormat?: 'tv' | 'compact';
+  /**
+   * Optional color used for a plot whose value is negative. Applied to the
+   * plot whose tvTitle equals `negativeColorPlot`.
+   */
+  negativeColor?: string | null;
+  negativeColorPlot?: string;
   combineInOnePill?: boolean;
   title?: string;
   /** When true, legend pills render in the study's own sub-pane overlay. */
@@ -157,11 +168,30 @@ export interface TVTimeScale {
   width?(): number;
 }
 
+/** v30.1.0 `CrossHairMovedEventSourceValue` — value pre-formatted by TV. */
+export interface TVCrosshairSourceValue {
+  title: string;
+  value: string;
+}
+
+/** v30.1.0 `CrossHairMovedEventSource` — one entry per series/study. */
+export interface TVCrosshairSource {
+  isHovered: boolean;
+  title: string;
+  values: TVCrosshairSourceValue[];
+}
+
 export interface TVCrosshairParams {
   price?: number;
   time?: number;
   offsetX?: number;
   offsetY?: number;
+  /**
+   * Data-window values at the crosshair, keyed by entity id (study id, or
+   * `_seriesId` for the main series). Present in v30.1.0 even with
+   * `legend_widget` disabled.
+   */
+  entityValues?: Record<string, TVCrosshairSource>;
 }
 
 export interface TVMainSeries {
@@ -219,8 +249,10 @@ export interface TVPane {
 
 export type StudyId = string; // NOSONAR — intentional semantic alias for TradingView study entity IDs
 
+/** Subset of v30.1.0 `IStudyApi` that we call. */
 export interface TVStudy {
   onDataLoaded(): TVSubscription;
+  onStudyError?(): TVSubscription;
   applyOverrides?(overrides: Record<string, unknown>): void;
   paneIndex?(): number;
 }
@@ -231,15 +263,21 @@ export interface TVExportSchemaField {
   plotTitle?: string;
 }
 
+/** v30.1.0 `ExportedData`. Rows are Float64Array at runtime. */
 export interface TVExportData {
   schema: TVExportSchemaField[];
-  data: number[][];
+  data: ArrayLike<number>[];
+  /** Only populated when `includeDisplayedValues: true` is requested. */
   displayedData?: string[][];
 }
 
+/** Subset of v30.1.0 `ExportDataOptions` that we use. `from` is UNIX seconds. */
 export interface TVExportDataOptions {
+  from?: number;
   includeSeries?: boolean;
+  includeDisplayedValues?: boolean;
   includedStudies?: StudyId[];
+  includeOffsetStudyValues?: boolean;
 }
 
 export interface TVActiveChart {
@@ -266,12 +304,16 @@ export interface TVActiveChart {
     inputs: Record<string, unknown>,
     overrides: Record<string, unknown>,
     options?: { priceScale?: string },
-  ): Promise<StudyId>;
+  ): Promise<StudyId | null>;
   createShape(
     point: TVShapePoint,
     options: TVShapeCreateOptions,
   ): Promise<TVShapeId>;
   removeEntity(id: StudyId | TVShapeId): void;
+  /**
+   * NOTE: in v30.1.0 this THROWS ("There is no such study") for unknown or
+   * removed ids instead of returning null. Always call inside try/catch.
+   */
   getStudyById(id: StudyId): TVStudy | null;
   getShapeById?(id: TVShapeId): TVShape | null;
   getAllPanesHeight(): number[];

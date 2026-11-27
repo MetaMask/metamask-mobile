@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
@@ -70,6 +70,14 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+const mockNavigateWithDetails = jest.fn();
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../util/navigation/navUtils'),
+  navigateWithDetails: (...args: unknown[]) => mockNavigateWithDetails(...args),
+}));
+
+const persisted = { indicators: [] as string[] };
+
 const ASSET_A = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const ASSET_B = 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7';
 
@@ -133,6 +141,7 @@ describe('usePriceChartState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     flags.wsEnabled = false;
+    persisted.indicators = [];
     jest.mocked(useSelector).mockImplementation((selector: unknown) => {
       if (selector === selectTokenDetailsOhlcvWsEnabled) return flags.wsEnabled;
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
@@ -140,7 +149,7 @@ describe('usePriceChartState', () => {
       }
       if (selector === selectTokenOverviewChartType) return ChartType.Candles;
       if (selector === selectTokenOverviewChartInterval) return '15m';
-      if (selector === selectTokenIndicators) return [];
+      if (selector === selectTokenIndicators) return persisted.indicators;
       if (typeof selector === 'function') {
         return selector({ user: { appTheme: 'light' } });
       }
@@ -243,5 +252,46 @@ describe('usePriceChartState', () => {
         },
       }),
     );
+  });
+
+  describe('MA picker (S12 open item: removing an MA)', () => {
+    const openPickerAndGetOnDone = (result: {
+      current: ReturnType<typeof usePriceChartState>;
+    }): ((selected: string[]) => void) => {
+      act(() => {
+        result.current.handleMAPress();
+      });
+      const [, details] = mockNavigateWithDetails.mock.calls.at(-1) as [
+        unknown,
+        [string, { params: { onDone: (selected: string[]) => void } }],
+      ];
+      return details[1].params.onDone;
+    };
+
+    it('removes MA200 from selectedMAs when it is unticked', () => {
+      persisted.indicators = ['MA200', 'MA50', 'RSI'];
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+      expect(result.current.selectedMAs).toEqual(['MA200', 'MA50']);
+
+      const onDone = openPickerAndGetOnDone(result);
+      act(() => onDone(['MA50']));
+
+      expect(result.current.selectedMAs).toEqual(['MA50']);
+    });
+
+    it('removes the last MA (empty selection) and keeps non-MA indicators', () => {
+      persisted.indicators = ['MA200', 'RSI'];
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+
+      const onDone = openPickerAndGetOnDone(result);
+      act(() => onDone([]));
+
+      expect(result.current.selectedMAs).toEqual([]);
+      expect(result.current.indicatorsArray).toEqual(['RSI']);
+    });
   });
 });

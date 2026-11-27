@@ -15,6 +15,10 @@
 
 import { postToRN, reportErrorToRN } from '../core/bridge';
 import { getOhlcvData } from '../core/state';
+import {
+  onLegendCrosshairDismissed,
+  renderLegendFromEntityValues,
+} from '../features/indicators/legend';
 import type {
   OHLCVBar,
   TVActiveChart,
@@ -71,6 +75,34 @@ function toCrosshairData(bar: OHLCVBar | null): CrosshairData | null {
   };
 }
 
+// ----- Legend follow (H2) ----------------------------------------------
+
+let pendingLegendParams: TVCrosshairParams | null = null;
+let legendFrameId: number | null = null;
+
+function cancelPendingLegendFrame(): void {
+  if (legendFrameId !== null) {
+    cancelAnimationFrame(legendFrameId);
+    legendFrameId = null;
+  }
+  pendingLegendParams = null;
+}
+
+/**
+ * Feeds the hovered bar's study values (crossHairMoved `entityValues`) to the
+ * legend overlay, at most once per animation frame.
+ */
+function scheduleLegendFromCrosshair(params: TVCrosshairParams): void {
+  pendingLegendParams = params;
+  if (legendFrameId !== null) return;
+  legendFrameId = requestAnimationFrame(() => {
+    legendFrameId = null;
+    const p = pendingLegendParams;
+    pendingLegendParams = null;
+    if (p) renderLegendFromEntityValues(p.entityValues);
+  });
+}
+
 /**
  * Subscribes the chart's crosshair-move event. Each tick posts CROSSHAIR_MOVE
  * with the nearest OHLCV bar shaped as CrosshairData, or null when the
@@ -81,6 +113,8 @@ export function attachCrosshairListener(chart: TVActiveChart): void {
     const subscription = chart.crossHairMoved();
     subscription.subscribe(null, (params: TVCrosshairParams) => {
       if (params?.price === undefined || params?.time === undefined) {
+        cancelPendingLegendFrame();
+        onLegendCrosshairDismissed();
         postToRN('CROSSHAIR_MOVE', { data: null });
         return;
       }
@@ -88,6 +122,7 @@ export function attachCrosshairListener(chart: TVActiveChart): void {
         postToRN('CROSSHAIR_MOVE', { data: null });
         return;
       }
+      scheduleLegendFromCrosshair(params);
       const bar = nearestBar(params.time, getOhlcvData());
       if (!session.visible) {
         session.shownAt = Date.now();
@@ -127,9 +162,11 @@ export function attachTapDismiss(widget: TVChartingLibraryWidget): void {
       session.visible = false;
       session.shownAt = 0;
       session.dismissUntil = Date.now() + DISMISS_WINDOW_MS;
+      cancelPendingLegendFrame();
       setTimeout(() => {
         session.tooltipInteractSent = false;
         postToRN('CROSSHAIR_MOVE', { data: null });
+        onLegendCrosshairDismissed();
       }, DISMISS_RN_DELAY_MS);
     });
   } catch (error) {
@@ -144,4 +181,5 @@ export function __resetCrosshairForTests(): void {
   session.dismissUntil = 0;
   session.tooltipInteractSent = false;
   session.mouseDownAt = 0;
+  cancelPendingLegendFrame();
 }
