@@ -191,7 +191,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                 variant={TextVariant.BodyMd}
                 numberOfLines={1}
                 ellipsizeMode="middle"
-                twClassName="shrink"
+                className="shrink"
               >
                 {accountName}
               </Text>
