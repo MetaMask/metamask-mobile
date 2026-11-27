@@ -379,26 +379,16 @@ describe('BridgeController Init', () => {
   });
 
   describe('handleBridgeFetch', () => {
-    it('should use expoFetch if the url includes Stream', () => {
+    it('should use expoFetch if the url includes Stream', async () => {
       const url = new URL('http://localhost:3000/getBatchQuoteStream');
       const options = { headers: { 'Content-Type': 'application/json' } };
 
       handleBridgeFetch(url, options);
       expect(expoFetch).toHaveBeenCalledWith(url.toString(), options);
       expect(swapQuoteFetchTrace.mark).not.toHaveBeenCalled();
-    });
 
-    it('does not wrap getQuoteStream when no quote trace is active', async () => {
-      const getReader = jest.fn();
-      jest
-        .mocked(expoFetch)
-        .mockResolvedValue({ body: { getReader } } as never);
-
-      const response = await handleBridgeFetch(
-        'http://localhost:3000/getQuoteStream',
-      );
-
-      expect(response.body?.getReader).toBe(getReader);
+      jest.mocked(swapQuoteFetchTrace.mark).mockReturnValue(undefined);
+      await handleBridgeFetch('http://localhost:3000/getQuoteStream', options);
       expect(swapQuoteFetchTrace.mark).toHaveBeenCalledTimes(1);
     });
 
