@@ -1,87 +1,79 @@
 import { strings } from '../../../../../locales/i18n';
 
-const REASON_GROUP_BY_CODE: Record<string, string> = {
-  ID_NOT_VERIFIED: 'id_document',
-  ID_DOCUMENT_REQUIRED: 'id_document',
-  ID_DOCUMENT_NOT_ACCEPTED: 'id_document',
-  ID_DOCUMENT_EXPIRED: 'id_document',
-  ID_DOCUMENT_MISSING_DOB: 'id_document',
-  ID_DOCUMENT_SIDE_MISSING: 'id_document',
-  ID_DOCUMENT_OTHER: 'id_document',
-  DOCUMENT_PHOTO_UNCLEAR: 'document_photo',
-  DOCUMENT_PHOTO_NOT_ORIGINAL: 'document_photo',
-  DOCUMENT_PHOTO_OTHER: 'document_photo',
-  NAME_NOT_VERIFIED: 'personal_details',
-  ADDRESS_NOT_VERIFIED: 'personal_details',
-  DOB_NOT_VERIFIED: 'personal_details',
-  DOB_OR_ADDRESS_NOT_VERIFIED: 'personal_details',
-  DETAILS_NOT_VERIFIED: 'personal_details',
-  VISA_NOT_FOUND: 'personal_details',
-  PROOF_OF_ADDRESS_REQUIRED: 'proof_of_address',
-  PROOF_OF_ADDRESS_TOO_OLD: 'proof_of_address',
-  PROOF_OF_ADDRESS_NOT_ACCEPTED: 'proof_of_address',
-  PROOF_OF_ADDRESS_INCOMPLETE: 'proof_of_address',
-  PROOF_OF_ADDRESS_OTHER: 'proof_of_address',
-  BIOMETRICS_FAILED: 'biometrics',
-  INELIGIBLE: 'ineligible',
-  PROFILE_LIMIT_REACHED: 'ineligible',
-};
+/** Incomplete steps, in Immersve's flow order. The first one is the next step. */
+const NEXT_STEP_CODES = new Set([
+  'CONTACT_DETAILS_REQUIRED',
+  'EXPECTED_SPEND_REQUIRED',
+  'RESIDENTIAL_ADDRESS_REQUIRED',
+  'PROOF_OF_ADDRESS_REQUIRED',
+  'IDV_NOT_COMPLETED',
+  'ID_DOCUMENT_REQUIRED',
+]);
 
-/** Known reason groups, in the order the codes arrived, with duplicates dropped. */
-const groupImmersveKycReasons = (reasons: string[] | undefined): string[] => {
-  const groups: string[] = [];
-  for (const code of reasons ?? []) {
-    const group = REASON_GROUP_BY_CODE[code];
-    if (!group || groups.includes(group)) {
-      continue;
-    }
-    groups.push(group);
-  }
-  return groups;
-};
+/** Failed checks the user can fix. They come as a set: show every one. */
+const FAILURE_CODES = new Set([
+  'ID_NOT_VERIFIED',
+  'NAME_NOT_VERIFIED',
+  'ADDRESS_NOT_VERIFIED',
+  'DOB_NOT_VERIFIED',
+  'DOB_OR_ADDRESS_NOT_VERIFIED',
+  'DETAILS_NOT_VERIFIED',
+  'VISA_NOT_FOUND',
+  'ID_DOCUMENT_NOT_ACCEPTED',
+  'ID_DOCUMENT_EXPIRED',
+  'ID_DOCUMENT_MISSING_DOB',
+  'ID_DOCUMENT_SIDE_MISSING',
+  'ID_DOCUMENT_OTHER',
+  'DOCUMENT_PHOTO_UNCLEAR',
+  'DOCUMENT_PHOTO_NOT_ORIGINAL',
+  'DOCUMENT_PHOTO_OTHER',
+  'PROOF_OF_ADDRESS_TOO_OLD',
+  'PROOF_OF_ADDRESS_NOT_ACCEPTED',
+  'PROOF_OF_ADDRESS_INCOMPLETE',
+  'PROOF_OF_ADDRESS_OTHER',
+  'BIOMETRICS_FAILED',
+]);
 
-const describeReasonGroups = (groups: string[]): string =>
-  groups
-    .map((group) =>
-      strings(`card.card_onboarding.kyc_rejected.reasons.${group}`),
-    )
-    .join(' ');
+const reasonLine = (key: string) =>
+  strings(`card.card_onboarding.kyc_reasons.${key}`);
+
+export const describeImmersveKycGenericRetry = () =>
+  reasonLine('generic_retry');
 
 /**
- * Turns Immersve reason codes into one localized explanation.
- * Unknown codes, including RETRIABLE, KYC_RESET and UNKNOWN, use the generic
- * line. A mix of known and unknown codes keeps only the known lines.
+ * Lines for the Finish-verifying screen: every fixable failure, else
+ * RETRIABLE's generic line (Immersve won't say why), else the next step.
+ * Any other code, including new ones, shows nothing.
  */
-export function describeImmersveKycRejection(
+export function describeImmersveKycReasonLines(
   reasons: string[] | undefined,
-  canRetry: boolean,
-): string {
-  const groups = groupImmersveKycReasons(reasons);
-
-  if (groups.length === 0) {
-    return strings(
-      canRetry
-        ? 'card.card_onboarding.kyc_rejected.reasons.generic'
-        : 'card.card_onboarding.kyc_rejected.reasons.generic_permanent',
-    );
+): string[] {
+  const codes = [...new Set(reasons ?? [])];
+  const failures = codes.filter((code) => FAILURE_CODES.has(code));
+  if (failures.length > 0) {
+    return failures.map((code) => reasonLine(code.toLowerCase()));
   }
-
-  return describeReasonGroups(groups);
+  if (codes.includes('RETRIABLE')) {
+    return [describeImmersveKycGenericRetry()];
+  }
+  const nextStep = codes.find((code) => NEXT_STEP_CODES.has(code));
+  return nextStep ? [reasonLine(nextStep.toLowerCase())] : [];
 }
 
 /**
- * Extra line under the permanent "Not eligible" screen.
- * Null when no code maps to a specific reason, and when the only reason is
- * ineligibility, because that repeats the screen title.
+ * Final (`blocked`) copy. Never gives a reason. INELIGIBLE gets the
+ * "can't offer" message; PROFILE_LIMIT_REACHED, UNKNOWN
+ * and new codes send the user to support.
  */
-export function describeImmersveKycFailureDetail(
-  reasons: string[] | undefined,
-): string | null {
-  const groups = groupImmersveKycReasons(reasons).filter(
-    (group) => group !== 'ineligible',
-  );
-  if (groups.length === 0) {
-    return null;
-  }
-  return describeReasonGroups(groups);
+export function describeImmersveKycFinal(reasons: string[] | undefined): {
+  title: string;
+  description: string;
+} {
+  const variant = reasons?.includes('INELIGIBLE') ? 'ineligible' : 'support';
+  return {
+    title: strings(`card.card_onboarding.kyc_failed.${variant}_title`),
+    description: strings(
+      `card.card_onboarding.kyc_failed.${variant}_description`,
+    ),
+  };
 }

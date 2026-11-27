@@ -59,7 +59,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const rejected = {
   type: 'rejected' as const,
-  canRetry: false,
   reasons: ['INELIGIBLE'],
 };
 
@@ -80,46 +79,36 @@ describe('useImmersveKycOutcome', () => {
     mockLogout.mockResolvedValue(undefined);
   });
 
-  it('toasts a retryable rejection without signing out', async () => {
+  it('tracks without signing out when the caller owns the sign-out', async () => {
     const { result } = renderOutcome();
 
     await act(async () => {
       await result.current.notifyKycRejected(
-        {
-          type: 'rejected',
-          canRetry: true,
-          retryUrl: 'https://verify.immersve.com/retry',
-          reasons: ['ID_DOCUMENT_EXPIRED'],
-        },
-        { source: 'processing' },
+        { type: 'rejected', reasons: ['PROFILE_LIMIT_REACHED'] },
+        { source: 'processing', toast: false, signOut: false },
       );
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          { label: 'card.card_onboarding.kyc_rejected.retry_title' },
-        ],
-        descriptionOptions: {
-          description: 'card.card_onboarding.kyc_rejected.reasons.id_document',
-        },
-      }),
-    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         action: CardActions.KYC_REJECTED,
-        can_retry: true,
-        reason_codes: 'ID_DOCUMENT_EXPIRED',
+        can_retry: false,
+        reason_codes: 'PROFILE_LIMIT_REACHED',
         source: 'processing',
         provider: 'immersve',
       }),
     );
+    expect(mockShowToast).not.toHaveBeenCalled();
     expect(mockLogout).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.signOutOfRejectedKyc();
+    });
+
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 
-  it('signs out and toasts when the rejection cannot be retried', async () => {
+  it('signs out and toasts a final rejection', async () => {
     const { result } = renderOutcome();
 
     await act(async () => {
@@ -129,9 +118,11 @@ describe('useImmersveKycOutcome', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'card.card_onboarding.kyc_failed.title' }],
+        labelOptions: [
+          { label: 'card.card_onboarding.kyc_failed.ineligible_title' },
+        ],
         descriptionOptions: {
-          description: 'card.card_onboarding.kyc_rejected.reasons.ineligible',
+          description: 'card.card_onboarding.kyc_failed.ineligible_description',
         },
       }),
     );

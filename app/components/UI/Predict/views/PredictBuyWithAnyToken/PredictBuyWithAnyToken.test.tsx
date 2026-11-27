@@ -19,12 +19,13 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetry = jest.fn();
+const mockEnterPayWithAnyToken = jest.fn();
 const mockCancelRetryablePredictBuyAttempt = jest.fn();
 let mockRetryableAttempt:
   | {
       attemptId: string;
       amountUsd: number;
-      paymentMethod: 'pay_with_any_token' | 'predict_balance';
+      paymentMethod: 'pay_with_any_token' | 'predict_balance' | 'money_account';
     }
   | undefined;
 
@@ -34,6 +35,8 @@ jest.mock('../../../../../core/Engine', () => ({
       getRetryablePredictBuyAttempt: () => mockRetryableAttempt,
       cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
         mockCancelRetryablePredictBuyAttempt(...args),
+      enterPayWithAnyToken: (...args: unknown[]) =>
+        mockEnterPayWithAnyToken(...args),
       trackPredictOrderEvent: jest.fn(),
     },
   },
@@ -101,11 +104,53 @@ jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
 }));
 
+let mockActiveOrder: { state: string; error?: string } | null = null;
+
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     isPlacingOrder: mockIsPlacingOrder,
-    activeOrder: null,
+    activeOrder: mockActiveOrder,
   }),
+}));
+
+let mockPredictBalance: number | undefined = 10;
+let mockIsPredictBalanceLoading = false;
+
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => ({
+    data: mockPredictBalance,
+    isLoading: mockIsPredictBalanceLoading,
+  }),
+}));
+
+let mockIsMoneyAccountSelected = false;
+let mockSelectedPaymentToken: {
+  address: string;
+  chainId: string;
+  symbol?: string;
+} | null = null;
+
+jest.mock('../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    selectedPaymentToken: mockSelectedPaymentToken,
+    isPredictBalanceSelected:
+      mockSelectedPaymentToken === null && !mockIsMoneyAccountSelected,
+    onPaymentTokenChange: jest.fn(),
+    resetSelectedPaymentToken: jest.fn(),
+  }),
+}));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
+
+const mockUseAddToken = jest.fn();
+
+jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
+  useAddToken: (...args: unknown[]) => mockUseAddToken(...args),
 }));
 
 const mockDeposit = jest.fn();
@@ -176,10 +221,13 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+const mockUseMoneyAccountDepositAndOrder = jest.fn();
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder',
   () => ({
-    useMoneyAccountDepositAndOrder: jest.fn(),
+    useMoneyAccountDepositAndOrder: (...args: unknown[]) =>
+      mockUseMoneyAccountDepositAndOrder(...args),
   }),
 );
 
@@ -243,11 +291,15 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
   }),
 }));
 
+let mockRetryOrderState: 'unknown' | 'pending' | 'filled' | 'canceled' =
+  'unknown';
+
 const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
   errorMessage: mockErrorMessage,
   errorMessageSource: mockErrorMessageSource,
   buyErrorBanner: mockBuyErrorBanner,
   isOrderNotFilled: mockIsOrderNotFilled,
+  retryOrderState: mockRetryOrderState,
   resetOrderNotFilled: mockResetOrderNotFilled,
   clearBuyErrorBanner: mockClearBuyErrorBanner,
 }));
@@ -517,7 +569,13 @@ describe('PredictBuyWithAnyToken', () => {
     mockHasBlockingPayAlerts = false;
     mockCurrentValue = 20;
     mockIsOrderNotFilled = false;
+    mockRetryOrderState = 'unknown';
     mockRetryableAttempt = undefined;
+    mockActiveOrder = null;
+    mockPredictBalance = 10;
+    mockIsPredictBalanceLoading = false;
+    mockSelectedPaymentToken = null;
+    mockIsMoneyAccountSelected = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -1164,6 +1222,255 @@ describe('PredictBuyWithAnyToken', () => {
           ),
         }),
       );
+    });
+  });
+
+  describe('Money Account integration and post-failure keypad editing', () => {
+    const sheetProps = {
+      mode: 'sheet' as const,
+      market: { id: 'market-1' },
+      outcome: { id: 'outcome-1' },
+      outcomeToken: { id: 'token-1', title: 'Yes', price: 0.62 },
+      entryPoint: 'market_details',
+      onClose: jest.fn(),
+    } as unknown as PredictBuyPreviewProps;
+
+    it('registers POLYGON_PUSD via useAddToken so required-token resolution succeeds without an existing pUSD balance', () => {
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseAddToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          decimals: 6,
+          symbol: 'pUSD',
+        }),
+      );
+    });
+
+    it('disables automatic Money Account selection when Predict balance covers the order or is still loading', () => {
+      mockCurrentValue = 5;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+
+      mockPredictBalance = 15;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: false,
+      });
+
+      mockPredictBalance = 0;
+      mockIsPredictBalanceLoading = true;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+    });
+
+    it('keeps automatic Money Account selection disabled after the user opens Pay with and picks an ERC-20 token, even if the amount later exceeds Predict balance', () => {
+      mockCurrentValue = 5;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+      mockSelectedPaymentToken = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+
+      // User opens Pay with and selects USDC.
+      fireEvent.press(screen.getByTestId('predict-pay-with-row'));
+      mockSelectedPaymentToken = {
+        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC',
+      };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      // Amount rises above Predict balance ($25).
+      mockCurrentValue = 30;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: true,
+      });
+    });
+
+    it('keeps automatic Money Account selection enabled when the user opens Pay with without changing the default token', () => {
+      mockCurrentValue = 30;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+      mockSelectedPaymentToken = {
+        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC',
+      };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+      fireEvent.press(screen.getByTestId('predict-pay-with-row'));
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: false,
+      });
+    });
+
+    it('calls enterPayWithAnyToken with clearError true when Money Account becomes selected', () => {
+      mockIsMoneyAccountSelected = false;
+      mockActiveOrder = { state: 'preview' };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+
+      mockIsMoneyAccountSelected = true;
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: true,
+      });
+
+      mockEnterPayWithAnyToken.mockClear();
+      mockActiveOrder = { state: 'pay_with_any_token' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).not.toHaveBeenCalled();
+    });
+
+    it('calls enterPayWithAnyToken with clearError false when activeOrder reaches PREVIEW while Money Account is already selected', () => {
+      mockIsMoneyAccountSelected = true;
+      mockActiveOrder = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: true,
+      });
+      mockEnterPayWithAnyToken.mockClear();
+
+      mockActiveOrder = { state: 'preview' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: false,
+      });
+    });
+
+    it('re-enters PAY_WITH_ANY_TOKEN with clearError false when activeOrder returns to PREVIEW with an error while Money Account is selected', () => {
+      mockIsMoneyAccountSelected = true;
+      mockActiveOrder = { state: 'pay_with_any_token' };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+      mockEnterPayWithAnyToken.mockClear();
+
+      mockActiveOrder = { state: 'preview', error: 'Order failed' };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockEnterPayWithAnyToken).toHaveBeenCalledWith({
+        clearError: false,
+      });
+    });
+
+    it('clears a price_changed banner instead of calling handleRetry when retryOrderState is pending', () => {
+      mockIsOrderNotFilled = true;
+      mockRetryOrderState = 'pending';
+      mockBuyErrorBanner = {
+        variant: 'price_changed',
+        title: 'Price changed',
+        description: 'Retry at market price?',
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetry).not.toHaveBeenCalled();
+    });
+
+    it('closes the keypad once when an error banner appears in sheet mode, but allows re-opening the keypad while the banner is visible', () => {
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: true,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      mockBuyErrorBanner = null;
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+
+      expect(mockSetIsKeypadOpen).not.toHaveBeenCalledWith(false);
+
+      // Banner appears while keypad is open -> closes keypad once.
+      mockBuyErrorBanner = {
+        variant: 'order_failed',
+        title: 'Order failed',
+        description: 'Failed to place order',
+      };
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockSetIsKeypadOpen).toHaveBeenCalledWith(false);
+      mockSetIsKeypadOpen.mockClear();
+
+      // Keypad closed after banner appeared.
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: false,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      // User taps amount display to re-open keypad while banner is still visible.
+      mockUsePredictBuyInputState.mockReturnValue({
+        currentValue: 3,
+        setCurrentValue: mockSetCurrentValue,
+        currentValueUSDString: '3',
+        setCurrentValueUSDString: mockSetCurrentValueUSDString,
+        isKeypadOpen: true,
+        setIsKeypadOpen: mockSetIsKeypadOpen,
+        isUserInputChange: false,
+        setIsUserInputChange: mockSetIsUserInputChange,
+        isConfirming: false,
+        setIsConfirming: mockSetIsConfirming,
+      });
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockSetIsKeypadOpen).not.toHaveBeenCalledWith(false);
     });
   });
 });

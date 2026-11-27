@@ -7,16 +7,8 @@ import React, {
 } from 'react';
 import { useFocusEffect, useLinkProps } from '@react-navigation/native';
 import {
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   SectionDivider,
   SectionHeader,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from '../../../../UI/primitives/View';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,6 +25,7 @@ import {
 } from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
+  CollectiblesCarouselEmpty,
   CollectiblesCarouselSkeleton,
 } from '../../../../UI/Collectibles/components/CollectiblesCarousel';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
@@ -116,31 +109,7 @@ export function CollectiblesSection({
       {isPending ? (
         <CollectiblesCarouselSkeleton />
       ) : isEmpty ? (
-        // Same placeholder for an API failure and for no available packs.
-        <View
-          className="items-center gap-2 px-6 py-10"
-          testID={collectiblesTestIds.empty}
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Xl}
-            color={IconColor.IconAlternative}
-          />
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Bold}
-            className="text-center"
-          >
-            {strings('collectibles.home.empty')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            className="text-center"
-          >
-            {strings('collectibles.home.empty_description')}
-          </Text>
-        </View>
+        <CollectiblesCarouselEmpty />
       ) : (
         <CollectiblesCarousel packs={packs} />
       )}
