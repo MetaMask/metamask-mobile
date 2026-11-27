@@ -94,7 +94,6 @@ import {
   type PrepareMoneyAccountLinkParams,
   type ICardProvider,
   isCardAuthTokenError,
-  logUnreportedCardError,
   CardProviderIds,
   type CardProviderId,
   type RedeemWalletMode,
@@ -140,11 +139,7 @@ import {
   CardService,
   getCardApiErrorBodyCode,
 } from './services/CardService';
-import {
-  CardApiError,
-  readCardRequestId,
-  readWalletLoadFields,
-} from './services/cardHttpObservability';
+import { CardApiError } from './services/BaanxService';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
@@ -387,8 +382,6 @@ export class CardController extends BaseController<
   #cardLinkBackfillPromise: Promise<void> | null = null;
   /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
   #cardLinkBackfillAttempted = new Set<CardProviderId>();
-  /** One wallet-proof prompt per provider for this process. Logout clears it. */
-  readonly #cardLinkProofPrompted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -544,11 +537,7 @@ export class CardController extends BaseController<
                 (group) => group.accounts ?? [],
               ),
             )
-            .sort((left, right) => {
-              if (left < right) return -1;
-              if (left > right) return 1;
-              return 0;
-            })
+            .sort()
             .join(','),
         ].join('|'),
     );
@@ -768,7 +757,6 @@ export class CardController extends BaseController<
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
     if (isFresh && !force) {
       await this.#backfillSessionCardLink();
-      this.#reaskUnverifiedImmersveLink();
       return;
     }
 
@@ -788,7 +776,6 @@ export class CardController extends BaseController<
       this.#cardLinksFetchPromise = read;
     }
     await this.#cardLinksFetchPromise;
-    this.#reaskUnverifiedImmersveLink();
   }
 
   async #doFetchCardLinks(attempt = 0): Promise<void> {
@@ -822,7 +809,6 @@ export class CardController extends BaseController<
 
   #clearCardLinkBackfill(): void {
     this.#cardLinkBackfillAttempted.clear();
-    this.#cardLinkProofPrompted.clear();
     this.#cardLinkBackfillPromise = null;
   }
 
@@ -1006,14 +992,7 @@ export class CardController extends BaseController<
     if (!this.#isCardLinkApiEnabled()) return null;
     const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
     if (!ref) return null;
-    return this.#accountForLinkedRef(ref, addresses);
-  }
 
-  /** The account on this phone whose hash matches `ref`. */
-  async #accountForLinkedRef(
-    ref: string,
-    addresses?: string[],
-  ): Promise<string | null> {
     const candidates =
       addresses ??
       Object.values(
@@ -1130,80 +1109,6 @@ export class CardController extends BaseController<
       phase,
       { address: address ?? undefined },
       'recordProviderLogin',
-    );
-  }
-
-  #recordImmersveLoginWithProof(phase: CardLinkWriteStatus): void {
-    this.#writeCardLink(
-      CardProviderIds.Immersve,
-      phase,
-      () => {
-        const address =
-          this.#loginAccountForLinkedRef(CardProviderIds.Immersve) ?? undefined;
-        const prompt =
-          address !== undefined &&
-          !this.#cardLinkProofPrompted.has(CardProviderIds.Immersve);
-        if (prompt) {
-          this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
-        }
-        return { address, promptWalletProof: prompt };
-      },
-      'recordProviderLogin',
-    ).catch((error) =>
-      Logger.error(error as Error, {
-        tags: { feature: 'card', provider: CardProviderIds.Immersve },
-        context: {
-          name: 'CardController',
-          data: { method: 'recordProviderLogin' },
-        },
-      }),
-    );
-  }
-
-  /**
-   * An Immersve link written without a proof (no address at card creation,
-   * a hardware or MPC account, or a declined signature) stays unverified.
-   * The proof is signed by the account the link already names, or by the
-   * selected account when it names none.
-   */
-  #reaskUnverifiedImmersveLink(): void {
-    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
-    const link = latestByUpdatedAt(
-      (this.state.cardLinks ?? []).filter(
-        (item) => item.provider === CardProviderIds.Immersve,
-      ),
-    );
-    if (
-      !link ||
-      link.status === 'closed' ||
-      link.cardholderVerified !== false
-    ) {
-      return;
-    }
-    this.#promptUnverifiedImmersveProof(link).catch((error) =>
-      Logger.error(error as Error, {
-        tags: { feature: 'card', provider: CardProviderIds.Immersve },
-        context: {
-          name: 'CardController',
-          data: { method: 'reaskUnverifiedCardLink' },
-        },
-      }),
-    );
-  }
-
-  async #promptUnverifiedImmersveProof(link: CardLink): Promise<void> {
-    if (link.status === 'closed') return;
-    const address = link.linkedAccountRef
-      ? await this.#accountForLinkedRef(link.linkedAccountRef)
-      : this.#getSelectedEvmAddress();
-    if (!address) return;
-    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
-    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
-    await this.#writeCardLink(
-      CardProviderIds.Immersve,
-      link.status,
-      { address, promptWalletProof: true },
-      'reaskUnverifiedCardLink',
     );
   }
 
@@ -2347,16 +2252,12 @@ export class CardController extends BaseController<
       }
       if (pid === CardProviderIds.Baanx) {
         this.#recordProviderLoginWithLogging(pid, 'active');
-      } else if (pid === CardProviderIds.Immersve) {
-        this.#recordImmersveLoginWithProof('active');
       }
 
       this.invalidateFetch();
       this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
     } else if (result.onboardingRequired && pid === CardProviderIds.Baanx) {
       this.#recordProviderLoginWithLogging(pid, 'onboarding');
-    } else if (result.onboardingRequired && pid === CardProviderIds.Immersve) {
-      this.#recordImmersveLoginWithProof('onboarding');
     }
 
     return result;
@@ -2619,7 +2520,7 @@ export class CardController extends BaseController<
       );
       return fresh;
     } catch (error) {
-      logUnreportedCardError(error, {
+      Logger.error(error as Error, {
         tags: { feature: 'card', provider: pid },
         context: { name: 'CardController', data: { method: '#doRefresh' } },
       });
@@ -3455,7 +3356,6 @@ export class CardController extends BaseController<
   // -- Cashback --
 
   async getCashbackWallet(): Promise<CashbackWalletResponse> {
-    const startedAt = Date.now();
     try {
       const provider = this.getActiveProvider();
       const getCashbackWallet = provider.getCashbackWallet?.bind(provider);
@@ -3465,24 +3365,12 @@ export class CardController extends BaseController<
           'Cashback not supported',
         );
       }
-      const wallet = await this.#withAuthRetry((tokens) =>
-        getCashbackWallet(tokens),
-      );
-      this.#trackWalletLoad({
-        mode: 'cashback',
-        startedAt,
-      });
-      return wallet;
+      return await this.#withAuthRetry((tokens) => getCashbackWallet(tokens));
     } catch (error) {
       this.#logRedeemError(error, {
         method: 'getCashbackWallet',
         mode: 'cashback',
         step: 'wallet_fetch',
-      });
-      this.#trackWalletLoad({
-        mode: 'cashback',
-        startedAt,
-        error,
       });
       throw error;
     }
@@ -3521,7 +3409,6 @@ export class CardController extends BaseController<
   // -- Credit --
 
   async getCreditWallet(): Promise<CreditWalletResponse> {
-    const startedAt = Date.now();
     try {
       const provider = this.getActiveProvider();
       const getCreditWallet = provider.getCreditWallet?.bind(provider);
@@ -3531,24 +3418,12 @@ export class CardController extends BaseController<
           'Credit not supported',
         );
       }
-      const wallet = await this.#withAuthRetry((tokens) =>
-        getCreditWallet(tokens),
-      );
-      this.#trackWalletLoad({
-        mode: 'credit',
-        startedAt,
-      });
-      return wallet;
+      return await this.#withAuthRetry((tokens) => getCreditWallet(tokens));
     } catch (error) {
       this.#logRedeemError(error, {
         method: 'getCreditWallet',
         mode: 'credit',
         step: 'wallet_fetch',
-      });
-      this.#trackWalletLoad({
-        mode: 'credit',
-        startedAt,
-        error,
       });
       throw error;
     }
@@ -3589,7 +3464,7 @@ export class CardController extends BaseController<
    * up to three minutes and survives the user navigating away, so a view-side
    * emit would drop exactly the slow failures worth measuring.
    */
-  #trackCardEvent(
+  #trackRedeemEvent(
     event: IMetaMetricsEvent,
     properties: Record<string, string | number | null>,
   ): void {
@@ -3607,35 +3482,10 @@ export class CardController extends BaseController<
         tags: { feature: 'card' },
         context: {
           name: 'CardController',
-          data: { method: '#trackCardEvent' },
+          data: { method: '#trackRedeemEvent' },
         },
       });
     }
-  }
-
-  /**
-   * One event per cashback or credit wallet GET, including the 401 refresh
-   * retry inside this call. React Query may call again; each attempt is a
-   * separate event so the rate stays per request.
-   */
-  #trackWalletLoad(params: {
-    mode: RedeemWalletMode;
-    startedAt: number;
-    error?: unknown;
-  }): void {
-    const fields = readWalletLoadFields(params.error);
-    this.#trackCardEvent(
-      params.error
-        ? MetaMetricsEvents.CARD_WALLET_LOAD_FAILED
-        : MetaMetricsEvents.CARD_WALLET_LOAD_COMPLETED,
-      {
-        mode: params.mode,
-        duration_ms: Date.now() - params.startedAt,
-        outcome: fields.outcome,
-        status_code: fields.status_code,
-        reason: fields.reason,
-      },
-    );
   }
 
   /**
@@ -3677,7 +3527,7 @@ export class CardController extends BaseController<
       generation,
     );
 
-    this.#trackCardEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_STARTED, {
+    this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_STARTED, {
       mode,
       amount_bucket: amountBucket,
     });
@@ -3771,7 +3621,7 @@ export class CardController extends BaseController<
             generation,
           );
 
-          this.#trackCardEvent(
+          this.#trackRedeemEvent(
             MetaMetricsEvents.CARD_REDEEM_PROCESS_COMPLETED,
             {
               mode,
@@ -3823,9 +3673,8 @@ export class CardController extends BaseController<
             code: classified?.code != null ? classified.code : 'none',
             statusCode:
               classified?.statusCode != null ? classified.statusCode : -1,
-            requestId: readCardRequestId(error) ?? 'none',
           });
-          this.#trackCardEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_FAILED, {
+          this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_FAILED, {
             mode,
             amount_bucket: amountBucket,
             chain_id: pollingChainId,
@@ -3930,6 +3779,7 @@ export class CardController extends BaseController<
       step: string;
     },
   ): void {
+    if (isCardAuthTokenError(error)) return;
     let code: string | null;
     if (error instanceof CardProviderError) {
       code = error.code;
@@ -3942,13 +3792,11 @@ export class CardController extends BaseController<
       error instanceof CardProviderError || error instanceof CardApiError
         ? (error.statusCode ?? null)
         : null;
-    logUnreportedCardError(error, {
+    Logger.error(error as Error, {
       tags: {
         feature: 'card',
         mode: data.mode,
-        ...(this.state.activeProviderId
-          ? { provider: this.state.activeProviderId }
-          : {}),
+        provider: this.state.activeProviderId ?? undefined,
       },
       context: {
         name: 'CardController',
@@ -3957,7 +3805,6 @@ export class CardController extends BaseController<
           step: data.step,
           code,
           statusCode,
-          requestId: readCardRequestId(error),
         },
       },
     });

@@ -1,5 +1,4 @@
-import { BaanxService } from '../services/BaanxService';
-import { CardApiError } from '../services/cardHttpObservability';
+import { BaanxService, CardApiError } from '../services/BaanxService';
 import { CardProviderErrorCode, type CardAuthSession } from '../provider-types';
 import { BaanxProvider } from './BaanxProvider';
 
@@ -64,11 +63,10 @@ describe('BaanxProvider auth', () => {
       password: 'secret',
     });
 
-    expect(post).toHaveBeenCalledWith(
-      '/v1/auth/login',
-      { email: 'user@example.com', password: 'secret' },
-      { unreportedStatuses: [403, 404] },
-    );
+    expect(post).toHaveBeenCalledWith('/v1/auth/login', {
+      email: 'user@example.com',
+      password: 'secret',
+    });
     expect(request).toHaveBeenCalledWith(
       '/v1/auth/oauth/authorize',
       expect.objectContaining({

@@ -122,16 +122,6 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
-jest.mock('./CardCashback', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      React.createElement(Text, { testID: 'immersve-cashback' }, 'mUSD back'),
-  };
-});
-
 const MOCK_LINEA_USDC_TOKEN = {
   symbol: 'USDC',
   name: 'USD Coin',
@@ -206,7 +196,6 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -247,14 +236,6 @@ function render(overrides: RenderOverrides = {}) {
 }
 
 describe('Cashback Component', () => {
-  it('opens mUSD back for an Immersve card', () => {
-    jest.mocked(selectCardActiveProviderId).mockReturnValue('immersve');
-
-    render();
-
-    expect(screen.getByTestId('immersve-cashback')).toBeOnTheScreen();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
@@ -265,7 +246,6 @@ describe('Cashback Component', () => {
     };
 
     mockSelectCardHomeDataStatus.mockReturnValue('success');
-    jest.mocked(selectCardActiveProviderId).mockReturnValue('baanx');
     mockDestination = defaultDestination();
 
     mockHookReturn = {

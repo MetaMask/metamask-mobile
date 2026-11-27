@@ -4,7 +4,7 @@ import type {
   ImmersveFundingChannel,
   ImmersveProgramConfig,
 } from '../../../../../selectors/featureFlagController/card';
-import { CardApiError } from '../services/cardHttpObservability';
+import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
@@ -231,7 +231,6 @@ describe('ImmersveProvider', () => {
           url: 'https://app.immersve.com',
           autoSignup: true,
         }),
-        { unreportedStatuses: [403] },
       );
       expect(session.id).toBe('login-req-1');
       expect(session.currentStep).toStrictEqual({
@@ -257,7 +256,6 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ network: 'base-sepolia' }),
-        { unreportedStatuses: [403] },
       );
     });
 
@@ -276,7 +274,6 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ clientApplicationId: 'flag-app' }),
-        { unreportedStatuses: [403] },
       );
     });
 
@@ -295,7 +292,6 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ url: 'https://flag.app' }),
-        { unreportedStatuses: [403] },
       );
     });
 
@@ -314,7 +310,6 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ autoSignup: false }),
-        { unreportedStatuses: [403] },
       );
     });
 
@@ -380,24 +375,6 @@ describe('ImmersveProvider', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('does not log a failure the service already reported', async () => {
-      const { provider, service } = createProvider();
-      const apiError = new CardApiError(500, '/auth/login-init', 'fail', {
-        requestId: 'req-immersve-1',
-      });
-      apiError.reported = true;
-      service.post.mockRejectedValue(apiError);
-
-      await expect(
-        provider.initiateAuth('GB', { address: '0xabc' }),
-      ).rejects.toMatchObject({
-        code: CardProviderErrorCode.ServerError,
-        reported: true,
-        requestId: 'req-immersve-1',
-      });
-      expect(Logger.error).not.toHaveBeenCalled();
-    });
-
     it('maps ACCOUNT_DOES_NOT_EXIST to NotFound without Sentry', async () => {
       const { provider, service } = createProvider();
       const apiError = new CardApiError(
@@ -446,7 +423,6 @@ describe('ImmersveProvider', () => {
           address: '0xabc',
           autoSignup: false,
         }),
-        { unreportedStatuses: [403] },
       );
     });
 
@@ -606,7 +582,7 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.refreshTokenExpiresAt).toBeUndefined();
     });
 
-    it('maps login-complete API failures through toCardProviderError', async () => {
+    it('maps login-complete API failures through mapApiError', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(
         new CardApiError(500, '/auth/login-complete', 'down'),
@@ -810,10 +786,8 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/token',
         { refreshToken: 'refresh-token', clientApplicationId: 'client-app-1' },
-        {
-          headers: { origin: 'https://app.immersve.com' },
-          unreportedStatuses: [400, 403],
-        },
+        undefined,
+        { origin: 'https://app.immersve.com' },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
       expect(refreshed.providerUserId).toBe('cardholder-1');
@@ -848,7 +822,7 @@ describe('ImmersveProvider', () => {
       },
     );
 
-    it('maps non-auth refresh failures through toCardProviderError', async () => {
+    it('maps non-auth refresh failures through mapApiError', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(
         new CardApiError(500, '/auth/token', 'down'),

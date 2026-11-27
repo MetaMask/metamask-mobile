@@ -19,8 +19,6 @@ interface UseCreditBalanceResult {
   hasCredit: boolean;
   isLoading: boolean;
   error: Error | null;
-  refetch: () => void;
-  isRefetching: boolean;
 }
 
 const useCreditBalance = (): UseCreditBalanceResult => {
@@ -36,16 +34,9 @@ const useCreditBalance = (): UseCreditBalanceResult => {
     ...cardQueries.credit.walletOptions(),
     enabled,
   });
-  const {
-    data: walletData,
-    isLoading,
-    error,
-    refetch,
-    isRefetching,
-  } = walletQuery;
 
   return useMemo(() => {
-    const wallet = walletData ?? null;
+    const wallet = walletQuery.data ?? null;
     const creditBalance = wallet?.balance ?? '0';
     const parsed = parseFloat(creditBalance);
     const creditBalanceNumber = Number.isFinite(parsed) ? parsed : 0;
@@ -63,17 +54,13 @@ const useCreditBalance = (): UseCreditBalanceResult => {
       creditCurrency: wallet?.currency,
       creditFiatNumber,
       hasCredit,
-      isLoading,
-      error: enabled ? ((error as Error | null) ?? null) : null,
-      refetch,
-      isRefetching,
+      isLoading: walletQuery.isLoading,
+      error: (walletQuery.error as Error | null) ?? null,
     };
   }, [
-    walletData,
-    isLoading,
-    error,
-    refetch,
-    isRefetching,
+    walletQuery.data,
+    walletQuery.isLoading,
+    walletQuery.error,
     enabled,
     currencyRates,
   ]);

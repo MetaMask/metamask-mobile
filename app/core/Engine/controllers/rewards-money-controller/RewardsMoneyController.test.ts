@@ -439,24 +439,6 @@ describe('RewardsMoneyController', () => {
       );
     });
 
-    it('throws for card reads when disabled', async () => {
-      await expect(controller.getCardSummary()).rejects.toThrow(
-        'Rewards Money is disabled',
-      );
-      await expect(controller.getCardLedger()).rejects.toThrow(
-        'Rewards Money is disabled',
-      );
-      await expect(controller.getCardClaimHistory()).rejects.toThrow(
-        'Rewards Money is disabled',
-      );
-      await expect(controller.getCardClaim('claim-1')).rejects.toThrow(
-        'Rewards Money is disabled',
-      );
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        expect.stringMatching(/^RewardsMoneyDataService:/),
-      );
-    });
-
     it('throws for list reads when disabled', async () => {
       await expect(controller.getEarningsLedger()).rejects.toThrow(
         'Rewards Money is disabled',
@@ -686,43 +668,6 @@ describe('RewardsMoneyController', () => {
       await expect(controller.getReferralMe()).resolves.toBeDefined();
       expect(referralCalls()).toHaveLength(2);
     });
-
-    it.each([
-      [
-        'RewardsMoneyDataService:getCardSummary',
-        async () => controller.getCardSummary(),
-        [],
-        { claimable: '30000' },
-      ],
-      [
-        'RewardsMoneyDataService:getCardLedger',
-        async () => controller.getCardLedger('cursor-1', 10),
-        ['cursor-1', 10],
-        { results: [] },
-      ],
-      [
-        'RewardsMoneyDataService:getCardClaimHistory',
-        async () => controller.getCardClaimHistory(null, 5),
-        [null, 5],
-        { results: [], cursor: null },
-      ],
-      [
-        'RewardsMoneyDataService:getCardClaim',
-        async () => controller.getCardClaim('claim-1'),
-        ['claim-1'],
-        { id: 'claim-1' },
-      ],
-    ])(
-      'forwards %s to the data service',
-      async (action, read, args, result) => {
-        mockMessenger.call.mockImplementation((called, ..._args): any =>
-          called === action ? result : undefined,
-        );
-
-        await expect(read()).resolves.toEqual(result);
-        expect(mockMessenger.call).toHaveBeenCalledWith(action, ...args);
-      },
-    );
 
     it('caches earnings summary by origin-type scope', async () => {
       withProfileAndData(

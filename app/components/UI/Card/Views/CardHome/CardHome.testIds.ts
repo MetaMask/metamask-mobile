@@ -75,7 +75,6 @@ export const CardHomeSelectors = {
   LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM: 'link-money-account-divider-bottom',
   CREDIT_BALANCE_INFO_BUTTON: 'credit-balance-info-button',
   CREDIT_BANNER: 'credit-banner',
-  CREDIT_LOAD_ERROR: 'credit-load-error',
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
   CARD_FREEZE_RIVE: 'card-freeze-rive',
   CARD_FREEZE_RIVE_WRAPPER: 'card-freeze-rive-wrapper',

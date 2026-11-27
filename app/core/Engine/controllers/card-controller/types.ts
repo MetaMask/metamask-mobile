@@ -119,11 +119,6 @@ export type CardLink = {
   migratedToProvider: string | null;
   linkedAt: string;
   updatedAt: string;
-  /**
-   * Present when the server says whether a wallet proof verified this link.
-   * Absent on a response from an older card-api, which is not treated as unverified.
-   */
-  cardholderVerified?: boolean;
 };
 
 export interface CardLinkWriteBody {

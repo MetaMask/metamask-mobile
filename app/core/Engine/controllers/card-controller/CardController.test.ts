@@ -2,7 +2,7 @@ import { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { CardController, defaultCardControllerState } from './CardController';
 import type { CardService } from './services/CardService';
-import { CardApiError } from './services/cardHttpObservability';
+import { CardApiError } from './services/BaanxService';
 import {
   type CardControllerActions,
   type CardControllerEvents,
@@ -1089,27 +1089,6 @@ describe('CardController — auth methods', () => {
       expect(controller.state.isAuthenticated).toBe(true);
     });
 
-    it('does not log a refresh failure that was already reported', async () => {
-      const provider = buildMockProvider();
-      mockTokenStore.get.mockResolvedValue(mockTokenSet);
-      provider.validateTokens.mockReturnValue('needs_refresh');
-      provider.refreshTokens.mockRejectedValue(
-        new CardProviderError(
-          CardProviderErrorCode.ServerError,
-          'refresh down',
-          503,
-          undefined,
-          { requestId: 'req-refresh-1', reported: true },
-        ),
-      );
-      const controller = buildController(provider, { isAuthenticated: true });
-      jest.mocked(Logger.error).mockClear();
-
-      await controller.validateAndRefreshSession();
-
-      expect(Logger.error).not.toHaveBeenCalled();
-    });
-
     it('clears tokens and returns unauthenticated when tokens are expired', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1579,16 +1558,6 @@ describe('CardController — event subscriptions', () => {
         accountTree: { wallets: {} },
       }),
     ).toBe('entropy:wallet1/1|');
-    expect(
-      selector({
-        selectedAccountGroup: 'entropy:wallet1/0',
-        accountTree: {
-          wallets: {
-            w1: { groups: { g1: { accounts: ['b', 'a'] } } },
-          },
-        },
-      }),
-    ).toBe('entropy:wallet1/0|a,b');
   });
 
   it('subscribes to RemoteFeatureFlagController:stateChange on construction', () => {
@@ -4489,124 +4458,6 @@ describe('CardController — data pass-throughs', () => {
 
       await expect(controller.getCashbackWallet()).rejects.toThrow(
         'Cashback not supported',
-      );
-    });
-
-    it('emits a completed wallet load with an allowlisted payload', async () => {
-      const wallet = { id: 'w1', balance: '10', currency: 'musd' };
-      const provider = buildMockProvider({
-        getCashbackWallet: jest.fn().mockResolvedValue(wallet),
-      });
-      const { controller } = buildAuthenticatedController(provider);
-      mockTrackAnalyticsEvent.mockClear();
-
-      await controller.getCashbackWallet();
-
-      const events = mockTrackAnalyticsEvent.mock.calls.map(
-        ([event]) =>
-          event as { name: string; properties: Record<string, unknown> },
-      );
-      const completed = events.filter(
-        (event) => event.name === 'Card Wallet Load Completed',
-      );
-      expect(completed).toHaveLength(1);
-      expect(Object.keys(completed[0].properties).sort()).toEqual([
-        'duration_ms',
-        'mode',
-        'outcome',
-        'provider',
-        'reason',
-        'status_code',
-      ]);
-      expect(completed[0].properties).toMatchObject({
-        provider: 'baanx',
-        mode: 'cashback',
-        outcome: 'success',
-        status_code: null,
-        reason: null,
-        duration_ms: expect.any(Number),
-      });
-    });
-
-    it.each([
-      {
-        mode: 'cashback',
-        load: 'getCashbackWallet' as const,
-        error: (() => {
-          const apiError = new CardApiError(503, '/v1/wallet/reward', '');
-          apiError.reported = true;
-          return apiError;
-        })(),
-        outcome: 'http_5xx',
-        status_code: 503,
-        reason: null,
-      },
-      {
-        mode: 'credit',
-        load: 'getCreditWallet' as const,
-        error: new CardProviderError(
-          CardProviderErrorCode.Timeout,
-          'timed out',
-          408,
-          undefined,
-          { requestId: 'req-credit-1', reported: true },
-        ),
-        outcome: 'timeout',
-        status_code: 408,
-        reason: 'timeout',
-      },
-    ])(
-      'emits a failed $mode wallet load and skips a second Sentry log',
-      async ({ load, error, outcome, status_code, reason, mode }) => {
-        const provider = buildMockProvider({
-          getCashbackWallet: jest.fn().mockRejectedValue(error),
-          getCreditWallet: jest.fn().mockRejectedValue(error),
-        });
-        const { controller } = buildAuthenticatedController(provider);
-        mockTrackAnalyticsEvent.mockClear();
-        jest.mocked(Logger.error).mockClear();
-
-        await expect(controller[load]()).rejects.toBe(error);
-
-        expect(Logger.error).not.toHaveBeenCalled();
-        const failed = mockTrackAnalyticsEvent.mock.calls
-          .map(
-            ([event]) =>
-              event as { name: string; properties: Record<string, unknown> },
-          )
-          .filter((event) => event.name === 'Card Wallet Load Failed');
-        expect(failed).toHaveLength(1);
-        expect(Object.keys(failed[0].properties).sort()).toEqual([
-          'duration_ms',
-          'mode',
-          'outcome',
-          'provider',
-          'reason',
-          'status_code',
-        ]);
-        expect(failed[0].properties).toMatchObject({
-          provider: 'baanx',
-          mode,
-          outcome,
-          status_code,
-          reason,
-          duration_ms: expect.any(Number),
-        });
-      },
-    );
-
-    it('still returns the wallet when analytics throws', async () => {
-      const wallet = { id: 'w1', balance: '1', currency: 'musd' };
-      const provider = buildMockProvider({
-        getCashbackWallet: jest.fn().mockResolvedValue(wallet),
-      });
-      const { controller } = buildAuthenticatedController(provider);
-      mockTrackAnalyticsEvent.mockImplementationOnce(() => {
-        throw new Error('analytics down');
-      });
-
-      await expect(controller.getCashbackWallet()).resolves.toStrictEqual(
-        wallet,
       );
     });
   });

@@ -15,10 +15,6 @@ import {
   RewardsMoneyDataServiceRegisterRefereeAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
-  RewardsMoneyDataServiceGetCardSummaryAction,
-  RewardsMoneyDataServiceGetCardLedgerAction,
-  RewardsMoneyDataServiceGetCardClaimHistoryAction,
-  RewardsMoneyDataServiceGetCardClaimAction,
   RewardsMoneyDataServiceGetClaimHistoryAction,
   RewardsMoneyDataServiceGetCommissionsAction,
   RewardsMoneyDataServiceGetClaimByIdAction,
@@ -50,10 +46,6 @@ type AllowedActions =
   | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
-  | RewardsMoneyDataServiceGetCardSummaryAction
-  | RewardsMoneyDataServiceGetCardLedgerAction
-  | RewardsMoneyDataServiceGetCardClaimHistoryAction
-  | RewardsMoneyDataServiceGetCardClaimAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
@@ -105,10 +97,6 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:registerReferee',
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
-      'RewardsMoneyDataService:getCardSummary',
-      'RewardsMoneyDataService:getCardLedger',
-      'RewardsMoneyDataService:getCardClaimHistory',
-      'RewardsMoneyDataService:getCardClaim',
       'RewardsMoneyDataService:getClaimHistory',
       'RewardsMoneyDataService:getCommissions',
       'RewardsMoneyDataService:getClaimById',

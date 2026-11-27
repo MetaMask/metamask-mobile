@@ -12149,13 +12149,9 @@
         "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
-        "permission_title": "Allow camera and microphone",
         "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
-        "permission_settings_description": "Identity verification uses your camera and microphone. Turn them on for MetaMask in Settings, then come back to continue.",
-        "load_error_title": "Couldn't load verification",
         "load_error": "Something went wrong loading identity verification. Try again.",
-        "try_again": "Try again",
-        "open_settings": "Open settings"
+        "try_again": "Try again"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
@@ -12496,23 +12492,6 @@
         "contact_details_description": "Update your email and phone number",
         "add_to_digital_wallet": "Add to digital wallet",
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
-      },
-      "cashback_screen": {
-        "title": "mUSD back",
-        "claimable": "Ready to claim",
-        "pending": "Pending",
-        "held": "Held",
-        "blocked": "Blocked",
-        "claimed": "Claimed",
-        "pairing_pending": "Finish pairing your Money account to claim your mUSD back.",
-        "below_minimum": "You'll need at least {{amount}} to claim.",
-        "claim": "Claim",
-        "claim_failed": "Claim failed. Try again.",
-        "mpc_unavailable": "Claims aren't available for this Money account yet.",
-        "unavailable": "mUSD back isn't available yet.",
-        "loading": "Loading mUSD back",
-        "empty_ledger": "No mUSD back yet",
-        "rate": "{{rate}}% back"
       }
     },
     "contact_details": {
@@ -12703,13 +12682,7 @@
       "title": "Refund balance: {{amount}}",
       "description": "Spend it or move it to your Money account to keep earning on your balance.",
       "description_no_money_account": "Spend it or redeem it to your wallet.",
-      "confirm_button_label": "Move funds",
-      "load_failed": {
-        "title": "Couldn't load your refund balance",
-        "description": "{{message}}",
-        "description_with_reference": "{{message}} Reference: {{reference}}",
-        "confirm_button_label": "Try again"
-      }
+      "confirm_button_label": "Move funds"
     },
     "change_asset": {
       "title": "Change token and network",

@@ -138,10 +138,6 @@ describe('RewardsMoneyDataService', () => {
         'registerReferee',
         'getEarningsSummary',
         'getEarningsLedger',
-        'getCardSummary',
-        'getCardLedger',
-        'getCardClaimHistory',
-        'getCardClaim',
         'getClaimHistory',
         'getCommissions',
         'getClaimById',
@@ -162,114 +158,6 @@ describe('RewardsMoneyDataService', () => {
           expect.any(Function),
         );
       }
-    });
-  });
-
-  describe('card cashback reads', () => {
-    it('reads the card summary, ledger and claim from the card routes', async () => {
-      const summary = {
-        lifetime_total: '1000000',
-        claimable: '30000',
-        held: '0',
-        blocked: '0',
-        voided: '0',
-        pending: '0',
-        claimed: '0',
-        minimum_musd_base_units: '10000',
-        blocking_reason: null,
-        pairing_pending: false,
-      };
-      mockFetch.mockResolvedValue(okJson(summary));
-
-      await expect(service.getCardSummary()).resolves.toEqual(summary);
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/earnings/card/summary'),
-        expect.any(Object),
-      );
-
-      mockFetch.mockResolvedValue(
-        okJson({ results: [], has_more: false, cursor: null }),
-      );
-      await service.getCardLedger('cursor-1');
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/earnings/card/ledger?'),
-        expect.any(Object),
-      );
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('cursor=cursor-1'),
-        expect.any(Object),
-      );
-
-      mockFetch.mockResolvedValue(okJson({ id: 'claim-1' }));
-      await service.getCardClaim('claim-1');
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/earnings/card/claim/claim-1'),
-        expect.any(Object),
-      );
-    });
-
-    it('omits the cursor on the first ledger page', async () => {
-      mockFetch.mockResolvedValue(
-        okJson({ results: [], has_more: false, cursor: null }),
-      );
-
-      await service.getCardLedger();
-
-      const [url] = mockFetch.mock.calls[0];
-      expect(url).toContain('/earnings/card/ledger?');
-      expect(url).not.toContain('cursor=');
-    });
-
-    it('omits the cursor on the first claim-history page', async () => {
-      mockFetch.mockResolvedValue(
-        okJson({ results: [], has_more: false, cursor: null }),
-      );
-
-      await service.getCardClaimHistory();
-
-      const [url] = mockFetch.mock.calls[0];
-      expect(url).toContain('/earnings/card/claim/me?');
-      expect(url).not.toContain('cursor=');
-    });
-
-    it('sends the claim-history cursor', async () => {
-      mockFetch.mockResolvedValue(
-        okJson({ results: [], has_more: false, cursor: null }),
-      );
-
-      await service.getCardClaimHistory('cursor-2');
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('cursor=cursor-2'),
-        expect.any(Object),
-      );
-    });
-
-    it.each([
-      [
-        'card summary',
-        async () => service.getCardSummary(),
-        'Get card summary failed: 500',
-      ],
-      [
-        'card ledger',
-        async () => service.getCardLedger(),
-        'Get card ledger failed: 500',
-      ],
-      [
-        'card claim history',
-        async () => service.getCardClaimHistory(),
-        'Get card claim history failed: 500',
-      ],
-      [
-        'card claim',
-        async () => service.getCardClaim('claim/1'),
-        'Get card claim failed: 500',
-      ],
-    ])('throws when the %s read fails', async (_label, read, message) => {
-      mockFetch.mockResolvedValue(notOk(500));
-
-      await expect(read()).rejects.toThrow(message);
     });
   });
 

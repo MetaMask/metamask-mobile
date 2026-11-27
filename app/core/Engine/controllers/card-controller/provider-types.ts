@@ -1,6 +1,5 @@
 import type { CaipChainId, Json } from '@metamask/utils';
 import type { ImmersveFundingSourceType } from '../../../../selectors/featureFlagController/card/types';
-import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
   CardStatus,
   CardType,
@@ -33,58 +32,23 @@ export enum CardProviderErrorCode {
   AuthRestartRequired = 'auth_restart_required',
 }
 
-export interface CardProviderErrorMeta {
-  requestId?: string;
-  reported?: boolean;
-}
-
 export class CardProviderError extends Error {
   readonly code: CardProviderErrorCode;
   readonly statusCode?: number;
   readonly errorCode?: string;
-  readonly requestId?: string;
-  /** True when a lower layer already sent this failure to Sentry. */
-  readonly reported: boolean;
 
   constructor(
     code: CardProviderErrorCode,
     message: string,
     statusCode?: number,
     errorCode?: string,
-    meta?: CardProviderErrorMeta,
   ) {
     super(message);
     this.name = 'CardProviderError';
     this.code = code;
     this.statusCode = statusCode;
     this.errorCode = errorCode;
-    this.requestId = meta?.requestId;
-    this.reported = meta?.reported ?? false;
   }
-}
-
-/**
- * True when observeCardHttpCall (or another choke point) already logged this
- * failure. Duck-typed so the HTTP error can be recognized without importing it.
- */
-export function isCardErrorReported(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    (error as { reported?: unknown }).reported === true
-  );
-}
-
-/**
- * Log a card failure that no lower layer has sent to Sentry.
- * Routine 401s and already-reported HTTP errors are skipped.
- */
-export function logUnreportedCardError(
-  error: unknown,
-  sentryContext: LoggerErrorOptions,
-): void {
-  if (isCardAuthTokenError(error) || isCardErrorReported(error)) return;
-  Logger.error(error as Error, sentryContext);
 }
 
 export function isCardAuthTokenError(error: unknown): boolean {

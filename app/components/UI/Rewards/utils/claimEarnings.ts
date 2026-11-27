@@ -341,26 +341,18 @@ export function claimWaitCaption(
  * Claimable earning-address keys for a route that lists them. Revenue share
  * has no list. An empty list means this phone has nothing to compare.
  */
-function addressEntriesForRoute(
-  summary: EarningsSummaryDto | null | undefined,
-  route: ClaimRouteSlug,
-) {
-  if (route === 'referral-trade-fee-cashback') {
-    return summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
-      ?.by_address;
-  }
-  if (route === 'social-follow-trade') {
-    return summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE
-      ?.by_address;
-  }
-  return undefined;
-}
-
 function claimableAddressesForRoute(
   summary: EarningsSummaryDto | null | undefined,
   route: ClaimRouteSlug,
 ): string[] {
-  const entries = addressEntriesForRoute(summary, route);
+  const entries =
+    route === 'referral-trade-fee-cashback'
+      ? summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+          ?.by_address
+      : route === 'social-follow-trade'
+        ? summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE
+            ?.by_address
+        : undefined;
   if (!entries?.length) {
     return [];
   }
@@ -667,7 +659,7 @@ export function bitcoinAccountForEarningAddress(earningAddress: string) {
   }
   const account =
     Engine.context.AccountsController.getAccountByAddress(bitcoin);
-  if (account?.address.toLowerCase() !== bitcoin) {
+  if (!account || account.address.toLowerCase() !== bitcoin) {
     return null;
   }
   const typeMatches =
@@ -685,8 +677,9 @@ export function solanaAccountForEarningAddress(earningAddress: string) {
   const account =
     Engine.context.AccountsController.getAccountByAddress(address);
   if (
-    account?.address !== address ||
-    account?.type !== SolAccountType.DataAccount
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
   ) {
     return null;
   }
@@ -702,8 +695,9 @@ export function stellarAccountForEarningAddress(earningAddress: string) {
   const account =
     Engine.context.AccountsController.getAccountByAddress(address);
   if (
-    account?.address !== address ||
-    account?.type !== XlmAccountType.Account
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
   ) {
     return null;
   }
@@ -1044,8 +1038,6 @@ export function claimTypeForRoute(route: ClaimRouteSlug): string {
       return 'rev_share';
     case 'social-follow-trade':
       return 'follow_trade';
-    case 'card-cashback':
-      return 'card_cashback';
     default: {
       const unhandled: never = route;
       return unhandled;

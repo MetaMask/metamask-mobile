@@ -1,6 +1,6 @@
 import { create, isAxiosError } from 'axios';
 import { CardService, getCardApiErrorBodyCode } from './CardService';
-import { CardApiError } from './cardHttpObservability';
+import { CardApiError } from './BaanxService';
 import { CardProviderIds } from '../provider-types';
 
 jest.mock('axios');
@@ -178,23 +178,6 @@ describe('CardService', () => {
         { ...linkRow, closedReason: null },
       ]);
       expect(result?.[0]).not.toHaveProperty('migration');
-    });
-
-    it('keeps a boolean cardholderVerified flag and drops any other value', async () => {
-      mockRequest.mockResolvedValue({
-        data: [
-          { ...linkRow, cardholderVerified: false },
-          { ...linkRow, provider: 'immersve', cardholderVerified: 'yes' },
-        ],
-        status: 200,
-      });
-
-      await expect(
-        createLinksService().getCardLinks('jwt'),
-      ).resolves.toStrictEqual([
-        { ...linkRow, cardholderVerified: false },
-        { ...linkRow, provider: 'immersve' },
-      ]);
     });
 
     it('returns an empty list for a profile without links', async () => {

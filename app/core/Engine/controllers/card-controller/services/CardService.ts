@@ -2,7 +2,7 @@ import { create, isAxiosError, type AxiosInstance } from 'axios';
 import Logger from '../../../../../util/Logger';
 import { CardProviderIds, type CardProviderId } from '../provider-types';
 import type { CardClientInfo, CardLink, CardLinkWriteBody } from '../types';
-import { CardApiError } from './cardHttpObservability';
+import { CardApiError } from './BaanxService';
 import type { CardApiSupportedRegionsResponse } from './card-supported-regions.types';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -55,9 +55,6 @@ const toCardLink = (item: unknown): CardLink | null => {
     migratedToProvider: stringOrNull(row.migratedToProvider),
     linkedAt: row.linkedAt,
     updatedAt: row.updatedAt,
-    ...(typeof row.cardholderVerified === 'boolean'
-      ? { cardholderVerified: row.cardholderVerified }
-      : {}),
   };
 };
 

@@ -9,8 +9,6 @@ import {
 import {
   CLAIM_BY_ID_CACHE_MAX_ENTRIES,
   REWARDS_MONEY_CONTROLLER_NAME,
-  type CardLedgerPage,
-  type CardSummaryResponse,
   type ClaimDto,
   type ClaimHistoryPageDto,
   type ClaimRouteSlug,
@@ -242,10 +240,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'registerReferee',
   'getEarningsSummary',
   'getEarningsLedger',
-  'getCardSummary',
-  'getCardLedger',
-  'getCardClaimHistory',
-  'getCardClaim',
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
@@ -689,51 +683,6 @@ export class RewardsMoneyController extends BaseController<
       writeCache: (cacheKey, payload) =>
         this.#writeEarningsSummary(cacheKey, payload),
     });
-  }
-
-  async getCardSummary(): Promise<CardSummaryResponse> {
-    if (this.#isDisabled()) {
-      throw new Error('Rewards Money is disabled');
-    }
-    return await this.messenger.call('RewardsMoneyDataService:getCardSummary');
-  }
-
-  async getCardLedger(
-    cursor?: string | null,
-    limit?: number,
-  ): Promise<CardLedgerPage> {
-    if (this.#isDisabled()) {
-      throw new Error('Rewards Money is disabled');
-    }
-    return await this.messenger.call(
-      'RewardsMoneyDataService:getCardLedger',
-      cursor,
-      limit,
-    );
-  }
-
-  async getCardClaimHistory(
-    cursor?: string | null,
-    limit?: number,
-  ): Promise<ClaimHistoryPageDto> {
-    if (this.#isDisabled()) {
-      throw new Error('Rewards Money is disabled');
-    }
-    return await this.messenger.call(
-      'RewardsMoneyDataService:getCardClaimHistory',
-      cursor,
-      limit,
-    );
-  }
-
-  async getCardClaim(id: string): Promise<ClaimDto> {
-    if (this.#isDisabled()) {
-      throw new Error('Rewards Money is disabled');
-    }
-    return await this.messenger.call(
-      'RewardsMoneyDataService:getCardClaim',
-      id,
-    );
   }
 
   async getEarningsLedger(
