@@ -6,7 +6,6 @@ import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import type { KalshiOnboardingClient } from '../../adapters/remote/KalshiOnboardingClient';
 import type { KalshiOnboardingState } from '../../contracts/v1/onboarding';
-import { isKalshiActivationRequired } from './kalshiActivationStatus';
 import {
   describeOnboardingFailure,
   type OnboardingFailure,
@@ -42,7 +41,7 @@ export interface KalshiActivation {
   completed: boolean;
   busy: boolean;
   failure?: KalshiActivationFailure;
-  /** Re-reads status without sending a write. */
+  /** Reads status without a write. The trigger decides when to refresh. */
   refresh: () => void;
   /** Registers the withdrawal address, then waits for `active`. */
   activate: () => void;
@@ -192,10 +191,8 @@ export const useKalshiActivation = (
       setCompleted(false);
       setFailure(undefined);
       setBusy(false);
-      return;
     }
-    void readStatus();
-  }, [enabled, readStatus]);
+  }, [enabled]);
 
   const wait = async (ms: number): Promise<void> => {
     await new Promise<void>((resolve) => {
@@ -380,7 +377,7 @@ export const useKalshiActivation = (
 
   return {
     status,
-    requiresActivation: enabled && isKalshiActivationRequired(status),
+    requiresActivation: enabled && status === 'approved',
     completed,
     busy,
     failure,

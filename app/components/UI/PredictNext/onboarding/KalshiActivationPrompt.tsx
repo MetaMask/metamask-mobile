@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
@@ -65,13 +65,12 @@ export const KalshiActivationPrompt = ({
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
 
-  const authProfile = resolveVenueAuthProfile(config);
-  const eligible =
+  const enabled =
     venueId === KALSHI_VENUE_ID &&
-    authProfile !== undefined &&
+    resolveVenueAuthProfile(config) !== undefined &&
     signedIn &&
-    walletUnlocked;
-  const enabled = eligible && kycApproved;
+    walletUnlocked &&
+    kycApproved;
   const client = useMemo(
     () => (enabled ? createKalshiOnboardingClient() : undefined),
     [enabled],
@@ -95,20 +94,15 @@ export const KalshiActivationPrompt = ({
   const { refresh } = activation;
   const isFocused = useIsFocused();
   const [dismissed, setDismissed] = useState(false);
-  const firstFocus = useRef(true);
 
-  // Re-read predict-api status when Home regains focus, matching the KYC
-  // banner beside it. The hook itself reads once when KYC first approves.
   useFocusEffect(
     useCallback(() => {
       setDismissed(false);
-      if (firstFocus.current) {
-        firstFocus.current = false;
-        return undefined;
+      if (enabled) {
+        refresh();
       }
-      refresh();
       return undefined;
-    }, [refresh]),
+    }, [enabled, refresh]),
   );
 
   if (

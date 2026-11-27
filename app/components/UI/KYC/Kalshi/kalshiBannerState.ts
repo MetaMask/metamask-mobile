@@ -59,14 +59,6 @@ export const getKalshiBannerState = (
   }
 };
 
-/**
- * The Kalshi banner state for the vendor step currently in the store.
- * `GetStartedBanner` owns the focus refresh of that step; consumers of this
- * selector only read the result, so they cost no extra kyc-api request.
- *
- * @param state - The app state.
- * @returns The banner state.
- */
 const selectKalshiBannerState = (state: RootState): KalshiBannerState => {
   const vendor =
     state.engine.backgroundState.VendorOnboardingController?.vendors?.[

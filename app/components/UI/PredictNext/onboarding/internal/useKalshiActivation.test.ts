@@ -62,19 +62,26 @@ describe('useKalshiActivation', () => {
     jest.useRealTimers();
   });
 
-  it('reads status once and requires activation only while approved', async () => {
+  it.each([
+    ['approved', true],
+    ['active', false],
+    ['none', false],
+  ] as const)('requires activation for %s: %s', async (status, expected) => {
     const { result, client } = build();
+    (client.getStatus as jest.Mock).mockResolvedValue(statusOf(status));
+    expect(result.current.requiresActivation).toBe(false);
 
+    act(() => result.current.refresh());
     await flush();
 
-    expect(client.getStatus).toHaveBeenCalledTimes(1);
-    expect(result.current.status).toBe('approved');
-    expect(result.current.requiresActivation).toBe(true);
+    expect(result.current.status).toBe(status);
+    expect(result.current.requiresActivation).toBe(expected);
   });
 
   it('does not read status or activate when disabled', async () => {
     const { result, client } = build({ enabled: false });
 
+    act(() => result.current.refresh());
     await flush();
     act(() => result.current.activate());
 
@@ -90,6 +97,7 @@ describe('useKalshiActivation', () => {
       .mockResolvedValueOnce(statusOf('approved'))
       .mockResolvedValueOnce(statusOf('active'));
 
+    act(() => result.current.refresh());
     await flush();
     act(() => result.current.activate());
     await flush();
@@ -113,6 +121,7 @@ describe('useKalshiActivation', () => {
       .mockResolvedValueOnce(statusOf('approved'))
       .mockResolvedValueOnce(statusOf('active'));
 
+    act(() => result.current.refresh());
     await flush();
     act(() => result.current.activate());
     await flush();
@@ -137,6 +146,7 @@ describe('useKalshiActivation', () => {
       return statusOf('approved');
     });
 
+    act(() => result.current.refresh());
     await flush();
     act(() => result.current.activate());
     await flush();
@@ -165,6 +175,7 @@ describe('useKalshiActivation', () => {
       return statusOf('approved');
     });
 
+    act(() => result.current.refresh());
     await flush();
     act(() => result.current.activate());
     await flush();

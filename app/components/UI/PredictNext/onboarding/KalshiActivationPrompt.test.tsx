@@ -11,6 +11,7 @@ const mockState = {
   signedIn: true,
   walletUnlocked: true,
   kycApproved: false,
+  isFocused: true,
 };
 
 const mockClient: KalshiActivationApi = {
@@ -19,7 +20,6 @@ const mockClient: KalshiActivationApi = {
 };
 const mockCreateClient = jest.fn(() => mockClient);
 const mockInvalidateQueries = jest.fn(async (_arg: unknown) => undefined);
-let focusCallback: (() => void | (() => void)) | undefined;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
@@ -40,7 +40,6 @@ jest.mock('../config/predictConfig', () => ({
   resolveVenueAuthProfile: () => ({ profile: 'test' }),
 }));
 jest.mock('./internal/kalshiActivationStatus', () => ({
-  ...jest.requireActual('./internal/kalshiActivationStatus'),
   selectIsKalshiKycApproved: () => mockState.kycApproved,
 }));
 jest.mock('../../../../hooks/useNetworkTier', () => ({
@@ -60,9 +59,14 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 jest.mock('@react-navigation/native', () => ({
-  useIsFocused: () => true,
-  useFocusEffect: (callback: () => void | (() => void)) => {
-    focusCallback = callback;
+  useIsFocused: (): boolean => mockState.isFocused,
+  useFocusEffect: (callback: () => void | (() => void)): void => {
+    jest.requireActual('react').useEffect(() => {
+      if (mockState.isFocused) {
+        return callback();
+      }
+      return undefined;
+    }, [callback, mockState.isFocused]);
   },
 }));
 jest.mock('./internal/createKalshiOnboardingClient', () => ({
@@ -88,7 +92,7 @@ describe('KalshiActivationPrompt', () => {
     mockState.kycApproved = true;
     mockCreateClient.mockClear();
     mockInvalidateQueries.mockClear();
-    focusCallback = undefined;
+    mockState.isFocused = true;
     (mockClient.getStatus as jest.Mock).mockReset();
     (mockClient.getStatus as jest.Mock).mockResolvedValue({
       state: 'approved',
@@ -102,6 +106,37 @@ describe('KalshiActivationPrompt', () => {
     expect(mockCreateClient).toHaveBeenCalledTimes(1);
     expect(mockClient.getStatus).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeTruthy();
+  });
+
+  it('opens when KYC approves while Home is focused', async () => {
+    mockState.kycApproved = false;
+    const { rerender } = renderPrompt();
+    await flush();
+
+    mockState.kycApproved = true;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    await flush();
+
+    expect(mockClient.getStatus).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('waits until Home is focused to check activation', async () => {
+    mockState.isFocused = false;
+    const { rerender } = renderPrompt();
+    await flush();
+    expect(mockClient.getStatus).not.toHaveBeenCalled();
+
+    mockState.isFocused = true;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    await flush();
+
+    expect(mockClient.getStatus).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('stays closed until KYC is approved', async () => {
@@ -177,20 +212,37 @@ describe('KalshiActivationPrompt', () => {
   });
 
   it('does not reopen after Not now until Home regains focus', async () => {
-    renderPrompt();
+    const { rerender } = renderPrompt();
     await flush();
-    await act(async () => {
-      focusCallback?.();
-    });
 
     fireEvent.press(screen.getByTestId(KalshiDemoOnboardingTestIds.NOT_NOW));
     expect(screen.queryByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeNull();
 
-    await act(async () => {
-      focusCallback?.();
-    });
+    mockState.isFocused = false;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    mockState.isFocused = true;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
     await flush();
 
-    expect(screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeTruthy();
+    expect(mockClient.getStatus).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('stays closed when activation completes away from Home', async () => {
+    const { rerender } = renderPrompt();
+    await flush();
+    fireEvent.press(screen.getByTestId(KalshiDemoOnboardingTestIds.NOT_NOW));
+    (mockClient.getStatus as jest.Mock).mockResolvedValue({ state: 'active' });
+
+    mockState.isFocused = false;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    mockState.isFocused = true;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    await flush();
+
+    expect(screen.queryByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeNull();
+    expect(mockInvalidateQueries).toHaveBeenCalled();
   });
 });

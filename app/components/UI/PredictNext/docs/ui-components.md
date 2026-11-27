@@ -46,6 +46,12 @@ Do not add context merely to avoid passing one or two ordinary props. Do not cre
 
 Build the parts and variants required by the active vertical slice. Do not create widget registries, universal section schemas, speculative variants, or extension APIs for hypothetical callers.
 
+### Kalshi activation readiness
+
+`KalshiActivationPrompt` refreshes predict-api status when Home gains focus or KYC becomes approved while Home is focused. The PredictNext KYC selector reads the vendor's `decision` / `approved` state directly; the API's `approved` state then means withdrawal-wallet activation is pending, while `active` means it is complete.
+
+The trigger owns refresh timing and dismissal. `useKalshiActivation` owns status reads, registration, and polling, with no automatic status read on mount.
+
 ### Withdrawal privacy and recovery
 
 Withdrawal entry, confirmation, and status mask account balances and payout details with MMDS `SensitiveText` while privacy mode is on. User-entered amounts remain visible during entry. An expired quote returns to amount entry with the amount retained; Continue requests a new quote before another commit. Other commit errors first read the submitted preview's receipt. A missing preview returns to entry only when that read also confirms no operation. If recovery fails otherwise, the screen retains that preview and blocks Back and Done. Check withdrawal retries the same preview, never a new withdrawal. A lock or identity change does not start recovery with the replacement session.
