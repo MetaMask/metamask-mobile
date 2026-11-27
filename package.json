@@ -721,6 +721,7 @@
     "@expo/metro-config": "~57.0.0",
     "@google/generative-ai": "^0.24.1",
     "@gorhom/bottom-sheet": "5.2.8",
+    "@jest/test-sequencer": "^29.7.0",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
     "@margelo/hermes-profile-transformer": "^0.0.10",

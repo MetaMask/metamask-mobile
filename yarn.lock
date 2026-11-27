@@ -38392,6 +38392,7 @@ __metadata:
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
     "@img/sharp-libvips-linux-x64": "npm:^1.2.1"
     "@img/sharp-linux-x64": "npm:^0.34.3"
+    "@jest/test-sequencer": "npm:^29.7.0"
     "@keystonehq/bc-ur-registry-eth": "npm:^0.21.0"
     "@keystonehq/ur-decoder": "npm:^0.12.2"
     "@lavamoat/allow-scripts": "npm:^3.0.4"
