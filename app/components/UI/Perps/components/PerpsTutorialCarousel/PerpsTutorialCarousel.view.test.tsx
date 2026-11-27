@@ -18,7 +18,6 @@ import { renderPerpsView } from '../../../../../../tests/component-view/renderer
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import PerpsTutorialCarousel from './PerpsTutorialCarousel';
 
-const TIMEOUT_MS = 5000;
 const CONTINUE_DEBOUNCE_MS = 120;
 
 const firstTimeOverrides = {
@@ -97,11 +96,7 @@ describe('PerpsTutorialCarousel', () => {
     const { navigationDispatch } = setupFirstTimeTutorial();
 
     expect(
-      await screen.findByText(
-        strings('perps.tutorial.what_are_perps.title'),
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByText(strings('perps.tutorial.what_are_perps.title')),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON),
@@ -120,11 +115,7 @@ describe('PerpsTutorialCarousel', () => {
     const { navigationDispatch } = setupFirstTimeTutorial();
 
     expect(
-      await screen.findByText(
-        strings('perps.tutorial.what_are_perps.title'),
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByText(strings('perps.tutorial.what_are_perps.title')),
     ).toBeOnTheScreen();
 
     const tutorialScreenTitles = [
@@ -140,9 +131,7 @@ describe('PerpsTutorialCarousel', () => {
         screen.getByTestId(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON),
       );
       await waitForContinueDebounce();
-      expect(
-        await screen.findByText(title, {}, { timeout: TIMEOUT_MS }),
-      ).toBeOnTheScreen();
+      expect(await screen.findByText(title)).toBeOnTheScreen();
     }
 
     await waitFor(() => {

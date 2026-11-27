@@ -47,7 +47,6 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../Perps.testIds';
 
-const TIMEOUT_MS = 5000;
 const formIds = PerpsProOrderFormSelectorsIDs;
 const panelIds = PerpsProMarketViewSelectorsIDs;
 
@@ -123,12 +122,11 @@ const renderProMarketScenario = (
   return result;
 };
 
-const findPositionsPanel = () =>
-  screen.findByTestId(panelIds.POSITIONS_PANEL, {}, { timeout: TIMEOUT_MS });
+const findPositionsPanel = () => screen.findByTestId(panelIds.POSITIONS_PANEL);
 
 const openOrdersTab = async () => {
   fireEvent.press(screen.getByTestId(panelIds.POSITIONS_PANEL_TAB_ORDERS));
-  return screen.findByTestId(panelIds.ORDERS_LIST, {}, { timeout: TIMEOUT_MS });
+  return screen.findByTestId(panelIds.ORDERS_LIST);
 };
 
 const applySideFilter = async (side: 'all' | 'long' | 'short') => {
@@ -136,8 +134,6 @@ const applySideFilter = async (side: 'all' | 'long' | 'short') => {
   fireEvent.press(
     await screen.findByTestId(
       `${panelIds.POSITIONS_SIDE_FILTER_SHEET}-option-${side}`,
-      {},
-      { timeout: TIMEOUT_MS },
     ),
   );
 };
@@ -185,13 +181,9 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       await findPositionsPanel();
       const ethRow = await screen.findByTestId(
         getPerpsProPositionRowSelector('ETH'),
-        {},
-        { timeout: TIMEOUT_MS },
       );
       const btcRow = await screen.findByTestId(
         getPerpsProPositionRowSelector('BTC'),
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       const ethScope = within(ethRow);
@@ -248,14 +240,11 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         ).getByText('BTC'),
       );
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(panelIds.HEADER_SYMBOL)).toHaveTextContent(
-            'Bitcoin',
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(panelIds.HEADER_SYMBOL)).toHaveTextContent(
+          'Bitcoin',
+        );
+      });
     },
   );
 
@@ -275,41 +264,28 @@ describeForPlatforms('Perps Pro Market Flow', () => {
 
       const ethOrderRow = await screen.findByTestId(
         getPerpsProOrderRowSelector('ETH', 0),
-        {},
-        { timeout: TIMEOUT_MS },
       );
       expect(within(ethOrderRow).getByText('ETH')).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(
-          getPerpsProOrderRowSelector('BTC', 1),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(getPerpsProOrderRowSelector('BTC', 1)),
       ).toBeOnTheScreen();
 
       fireEvent.press(within(ethOrderRow).getByTestId(panelIds.ORDER_CANCEL));
 
-      await waitFor(
-        () => {
-          expect(cancelOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              orderId: ethLimitOrder.orderId,
-              symbol: 'ETH',
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(cancelOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: ethLimitOrder.orderId,
+            symbol: 'ETH',
+          }),
+        );
+      });
       await flushAsyncSideEffects();
 
       fireEvent.press(screen.getByTestId(panelIds.ORDERS_CANCEL_ALL));
 
       expect(
-        await screen.findByTestId(
-          PerpsCancelAllOrdersViewSelectorsIDs.SHEET,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsCancelAllOrdersViewSelectorsIDs.SHEET),
       ).toBeOnTheScreen();
       await act(async () => {
         fireEvent.press(
@@ -319,12 +295,9 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         );
       });
 
-      await waitFor(
-        () => {
-          expect(cancelOrders).toHaveBeenCalled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(cancelOrders).toHaveBeenCalled();
+      });
       await flushAsyncSideEffects();
     },
   );
@@ -366,56 +339,42 @@ describeForPlatforms('Perps Pro Market Flow', () => {
         return { success: true, orderId: 'component-view-order' };
       });
 
-      const sizeInput = await screen.findByTestId(
-        formIds.SIZE_INPUT,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      const sizeInput = await screen.findByTestId(formIds.SIZE_INPUT);
       fireEvent.press(screen.getByTestId(formIds.DIRECTION_SHORT));
       fireEvent.changeText(sizeInput, '100');
       fireEvent(sizeInput, 'blur');
 
       let finalValidation: Promise<unknown> | undefined;
-      await waitFor(
-        () => {
-          const validationCallIndex = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'market' && params.isBuy === false,
-          );
-          expect(validationCallIndex).toBeGreaterThanOrEqual(0);
-          finalValidation = validateOrder.mock.results[validationCallIndex]
-            ?.value as Promise<unknown>;
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const validationCallIndex = validateOrder.mock.calls.findIndex(
+          ([params]) => params.orderType === 'market' && params.isBuy === false,
+        );
+        expect(validationCallIndex).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[validationCallIndex]
+          ?.value as Promise<unknown>;
+      });
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(formIds.PLACE_ORDER_BUTTON),
-          ).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(formIds.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled();
+      });
 
       await act(async () => {
         fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
       });
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'market',
-              isBuy: false,
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'market',
+            isBuy: false,
+          }),
+        );
+      });
       await flushAsyncSideEffects();
     },
   );
@@ -428,8 +387,6 @@ describeForPlatforms('Perps Pro Market Flow', () => {
 
       const ethRow = await screen.findByTestId(
         getPerpsProPositionRowSelector('ETH'),
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       fireEvent.press(within(ethRow).getByTestId(panelIds.POSITION_CLOSE));
@@ -437,8 +394,6 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       expect(
         await screen.findByTestId(
           getRouteProbeTestId(Routes.PERPS.CLOSE_POSITION),
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     },
@@ -458,20 +413,10 @@ describeForPlatforms('Perps Pro Market Flow', () => {
       });
       await findPositionsPanel();
 
-      fireEvent.press(
-        await screen.findByTestId(
-          panelIds.POSITIONS_CLOSE_ALL,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
+      fireEvent.press(await screen.findByTestId(panelIds.POSITIONS_CLOSE_ALL));
 
       expect(
-        await screen.findByTestId(
-          panelIds.GEO_BLOCK_TOOLTIP,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(panelIds.GEO_BLOCK_TOOLTIP),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsCloseAllPositionsViewSelectorsIDs.SHEET),

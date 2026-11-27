@@ -1246,12 +1246,10 @@ describe('PredictOrderFlow', () => {
 
     await reviewOrder();
 
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-        ).toBeOnTheScreen(),
-      { timeout: 3000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+      ).toBeOnTheScreen(),
     );
     expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
     expect(

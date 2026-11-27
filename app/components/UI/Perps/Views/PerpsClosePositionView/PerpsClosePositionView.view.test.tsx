@@ -39,8 +39,6 @@ import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import PerpsClosePositionView from './PerpsClosePositionView';
 
-const TIMEOUT_MS = 5000;
-
 const CLOSE_POSITION_JOURNEY_START_ROUTE = 'PerpsClosePositionJourneyStart';
 const CLOSE_POSITION_JOURNEY_START_PROBE = 'route-close-position-journey-start';
 
@@ -160,8 +158,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -207,8 +203,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
     await waitFor(() => {
       expect(confirmButton).not.toBeDisabled();
@@ -268,8 +262,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -327,8 +319,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -384,8 +374,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -452,8 +440,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -564,8 +550,6 @@ describe('PerpsClosePositionView', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toHaveTextContent('--');
 
@@ -649,8 +633,6 @@ describe('PerpsClosePositionView', () => {
 
     const confirmButton = await screen.findByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     await waitFor(() => {
@@ -710,8 +692,6 @@ describe('PerpsClosePositionView', () => {
 
       const confirmButton = await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       await waitFor(() => {
         expect(confirmButton).not.toBeDisabled();
@@ -725,11 +705,7 @@ describe('PerpsClosePositionView', () => {
       });
 
       expect(
-        await screen.findByText(
-          strings('perps.errors.postOnlyWindow'),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByText(strings('perps.errors.postOnlyWindow')),
       ).toBeOnTheScreen();
       expect(closePosition).toHaveBeenCalledWith(
         expect.objectContaining({ orderType }),

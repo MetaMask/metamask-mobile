@@ -154,9 +154,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     // Trending tokens are in the Crypto tab
     await navigateToCryptoTab(getByTestId);
 
-    await waitFor(async () => {
-      expect(await findByText('Ethereum')).toBeOnTheScreen();
-    });
+    expect(await findByText('Ethereum')).toBeOnTheScreen();
 
     await assertTrendingTokenRowsVisibility({
       queryByTestId,
