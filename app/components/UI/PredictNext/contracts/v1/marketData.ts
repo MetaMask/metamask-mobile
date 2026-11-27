@@ -1,9 +1,11 @@
 import {
   array,
   coerce,
+  defaulted,
   enums,
   literal,
   mask,
+  nullable,
   number,
   object,
   optional,
@@ -37,6 +39,8 @@ const entityId = refine(
 const hexColor = refine(string(), 'PredictHexColor', (value) =>
   /^#[0-9a-f]{6}$/i.test(value),
 );
+const nonEmptyString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
 const settlementSourceName = refine(
   string(),
   'PredictSettlementSourceName',
@@ -102,6 +106,54 @@ const sportsContextSchema = object({
   competition: optional(object({ id: entityId, label: string() })),
   game: optional(gameSchema),
 });
+
+const cryptoUpDownWindowSchema = object({
+  kind: literal('crypto_up_down'),
+  coin: nonEmptyString('PredictWindowCoin'),
+  // Kalshi leaves the price to beat unset just after the open. A missing key
+  // reads as "not set yet", the same as an explicit null.
+  priceToBeat: defaulted(nullable(amount), null),
+  // Null until Kalshi determines the market (4 to 10 s after the close).
+  settledPrice: optional(nullable(amount)),
+  priceDecimals: refine(
+    number(),
+    'PredictWindowPriceDecimals',
+    (value) => Number.isInteger(value) && value >= 0 && value <= 12,
+  ),
+  indexName: nonEmptyString('PredictWindowIndexName'),
+  averagingSeconds: refine(
+    number(),
+    'PredictWindowAveragingSeconds',
+    (value) => Number.isInteger(value) && value > 0,
+  ),
+  next: optional(object({ eventId: entityId, opensAt: timestamp })),
+});
+
+/**
+ * The Event's timed window. Presentation only, so a missing, unknown or
+ * malformed window is dropped and the Event stays a standard Event, rather
+ * than one bad field rejecting the whole Feed. To support a new window kind,
+ * add its struct here and a branch to `getEventLiveWindow`.
+ */
+const eventWindowSchema = coerce(
+  optional(cryptoUpDownWindowSchema),
+  unknown(),
+  (value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    try {
+      return mask(value, cryptoUpDownWindowSchema);
+    } catch (error) {
+      DevLogger.log(
+        '[PredictNext] Dropped unknown or malformed Event window; the Event renders as a standard Event',
+        error instanceof Error ? error.message : error,
+      );
+      return undefined;
+    }
+  },
+);
 
 const settlementSourceSchema = object({
   name: settlementSourceName,
@@ -304,6 +356,7 @@ const eventSchema = object({
   volume24h: optional(amount),
   imageUrl: optional(httpsUrl),
   sports: optional(sportsContextSchema),
+  window: eventWindowSchema,
   settlementSources: optional(array(settlementSourceSchema)),
   markets: nonEmptyMarkets,
 });

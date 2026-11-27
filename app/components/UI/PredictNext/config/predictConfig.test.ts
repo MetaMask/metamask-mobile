@@ -1,6 +1,7 @@
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
 import {
   DEFAULT_PREDICT_CONFIG,
+  isCryptoUpDownEnabled,
   parsePredictConfig,
   resolveVenueAuthProfile,
 } from './predictConfig';
@@ -153,4 +154,64 @@ describe('resolveVenueAuthProfile', () => {
 
     expect(resolveVenueAuthProfile(config)).toBeUndefined();
   });
+});
+
+describe('crypto Up/Down flag', () => {
+  const configWith = (
+    cryptoUpDown: unknown,
+    overrides: { enabled?: boolean; kalshi?: boolean } = {},
+  ) =>
+    parsePredictConfig({
+      enabled: overrides.enabled ?? true,
+      venues: {
+        polymarket: { enabled: false },
+        kalshi: { enabled: overrides.kalshi ?? true, cryptoUpDown },
+      },
+      venueSelection: { enabled: false },
+    });
+
+  it('is off by default', () => {
+    expect(isCryptoUpDownEnabled(DEFAULT_PREDICT_CONFIG)).toBe(false);
+  });
+
+  it('is off when the flag is absent', () => {
+    expect(isCryptoUpDownEnabled(configWith(undefined))).toBe(false);
+  });
+
+  it('is on when the flag is on', () => {
+    const config = configWith({ enabled: true });
+
+    expect(config.venues.kalshi.cryptoUpDown).toEqual({ enabled: true });
+    expect(isCryptoUpDownEnabled(config)).toBe(true);
+  });
+
+  it('is off when the flag is off, as its own kill switch', () => {
+    const config = configWith({ enabled: false });
+
+    expect(config.venues.kalshi.enabled).toBe(true);
+    expect(isCryptoUpDownEnabled(config)).toBe(false);
+  });
+
+  it('is off when the Kalshi Venue is off', () => {
+    expect(
+      isCryptoUpDownEnabled(configWith({ enabled: true }, { kalshi: false })),
+    ).toBe(false);
+  });
+
+  it('is off when Predict is off', () => {
+    expect(
+      isCryptoUpDownEnabled(configWith({ enabled: true }, { enabled: false })),
+    ).toBe(false);
+  });
+
+  it.each([{ enabled: 'true' }, 'on', 1, null, {}])(
+    'turns only Up/Down off for a malformed flag %p',
+    (value) => {
+      const config = configWith(value);
+
+      expect(config.venues.kalshi.enabled).toBe(true);
+      expect(config.enabled).toBe(true);
+      expect(isCryptoUpDownEnabled(config)).toBe(false);
+    },
+  );
 });
