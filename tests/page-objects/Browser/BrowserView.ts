@@ -211,8 +211,15 @@ class Browser {
    * submitAndroidUrlBar). iOS: clear + fill + addValue('\n') on the focused
    * field — bulk fill is fast for long URLs; fill('\n') would wipe the URL and
    * tapKeyboardReturnKey('Go') is too slow on iOS CI.
+   *
+   * @param options.skipUrlEditorDismissal - When true, leave the editor alone
+   * after submit. Phishing / redirect flows need this: Cancel can unmount under
+   * the phishing modal and a forced dismiss burns ~10–15s of the suite budget.
    */
-  private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
+  private async navigateToUrlViaUrlBarAppium(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     await this.focusUrlBarAppium();
 
     await Gestures.replaceText(this.urlBarTextInput, url, {
@@ -225,8 +232,11 @@ class Browser {
       await Gestures.appendText(this.urlBarTextInput, '\n');
     }
 
-    // Dismiss the editor so subsequent reads/taps see the page.
-    await this.dismissUrlEditorIfOpen();
+    // Dismiss the editor so subsequent reads/taps see the page — unless the
+    // caller opted out (e.g. phishing redirect where Cancel races the modal).
+    if (!options.skipUrlEditorDismissal) {
+      await this.dismissUrlEditorIfOpen();
+    }
   }
 
   /**
@@ -242,9 +252,12 @@ class Browser {
     await sleep(settleMs);
   }
 
-  private async typeUrlAppium(url: string): Promise<void> {
+  private async typeUrlAppium(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     if (this.requiresUrlBarNavigation(url)) {
-      await this.navigateToUrlViaUrlBarAppium(url);
+      await this.navigateToUrlViaUrlBarAppium(url, options);
       return;
     }
     await this.navigateToUrlViaDeeplink(url);
@@ -313,6 +326,12 @@ class Browser {
    * unmounted while the URL editor is focused.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
+    // Phishing modal covers the URL editor; Cancel is gone and a waitAndTap
+    // here only burns the suite budget. Leave dismissal to the phishing flow.
+    if (await Utilities.isElementVisible(this.backToSafetyButton, 500)) {
+      return;
+    }
+
     if (!(await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000))) {
       return;
     }
@@ -648,7 +667,13 @@ class Browser {
       await this.closeAllBrowserTabsIfOpen();
     }
 
-    await this.typeUrlAppium(url);
+    // Pass skip through `typeUrlAppium` so the http:// URL-bar path honors it.
+    // Previously only the post-`typeUrlAppium` dismiss below was gated, while
+    // `navigateToUrlViaUrlBarAppium` always called `dismissUrlEditorIfOpen`
+    // (phishing redirect races Cancel under the modal and burns suite budget).
+    await this.typeUrlAppium(url, {
+      skipUrlEditorDismissal: options.skipUrlEditorDismissal,
+    });
 
     // After URL-bar navigation, `onSubmitEditing` may leave the URL editor
     // focused so top-bar actions stay hidden. Deeplink navigation does not
