@@ -2,10 +2,17 @@ import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
+  buildOutcome,
   loadPriorIndex,
+  queueDeferredDaysAsGaps,
   renderBuildSummary,
 } from './flaky-build-history-index';
-import { INDEX_VERSION, emptyIndex, mergeDayHits } from './flaky-history-index';
+import {
+  INDEX_VERSION,
+  emptyIndex,
+  mergeDayHits,
+  daysToWalk,
+} from './flaky-history-index';
 
 // Virtual because @actions/* is installed under .github/scripts, which the
 // repo-wide jest run does not have on its resolution path.
@@ -139,5 +146,64 @@ describe('renderBuildSummary', () => {
     });
 
     expect(summary).toContain('| Index window | empty |');
+  });
+});
+
+describe('queueDeferredDaysAsGaps', () => {
+  it('queues deferred days older than the newest walked day', () => {
+    const index = queueDeferredDaysAsGaps(populated, [
+      '2026-09-18',
+      '2026-09-19',
+    ]);
+
+    expect(index.gapDays).toStrictEqual(['2026-09-18', '2026-09-19']);
+  });
+
+  it('leaves days newer than the newest walked day to the next fresh walk', () => {
+    const index = queueDeferredDaysAsGaps(populated, ['2026-09-21']);
+
+    expect(index.gapDays).toStrictEqual([]);
+  });
+
+  it('queues nothing when no day was walked', () => {
+    expect(queueDeferredDaysAsGaps(emptyIndex(), ['2026-09-19'])).toStrictEqual(
+      emptyIndex(),
+    );
+  });
+
+  it('lets the next build pick the deferred days up as repairs', () => {
+    const index = queueDeferredDaysAsGaps(populated, ['2026-09-10']);
+
+    expect(daysToWalk({ index, today: '2026-09-23' })).toStrictEqual([
+      '2026-09-10',
+      '2026-09-21',
+      '2026-09-22',
+    ]);
+  });
+});
+
+describe('buildOutcome', () => {
+  it('is fine when at least one walked day finished', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 2, runsScanned: 400 }),
+    ).toBe('ok');
+  });
+
+  it('is fine when nothing needed walking', () => {
+    expect(
+      buildOutcome({ attemptedDays: 0, gapDays: 0, runsScanned: 0 }),
+    ).toBe('ok');
+  });
+
+  it('publishes with a warning when every day was incomplete but runs were read', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 3, runsScanned: 474 }),
+    ).toBe('warn');
+  });
+
+  it('fails when every day was incomplete and no run could be read', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 3, runsScanned: 0 }),
+    ).toBe('fail');
   });
 });

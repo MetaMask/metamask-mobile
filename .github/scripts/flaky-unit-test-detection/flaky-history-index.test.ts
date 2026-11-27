@@ -242,7 +242,25 @@ describe('daysToWalk', () => {
     expect(days).toStrictEqual(['2026-09-18', '2026-09-20']);
   });
 
-  it('forgets gap days older than the backfill window', () => {
+  // A night that cannot finish queues its oldest days as gaps; they have to
+  // stay repairable past the cold-start window or gapDays never drains.
+  it('repairs gap days older than the backfill window, newest first', () => {
+    const withGaps = ['2026-08-01', '2026-08-20', '2026-08-10'].reduce(
+      markGapDay,
+      merge(emptyIndex(), '2026-09-20', [hit()]),
+    );
+
+    expect(daysToWalk({ index: withGaps, today: '2026-09-21' })).toStrictEqual([
+      '2026-08-01',
+      '2026-08-10',
+      '2026-08-20',
+    ]);
+    expect(
+      daysToWalk({ index: withGaps, today: '2026-09-21', maxBackfill: 2 }),
+    ).toStrictEqual(['2026-08-10', '2026-08-20']);
+  });
+
+  it('forgets gap days older than the index retention', () => {
     const index = markGapDay(
       merge(emptyIndex(), '2026-09-20', [hit()]),
       '2026-01-05',

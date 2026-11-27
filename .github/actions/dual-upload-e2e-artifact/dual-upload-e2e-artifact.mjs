@@ -24,6 +24,8 @@ const hasSuccessfulUpload = (outcomePrefix) =>
 const isNamespaceRunnerProvider = () =>
   getEnv('RUNNER_PROVIDER').includes('namespace');
 
+const isFalse = (name) => getEnv(name).toLowerCase() === 'false';
+
 const getRequiredStoreConfigs = () => {
   const skipGithub = getEnv('SKIP_GITHUB').toLowerCase() === 'true';
 
@@ -36,7 +38,32 @@ const getRequiredStoreConfigs = () => {
     return STORE_CONFIGS.filter(({ outcomePrefix }) => outcomePrefix === 'NS');
   }
 
+  // GitHub stays attempted and retried; it just stops being able to fail the
+  // step once Namespace, the store the workflow reads back, has the artifact.
+  if (isFalse('GITHUB_REQUIRED')) {
+    return STORE_CONFIGS.filter(({ outcomePrefix }) => outcomePrefix === 'NS');
+  }
+
   return STORE_CONFIGS;
+};
+
+const warnAboutOptionalStores = (requiredConfigs) => {
+  const optionalConfigs = STORE_CONFIGS.filter(
+    (config) => !requiredConfigs.includes(config),
+  );
+
+  for (const { outcomePrefix, storeName } of optionalConfigs) {
+    const outcomes = getStoreOutcomes(outcomePrefix);
+    const attempted = outcomes.some(
+      (outcome) => outcome && outcome !== 'skipped',
+    );
+
+    if (attempted && !hasSuccessfulUpload(outcomePrefix)) {
+      console.log(
+        `::warning::Optional ${storeName} artifact upload failed after retries; continuing because the required stores succeeded.`,
+      );
+    }
+  }
 };
 
 const wait = (milliseconds) =>
@@ -58,23 +85,24 @@ const runRetryWait = async () => {
     );
   }
 
+  const storeName = getEnv('STORE_NAME', 'Namespace');
   const failureText = attempt > 2 ? 'failed again' : 'failed';
   console.log(
-    `::warning::Namespace upload ${failureText}; retrying after ${retryWaitSeconds}s`,
+    `::warning::${storeName} upload ${failureText}; retrying after ${retryWaitSeconds}s`,
   );
 
   await wait(retryWaitSeconds * 1000);
 };
 
 const runRequireBothStores = () => {
-  const results = getRequiredStoreConfigs().map(
-    ({ outcomePrefix, storeName }) => ({
-      storeName,
-      ok: hasSuccessfulUpload(outcomePrefix),
-    }),
-  );
+  const requiredConfigs = getRequiredStoreConfigs();
+  const results = requiredConfigs.map(({ outcomePrefix, storeName }) => ({
+    storeName,
+    ok: hasSuccessfulUpload(outcomePrefix),
+  }));
 
   if (results.every(({ ok }) => ok)) {
+    warnAboutOptionalStores(requiredConfigs);
     console.log(
       `Uploaded to ${results.map(({ storeName }) => storeName).join(' and ')} store${results.length === 1 ? '' : 's'}`,
     );
