@@ -9,7 +9,6 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import {
   KnownCaipNamespace,
   toCaipAccountId,
