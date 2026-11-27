@@ -12,6 +12,7 @@ import {
 } from '../../Predict.testIds';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -541,6 +542,16 @@ describe('PredictFeed', () => {
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('navigates to the wallet tab when back is pressed from the root', () => {
+      mockNavigation.canGoBack.mockReturnValueOnce(false);
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('renders header buttons without glass capsules when the brand refresh is off', () => {

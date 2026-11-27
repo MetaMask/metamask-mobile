@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { PerpsMode } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PERPS_LEARN_MORE_URL } from '../../../../../constants/urls';
 import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
 } from './PerpsTutorialCarousel';
@@ -291,6 +292,21 @@ describe('PerpsTutorialCarousel', () => {
         'perps-tutorial-continue-button',
       );
       expect(continueButton).toBeOnTheScreen();
+    });
+
+    it('opens the learn-more URL on the flat browser tab', async () => {
+      render(<PerpsTutorialCarousel />);
+      await navigateToScreen(5);
+
+      fireEvent.press(screen.getByTestId('perps-tutorial-learn-more-button'));
+
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          newTabUrl: PERPS_LEARN_MORE_URL,
+          fromPerps: true,
+        }),
+      );
     });
 
     it('should mark tutorial as completed when finishing tutorial', async () => {

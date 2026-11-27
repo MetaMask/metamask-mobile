@@ -12,9 +12,15 @@ import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
 import {
   renderPredictHomeView,
+  renderPredictHomeViewWithRoutes,
   renderPredictMarketListRoute,
 } from '../../../../../../tests/component-view/renderers/predictHome';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictHomeSelectorsIDs,
   PredictMarketListSelectorsIDs,
@@ -140,6 +146,24 @@ describe('PredictHome', () => {
       expect(
         queryByTestId(PredictHomeSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('navigation', () => {
+    it('returns to Wallet home with an empty flat payload when the back stack is empty', async () => {
+      const view = renderPredictHomeViewWithRoutes();
+
+      fireEvent.press(
+        await view.findByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(
+        await view.findByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
+      ).toBeOnTheScreen();
+      expect(
+        (await view.findByTestId(getRouteParamsProbeTestId(Routes.WALLET.HOME)))
+          .props.children,
+      ).toBeUndefined();
     });
   });
 
