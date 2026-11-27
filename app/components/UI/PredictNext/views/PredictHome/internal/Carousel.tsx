@@ -6,7 +6,6 @@ import { FlashList, ListRenderItem, ViewToken } from '@shopify/flash-list';
 
 /** Default space between cards. */
 const DEFAULT_GAP = 12;
-const CARD_HEIGHT = 220;
 const SKELETON_PLACEHOLDER_COUNT = 3;
 /** A card is the active page once at least half of it is on screen. */
 const DEFAULT_VIEWABILITY_CONFIG: ViewabilityConfig = {
@@ -34,11 +33,6 @@ export interface CarouselProps<T> {
    * at a time.
    */
   cardWidth: number;
-  /**
-   * Minimum height of each card slot, in points.
-   * @default 220
-   */
-  cardHeight?: number;
   /**
    * Space between cards, in points.
    * @default 12
@@ -72,7 +66,6 @@ export function Carousel<T>({
   idPrefix,
   skeletonCount = SKELETON_PLACEHOLDER_COUNT,
   cardWidth,
-  cardHeight = CARD_HEIGHT,
   gap = DEFAULT_GAP,
   renderFooter,
   viewabilityConfig = DEFAULT_VIEWABILITY_CONFIG,
@@ -80,6 +73,12 @@ export function Carousel<T>({
 }: CarouselProps<T>) {
   const tw = useTailwind();
   const [visiblePage, setVisiblePage] = useState(0);
+  const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+
+  if (isLoading !== prevIsLoading) {
+    setPrevIsLoading(isLoading);
+    setVisiblePage(0);
+  }
 
   const skeletonData = useMemo(
     () => Array.from<T | undefined>({ length: skeletonCount }),
@@ -105,6 +104,7 @@ export function Carousel<T>({
 
   const list = (
     <FlashList
+      key={isLoading ? 'loading' : 'loaded'}
       data={displayData}
       renderItem={({ item, index }) => {
         const isLastItem = index === displayData.length - 1;
@@ -113,10 +113,9 @@ export function Carousel<T>({
             borderColor={BoxBorderColor.BorderDefault}
             style={tw.style({
               width: isLastItem ? cardWidth : slotWidth,
-              minHeight: cardHeight,
               ...(isLastItem ? {} : { paddingRight: gap }),
             })}
-            twClassName="rounded-2xl overflow-hidden"
+            twClassName="rounded-[20px] overflow-hidden"
             testID={`${idPrefix}-card-${index}`}
           >
             {isLoading ? (

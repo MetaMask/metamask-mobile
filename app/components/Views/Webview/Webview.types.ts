@@ -12,6 +12,8 @@ export interface WebviewParams {
     hideShareButton?: boolean;
     /** Glass header with a close button instead of a back button */
     useGlassHeader?: boolean;
+    /** Optional auth-session ID for intercepting OAuth redirects inside the WebView */
+    authSessionId?: string;
   };
 }
 
@@ -25,4 +27,6 @@ export interface SimpleWebviewParams {
   useGlassHeader?: boolean;
   /** Set by navigators that present the webview as an iOS page sheet, which already sits below the status bar */
   isModal?: boolean;
+  /** Optional auth-session ID for intercepting OAuth redirects inside the WebView */
+  authSessionId?: string;
 }

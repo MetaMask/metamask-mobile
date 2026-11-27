@@ -120,7 +120,11 @@ import {
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
-import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import {
+  SocialEvent,
+  getXSignInFailureReason,
+  useSocialScreenAnalytics,
+} from '../analytics';
 import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
@@ -703,7 +707,14 @@ const SocialProfileOnboardingView: React.FC = () => {
   useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
 
   useEffect(() => {
-    trackInteraction(Interaction.STEP_VIEWED);
+    // `draft.path` defaults to manual before the intro choice, so the path is
+    // only reported once the user has passed the intro step.
+    trackInteraction(
+      Interaction.STEP_VIEWED,
+      analyticsStep === Step.INTRO
+        ? undefined
+        : { path: onboardingPathFor(draftRef.current.path) },
+    );
   }, [analyticsStep, trackInteraction]);
 
   useEffect(() => {
@@ -1011,6 +1022,7 @@ const SocialProfileOnboardingView: React.FC = () => {
           path: Path.X,
           outcome: Outcome.FAILED,
           step: Step.INTRO,
+          failure_reason: getXSignInFailureReason(error),
         });
         reportProfileOnboardingFailure(error, {
           operation: 'connect_x',
@@ -1416,6 +1428,7 @@ const SocialProfileOnboardingView: React.FC = () => {
         trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
           outcome: Outcome.SUCCESS,
           path: onboardingPathFor(currentDraft.path),
+          uses_x_username: currentDraft.useXUsername,
           step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
         });
       }

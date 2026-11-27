@@ -101,6 +101,7 @@ export const AddressList = () => {
             .addProperties({
               location: 'address-list',
               chain_id_caip: item.scope,
+              ...(source && { source }),
             })
             .build(),
         );
@@ -136,6 +137,7 @@ export const AddressList = () => {
                       chainId: item.scope,
                       groupId,
                       location: 'address-list',
+                      source,
                       account: item.account,
                     },
                   },
@@ -147,7 +149,7 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId, trackEvent, createEventBuilder],
+    [navigation, groupId, source, trackEvent, createEventBuilder],
   );
 
   useLayoutEffect(() => {

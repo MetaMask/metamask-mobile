@@ -110,10 +110,13 @@ let mockLivePriceHeaderProps:
 let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
 let mockPerpsSliderProps: React.ComponentProps<typeof PerpsSlider> | undefined;
 
+const mockClose = jest.fn();
+
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
   usePerpsTradeSheet: () => ({
     navigateTo: mockNavigateTo,
+    close: mockClose,
     title: undefined,
     banner: undefined,
   }),
@@ -233,6 +236,53 @@ describe('PerpsTradeScreen errors', () => {
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
     mockPerpsSliderProps = undefined;
+  });
+
+  it('closes the sheet after submit only when closesSheetOnSubmit is set', () => {
+    const onSubmit = jest.fn();
+    const { unmount } = render(
+      <PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(mockClose).not.toHaveBeenCalled();
+    unmount();
+
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        onSubmit={onSubmit}
+        closesSheetOnSubmit
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('dims the amount section only when the amount warning is shown', () => {
+    const { unmount } = render(<PerpsTradeScreen {...defaultProps} />);
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED),
+    ).toBeNull();
+    unmount();
+
+    render(<PerpsTradeScreen {...defaultProps} showAmountWarning />);
+
+    // Hidden from the accessibility tree on purpose, so query past it.
+    const amountSection = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+      { includeHiddenElements: true },
+    );
+    expect(amountSection).toBeOnTheScreen();
+    expect(amountSection.props.accessibilityElementsHidden).toBe(true);
+    expect(amountSection.props.importantForAccessibility).toBe(
+      'no-hide-descendants',
+    );
   });
 
   it('propagates every form error to an accessible alert', () => {

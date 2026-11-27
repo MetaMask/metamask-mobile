@@ -14,13 +14,8 @@ export type ImmersveNextAction =
     }
   | { type: 'expected_spend' }
   | { type: 'funding'; write: CardSmartContractWriteParams }
-  | {
-      type: 'rejected';
-      /** False for `blocked`, and for `kyc_check_failed` when Immersve sent no new link. */
-      canRetry: boolean;
-      retryUrl?: string;
-      reasons?: string[];
-    }
+  /** `blocked`: final, no retry. A retriable failure arrives as `kyc`. */
+  | { type: 'rejected'; reasons?: string[] }
   | { type: 'pending' }
   | { type: 'active' };
 
@@ -85,26 +80,10 @@ export function deriveNextImmersveAction(
     };
   }
 
-  // A failed check can arrive together with a fresh follow_kyc_url. That is
-  // still a rejection; the link only means Immersve will allow another try.
   // `blocked` never retries, even if a link is present.
-  const rejected = prerequisites.find(
-    (p) => p.status === 'blocked' || p.status === 'kyc_check_failed',
-  );
-  if (rejected) {
-    const followUp = findActionRequired(prerequisites, 'follow_kyc_url');
-    const retryUrl =
-      readKycUrl(rejected) ??
-      (rejected.status === 'kyc_check_failed'
-        ? readKycUrl(followUp)
-        : undefined);
-    const reasons = readReasonCodes(rejected);
-    return {
-      type: 'rejected',
-      canRetry: rejected.status !== 'blocked' && Boolean(retryUrl),
-      retryUrl,
-      reasons: reasons.length > 0 ? reasons : readReasonCodes(followUp),
-    };
+  const blocked = prerequisites.find((p) => p.status === 'blocked');
+  if (blocked) {
+    return { type: 'rejected', reasons: readReasonCodes(blocked) };
   }
 
   const kyc = findActionRequired(prerequisites, 'follow_kyc_url');
