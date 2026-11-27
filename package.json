@@ -314,7 +314,6 @@
     "viem": "2.31.3",
     "pretty-format/react-is": "^19.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
-    "@metamask/transaction-controller@npm:^74.3.0": "74.2.0",
     "@ethersproject/abi@npm:^5.8.0": "5.7.0",
     "@ethersproject/contracts@npm:^5.8.0": "5.7.0",
     "bn.js@npm:5.2.1": "5.2.3",

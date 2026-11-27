@@ -5,13 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import {
-  TransactionParams,
-  WalletDevice,
-} from '@metamask/transaction-controller';
-import { toHex } from '@metamask/controller-utils';
-import { CaipAssetType, isCaipChainId, toCaipChainId } from '@metamask/utils';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { WalletDevice } from '@metamask/transaction-controller';
+import { CaipAssetType, isCaipChainId } from '@metamask/utils';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -47,7 +42,6 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
-  bigIntToHex,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
 } from '../../../../../../util/number/bigint';
@@ -55,11 +49,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 
-import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { safeToChecksumAddress } from '../../../../../../util/address';
-import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
+import { buildRampTransferParams } from '../../utils/buildRampTransferParams';
+import { getEvmHexChainId } from '../../utils';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import {
   sendMultichainTransactionForReview,
@@ -109,9 +102,6 @@ function SendTransaction() {
     getOrderById(state, params.orderId),
   );
   const trackEvent = useAnalytics();
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [validationError, setValidationError] = useState<string>();
@@ -134,6 +124,10 @@ function SendTransaction() {
   );
   const isStellar = assetChainId?.startsWith('stellar:') ?? false;
   const usesSnapValidation = usesSnapAmountValidation(assetChainId);
+  const chainIdAsHex = useMemo(
+    () => getEvmHexChainId(assetChainId),
+    [assetChainId],
+  );
 
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
@@ -141,20 +135,33 @@ function SendTransaction() {
       : undefined,
   );
 
-  const networkClientId = useMemo(() => {
-    const chainId = orderData?.cryptoCurrency?.network?.chainId;
-    if (!chainId) return null;
-    const caipChainId = isCaipChainId(chainId)
-      ? chainId
-      : toCaipChainId('eip155', chainId);
-    const networkConfig = networkConfigurations?.[
-      caipChainId
-    ] as NetworkConfiguration;
-    if (!networkConfig) return null;
+  const networkClientId = useRampNetworkClientId(assetChainId);
 
-    const { rpcEndpoints, defaultRpcEndpointIndex } = networkConfig;
-    return rpcEndpoints?.[defaultRpcEndpointIndex]?.networkClientId;
-  }, [networkConfigurations, orderData]);
+  const sellTransactionParams = useMemo(() => {
+    if (isNonEvm || !orderData?.cryptoCurrency) {
+      return undefined;
+    }
+
+    let amount: bigint;
+    try {
+      amount = toTokenMinimalUnit(
+        orderData.cryptoAmount || '0',
+        orderData.cryptoCurrency.decimals,
+      );
+    } catch {
+      // A malformed amount must not throw during render. `handleSend` tracks the
+      // rejection when the order transaction cannot be built.
+      return undefined;
+    }
+
+    return buildRampTransferParams({
+      from: orderData.walletAddress,
+      chainId: chainIdAsHex,
+      assetAddress: orderData.cryptoCurrency.address,
+      recipient: orderData.depositWallet,
+      amount,
+    });
+  }, [chainIdAsHex, isNonEvm, orderData]);
 
   const headerTitle = strings(
     'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
@@ -330,49 +337,25 @@ function SendTransaction() {
       return;
     }
 
-    // Sell orders may carry a CAIP-2 EVM id (`eip155:1`) as well as the legacy
-    // numeric id (`1`). toHex only accepts the reference.
-    const evmChainReference = chainId.startsWith('eip155:')
-      ? chainId.slice('eip155:'.length)
-      : chainId;
-    let chainIdAsHex: `0x${string}`;
-    try {
-      chainIdAsHex = toHex(evmChainReference);
-    } catch {
+    if (!networkClientId) {
       return;
     }
 
-    if (!networkClientId) {
+    const transactionParams = sellTransactionParams;
+    if (!transactionParams) {
+      // The order has no valid amount, deposit wallet or asset to send.
+      trackEvent(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        //@ts-expect-error - Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
+        transactionAnalyticsPayload,
+      );
       return;
     }
 
     try {
       setIsConfirming(true);
-      let transactionParams: TransactionParams;
-      const amount = bigIntToHex(
-        toTokenMinimalUnit(
-          orderData.cryptoAmount || '0',
-          orderData.cryptoCurrency.decimals,
-        ),
-      );
-      if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
-        transactionParams = {
-          from: safeToChecksumAddress(orderData.walletAddress) as string,
-          to: safeToChecksumAddress(orderData.depositWallet),
-          value: amount,
-          chainId: chainIdAsHex,
-        };
-      } else {
-        transactionParams = {
-          from: safeToChecksumAddress(orderData.walletAddress) as string,
-          to: safeToChecksumAddress(orderData.cryptoCurrency.address),
-          value: '0x0',
-          data: generateTransferData('transfer', {
-            toAddress: safeToChecksumAddress(orderData.depositWallet),
-            amount,
-          }),
-        };
-      }
 
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
@@ -425,6 +408,7 @@ function SendTransaction() {
     usesSnapValidation,
     fromAccount,
     validateSnapTransfer,
+    sellTransactionParams,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
