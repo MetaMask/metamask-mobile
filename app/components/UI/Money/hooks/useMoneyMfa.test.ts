@@ -699,7 +699,7 @@ describe('useMoneyMfa', () => {
     const arrangeSignIn = () =>
       arrange({ lifecycle: mfaLifecycle, primaryAddress: EOA_ADDRESS });
 
-    it('verifies with any money method and a fresh check', async () => {
+    it('verifies with any enrolled money method and a fresh check, without asking to set up a missing one', async () => {
       const { result } = arrangeSignIn();
 
       await act(async () => {
@@ -710,6 +710,7 @@ describe('useMoneyMfa', () => {
         methods: ['passkey', 'totp'],
         verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
+        verifyOnly: true,
         reason: {
           operation: 'money.mpcRestore',
           verifyDescription: strings('money.mfa.sign_in_verify_description'),

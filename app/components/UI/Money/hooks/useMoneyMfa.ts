@@ -239,10 +239,12 @@ export const useMoneyMfa = () => {
     }
     try {
       // The keyring's restore prompt reuses this verification.
+      // Restoring only needs one enrolled method, so it never asks to set up a missing one.
       await verifyOrEnroll({
         methods: MONEY_MFA_METHODS,
         verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
+        verifyOnly: true,
         reason: {
           operation: 'money.mpcRestore',
           verifyDescription: strings('money.mfa.sign_in_verify_description'),
