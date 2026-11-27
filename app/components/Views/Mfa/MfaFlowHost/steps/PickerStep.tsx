@@ -5,13 +5,18 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
   IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { MfaMethod } from '../../../../../util/identity/mfa/engine/types';
+import type {
+  MfaFlowErrorCode,
+  MfaMethod,
+} from '../../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import { MfaShield, StepError, StepHeader, type StepProps } from './StepLayout';
 
@@ -20,6 +25,13 @@ const PICKER_LABEL_KEYS: Record<MfaMethod, string> = {
   passkey: 'mfa.picker.passkey',
   totp: 'mfa.picker.totp',
 };
+
+// The sheet was closed or the passkey was refused: the user can try again or
+// choose another method from the same list.
+const PASSKEY_ERRORS = new Set<MfaFlowErrorCode>([
+  'passkey_ceremony_cancelled',
+  'invalid_assertion',
+]);
 
 /**
  * The picker sheet's content: a passkey, when offered, is the main button,
@@ -68,7 +80,16 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
         }
         isCentered
       />
-      {state.error ? (
+      {state.error && PASSKEY_ERRORS.has(state.error) ? (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          testID={MfaFlowSelectorsIDs.ERROR}
+        >
+          {strings('mfa.picker.passkey_failed')}
+        </HelpText>
+      ) : null}
+      {state.error && !PASSKEY_ERRORS.has(state.error) ? (
         <StepError code={state.error} onAction={onAction} />
       ) : null}
       <Box twClassName="pt-4 gap-4">

@@ -219,6 +219,32 @@ describe('PickerStep', () => {
     },
   );
 
+  it.each(['passkey_ceremony_cancelled', 'invalid_assertion'] as const)(
+    'offers to try again or use another method when the passkey fails (%s)',
+    (error) => {
+      const { getByText } = render(
+        <PickerStep
+          {...buildState(
+            {
+              name: 'picker',
+              purpose: 'verify',
+              options: ['passkey', 'totp'],
+            },
+            { error },
+          )}
+          reason={reason}
+          onAction={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByText(
+          "Couldn't use your passkey. Try again or use another method.",
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('offers the authenticator app among the other methods', () => {
     const onAction = jest.fn();
     const { getByText } = render(

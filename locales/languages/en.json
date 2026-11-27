@@ -9210,7 +9210,8 @@
       "passkey": "Verify with Passkey",
       "email_otp": "Get a verification code",
       "totp": "Use authenticator app",
-      "or": "or"
+      "or": "or",
+      "passkey_failed": "Couldn't use your passkey. Try again or use another method."
     },
     "email_entry": {
       "title": "Verify your email",
