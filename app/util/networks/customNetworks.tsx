@@ -456,6 +456,7 @@ export const UnpopularNetworkList = [
 ];
 
 export const NETWORK_CHAIN_ID: {
+  readonly CITIZENCHAIN: '0x7eb';
   readonly FLARE_MAINNET: '0xe';
   readonly SONGBIRD_TESTNET: '0x13';
   readonly APECHAIN_TESTNET: '0x8157';
@@ -510,6 +511,7 @@ export const NETWORK_CHAIN_ID: {
   readonly SOMNIA: '0x13a7';
   readonly ETHEREUM_CLASSIC_MAINNET: '0x3d';
 } & typeof CHAIN_IDS = {
+  CITIZENCHAIN: '0x7eb',
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
   APECHAIN_TESTNET: '0x8157',
@@ -567,6 +569,7 @@ export const NETWORK_CHAIN_ID: {
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
+  [NETWORK_CHAIN_ID.CITIZENCHAIN]: require('../../images/citizenchain.png'),
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
   [NETWORK_CHAIN_ID.APECHAIN_TESTNET]: require('../../images/apechain.png'),
