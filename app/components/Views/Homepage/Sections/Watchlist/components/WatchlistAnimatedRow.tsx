@@ -9,18 +9,28 @@ export const WATCHLIST_ROW_ANIMATION_DURATION_MS = 250;
 
 interface WatchlistAnimatedRowProps {
   children: React.ReactNode;
+  enableMotion?: boolean;
 }
 
 const WatchlistAnimatedRow: React.FC<WatchlistAnimatedRowProps> = ({
   children,
-}) => (
-  <Animated.View
-    entering={FadeIn.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
-    exiting={FadeOut.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
-    layout={LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
-  >
-    {children}
-  </Animated.View>
-);
+  enableMotion = true,
+}) => {
+  const entering = enableMotion
+    ? FadeIn.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
+    : undefined;
+  const exiting = enableMotion
+    ? FadeOut.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
+    : undefined;
+  const layout = enableMotion
+    ? LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
+    : undefined;
+
+  return (
+    <Animated.View entering={entering} exiting={exiting} layout={layout}>
+      {children}
+    </Animated.View>
+  );
+};
 
 export default WatchlistAnimatedRow;

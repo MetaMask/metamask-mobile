@@ -8,9 +8,11 @@ import {
   reactNativeTracingIntegration,
   reactNavigationIntegration,
   setTag as sentrySetTag,
+  spotlightIntegration,
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
+  excludeExpectedErrors,
   excludeEvents,
   captureSentryFeedback,
   maskObject,
@@ -34,9 +36,12 @@ import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
+import { Platform } from 'react-native';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
+import type { Json } from '@metamask/utils';
+import { getInvalidMockedFeatureFlag } from '../../selectors/featureFlagController/mocks';
 const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
@@ -71,8 +76,10 @@ jest.mock('./tags', () => ({
 
 jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
-  // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
-  TraceName: { UIStartup: 'UIStartup' },
+  TraceName: {
+    UIStartup: 'UIStartup',
+    SwapQuoteFetch: 'Swap Quote Fetch',
+  },
 }));
 
 jest.mock('./navigationInitializationAppStart', () => ({
@@ -239,6 +246,40 @@ describe('isSentryEnabled', () => {
     const result = isSentryEnabled();
 
     expect(result).toBe(true);
+  });
+});
+
+describe('excludeExpectedErrors', () => {
+  it.each([
+    'MetaMask Pay: Fiat: Fiat order failed',
+    'MetaMask Pay: Fiat: Fiat order cancelled',
+    'MetaMask Pay: Fiat: Fiat order id_expired',
+  ])('drops a terminal fiat order failure: %s', (value) => {
+    expect(
+      excludeExpectedErrors({ exception: { values: [{ value }] } }),
+    ).toBeNull();
+  });
+
+  it('keeps a fiat order polling timeout', () => {
+    const event = {
+      exception: {
+        values: [{ value: 'MetaMask Pay: Fiat: Fiat order polling timed out' }],
+      },
+    };
+    expect(excludeExpectedErrors(event)).toBe(event);
+  });
+
+  it('keeps an unrelated error', () => {
+    const event = { exception: { values: [{ value: 'Deposit failed' }] } };
+    expect(excludeExpectedErrors(event)).toBe(event);
+  });
+
+  it('reads event.message when there is no exception value', () => {
+    expect(excludeExpectedErrors({ message: 'Fiat order failed' })).toBeNull();
+  });
+
+  it('returns null for a null event', () => {
+    expect(excludeExpectedErrors(null)).toBeNull();
   });
 });
 
@@ -1470,6 +1511,68 @@ describe('setupSentry', () => {
     });
   });
 
+  describe('Spotlight', () => {
+    const originalSpotlight = process.env.SENTRY_SPOTLIGHT;
+    const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+
+    const getInitOptions = () =>
+      mockedInit.mock.calls[0][0] as {
+        integrations: { name: string }[];
+        spotlight?: unknown;
+      };
+
+    afterEach(() => {
+      if (originalSpotlight === undefined) {
+        delete process.env.SENTRY_SPOTLIGHT;
+      } else {
+        process.env.SENTRY_SPOTLIGHT = originalSpotlight;
+      }
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
+      jest.mocked(spotlightIntegration).mockClear();
+    });
+
+    it('adds the Spotlight integration, not the init option, in dev when SENTRY_SPOTLIGHT is "true"', async () => {
+      process.env.SENTRY_SPOTLIGHT = 'true';
+      (global as { __DEV__?: boolean }).__DEV__ = true;
+
+      await setupSentry();
+
+      const options = getInitOptions();
+      expect(spotlightIntegration).toHaveBeenCalledTimes(1);
+      expect(options.integrations.map((i) => i.name)).toContain('Spotlight');
+      // The init option is also forwarded to the native SDKs, which sends a
+      // second copy of every envelope to the sidecar.
+      expect(options).not.toHaveProperty('spotlight');
+    });
+
+    it.each(['false', '1', ''])(
+      'does not add the Spotlight integration when SENTRY_SPOTLIGHT is "%s"',
+      async (value) => {
+        process.env.SENTRY_SPOTLIGHT = value;
+        (global as { __DEV__?: boolean }).__DEV__ = true;
+
+        await setupSentry();
+
+        expect(spotlightIntegration).not.toHaveBeenCalled();
+        expect(getInitOptions().integrations.map((i) => i.name)).not.toContain(
+          'Spotlight',
+        );
+      },
+    );
+
+    it('does not add the Spotlight integration in a release build', async () => {
+      process.env.SENTRY_SPOTLIGHT = 'true';
+      (global as { __DEV__?: boolean }).__DEV__ = false;
+
+      await setupSentry();
+
+      expect(spotlightIntegration).not.toHaveBeenCalled();
+      expect(getInitOptions().integrations.map((i) => i.name)).not.toContain(
+        'Spotlight',
+      );
+    });
+  });
+
   it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
     await setupSentry();
 
@@ -1511,6 +1614,31 @@ describe('setupSentry', () => {
     expect(result).toBeNull();
   });
 
+  it('drops expected card declines in beforeSend', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSend: (event: {
+        exception?: { values?: { value?: string }[] };
+      }) => unknown;
+    };
+
+    expect(
+      initOptions.beforeSend({
+        exception: {
+          values: [{ value: 'MetaMask Pay: Fiat: Fiat order failed' }],
+        },
+      }),
+    ).toBeNull();
+    expect(
+      initOptions.beforeSend({
+        exception: {
+          values: [{ value: 'MetaMask Pay: Fiat: Fiat order id_expired' }],
+        },
+      }),
+    ).toBeNull();
+  });
+
   it('registers outgoing request annotation when a Sentry client exists', async () => {
     const on = jest.fn();
     mockedGetClient.mockReturnValue({
@@ -1537,5 +1665,115 @@ describe('setupSentry', () => {
       true,
     );
     expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
+  });
+
+  describe('tracesSampler', () => {
+    let replacedOS: jest.ReplaceProperty<typeof Platform.OS> | undefined;
+    const setPlatformOS = (os: typeof Platform.OS) => {
+      replacedOS?.restore();
+      replacedOS = jest.replaceProperty(Platform, 'OS', os);
+    };
+    const globalWithDev = global as typeof global & { __DEV__: boolean };
+    const mockGetState = jest.mocked(store.getState);
+    const setRemoteRates = (transactionSampleRates: Json) =>
+      mockGetState.mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        ...getInvalidMockedFeatureFlag({ sentry: { transactionSampleRates } }),
+      } as unknown as RootState);
+
+    const future = '2999-01-01T00:00:00Z';
+
+    const getInitOptions = async () => {
+      await setupSentry();
+      const initOptions = mockedInit.mock.calls[0][0] as {
+        tracesSampleRate: number;
+        tracesSampler: (context: {
+          name: string;
+          parentSampled?: boolean;
+        }) => number | boolean;
+      };
+      return initOptions;
+    };
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue(undefined as unknown as RootState);
+    });
+
+    afterEach(() => {
+      replacedOS?.restore();
+      globalWithDev.__DEV__ = false;
+    });
+
+    it('inherits the parent decision, else uses tracesSampleRate, without a remote rate', async () => {
+      setPlatformOS('android');
+      const { tracesSampler, tracesSampleRate } = await getInitOptions();
+
+      expect(tracesSampleRate).toBe(0.03);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: true }),
+      ).toBe(true);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(false);
+    });
+
+    it('uses the remote rate for the current platform ahead of the parent decision', async () => {
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt: future },
+      });
+
+      setPlatformOS('android');
+      const { tracesSampler } = await getInitOptions();
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(0.25);
+
+      setPlatformOS('ios');
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+    });
+
+    it('ignores an expired remote rate', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse(expiresAt) + 1);
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('stops using a remote rate once it expires mid-session', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest.spyOn(Date, 'now');
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      dateNow.mockReturnValue(Date.parse(expiresAt) - 1);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+
+      dateNow.mockReturnValue(Date.parse(expiresAt));
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('keeps full sampling in dev builds even with a remote rate', async () => {
+      globalWithDev.__DEV__ = true;
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.5, expiresAt: future },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
+    });
   });
 });

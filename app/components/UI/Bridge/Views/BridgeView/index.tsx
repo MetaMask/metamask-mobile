@@ -70,8 +70,14 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
-import { selectBridgeLimitTabSeen } from '../../../../../reducers/user/selectors';
-import { setBridgeLimitTabSeen } from '../../../../../actions/user';
+import {
+  selectBridgeLimitTabSeen,
+  selectBridgeRecurringTabSeen,
+} from '../../../../../reducers/user/selectors';
+import {
+  setBridgeLimitTabSeen,
+  setBridgeRecurringTabSeen,
+} from '../../../../../actions/user';
 
 const BridgeView = () => {
   const tw = useTailwind();
@@ -108,6 +114,9 @@ const BridgeView = () => {
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
+  const hasSeenRecurringTab = useSelector(selectBridgeRecurringTabSeen);
+  const showRecurringTabNewDot =
+    isRecurringBuyTabEnabled && !hasSeenRecurringTab;
   const initialTab = route.params?.initialTab;
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
@@ -285,6 +294,16 @@ const BridgeView = () => {
     }
   }, [dispatch, hasSeenLimitTab, isLimitOrderTabEnabled, renderedTab]);
 
+  useEffect(() => {
+    if (
+      isRecurringBuyTabEnabled &&
+      renderedTab === BridgeTabKey.Recurring &&
+      !hasSeenRecurringTab
+    ) {
+      dispatch(setBridgeRecurringTabSeen());
+    }
+  }, [dispatch, hasSeenRecurringTab, isRecurringBuyTabEnabled, renderedTab]);
+
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
   // disabled, only Market remains and the tabs bar is hidden entirely below.
@@ -323,11 +342,24 @@ const BridgeView = () => {
         label: strings('bridge.tabs.recurring'),
         content: null,
         testID: BridgeViewSelectorsIDs.RECURRING_TAB,
+        endAccessory: showRecurringTabNewDot ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Active}
+            twClassName="absolute top-0.5 -right-3"
+            testID={BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT}
+            accessibilityLabel={strings('bridge.tabs.new_badge')}
+          />
+        ) : undefined,
       });
     }
 
     return visibleTabs;
-  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled, showLimitTabNewDot]);
+  }, [
+    isLimitOrderTabEnabled,
+    isRecurringBuyTabEnabled,
+    showLimitTabNewDot,
+    showRecurringTabNewDot,
+  ]);
 
   const showTabsBar = tabs.length > 1;
 

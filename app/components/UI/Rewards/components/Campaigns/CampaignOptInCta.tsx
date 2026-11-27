@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -8,11 +9,29 @@ import {
 } from '@metamask/design-system-react-native';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
+import { selectProfileControllerProfile } from '../../../../../selectors/profileController';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import { getCampaignStatus } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import useCampaignGeoRestriction from '../../hooks/useCampaignGeoRestriction';
 import useRewardsToast from '../../hooks/useRewardsToast';
+
+/**
+ * Social V1 treatment plus a campaign that requires a profile, and this user
+ * does not have one yet. Other arms keep the existing opt-in path.
+ */
+export const shouldOpenSocialTabBeforeCampaignOptIn = ({
+  isSocialV1Enabled,
+  socialProfileRequired,
+  hasSocialProfile,
+}: {
+  isSocialV1Enabled: boolean;
+  socialProfileRequired?: boolean;
+  hasSocialProfile: boolean;
+}): boolean =>
+  isSocialV1Enabled && socialProfileRequired === true && !hasSocialProfile;
 
 export const CAMPAIGN_CTA_TEST_IDS = {
   CTA_BUTTON: 'campaign-details-cta-button',
@@ -45,6 +64,11 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   isFeatureGeoRestricted,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
+  const { openComposer } = useOpenSocialPostComposer();
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const hasSocialProfile = Boolean(
+    useSelector(selectProfileControllerProfile)?.profileId,
+  );
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(
     campaign,
@@ -66,6 +90,12 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
       ),
     );
   }, [showToast, RewardsToastOptions]);
+
+  const opensSocialOnboarding = shouldOpenSocialTabBeforeCampaignOptIn({
+    isSocialV1Enabled,
+    socialProfileRequired: campaign.socialProfileRequired,
+    hasSocialProfile,
+  });
 
   if (!isActive || isOptedIn) {
     return null;
@@ -99,12 +129,18 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           loadingText={strings('rewards.campaign.geo_loading')}
           onPress={() => {
             if (isGeoLoading) return;
+            if (opensSocialOnboarding) {
+              openComposer();
+              return;
+            }
             onJoinPress?.();
             setIsOptInSheetOpen(true);
           }}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.join_campaign')}
+          {opensSocialOnboarding
+            ? strings('rewards.campaign.create_username')
+            : strings('rewards.campaign_details.join_campaign')}
         </Button>
       </Box>
 

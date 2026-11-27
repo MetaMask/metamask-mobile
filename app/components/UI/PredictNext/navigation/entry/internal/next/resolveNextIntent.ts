@@ -1,5 +1,4 @@
 import type { PredictVenueId } from '../../../../types';
-import { getFeedScreen, type FeedScreenId } from '../../../feedScreens';
 import { PredictNextRoutes } from '../../../routes';
 import { readPredictEventRef } from '../../eventRef';
 import type { PredictIntent } from '../../intents';
@@ -8,6 +7,8 @@ import {
   unavailable,
   type PredictIntentResolution,
 } from '../../targets';
+
+const FEED_SCREEN_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
  * The PredictNext branch: PredictNext routes, each carrying the Active
@@ -56,8 +57,12 @@ export const resolveNextIntent = (
             : { venueId },
         },
       });
+    // The Venue catalog owns its Feed Screens and loads asynchronously, so a
+    // link is not checked against it here: the Feed Screen shows its own
+    // unavailable state once the catalog lacks the screen. Only an ID no
+    // catalog can serve (screen IDs are kebab-case) is refused.
     case 'feedScreen':
-      if (!getFeedScreen(intent.feedScreenId)) {
+      if (!FEED_SCREEN_ID.test(intent.feedScreenId)) {
         return unavailable('notFound');
       }
       return ready({
@@ -66,7 +71,7 @@ export const resolveNextIntent = (
           screen: PredictNextRoutes.FEED,
           params: {
             venueId,
-            feedScreenId: intent.feedScreenId as FeedScreenId,
+            feedScreenId: intent.feedScreenId,
             ...(intent.tabId ? { selectedTabId: intent.tabId } : {}),
           },
         },

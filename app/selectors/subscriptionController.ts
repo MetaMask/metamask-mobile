@@ -3,53 +3,26 @@ import {
   getDefaultSubscriptionControllerState,
   MoneyAccountFeature,
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   selectHasEntitlement,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
-  type SubscriptionStatus,
   type Subscription,
   type SubscriptionBenefitsState,
   type SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
+import {
+  isActiveSubscriptionStatus,
+  isHubMembershipSubscriptionStatus,
+  isManageableSubscriptionStatus,
+} from '../util/subscription/moneyAccountPlusStatus';
 import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
 
-/**
- * Statuses that grant subscription benefits. Mirrors Core's
- * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
- * exports.
- */
-export const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-  SUBSCRIPTION_STATUSES.provisional,
-]);
-/**
- * Statuses under which the user still holds a subscription they can manage.
- * Extends the active set with `paused`, which grants no benefits but must
- * still reach Pro Hub so the user can fix the payment problem or cancel.
- */
-const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  ...ACTIVE_SUBSCRIPTION_STATUSES,
-  SUBSCRIPTION_STATUSES.paused,
-]);
-/**
- * Plus statuses Pro Hub can render. Matches `getMembershipBannerModel`:
- * active, trialing, provisional, and awaiting funds show Active; past due
- * shows Overdue; paused and unpaid show Deactivated. Canceled, incomplete,
- * and incomplete-expired stay on the join label and Benefits.
- */
-const MEMBERSHIP_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  ...ACTIVE_SUBSCRIPTION_STATUSES,
-  SUBSCRIPTION_STATUSES.awaitingFunds,
-  SUBSCRIPTION_STATUSES.pastDue,
-  SUBSCRIPTION_STATUSES.paused,
-  SUBSCRIPTION_STATUSES.unpaid,
-]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
@@ -137,7 +110,7 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
   (subscriptions) =>
     subscriptions.some(
       (subscription) =>
-        ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        isActiveSubscriptionStatus(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );
@@ -158,7 +131,7 @@ export const selectHasMoneyAccountPlusMembership = createSelector(
     subscriptions.some(
       (subscription) =>
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS) &&
-        MEMBERSHIP_SUBSCRIPTION_STATUSES.has(subscription.status),
+        isHubMembershipSubscriptionStatus(subscription.status),
     ),
 );
 
@@ -176,7 +149,7 @@ export const selectHasExistingMoneyAccountPlusSubscription = createSelector(
   (subscriptions) =>
     subscriptions.some(
       (subscription) =>
-        EXISTING_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        isManageableSubscriptionStatus(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );
@@ -257,6 +230,25 @@ export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
 );
 
 /**
+ * Selects whether the JWT grants the Money Account Plus `premiumApy`
+ * entitlement. Entitlements are independent of subscription status, so a
+ * lapsed or paused subscriber keeps premium APY until the server revokes it.
+ * Fails closed when the controller is absent or the feature is omitted.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether the premium APY entitlement is granted.
+ */
+export const selectHasMoneyAccountPremiumApyEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    selectHasEntitlement(
+      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      MoneyAccountFeature.PremiumApy,
+    ),
+);
+
+/**
  * Selects persisted Money Account Plus benefit usage for the current billing
  * period. Undefined until `getBenefits()` has stored a snapshot.
  *
@@ -330,4 +322,19 @@ export function isMoneyAccountPlusFreeTrial(
 export const selectIsMoneyAccountPlusTrialing = createSelector(
   selectMoneyAccountPlusSubscription,
   isMoneyAccountPlusFreeTrial,
+);
+
+/**
+ * Selects whether the current Money Account Plus subscription bills annually.
+ *
+ * The free physical card is an annual-plan benefit, so monthly plans and
+ * plans with no known interval do not qualify.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether Plus is on the annual plan.
+ */
+export const selectIsMoneyAccountPlusAnnual = createSelector(
+  selectMoneyAccountPlusSubscription,
+  (subscription): boolean =>
+    subscription?.interval === RECURRING_INTERVALS.year,
 );

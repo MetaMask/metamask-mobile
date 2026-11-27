@@ -2,7 +2,7 @@
 
 The phone signs every Venue request with its device key, under a signing profile that ships with the app. For trading reads, the Predict API proposes the one venue GET a route needs; the phone checks it against its profile copy, signs, and re-calls the route naming the GET it signed; the API checks, verifies and relays. Reconciliation persists operation-bound scan progress; ordinary portfolio reads are stateless. For mutations, the phone renders the request from its profile and signs the rendered bytes; the Predict API never builds a Venue request body.
 
-Status: accepted, 2026-11-09. Implements the trading half of PRED-1372. Replaces the trading portions of [ADR-0003](./0003-backend-driven-venue-authentication.md); onboarding keeps ADR-0003's backend-built request model until Universal KYC replaces those temporary, demo-only flows.
+Status: accepted, 2026-11-09; partly superseded by [ADR-0005](./0005-remote-venue-profiles.md) (2026-11-20), which replaces the signed, bundled document and its keys with readable JSON from mm-config-registry. The read/mutation model, envelope, invalidity and reconciliation rules below still stand. Implements the trading half of PRED-1372. Replaces the trading portions of [ADR-0003](./0003-backend-driven-venue-authentication.md); onboarding keeps ADR-0003's backend-built request model until Universal KYC replaces those temporary, demo-only flows.
 
 ## Context
 
@@ -92,11 +92,11 @@ transport retries or application process lifetime.
   Relaunch/foreground/reconnect resume bounded, fair **observe-only** work while
   unlocked and authenticated. Budget exhaustion pauses, not forgets.
   Lock/signout cancel work without deleting unresolved financial history; wallet
-  reset abandons work without clearing that wallet's journal. Another identity
-  cannot see or observe it.
+  reset deletes that wallet's journal. Another identity cannot see or observe it.
   Pending/manual-review references remain visible with observe-only refresh;
   terminal cleanup prevents replaying old completion notifications.
-  Identity changes and late discovery cannot resurrect a terminal result
+  Reset fences work throughout journal clearing, not only before the first
+  await. Identity changes and late discovery cannot resurrect a terminal result
   or replace a preserved manual-review marker with an unresolved entry.
 - The worker conditionally flags stale unresolved operations
   `needs_manual_review`. It has no account credential, makes no venue call for

@@ -1,6 +1,7 @@
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../core/Engine';
 import { strings } from '../../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import {
@@ -34,17 +35,22 @@ describeForPlatforms('PayWithBottomSheet Predict source gate', () => {
     expect(getByText(ADD_LABEL)).toBeOnTheScreen();
   });
 
-  it('opens the Predict add-funds sheet from Add while Polymarket is active', async () => {
+  it('opens the Predict deposit confirmation from Add while Polymarket is active', async () => {
     const { findByTestId, getByText } = renderPayWithBottomSheetView({
       venue: 'polymarket',
     });
     await findByTestId(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW);
+    const depositWithConfirmation = jest.mocked(
+      Engine.context.PredictController.depositWithConfirmation,
+    );
+    depositWithConfirmation.mockClear();
 
     fireEvent.press(getByText(ADD_LABEL));
 
     expect(
-      await findByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
+      await findByTestId(`route-${Routes.PREDICT.ROOT}`),
     ).toBeOnTheScreen();
+    expect(depositWithConfirmation).toHaveBeenCalledTimes(1);
   });
 
   it('does not render the Predict source while Kalshi is active', async () => {

@@ -39,7 +39,7 @@ export const selectMultichainWallets = createDeepEqualSelector(
  * Hidden groups are already removed. Keyring, hardware, and snap wallets are
  * left out, and an entropy wallet with no visible groups is omitted.
  *
- * Shared source for the social onboarding and profile-edit account lists.
+ * Social account lists narrow this with `selectProfileWalletSections`.
  */
 export const selectVisibleEntropyAccountGroupsByWallet =
   createDeepEqualSelector([selectVisibleAccountGroupsByWallet], (sections) =>

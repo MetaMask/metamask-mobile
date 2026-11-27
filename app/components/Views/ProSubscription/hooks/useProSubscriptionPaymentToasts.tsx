@@ -25,6 +25,7 @@ import {
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { markActivationToastOwed } from '../utils/activationToastDebt';
 import { openProHubFromSubscriptionModal } from '../utils/openProHubFromSubscriptionModal';
 import { shouldShowActiveMembershipCta } from '../utils/proSubscriptionPaymentStatus';
 
@@ -71,7 +72,7 @@ const getToastLabels = (
 };
 
 /**
- * Toasts for an on-ramp or bridge membership payment.
+ * Toasts for an on-ramp or card membership payment.
  *
  * Processing stays up until the user dismisses it or a later toast replaces
  * it. The active toast stays up when it can open Pro Hub, and uses the
@@ -107,6 +108,7 @@ export function useProSubscriptionPaymentToasts(): ProSubscriptionPaymentToasts 
   );
 
   const showProcessingToast = useCallback(() => {
+    markActivationToastOwed();
     showToast({
       variant: ToastVariants.Icon,
       iconName: ToastIconName.Loading,

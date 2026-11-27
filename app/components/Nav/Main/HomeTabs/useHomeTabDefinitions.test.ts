@@ -1,5 +1,6 @@
 import type { NativeBottomTabNavigationProp } from '@react-navigation/bottom-tabs/unstable';
 import type { ParamListBase } from '@react-navigation/native';
+import { act } from '@testing-library/react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -71,7 +72,7 @@ const renderDefinitions = (
     { state: initialRootState },
   );
 
-const flushMicrotasks = () =>
+const flushMicrotasks = async () =>
   new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('useHomeTabDefinitions', () => {
@@ -216,10 +217,12 @@ describe('useHomeTabDefinitions', () => {
       const { result } = renderDefinitions();
       const home = result.current.tabs[0];
 
-      result.current
-        .getNativeTabListeners(home)({ navigation: mockNavigation })
-        .tabPress?.();
-      await flushMicrotasks();
+      await act(async () => {
+        result.current
+          .getNativeTabListeners(home)({ navigation: mockNavigation })
+          .tabPress?.();
+        await flushMicrotasks();
+      });
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -247,9 +250,11 @@ describe('useHomeTabDefinitions', () => {
         },
       };
 
-      result.current.getNativeTabListeners(home)({ navigation }).tabPress?.();
-      navigation.navigate(Routes.WALLET.HOME, retainedParams);
-      await flushMicrotasks();
+      await act(async () => {
+        result.current.getNativeTabListeners(home)({ navigation }).tabPress?.();
+        navigation.navigate(Routes.WALLET.HOME, retainedParams);
+        await flushMicrotasks();
+      });
 
       expect(navigation.navigate).toHaveBeenNthCalledWith(
         1,

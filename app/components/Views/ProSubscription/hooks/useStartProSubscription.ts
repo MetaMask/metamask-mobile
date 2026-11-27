@@ -7,7 +7,10 @@ import {
   RECURRING_INTERVALS,
   SubscriptionDelegationServiceErrorMessage,
 } from '@metamask/subscription-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   isStrictHexString,
   isValidHexAddress,
@@ -16,55 +19,51 @@ import {
 } from '@metamask/utils';
 import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
+import ReactQueryService from '../../../../core/ReactQueryService';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { isProduction } from '../../../../util/environment';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
-import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import {
+  clearMoneyAccountPlusTrialEligibilityCache,
+  fetchPlusTrialEligibility,
+  refreshMoneyAccountPlusTrialEligibility,
+} from '../../../hooks/moneyAccountPlusTrialEligibility';
+import {
+  membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
   type StartProSubscriptionOutcome,
 } from '../utils/proSubscriptionPaymentStatus';
-import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
+import { getMembershipTopUpAmountUsd } from '../../shared/pro/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
-const SUBSCRIPTION_IN_PROGRESS_ERROR =
-  'Money Account subscription is already starting';
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
 }
 
-/**
- * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Pads the shortfall so vault deposit rounding still covers the price, then
- * rounds that safe amount up to the next cent. The deposit sheet truncates
- * anything past two decimals, which would drop the pad or show a sub-cent
- * top-up as $0.00.
- *
- * @param balance - Current mUSD balance in base units (6 decimals).
- * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Padded shortfall in USD, rounded up to two decimal places.
- */
-function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
-  const shortfall = BigInt(requiredBalance) - BigInt(balance);
-  return new BigNumber(getMembershipFundingAmount(shortfall).toString())
-    .shiftedBy(-MUSD_DECIMALS)
-    .decimalPlaces(2, BigNumber.ROUND_CEIL)
-    .toFixed(2);
-}
-
 type InitiateDeposit = ReturnType<
   typeof useMoneyAccountDeposit
 >['initiateDeposit'];
+
+function selectedFiatPaymentMethodId(
+  transactionId: string,
+): string | undefined {
+  return Engine.context.TransactionPayController?.state.transactionData[
+    transactionId
+  ]?.fiatPayment?.selectedPaymentMethodId;
+}
 
 /**
  * Opens a membership-subscription top-up for the mUSD shortfall and waits
@@ -75,19 +74,20 @@ type InitiateDeposit = ReturnType<
  * @param initiateDeposit - Money Account deposit starter.
  * @param balance - Current mUSD balance in base units.
  * @param requiredBalance - Required mUSD balance in base units.
+ * @returns The approved top-up transaction.
  */
 async function topUpMembershipShortfall(
   initiateDeposit: InitiateDeposit,
   balance: string,
   requiredBalance: string,
-): Promise<void> {
+): Promise<TransactionMeta> {
   const batchId = createMoneyAccountBatchId();
   const { promise, cancel } = waitForMembershipTopUp(batchId);
 
   try {
     await initiateDeposit({
       batchId,
-      amount: getTopUpAmountUsd(balance, requiredBalance),
+      amount: getMembershipTopUpAmountUsd(balance, requiredBalance),
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -96,7 +96,7 @@ async function topUpMembershipShortfall(
     throw error;
   }
 
-  await promise;
+  return await promise;
 }
 
 const MEMBERSHIP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
@@ -191,11 +191,42 @@ export function buildConfirmMembershipRequestData(
 }
 
 /**
+ * Expected checkout result: the cached trial answer is no longer true.
+ * This is not a failed start, so it is not logged and it does not show the
+ * join error. Checkout stops, and Benefits reloads the paid offer.
+ */
+class PlusTrialUnavailableError extends Error {
+  constructor() {
+    super('Plus trial is no longer available');
+    this.name = 'PlusTrialUnavailableError';
+  }
+}
+
+/**
+ * Reloads subscription history and asks the controller again before checkout
+ * continues. Benefits can still be showing a cached eligible answer from
+ * another session on this phone.
+ *
+ * A false answer refreshes the open Benefits screen and stops checkout. A
+ * rejected call still throws, so the user can retry, and the cached answer
+ * stays in place.
+ */
+async function assertStillEligibleForPlusTrial(): Promise<void> {
+  const isEligible = await fetchPlusTrialEligibility();
+  if (isEligible) {
+    return;
+  }
+
+  await refreshMoneyAccountPlusTrialEligibility(ReactQueryService.queryClient);
+  throw new PlusTrialUnavailableError();
+}
+
+/**
  * Raises a `confirm_membership` approval and waits for the user to accept or
  * reject it. Rejection propagates so the caller can treat it as a user cancel.
  *
  * @param plan - Checkout-ready Plus plan.
- * @param isTrial - Whether Benefits determined this user can start a trial.
+ * @param isTrial - Whether Benefits already loaded a trial for this user.
  */
 async function requestMembershipConsent(
   plan: SelectedPlusPlan,
@@ -297,9 +328,17 @@ function requireSubscriptionPayment(
  * Maps a failed subscription start to the message shown on the join screen.
  *
  * @param error - Error caught while starting the subscription.
- * @returns Localized join or insufficient-balance copy.
+ * @returns Localized join, access-blocked, or insufficient-balance copy.
  */
 function getStartSubscriptionErrorMessage(error: Error): string {
+  if (error instanceof MoneyAccountAccessBlockedError) {
+    return strings(
+      error.reason === 'geo_blocked'
+        ? 'pro_subscription.join_error_geo_blocked'
+        : 'pro_subscription.join_error_feature_disabled',
+    );
+  }
+
   const isInsufficientBalanceError =
     error.message ===
     SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
@@ -317,6 +356,7 @@ function getStartSubscriptionErrorMessage(error: Error): string {
  * rejections are not logged; they clear any previous join error.
  *
  * @param error - Failure from balance check, top-up, or delegation start.
+ * A trial that is no longer available is rethrown without logging.
  * @param isMounted - Whether the hook is still mounted.
  * @param setMessage - Join-screen error setter.
  */
@@ -325,6 +365,10 @@ function reportStartSubscriptionError(
   isMounted: boolean,
   setMessage: (message: string | undefined) => void,
 ): never {
+  if (error instanceof PlusTrialUnavailableError) {
+    throw error;
+  }
+
   const loggedError = error instanceof Error ? error : new Error(String(error));
 
   if (isUserRejectedError(loggedError, loggedError.message)) {
@@ -351,6 +395,11 @@ export interface StartProSubscriptionResult {
 
 export interface StartProSubscriptionOptions {
   isTrial?: boolean;
+  /**
+   * When true outside production, asks the Subscription API to attach a
+   * Stripe test clock. Ignored in production builds.
+   */
+  enableTestClocks?: boolean;
 }
 
 export interface UseStartProSubscriptionResult {
@@ -378,10 +427,11 @@ export interface UseStartProSubscriptionResult {
  * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
  * expects the caller to obtain consent before the call.
  *
- * Resolves after the subscription starts. A crypto payment (balance already
- * in the Money Account) returns `ready` and the caller shows the success
- * screen. An on-ramp or bridge top-up that is still provisional or awaiting
- * funds returns `processing`; the caller shows a toast and opens Pro Hub.
+ * Resolves after the subscription starts. A crypto payment, whether the Money
+ * Account already held the mUSD or MetaMask Pay moved crypto, returns `ready`
+ * and the caller shows the success screen. An on-ramp or card top-up that is
+ * still provisional or awaiting funds returns `processing`; the caller shows
+ * a toast and opens Pro Hub.
  * This hook does not navigate. The delegation start refreshes subscriptions
  * before it resolves.
  *
@@ -409,7 +459,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       options?: StartProSubscriptionOptions,
     ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
-        throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
+        throw new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE);
       }
 
       isSubmittingRef.current = true;
@@ -433,26 +483,46 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             subscriptionParams,
           );
 
+        // Recheck on both the funded and top-up paths. Core recomputes the
+        // trial at checkout, so a stale cached answer must not reach it.
+        if (options?.isTrial) {
+          await assertStillEligibleForPlusTrial();
+        }
+
+        let awaitsExternalFunds = false;
         if (hasSufficientBalance) {
           await requestMembershipConsent(plan, options?.isTrial ?? false);
         } else {
-          await topUpMembershipShortfall(
+          const topUp = await topUpMembershipShortfall(
             initiateDeposit,
             balance,
             requiredBalance,
           );
+          awaitsExternalFunds = membershipTopUpAwaitsExternalFunds(
+            Boolean(topUp.metamaskPay?.fiat),
+            selectedFiatPaymentMethodId(topUp.id),
+          );
         }
 
+        const useTestClock =
+          options?.enableTestClocks === true && !isProduction();
         const startedSubscription =
           await SubscriptionDelegationService.startSubscriptionWithDelegation({
             ...subscriptionParams,
             chainId,
+            ...(useTestClock ? { useTestClock: true } : {}),
           });
+
+        // The Benefits screen may still be holding "eligible for trial".
+        clearMoneyAccountPlusTrialEligibilityCache(
+          ReactQueryService.queryClient,
+        );
 
         return {
           outcome: resolveProSubscriptionStartOutcome(
             hasSufficientBalance,
             startedSubscription.status,
+            awaitsExternalFunds,
           ),
         };
       } catch (error) {

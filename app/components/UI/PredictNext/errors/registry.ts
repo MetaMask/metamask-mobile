@@ -25,6 +25,32 @@ export enum PredictErrorCode {
   APP_UPDATE_REQUIRED = 'APP_UPDATE_REQUIRED',
   /** The user has no enabled venue account yet. Onboarding resolves it. */
   VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
+  /** A withdrawal below the venue's minimum: the amount is fixable. */
+  AMOUNT_BELOW_MINIMUM = 'AMOUNT_BELOW_MINIMUM',
+  /** Another deposit waits for its address or its transfer. */
+  DEPOSIT_IN_PROGRESS = 'DEPOSIT_IN_PROGRESS',
+  /** No deposit with that ID belongs to the Predict User. */
+  DEPOSIT_NOT_FOUND = 'DEPOSIT_NOT_FOUND',
+  /** Only a deposit waiting for a transfer with no reported hash cancels. */
+  DEPOSIT_NOT_CANCELLABLE = 'DEPOSIT_NOT_CANCELLABLE',
+  /** The venue refused the amount. No funds moved. */
+  DEPOSIT_AMOUNT_REJECTED = 'DEPOSIT_AMOUNT_REJECTED',
+  /** The venue refused the deposit or its answer was lost. No funds moved;
+   * a new deposit starts with a new client operation ID. */
+  DEPOSIT_FAILED = 'DEPOSIT_FAILED',
+  /** The signed deposit, or its client operation ID, names another
+   * request. Nothing was stored or relayed. */
+  DEPOSIT_MISMATCH = 'DEPOSIT_MISMATCH',
+  /** The reported transfer does not fit the deposit: another chain, a
+   * hash the backend refuses, another hash than the one it has, a hash
+   * another deposit holds, or a deposit that takes no transfer. The backend
+   * stored nothing. */
+  DEPOSIT_TRANSFER_MISMATCH = 'DEPOSIT_TRANSFER_MISMATCH',
+  /** The app refused the deposit's Funding Plan before any wallet call: it
+   * does not pay exactly what the user typed, in the known USDC on the
+   * expected chain, to a safe address, with time to spare. Nothing was
+   * sent; the deposit is cancelled. */
+  DEPOSIT_PLAN_MISMATCH = 'DEPOSIT_PLAN_MISMATCH',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -165,9 +191,55 @@ export const predictErrorRegistry: Record<
     message: 'Your position is unavailable right now.',
     recoverable: true,
   },
+  [PredictErrorCode.AMOUNT_BELOW_MINIMUM]: {
+    category: 'action_failed',
+    message: 'The withdrawal amount is below the venue minimum.',
+    recoverable: true,
+  },
   [PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED]: {
     category: 'unavailable',
     message: 'Finish setting up your account to continue.',
+    recoverable: true,
+  },
+  [PredictErrorCode.DEPOSIT_IN_PROGRESS]: {
+    category: 'action_failed',
+    message: 'A deposit is already in progress.',
+    recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_NOT_FOUND]: {
+    category: 'action_failed',
+    message: 'This deposit could not be found.',
+    recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_NOT_CANCELLABLE]: {
+    category: 'action_failed',
+    message: 'This deposit can no longer be cancelled.',
+    recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_AMOUNT_REJECTED]: {
+    category: 'action_failed',
+    message: 'This deposit amount was not accepted. Try another amount.',
+    recoverable: true,
+  },
+  [PredictErrorCode.DEPOSIT_FAILED]: {
+    category: 'action_failed',
+    message: 'The deposit did not go through. No funds were moved.',
+    recoverable: true,
+  },
+  [PredictErrorCode.DEPOSIT_MISMATCH]: {
+    category: 'action_failed',
+    message: 'The signed deposit does not match this request. Start again.',
+    recoverable: true,
+  },
+  [PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH]: {
+    category: 'action_failed',
+    message: 'The transfer does not match this deposit. Contact support.',
+    recoverable: false,
+  },
+  [PredictErrorCode.DEPOSIT_PLAN_MISMATCH]: {
+    category: 'action_failed',
+    message:
+      "This deposit couldn't be verified, so nothing was sent. Try again.",
     recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {

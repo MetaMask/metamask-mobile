@@ -22,6 +22,28 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for the real Money MPC keyring (DKLS23/CL24 via
+ * `@metamask/mpc-react-native`, needing a native rebuild) instead of the
+ * stub. Needs `isMpcMoneyKeyringBuildEnabled` too.
+ */
+export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
+}
+
+/**
+ * Build-time gate for the Collectibles development fallback. A valid remote
+ * `collectiblesEnabled` flag always wins; this flag only decides what a
+ * development build does when the remote flag is missing or invalid.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Read it through this function so callers stay testable: an
+ * inlined `process.env` lookup cannot be changed at runtime.
+ */
+export function isCollectiblesBuildEnabled(): boolean {
+  return process.env.MM_COLLECTIBLES_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
@@ -44,6 +66,7 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  rampsProvidersAheadOfHistory = 'rampsProvidersAheadOfHistory',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
@@ -55,6 +78,8 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  mfaRecovery = 'mfaRecovery',
+  slowNetworkBanner = 'slowNetworkBanner',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

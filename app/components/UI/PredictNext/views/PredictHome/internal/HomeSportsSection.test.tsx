@@ -32,6 +32,8 @@ const renderSection = (
 ) =>
   render(
     <HomeSportsSection
+      id="sports"
+      title="Sports"
       events={GAMES}
       isLoading={false}
       onOpen={jest.fn()}
@@ -141,7 +143,11 @@ describe('HomeSportsSection', () => {
     ).getAllByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON);
     expect(skeletons.length).toBeGreaterThan(0);
     skeletons.forEach((skeleton) =>
-      expect(skeleton).toHaveStyle({ width: 190, height: 134 }),
+      expect(skeleton).toHaveStyle({
+        width: 190,
+        height: 134,
+        borderRadius: 20,
+      }),
     );
   });
 });

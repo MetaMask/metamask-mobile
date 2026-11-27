@@ -242,6 +242,7 @@ const buildHookResult = (
   baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
+  isBelowPostTradeShareMinimum: false,
   isConfirmDisabled: true,
   confirmButtonState: 'idle',
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
@@ -400,6 +401,34 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.ASSET_NAME]: 'PEPE',
         [QuickBuyEventProperties.SOURCE]: 'market_insights',
         [QuickBuyEventProperties.TRADE_TYPE]: 'buy',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: false,
+      }),
+    );
+  });
+
+  it('marks a trending copy on SOCIAL_QUICK_BUY_SHEET_VIEWED', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{
+          source: 'social_trending',
+          isCopyTrade: true,
+        }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [QuickBuyEventProperties.SOURCE]: 'social_trending',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: true,
       }),
     );
   });
@@ -474,6 +503,7 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.SOURCE]: 'profile_position',
         [QuickBuyEventProperties.ORIGINAL_ENTRY_POINT]: 'leaderboard',
         [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
+        [QuickBuyEventProperties.IS_COPY_TRADE]: false,
       },
     );
   });

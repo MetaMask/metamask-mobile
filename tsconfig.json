@@ -11,61 +11,68 @@
     "strict": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    // TypeScript 7 does not load every `@types/*` package by itself, and
+    // Oxlint's type-aware mode runs on TypeScript 7. Without this list it
+    // cannot see `describe`, `expect`, or `jest` in test files. Add a package
+    // here only if it declares globals. Imported packages need no entry.
+    "types": ["jest"],
     "paths": {
       "#app/*": ["./app/*"],
       "images/*": ["./app/images/*"],
       "@keystonehq/ur-decoder": [
-        "app/declarations/@keystonehq/ur-decoder.d.ts"
+        "./app/declarations/@keystonehq/ur-decoder.d.ts"
       ],
       "@metamask/perps-controller/types": [
-        "node_modules/@metamask/perps-controller/dist/types/index.d.ts"
+        "./node_modules/@metamask/perps-controller/dist/types/index.d.ts"
       ],
       "@metamask/perps-controller/constants": [
-        "node_modules/@metamask/perps-controller/dist/constants/index.d.ts"
+        "./node_modules/@metamask/perps-controller/dist/constants/index.d.ts"
       ],
       "@metamask/perps-controller/constants/*": [
-        "node_modules/@metamask/perps-controller/dist/constants/*.d.ts"
+        "./node_modules/@metamask/perps-controller/dist/constants/*.d.ts"
       ],
       "@metamask/perps-controller/utils/*": [
-        "node_modules/@metamask/perps-controller/dist/utils/*.d.ts"
+        "./node_modules/@metamask/perps-controller/dist/utils/*.d.ts"
       ],
       "@metamask/perps-controller/services/*": [
-        "node_modules/@metamask/perps-controller/dist/services/*.d.ts"
+        "./node_modules/@metamask/perps-controller/dist/services/*.d.ts"
       ],
       "@metamask/json-rpc-engine/v2": [
-        "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
+        "./node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
       ],
       // TODO: Remove these once we use `Node16` module resolution.
       "@metamask/keyring-api/v2": [
-        "node_modules/@metamask/keyring-api/dist/v2/index.d.cts"
+        "./node_modules/@metamask/keyring-api/dist/v2/index.d.cts"
       ],
       "@metamask/keyring-sdk/v2": [
-        "node_modules/@metamask/keyring-sdk/dist/v2/index.d.cts"
+        "./node_modules/@metamask/keyring-sdk/dist/v2/index.d.cts"
       ],
       "@metamask/eth-snap-keyring/v2": [
-        "node_modules/@metamask/eth-snap-keyring/dist/v2/index.d.cts"
+        "./node_modules/@metamask/eth-snap-keyring/dist/v2/index.d.cts"
       ],
       "@metamask/eth-hd-keyring/v2": [
-        "node_modules/@metamask/eth-hd-keyring/dist/v2/index.d.cts"
+        "./node_modules/@metamask/eth-hd-keyring/dist/v2/index.d.cts"
       ],
       "@metamask/eth-ledger-bridge-keyring/v2": [
-        "node_modules/@metamask/eth-ledger-bridge-keyring/dist/v2/index.d.cts"
+        "./node_modules/@metamask/eth-ledger-bridge-keyring/dist/v2/index.d.cts"
       ],
       "@metamask/eth-qr-keyring/v2": [
-        "node_modules/@metamask/eth-qr-keyring/dist/v2/index.d.cts"
+        "./node_modules/@metamask/eth-qr-keyring/dist/v2/index.d.cts"
       ],
       "@metamask/eth-money-keyring/v2": [
-        "node_modules/@metamask/eth-money-keyring/dist/v2/index.d.cts"
+        "./node_modules/@metamask/eth-money-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-money-mpc-keyring/v2": [
+        "./node_modules/@metamask/eth-money-mpc-keyring/dist/v2/index.d.mts"
       ],
       "@metamask/design-system-react-native/spinner": [
-        "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
+        "./node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],
       "@ledgerhq/device-management-kit": [
-        "node_modules/@ledgerhq/device-management-kit/lib/types/index.d.ts"
+        "./node_modules/@ledgerhq/device-management-kit/lib/types/index.d.ts"
       ],
       "@ledgerhq/device-transport-kit-react-native-ble": [
-        "node_modules/@ledgerhq/device-transport-kit-react-native-ble/lib/types/index.d.ts"
+        "./node_modules/@ledgerhq/device-transport-kit-react-native-ble/lib/types/index.d.ts"
       ]
     },
     "allowSyntheticDefaultImports": true,

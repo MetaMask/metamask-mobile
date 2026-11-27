@@ -30,6 +30,11 @@ export interface QRAccountDisplayProps {
    */
   analyticsLocation?: string;
   /**
+   * Optional entry point that led to this screen (for example the address list
+   * source). Added to the "Address Copied" event as `source` when provided.
+   */
+  analyticsSource?: string;
+  /**
    * Optional chain ID for analytics tracking.
    * Should be in CAIP format (e.g., 'eip155:1' for Ethereum mainnet).
    */

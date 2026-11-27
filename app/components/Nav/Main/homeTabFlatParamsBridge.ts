@@ -53,6 +53,7 @@ export const replaceWalletHomeParentParams = (
 };
 const isParamsObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+// `screen` and `state` are reserved param keys while this bridge exists.
 const isNestedScreenParams = (
   value: unknown,
 ): value is NestedScreenHomeTabParams =>
@@ -114,13 +115,8 @@ export const useHomeTabFlatParamsBridge = ({
   navigation,
   targetChild,
 }: HomeTabFlatParamsBridgeOptions): HomeTabFlatParamsBridgeResult => {
-  const sourceRouteRef = useRef<Route<string>>(route);
-  const lastNormalizedParamsRef = useRef<unknown>(undefined);
-  // The host route echoes normalized params after replaceParams. Retain the
-  // initiating route so Browser asset defaults keep that request payload.
-  if (route.params !== lastNormalizedParamsRef.current) {
-    sourceRouteRef.current = route;
-  }
+  const committedSourceRouteRef = useRef<Route<string>>(route);
+  const committedNormalizedParamsRef = useRef<unknown>(undefined);
   const normalizedParams = useMemo(
     () =>
       targetChild === Routes.WALLET_VIEW
@@ -137,14 +133,23 @@ export const useHomeTabFlatParamsBridge = ({
         : { ...route, params: normalizedParams },
     [normalizedParams, route],
   );
-  lastNormalizedParamsRef.current = normalizedParams;
+  // The host echoes normalized params after replaceParams. Retain the
+  // initiating route so Browser asset defaults keep that request payload.
+  // Record both refs in the effect below. A discarded render must not point
+  // them at a request that never committed.
+  const sourceRoute =
+    route.params === committedNormalizedParamsRef.current
+      ? committedSourceRouteRef.current
+      : route;
   useEffect(() => {
+    committedSourceRouteRef.current = sourceRoute;
+    committedNormalizedParamsRef.current = normalizedParams;
     if (route.params !== normalizedParams) {
       navigation.replaceParams(normalizedParams);
     }
-  }, [navigation, normalizedParams, route.params]);
+  }, [navigation, normalizedParams, route.params, sourceRoute]);
   return {
     normalizedRoute,
-    sourceRoute: sourceRouteRef.current,
+    sourceRoute,
   };
 };

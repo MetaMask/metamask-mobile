@@ -62,7 +62,7 @@ const StakeScreenStack = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+          name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
           // Intentionally getting empty title and empty back to avoid flicker before rendering Confirm
           options={emptyNavHeaderOptions}
           component={Confirm}

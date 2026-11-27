@@ -1166,6 +1166,11 @@ global.crypto = {
   },
 };
 
+if (!window.crypto.subtle) {
+  // eslint-disable-next-line n/global-require
+  window.crypto.subtle = require('crypto').webcrypto.subtle;
+}
+
 // Mock Sentry to prevent initialization issues in tests
 jest.mock('@sentry/react-native', () => ({
   // Core methods
@@ -1207,6 +1212,7 @@ jest.mock('@sentry/react-native', () => ({
     name: 'ReactNavigation',
     registerNavigationContainer: jest.fn(),
   })),
+  spotlightIntegration: jest.fn(() => ({ name: 'Spotlight' })),
 
   // User feedback
   lastEventId: jest.fn(),

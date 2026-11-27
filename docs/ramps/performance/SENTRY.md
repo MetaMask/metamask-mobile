@@ -2,7 +2,7 @@
 
 This maps the Unified Buy V2 instrumentation to Sentry. It contains no
 performance values. It is the counterpart to
-[`docs/perps/performance/SENTRY.md`](../../perps/performance/SENTRY.md) and
+[`docs/perps/performance/sentry.md`](../../perps/performance/sentry.md) and
 reuses the same attribute vocabulary so Buy and Perps latency can be read the
 same way.
 

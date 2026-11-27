@@ -50,6 +50,13 @@ const mockGetParent = jest.fn(() => ({
   getState: () => ({ type: mockParentNavigatorType }),
 }));
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const ReactActual = jest.requireActual('react');
@@ -103,6 +110,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsByGroupId: jest.fn(),
+}));
+
+const mockIsHardwareAccount = jest.fn();
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: (address: string) => mockIsHardwareAccount(address),
+}));
+
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
@@ -119,7 +136,9 @@ import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMon
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
+import { resetNotSupportedSheetSession } from '../utils/notSupportedSheetSession';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
@@ -200,9 +219,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
-jest.mock('../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
 jest.mock('../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
 }));
@@ -282,10 +298,6 @@ jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
 }));
 
-jest.mock('../hooks/useRewardDashboardModals', () => ({
-  useRewardDashboardModals: jest.fn(),
-}));
-
 jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
@@ -312,18 +324,13 @@ jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
 
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { AccountGroupType } from '@metamask/account-api';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
 >;
-const mockUseRewardDashboardModals =
-  useRewardDashboardModals as jest.MockedFunction<
-    typeof useRewardDashboardModals
-  >;
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
@@ -343,10 +350,7 @@ const mockUseMoneyAccountSweepstakesOutcomeToast =
     typeof useMoneyAccountSweepstakesOutcomeToast
   >;
 describe('RewardsDashboard', () => {
-  const mockShowUnlinkedAccountsModal = jest.fn();
-  const mockShowNotOptedInModal = jest.fn();
-  const mockShowNotSupportedModal = jest.fn();
-  const mockHasShownModal = jest.fn();
+  const mockGetAccountsByGroupId = jest.fn();
   const mockResumeBulkLink = jest.fn();
 
   const mockSelectedAccountGroup = {
@@ -380,15 +384,6 @@ describe('RewardsDashboard', () => {
       isLoading: false,
       hasError: false,
       refresh: jest.fn(),
-    },
-    useRewardDashboardModals: {
-      showUnlinkedAccountsModal: mockShowUnlinkedAccountsModal,
-      showNotOptedInModal: mockShowNotOptedInModal,
-      showNotSupportedModal: mockShowNotSupportedModal,
-      hasShownModal: mockHasShownModal,
-      resetSessionTracking: jest.fn(),
-      resetSessionTrackingForCurrentAccountGroup: jest.fn(),
-      resetAllSessionTracking: jest.fn(),
     },
     useBulkLinkState: {
       startBulkLink: jest.fn(),
@@ -462,13 +457,10 @@ describe('RewardsDashboard', () => {
     mockUseRewardOptinSummary.mockReturnValue(
       defaultHookValues.useRewardOptinSummary,
     );
-    mockUseRewardDashboardModals.mockReturnValue(
-      defaultHookValues.useRewardDashboardModals,
-    );
     mockUseBulkLinkState.mockReturnValue(defaultHookValues.useBulkLinkState);
 
-    // Setup default modal hook behavior - return false for all modal types by default
-    mockHasShownModal.mockReturnValue(false);
+    mockGetAccountsByGroupId.mockReturnValue([{ address: '0x123' }]);
+    mockIsHardwareAccount.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectActiveTab) return defaultSelectorValues.activeTab;
@@ -484,6 +476,8 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
+      if (selector === selectInternalAccountsByGroupId)
+        return mockGetAccountsByGroupId;
       if (selector === mockHasAcceptedVipInviteSelector) return false;
       if (selector === selectIsVipReferee) return false;
       if (selector === mockHasAcceptedVipRefereeInviteSelector) return false;
@@ -511,14 +505,6 @@ describe('RewardsDashboard', () => {
       expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
         1,
       );
-    });
-
-    it('calls modal hooks when component is rendered', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
     });
   });
 
@@ -931,364 +917,73 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('modal triggering for current account', () => {
-    it('does not show the add account modal when the current account is not opted in', async () => {
-      // Arrange
-      const mockAccountGroupWithOptedOut = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [],
-        optedOutAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: false,
-          },
-        ],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupPartiallySupported: true,
-        currentAccountGroupOptedInStatus: 'notOptedIn',
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      });
+  describe('unsupported account sheet', () => {
+    beforeEach(() => {
+      resetNotSupportedSheetSession();
     });
 
-    it('shows not supported modal when account group is not fully supported and modal has not been shown', async () => {
-      // Arrange
+    const KEY_PREFIX = 'rewards.dashboard_modal_info.account_not_supported';
+    const notSupportedParams = (descriptionKey: string) => ({
+      title: `${KEY_PREFIX}.title`,
+      description: `${KEY_PREFIX}.${descriptionKey}`,
+    });
+
+    const mockUnsupportedAccountGroup = () => {
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         currentAccountGroupPartiallySupported: false,
         currentAccountGroupOptedInStatus: null,
       });
+    };
 
-      // Act
-      render(<RewardsDashboard />);
+    const infoSheetOpens = () =>
+      mockNavigate.mock.calls.filter(
+        ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      ).length;
 
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-    });
-
-    it('does not show modal when modal has already been shown in session', () => {
-      // Arrange
-      mockHasShownModal.mockReturnValue(true);
-
-      const mockAccountGroupWithOptedOut = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [],
-        optedOutAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: false,
-          },
-        ],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupPartiallySupported: true,
-        currentAccountGroupOptedInStatus: 'notOptedIn',
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('modal triggering for unlinked accounts', () => {
-    const mockWalletWithOptedOutAccounts = [
-      {
-        wallet: {
-          id: 'keyring:wallet1' as const,
-          metadata: {
-            name: 'Wallet 1',
-          },
-          groups: {},
-          type: AccountWalletType.Keyring as const,
-          status: 'in-progress:discovery' as const,
-        },
-        groups: [
-          {
-            id: 'keyring:wallet1/2' as const,
-            name: 'Account Group 2',
-            optedInAccounts: [],
-            optedOutAccounts: [
-              {
-                id: 'account-2',
-                address: '0x456',
-                type: 'eip155:eoa' as const,
-                options: {},
-                metadata: {
-                  name: 'Account 2',
-                  importTime: Date.now(),
-                  keyring: { type: 'HD Key Tree' },
-                },
-                scopes: ['eip155:1'] as `${string}:${string}`[],
-                methods: ['eth_sendTransaction'],
-                hasOptedIn: false,
-              },
-            ],
-            unsupportedAccounts: [],
-          },
-        ],
-      },
-    ];
-
-    it('does not show the add accounts modal when there are unlinked accounts', async () => {
-      // Arrange
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupOptedInStatus: 'fullyOptedIn',
-        currentAccountGroupPartiallySupported: true,
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not show unlinked accounts modal when hideUnlinkedAccountsBanner is true', () => {
-      // Arrange
-      mockSelectHideUnlinkedAccountsBanner.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner) return true;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-    });
-
-    it('does not show unlinked accounts modal when modal has already been shown', () => {
-      // Arrange
-      mockHasShownModal.mockImplementation(
-        (modalType) => modalType === 'unlinked-accounts',
+    const overrideSelector = (selector: unknown, value: unknown) => {
+      const defaultImplementation = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((candidate) =>
+        candidate === selector ? value : defaultImplementation?.(candidate),
       );
+    };
+
+    it('opens the info sheet with the general description when the account group is not supported', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+      expect(mockGetAccountsByGroupId).toHaveBeenCalledWith(
+        mockSelectedAccountGroup.id,
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        notSupportedParams('description_general'),
+      );
     });
-  });
 
-  describe('modal prioritization', () => {
-    it('does not show the add accounts modal when the current account banner is dismissed', async () => {
+    it('opens the info sheet with the hardware description when the account group has a hardware account', () => {
       // Arrange
-      const mockWalletWithOptedOutAccounts = [
-        {
-          wallet: {
-            id: 'keyring:wallet1' as const,
-            metadata: {
-              name: 'Wallet 1',
-            },
-            groups: {},
-            type: AccountWalletType.Keyring as const,
-            status: 'in-progress:discovery' as const,
-          },
-          groups: [
-            {
-              id: 'keyring:wallet1/2' as const,
-              name: 'Account Group 2',
-              optedInAccounts: [],
-              optedOutAccounts: [
-                {
-                  id: 'account-2',
-                  address: '0x456',
-                  type: 'eip155:eoa' as const,
-                  options: {},
-                  metadata: {
-                    name: 'Account 2',
-                    importTime: Date.now(),
-                    keyring: { type: 'HD Key Tree' },
-                  },
-                  scopes: ['eip155:1'] as `${string}:${string}`[],
-                  methods: ['eth_sendTransaction'],
-                  hasOptedIn: false,
-                },
-              ],
-              unsupportedAccounts: [],
-            },
-          ],
-        },
-      ];
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupOptedInStatus: 'fullyOptedIn',
-        currentAccountGroupPartiallySupported: true,
-      });
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return [{ accountGroupId: 'keyring:wallet1/1', hide: true }];
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
+      mockUnsupportedAccountGroup();
+      mockIsHardwareAccount.mockReturnValue(true);
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        notSupportedParams('description_hardware'),
+      );
     });
 
-    it('prioritizes not supported modal over other modals', async () => {
+    it('does not open the info sheet when the account group is supported', () => {
       // Arrange
-      const mockWalletWithOptedOutAccounts = [
-        {
-          wallet: {
-            id: 'keyring:wallet1' as const,
-            metadata: {
-              name: 'Wallet 1',
-            },
-            groups: {},
-            type: AccountWalletType.Keyring as const,
-            status: 'in-progress:discovery' as const,
-          },
-          groups: [
-            {
-              id: 'keyring:wallet1/2' as const,
-              name: 'Account Group 2',
-              optedInAccounts: [],
-              optedOutAccounts: [
-                {
-                  id: 'account-2',
-                  address: '0x456',
-                  type: 'eip155:eoa' as const,
-                  options: {},
-                  metadata: {
-                    name: 'Account 2',
-                    importTime: Date.now(),
-                    keyring: { type: 'HD Key Tree' },
-                  },
-                  scopes: ['eip155:1'] as `${string}:${string}`[],
-                  methods: ['eth_sendTransaction'],
-                  hasOptedIn: false,
-                },
-              ],
-              unsupportedAccounts: [],
-            },
-          ],
-        },
-      ];
-
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('account group opt-in status logic', () => {
-    it('does not show modal when account group is fully opted in', () => {
-      // Arrange
-      const mockAccountGroupFullyOptedIn = {
-        id: 'keyring:wallet1/1' as const,
-        name: 'Account Group 1',
-        optedInAccounts: [
-          {
-            id: 'account-1',
-            address: '0x123',
-            type: 'eip155:eoa' as const,
-            options: {},
-            metadata: {
-              name: 'Account 1',
-              importTime: Date.now(),
-              keyring: { type: 'HD Key Tree' },
-            },
-            scopes: ['eip155:1'] as `${string}:${string}`[],
-            methods: ['eth_sendTransaction'],
-            hasOptedIn: true,
-          },
-        ],
-        optedOutAccounts: [],
-        unsupportedAccounts: [],
-      };
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: mockAccountGroupFullyOptedIn,
         currentAccountGroupPartiallySupported: true,
         currentAccountGroupOptedInStatus: 'fullyOptedIn',
       });
@@ -1297,99 +992,107 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(0);
     });
 
-    it('shows not supported modal when account group contains unsupported accounts', async () => {
+    it('does not open the info sheet when the not-opted-in banner is hidden for the account group', () => {
       // Arrange
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
+      mockUnsupportedAccountGroup();
+      overrideSelector(selectHideCurrentAccountNotOptedInBannerArray, [
+        { accountGroupId: mockSelectedAccountGroup.id, hide: true },
+      ]);
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      await waitFor(() => {
-        expect(mockShowNotSupportedModal).toHaveBeenCalled();
-      });
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(0);
     });
 
-    it('handles null selectedAccountGroup gracefully', () => {
+    it('does not throw or open the info sheet when there is no selected account group', () => {
       // Arrange
+      mockUnsupportedAccountGroup();
       mockSelectSelectedAccountGroup.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup) return null;
-        return undefined;
+      overrideSelector(selectSelectedAccountGroup, null);
+
+      // Act & Assert
+      expect(() => render(<RewardsDashboard />)).not.toThrow();
+      expect(infoSheetOpens()).toBe(0);
+    });
+
+    it('does not open the info sheet when the selected account group has no id', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: undefined,
       });
 
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(0);
+    });
+
+    it('does not reopen the sheet when the dashboard refocuses for the same account group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+
+      // Act: closing the sheet refocuses the dashboard, which re-runs the effect
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(1);
+    });
+
+    it('does not reopen the sheet after the account group status briefly reports unknown', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        bySelectedAccountGroup: null,
         currentAccountGroupPartiallySupported: null,
         currentAccountGroupOptedInStatus: null,
       });
 
-      // Act & Assert
-      expect(() => render(<RewardsDashboard />)).not.toThrow();
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      // Act: a loading or error refresh flickers the status, then it settles
+      rerender(<RewardsDashboard />);
+      mockUnsupportedAccountGroup();
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(infoSheetOpens()).toBe(1);
     });
 
-    it('does not show modals when selectedAccountGroup has no id', () => {
+    it('does not reopen the sheet for the same account group in a new dashboard mount', () => {
       // Arrange
-      mockSelectSelectedAccountGroup.mockReturnValue({
-        ...mockSelectedAccountGroup,
-        id: undefined as never,
-      });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return { ...mockSelectedAccountGroup, id: undefined };
-        return undefined;
-      });
-
-      mockUseRewardOptinSummary.mockReturnValue({
-        ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupPartiallySupported: false,
-        currentAccountGroupOptedInStatus: null,
-      });
+      mockUnsupportedAccountGroup();
+      const { unmount } = render(<RewardsDashboard />);
+      unmount();
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
-      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(1);
     });
-  });
 
-  describe('hook integration', () => {
-    it('calls useRewardDashboardModals hook', () => {
+    it('opens the sheet again when the selected account group changes to another unsupported group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: 'other-group-id',
+      });
+
       // Act
-      render(<RewardsDashboard />);
+      rerender(<RewardsDashboard />);
 
       // Assert
-      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
+      expect(infoSheetOpens()).toBe(2);
     });
   });
 

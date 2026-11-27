@@ -75,15 +75,6 @@ jest.mock('./useRewardsToast', () => ({
   }),
 }));
 
-const mockResetAllSessionTrackingForRewardsDashboardModals = jest.fn();
-
-jest.mock('./useRewardDashboardModals', () => ({
-  useRewardDashboardModals: () => ({
-    resetAllSessionTracking:
-      mockResetAllSessionTrackingForRewardsDashboardModals,
-  }),
-}));
-
 jest.mock('./useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
@@ -139,7 +130,6 @@ describe('useOptout', () => {
       type: 'rewards/resetRewardsState',
       payload: undefined,
     });
-    mockResetAllSessionTrackingForRewardsDashboardModals.mockClear();
 
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
@@ -205,9 +195,6 @@ describe('useOptout', () => {
         'useOptout: Opt-out successful, resetting state',
       );
       expect(mockDispatch).toHaveBeenCalledWith(mockResetRewardsState());
-      expect(
-        mockResetAllSessionTrackingForRewardsDashboardModals,
-      ).toHaveBeenCalledTimes(1);
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -261,9 +248,6 @@ describe('useOptout', () => {
 
       expect(mockIdentify).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        mockResetAllSessionTrackingForRewardsDashboardModals,
-      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -293,9 +277,6 @@ describe('useOptout', () => {
 
       expect(mockIdentify).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        mockResetAllSessionTrackingForRewardsDashboardModals,
-      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
       expect(mockCancelBulkLink).toHaveBeenCalledTimes(1);
     });
@@ -345,9 +326,6 @@ describe('useOptout', () => {
 
       expect(optoutResult).toBe(false);
       expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(
-        mockResetAllSessionTrackingForRewardsDashboardModals,
-      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
       expect(mockCancelBulkLink).not.toHaveBeenCalled();
     });

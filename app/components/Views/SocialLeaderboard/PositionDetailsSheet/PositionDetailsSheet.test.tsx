@@ -56,6 +56,14 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
+const mockIsCopyTradeAllowed = jest.fn(() => true);
+
+// The sheet test renders without a Redux provider. Copy-trade visibility for a
+// real geolocation is covered by SocialV1View.view.test.tsx.
+jest.mock('../../../UI/SocialFeed/hooks/useIsCopyTradeAllowed', () => ({
+  useIsCopyTradeAllowed: () => mockIsCopyTradeAllowed(),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
@@ -125,15 +133,37 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
   }),
 }));
 
+type RunNavigation = (navigate: () => void) => void;
+
+const mockFollowSetupOptions = jest.fn();
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
-  useFollowWithNotificationSetup: () => ({
-    followWithSetup: (_isFollowing: boolean, perform: () => void) => perform(),
-  }),
+  useFollowWithNotificationSetup: (
+    options: unknown,
+  ): {
+    followWithSetup: (isFollowing: boolean, perform: () => void) => void;
+  } => {
+    mockFollowSetupOptions(options);
+    return {
+      followWithSetup: (_isFollowing: boolean, perform: () => void): void =>
+        perform(),
+    };
+  },
 }));
 
+// A blocked gate opens onboarding through the caller's `runNavigation`.
 jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
-  useRequireSocialProfileOnboarding: () => ({
-    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  useRequireSocialProfileOnboarding: ({
+    runNavigation,
+  }: { runNavigation?: RunNavigation } = {}): {
+    ensureSocialProfileOnboarding: () => boolean;
+  } => ({
+    ensureSocialProfileOnboarding: (): boolean => {
+      const canContinue = mockEnsureSocialProfileOnboarding();
+      if (!canContinue) {
+        runNavigation?.(() => mockNavigate('SocialProfileOnboardingView'));
+      }
+      return canContinue;
+    },
   }),
 }));
 
@@ -150,8 +180,18 @@ jest.mock('../navigation/socialTraderDeeplink', () => ({
 }));
 
 jest.mock('../terms/useSocialTermsGate', () => ({
-  useSocialTermsGate: () => ({
-    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  useSocialTermsGate: ({
+    runNavigation,
+  }: { runNavigation?: RunNavigation } = {}): {
+    ensureSocialTermsAccepted: (onAccepted?: () => void) => boolean;
+  } => ({
+    ensureSocialTermsAccepted: (onAccepted?: () => void): boolean => {
+      const canContinue = mockEnsureSocialTermsAccepted(onAccepted);
+      if (!canContinue) {
+        runNavigation?.(() => mockNavigate('SocialProfileOnboardingView'));
+      }
+      return canContinue;
+    },
   }),
 }));
 
@@ -330,6 +370,7 @@ describe('PositionDetailsSheet', () => {
     mockProfile = { profileId: 'viewer-1', linkedAccountAddress: '0xViewer' };
     mockIsFollowing = false;
     mockHeldBalance = undefined;
+    mockIsCopyTradeAllowed.mockReturnValue(true);
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
     mockIsMemeToken = { isMeme: false, isLoading: false };
@@ -806,7 +847,7 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).not.toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
@@ -1064,6 +1105,18 @@ describe('PositionDetailsSheet', () => {
           { translationY },
         ]);
       });
+
+    it('hides Copy trade when geolocation disallows it', () => {
+      mockIsCopyTradeAllowed.mockReturnValue(false);
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
 
     it('opens collapsed so the footer stays in view', () => {
       render(<PositionDetailsSheet />);
@@ -1489,6 +1542,7 @@ describe('PositionDetailsSheet', () => {
         direction: 'short',
         asset: 'BTC',
         leverage: 40,
+        isCopyTrade: true,
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');
@@ -1552,6 +1606,47 @@ describe('PositionDetailsSheet', () => {
       expect(mockOpenPerpsOrder).toHaveBeenCalledTimes(1);
     });
 
+    it('closes the sheet before opening onboarding for a blocked copy trade', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('closes the sheet before opening onboarding when the terms are not accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+    });
+
+    it('closes the sheet before Follow opens onboarding', () => {
+      render(<PositionDetailsSheet />);
+      const next = jest.fn();
+
+      mockFollowSetupOptions.mock.lastCall?.[0].runNavigation(next);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledTimes(1);
+    });
+
     it('skips copy trade when there is no linked social wallet', () => {
       mockEnsureSocialProfileOnboarding.mockReturnValue(false);
       mockParams = { ...mockParams, position: buildPerpPosition() };
@@ -1595,8 +1690,30 @@ describe('PositionDetailsSheet', () => {
       });
     });
 
-    it('opens Long on a closed perp without a linked social wallet', () => {
-      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    it.each([
+      PositionDetailsSheetSelectorsIDs.LONG_BUTTON,
+      PositionDetailsSheetSelectorsIDs.SHORT_BUTTON,
+    ])(
+      'opens profile onboarding instead of %s without a linked social wallet',
+      (buttonTestId) => {
+        mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+        mockParams = { ...mockParams, position: buildPerpPosition() };
+        mockSheetData = perpData({ isClosed: true });
+
+        render(<PositionDetailsSheet />);
+        fireEvent.press(screen.getByTestId(buttonTestId));
+
+        expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+        expect(mockTrackInteraction).not.toHaveBeenCalledWith(
+          'button_clicked',
+          expect.anything(),
+        );
+      },
+    );
+
+    it('opens Long once the social terms are accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData({ isClosed: true });
 
@@ -1604,6 +1721,8 @@ describe('PositionDetailsSheet', () => {
       fireEvent.press(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
       );
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
 
       expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
         direction: 'long',
@@ -1611,6 +1730,25 @@ describe('PositionDetailsSheet', () => {
         leverage: undefined,
       });
     });
+
+    it.each([
+      PositionDetailsSheetSelectorsIDs.BUY_BUTTON,
+      PositionDetailsSheetSelectorsIDs.SELL_BUTTON,
+    ])(
+      'opens profile onboarding instead of %s without a linked social wallet',
+      (buttonTestId) => {
+        mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+        mockSheetData = buildSheetData({ isClosed: true });
+        mockHeldBalance = { balance: '1' };
+
+        render(<PositionDetailsSheet />);
+        fireEvent.press(screen.getByTestId(buttonTestId));
+
+        expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId('quick-buy-sheet')).toBeNull();
+        expect(mockTrackInteraction).not.toHaveBeenCalledWith('button_clicked');
+      },
+    );
 
     it('plays a primary haptic when Buy is pressed', () => {
       mockSheetData = buildSheetData({ isClosed: true });

@@ -12,12 +12,15 @@ import {
 import { calculateLiquidationDistance } from '../utils/liquidationDistance';
 import {
   MARGIN_ADJUSTMENT_CONFIG,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 
 export interface UsePerpsAdjustMarginDataParams {
   /** Symbol from route params to identify the position */
   symbol: string;
+  /** Venue of the route position; the same symbol can be open on two venues. */
+  providerId?: PerpsProviderType;
   /** Mode: 'add' or 'remove' */
   mode: 'add' | 'remove';
   /** Current user input amount */
@@ -102,29 +105,48 @@ const parseMaxLeverage = (
 export function usePerpsAdjustMarginData(
   params: UsePerpsAdjustMarginDataParams,
 ): UsePerpsAdjustMarginDataReturn {
-  const { symbol, mode, inputAmount } = params;
+  const { symbol, providerId, mode, inputAmount } = params;
   const isAddMode = mode === 'add';
 
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
   const { account } = usePerpsLiveAccount();
-  const livePrices = usePerpsLivePrices({
-    symbols: symbol ? [symbol] : [],
-    throttleMs: 1000,
-  });
-  const { markets } = usePerpsMarkets();
+  // Full catalog: the grouped list keeps one row per symbol, tagged with the
+  // default venue, so a position on the other venue would match nothing.
+  const { markets } = usePerpsMarkets({ fullCatalog: true });
 
   // Find live position for this symbol
   const position = useMemo(
-    () => positions?.find((p) => p.symbol === symbol) || null,
-    [positions, symbol],
+    () =>
+      positions?.find(
+        (p) =>
+          p.symbol === symbol &&
+          (!p.providerId || !providerId || p.providerId === providerId),
+      ) || null,
+    [positions, symbol, providerId],
   );
 
+  const livePrices = usePerpsLivePrices({
+    providerId: position?.providerId,
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
   // Get market info for max leverage fallback
-  const marketInfo = useMemo(
-    () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
-    [symbol, markets],
-  );
+  // Prefer the position venue's own row. An untagged row (or any row, when
+  // the position has no venue) is only a fallback, so it cannot win over the
+  // venue's listing just by coming first.
+  const marketInfo = useMemo(() => {
+    if (!symbol) return null;
+    const venueId = position?.providerId;
+    const venueMarket = venueId
+      ? markets.find((m) => m.symbol === symbol && m.providerId === venueId)
+      : undefined;
+    return (
+      venueMarket ??
+      markets.find((m) => m.symbol === symbol && (!m.providerId || !venueId)) ??
+      null
+    );
+  }, [symbol, markets, position?.providerId]);
   const parsedMaxLeverage = parseMaxLeverage(
     marketInfo?.maxLeverage,
     MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage,
@@ -180,10 +202,19 @@ export function usePerpsAdjustMarginData(
     return Number.isFinite(rawPercentChange) ? rawPercentChange : null;
   }, [livePrices, symbol]);
 
-  const spendableBalance = useMemo(
-    () => parseFiniteNumber(account?.spendableBalance),
-    [account],
-  );
+  // Margin is added from the position's venue, so in aggregated mode only that
+  // venue's balance is spendable. A venue that has not reported (or failed)
+  // offers nothing rather than the other venue's funds.
+  const spendableBalance = useMemo(() => {
+    const venueId = position?.providerId;
+    if (venueId && account?.providerStates) {
+      const venueEntry = account.providerStates[venueId];
+      return venueEntry?.status === 'available'
+        ? parseFiniteNumber(venueEntry.state.spendableBalance)
+        : 0;
+    }
+    return parseFiniteNumber(account?.spendableBalance);
+  }, [account, position?.providerId]);
 
   const positionLeverage =
     parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;

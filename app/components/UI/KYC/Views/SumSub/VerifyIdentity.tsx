@@ -43,6 +43,7 @@ import {
 } from '../../kycScreenPerformance';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
@@ -157,6 +158,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
     if (!disclaimers?.length) {
       return;
     }
+    fireImpact(ImpactMoment.PrimaryCTA);
     trackIdentityTerms('page1_accepted');
     onContinue(disclaimers);
   }, [disclaimers, onContinue]);

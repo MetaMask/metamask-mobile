@@ -3,6 +3,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { FEED_CAIP2_CHAINS } from '../../SocialFeed/data/feed-constants';
+import { useFeedChains } from '../../SocialFeed/data/supportedNetworks';
 import {
   getOpenPositionForAsset,
   TraderPositionHttpError,
@@ -14,6 +16,10 @@ import { TRADER_POSITION_POLL_INTERVAL_MS } from './useTraderPosition';
 jest.mock('./traderPositionService', () => ({
   ...jest.requireActual('./traderPositionService'),
   getOpenPositionForAsset: jest.fn(),
+}));
+
+jest.mock('../../SocialFeed/data/supportedNetworks', () => ({
+  useFeedChains: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -35,6 +41,9 @@ jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
 }));
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseFeedChains = useFeedChains as jest.MockedFunction<
+  typeof useFeedChains
+>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
@@ -56,6 +65,7 @@ describe('useOpenPositionForAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIsFocused.mockReturnValue(true);
+    mockUseFeedChains.mockReturnValue(FEED_CAIP2_CHAINS);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
       return undefined;
@@ -83,6 +93,81 @@ describe('useOpenPositionForAsset', () => {
     renderHook(() => useOpenPositionForAsset('0xAbc', undefined));
 
     expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('stays disabled for an asset on a chain the route does not serve', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('serves the chains social-api reports as supported', () => {
+    mockUseFeedChains.mockReturnValue(['eip155:137']);
+
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(true);
+  });
+
+  it('stays disabled for a chain social-api no longer reports as supported', () => {
+    mockUseFeedChains.mockReturnValue(['eip155:8453']);
+
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('only fetches the supported networks while the wallet is unlocked', () => {
+    mockUseSelector.mockImplementation(() => false);
+
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    expect(mockUseFeedChains).toHaveBeenCalledWith(false);
+  });
+
+  it('stays disabled for native Bitcoin', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('reports not loading for an asset the route does not serve', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    } as unknown as ReturnType<typeof useQuery>);
+
+    const { result } = renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stays enabled for a Hyperliquid perp on a served chain', () => {
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:999/perp:kPEPE'));
+
+    expect(queryOptions().enabled).toBe(true);
   });
 
   it('returns null when the route answers 404', async () => {

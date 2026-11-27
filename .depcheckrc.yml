@@ -135,6 +135,12 @@ ignores:
   - 'vm-browserify'
   - 'react-native-cli'
 
+  # Required directly by app/util/test/netConnectGuard.js
+  # (removeStaleInterceptorListeners) to unwind nock's request listeners. Nock
+  # v15 depends on it transitively; declaring it directly would pin a second
+  # copy of the interceptors build next to nock's.
+  - '@mswjs/interceptors'
+
   ## Missing dependencies to investigate
   - '@react-navigation/core'
   - 'app'

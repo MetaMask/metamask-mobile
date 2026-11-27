@@ -7,7 +7,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { calculateFundingCountdown } from '@metamask/perps-controller';
+import {
+  calculateFundingCountdown,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -96,6 +99,7 @@ const formatLivePrice = (rawPrice: string | undefined): string => {
  */
 const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   symbol,
+  providerId,
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
@@ -127,23 +131,28 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
+    providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 2000,
   });
   const livePriceUpdate = symbol ? livePrices[symbol] : undefined;
   const liveFunding = livePriceUpdate?.funding;
 
-  // Prefer the live WebSocket funding value, fall back to the stats hook, then
-  // to the zero display — identical precedence to PerpsMarketStatisticsCard.
+  // Prefer the live WebSocket funding value, then a saved rate, then the
+  // missing or zero display. Same precedence as PerpsMarketStatisticsCard.
   const fundingRateDisplay = useMemo(() => {
     if (liveFunding !== undefined) {
       return formatFundingRate(liveFunding);
     }
     if (
       marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
+      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay &&
+      marketStats.fundingRate !== PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
       return marketStats.fundingRate;
+    }
+    if (marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay) {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
     return FUNDING_RATE_CONFIG.ZeroDisplay;
   }, [liveFunding, marketStats.fundingRate]);
@@ -177,7 +186,8 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
 
     if (
       !marketStats.fundingRate ||
-      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay
+      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay ||
+      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
       return TextColor.TextDefault;
     }
@@ -188,12 +198,11 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   }, [liveFunding, marketStats.fundingRate]);
 
   // Mark and oracle are two distinct values and must come from two distinct
-  // fields (TAT-4024). In PriceUpdate, `price` is the live mark (the
-  // activeAssetCtx midPx/markPx that live PnL and position value track), while
-  // `markPrice` is populated by the controller from the exchange's oraclePx —
-  // the same field Lite's statistics card renders as "Oracle price".
-  const markPriceDisplay = formatLivePrice(livePriceUpdate?.price);
-  const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  // fields (TAT-4024). In PriceUpdate, `price` is the live mid, `markPrice` is
+  // the venue mark (HyperLiquid markPx) and `oraclePrice` is the exchange
+  // oracle. Neither row falls back to the mid.
+  const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.oraclePrice);
 
   return (
     <Box testID={testID} twClassName="border-b border-border-muted">

@@ -153,6 +153,8 @@ async function waitForBuildQuoteReady({
       expect(queryByText('Oops, something went wrong')).not.toBeOnTheScreen();
       expect(getByText('Ethereum')).toBeOnTheScreen();
     },
+    // The aggregator chains its regions and quotes reads before the form
+    // settles; the 5s default is not enough on a loaded CV shard.
     { timeout: 10000 },
   );
 }
@@ -457,11 +459,7 @@ describe('Aggregator BuildQuote', () => {
       // Wait for the insufficient balance error to appear — amountBNMinimalUnit
       // recomputation is async after keypad state updates propagate.
       expect(
-        await findByTestId(
-          BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
-          {},
-          { timeout: 5000 },
-        ),
+        await findByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
       ).toBeOnTheScreen();
     });
 
@@ -569,7 +567,7 @@ describe('Aggregator BuildQuote', () => {
 
       fireEvent.press(getQuotesButton);
 
-      await findByTestId(`route-${Routes.RAMP.QUOTES}`, {}, { timeout: 5000 });
+      await findByTestId(`route-${Routes.RAMP.QUOTES}`);
     });
 
     it('changes fiat currency from EUR to USD in sell mode', async () => {
@@ -728,11 +726,7 @@ describe('Aggregator BuildQuote', () => {
       );
 
       expect(
-        await findByTestId(
-          BuildQuoteSelectors.MIN_LIMIT_ERROR,
-          {},
-          { timeout: 5000 },
-        ),
+        await findByTestId(BuildQuoteSelectors.MIN_LIMIT_ERROR),
       ).toBeOnTheScreen();
     });
   });

@@ -1,8 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -16,29 +14,22 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import ErrorBoundary from '../../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import TradingActivityListSkeleton from './TradingActivityListSkeleton';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
 import { strings } from '../../../../../../locales/i18n';
-import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const TRADING_ACTIVITY_LIST_EMPTY_TEST_ID =
   'trading-activity-list-empty';
 
+/** Rows the skeleton draws while the first page loads. */
+const SKELETON_ROWS = 5;
+
 export interface TradingActivityListViewTestIds {
-  CONTAINER: string;
   LIST: string;
-  SKELETON_SLOT: string;
 }
 
 interface TradingActivityListViewProps<T extends { id: string }> {
-  /** Name reported by `ErrorBoundary` when the screen throws. */
-  view: string;
-  title: string;
   testIDs: TradingActivityListViewTestIds;
   list: UseCursorPaginatedListResult<T>;
   renderItem: (item: T) => React.ReactElement | null;
@@ -47,30 +38,35 @@ interface TradingActivityListViewProps<T extends { id: string }> {
    * and claims, must include the type: those rows can share an id.
    */
   keyExtractor?: (item: T) => string;
-  /** Empty-state description from referral `localized_text`. */
-  emptyDescription: string;
+  /**
+   * Empty-state description from referral `localized_text`. Without one, a
+   * successful fetch with no rows shows nothing under the header.
+   */
+  emptyDescription?: string;
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
   emptyActionLabel?: string;
   emptyOnAction?: () => void;
   /** Defaults to the trading-activity icon. Copy trading passes People. */
   emptyIconName?: IconName;
-  /** Sits above the list, the empty state, and the loading skeleton. */
+  /**
+   * Scrolls with the list, above the rows, the empty state, and the loading
+   * skeleton. It is full width: a caller that wants side padding adds it.
+   */
   header?: React.ReactElement | null;
 }
 
 /**
- * Full-screen, cursor-paginated activity list shared by the Money trading
- * commissions and rebates screens.
+ * Cursor-paginated activity list shared by the Money earn pages and the
+ * earnings history screen. It is not a screen: the page chrome comes from
+ * `RewardsMoneyListScreen`, and this list is the page's only scroller.
  *
- * The skeleton fills the measured body under the header. Cached rows stay on
- * screen while a page reloads. The error banner replaces the list only when
- * the fetch failed and there are no rows to show.
- * A successful fetch with no rows shows the empty state. The 32px bottom
- * inset sits on the wrapping container so the list never scrolls into it.
+ * The skeleton shows while the first page loads. Cached rows stay on screen
+ * while a page reloads. The error banner replaces the rows only when the
+ * fetch failed and there are no rows to show. A successful fetch with no rows
+ * shows the empty state. The 32px bottom inset sits on the content container
+ * so the list never scrolls into it.
  */
 function TradingActivityListView<T extends { id: string }>({
-  view,
-  title,
   testIDs,
   list,
   renderItem,
@@ -81,9 +77,7 @@ function TradingActivityListView<T extends { id: string }>({
   emptyIconName = IconName.Activity,
   header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
   const {
     items,
     isLoading,
@@ -97,7 +91,6 @@ function TradingActivityListView<T extends { id: string }>({
   } = list;
 
   const isInitialLoadPending = isLoading || items === null;
-  const [bodyHeight, setBodyHeight] = useState(0);
 
   const onEndReached = useCallback(() => {
     if (
@@ -114,7 +107,10 @@ function TradingActivityListView<T extends { id: string }>({
   }, [error, hasMore, isLoading, isLoadingMore, isRefreshing, items, loadMore]);
 
   const renderListItem = useCallback(
-    ({ item }: { item: T }) => renderItem(item),
+    ({ item }: { item: T }) => {
+      const row = renderItem(item);
+      return row ? <Box twClassName="px-4 pb-4">{row}</Box> : null;
+    },
     [renderItem],
   );
 
@@ -136,25 +132,37 @@ function TradingActivityListView<T extends { id: string }>({
       return null;
     }
     return (
-      <RewardsErrorBanner
-        title={strings('rewards.trading_activity_error.error_fetching_title')}
-        description={strings(
-          'rewards.trading_activity_error.error_fetching_description',
-        )}
-        onConfirm={retry}
-        confirmButtonLabel={strings(
-          'rewards.trading_activity_error.retry_button',
-        )}
-      />
+      <Box twClassName="px-4">
+        <RewardsErrorBanner
+          title={strings('rewards.trading_activity_error.error_fetching_title')}
+          description={strings(
+            'rewards.trading_activity_error.error_fetching_description',
+          )}
+          onConfirm={retry}
+          confirmButtonLabel={strings(
+            'rewards.trading_activity_error.retry_button',
+          )}
+        />
+      </Box>
     );
   }, [error, hasRows, retry]);
 
   const renderEmpty = useCallback(() => {
+    if (isInitialLoadPending && !error) {
+      return (
+        <Box twClassName="px-4">
+          <TradingActivityListSkeleton rows={SKELETON_ROWS} />
+        </Box>
+      );
+    }
     if (error) {
       return renderErrorBanner();
     }
+    if (!emptyDescription) {
+      return null;
+    }
     return (
-      <Box twClassName="items-center py-4">
+      <Box twClassName="items-center px-4 py-4">
         <TabEmptyState
           icon={
             <AvatarIcon
@@ -191,59 +199,27 @@ function TradingActivityListView<T extends { id: string }>({
     emptyIconName,
     emptyOnAction,
     error,
+    isInitialLoadPending,
     renderErrorBanner,
   ]);
 
   return (
-    <ErrorBoundary navigation={navigation} view={view}>
-      <SafeAreaView
-        edges={{ bottom: 'additive' }}
-        style={tw.style('flex-1 bg-default')}
-        testID={testIDs.CONTAINER}
-      >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          title={title}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'header-back-button' }}
-          includesTopInset
-        />
-        <Box twClassName="flex-1 px-4 pb-8 pt-2">
-          {header ? <Box twClassName="mb-4">{header}</Box> : null}
-          {isInitialLoadPending && !error ? (
-            <Box
-              collapsable={false}
-              twClassName="flex-1"
-              testID={testIDs.SKELETON_SLOT}
-              onLayout={(event) => {
-                const next = event.nativeEvent.layout.height;
-                setBodyHeight((current) => (current === next ? current : next));
-              }}
-            >
-              <TradingActivityListSkeleton height={bodyHeight} />
-            </Box>
-          ) : (
-            <FlatList
-              style={tw.style('flex-1')}
-              data={items ?? []}
-              keyExtractor={keyExtractor}
-              renderItem={renderListItem}
-              onEndReached={onEndReached}
-              onEndReachedThreshold={0.4}
-              ListHeaderComponent={null}
-              ListFooterComponent={renderFooter}
-              ListEmptyComponent={renderEmpty}
-              contentContainerStyle={tw.style('gap-4')}
-              testID={testIDs.LIST}
-              refreshControl={
-                <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-              }
-            />
-          )}
-        </Box>
-      </SafeAreaView>
-    </ErrorBoundary>
+    <FlatList
+      style={tw.style('flex-1')}
+      data={isInitialLoadPending ? [] : (items ?? [])}
+      keyExtractor={keyExtractor}
+      renderItem={renderListItem}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.4}
+      ListHeaderComponent={header ?? null}
+      ListFooterComponent={renderFooter}
+      ListEmptyComponent={renderEmpty}
+      contentContainerStyle={tw.style('pb-8')}
+      testID={testIDs.LIST}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+      }
+    />
   );
 }
 

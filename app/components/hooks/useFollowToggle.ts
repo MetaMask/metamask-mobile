@@ -7,14 +7,15 @@ import { reportSocialServiceFailure } from '../../util/social/socialServiceTelem
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
+import { selectIsSocialV1Enabled } from '../../selectors/featureFlagController/socialV1';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
+  getSocialTraderFollowMilestone,
   useSocialLeaderboardAnalytics,
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { invalidateFollowingFeed } from '../UI/SocialFeed/data/socialFeedQueries';
 import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
 import {
   clearOptimisticFollowerCounts,
@@ -181,6 +182,9 @@ const invalidateFollowingQuery = async (): Promise<void> => {
   );
   await Promise.all([
     ReactQueryService.queryClient.invalidateQueries({
+      queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
       queryKey: FOLLOWING_QUERY_KEY,
     }),
     ReactQueryService.queryClient.invalidateQueries({
@@ -209,6 +213,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { track } = useSocialLeaderboardAnalytics();
   const sessionKey = getFollowToggleSessionKey(isUnlocked, selectedAddress);
 
@@ -287,22 +292,24 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             { breadcrumb: false },
           );
         });
-        // Not awaited: a full feed refetch must not delay the follower-count
-        // commit below.
-        invalidateFollowingFeed().catch((err: unknown) => {
+        // The V1 Following feed stays cached so a viewer can follow several
+        // traders before it reloads. FollowingView refreshes it on return
+        // and before a pull-to-refresh refetch. The older following feed
+        // reloads with the follow lists, in the background, so the count
+        // commit and the analytics event do not wait on that refetch.
+        invalidateFollowingQuery().catch((err: unknown) => {
           reportSocialServiceFailure(
             err,
             {
               surface: 'follow',
               operation: 'invalidate_following_feed',
-              extraMessage: 'Following feed invalidation failed',
+              extraMessage: 'Following feed refresh failed',
               source: 'useFollowToggle',
               endpoint: 'feed',
             },
             { breadcrumb: false },
           );
         });
-        await invalidateFollowingQuery();
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
         }
@@ -322,6 +329,15 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             [SocialLeaderboardEventProperties.TRADER_HAS_PROFILE_PICTURE_SET]:
               hasRealAvatar(analyticsContext.traderAvatarUri),
           });
+          // TODO(TSA-1860): the legacy `Trader Follow Interaction` emit above
+          // stays for backward compatibility; remove it with the other legacy events.
+          if (isSocialV1Enabled) {
+            const milestone = getSocialTraderFollowMilestone(
+              nextValue ? 'follow' : 'unfollow',
+              analyticsContext.source,
+            );
+            track(milestone.event, milestone.properties);
+          }
         }
       } catch (err) {
         if (requestEpoch === followToggleSessionEpoch) {
@@ -352,7 +368,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         }
       }
     },
-    [followingProfileIds, track],
+    [followingProfileIds, isSocialV1Enabled, track],
   );
 
   useEffect(() => {

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
@@ -161,6 +162,80 @@ describe('PerpsMarketStatisticsCard', () => {
 
     const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZeroDisplay);
     expect(fundingRateText).toBeOnTheScreen();
+  });
+
+  it('displays a missing funding rate as the unavailable placeholder', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: PERPS_CONSTANTS.FallbackPercentageDisplay,
+        }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) =>
+        textElement.props.children ===
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+  });
+
+  it('keeps an actual zero funding rate apart from a missing one', () => {
+    const { getByText, queryByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: FUNDING_RATE_CONFIG.ZeroDisplay,
+        }}
+      />,
+    );
+
+    expect(getByText(FUNDING_RATE_CONFIG.ZeroDisplay)).toBeOnTheScreen();
+    expect(
+      queryByText(PERPS_CONSTANTS.FallbackPercentageDisplay),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the live funding rate when the stats funding rate is missing', () => {
+    mockUsePerpsLivePrices.mockReturnValue({ BTC: { funding: -0.0002 } });
+
+    const { UNSAFE_getAllByType, queryByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: PERPS_CONSTANTS.FallbackPercentageDisplay,
+        }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-0.0200%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
+    expect(
+      queryByText(PERPS_CONSTANTS.FallbackPercentageDisplay),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the live oracle price, not the venue mark price', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: { price: '47500', markPrice: '47510', oraclePrice: '47490' },
+    });
+
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const oraclePrice = getByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE,
+    );
+    expect(oraclePrice).toHaveTextContent(/47,490/);
+    expect(oraclePrice).not.toHaveTextContent(/47,510/);
   });
 
   it('displays a positive threshold funding rate in success color', () => {

@@ -43,7 +43,11 @@ const openSheet = async (
 describeForPlatforms('MoneyTransferSheet Predict funding gate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDepositWithConfirmation.mockResolvedValue(undefined as never);
+    // Reset first so a previous test's queued mockResolvedValueOnce cannot
+    // pre-empt this test's base implementation.
+    mockDepositWithConfirmation
+      .mockReset()
+      .mockResolvedValue(undefined as never);
   });
 
   afterEach(() => {

@@ -38,6 +38,7 @@ export const useTrendingSearch = (opts?: {
   searchQuery?: string;
   sortBy?: SortTrendingBy;
   chainIds?: CaipChainId[] | null;
+  enabled?: boolean;
   enableDebounce?: boolean;
   includeMarketData?: boolean;
   includeStocks?: boolean;
@@ -53,6 +54,7 @@ export const useTrendingSearch = (opts?: {
     searchQuery,
     sortBy,
     chainIds,
+    enabled = true,
     enableDebounce = true,
     includeMarketData = true,
     includeStocks = false,
@@ -85,11 +87,13 @@ export const useTrendingSearch = (opts?: {
     isLoadingMore,
     hasNextPage,
     totalCount,
+    search,
   } = useSearchRequest({
     query: searchRequestQuery,
     limit: 20,
     chainIds: chainIds ?? undefined,
     includeMarketData,
+    enabled,
     performance,
   });
 
@@ -100,6 +104,7 @@ export const useTrendingSearch = (opts?: {
   } = useTrendingRequest({
     sort: sortBy,
     chainIds: chainIds ?? undefined,
+    enabled,
     filterLowQuality,
   });
 
@@ -152,16 +157,18 @@ export const useTrendingSearch = (opts?: {
     prevDebouncedQuery.current = debouncedQuery;
   });
 
-  const isLoading = searchRequestQuery
-    ? searchQuery !== debouncedQuery ||
-      prevDebouncedQuery.current !== debouncedQuery ||
-      isSearchLoading
-    : isTrendingLoading;
+  const isLoading =
+    enabled &&
+    (searchRequestQuery
+      ? searchQuery !== debouncedQuery ||
+        prevDebouncedQuery.current !== debouncedQuery ||
+        isSearchLoading
+      : isTrendingLoading);
 
   return {
     data,
     isLoading,
-    refetch: fetchTrendingTokens,
+    refetch: searchRequestQuery ? search : fetchTrendingTokens,
     loadMore,
     isLoadingMore,
     hasNextPage,

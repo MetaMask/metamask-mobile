@@ -36,9 +36,14 @@ import styleSheet from './PerpsOICapWarning.styles';
  * ```
  */
 const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
-  ({ symbol, variant = 'inline', testID = 'perps-oi-cap-warning' }) => {
+  ({
+    symbol,
+    providerId,
+    variant = 'inline',
+    testID = 'perps-oi-cap-warning',
+  }) => {
     const { styles } = useStyles(styleSheet, {});
-    const { isAtCap, isLoading } = usePerpsOICap(symbol);
+    const { isAtCap, isLoading } = usePerpsOICap(symbol, providerId);
 
     // Early return for performance - don't render anything if not at cap
     if (!isAtCap || isLoading) {

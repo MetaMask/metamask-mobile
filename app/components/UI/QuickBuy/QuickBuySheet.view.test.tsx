@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { merge } from 'lodash';
 import {
+  act,
   fireEvent,
   waitFor,
   within,
@@ -18,6 +19,8 @@ import { describeForPlatforms } from '../../../../tests/component-view/platform'
 import {
   clearQuickBuyApiMocks,
   createQuickBuyFetchedQuote,
+  mockQuickBuyQuoteTokens,
+  QUICK_BUY_USDC_ASSET_ID,
   setupQuickBuyApiMock,
 } from '../../../../tests/component-view/api-mocking/quickBuy';
 import { renderQuickBuySheet } from '../../../../tests/component-view/renderers/quickBuy';
@@ -51,6 +54,21 @@ const SLIPPAGE_ROUTE = {
   Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
 };
 
+const POST_TRADE_SHARE_HINT_ENABLED = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          quickBuyPostTradeShareHintEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+};
+
 const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
   for (const digit of digits) {
     const keyTestId =
@@ -73,6 +91,8 @@ const expectSlippageModal = async (
   });
 };
 
+// The quick-buy sheet chains its popular-tokens and quote reads before the
+// confirm row settles, so its waits run longer than the 5s default.
 const WAIT_MS = 8000;
 
 const mockFetchQuotes = (
@@ -193,6 +213,79 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the post minimum hint on an empty amount when the remote flag is on', async () => {
+    mockQuickBuyQuoteTokens();
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+
+    expect(
+      await screen.findByTestId(
+        QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
+      ),
+    ).toHaveTextContent('Buy $10 to post');
+  });
+
+  it('hides the post minimum hint for a token that is never posted', async () => {
+    mockQuickBuyQuoteTokens([QUICK_BUY_USDC_ASSET_ID]);
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the post minimum hint when an unpriced token is sold', async () => {
+    mockQuickBuyQuoteTokens();
+    const screen = renderQuickBuySheet({
+      initialTradeMode: 'sell',
+      overrides: merge(
+        quickBuySellableUsdcOverrides(),
+        POST_TRADE_SHARE_HINT_ENABLED,
+        {
+          engine: {
+            backgroundState: {
+              AssetsController: {
+                assetsPrice: {
+                  [QUICK_BUY_USDC_ASSET_ID]: { price: 0, usdPrice: 0 },
+                },
+              },
+              TokenRatesController: {
+                marketData: { '0x1': { [USDC_DEST.address]: { price: 0 } } },
+              },
+            },
+          },
+        },
+      ),
+    });
+
+    expect(
+      await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('updates the fiat amount when the user types on the keypad', async () => {
     const screen = renderQuickBuySheet();
 
@@ -274,6 +367,38 @@ describeForPlatforms('QuickBuySheet', () => {
       },
       { timeout: WAIT_MS },
     );
+  });
+
+  it('hides the post minimum hint when no quotes are available', async () => {
+    mockQuickBuyQuoteTokens();
+    mockFetchQuotes(() => []);
+    const screen = renderQuickBuySheet({
+      overrides: POST_TRADE_SHARE_HINT_ENABLED,
+    });
+
+    await waitForSheetReady(screen);
+    expect(
+      await screen.findByTestId(
+        QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT,
+      ),
+    ).toBeOnTheScreen();
+
+    typeAmount(screen, '8');
+
+    await waitFor(
+      () => {
+        expect(
+          within(
+            screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+          ).getByText(strings('social_leaderboard.quick_buy.no_quotes')),
+        ).toBeOnTheScreen();
+      },
+      // Typed amounts are debounced before the quote request.
+      { timeout: WAIT_MS },
+    );
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps confirm disabled when fetchQuotes rejects', async () => {
@@ -712,8 +837,12 @@ describeForPlatforms('QuickBuySheet', () => {
   });
 
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
+    mockQuickBuyQuoteTokens();
     const screen = renderQuickBuySheet({
-      overrides: quickBuyZeroEthOverrides(),
+      overrides: merge(
+        quickBuyZeroEthOverrides(),
+        POST_TRADE_SHARE_HINT_ENABLED,
+      ),
     });
 
     await screen.findByTestId(QuickBuySheetSelectorsIDs.DISABLED_KEYPAD);
@@ -732,6 +861,16 @@ describeForPlatforms('QuickBuySheet', () => {
         screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
       ).getByText('Add funds'),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchQuoteTokens',
+      );
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows Add funds without a quote skeleton when the typed amount exceeds the balance', async () => {
@@ -776,7 +915,7 @@ describeForPlatforms('QuickBuySheet', () => {
     const amountArea = screen.getByTestId(
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
-    expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
+    expect(await within(amountArea).findByText(/available/)).toBeOnTheScreen();
     expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
       // Animated amounts render one glyph per digit, and the animated wrapper
@@ -822,7 +961,7 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
     expect(
-      await within(amountArea).findByText(/^\$100\.00 Available$/),
+      await within(amountArea).findByText(/^\$100\.00 available$/),
     ).toBeOnTheScreen();
   });
 
@@ -886,13 +1025,16 @@ describeForPlatforms('QuickBuySheet', () => {
     );
   });
 
-  it('hides the fee token chip in quote details for regular quotes', async () => {
+  it('shows the native fee token chip in quote details for regular quotes', async () => {
     const screen = await openQuoteDetails(false);
 
-    expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
-    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        within(
+          screen.getByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
+        ).getByText('ETH'),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('shows a discounted MetaMask fee with its badge and struck-through base fee', async () => {

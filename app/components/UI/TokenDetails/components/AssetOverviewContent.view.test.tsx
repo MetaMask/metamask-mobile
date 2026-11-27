@@ -56,6 +56,11 @@ import Engine from '../../../../core/Engine';
 
 const ETH_NATIVE = '0x0000000000000000000000000000000000000000';
 
+// Asset overview content hydrates through chained reads (recurring orders,
+// the Market Insights entry card behind its skeleton, per-token pricing), and
+// those chains regularly outlast the 5s default on a loaded CV shard.
+const TOKEN_DETAILS_LOAD_TIMEOUT_MS = 15000;
+
 const ethMainnetToken: TokenI = {
   address: ETH_NATIVE,
   chainId: '0x1',
@@ -257,7 +262,7 @@ describeForPlatforms(
             ),
           ).toBeNull();
         },
-        { timeout: 15000 },
+        { timeout: TOKEN_DETAILS_LOAD_TIMEOUT_MS },
       );
       expect(
         screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
@@ -311,7 +316,7 @@ describeForPlatforms(
       const entryCard = await screen.findByTestId(
         MarketInsightsSelectorsIDs.ENTRY_CARD,
         {},
-        { timeout: 15000 },
+        { timeout: TOKEN_DETAILS_LOAD_TIMEOUT_MS },
       );
       fireEvent.press(entryCard);
 
@@ -378,7 +383,7 @@ describeForPlatforms('Token Details Orders section', () => {
         MOCK_RECURRING_OPEN_ORDER_3.id,
       ),
       {},
-      { timeout: 15000 },
+      { timeout: TOKEN_DETAILS_LOAD_TIMEOUT_MS },
     );
 
     expect(screen.getByText('ETH → USDC')).toBeOnTheScreen();

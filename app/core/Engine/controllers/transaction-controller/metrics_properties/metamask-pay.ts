@@ -23,6 +23,7 @@ import { selectRampsOrders } from '../../../../../selectors/rampsController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { getMoneyAccountDepositIntent } from '../../../../../components/UI/Money/utils/moneyAccountDepositIntent';
 import { BigNumber } from 'bignumber.js';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
@@ -146,6 +147,14 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   } else {
     // mm_pay_time_to_complete_s
     addTimeToComplete(properties, eventType, transactionMeta, allTransactions);
+  }
+
+  const depositIntent = getMoneyAccountDepositIntent(payTransaction.batchId);
+  if (
+    depositIntent &&
+    hasTransactionType(payTransaction, [TransactionType.moneyAccountDeposit])
+  ) {
+    properties.mm_pay_deposit_intent = depositIntent;
   }
 
   return { properties, sensitiveProperties };

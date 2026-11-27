@@ -9,6 +9,17 @@ import { buildMultichainAccountsFixture } from '../../../../../../tests/componen
 import { strings } from '../../../../../../locales/i18n';
 import { MultichainDeleteAccountSelectors } from './DeleteAccount.testIds';
 
+const expectNoWalletNavigation = (
+  queryByTestId: (testId: string) => unknown,
+) => {
+  expect(
+    queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
+  ).not.toBeOnTheScreen();
+  expect(
+    queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+  ).not.toBeOnTheScreen();
+};
+
 describeForPlatforms('DeleteAccount multichain account details', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -58,7 +69,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       expect(removeAccountSpy).toHaveBeenCalledWith(account.address);
     });
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+      await findByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
     ).toBeOnTheScreen();
   });
 
@@ -74,7 +85,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       Engine.context.KeyringController,
       'removeAccount',
     );
-    const { getByTestId } = renderDeleteAccountWithRoutes({
+    const { getByTestId, queryByTestId } = renderDeleteAccountWithRoutes({
       fixture,
       account: importedAccount,
     });
@@ -86,6 +97,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
     );
 
     expect(removeAccountSpy).not.toHaveBeenCalled();
+    expectNoWalletNavigation(queryByTestId);
   });
 
   it('shows an error and stays on the delete sheet when account removal fails', async () => {
@@ -116,9 +128,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
         getByText(strings('multichain_accounts.delete_account.error')),
       ).toBeOnTheScreen();
     });
-    expect(
-      queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
-    ).not.toBeOnTheScreen();
+    expectNoWalletNavigation(queryByTestId);
     expect(
       getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),
     ).toBeOnTheScreen();
@@ -143,9 +153,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
 
     await waitFor(() => {
       expect(removeAccountSpy).not.toHaveBeenCalled();
-      expect(
-        queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
-      ).not.toBeOnTheScreen();
+      expectNoWalletNavigation(queryByTestId);
       expect(
         getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),
       ).toBeOnTheScreen();

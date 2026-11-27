@@ -45,14 +45,11 @@ describe('AcceptInviteSheet', () => {
     await findByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER);
 
     // Referral-code validation is debounced 1000ms; Accept stays disabled until it resolves.
-    await waitFor(
-      () => {
-        expect(
-          getByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT),
-        ).not.toBeDisabled();
-      },
-      { timeout: 3000 },
-    );
+    await waitFor(() => {
+      expect(
+        getByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT),
+      ).not.toBeDisabled();
+    });
 
     fireEvent.press(getByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT));
 
@@ -60,8 +57,6 @@ describe('AcceptInviteSheet', () => {
     expect(
       await findByTestId(
         getRouteProbeTestId(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW),
-        {},
-        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');

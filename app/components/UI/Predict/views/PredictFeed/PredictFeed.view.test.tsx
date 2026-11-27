@@ -34,71 +34,22 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import {
+  buildMockCryptoUpDownMarket,
+  MOCK_PREDICT_MARKET,
+  PREDICT_UP_DOWN_FLAG_OVERRIDES,
+} from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
-import { Recurrence, type PredictMarket } from '../../types';
-
-const predictUpDownFlagOverrides = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          predictUpDown: {
-            enabled: true,
-            featureVersion: '1.0.0',
-            minimumVersion: '0.0.1',
-          },
-        },
-      },
-    },
-  },
-};
-
-const createCryptoUpDownMarket = (
-  id: string,
-  endDate: string,
-): PredictMarket => ({
-  id,
-  providerId: 'polymarket',
-  slug: `${id}-btc-up-or-down-5m`,
-  title: 'BTC Up or Down - 5 Minutes',
-  description: 'BTC Up or Down',
-  image: 'https://example.com/btc.png',
-  status: 'open',
-  recurrence: Recurrence.NONE,
-  category: 'crypto',
-  tags: ['crypto', 'up-or-down', 'bitcoin'],
-  outcomes: [
-    {
-      id: `${id}-outcome`,
-      providerId: 'polymarket',
-      marketId: id,
-      title: 'BTC Up or Down',
-      description: '',
-      image: '',
-      status: 'open',
-      tokens: [
-        { id: `${id}-up`, title: 'Up', price: 0.4 },
-        { id: `${id}-down`, title: 'Down', price: 0.6 },
-      ],
-      volume: 1_500_000,
-      groupItemTitle: 'BTC',
-    },
-  ],
-  liquidity: 500_000,
-  volume: 1_500_000,
-  endDate,
-  series: {
-    id: 'btc-up-down-series',
-    slug: 'btc-up-or-down-5m',
-    title: 'BTC Up or Down - 5 Minutes',
-    recurrence: '5m',
-  },
-});
+import type { PredictMarket } from '../../types';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
 const RETRY_TEXT = 'Try again';
+
+// Feed cards and the offline/empty states mount only after the markets read
+// resolves and each card's series/price child reads settle, so awaiting them
+// regularly outlasts the 5s default on a loaded CV shard.
+const FEED_LOAD_TIMEOUT_MS = 10000;
 
 interface PredictRootRouteParams {
   screen?: string;
@@ -267,14 +218,11 @@ describe('PredictFeed', () => {
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 
-      await waitFor(
-        () => {
-          expect(searchMarketsSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ q: 'bitcoin' }),
-          );
-        },
-        { timeout: 5000 },
-      );
+      await waitFor(() => {
+        expect(searchMarketsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ q: 'bitcoin' }),
+        );
+      });
 
       searchMarketsSpy.mockRestore();
     });
@@ -332,14 +280,11 @@ describe('PredictFeed', () => {
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'xyznotfound');
 
-      await waitFor(
-        () => {
-          expect(
-            getByText('No results found for "xyznotfound"'),
-          ).toBeOnTheScreen();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(
+          getByText('No results found for "xyznotfound"'),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('shows complete market data in the search result card after searchMarkets resolves', async () => {
@@ -363,8 +308,6 @@ describe('PredictFeed', () => {
       // Assert — result card contains all significant market fields
       const resultCard = await findByTestId(
         getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
       );
       expect(
         within(resultCard).getByText(MOCK_PREDICT_MARKET.title),
@@ -495,8 +438,6 @@ describe('PredictFeed', () => {
 
       const resultCard = await findByTestId(
         getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
       );
       fireEvent.press(resultCard);
 
@@ -537,7 +478,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -563,7 +504,7 @@ describe('PredictFeed', () => {
       await findByTestId(
         PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
       const callCountBeforeRetry = getMarketsSpy.mock.calls.length;
       getMarketsSpy.mockResolvedValue({
@@ -619,7 +560,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           getPredictFeedSelector.emptyState('trending'),
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     });
@@ -724,14 +665,14 @@ describe('PredictFeed', () => {
   describe('crypto Up/Down consolidated card', () => {
     it('renders one feed card per series and opens details from the live card', async () => {
       const now = Date.now();
-      const liveMarket = createCryptoUpDownMarket(
-        'btc-live-market',
-        new Date(now + 60_000).toISOString(),
-      );
-      const nextMarket = createCryptoUpDownMarket(
-        'btc-next-market',
-        new Date(now + 360_000).toISOString(),
-      );
+      const liveMarket = buildMockCryptoUpDownMarket({
+        id: 'btc-live-market',
+        endDate: new Date(now + 60_000).toISOString(),
+      });
+      const nextMarket = buildMockCryptoUpDownMarket({
+        id: 'btc-next-market',
+        endDate: new Date(now + 360_000).toISOString(),
+      });
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
         'searchMarkets',
@@ -760,7 +701,7 @@ describe('PredictFeed', () => {
         findByPlaceholderText,
         findByTestId,
       } = renderPredictFeedViewWithRoutes({
-        overrides: predictUpDownFlagOverrides,
+        overrides: PREDICT_UP_DOWN_FLAG_OVERRIDES,
         // Default probe is enough — we only assert navigation occurred.
         extraRoutes: [{ name: Routes.PREDICT.ROOT }],
       });
@@ -785,7 +726,7 @@ describe('PredictFeed', () => {
               getByTestId(getPredictSearchSelector.resultCard(0)),
             ).getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE),
           ).toBeOnTheScreen(),
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
@@ -915,7 +856,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
 
@@ -939,7 +880,7 @@ describe('PredictFeed', () => {
       await findByTestId(
         PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
 
       const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;

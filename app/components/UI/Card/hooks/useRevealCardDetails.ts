@@ -163,7 +163,6 @@ export function useRevealCardDetails({
 
   const revealCardDetails = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
 
@@ -209,7 +208,6 @@ export function useRevealCardDetails({
 
   const viewCardDetailsAction = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
 
