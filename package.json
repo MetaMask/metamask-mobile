@@ -193,7 +193,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/tooling-insight@^1.0.1": "npm:@metamask-previews/tooling-insight@1.0.1-preview-cd6ed5e",
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -749,7 +748,7 @@
     "@metamask/test-dapp-bitcoin": "^0.2.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
     "@metamask/test-dapp-solana": "^0.3.0",
-    "@metamask/tooling-insight": "^1.0.1",
+    "@metamask/tooling-insight": "^1.1.0",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/meta-schema": "^1.14.9",
     "@open-rpc/mock-server": "^1.7.5",
