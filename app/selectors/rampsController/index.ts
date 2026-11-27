@@ -213,3 +213,12 @@ export const selectUsableVbaAutoramp = createSelector(
   (rampsControllerState, walletAddress) =>
     findUsableVbaAutoramp(rampsControllerState?.autoramps ?? [], walletAddress),
 );
+
+/**
+ * MoonPay customer abilities from the last refresh, or null when none were
+ * fetched this app session (they are not persisted).
+ */
+export const selectVbaCustomerAbilities = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.vbaCustomerAbilities ?? null,
+);

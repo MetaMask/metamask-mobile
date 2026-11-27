@@ -27,6 +27,7 @@ import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 export const VbaAccountCreateErrorSelectorsIDs = {
   CONTAINER: 'vba-account-create-error-container',
   BACK_BUTTON: 'vba-account-create-error-back-button',
+  ILLUSTRATION: 'vba-account-create-error-illustration',
   PRIMARY_BUTTON: 'vba-account-create-error-primary-button',
   SECONDARY_BUTTON: 'vba-account-create-error-secondary-button',
 } as const;
@@ -41,9 +42,21 @@ interface VbaAccountCreateErrorProps {
 
 type PendingAction = 'primary' | 'secondary';
 
+/** Copy used for the description and primary button of each action. */
+const COPY_BY_PRIMARY_ACTION = {
+  contactSupport: 'details',
+  retry: 'generic',
+  done: 'unavailable',
+} as const satisfies Record<
+  AccountCreateErrorPrimaryAction,
+  AccountCreateErrorVariant
+>;
+
 /**
  * Account-creation failure. The variant controls the title, while the action
- * controls whether the description directs the user to support or to retry.
+ * controls whether the description directs the user to support, to retry, or
+ * to leave. The unavailable variant is not a failure, so it has no
+ * illustration.
  */
 const VbaAccountCreateError = ({
   variant,
@@ -90,15 +103,12 @@ const VbaAccountCreateError = ({
     [pendingAction],
   );
 
+  const actionCopy = COPY_BY_PRIMARY_ACTION[primaryActionType];
   const description = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.description'
-      : 'virtual_bank_account.account_create_error.details.description',
+    `virtual_bank_account.account_create_error.${actionCopy}.description`,
   );
   const primaryLabel = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.primary'
-      : 'virtual_bank_account.account_create_error.details.primary',
+    `virtual_bank_account.account_create_error.${actionCopy}.primary`,
   );
 
   return (
@@ -132,13 +142,16 @@ const VbaAccountCreateError = ({
             justifyContent: BoxJustifyContent.Center,
           }}
           topAccessory={
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.End}
-              twClassName="mb-5 w-full"
-            >
-              <VbaAccountCreateFailure name="vba-account-create-failure" />
-            </Box>
+            variant === 'unavailable' ? undefined : (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.End}
+                twClassName="mb-5 w-full"
+                testID={VbaAccountCreateErrorSelectorsIDs.ILLUSTRATION}
+              >
+                <VbaAccountCreateFailure name="vba-account-create-failure" />
+              </Box>
+            )
           }
         />
       </ScrollView>

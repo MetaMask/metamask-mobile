@@ -1197,6 +1197,12 @@
         "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
         "primary": "Try again",
         "secondary": "Done"
+      },
+      "unavailable": {
+        "title": "Your region isn’t supported yet",
+        "description": "Bank transfers to your Money account aren’t available yet for residents of your region.",
+        "primary": "Done",
+        "secondary": "Contact support"
       }
     },
     "error": {

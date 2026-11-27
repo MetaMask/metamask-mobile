@@ -89,12 +89,15 @@ const MoneyVbaHomeCard = ({
   variant,
   sourceCurrency,
   onDismiss,
+  onRoutingChange,
 }: {
   variant: MoneyVbaHomeCardVariant;
   /** Market currency serving the user, when one resolved. */
   sourceCurrency?: VbaSourceCurrency;
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
+  /** Called when the CTA starts and stops resolving its destination. */
+  onRoutingChange?: (isRouting: boolean) => void;
 }) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
@@ -192,9 +195,14 @@ const MoneyVbaHomeCard = ({
     }
 
     setIsRouting(true);
+    onRoutingChange?.(true);
     try {
       const resolved = await resolveVbaOnboarding(config.source);
-      if (!isMountedRef.current) {
+      // Navigate only while Money home is in front. The card may have
+      // unmounted (resolving can change the state that picks it), or the user
+      // may have switched tabs while it stayed mounted.
+      if (!navigation.isFocused()) {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
         return;
       }
       if (resolved.status === 'error') {
@@ -232,20 +240,24 @@ const MoneyVbaHomeCard = ({
           data: { source: config.source },
         },
       });
-      if (isMountedRef.current) {
+      if (navigation.isFocused()) {
         endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
         navigateToVbaOnboardingDestination(navigation, 'error');
+      } else {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
       }
     } finally {
       hasPendingCtaOpenRef.current = false;
       if (isMountedRef.current) {
         setIsRouting(false);
       }
+      onRoutingChange?.(false);
     }
   }, [
     chooseCurrency,
     config,
     navigation,
+    onRoutingChange,
     openSupportWithConsent,
     sourceCurrency,
     trackButtonClicked,

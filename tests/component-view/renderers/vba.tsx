@@ -378,7 +378,7 @@ const VbaProbedOnboardingNavigator = () => (
  * Synthetic host. Money home chooses the card inside a larger section, and
  * these tests only need the VBA card. The flags below are pinned so the host
  * always asks for a VBA card: card unlinked, KYC decision not dismissed, no
- * crypto, unfunded, residency open. A change to `getMoneyHomeCard`'s inputs
+ * crypto, unfunded, residency open, mUSD offered. A change to `getMoneyHomeCard`'s inputs
  * will not be caught here.
  */
 const VbaHomeCardHost = () => {
@@ -399,6 +399,8 @@ const VbaHomeCardHost = () => {
     isResidencyBlocked: false,
     isCardStepSkipped: false,
     isKycDecisionDismissed: false,
+    isMusdAvailabilityLoading: false,
+    isMusdUnavailable: false,
   });
 
   return homeCard.type === 'vba' ? (

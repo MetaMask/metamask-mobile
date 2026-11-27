@@ -5,6 +5,7 @@ import { trackVbaEvent } from './vbaAnalytics';
 import {
   ensureMusdAutoramp,
   findUsableAutoramp,
+  isMusdSetupUnavailable,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
 import Logger from '../../../../../util/Logger';
@@ -397,6 +398,63 @@ describe('ensureMusdAutoramp', () => {
       });
     });
 
+    it('fails as unavailable without creating when mUSD is not offered', async () => {
+      mockRailReadiness.mockReturnValue('unavailable');
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({ result: { kind: 'unavailable' } }),
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('tracks mUSD not being offered with its own failure reason', async () => {
+      mockRailReadiness.mockReturnValue('unavailable');
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toBeDefined();
+
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({
+        category: 'Money VBA Autoramp Create Updated',
+      });
+      expect(buildProperties()).toMatchObject({
+        status: 'failed',
+        failure_reason: 'vba_token_unavailable',
+        currency_source: 'BRL',
+      });
+    });
+
+    it('fails as unavailable when MoonPay rejects the create for the jurisdiction', async () => {
+      mockCreate.mockRejectedValue(
+        Object.assign(
+          new Error(
+            `Fetching 'https://proxy.example/neobank/autoramps' failed with status '400' - "This token is not available in the jurisdiction"`,
+          ),
+          { httpStatus: 400 },
+        ),
+      );
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({ result: { kind: 'unavailable' } }),
+      );
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(buildProperties()).toMatchObject({
+        failure_reason: 'vba_token_unavailable',
+      });
+    });
+
+    it('checks again on the next call after mUSD was not offered', async () => {
+      mockRailReadiness
+        .mockReturnValueOnce('unavailable')
+        .mockReturnValueOnce('active');
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toBeDefined();
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
+
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
     it('does not track while the rail is pending', async () => {
       mockRailReadiness.mockReturnValue('pending');
 
@@ -487,5 +545,67 @@ describe('ensureMusdAutoramp', () => {
     await ensureMusdAutoramp('0xabc', 'BRL');
 
     expect(trackVbaEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe('isMusdSetupUnavailable', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setAutoramps([]);
+    mockRefreshCustomerAbilities.mockResolvedValue(ABILITIES);
+  });
+
+  it('reports setup as unavailable and tracks it once when mUSD is not offered', async () => {
+    mockRailReadiness.mockReturnValue('unavailable');
+
+    await expect(isMusdSetupUnavailable('0xabc', 'EUR')).resolves.toBe(true);
+
+    expect(mockRailReadiness).toHaveBeenCalledWith(ABILITIES, 'EUR');
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    expect(event).toMatchObject({
+      category: 'Money VBA Autoramp Create Updated',
+    });
+    expect(buildProperties()).toMatchObject({
+      status: 'failed',
+      failure_reason: 'vba_token_unavailable',
+      currency_source: 'EUR',
+    });
+  });
+
+  it.each(['active', 'pending', 'blocked'] as const)(
+    'leaves a customer whose readiness is %s to account setup',
+    async (readiness) => {
+      mockRailReadiness.mockReturnValue(readiness);
+
+      await expect(isMusdSetupUnavailable('0xabc', 'EUR')).resolves.toBe(false);
+
+      expect(trackVbaEvent).not.toHaveBeenCalled();
+    },
+  );
+
+  it('leaves the customer to account setup when abilities cannot be read', async () => {
+    mockRailReadiness.mockReturnValue('unavailable');
+    mockRefreshCustomerAbilities.mockRejectedValue(new Error('offline'));
+
+    await expect(isMusdSetupUnavailable('0xabc', 'EUR')).resolves.toBe(false);
+
+    expect(trackVbaEvent).not.toHaveBeenCalled();
+  });
+
+  it('skips the check for a wallet whose autoramp was rejected', async () => {
+    setAutoramps([{ walletAddress: '0xABC', status: 'Rejected' }]);
+    mockRailReadiness.mockReturnValue('unavailable');
+
+    await expect(isMusdSetupUnavailable('0xabc', 'EUR')).resolves.toBe(false);
+
+    expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it('checks a wallet when only another wallet has an autoramp', async () => {
+    setAutoramps([{ walletAddress: '0xdef', status: 'Approved' }]);
+    mockRailReadiness.mockReturnValue('unavailable');
+
+    await expect(isMusdSetupUnavailable('0xabc', 'EUR')).resolves.toBe(true);
   });
 });

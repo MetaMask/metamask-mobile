@@ -105,13 +105,19 @@ import {
   useVbaHomeCardRefresh,
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
-import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import {
+  navigateToVbaOnboardingDestination,
+  openVbaEntry,
+  resolveVbaOnboarding,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   useVbaEligibility,
   type VbaEligibility,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { useVbaMusdAvailability } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaMusdAvailability';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 let mockIsMoneyGlass = false;
@@ -175,6 +181,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     setParams: jest.fn(),
+    isFocused: () => true,
   }),
   useFocusEffect: (callback: () => void) => callback(),
   useRoute: () => ({ params: mockRouteParams }),
@@ -525,14 +532,23 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
+    canOpenPersistedVbaDetails: jest.fn(() => false),
+    navigateToVbaOnboardingDestination: jest.fn(),
+    openVbaAccountSetup: jest.fn(),
     openVbaEntry: jest.fn(),
+    resolveVbaOnboarding: jest.fn(),
   }),
 );
 jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  endVbaCufJourney: jest.fn(),
   startVbaCufJourney: jest.fn(),
 }));
 
 const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockResolveVbaOnboarding = jest.mocked(resolveVbaOnboarding);
+const mockNavigateToVbaOnboardingDestination = jest.mocked(
+  navigateToVbaOnboardingDestination,
+);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
@@ -574,6 +590,14 @@ jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility',
   () => ({
     useVbaEligibility: jest.fn(),
+  }),
+);
+
+const mockUseVbaMusdAvailability = jest.mocked(useVbaMusdAvailability);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaMusdAvailability',
+  () => ({
+    useVbaMusdAvailability: jest.fn(),
   }),
 );
 
@@ -768,7 +792,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
-  default: { error: jest.fn() },
+  default: { error: jest.fn(), log: jest.fn() },
 }));
 const mockLoggerError = jest.mocked(Logger.error);
 
@@ -976,6 +1000,10 @@ describe('MoneyHomeView', () => {
       isLoading: false,
     });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+    mockUseVbaMusdAvailability.mockReturnValue({
+      isLoading: false,
+      isUnavailable: false,
+    });
     mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
     mockOpenVbaEntry.mockClear();
     mockUseVbaDetailsNewDot.mockReturnValue({
@@ -1176,6 +1204,59 @@ describe('MoneyHomeView', () => {
         renderWithProvider(<MoneyHomeView />),
         MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
       );
+    });
+
+    it('keeps the tapped card on screen while its CTA resolves, even when the picked card changes', async () => {
+      let resolveOnboarding!: (
+        result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+      ) => void;
+      mockResolveVbaOnboarding.mockReturnValue(
+        new Promise((resolve) => {
+          resolveOnboarding = resolve;
+        }),
+      );
+      mockUseVbaHomeCard.mockReturnValue({ type: 'finish_verification' });
+      const rendered = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        rendered.getByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CTA_BUTTON,
+        ),
+      );
+      // Resolving approves KYC and learns mUSD is not offered, which on its
+      // own would hide the card.
+      mockUseVbaHomeCard.mockReturnValue({ type: 'identity_verified' });
+      mockUseVbaMusdAvailability.mockReturnValue({
+        isLoading: false,
+        isUnavailable: true,
+      });
+      rendered.rerender(<MoneyHomeView />);
+
+      expect(
+        rendered.getByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CONTAINER,
+        ),
+      ).toBeOnTheScreen();
+
+      const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+      await act(async () => {
+        resolveOnboarding({
+          status: 'ready',
+          destinationId: 'accountCreateUnavailable',
+          snapshot,
+        });
+      });
+
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateUnavailable',
+        snapshot,
+      );
+      expect(
+        rendered.queryByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CONTAINER,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders the kyc_pending card', () => {

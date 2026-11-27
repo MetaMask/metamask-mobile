@@ -62,6 +62,63 @@ describe('VbaAccountCreateError', () => {
     },
   );
 
+  it('shows the unsupported region copy with Done ahead of support', () => {
+    const { getByTestId, getByText } = renderError({
+      variant: 'unavailable',
+      primaryActionType: 'done',
+    });
+
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.unavailable.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.unavailable.description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    ).toHaveTextContent(
+      strings('virtual_bank_account.account_create_error.unavailable.primary'),
+    );
+    expect(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON),
+    ).toHaveTextContent(
+      strings(
+        'virtual_bank_account.account_create_error.unavailable.secondary',
+      ),
+    );
+  });
+
+  it('hides the failure illustration when unavailable', () => {
+    const { queryByTestId } = renderError({
+      variant: 'unavailable',
+      primaryActionType: 'done',
+    });
+
+    expect(
+      queryByTestId(VbaAccountCreateErrorSelectorsIDs.ILLUSTRATION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['details', 'contactSupport'],
+    ['generic', 'retry'],
+  ] as const)(
+    'shows the failure illustration for %s',
+    (variant, primaryActionType) => {
+      const { getByTestId } = renderError({ variant, primaryActionType });
+
+      expect(
+        getByTestId(VbaAccountCreateErrorSelectorsIDs.ILLUSTRATION),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderError({ onBack: mockOnBack });
 

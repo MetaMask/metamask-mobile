@@ -15,6 +15,8 @@ const baseInputs: MoneyHomeCardInputs = {
   isResidencyBlocked: false,
   isCardStepSkipped: false,
   isKycDecisionDismissed: false,
+  isMusdAvailabilityLoading: false,
+  isMusdUnavailable: false,
 };
 
 const card = (type: VbaHomeCard['type']): VbaHomeCard => ({ type });
@@ -164,6 +166,37 @@ describe('getMoneyHomeCard', () => {
     });
 
     expect(result).toEqual({ type: 'vba', variant: 'identity_verified' });
+  });
+
+  it('returns none while the mUSD availability check for Identity verified is running', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      vbaCard: card('identity_verified'),
+      isMusdAvailabilityLoading: true,
+    });
+
+    expect(result).toEqual({ type: 'none' });
+  });
+
+  it('hides Identity verified when the customer is not offered mUSD', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      vbaCard: card('identity_verified'),
+      isMusdUnavailable: true,
+    });
+
+    expect(result).toEqual({ type: 'none' });
+  });
+
+  it('falls back to the onboarding stepper when Identity verified is hidden for a user with crypto', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      hasCrypto: true,
+      vbaCard: card('identity_verified'),
+      isMusdUnavailable: true,
+    });
+
+    expect(result).toEqual({ type: 'onboarding' });
   });
 
   it('returns the card onboarding step once a first deposit funds the Money account', () => {

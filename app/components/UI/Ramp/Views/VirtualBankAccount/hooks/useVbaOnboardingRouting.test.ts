@@ -31,6 +31,15 @@ import { buildVbaBaseProperties } from '../vbaAnalytics';
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
+import {
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -84,6 +93,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
 const mockGetState = jest.fn();
 const mockHasAcceptedVbaVendorTerms = jest.fn();
 const mockGetVbaVendorTermsAcceptance = jest.fn();
@@ -107,6 +117,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshCustomerAbilities: () => mockRefreshCustomerAbilities(),
     },
     KycController: {
       get state() {
@@ -1549,6 +1560,181 @@ describe('resolveVbaOnboarding', () => {
         sessionDisclaimersComplete: true,
       }),
     });
+  });
+});
+
+describe('resolveVbaOnboarding when mUSD may not be offered', () => {
+  const devGlobal = globalThis as { __DEV__?: boolean };
+  const approvedSnapshot = {
+    ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+    sessionExists: true,
+    vendorDisclaimersComplete: true,
+    sessionDisclaimersComplete: true,
+    kycStatus: 'approved' as const,
+    autorampStatus: 'needs_source_currency' as const,
+  };
+  const euroOnramp = {
+    currency: { type: 'Fiat', code: 'EUR' },
+    flows: ['Onramp', 'Offramp'],
+  };
+  const musdOnMonad = {
+    currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
+    flows: ['Onramp'],
+  };
+  const abilities = ({
+    sepa = 'Active',
+    currencies = [euroOnramp],
+  }: { sepa?: string; currencies?: unknown[] } = {}) => ({
+    fiat_deposit: { eur: { sepa, sepa_thirdparty: sepa } },
+    fiat_payout: {},
+    currencies,
+    blocking_abilities: {},
+  });
+  const market = (currency: string, region: string) => ({
+    enabled: true,
+    minimumVersion: '0.0.0',
+    currency,
+    regions: [region],
+  });
+  const stateWith = ({
+    location = 'RO',
+    regionOverride,
+  }: { location?: string; regionOverride?: string } = {}) => ({
+    address: '0xabc',
+    engine: {
+      backgroundState: {
+        GeolocationController: { location, status: 'complete' },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+              ...(regionOverride ? { regionOverride } : {}),
+            },
+            [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: market('BRL', 'BR'),
+            [MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY]: market('EUR', 'RO'),
+          },
+        },
+      },
+    },
+  });
+  const resolveDestination = async () => {
+    const resolved = await resolveVbaOnboarding('money-home-card');
+    return resolved.status === 'ready' ? resolved.destinationId : 'error';
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
+    mockGetState.mockReturnValue(stateWith());
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockResolvedValue({ id: 'session-1' });
+    mockHydrate.mockResolvedValue(approvedSnapshot);
+    mockRefreshCustomerAbilities.mockResolvedValue(abilities());
+    mockRampsState.autoramps = [];
+  });
+
+  it.each(['needs_wallet_registration', 'needs_source_currency'] as const)(
+    'opens the unavailable screen without registering or creating when setup would start from %s',
+    async (autorampStatus) => {
+      mockHydrate.mockResolvedValue({ ...approvedSnapshot, autorampStatus });
+
+      await expect(resolveDestination()).resolves.toBe(
+        'accountCreateUnavailable',
+      );
+
+      expect(mockRefreshCustomerAbilities).toHaveBeenCalledTimes(1);
+      expect(mockRegisterWallet).not.toHaveBeenCalled();
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    },
+  );
+
+  it('navigates from the hook to the unavailable screen', async () => {
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: { variant: 'unavailable' },
+    });
+  });
+
+  it.each([
+    ['mUSD is offered', abilities({ currencies: [euroOnramp, musdOnMonad] })],
+    ['the rail is pending', abilities({ sepa: 'Pending' })],
+    ['the rail is blocked', abilities({ sepa: 'Blocked' })],
+    ['currencies are missing', { ...abilities(), currencies: undefined }],
+  ])('keeps Identity verified when %s', async (_, customerAbilities) => {
+    mockRefreshCustomerAbilities.mockResolvedValue(customerAbilities);
+
+    await expect(resolveDestination()).resolves.toBe('identityVerified');
+  });
+
+  it('keeps Identity verified when abilities cannot be read', async () => {
+    mockRefreshCustomerAbilities.mockRejectedValue(new Error('offline'));
+
+    await expect(resolveDestination()).resolves.toBe('identityVerified');
+  });
+
+  it('keeps Identity verified when the market cannot be read', async () => {
+    mockGetState.mockReturnValue({ address: '0xabc' });
+
+    await expect(resolveDestination()).resolves.toBe('identityVerified');
+
+    expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it.each(['not_ready', 'in_progress', 'retryable_failure'] as const)(
+    'does not check abilities while the autoramp status is %s',
+    async (autorampStatus) => {
+      mockHydrate.mockResolvedValue({ ...approvedSnapshot, autorampStatus });
+
+      await expect(resolveDestination()).resolves.toBe('identityVerified');
+
+      expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not check abilities before KYC is approved', async () => {
+    mockHydrate.mockResolvedValue({
+      ...approvedSnapshot,
+      kycStatus: 'pending',
+      providerFlowStatus: 'submitted',
+    });
+
+    await expect(resolveDestination()).resolves.toBe('kycPending');
+
+    expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it('does not check abilities when no open market serves the location', async () => {
+    mockGetState.mockReturnValue(stateWith({ location: 'JP' }));
+
+    await expect(resolveDestination()).resolves.toBe('identityVerified');
+
+    expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
+  });
+
+  it('checks the market of the region override instead of the IP location', async () => {
+    mockGetState.mockReturnValue(
+      stateWith({ location: 'JP', regionOverride: 'RO' }),
+    );
+
+    await expect(resolveDestination()).resolves.toBe(
+      'accountCreateUnavailable',
+    );
+  });
+
+  it('keeps Identity verified for a dev KYC status override', async () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('approved');
+
+    await expect(resolveDestination()).resolves.toBe('identityVerified');
+
+    expect(mockRefreshCustomerAbilities).not.toHaveBeenCalled();
   });
 });
 

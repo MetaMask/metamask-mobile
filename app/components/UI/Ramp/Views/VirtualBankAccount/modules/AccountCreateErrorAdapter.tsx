@@ -28,9 +28,16 @@ import {
 import { endVbaCufJourney } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
+const SCREEN_ID_BY_VARIANT = {
+  details: VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR,
+  generic: VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+  unavailable: VBA_SCREEN_ID.ACCOUNT_CREATE_UNAVAILABLE_ERROR,
+} as const;
+
 /**
  * Wires the account-creation error screens into onboarding.
  * Validation and setup failures open support. Only HTTP 500 can be retried.
+ * When mUSD is not offered to the customer, leaving is the main action.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -39,16 +46,19 @@ const VbaAccountCreateErrorAdapter = () => {
   const { variant, failure, sourceCurrency, retryable } = route.params;
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
-    screenId:
-      variant === 'details'
-        ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR
-        : VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+    screenId: SCREEN_ID_BY_VARIANT[variant],
     contentReady: true,
     contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
   });
   useEffect(() => {
-    endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
-  }, []);
+    // An unsupported region is an expected outcome, not a funnel error.
+    endVbaCufJourney(
+      false,
+      variant === 'unavailable'
+        ? VBA_CUF_END_REASON.REGION_UNAVAILABLE
+        : VBA_CUF_END_REASON.ERROR,
+    );
+  }, [variant]);
   const primaryActionType = retryable
     ? 'retry'
     : getAccountCreateErrorPrimaryAction(failure);
@@ -79,6 +89,18 @@ const VbaAccountCreateErrorAdapter = () => {
     }
     await resumeOnboarding();
   }, [navigation, resumeOnboarding, sourceCurrency]);
+
+  if (variant === 'unavailable') {
+    return (
+      <VbaAccountCreateError
+        variant="unavailable"
+        primaryActionType="done"
+        onPrimary={leave}
+        onSecondary={contactSupport}
+        onBack={leave}
+      />
+    );
+  }
 
   if (variant === 'details') {
     return (

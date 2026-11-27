@@ -275,6 +275,25 @@ const restoreNeoBankService = () => {
   };
 };
 
+const MUSD_ON_MONAD = {
+  currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
+  flows: ['Onramp', 'Offramp', 'Swap'],
+  counterparts: [],
+};
+
+const abilitiesWithoutMusd = (pix: 'Active' | 'Pending') => ({
+  fiat_deposit: { brl: { pix, pix_thirdparty: pix } },
+  fiat_payout: {},
+  currencies: [
+    {
+      currency: { type: 'Crypto', token: 'USDC', blockchain: 'Ethereum' },
+      flows: ['Onramp'],
+      counterparts: [],
+    },
+  ],
+  blocking_abilities: {},
+});
+
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -319,7 +338,7 @@ describe('VbaDetails', () => {
         usd: { ach: 'Active', ach_thirdparty: 'Active' },
       },
       fiat_payout: {},
-      currencies: [],
+      currencies: [MUSD_ON_MONAD],
       blocking_abilities: {},
     });
     setAutoramps([{ ...approvedAutoramp }]);
@@ -1404,6 +1423,68 @@ describe('VbaDetails', () => {
       );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  describe('when mUSD is not offered to the customer', () => {
+    beforeEach(() => {
+      setAutoramps([]);
+      mockHydrate.mockResolvedValue({
+        autorampStatus: 'needs_source_currency',
+      });
+    });
+
+    it('opens the unavailable screen without creating or logging an error', async () => {
+      mockRefreshCustomerAbilities.mockResolvedValue(
+        abilitiesWithoutMusd('Active'),
+      );
+
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+          expect.anything(),
+          'accountCreateUnavailable',
+          undefined,
+          undefined,
+          'BRL',
+        );
+      });
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('keeps waiting while the deposit rail is pending', async () => {
+      mockRefreshCustomerAbilities.mockResolvedValue(
+        abilitiesWithoutMusd('Pending'),
+      );
+
+      const { findByText } = renderWithProvider(<VbaDetails />);
+
+      expect(
+        await findByText(
+          strings('virtual_bank_account.creating_account.awaiting_provider'),
+        ),
+      ).toBeOnTheScreen();
+      expect(mockNavigateToVbaOnboardingDestination).not.toHaveBeenCalled();
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    });
+
+    it('creates the account on the next visit once mUSD is offered', async () => {
+      mockRefreshCustomerAbilities.mockResolvedValueOnce(
+        abilitiesWithoutMusd('Active'),
+      );
+      const firstVisit = renderWithProvider(<VbaDetails />);
+      await waitFor(() => {
+        expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledTimes(1);
+      });
+      firstVisit.unmount();
+
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   it('keeps retryable setup failures retryable', async () => {
