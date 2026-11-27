@@ -92,11 +92,11 @@ const ManageAccountRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="px-4"
+      className="px-4"
       testID={getManageAccountRowId(accountGroup.id)}
     >
       <Box
-        twClassName={`flex-1 ${isHidden ? 'opacity-50' : ''}`}
+        className={`flex-1 ${isHidden ? 'opacity-50' : ''}`}
         pointerEvents={isHidden ? 'none' : 'auto'}
         accessibilityElementsHidden={isHidden}
         importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}

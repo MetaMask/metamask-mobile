@@ -69,7 +69,7 @@ export const IosGoogleLoginVersionWarningDescription = () => {
     <Box gap={4}>
       <Text style={tw.style('text-pretty')}>
         {strings('error_sheet.ios_need_update_description')}
-        <Text twClassName="font-bold">
+        <Text className="font-bold">
           {strings('error_sheet.ios_need_update_description_version')}
         </Text>
         {strings('error_sheet.ios_need_update_description_end')}

@@ -59,7 +59,7 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
   );
 
   return (
-    <Box twClassName="px-4 pb-4 gap-4">
+    <Box className="px-4 pb-4 gap-4">
       <MfaShield />
       <StepHeader
         title={strings('mfa.picker.title')}
@@ -71,15 +71,15 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
       {state.error ? (
         <StepError code={state.error} onAction={onAction} />
       ) : null}
-      <Box twClassName="pt-4 gap-4">
+      <Box className="pt-4 gap-4">
         {hasPasskey ? renderOption('passkey', true) : null}
         {hasPasskey && others.length > 0 ? (
-          <Box twClassName="flex-row items-center gap-4">
-            <Box twClassName="flex-1 border-t border-muted" />
+          <Box className="flex-row items-center gap-4">
+            <Box className="flex-1 border-t border-muted" />
             <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
               {strings('mfa.picker.or')}
             </Text>
-            <Box twClassName="flex-1 border-t border-muted" />
+            <Box className="flex-1 border-t border-muted" />
           </Box>
         ) : null}
         {others.map((method) => renderOption(method, false))}

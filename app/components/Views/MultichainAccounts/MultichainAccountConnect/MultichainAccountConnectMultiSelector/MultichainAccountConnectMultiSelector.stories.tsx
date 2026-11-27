@@ -146,7 +146,7 @@ const MultichainAccountConnectMultiSelectorMeta = {
   decorators: [
     (Story: React.ComponentType) => (
       <Provider store={mockStore}>
-        <Box twClassName="flex-1 bg-default">
+        <Box className="flex-1 bg-default">
           <Story />
         </Box>
       </Provider>

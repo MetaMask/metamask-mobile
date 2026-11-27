@@ -948,7 +948,7 @@ const ChoosePassword = () => {
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 pt-3"
+            className="flex-1 pt-3"
             gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
@@ -971,7 +971,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -1031,7 +1031,7 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="relative"
+              className="relative"
               gap={2}
             >
               <TextField
@@ -1097,7 +1097,7 @@ const ChoosePassword = () => {
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
+                className="mt-2 border border-muted rounded-xl"
                 titleProps={{
                   variant: TextVariant.BodySm,
                   testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,

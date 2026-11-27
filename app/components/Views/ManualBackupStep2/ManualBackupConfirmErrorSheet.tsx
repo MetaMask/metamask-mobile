@@ -47,19 +47,19 @@ const ManualBackupConfirmErrorSheet = ({
       onClose={onDismiss}
       testID={ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET}
     >
-      <Box twClassName="px-4 pb-6 gap-4">
+      <Box className="px-4 pb-6 gap-4">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('manual_backup_step_2.error-title')}
           titleProps={{
             testID: ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TITLE,
           }}
-          twClassName="pt-6"
+          className="pt-6"
         />
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-left"
+          className="text-left"
           testID={
             ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_DESCRIPTION
           }

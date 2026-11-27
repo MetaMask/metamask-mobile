@@ -140,9 +140,9 @@ export const ShareAddressQR = () => {
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4 py-6"
+        className="px-4 py-6"
       >
-        <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
+        <Box className="p-6 border border-muted rounded-2xl bg-white">
           <QRCode
             value={address}
             size={200}
@@ -151,7 +151,7 @@ export const ShareAddressQR = () => {
             logoBorderRadius={8}
           />
         </Box>
-        <Box twClassName="mt-6 mb-4">
+        <Box className="mt-6 mb-4">
           <QRAccountDisplay
             accountAddress={address}
             analyticsLocation="qr-code"
@@ -189,7 +189,7 @@ export const ShareAddressQR = () => {
           />
         </Box>
       </Box>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}

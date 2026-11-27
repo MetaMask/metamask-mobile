@@ -99,7 +99,7 @@ const MfaPasskeys = () => {
           />
         ))}
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

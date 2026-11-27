@@ -34,14 +34,14 @@ const ManageWalletSectionHeader = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-2"
+    className="px-4 py-2"
     testID={getManageAccountSectionHeaderId(walletName)}
   >
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
       fontWeight={FontWeight.Medium}
-      twClassName="flex-1"
+      className="flex-1"
     >
       {walletName}
     </Text>
@@ -49,7 +49,7 @@ const ManageWalletSectionHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="ml-3"
+        className="ml-3"
         testID={getManageAccountSectionHeaderLockId(walletName)}
       />
     ) : null}
@@ -64,7 +64,7 @@ const ManageWalletSectionHeader = ({
           'multichain_accounts.manage_accounts.remove_wallet',
         )}
         testID={getManageAccountSectionHeaderRemoveId(walletName)}
-        twClassName="ml-3"
+        className="ml-3"
       >
         {strings('multichain_accounts.manage_accounts.remove')}
       </Text>

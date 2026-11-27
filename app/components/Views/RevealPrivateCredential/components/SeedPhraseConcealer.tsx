@@ -31,7 +31,7 @@ const SeedPhraseConcealer = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-1 rounded-xl">
+    <Box className="flex-1 rounded-xl">
       <TouchableOpacity
         onPress={onReveal}
         style={tw.style(FILL_STYLE)}
@@ -44,7 +44,7 @@ const SeedPhraseConcealer = ({
           style={tw.style(FILL_STYLE, 'opacity-50')}
           resizeMode="cover"
         />
-        <Box twClassName="items-center justify-center rounded-xl px-6 py-[45px] gap-y-4 h-full flex-1">
+        <Box className="items-center justify-center rounded-xl px-6 py-[45px] gap-y-4 h-full flex-1">
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
@@ -53,7 +53,7 @@ const SeedPhraseConcealer = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('manual_backup_step_1.reveal')}

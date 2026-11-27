@@ -74,7 +74,7 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
       </Button>
     }
   >
-    <Box twClassName="-mx-4">
+    <Box className="-mx-4">
       {step.methods.map((method) => {
         const isDone = !step.missing.includes(method);
         return (

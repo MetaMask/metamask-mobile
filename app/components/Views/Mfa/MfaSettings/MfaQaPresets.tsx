@@ -138,7 +138,7 @@ const MfaQaPresets = () => {
 
   return (
     <Box
-      twClassName="px-4 pt-4 gap-3"
+      className="px-4 pt-4 gap-3"
       testID={MfaSettingsSelectorsIDs.QA_PRESETS}
     >
       <Text variant={TextVariant.HeadingSm}>QA presets (non-production)</Text>

@@ -717,7 +717,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   const uniqueId = useMemo(() => uuidv4(), []);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
@@ -759,7 +759,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-6 pt-3">
+            <Box className="gap-y-6 pt-3">
               <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
@@ -769,7 +769,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    twClassName="gap-1"
+                    className="gap-1"
                   >
                     <Text
                       variant={TextVariant.BodyMd}
@@ -812,7 +812,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
 
           {currentStep === 1 && (
-            <Box twClassName="gap-y-4 flex-grow pt-3">
+            <Box className="gap-y-4 flex-grow pt-3">
               <TitleStandard
                 title={strings('import_from_seed.metamask_password')}
                 titleProps={{
@@ -829,7 +829,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                 }
               />
 
-              <Box twClassName="relative gap-2">
+              <Box className="relative gap-2">
                 <Label
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -877,7 +877,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                 </HelpText>
               </Box>
 
-              <Box twClassName="relative gap-2">
+              <Box className="relative gap-2">
                 <Label
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}

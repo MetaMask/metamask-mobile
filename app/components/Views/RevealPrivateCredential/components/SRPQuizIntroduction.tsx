@@ -36,13 +36,13 @@ const SRPQuizIntroduction = ({
       justifyContent={BoxJustifyContent.Between}
       paddingHorizontal={4}
       paddingBottom={6}
-      twClassName="flex-1 w-full"
+      className="flex-1 w-full"
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1"
+        className="flex-1"
       >
         <Image
           source={SecurityQuizLockImage}
@@ -51,7 +51,7 @@ const SRPQuizIntroduction = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-6 text-center"
+          className="mt-6 text-center"
         >
           {strings('multichain_accounts.reveal_srp.description')}
         </Text>
@@ -61,21 +61,21 @@ const SRPQuizIntroduction = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         gap={4}
-        twClassName="w-full"
+        className="w-full"
       >
         <Button
           variant={ButtonVariant.Primary}
           onPress={onGetStarted}
           size={ButtonSize.Lg}
           testID={SrpQuizGetStartedSelectorsIDs.BUTTON}
-          twClassName="w-full text-center"
+          className="w-full text-center"
         >
           {strings('multichain_accounts.reveal_srp.get_started')}
         </Button>
         <TextButton
           onPress={onLearnMore}
           testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-          twClassName="w-full text-center flex items-center justify-center self-center"
+          className="w-full text-center flex items-center justify-center self-center"
         >
           {strings('multichain_accounts.reveal_srp.learn_more')}
         </TextButton>

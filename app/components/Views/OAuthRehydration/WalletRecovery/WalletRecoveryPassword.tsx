@@ -74,7 +74,7 @@ const WalletRecoveryPassword = ({
   }, [error]);
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={LoginViewSelectors.CONTAINER}>
+    <Box className="flex-1 bg-default" testID={LoginViewSelectors.CONTAINER}>
       <HeaderStandard
         title=""
         onBack={onBack}
@@ -93,19 +93,19 @@ const WalletRecoveryPassword = ({
         mode="layout"
         testID={WalletRecoverySelectorsIDs.PASSWORD_SCREEN}
       >
-        <Box twClassName="flex-1 pt-0">
+        <Box className="flex-1 pt-0">
           <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
             {title}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-4"
+            className="mt-4"
           >
             {description}
           </Text>
 
-          <Box twClassName="mt-4 gap-4">
+          <Box className="mt-4 gap-4">
             <TextField
               placeholder={placeholder}
               onChangeText={onChangePassword}
@@ -151,7 +151,7 @@ const WalletRecoveryPassword = ({
 
           {/* FooterGlass has no style prop; pad below the CTA for the home indicator. */}
           <Box
-            twClassName="w-full mt-auto pt-2"
+            className="w-full mt-auto pt-2"
             style={{ paddingBottom: insets.bottom + 16 }}
           >
             <FooterGlass

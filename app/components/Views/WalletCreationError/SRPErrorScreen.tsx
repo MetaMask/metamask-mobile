@@ -178,7 +178,7 @@ const SRPErrorScreen = ({
         contentContainerStyle={tw.style('flex-grow p-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="items-center pt-12">
+        <Box className="items-center pt-12">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -186,11 +186,11 @@ const SRPErrorScreen = ({
             twClassName="mb-4"
           />
 
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-4">
+          <Text variant={TextVariant.HeadingMd} className="text-center mb-4">
             {strings('wallet_creation_error.title')}
           </Text>
 
-          <Box twClassName="flex-row bg-info-muted rounded-lg p-3 mb-6 w-full">
+          <Box className="flex-row bg-info-muted rounded-lg p-3 mb-6 w-full">
             <Icon
               name={IconName.Info}
               size={IconSize.Sm}
@@ -200,7 +200,7 @@ const SRPErrorScreen = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('wallet_creation_error.srp_description_part1')}{' '}
               <Text
@@ -214,7 +214,7 @@ const SRPErrorScreen = ({
             </Text>
           </Box>
 
-          <Box twClassName="flex-row justify-between items-center mb-2 w-full">
+          <Box className="flex-row justify-between items-center mb-2 w-full">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('wallet_creation_error.error_report')}
             </Text>

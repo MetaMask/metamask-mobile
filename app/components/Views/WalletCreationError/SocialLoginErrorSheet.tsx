@@ -103,8 +103,8 @@ const SocialLoginErrorSheet = ({
         resizeMode="contain"
       />
 
-      <Box twClassName="bg-default rounded-t-2xl p-4 pb-10 items-center">
-        <Box twClassName="w-10 h-1 bg-border-muted rounded-full self-center mb-4" />
+      <Box className="bg-default rounded-t-2xl p-4 pb-10 items-center">
+        <Box className="w-10 h-1 bg-border-muted rounded-full self-center mb-4" />
 
         <Icon
           name={IconName.Danger}
@@ -113,11 +113,11 @@ const SocialLoginErrorSheet = ({
           twClassName="mb-4"
         />
 
-        <Text variant={TextVariant.HeadingMd} twClassName="text-center mb-2">
+        <Text variant={TextVariant.HeadingMd} className="text-center mb-2">
           {strings('wallet_creation_error.title')}
         </Text>
 
-        <Text variant={TextVariant.BodyMd} twClassName="text-left mb-6 w-full">
+        <Text variant={TextVariant.BodyMd} className="text-left mb-6 w-full">
           {strings('wallet_creation_error.social_login_description_part1')}{' '}
           <Text
             variant={TextVariant.BodyMd}

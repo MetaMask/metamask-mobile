@@ -99,34 +99,34 @@ const RestoreWallet = () => {
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1"
+        className="flex-1"
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="p-4">
+        <Box alignItems={BoxAlignItems.Center} className="p-4">
           <Image source={onboardingDeviceImage} />
         </Box>
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
-          twClassName="text-center pb-4"
+          className="text-center pb-4"
         >
           {strings('restore_wallet.restore_needed_title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextDefault}
-          twClassName="text-center p-2"
+          className="text-center p-2"
         >
           {strings('restore_wallet.restore_needed_description')}
         </Text>
       </Box>
-      <Box twClassName="w-full my-2.5">
+      <Box className="w-full my-2.5">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           onPress={handleOnNext}
           isLoading={loading}
-          twClassName="bg-primary-default"
+          className="bg-primary-default"
         >
           {strings('restore_wallet.restore_needed_action')}
         </Button>

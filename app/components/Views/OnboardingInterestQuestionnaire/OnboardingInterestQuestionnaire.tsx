@@ -227,7 +227,7 @@ const OnboardingInterestQuestionnaire = () => {
         includesTopInset
       />
 
-      <Box twClassName="px-4 pb-6">
+      <Box className="px-4 pb-6">
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -264,7 +264,7 @@ const OnboardingInterestQuestionnaire = () => {
                 )
               }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
+              className={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={

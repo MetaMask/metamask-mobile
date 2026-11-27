@@ -273,7 +273,7 @@ const RevealPrivateCredential = ({
     <BannerAlert
       severity={BannerAlertSeverity.Danger}
       description={strings('reveal_credential.seed_phrase_warning_explanation')}
-      twClassName="mt-6"
+      className="mt-6"
       testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}
     />
   );
@@ -304,7 +304,7 @@ const RevealPrivateCredential = ({
       showsVerticalScrollIndicator={false}
     >
       <>
-        <Box twClassName="p-5 pb-0">
+        <Box className="p-5 pb-0">
           <>
             {unlocked ? (
               <Text
@@ -329,7 +329,7 @@ const RevealPrivateCredential = ({
             onTabChange={onTabBarChange}
           />
         ) : (
-          <Box twClassName="p-5 pb-0">
+          <Box className="p-5 pb-0">
             <PasswordEntry
               password={password}
               onPasswordChange={setPassword}
@@ -370,7 +370,7 @@ const RevealPrivateCredential = ({
 
   return (
     <Box
-      twClassName="flex-1 h-full bg-default"
+      className="flex-1 h-full bg-default"
       style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >

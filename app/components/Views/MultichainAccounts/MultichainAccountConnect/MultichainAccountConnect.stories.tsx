@@ -209,7 +209,7 @@ const MultichainAccountConnectMeta = {
     ) => (
       <Provider store={createMockStore(args.accountGroups)}>
         <MockNavigationWrapper>
-          <Box twClassName="flex-1 bg-default">
+          <Box className="flex-1 bg-default">
             <Story />
           </Box>
         </MockNavigationWrapper>

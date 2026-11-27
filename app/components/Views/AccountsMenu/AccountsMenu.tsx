@@ -385,7 +385,7 @@ const AccountsMenu = () => {
   ) : null;
 
   const cardRowEndAccessory = cardUpdateBadge ? (
-    <Box twClassName="flex-row items-center gap-2">
+    <Box className="flex-row items-center gap-2">
       {cardUpdateBadge}
       {arrowRightIcon}
     </Box>
