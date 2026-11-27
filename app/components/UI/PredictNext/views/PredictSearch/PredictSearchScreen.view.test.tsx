@@ -50,6 +50,10 @@ const typeQuery = (
 describe('PredictSearchScreen', () => {
   beforeEach(() => {
     configurePredictNextFeeds();
+    // searchCalls() reads the shared Engine messenger's call history, which
+    // configurePredictNextFeeds does not clear; a previous test's search
+    // calls would otherwise leak into this test's call-count assertions.
+    messengerCall.mockClear();
   });
 
   it('opens from the Home header search button', async () => {
@@ -103,10 +107,10 @@ describe('PredictSearchScreen', () => {
     );
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'yes')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('42%');
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'no')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('58%');
     expect(
       within(card).queryByTestId(PredictHomeTestIds.category(event.id)),
     ).not.toBeOnTheScreen();
@@ -144,11 +148,9 @@ describe('PredictSearchScreen', () => {
     messengerCall.mockClear();
 
     typeQuery(view, 'chiefs');
-    // Well past the debounce: the query is enabled and the request has been
-    // issued but can never resolve.
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-    });
+    // The search request firing is the debounce's observable outcome; the
+    // request is stubbed to never resolve, so the skeleton stays up.
+    await waitFor(() => expect(searchCalls()).toHaveLength(1));
 
     expect(
       view.getByTestId(PredictSearchScreenTestIds.LOADING),

@@ -369,8 +369,7 @@ const renderOnboarding = async (
     },
     // The intro actions stay disabled until the existing-profile lookup query
     // (session read, then ProfileController fetch) settles and the screen
-    // re-renders, which can exceed the 1s default on a loaded CV shard.
-    { timeout: 5000 },
+    // re-renders; the framework's 5s default covers that wait.
   );
   return result;
 };

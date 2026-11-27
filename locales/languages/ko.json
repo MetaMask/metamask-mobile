@@ -3936,7 +3936,6 @@
       "unavailable": "현재 이용 가능한 시장이 없습니다."
     },
     "home_categories": {
-      "title": "카테고리",
       "politics": "정치",
       "sports": "스포츠"
     },
@@ -10628,8 +10627,7 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_deposit_header": "MetaMask Money에 추가",
-      "money_account_send": "전송"
+      "money_account_deposit_header": "MetaMask Money에 추가"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -10786,7 +10784,6 @@
     "deposit_edit_amount_done": "자금 추가",
     "deposit_edit_amount_convert_token": "{{symbol}} 환전",
     "deposit_edit_amount_predict_withdraw": "출금",
-    "deposit_edit_amount_money_account_send": "전송",
     "deposit_edit_amount_musd_conversion": "mUSD로 전환",
     "preparing_order": "주문 준비"
   },

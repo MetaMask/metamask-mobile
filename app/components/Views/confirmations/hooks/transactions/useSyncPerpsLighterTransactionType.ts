@@ -200,7 +200,8 @@ function logLighterAccountUnlessDepositOwnsIt({
 /**
  * Replaces the Hyperliquid deposit with a mainnet USDC deposit into Lighter.
  * The first deposit creates the account with an approve and deposit call. A
- * deposit into an existing account has no calldata and sets `paymentOverride`.
+ * deposit into an existing account has no calldata and declares the Lighter
+ * `assetId` on its required asset.
  *
  * @param options - Deposit request for the open confirmation.
  * @param options.accountExists - Whether the address already has a Lighter account.

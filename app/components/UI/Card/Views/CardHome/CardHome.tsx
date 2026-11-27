@@ -27,6 +27,7 @@ import {
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   CommonActions,
@@ -109,18 +110,24 @@ import {
   SETUP_ALERT_TYPES,
   resolveCardHomeWaitingState,
   type CardHomeWaitingState,
+  type CardHomeWaitingStep,
 } from './hooks/CardHomeWaitingState';
 import useCardSetupPendingRefresh, {
   deriveCardHomeSetupPollIntervalMs,
 } from './hooks/useCardSetupPendingRefresh';
-import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import CardHomeStatusView, {
+  CARD_HOME_WAITING_COPY,
+  resolveCardHomeWaitingCopyStep,
+} from './components/CardHomeStatusView';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
+import CardImage from '../../components/CardImage';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
@@ -363,49 +370,6 @@ const CardHome = () => {
     (a) => a.type === 'enable_card',
   );
 
-  // One derived waiting state for everything the card home is still waiting
-  // on (A07 / A08 / A09 and the Immersve review and reconcile checks). It
-  // drives the re-check cadence below and keeps the re-check logic in one
-  // place; the screen keeps main's existing layout and copy for each state.
-  const waitingState = useMemo<CardHomeWaitingState>(
-    () =>
-      resolveCardHomeWaitingState({
-        isLoading,
-        isUkMigrationForced,
-        isAuthenticated,
-        isSignedOutKycPending,
-        hasDashboardActions: effectiveActions.length > 0,
-        alerts,
-        provisioningView,
-      }),
-    [
-      isLoading,
-      isUkMigrationForced,
-      isAuthenticated,
-      isSignedOutKycPending,
-      effectiveActions,
-      alerts,
-      provisioningView,
-    ],
-  );
-
-  // Re-checks while a pending state is up, so it moves on by itself.
-  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
-  // unknown network keeps 3s while the card is being created and 15s in
-  // review. Immersve's own 5s poll already covers the creating state, so
-  // this interval stays off while that one is running.
-  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
-    isPending: waitingState.kind === 'waiting',
-    isAuthenticated,
-    isFocused,
-    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
-      hardwareTier,
-      networkTier,
-      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
-    ),
-    suspendSignedInPoll: isProvisioningPollActive,
-  });
-
   // --- Money Account linkage ---
   const {
     canLink: canLinkMoneyAccount,
@@ -455,46 +419,6 @@ const CardHome = () => {
   // --- Pull-to-refresh ---
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    refreshUkMigrationState();
-    try {
-      if (waitingState.kind === 'waiting') {
-        // Re-check the thing being waited on: the Immersve reconcile for an
-        // under-review status or a card still being created, and the
-        // onboarding registration status when signed out. Everything else
-        // waits on card home data itself.
-        if (
-          waitingState.step === 'immersve-review' ||
-          waitingState.step === 'creating-card'
-        ) {
-          recheckProvisioning();
-        }
-        if (!isAuthenticated) {
-          await refreshRegistrationStatus();
-          return;
-        }
-      }
-      // Activity rows live in their own query. Invalidating only refetches
-      // the list while that segment is on screen.
-      await Promise.all([
-        refetch(),
-        queryClient.invalidateQueries({
-          queryKey: cardQueries.transactions.keys.all(),
-        }),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [
-    refetch,
-    refreshUkMigrationState,
-    refreshRegistrationStatus,
-    recheckProvisioning,
-    waitingState,
-    isAuthenticated,
-    queryClient,
-  ]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
@@ -722,6 +646,7 @@ const CardHome = () => {
     isUkMigrationSoft && !isUkMigrationSoftBannerDismissed;
 
   const hasOpenedUkMigrationSheet = useRef(false);
+  const lastSettledWaitingStepRef = useRef<CardHomeWaitingStep | null>(null);
   useEffect(() => {
     if (!isUkMigrationSoft || hasOpenedUkMigrationSheet.current || isLoading) {
       return;
@@ -733,6 +658,102 @@ const CardHome = () => {
   const hasSetupAlerts = alerts.some((a) => SETUP_ALERT_TYPES.has(a.type));
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
+
+  // One derived waiting state for everything the card home is still waiting
+  // on (identity in review, the card being created, the Immersve review and
+  // reconcile checks, signed out while verification is pending). It drives
+  // the re-check cadence below; the screen keeps the current layout for
+  // every other state.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+  useEffect(() => {
+    if (waitingState.kind !== 'waiting') {
+      lastSettledWaitingStepRef.current = null;
+      return;
+    }
+    if (waitingState.step !== 'immersve-reconciling') {
+      lastSettledWaitingStepRef.current = waitingState.step;
+    }
+  }, [waitingState]);
+
+  // Re-checks while a pending state is up, so it moves on by itself: a
+  // faster cadence while the card is being created, the slow one while
+  // reviewing or reconciling. Foreground returns re-check immediately.
+  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
+  // unknown network keeps 3s while the card is being created and 15s in
+  // review. Immersve's own 5s poll already covers the creating state, so
+  // this interval stays off while that one is running.
+  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
+    isPending: waitingState.kind === 'waiting',
+    isAuthenticated,
+    isFocused,
+    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
+    ),
+    suspendSignedInPoll: isProvisioningPollActive,
+  });
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    refreshUkMigrationState();
+    try {
+      if (waitingState.kind === 'waiting') {
+        // Re-check the thing being waited on: the Immersve reconcile for an
+        // under-review status or a card that is still being created, and the
+        // onboarding registration status when signed out. Everything else
+        // waits on card home data itself.
+        if (
+          waitingState.step === 'immersve-review' ||
+          waitingState.step === 'creating-card'
+        ) {
+          recheckProvisioning();
+        }
+        if (!isAuthenticated) {
+          await refreshRegistrationStatus();
+          return;
+        }
+      }
+      // Activity rows live in their own query. Invalidating only refetches
+      // the list while that segment is on screen.
+      await Promise.all([
+        refetch(),
+        queryClient.invalidateQueries({
+          queryKey: cardQueries.transactions.keys.all(),
+        }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [
+    refetch,
+    refreshUkMigrationState,
+    refreshRegistrationStatus,
+    recheckProvisioning,
+    waitingState,
+    isAuthenticated,
+    queryClient,
+  ]);
 
   const showLinkMoneyAccountCta =
     canLinkMoneyAccount &&
@@ -995,6 +1016,78 @@ const CardHome = () => {
         isUkMigrationForced ||
         isBlocked ||
         showVerificationPendingBanner));
+
+  // --- Waiting view: identity in review, card being created, Immersve
+  // review/reconcile checks, or signed out while verification is pending.
+  if (waitingState.kind === 'waiting') {
+    const waitingCopy =
+      CARD_HOME_WAITING_COPY[
+        resolveCardHomeWaitingCopyStep(
+          waitingState.step,
+          lastSettledWaitingStepRef.current,
+        )
+      ];
+    return (
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={tw.style('flex-1 bg-default')}
+        testID={CardHomeSelectors.SETUP_PENDING_STATUS_VIEW}
+      >
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+          title={strings('card.card_home.title')}
+          endButtonIconProps={[moreButtonProps]}
+        />
+        <CardHomeStatusView
+          asset={
+            <Box
+              // Dimmed: the card is not live yet, so the art reads as pending.
+              twClassName="w-full opacity-50"
+              testID={CardHomeSelectors.CARD_ART}
+            >
+              <CardImage
+                type={data?.card?.type ?? CardType.VIRTUAL}
+                status={CardStatus.ACTIVE}
+              />
+            </Box>
+          }
+          title={strings(waitingCopy.titleKey)}
+          description={strings(waitingCopy.descriptionKey)}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => {
+                void handleRefresh();
+              }}
+              colors={[theme.colors.primary.default]}
+              tintColor={theme.colors.icon.default}
+              testID={CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL}
+            />
+          }
+          primaryButton={
+            isAuthenticated
+              ? {
+                  label: strings('card.card_home.done'),
+                  onPress: () => navigation.goBack(),
+                  testID: CardHomeSelectors.SETUP_PENDING_DONE_BUTTON,
+                }
+              : {
+                  // Same sign-in route Card welcome uses for returning users.
+                  label: strings('card.card_onboarding.login_button'),
+                  onPress: () =>
+                    navigation.navigate(Routes.CARD.AUTHENTICATION),
+                  testID: CardHomeSelectors.SETUP_PENDING_LOG_IN_BUTTON,
+                }
+          }
+        />
+        {moreSheet}
+      </SafeAreaView>
+    );
+  }
 
   // --- Main render ---
   return (

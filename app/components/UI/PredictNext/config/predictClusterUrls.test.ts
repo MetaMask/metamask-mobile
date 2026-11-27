@@ -4,6 +4,10 @@ import {
   resolvePredictDeviceAuthIssuerUrl,
   type ClusterReading,
 } from './predictClusterUrls';
+import {
+  resolveVenueProfileRegistryUrl,
+  VENUE_PROFILE_REGISTRY_URL,
+} from '../auth/venueProfileRegistryUrl';
 
 const DEV_API_URL = 'https://predict-api.dev-api.cx.metamask.io';
 const UAT_API_URL = 'https://predict-api.uat-api.cx.metamask.io';
@@ -80,6 +84,59 @@ describe.each([
     );
     expect(resolveUrl(reading(ApiEnv.Prod), 'https://predict.example')).toBe(
       'https://predict.example',
+    );
+  });
+});
+
+describe('venue profile registry', () => {
+  it('uses the same fixed registry URL for dev and uat', () => {
+    expect(VENUE_PROFILE_REGISTRY_URL).toBe(
+      'https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles',
+    );
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Uat))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+  });
+
+  it('allows the local development default cluster', () => {
+    expect(resolveVenueProfileRegistryUrl(unsetReading(true))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+  });
+
+  it('disables remote registry reads without a supported cluster', () => {
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod)),
+    ).toBeUndefined();
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod, true)),
+    ).toBeUndefined();
+    expect(resolveVenueProfileRegistryUrl(unsetReading(false))).toBeUndefined();
+    expect(
+      resolveVenueProfileRegistryUrl({
+        rawApiEnv: 'staging',
+        apiEnv: ApiEnv.Prod,
+        isDevelopment: true,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('uses a configured override in every cluster', () => {
+    const override = 'http://127.0.0.1:8787/predict/venue-profiles';
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod), override)).toBe(
+      override,
+    );
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev), ` ${override} `),
+    ).toBe(override);
+  });
+
+  it('ignores a blank override', () => {
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev), '   ')).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
     );
   });
 });
