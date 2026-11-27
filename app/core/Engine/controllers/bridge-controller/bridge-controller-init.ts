@@ -29,60 +29,41 @@ import packageJSON from '../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
 
-// Marks are set on the JS thread, so on a busy device they include queueing delay.
-const fetchQuoteStreamWithTiming = async (
-  url: string,
-  options: RequestInit,
-) => {
-  const mark = swapQuoteFetchTrace.bindMark();
-  if (!mark) {
-    return expoFetch(url, options);
-  }
-  mark('stream_fetch_start_ms');
-  const response = await expoFetch(url, options);
-  mark('stream_headers_ms');
-  const { body } = response;
-  if (!body) {
-    return response;
-  }
-  const getReader = body.getReader.bind(body);
-  body.getReader = (() => {
-    const reader = getReader();
-    const read = reader.read.bind(reader);
-    const decoder = new TextDecoder();
-    let chunkSeen = false;
-    let quoteSeen = false;
-    reader.read = async () => {
-      const result = await read();
-      if (!result.done && !quoteSeen) {
-        if (!chunkSeen) {
-          chunkSeen = true;
-          mark('stream_first_chunk_ms');
-        }
-        if (
-          decoder
-            .decode(result.value, { stream: true })
-            .includes('event: quote')
-        ) {
-          quoteSeen = true;
-          mark('stream_first_quote_chunk_ms');
-        }
-      }
-      return result;
-    };
-    return reader;
-  }) as typeof body.getReader;
-  return response;
-};
-
 export const handleBridgeFetch = async (
   url: RequestInfo | URL,
   options: RequestInit = {},
 ) => {
   const urlString = url.toString();
 
+  // Marks run on the JS thread, so on a busy device they include queueing delay.
   if (urlString.includes('/getQuoteStream')) {
-    return fetchQuoteStreamWithTiming(urlString, options);
+    swapQuoteFetchTrace.mark('stream_fetch_start_ms');
+    const response = await expoFetch(urlString, options);
+    swapQuoteFetchTrace.mark('stream_headers_ms');
+    const { body } = response;
+    if (body) {
+      const getReader = body.getReader.bind(body);
+      body.getReader = (() => {
+        const reader = getReader();
+        const read = reader.read.bind(reader);
+        const decoder = new TextDecoder();
+        reader.read = async () => {
+          const result = await read();
+          if (
+            !result.done &&
+            decoder
+              .decode(result.value, { stream: true })
+              .includes('event: quote')
+          ) {
+            swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
+            reader.read = read;
+          }
+          return result;
+        };
+        return reader;
+      }) as typeof body.getReader;
+    }
+    return response;
   }
 
   if (urlString.includes('Stream')) {

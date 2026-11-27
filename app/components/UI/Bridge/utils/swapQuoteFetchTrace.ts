@@ -211,22 +211,12 @@ export const swapQuoteFetchTrace = {
     finishTrace(result, id, reason);
   },
 
-  // Binds to the span active now, so a later span never gets stale marks.
-  bindMark(): ((key: string) => void) | undefined {
-    const id = activeTraceId;
-    const startTime = activeStartTime;
-    if (!id) {
-      return undefined;
+  mark(key: string): void {
+    if (activeTraceId) {
+      annotateTraceByRequest(
+        { name: TraceName.SwapQuoteFetch, id: activeTraceId },
+        { [key]: Date.now() - activeStartTime },
+      );
     }
-    return (key) => {
-      try {
-        annotateTraceByRequest(
-          { name: TraceName.SwapQuoteFetch, id },
-          { [key]: Date.now() - startTime },
-        );
-      } catch {
-        // Telemetry only.
-      }
-    };
   },
 };

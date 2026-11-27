@@ -239,27 +239,20 @@ describe('swapQuoteFetchTrace', () => {
     now.mockRestore();
   });
 
-  it('binds marks to the span active when bound, relative to its start', () => {
+  it('marks the active trace relative to its start, and nothing when none is active', () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
     swapQuoteFetchTrace.start({ isRefresh: false });
-    const mark = swapQuoteFetchTrace.bindMark();
-    mockUuid.mockReturnValue('next-trace-id');
-    now.mockReturnValue(2000);
-    swapQuoteFetchTrace.start({ isRefresh: false });
-    jest.mocked(annotateTraceByRequest).mockClear();
+    now.mockReturnValue(1300);
+    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
+    swapQuoteFetchTrace.finish('success');
+    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
 
-    now.mockReturnValue(2300);
-    mark?.('stream_headers_ms');
-
-    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+    expect(annotateTraceByRequest).toHaveBeenCalledTimes(2);
+    expect(annotateTraceByRequest).toHaveBeenLastCalledWith(
       { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
-      { stream_headers_ms: 1300 },
+      { stream_first_quote_chunk_ms: 300 },
     );
     now.mockRestore();
-  });
-
-  it('returns no mark when no quote trace is active', () => {
-    expect(swapQuoteFetchTrace.bindMark()).toBeUndefined();
   });
 
   it('still traces when the Redux store is unavailable', () => {
