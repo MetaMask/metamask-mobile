@@ -332,7 +332,7 @@ describe('wallet-init/keyrings', () => {
         options: { cloudURL: string; cl24Lib: { name: string } };
       };
       expect(keyring.options.cloudURL).toBe(
-        'https://mpc-service.dev-api.cx.metamask.io/v2',
+        'https://mpc-service.dev-api.cx.metamask.io/v1',
       );
       expect(keyring.options.cl24Lib).toEqual({ name: 'cl24' });
     });
