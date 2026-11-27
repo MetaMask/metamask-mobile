@@ -37,9 +37,9 @@ export const handleBridgeFetch = async (
 
   // Marks run on the JS thread, so on a busy device they include queueing delay.
   if (urlString.includes('/getQuoteStream')) {
-    swapQuoteFetchTrace.mark('stream_fetch_start_ms');
+    const traceId = swapQuoteFetchTrace.mark('stream_fetch_start_ms');
     const response = await expoFetch(urlString, options);
-    swapQuoteFetchTrace.mark('stream_headers_ms');
+    swapQuoteFetchTrace.mark('stream_headers_ms', traceId);
     const { body } = response;
     if (body) {
       const getReader = body.getReader.bind(body);
@@ -55,7 +55,7 @@ export const handleBridgeFetch = async (
               .decode(result.value, { stream: true })
               .includes('event: quote')
           ) {
-            swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
+            swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms', traceId);
             reader.read = read;
           }
           return result;

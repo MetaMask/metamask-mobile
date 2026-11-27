@@ -211,12 +211,14 @@ export const swapQuoteFetchTrace = {
     finishTrace(result, id, reason);
   },
 
-  mark(key: string): void {
-    if (activeTraceId) {
+  // Returns the trace id so later marks can skip a replaced span.
+  mark(key: string, id = activeTraceId): string | undefined {
+    if (id && id === activeTraceId) {
       annotateTraceByRequest(
-        { name: TraceName.SwapQuoteFetch, id: activeTraceId },
+        { name: TraceName.SwapQuoteFetch, id },
         { [key]: Date.now() - activeStartTime },
       );
     }
+    return id;
   },
 };

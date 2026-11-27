@@ -239,18 +239,23 @@ describe('swapQuoteFetchTrace', () => {
     now.mockRestore();
   });
 
-  it('marks the active trace relative to its start, and nothing when none is active', () => {
+  it('marks the active trace relative to its start, skipping replaced or ended traces', () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
     swapQuoteFetchTrace.start({ isRefresh: false });
     now.mockReturnValue(1300);
-    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
+    const traceId = swapQuoteFetchTrace.mark('stream_fetch_start_ms');
+    mockUuid.mockReturnValue('next-trace-id');
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms', traceId);
     swapQuoteFetchTrace.finish('success');
     swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
 
-    expect(annotateTraceByRequest).toHaveBeenCalledTimes(2);
-    expect(annotateTraceByRequest).toHaveBeenLastCalledWith(
+    expect(traceId).toBe('quote-trace-id');
+    expect(annotateTraceByRequest).toHaveBeenCalledTimes(3);
+    expect(annotateTraceByRequest).toHaveBeenNthCalledWith(
+      2,
       { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
-      { stream_first_quote_chunk_ms: 300 },
+      { stream_fetch_start_ms: 300 },
     );
     now.mockRestore();
   });

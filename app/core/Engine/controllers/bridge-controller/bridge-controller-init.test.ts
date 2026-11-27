@@ -399,6 +399,7 @@ describe('BridgeController Init', () => {
       jest
         .mocked(expoFetch)
         .mockResolvedValue({ body: { getReader: () => rawReader } } as never);
+      jest.mocked(swapQuoteFetchTrace.mark).mockReturnValue('trace-id');
 
       const response = await handleBridgeFetch(
         'http://localhost:3000/getQuoteStream',
@@ -406,15 +407,13 @@ describe('BridgeController Init', () => {
       const reader = response.body?.getReader();
 
       expect(await reader?.read()).toBe(chunks[0]);
-      expect(swapQuoteFetchTrace.mark).not.toHaveBeenCalledWith(
-        'stream_first_quote_chunk_ms',
-      );
+      expect(swapQuoteFetchTrace.mark).toHaveBeenCalledTimes(2);
       expect(await reader?.read()).toBe(chunks[1]);
       expect(await reader?.read()).toBe(chunks[2]);
       expect(jest.mocked(swapQuoteFetchTrace.mark).mock.calls).toEqual([
         ['stream_fetch_start_ms'],
-        ['stream_headers_ms'],
-        ['stream_first_quote_chunk_ms'],
+        ['stream_headers_ms', 'trace-id'],
+        ['stream_first_quote_chunk_ms', 'trace-id'],
       ]);
     });
 
