@@ -16,6 +16,7 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { isNoOpQuote } from '../../../../../../selectors/transactionPayController';
+import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -36,13 +37,15 @@ import { MoneyMusdInfoSheet } from '../../modals/money-musd-info-sheet';
  * Row component that owns the bottom line of the totals section.
  *
  * For withdrawal flows (when the feature flag allows selecting a withdraw
- * token), Money Account deposits, input-based quotes, and non-withdraw flows
- * when Max is selected, the "You receive" row is shown so the user can see
- * the authoritative destination amount. Otherwise the total cost row is shown.
+ * token), input-based quotes, and non-withdraw flows when the quote is
+ * subsidized (paid by MetaMask) or Max is selected, the "You'll receive" row is
+ * shown so the user can see the authoritative destination amount. Otherwise the
+ * total cost row is shown.
  */
 export function TotalRow() {
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isPaidByMetaMask = useIsPaidByMetaMask();
   const totals = useTransactionPayTotals();
   const transactionMetadata = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
@@ -51,10 +54,9 @@ export function TotalRow() {
   ]);
 
   const showReceiveRow =
-    isMoneyAccountDeposit ||
     canSelectWithdrawToken ||
     totals?.isInputBased === true ||
-    (Boolean(isMaxAmount) && !isWithdraw);
+    ((isPaidByMetaMask || Boolean(isMaxAmount)) && !isWithdraw);
 
   if (showReceiveRow) {
     return <ReceiveRow isMoneyAccountDeposit={isMoneyAccountDeposit} />;
@@ -105,7 +107,7 @@ function TotalFeesRow() {
 }
 
 /**
- * Displays "You'll receive" for withdrawal, Money Account deposit, input-based, and Max flows.
+ * Displays "You'll receive" for withdrawal, input-based, subsidized, and Max flows.
  *
  * Prefers `totals.targetAmount.usd` from executable quotes (after fees). A
  * route needing no conversion only produces a no-op quote, which is excluded

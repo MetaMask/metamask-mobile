@@ -14,6 +14,7 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   TransactionPayStrategy,
@@ -24,6 +25,7 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { MoneyMusdInfoSheetTestIds } from '../../modals/money-musd-info-sheet';
 import { TotalRow } from './total-row';
 
+jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy', () => ({
@@ -37,6 +39,27 @@ jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy', () => ({
 
 const TOTAL_FIAT_MOCK = '$123.46';
 const RECEIVE_FIAT_MOCK = '$99.38';
+
+function createTotalsMock(
+  overrides: Partial<TransactionPayTotals> = {},
+): TransactionPayTotals {
+  return {
+    estimatedDuration: 30,
+    fees: {
+      metaMask: { fiat: '0', usd: '0' },
+      provider: { fiat: '0', usd: '0' },
+      sourceNetwork: {
+        estimate: { fiat: '0', human: '0', raw: '0', usd: '0' },
+        max: { fiat: '0', human: '0', raw: '0', usd: '0' },
+      },
+      targetNetwork: { fiat: '0', usd: '0' },
+    },
+    sourceAmount: { fiat: '100', human: '100', raw: '100', usd: '100' },
+    targetAmount: { fiat: '99.38', usd: '99.38' },
+    total: { fiat: '123.456', usd: '123.456' },
+    ...overrides,
+  };
+}
 
 function render(options: { type?: TransactionType } = {}) {
   const state = merge(
@@ -66,6 +89,7 @@ describe('TotalRow', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
+  const useIsPaidByMetaMaskMock = jest.mocked(useIsPaidByMetaMask);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const useTransactionPayQuotesRawMock = jest.mocked(
     useTransactionPayQuotesRaw,
@@ -83,6 +107,7 @@ describe('TotalRow', () => {
     } as unknown as TransactionPayTotals);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsPaidByMetaMaskMock.mockReturnValue(false);
 
     // Default: deposit/payment flow so the total is shown.
     useTransactionPayWithdrawMock.mockReturnValue({
@@ -115,6 +140,37 @@ describe('TotalRow', () => {
       expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
     });
 
+    it('renders the total row for target-based non-subsidized moneyAccountDeposit', () => {
+      useTransactionPayTotalsMock.mockReturnValue(
+        createTotalsMock({ isInputBased: false }),
+      );
+
+      const { getByTestId, getByText, queryByTestId, queryByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('total-row')).toBeOnTheScreen();
+      expect(getByText('Total')).toBeOnTheScreen();
+      expect(getByText(TOTAL_FIAT_MOCK)).toBeOnTheScreen();
+      expect(queryByTestId('receive-row')).toBeNull();
+      expect(queryByText("You'll receive")).toBeNull();
+    });
+
+    it('renders the total row for target-based non-subsidized perpsDeposit', () => {
+      useTransactionPayTotalsMock.mockReturnValue(
+        createTotalsMock({ isInputBased: false }),
+      );
+
+      const { getByTestId, getByText, queryByTestId, queryByText } = render({
+        type: TransactionType.perpsDeposit,
+      });
+
+      expect(getByTestId('total-row')).toBeOnTheScreen();
+      expect(getByText('Total')).toBeOnTheScreen();
+      expect(queryByTestId('receive-row')).toBeNull();
+      expect(queryByText("You'll receive")).toBeNull();
+    });
+
     it('renders skeleton when quotes are loading', () => {
       useIsTransactionPayLoadingMock.mockReturnValue(true);
 
@@ -135,6 +191,21 @@ describe('TotalRow', () => {
 
       const { getByTestId, queryByTestId } = render({
         type: TransactionType.perpsWithdraw,
+      });
+
+      expect(getByTestId('total-row')).toBeOnTheScreen();
+      expect(queryByTestId('receive-row')).toBeNull();
+    });
+
+    it('renders the total row when paid by MetaMask on a withdraw flow with token selection disabled', () => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: false,
+      });
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = render({
+        type: TransactionType.moneyAccountWithdraw,
       });
 
       expect(getByTestId('total-row')).toBeOnTheScreen();
@@ -170,6 +241,66 @@ describe('TotalRow', () => {
       expect(getByTestId('receive-row')).toBeOnTheScreen();
       expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
       expect(queryByTestId('total-row')).toBeNull();
+    });
+
+    it('renders the receive row for input-based non-subsidized moneyAccountDeposit', () => {
+      useTransactionPayTotalsMock.mockReturnValue(
+        createTotalsMock({
+          isInputBased: true,
+          total: { fiat: '100', usd: '100' },
+        }),
+      );
+
+      const { getByTestId, getByText, queryByTestId } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(getByText("You'll receive")).toBeOnTheScreen();
+      expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+    });
+
+    it('renders the receive row for subsidized perpsDeposit', () => {
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
+      useTransactionPayTotalsMock.mockReturnValue(
+        createTotalsMock({
+          isInputBased: false,
+          targetAmount: { fiat: '100', usd: '100' },
+          total: { fiat: '100', usd: '100' },
+        }),
+      );
+
+      const { getByTestId, getByText, queryByTestId } = render({
+        type: TransactionType.perpsDeposit,
+      });
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(getByText("You'll receive")).toBeOnTheScreen();
+      expect(getByText('$100')).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+      expect(queryByTestId('receive-pressable')).toBeNull();
+    });
+
+    it('renders the receive row for subsidized predictDeposit', () => {
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
+      useTransactionPayTotalsMock.mockReturnValue(
+        createTotalsMock({
+          isInputBased: false,
+          targetAmount: { fiat: '100', usd: '100' },
+          total: { fiat: '100', usd: '100' },
+        }),
+      );
+
+      const { getByTestId, getByText, queryByTestId } = render({
+        type: TransactionType.predictDeposit,
+      });
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(getByText("You'll receive")).toBeOnTheScreen();
+      expect(getByText('$100')).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+      expect(queryByTestId('receive-pressable')).toBeNull();
     });
 
     it('renders the receive row for non-withdraw flows when Max is selected', () => {
@@ -312,8 +443,10 @@ describe('TotalRow', () => {
   });
 
   describe('moneyAccountDeposit receive row', () => {
-    it('renders You’ll receive with two decimals and opens confirmation-local MoneyMusdInfoSheet on press', () => {
+    it("renders You'll receive with two decimals and opens confirmation-local MoneyMusdInfoSheet on press for subsidized moneyAccountDeposit", () => {
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
       useTransactionPayTotalsMock.mockReturnValue({
+        isInputBased: false,
         total: { usd: '100' },
         targetAmount: { usd: '100', fiat: '100' },
       } as unknown as TransactionPayTotals);
@@ -323,6 +456,7 @@ describe('TotalRow', () => {
       });
 
       expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(getByText("You'll receive")).toBeOnTheScreen();
       expect(queryByTestId('total-row')).toBeNull();
       expect(getByText('$100.00')).toBeOnTheScreen();
       expect(queryByTestId(MoneyMusdInfoSheetTestIds.CONTAINER)).toBeNull();
@@ -337,7 +471,8 @@ describe('TotalRow', () => {
       );
     });
 
-    it('falls back to requiredTokens amountUsd when targetAmount is zero on moneyAccountDeposit', () => {
+    it('falls back to requiredTokens amountUsd when targetAmount is zero on subsidized moneyAccountDeposit', () => {
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
       useTransactionPayTotalsMock.mockReturnValue({
         total: { usd: '100' },
         targetAmount: { usd: '0', fiat: '0' },
@@ -368,6 +503,7 @@ describe('TotalRow', () => {
       I18n.locale = 'pt-BR';
 
       try {
+        useIsPaidByMetaMaskMock.mockReturnValue(true);
         useTransactionPayTotalsMock.mockReturnValue({
           total: { usd: '1000' },
           targetAmount: { usd: '1000', fiat: '1000' },
