@@ -1,12 +1,22 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
-import { selectCardFundingTokens } from '../../../../selectors/cardController';
+import {
+  selectCardActiveProviderId,
+  selectCardFundingTokens,
+} from '../../../../selectors/cardController';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { FundingStatus } from '../types';
+import {
+  CardProviderIds,
+  type CardProviderId,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useCardCapabilities } from './useCardCapabilities';
 import { useCardHomeData } from './useCardHomeData';
-import { useCardTransactionHistoryDestination } from './useCardTransactionHistoryDestination';
+import {
+  selectIsImmersveCardHistoryInMoney,
+  useCardTransactionHistoryDestination,
+} from './useCardTransactionHistoryDestination';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -32,6 +42,7 @@ function setup({
   supportsTransactionHistory = true,
   moneyVisible = true,
   createdAt = PRE_LAUNCH as string | null,
+  providerId = CardProviderIds.Baanx,
   fundingTokens = [] as {
     fundingStatus: FundingStatus;
     isMoneyAccountEntry?: boolean;
@@ -41,6 +52,7 @@ function setup({
   supportsTransactionHistory?: boolean;
   moneyVisible?: boolean;
   createdAt?: string | null;
+  providerId?: CardProviderId;
   fundingTokens?: {
     fundingStatus: FundingStatus;
     isMoneyAccountEntry?: boolean;
@@ -65,6 +77,17 @@ function setup({
     }
     if (selector === selectCardFundingTokens) {
       return fundingTokens;
+    }
+    if (selector === selectCardActiveProviderId) {
+      return providerId;
+    }
+    if (selector === selectIsImmersveCardHistoryInMoney) {
+      return selectIsImmersveCardHistoryInMoney.resultFunc(
+        historyEnabled,
+        providerId,
+        fundingTokens as never,
+        moneyVisible,
+      );
     }
     return undefined;
   });
@@ -210,5 +233,58 @@ describe('useCardTransactionHistoryDestination', () => {
     const { result } = renderHook(() => useCardTransactionHistoryDestination());
 
     expect(result.current).toBe('money');
+  });
+
+  describe('for Immersve', () => {
+    const moneyAccountSource = {
+      fundingStatus: FundingStatus.Enabled,
+      isMoneyAccountEntry: true,
+    };
+
+    it('returns money when only the Money Account funds the card, without a signup date', () => {
+      setup({
+        providerId: 'immersve',
+        createdAt: null,
+        fundingTokens: [moneyAccountSource],
+      });
+
+      const { result } = renderHook(() =>
+        useCardTransactionHistoryDestination(),
+      );
+
+      expect(result.current).toBe('money');
+    });
+
+    it('returns card when a USDC on Base source also funds the card', () => {
+      setup({
+        providerId: 'immersve',
+        createdAt: null,
+        fundingTokens: [
+          moneyAccountSource,
+          { fundingStatus: FundingStatus.Enabled, isMoneyAccountEntry: false },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useCardTransactionHistoryDestination(),
+      );
+
+      expect(result.current).toBe('card');
+    });
+
+    it('returns card when Money is not visible', () => {
+      setup({
+        providerId: 'immersve',
+        createdAt: null,
+        moneyVisible: false,
+        fundingTokens: [moneyAccountSource],
+      });
+
+      const { result } = renderHook(() =>
+        useCardTransactionHistoryDestination(),
+      );
+
+      expect(result.current).toBe('card');
+    });
   });
 });

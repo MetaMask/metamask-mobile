@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { MONEY_ACCOUNT_LAUNCH_MS } from '../../../../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   CardTransactionStatus,
   type CardTransaction,
   type CardTransactionPage,
@@ -14,6 +15,7 @@ import {
   selectIsCardAuthenticated,
 } from '../../../../selectors/cardController';
 import { isMoneyAccountCardTransaction } from '../utils/moneyAccountCardTransaction';
+import { selectIsImmersveCardHistoryInMoney } from './useCardTransactionHistoryDestination';
 import { cardQueries } from '../queries';
 
 export const CARD_TX_INDEX_MAX_PAGES = 5;
@@ -152,13 +154,24 @@ export function useCardTransactionIndex({
 
   useEffect(() => {
     if (wantsMore) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [wantsMore, fetchNextPage]);
 
+  // Immersve sends no funding sources, so its transactions only count once
+  // every card funding source is the Money Account.
+  const isImmersveCardHistoryInMoney = useSelector(
+    selectIsImmersveCardHistoryInMoney,
+  );
   const moneyAccountItems = useMemo(
-    () => allItems.filter(isMoneyAccountCardTransaction),
-    [allItems],
+    () =>
+      allItems.filter(
+        (tx) =>
+          isMoneyAccountCardTransaction(tx) ||
+          (isImmersveCardHistoryInMoney &&
+            tx.providerId === CardProviderIds.Immersve),
+      ),
+    [allItems, isImmersveCardHistoryInMoney],
   );
 
   const { bySettlementHash, declined } = useMemo(
