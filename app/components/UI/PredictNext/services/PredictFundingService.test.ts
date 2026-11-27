@@ -445,12 +445,13 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      // Captured, not awaited: only the request below makes it reject. The
-      // autofix for `jest/valid-expect` would await it here and deadlock.
-      // eslint-disable-next-line jest/valid-expect -- awaited below
-      const firstRejection = expect(first).rejects.toMatchObject({
-        name: 'AbortError',
-      });
+      // Attach the matcher before the follow-up commit; awaiting it here
+      // would deadlock because the request settles later.
+      const firstRejection = (async () => {
+        await expect(first).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+      })();
 
       // The person confirms again while the aborted promise is still pending,
       // which is where the lock window used to hand them that rejection.
@@ -548,11 +549,11 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      // Captured, not awaited: `caller.abort()` below is what rejects it.
-      // eslint-disable-next-line jest/valid-expect -- awaited below
-      const cancelled = expect(second).rejects.toMatchObject({
-        name: 'AbortError',
-      });
+      const cancelled = (async () => {
+        await expect(second).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+      })();
       await Promise.resolve();
       caller.abort();
 
@@ -737,11 +738,11 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      // Captured, not awaited: `changeIdentity()` below is what rejects it.
-      // eslint-disable-next-line jest/valid-expect -- awaited below
-      const abandoned = expect(oldCommit).rejects.toMatchObject({
-        code: PredictErrorCode.UNAUTHENTICATED,
-      });
+      const abandoned = (async () => {
+        await expect(oldCommit).rejects.toMatchObject({
+          code: PredictErrorCode.UNAUTHENTICATED,
+        });
+      })();
       await Promise.resolve();
       service.changeIdentity();
       await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
@@ -782,13 +783,10 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      // Captured, not awaited: the shared commit keeps running past it.
-      // eslint-disable-next-line jest/valid-expect -- awaited below
-      const cancelled = expect(pending).rejects.toMatchObject({
+      await expect(pending).rejects.toMatchObject({
         name: 'AbortError',
       });
       expect(signal?.aborted).toBe(false);
-      await cancelled;
       gate.resolve(receipt('processing'));
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
@@ -1864,6 +1862,55 @@ describe('PredictFundingService deposit flow', () => {
         },
         { signal: expect.any(AbortSignal) },
       );
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        transferReported,
+      );
+    });
+
+    it('coalesces resumeDeposits racing an in-flight reportDepositTransfer into one report and returns current state on a second report', async () => {
+      const reportGate = deferred<PredictDepositOperation>();
+      funding.listOpenDeposits.mockResolvedValueOnce([
+        deposit(awaitingTransfer),
+      ]);
+      funding.reportDepositTransfer
+        .mockReturnValueOnce(reportGate.promise)
+        .mockResolvedValueOnce(deposit(transferReported));
+      const { service: resumable } = createResumableService({
+        transactions: [makeTx({ status: TransactionStatus.submitted })],
+      });
+
+      const directReport = resumable.reportDepositTransfer(
+        venueId,
+        OPERATION_ID,
+        {
+          txHash: HASH,
+          chainId: awaitingTransfer.chainId,
+        },
+      );
+      const resumePass = resumable.resumeDeposits();
+      await flushMicrotasks();
+
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+
+      reportGate.resolve(deposit(transferReported));
+      const [directResult] = await Promise.all([directReport, resumePass]);
+
+      expect(directResult).toStrictEqual(transferReported);
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        transferReported,
+      );
+
+      // A subsequent second report returns the current state idempotently.
+      const secondReport = await resumable.reportDepositTransfer(
+        venueId,
+        OPERATION_ID,
+        {
+          txHash: HASH,
+          chainId: awaitingTransfer.chainId,
+        },
+      );
+      expect(secondReport).toStrictEqual(transferReported);
       expect(resumable.getDepositStatus(venueId)).toStrictEqual(
         transferReported,
       );

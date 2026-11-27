@@ -56,6 +56,7 @@ const fixtureFollowing = {
       address: '0x1',
       name: 'trader1',
       imageUrl: 'https://example.com/a1.png',
+      verified: true,
     },
     {
       profileId: 'trader-2',
@@ -122,12 +123,14 @@ describe('useFollowedTraders', () => {
           username: 'trader1',
           address: '0x1',
           avatarUri: 'https://example.com/a1.png',
+          verified: true,
         },
         {
           id: 'trader-2',
           username: 'trader2',
           address: '0x2',
           avatarUri: undefined,
+          verified: false,
         },
       ]);
     });

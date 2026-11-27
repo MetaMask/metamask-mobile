@@ -17,7 +17,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
-import { useMoneyCtaDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
@@ -26,7 +26,7 @@ import type { EarnModuleNavigationContext } from '../types/earnModuleEvents.type
 import useEarnAssetAcquisitionNavigation, {
   type EarnAssetAcquisitionRoute,
 } from './useEarnAssetAcquisitionNavigation';
-import { selectMoneyCtaEntryContext } from '../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../Money/selectors/entry';
 import {
   getMoneyEntryDecision,
   type MoneyEntry,
@@ -45,7 +45,6 @@ export type EarnOpportunityDestination =
 
 export type EarnOpportunityRedirectTarget =
   | EarnOpportunityDestination
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
   | EARN_MODULE_REDIRECT_TARGETS.SWAP
   | EARN_MODULE_REDIRECT_TARGETS.BUY;
@@ -55,7 +54,6 @@ export type EarnDepositNavigationRoute =
       type: 'money-fiat';
       redirectTarget:
         | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
-        | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
         | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
     }
   | EarnAssetAcquisitionRoute;
@@ -68,7 +66,6 @@ type EarnExperienceDepositDestination = Exclude<
 
 type EarnExperienceRedirectTarget =
   | EarnExperienceDepositDestination
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 const EARN_EXPERIENCE_DESTINATIONS: Record<
@@ -100,12 +97,10 @@ const getEarnExperienceDestination = (
 
 type EarnMoneyHomeRedirectTarget =
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 type EarnMoneyDepositRedirectTarget =
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
 
 export function getEarnMoneyEntryRedirectTarget(
@@ -127,8 +122,6 @@ export function getEarnMoneyEntryRedirectTarget(
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME;
     case 'deposit':
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
-    case 'onboarding':
-      return EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
     case 'splash':
       return EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH;
     case 'featureDisabled':
@@ -180,7 +173,7 @@ export const getEarnOpportunityDestination = (
  * Returns the destination reached after selecting an Earn asset.
  *
  * Routes to strategy selection when multiple choices exist; otherwise routes
- * directly to deposit, including Money onboarding when required.
+ * directly to deposit, including the Money splash when required.
  */
 export const getEarnAssetSelectionRedirectTarget = (
   earnAsset: EarnAsset,
@@ -203,7 +196,7 @@ export const getEarnAssetSelectionRedirectTarget = (
 
 /**
  * Returns the deposit destination for a specific Earn experience, including
- * Money onboarding when required.
+ * the Money splash when required.
  */
 export const getEarnExperienceDepositRedirectTarget = (
   experience: EarnExperience,
@@ -245,8 +238,8 @@ const useEarnOpportunityNavigation = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const { isStakingSupportedChain } = useStakingChain();
   const { navigateToMoneyDeposit: navigateToMoneyDepositEntry } =
-    useMoneyCtaDepositNavigation();
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+    useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,

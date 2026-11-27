@@ -31,6 +31,7 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 
 const makeOutcome = (
@@ -69,6 +70,7 @@ const makeGameMarket = (
   id: id as PredictEntityId,
   question,
   status: 'active',
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     makeOutcome(`${id}-yes`, 'yes', selection),
     makeOutcome(`${id}-no`, 'no'),
@@ -995,8 +997,8 @@ describe('PredictFeedScreen', () => {
       home: 'Steelers',
       awayScore: '17',
       homeScore: '21',
-      awayQuote: /^GB\s*· 42¢$/,
-      homeQuote: /^PIT\s*· 42¢$/,
+      awayQuote: '42%',
+      homeQuote: '42%',
     });
 
     const propsCard = view.getByTestId(
@@ -1120,7 +1122,7 @@ describe('PredictFeedScreen', () => {
     );
     expect(card.getByText('28')).toBeOnTheScreen();
     expect(card.getByText('24')).toBeOnTheScreen();
-    expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
+    expect(card.getByText('Q4 01:12')).toBeOnTheScreen();
   });
 
   it('watches only the Events on the active tab', async () => {

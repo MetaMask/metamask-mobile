@@ -181,7 +181,7 @@ describe('sortMarkets', () => {
       expect(result[2].symbol).toBe('ETH');
     });
 
-    it('handles markets with missing price change', () => {
+    it('sorts markets with missing price change last in either direction', () => {
       const markets = [
         createMockMarket({ symbol: 'BTC', change24hPercent: '+2.5%' }),
         createMockMarket({ symbol: 'ETH', change24hPercent: undefined }),
@@ -194,8 +194,18 @@ describe('sortMarkets', () => {
       });
 
       expect(result[0].symbol).toBe('BTC');
-      expect(result[1].symbol).toBe('ETH');
-      expect(result[2].symbol).toBe('SOL');
+      expect(result[1].symbol).toBe('SOL');
+      expect(result[2].symbol).toBe('ETH');
+
+      const resultAsc = sortMarkets({
+        markets,
+        sortBy: 'priceChange' as SortField,
+        direction: 'asc' as SortDirection,
+      });
+
+      expect(resultAsc[0].symbol).toBe('SOL');
+      expect(resultAsc[1].symbol).toBe('BTC');
+      expect(resultAsc[2].symbol).toBe('ETH');
     });
 
     it('removes + sign when parsing price change', () => {
@@ -284,7 +294,7 @@ describe('sortMarkets', () => {
       expect(result[2].symbol).toBe('ETH');
     });
 
-    it('handles markets with undefined funding rate as zero', () => {
+    it('sorts markets with undefined funding rate last', () => {
       const markets = [
         createMockMarket({ symbol: 'BTC', fundingRate: 0.01 }),
         createMockMarket({ symbol: 'ETH', fundingRate: undefined }),
@@ -297,8 +307,8 @@ describe('sortMarkets', () => {
       });
 
       expect(result[0].symbol).toBe('BTC');
-      expect(result[1].symbol).toBe('ETH');
-      expect(result[2].symbol).toBe('SOL');
+      expect(result[1].symbol).toBe('SOL');
+      expect(result[2].symbol).toBe('ETH');
     });
 
     it('handles zero funding rate', () => {
@@ -518,7 +528,7 @@ describe('sortMarkets', () => {
 
       const result = sortMarkets({
         markets,
-        sortBy: 'volume' as SortField,
+        sortBy: 'volume',
       });
 
       expect(result[0].symbol).toBe('ETH');
@@ -535,7 +545,7 @@ describe('sortMarkets', () => {
 
       const result = sortMarkets({
         markets,
-        sortBy: 'fundingRate' as SortField,
+        sortBy: 'fundingRate',
       });
 
       expect(result[0].symbol).toBe('SOL');

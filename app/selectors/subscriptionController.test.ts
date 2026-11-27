@@ -23,6 +23,7 @@ import {
   selectHasMoneyAccountPlusMembership,
   selectIsMoneyAccountPlusSubscriber,
   selectIsMoneyAccountPlusTrialing,
+  selectIsMoneyAccountPlusAnnual,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
@@ -893,6 +894,55 @@ describe('subscriptionController selectors', () => {
 
       it('returns false when the controller is absent', () => {
         expect(selectIsMoneyAccountPlusTrialing(createState())).toBe(false);
+      });
+    });
+
+    describe('selectIsMoneyAccountPlusAnnual', () => {
+      const createAnnualTestState = (interval: Subscription['interval']) =>
+        createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              interval,
+            }),
+          ],
+          trialedProducts: [],
+        });
+
+      it('returns true for an annual Plus subscription', () => {
+        expect(
+          selectIsMoneyAccountPlusAnnual(
+            createAnnualTestState(RECURRING_INTERVALS.year),
+          ),
+        ).toBe(true);
+      });
+
+      it('returns false for a monthly Plus subscription', () => {
+        expect(
+          selectIsMoneyAccountPlusAnnual(
+            createAnnualTestState(RECURRING_INTERVALS.month),
+          ),
+        ).toBe(false);
+      });
+
+      it('returns false when only another product is annual', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-shield',
+              products: [createProduct(PRODUCT_TYPES.SHIELD)],
+              interval: RECURRING_INTERVALS.year,
+            }),
+          ],
+          trialedProducts: [],
+        });
+
+        expect(selectIsMoneyAccountPlusAnnual(state)).toBe(false);
+      });
+
+      it('returns false when the controller is absent', () => {
+        expect(selectIsMoneyAccountPlusAnnual(createState())).toBe(false);
       });
     });
 

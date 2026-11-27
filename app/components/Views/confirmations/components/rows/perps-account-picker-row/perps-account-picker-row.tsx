@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import {
@@ -7,6 +8,8 @@ import {
 } from '@metamask/transaction-controller';
 
 import Engine from '../../../../../../core/Engine';
+import { updateConfirmationMetric } from '../../../../../../core/redux/slices/confirmationMetrics';
+import type { RootState } from '../../../../../../reducers';
 import Logger from '../../../../../../util/Logger';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { addTransaction } from '../../../../../../util/transaction-controller';
@@ -28,8 +31,16 @@ const formatBalance = (account: SubAccountInfo): string =>
   formatPerpsBalance(account.totalBalance);
 
 const PerpsAccountPickerRowContent: React.FC = () => {
+  const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { subAccounts, selectedSubAccount } = usePerpsSubAccounts();
+  const storedRecipientSwitchCount = useSelector((state: RootState) => {
+    const count = transactionMeta?.id
+      ? state?.confirmationMetrics?.metricsById?.[transactionMeta.id]
+          ?.properties?.mm_pay_recipient_mm_account_switch_count
+      : undefined;
+    return typeof count === 'number' ? count : 0;
+  });
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -59,7 +70,22 @@ const PerpsAccountPickerRowContent: React.FC = () => {
           type: transactionMeta.type,
         },
       )
-        .then(() => {
+        .then((result) => {
+          const nextTransactionId = result?.transactionMeta?.id;
+          if (nextTransactionId) {
+            dispatch(
+              updateConfirmationMetric({
+                id: nextTransactionId,
+                params: {
+                  properties: {
+                    mm_pay_recipient_mm_account_switch_count:
+                      storedRecipientSwitchCount + 1,
+                  },
+                },
+              }),
+            );
+          }
+
           Engine.context.ApprovalController.rejectRequest(
             transactionId,
             providerErrors.userRejectedRequest(),
@@ -72,7 +98,7 @@ const PerpsAccountPickerRowContent: React.FC = () => {
           );
         });
     },
-    [transactionMeta],
+    [dispatch, storedRecipientSwitchCount, transactionMeta],
   );
 
   return (

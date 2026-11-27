@@ -44,7 +44,7 @@ import {
 } from '../../../../UI/Money/constants/moneyEvents';
 import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
-import type { SliceData } from '../../BalanceBreakdown/types';
+import { hasSliceValue, type SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
@@ -136,6 +136,7 @@ const HomepageBalanceBreakdownRow = ({
   const isLoading = slice.status === 'loading';
   const hasError = slice.status === 'error';
   const isMoneyRow = slice.key === 'money';
+  // A subtotal is displayable, but not a complete allocation percentage.
   const percentageLabel =
     slice.status !== 'ready'
       ? null
@@ -152,7 +153,7 @@ const HomepageBalanceBreakdownRow = ({
         ? `<${formattedValue}`
         : formattedValue;
   const valueColor =
-    slice.status === 'ready' && slice.valueFiat === 0
+    hasSliceValue[slice.status] && slice.valueFiat === 0
       ? TextColor.TextAlternative
       : TextColor.TextDefault;
   const moneyApy = slice.apyPercent;
@@ -169,7 +170,7 @@ const HomepageBalanceBreakdownRow = ({
   const moneyAddLabel = strings('money.balance_card.add');
   const rowAccessibilityLabel = [
     getSliceLabel(slice.key),
-    !privacyMode && slice.status === 'ready' ? displayValue : undefined,
+    !privacyMode && hasSliceValue[slice.status] ? displayValue : undefined,
     !privacyMode ? percentageLabel : undefined,
     !privacyMode ? apyLabel : undefined,
     hasError

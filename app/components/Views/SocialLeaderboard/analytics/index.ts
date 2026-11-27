@@ -6,6 +6,11 @@ export {
   useSocialAnalytics,
 } from './useSocialV1Analytics';
 export {
+  getSocialTraderFollowMilestone,
+  getXSignInFailureReason,
+} from './socialMilestoneEvents';
+export type { SocialMilestoneEmission } from './socialMilestoneEvents';
+export {
   buildFollowTradingTokenContext,
   pickFollowTradingDismissedProperties,
 } from './buildFollowTradingTokenContext';
@@ -22,7 +27,6 @@ export {
 export type { SocialComposerEntry, SocialEventSource } from './socialEvents';
 export type {
   FollowTradingTokenSource,
-  LeaderboardScreenViewedSource,
   SocialLeaderboardSource,
   TraderFollowInteractionSource,
   TraderProfileScreenViewedSource,

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Αντιγραφή του πεδίου {{field}}",
       "copied_label": "Αντιγράφηκε το πεδίο {{field}}",
-      "copy_all_button": "Αντιγραφή όλων των στοιχείων",
-      "copied_all_label": "Τα τραπεζικά στοιχεία αντιγράφηκαν",
       "button": "Τέλος",
       "waiting_for_details": "Τα στοιχεία του λογαριασμού σας θα εμφανιστούν εδώ σύντομα.",
       "loading_details": "Φόρτωση στοιχείων λογαριασμού",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "σε",
-        "market_cap_suffix": "Κεφαλαιοποίηση αγοράς",
-        "size_at_price": "{{size}} με {{price}}",
-        "size_at_market_cap": "{{size}} με {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Κεφαλαιοποίηση αγοράς"
       },
       "trader_stats": {
         "pnl_30d": "Κέρδη & ζημίες (30 ημ.): {{pnl}}",
@@ -1995,22 +1991,6 @@
         "4": "Πεμ",
         "5": "Παρ",
         "6": "Σαβ"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Αγόρασε",
-        "sold": "Πουλήθηκαν",
-        "perps_closed": "Έκλεισε",
-        "perps_long_opened": "Άνοιξε θέση αγοράς (long)",
-        "perps_long_added": "Προστέθηκε στις θέσεις αγοράς",
-        "perps_long_reduced": "Μειώθηκε η θέση αγοράς",
-        "perps_short_opened": "Η θέση πώλησης άνοιξε",
-        "perps_short_added": "Προστέθηκε στις θέσεις πώλησης",
-        "perps_short_reduced": "Αγοράστηκε ξανά",
-        "spot_opened": "Αγόρασε",
-        "spot_added": "Αγοράστηκε επιπλέον ποσότητα",
-        "spot_reduced": "Πωλήθηκε μέρος της θέσης",
-        "spot_closed": "Πωλήθηκε ολόκληρη η θέση"
       }
     },
     "trader_position": {
@@ -3956,7 +3936,6 @@
       "unavailable": "Δεν υπάρχουν διαθέσιμες αγορές αυτήν τη στιγμή."
     },
     "home_categories": {
-      "title": "Κατηγορίες",
       "politics": "Πολιτική",
       "sports": "Αθλητικά"
     },
@@ -5482,19 +5461,6 @@
     "accounts": "λογαριασμοί",
     "show_accounts": "Εμφάνιση",
     "hide_accounts": "Απόκρυψη",
-    "labels": {
-      "bitcoin_testnet_account_name": "Λογαριασμός στο Bitcoin Testnet",
-      "bitcoin_account_name": "Λογαριασμός στο Bitcoin",
-      "bitcoin_signet_account_name": "Λογαριασμός Bitcoin στο δίκτυο Signet",
-      "bitcoin_regtest_account_name": "Λογαριασμός Bitcoin στο δίκτυο Regtest",
-      "solana_devnet_account_name": "Λογαριασμός στο Solana Devnet",
-      "solana_testnet_account_name": "Λογαριασμός στο Solana Testnet",
-      "solana_account_name": "Λογαριασμός στο Solana",
-      "tron_account_name": "Λογαριασμός Tron",
-      "tron_nile_account_name": "Λογαριασμός Tron Nile",
-      "tron_shasta_account_name": "Λογαριασμός Tron Shasta",
-      "stellar_account_name": "Λογαριασμός στο δίκτυο Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
     },
@@ -7181,7 +7147,6 @@
     "gas_education_3": "Το MetaMask δεν κερδίζει κάτι από τα τέλη συναλλαγών.",
     "gas_education_4": "Τα τέλη συναλλαγών αυξομειώνονται ανάλογα με την κίνηση του δικτύου και την πολυπλοκότητα των συναλλαγών.",
     "gas_education_learn_more": "Μάθετε περισσότερα για τα τέλη συναλλαγών",
-    "confusable_title": "Ελέγξτε τη διεύθυνση παραλήπτη",
     "confusable_msg": "Εντοπίσαμε έναν άγνωστο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "similar_to": "είναι παρόμοιο με",
     "contains_zero_width": "περιλαμβάνει χαρακτήρα μηδενικού πλάτους",
@@ -7199,8 +7164,7 @@
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
     "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη",
-    "swap_tokens": "Ανταλλαγή tokens",
-    "fromWithColon": "Από:"
+    "swap_tokens": "Ανταλλαγή tokens"
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -7478,8 +7442,6 @@
     "hash_copied_to_clipboard": "Ο κατακερματισμός συναλλαγής αντιγράφηκε στο πρόχειρο",
     "address_copied_to_clipboard": "Η διεύθυνση αντιγράφηκε στο πρόχειρο",
     "transaction_error": "Σφάλμα συναλλαγής",
-    "address_to_placeholder": "Αναζήτηση, δημόσια διεύθυνση (0x) ή ENS",
-    "address_from_balance": "Υπόλοιπο:",
     "status": "Κατάσταση",
     "date": "Ημερομηνία",
     "nonce": "Αριθμός συναλλαγής (nonce)",
@@ -7560,11 +7522,8 @@
     "delete_contact": "Διαγραφή επαφής",
     "delete": "Διαγραφή",
     "cancel": "Άκυρο",
-    "add_to_address_book": "Προσθήκη στο βιβλίο διευθύνσεων",
-    "enter_an_alias": "Εισαγάγετε ψευδώνυμο",
     "add_this_address": "Προσθέστε αυτή τη διεύθυνση στο βιβλίο διευθύνσεών σας",
     "next": "Επόμενο",
-    "enter_an_alias_placeholder": "π.χ. Vitalik B.",
     "add_contact_title": "Προσθήκη επαφής",
     "add_contact": "Προσθήκη επαφής",
     "edit_contact_title": "Επεξεργασία επαφής",
@@ -8991,19 +8950,7 @@
     "contact_support": "Επικοινωνία με την υποστήριξη"
   },
   "whats_new": {
-    "title": "Τι νέο υπάρχει",
-    "remove_gns_new_ui_update": {
-      "title": "Νέα ενημέρωση διεπαφής χρήστη",
-      "introduction": "Κάναμε ενημερώσεις για να βελτιώσουμε την εμπειρία χρήσης της εφαρμογής.",
-      "descriptions": {
-        "description_1": "Το μενού επιλογής δικτύου μεταφέρθηκε στα οικονομικά σας στοιχεία",
-        "description_2": "Ανταλλαγή και Μεταφορά σε μία απλή διαδικασία",
-        "description_3": "Βελτιστοποιημένη εμπειρία αποστολής",
-        "description_4": "Ανανεωμένη εμφάνιση λογαριασμού"
-      },
-      "more_information": "Τώρα μπορείτε να εστιάσετε στα token και τη δραστηριότητά σας, χωρίς να σας απασχολούν τα δίκτυα στο παρασκήνιο.",
-      "got_it": "Κατανοητό"
-    }
+    "title": "Τι νέο υπάρχει"
   },
   "invalid_network": {
     "title": "Το αναγνωριστικό αλυσίδας για το προσαρμοσμένο δίκτυο \n{{network}} \nπρέπει να εισαχθεί ξανά.",
@@ -9314,28 +9261,13 @@
     "nickname": "ψευδώνυμο"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Πράγματα που πρέπει να θυμάστε",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Το εγγενές token αυτού του δικτύου είναι το {{ticker}}. Χρησιμοποιείται για την πληρωμή των τελών δικτύου.",
-    "second_description": "Εάν επιχειρήσετε να στείλετε περιουσιακά στοιχεία απευθείας από ένα δίκτυο σε ένα άλλο, αυτό μπορεί να οδηγήσει σε μόνιμη απώλεια περιουσιακών στοιχείων. Βεβαιωθείτε ότι χρησιμοποιείτε μια διασύνδεση.",
-    "third_description": "Τα tokens σας ενδέχεται να μην εμφανίζονται αυτόματα στο πορτοφόλι σας.",
-    "private_network": "Αυτό το δίκτυο είναι άγνωστο και ενδέχεται να χρησιμοποιεί ειδικό token για τα τέλη δικτύου.",
     "unknown_network": "Άγνωστο δίκτυο",
-    "switched_network": "Αλλάξατε σε",
-    "learn_more": "Μάθετε περισσότερα",
     "add_token": "Κάντε κλικ εδώ για να προσθέσετε χειροκίνητα τα tokens",
-    "add_token_manually": "Προσθέστε τα χειροκίνητα.",
     "got_it": "Το κατάλαβα",
     "error_title": "Κάτι πήγε στραβά",
     "error_message": "Παρουσιάστηκε σφάλμα κατά τη φόρτωση των πληροφοριών του δικτύου. Προσπαθήστε ξανά αργότερα.",
-    "private_network_third_description": "Πληκτρολογήστε ένα όνομα για αυτό το δίκτυο, ώστε να μπορείτε να το αναγνωρίζετε εύκολα.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Ενεργοποίηση αυτόματου εντοπισμού token",
-    "token_detection_mainnet_title": "Ο εντοπισμός token είναι ενεργοποιημένος και πολλά tokens θα εμφανιστούν αυτόματα στο πορτοφόλι σας.",
-    "token_detection_mainnet_link": "Μπορείτε επίσης να προσθέσετε χειροκίνητα τα tokens.",
-    "or": "ή",
-    "non_evm_first_description": "Το εγγενές περιουσιακό στοιχείο σε αυτό το δίκτυο είναι {{ticker}}. Χρησιμοποιείται για τις χρεώσεις συναλλαγών.",
-    "non_evm_second_description": "Θα χάσετε τα περιουσιακά σας στοιχεία εάν προσπαθήσετε να τα στείλετε από ή προς άλλο δίκτυο."
+    "private_network_third_description": "Πληκτρολογήστε ένα όνομα για αυτό το δίκτυο, ώστε να μπορείτε να το αναγνωρίζετε εύκολα."
   },
   "download_files": {
     "error": "Η λήψη του συνημμένου απέτυχε.",
@@ -9914,7 +9846,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Κερδίστε αποδόσεις, κάντε συναλλαγές και πραγματοποιήστε αγορές από έναν λογαριασμό",
       "body_prefix": "Το MetaMask Money είναι ένας λογαριασμός stablecoin που προσφέρει απόδοση έως και ",
-      "body_suffix": "—με ενσωματωμένες δυνατότητες συναλλαγών, αποστολής χρημάτων και πληρωμών.",
+      "body_suffix": "- με ενσωματωμένες δυνατότητες συναλλαγών, αποστολής χρημάτων και πληρωμών.",
       "body_no_apy": "Το MetaMask Money είναι ένας λογαριασμός stablecoin με ενσωματωμένες δυνατότητες συναλλαγών, αποστολής χρημάτων και πληρωμών.",
       "benefit_convert_title": "Μετατρέπει το MetaMask τα USD σε αναλογία 1:1",
       "benefit_convert_body": "Τα χρήματα που καταθέτετε μετατρέπονται στο MetaMask σε USD με αναλογία 1:1, χωρίς χρεώσεις.",
@@ -10695,8 +10627,7 @@
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
       "predict_withdraw": "Ανάληψη",
-      "money_account_deposit_header": "Προσθήκη στο MetaMask Money",
-      "money_account_send": "Αποστολή"
+      "money_account_deposit_header": "Προσθήκη στο MetaMask Money"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -10853,7 +10784,6 @@
     "deposit_edit_amount_done": "Προσθήκη κεφαλαίων",
     "deposit_edit_amount_convert_token": "Μετατροπή {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Ανάληψη",
-    "deposit_edit_amount_money_account_send": "Αποστολή",
     "deposit_edit_amount_musd_conversion": "Μετατροπή σε mUSD",
     "preparing_order": "Προετοιμασία εντολής"
   },

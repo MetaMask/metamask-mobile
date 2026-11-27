@@ -79,6 +79,14 @@ jest.mock('./instance-options/seedless-onboarding-controller', () => ({
     () => 'seedless-options',
   ),
 }));
+jest.mock('./instance-options/signature-controller', () => ({
+  getSignatureControllerInstanceOptions: jest.fn(() => 'signature-options'),
+}));
+jest.mock('./messengers/signature-controller-messenger', () => ({
+  getSignatureControllerInitMessenger: jest.fn(
+    () => 'signature-init-messenger',
+  ),
+}));
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
@@ -139,6 +147,7 @@ describe('initializeWallet', () => {
         gasFeeController: 'gas-fee-options',
         geolocationApiService: 'geolocation-api-service-options',
         seedlessOnboardingController: 'seedless-options',
+        signatureController: 'signature-options',
         storageService: 'storage-options',
         subscriptionService: 'subscription-service-options',
         shieldApiService: 'shield-api-service-options',

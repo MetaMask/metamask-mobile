@@ -23,6 +23,7 @@ import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
 import { readXHandle } from './xHandle';
+import { isProfileVerified } from './profileVerified';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -278,6 +279,7 @@ export function toSocialV1FeedItem(
     tradeCount30d: card.actor.tradeCount30d ?? null,
     followerCount: card.actor.followerCount ?? null,
     xHandle: readXHandle(card.actor.socialHandles),
+    verified: isProfileVerified(card.actor),
   };
 
   const authorComment = readAuthorComment(core);
@@ -409,13 +411,3 @@ export function toSocialV1FeedItem(
     ...(live ? { live } : {}),
   };
 }
-
-/** Maps a page of loaded rows, preserving order. */
-/**
- * Maps a page of loaded rows, preserving order. One `now` for the whole page so
- * every open position's hold time is measured against the same instant.
- */
-export const toSocialV1FeedItems = (
-  rows: TraderFeedRow[],
-  now: number = Date.now(),
-): SocialV1FeedItem[] => rows.map((row) => toSocialV1FeedItem(row, now));

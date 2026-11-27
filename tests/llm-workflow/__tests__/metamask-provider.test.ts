@@ -189,6 +189,41 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
+  it('keeps the resolved Metro port and device as the driver Hermes defaults', async () => {
+    const setHermesDefaults = jest.fn();
+    iosResolve.mockResolvedValue({
+      platform: 'ios',
+      deviceId: 'SIM-UDID',
+      appId: 'io.metamask.MetaMask',
+      appPath: '/tmp/MetaMask.app',
+      metroPort: 8085,
+      metadataLines: [],
+    });
+    iosLaunch.mockResolvedValue({
+      driver: { ...mobileDriver, setHermesDefaults },
+      state,
+    });
+
+    await manager.launch(createLaunchInput());
+
+    expect(setHermesDefaults).toHaveBeenCalledWith({
+      deviceId: 'SIM-UDID',
+      metroPort: 8085,
+    });
+  });
+
+  it('sets only the device as a Hermes default when no Metro port is resolved', async () => {
+    const setHermesDefaults = jest.fn();
+    iosLaunch.mockResolvedValue({
+      driver: { ...mobileDriver, setHermesDefaults },
+      state,
+    });
+
+    await manager.launch(createLaunchInput());
+
+    expect(setHermesDefaults).toHaveBeenCalledWith({ deviceId: 'SIM-UDID' });
+  });
+
   it('generates an mm-prefixed session ID and persists session metadata to the default artifacts dir', async () => {
     await manager.launch(createLaunchInput({ tags: ['smoke'] }));
 

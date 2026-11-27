@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  type PerpsProviderType,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
@@ -86,6 +87,7 @@ interface PerpsLeverageBottomSheetProps {
   currentPrice: number;
   direction: 'long' | 'short';
   asset?: string;
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   triggerPrice?: string;
   orderType?: OrderType;
@@ -120,6 +122,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice: initialCurrentPrice,
   direction,
   asset = '',
+  providerId,
   limitPrice,
   triggerPrice,
   orderType = 'market',
@@ -163,6 +166,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const leverageChangeTime = useRef<number>(0);
 
   const currentLivePrice = usePerpsLivePrices({
+    providerId,
     symbols: [asset],
     throttleMs: 1000,
   });
@@ -200,7 +204,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
+  const dynamicLiquidationPrice =
+    apiLiquidationPrice === undefined
+      ? Number.NaN
+      : Number.parseFloat(apiLiquidationPrice);
 
   // Cache last valid liquidation price so the UI always shows a value
   // instead of blinking a skeleton loader during passive price updates.

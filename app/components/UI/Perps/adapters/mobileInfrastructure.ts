@@ -449,6 +449,11 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       globalSnapshotUrl: terminalGlobalSnapshotUrl,
     },
 
+    // Core enrolls the Lighter account here after each Lighter order.
+    notifyPerpsApi: {
+      baseUrl: process.env.NOTIFY_PERPS_API_URL,
+    },
+
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
       getPerpsDiscountForAccount(

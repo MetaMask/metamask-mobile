@@ -63,6 +63,8 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { DepositToRow } from '../../rows/deposit-to-row';
+import { MoneyDepositToRow } from '../../rows/money-deposit-to-row';
 import {
   PerpsReceiveToRow,
   type PerpsReceiveDestination,
@@ -74,7 +76,10 @@ import {
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useSyncPerpsLighterTransactionType } from '../../../hooks/transactions/useSyncPerpsLighterTransactionType';
-import { perpsProviderSelectionForType } from '../../../utils/perps-lighter-transaction-type';
+import {
+  getPerpsWithdrawType,
+  perpsProviderSelectionForType,
+} from '../../../utils/perps-lighter-transaction-type';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import {
   MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
@@ -82,7 +87,10 @@ import {
 } from '../../../hooks/custom-amount/useSnapAmountToMax';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
-import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
   CustomAmountBuy,
@@ -149,9 +157,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isAddMusdIntent =
+    const isFullBalanceMoneyDeposit =
       isMoneyAccountDeposit &&
-      getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+      isFullBalanceDepositIntent(
+        getMoneyAccountDepositIntent(transactionMeta?.batchId),
+      );
 
     useClearConfirmationOnBackSwipe();
 
@@ -184,6 +194,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
+      isClampCommitPending,
+      isClampCommitFailed,
     } = useTransactionCustomAmount({ autoSelectFiatPayment, currency });
 
     const { hasTokens: hasAvailableTokens } =
@@ -211,7 +223,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       disablePay,
       hasAccountNoFunds,
       hasPrefetchedQuote,
-      isAddMusdIntent,
+      isFullBalanceMoneyDeposit,
       isDepositPrefillEnabled,
       isDepositPrefillLoading,
       skipDepositPrefill,
@@ -223,7 +235,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
-    const perpsProvider = perpsProviderSelectionForType(transactionMeta?.type);
+    const perpsProvider = perpsProviderSelectionForType(
+      getPerpsWithdrawType(transactionMeta) ?? transactionMeta?.type,
+    );
     const [perpsReceiveDestination, setPerpsReceiveDestination] =
       useState<PerpsReceiveDestination>(perpsProvider);
     const [perpsWithdrawSource, setPerpsWithdrawSource] =
@@ -284,6 +298,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
         pendingFiatAmount,
+        isClampCommitPending,
+        isClampCommitFailed,
       });
 
     const hasAutoSubmittedPrefill = useRef(false);
@@ -573,31 +589,38 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               // does not cover From or Pay with.
               <MembershipInfo amountFiat={amountFiat} />
             )}
-          {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
-            <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
-                )}
-              <PerpsAccountPickerRow />
-              <PredictAccountPickerRow />
-              <PerpsWithdrawFromRow
-                source={perpsWithdrawSource}
-                onSourceChange={setPerpsWithdrawSource}
-              />
-              {disablePay !== true &&
-                (isPayAccountLoading ? (
-                  <PayWithRowSkeleton />
-                ) : (
-                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
-                ))}
-              <PerpsReceiveToRow
-                destination={perpsReceiveDestination}
-                onDestinationChange={setPerpsReceiveDestination}
-              />
-            </>
-          )}
+          {stage === CustomAmountStage.AmountInput &&
+            !isFullBalanceMoneyDeposit && (
+              <>
+                {supportAccountSelection &&
+                  !selectedFiatPaymentMethodId &&
+                  !shouldHideAccountSelector && (
+                    <PayAccountSelector style={styles.separator} />
+                  )}
+                <PerpsAccountPickerRow />
+                <PredictAccountPickerRow />
+                <PerpsWithdrawFromRow
+                  source={perpsWithdrawSource}
+                  onSourceChange={setPerpsWithdrawSource}
+                />
+                {disablePay !== true &&
+                  (isPayAccountLoading ? (
+                    <PayWithRowSkeleton />
+                  ) : (
+                    (hasPaymentOption || hasAccountNoFunds) && (
+                      <>
+                        <PayWithRow />
+                        <DepositToRow />
+                      </>
+                    )
+                  ))}
+                <MoneyDepositToRow />
+                <PerpsReceiveToRow
+                  destination={perpsReceiveDestination}
+                  onDestinationChange={setPerpsReceiveDestination}
+                />
+              </>
+            )}
           {stage !== CustomAmountStage.AmountInput && (
             <View
               pointerEvents={shouldBlockReviewRows ? 'none' : 'auto'}
@@ -616,8 +639,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPayAccountLoading ? (
                   <PayWithRowSkeleton />
                 ) : (
-                  hasPaymentOption && <PayWithRow isResultReady />
+                  hasPaymentOption && (
+                    <>
+                      <PayWithRow isResultReady />
+                      <DepositToRow isResultReady />
+                    </>
+                  )
                 ))}
+              <MoneyDepositToRow />
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}

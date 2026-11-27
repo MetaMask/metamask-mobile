@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { processFiatOrder } from '../../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
@@ -230,6 +231,76 @@ describe('OrderDetails', () => {
     expect(
       screen.getByText('Your ETH is now available in your account'),
     ).toBeOnTheScreen();
+  });
+
+  describe('fiat formatting', () => {
+    const eurOrder: DeepPartial<FiatOrder> = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      amount: '1234.5',
+      cryptoFee: '2.5',
+      currency: 'EUR',
+      currencySymbol: '€',
+      data: {
+        cryptoCurrency: { symbol: 'ETH', network: { shortName: 'ETH' } },
+        provider: { name: 'Test Provider' },
+        fiatCurrency: { decimals: 2 },
+        exchangeRate: 3000.5,
+      },
+    };
+
+    it('formats the fiat amounts with the order currency', () => {
+      render(OrderDetails, [eurOrder]);
+
+      expect(screen.getAllByText('€1,232.00')).toHaveLength(2);
+      expect(screen.getByText('€2.50')).toBeOnTheScreen();
+      expect(screen.getByText('€1,234.50')).toBeOnTheScreen();
+      expect(screen.getByText('1 ETH @ €3,000.50')).toBeOnTheScreen();
+    });
+
+    it('formats the amounts when the provider sends no symbol or decimals', () => {
+      render(OrderDetails, [
+        {
+          ...eurOrder,
+          currencySymbol: undefined,
+          data: { ...eurOrder.data, fiatCurrency: undefined },
+        },
+      ]);
+
+      expect(screen.getAllByText('€1,232.00')).toHaveLength(2);
+      expect(screen.getByText('€1,234.50')).toBeOnTheScreen();
+    });
+
+    it('shows an exchange rate under one cent as <€0.01 instead of €0.00', () => {
+      render(OrderDetails, [
+        {
+          ...eurOrder,
+          cryptocurrency: 'SHIB',
+          data: { ...eurOrder.data, exchangeRate: 0.0000123 },
+        },
+      ]);
+
+      expect(screen.getByText('1 SHIB @ <€0.01')).toBeOnTheScreen();
+    });
+
+    it('shows an ellipsis instead of a fee when the sell fee is missing', () => {
+      const sellOrder: DeepPartial<FiatOrder> = {
+        ...eurOrder,
+        orderType: OrderOrderTypeEnum.Sell,
+        data: { ...eurOrder.data, totalFeesFiat: 2.5 },
+      };
+      const { unmount } = render(OrderDetails, [sellOrder]);
+      const ellipsesWithFee = screen.queryAllByText('...').length;
+      expect(screen.getByText('€2.50')).toBeOnTheScreen();
+      unmount();
+
+      render(OrderDetails, [
+        { ...sellOrder, data: { ...sellOrder.data, totalFeesFiat: undefined } },
+      ]);
+
+      expect(screen.queryByText('€2.50')).not.toBeOnTheScreen();
+      expect(screen.queryAllByText('...')).toHaveLength(ellipsesWithFee + 1);
+    });
   });
 
   it('renders a cancelled order', () => {
@@ -554,6 +625,127 @@ describe('OrderDetails', () => {
         url_domain: 'https://example.com',
       },
     );
+  });
+
+  describe('block explorer link', () => {
+    const completedOrderWith = (network: string, txHash?: string) =>
+      ({
+        ...mockOrder,
+        network,
+        txHash,
+        state: FIAT_ORDER_STATES.COMPLETED,
+      }) as FiatOrder;
+
+    beforeEach(() => {
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      [
+        'a Tron order',
+        'tron:728126428',
+        '0f3e6ace3ee58d8e34707c8efae7546776d5780de5ea8939c255c51da5bc7f32',
+        'tronscan.org',
+      ],
+      [
+        'a Stellar order',
+        'stellar:pubnet',
+        'b418ddfea83093be4d8b42d2129b67ab64cdcfbf5add310395ed3f6dbb24a7cd',
+        'stellar.expert',
+      ],
+    ])(
+      'opens the non-EVM explorer for %s',
+      (_label, network, txHash, expectedHost) => {
+        render(OrderDetails, [completedOrderWith(network, txHash)]);
+
+        fireEvent.press(screen.getByText(/View full details on/u));
+
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          expect.stringContaining(`${expectedHost}`),
+        );
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          expect.stringContaining(txHash),
+        );
+      },
+    );
+
+    it.each([
+      ['Ethereum', '1', 'etherscan.io'],
+      ['Base', '8453', 'basescan.org'],
+    ])(
+      'opens the explorer for an %s order whose network is a numeric chain id',
+      (_label, network, expectedHost) => {
+        const txHash =
+          '0xe32e897356d209b40a7d1c114612a520278ec5378aa86b042ce05c797cc7d0d8';
+        render(OrderDetails, [completedOrderWith(network, txHash)]);
+
+        fireEvent.press(screen.getByText(/View full details on/u));
+
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          expect.stringContaining(expectedHost),
+        );
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          expect.stringContaining(txHash),
+        );
+      },
+    );
+
+    it('falls back to the crypto currency chain id when the network is an unparseable name', () => {
+      const txHash =
+        '0xe32e897356d209b40a7d1c114612a520278ec5378aa86b042ce05c797cc7d0d8';
+      const order = completedOrderWith('base_unparseable', txHash);
+      render(OrderDetails, [
+        {
+          ...order,
+          data: {
+            ...order.data,
+            cryptoCurrency: {
+              ...(order.data as { cryptoCurrency: object }).cryptoCurrency,
+              chainId: 'eip155:8453',
+            },
+          },
+        } as FiatOrder,
+      ]);
+
+      fireEvent.press(screen.getByText(/View full details on/u));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        expect.stringContaining('basescan.org'),
+      );
+    });
+
+    it('does not render the explorer link when the order has no transaction hash', () => {
+      render(OrderDetails, [completedOrderWith('tron:728126428', undefined)]);
+
+      expect(screen.queryByText(/View full details on/u)).toBeNull();
+    });
+
+    it.each([
+      ['0x', '0x'],
+      ['an all-zero hash', `0x${'0'.repeat(64)}`],
+    ])(
+      'does not render the explorer link for a placeholder hash (%s)',
+      (_label, txHash) => {
+        render(OrderDetails, [completedOrderWith('tron:728126428', txHash)]);
+
+        expect(screen.queryByText(/View full details on/u)).toBeNull();
+      },
+    );
+
+    it('does not render the explorer link when the order is not completed', () => {
+      render(OrderDetails, [
+        {
+          ...completedOrderWith('tron:728126428', 'abc'),
+          state: FIAT_ORDER_STATES.PENDING,
+        },
+      ]);
+
+      expect(screen.queryByText(/View full details on/u)).toBeNull();
+    });
   });
 
   it('renders a "continue" button for created, non-transacted sell orders', async () => {

@@ -318,7 +318,7 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MONEY.CONFIRMATIONS_ROOT,
         expect.objectContaining({
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         }),
       );
     });
@@ -342,7 +342,7 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MONEY.CONFIRMATIONS_ROOT,
         expect.objectContaining({
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         }),
       );
     });

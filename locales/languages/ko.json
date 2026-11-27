@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} 복사",
       "copied_label": "{{field}} 복사됨",
-      "copy_all_button": "상세 정보 모두 복사",
-      "copied_all_label": "은행 계좌 정보가 복사됨",
       "button": "완료",
       "waiting_for_details": "계정 세부 정보가 곧 여기에 표시됩니다.",
       "loading_details": "계정 세부 정보 불러오는 중",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": ":",
-        "market_cap_suffix": "시가총액",
-        "size_at_price": "{{price}}에 {{size}}",
-        "size_at_market_cap": "{{marketCap}} {{abbreviation}} 기준 {{size}}"
+        "market_cap_suffix": "시가총액"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} 손익(30일)",
@@ -1995,22 +1991,6 @@
         "4": "목",
         "5": "금",
         "6": "토"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "매입함",
-        "sold": "매도함",
-        "perps_closed": "닫힘",
-        "perps_long_opened": "오픈한 롱",
-        "perps_long_added": "롱 포지션에 추가",
-        "perps_long_reduced": "롱 포지션 축소",
-        "perps_short_opened": "숏 포지션 열기 완료",
-        "perps_short_added": "숏 포지션에 추가",
-        "perps_short_reduced": "재매수",
-        "spot_opened": "매입함",
-        "spot_added": "추가 매수",
-        "spot_reduced": "일부 매도",
-        "spot_closed": "전량 매도"
       }
     },
     "trader_position": {
@@ -3956,7 +3936,6 @@
       "unavailable": "현재 이용 가능한 시장이 없습니다."
     },
     "home_categories": {
-      "title": "카테고리",
       "politics": "정치",
       "sports": "스포츠"
     },
@@ -5482,19 +5461,6 @@
     "accounts": "계정",
     "show_accounts": "보이기",
     "hide_accounts": "숨기기",
-    "labels": {
-      "bitcoin_testnet_account_name": "비트코인 테스트넷 계정",
-      "bitcoin_account_name": "비트코인 계정",
-      "bitcoin_signet_account_name": "비트코인 Signet 계정",
-      "bitcoin_regtest_account_name": "비트코인 Regtest 계정",
-      "solana_devnet_account_name": "솔라나 데브넷 계정",
-      "solana_testnet_account_name": "솔라나 테스트넷 계정",
-      "solana_account_name": "솔라나 계정",
-      "tron_account_name": "Tron 계정",
-      "tron_nile_account_name": "Tron Nile 계정",
-      "tron_shasta_account_name": "Tron Shasta 계정",
-      "stellar_account_name": "Stellar 계정"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
     },
@@ -7181,7 +7147,6 @@
     "gas_education_3": "MetaMask는 가스요금으로 수익을 얻지 않습니다.",
     "gas_education_4": "가스비는 네트워크의 트래픽과 트랜잭션의 복잡성에 따라 달라질 수 있습니다.",
     "gas_education_learn_more": "가스요금에 대해 더 자세히 알아보기",
-    "confusable_title": "받는 사람 주소를 확인하세요",
     "confusable_msg": "ENS 이름에 혼란을 줄 수 있는 글자가 들어 있는 것을 확인했습니다. 사기를 방지하기 위해 ENS 이름을 확인하세요.",
     "similar_to": "(은)는 다음과 유사합니다.",
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
@@ -7199,8 +7164,7 @@
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
     "invalid_recipient_description": "주소가 올바른지 확인하세요",
-    "swap_tokens": "토큰 스왑",
-    "fromWithColon": "발신:"
+    "swap_tokens": "토큰 스왑"
   },
   "custom_gas": {
     "total": "총합",
@@ -7478,8 +7442,6 @@
     "hash_copied_to_clipboard": "거래 해시가 클립보드에 복사되었습니다",
     "address_copied_to_clipboard": "주소가 클립보드에 복사되었습니다",
     "transaction_error": "거래 오류",
-    "address_to_placeholder": "검색, 공개 주소(0x), 혹은 ENS",
-    "address_from_balance": "잔고:",
     "status": "상태",
     "date": "날짜",
     "nonce": "논스",
@@ -7560,11 +7522,8 @@
     "delete_contact": "연락처 삭제",
     "delete": "삭제",
     "cancel": "취소",
-    "add_to_address_book": "주소록에 추가",
-    "enter_an_alias": "별칭 입력",
     "add_this_address": "이 주소를 주소록에 추가",
     "next": "다음",
-    "enter_an_alias_placeholder": "예: Vitalik B.",
     "add_contact_title": "연락처 추가",
     "add_contact": "연락처 추가",
     "edit_contact_title": "연락처 편집",
@@ -8991,19 +8950,7 @@
     "contact_support": "지원팀에 문의"
   },
   "whats_new": {
-    "title": "새로운 소식",
-    "remove_gns_new_ui_update": {
-      "title": "새 UI 업데이트",
-      "introduction": "앱 사용 경험 향상을 위한 업데이트가 이루어졌습니다.",
-      "descriptions": {
-        "description_1": "네트워크 선택 메뉴가 자산 섹션으로 이동했습니다",
-        "description_2": "스왑과 브릿지를 한 번에 간편하게 처리할 수 있습니다",
-        "description_3": "전송 절차 간소화",
-        "description_4": "새로워진 계정 화면"
-      },
-      "more_information": "이제 관련된 네트워크에 신경 쓸 필요 없이 토큰과 활동 자체에 집중할 수 있습니다.",
-      "got_it": "컨펌"
-    }
+    "title": "새로운 소식"
   },
   "invalid_network": {
     "title": "맞춤 네트워크 \n {{network}}의 체인 ID를 \n 다시 입력해야 합니다.",
@@ -9314,28 +9261,13 @@
     "nickname": "닉네임"
   },
   "network_information": {
-    "things_to_keep_in_mind": "유의사항",
     "testnet_network": "{{type}} 테스트넷",
-    "first_description": "이 네트워크의 네이티브 토큰은 {{ticker}}입니다. 이는 네트워크 수수료 지불에 사용되는 토큰입니다.",
-    "second_description": "한 네트워크에서 다른 네트워크로 자산을 직접 전송하면 자산이 영구적으로 손실될 수 있습니다. 반드시 브릿지를 이용하세요.",
-    "third_description": "토큰이 지갑에서 자동으로 표시되지 않을 수 있습니다.",
-    "private_network": "알 수 없는 네트워크이며 특수한 토큰으로 네트워크 수수료를 지불해야 할 수 있습니다.",
     "unknown_network": "알 수 없는 네트워크",
-    "switched_network": "다음으로 변경했습니다.",
-    "learn_more": "자세히 알아보기",
     "add_token": "토큰을 수동으로 추가하려면 여기를 클릭하세요",
-    "add_token_manually": "수동으로 추가하세요.",
     "got_it": "확인",
     "error_title": "문제가 발생했습니다",
     "error_message": "네트워크 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도하세요.",
-    "private_network_third_description": "쉽게 식별할 수 있도록 이 네트워크의 이름을 입력하세요.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "자동 토큰 감지 활성화",
-    "token_detection_mainnet_title": "토큰 감지가 활성화되어 여러 토큰이 자동으로 지갑에 나타납니다.",
-    "token_detection_mainnet_link": "수동으로 토큰을 추가할 수도 있습니다.",
-    "or": "또는",
-    "non_evm_first_description": "이 네트워크의 네이티브 자산은 {{ticker}}입니다. 이는 트랜잭션 수수료 지불에 사용됩니다.",
-    "non_evm_second_description": "자산을 다른 네트워크로 보내거나 다른 네트워크에서 받을 경우 자산을 잃게 됩니다."
+    "private_network_third_description": "쉽게 식별할 수 있도록 이 네트워크의 이름을 입력하세요."
   },
   "download_files": {
     "error": "첨부파일 다운로드에 실패했습니다.",
@@ -10695,8 +10627,7 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_deposit_header": "MetaMask Money에 추가",
-      "money_account_send": "전송"
+      "money_account_deposit_header": "MetaMask Money에 추가"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -10853,7 +10784,6 @@
     "deposit_edit_amount_done": "자금 추가",
     "deposit_edit_amount_convert_token": "{{symbol}} 환전",
     "deposit_edit_amount_predict_withdraw": "출금",
-    "deposit_edit_amount_money_account_send": "전송",
     "deposit_edit_amount_musd_conversion": "mUSD로 전환",
     "preparing_order": "주문 준비"
   },

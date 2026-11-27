@@ -16,6 +16,7 @@ import {
   buildSocialFeedQueryKey,
   fetchSocialFeedPage,
   getSocialFeedNextPageParam,
+  getSocialFeedPreviousPageParam,
 } from './socialFeedQueries';
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
@@ -68,6 +69,13 @@ export interface UseSocialFeedOptions {
   holdNewPosts?: boolean;
   /** Social V1-only tracing for the first real initial-page request. */
   performance?: Readonly<{ tab: SocialDataFetchTab }>;
+  /**
+   * Most pages kept loaded. Going past it drops the page at the other end;
+   * `loadPrevious` fetches a dropped newer page again. Only for a list that
+   * calls `loadPrevious` when scrolled back up and keeps its scroll position
+   * when rows above it change. Unset keeps every page.
+   */
+  maxPages?: number;
 }
 
 export interface SocialFeedState {
@@ -83,6 +91,15 @@ export interface SocialFeedState {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
+  /**
+   * True once `maxPages` dropped newer pages: the top row loaded is not the
+   * newest post.
+   */
+  hasPreviousPage?: boolean;
+  /** True while a dropped newer page is being fetched again. */
+  isFetchingPreviousPage?: boolean;
+  /** Fetch the newer page `maxPages` dropped; no-op otherwise. */
+  loadPrevious?: () => void;
   /** Normalised error message, or `null`. */
   error: string | null;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
@@ -150,6 +167,7 @@ export const useSocialFeed = (
     nearTop = true,
     holdNewPosts = false,
     performance,
+    maxPages,
   } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
   const queryClient = useQueryClient();
@@ -177,10 +195,21 @@ export const useSocialFeed = (
 
   const query = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) => {
+    queryFn: ({
+      pageParam,
+      direction,
+    }: {
+      pageParam?: string;
+      direction?: 'forward' | 'backward';
+    }) => {
       const fetchPage = () =>
         request
-          ? fetchSocialFeedPage(request, pageSize, pageParam)
+          ? fetchSocialFeedPage(
+              request,
+              pageSize,
+              pageParam,
+              direction === 'backward' ? 'newer' : 'older',
+            )
           : Promise.resolve(EMPTY_PAGE);
 
       if (
@@ -203,6 +232,9 @@ export const useSocialFeed = (
       });
     },
     getNextPageParam: getSocialFeedNextPageParam,
+    ...(maxPages !== undefined
+      ? { maxPages, getPreviousPageParam: getSocialFeedPreviousPageParam }
+      : {}),
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(request) && enabled && isUnlocked,
     // ReactQueryService marks TanStack focused on foreground before React
@@ -282,8 +314,17 @@ export const useSocialFeed = (
     queryParams: toTelemetryQueryParams(request),
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
+  const {
+    hasNextPage,
+    hasPreviousPage,
+    isFetchingNextPage,
+    isFetchingPreviousPage,
+    fetchNextPage,
+    fetchPreviousPage,
+    isError,
+    refetch,
+  } = query;
+  const isWindowedBelowTop = maxPages !== undefined && hasPreviousPage;
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
@@ -291,17 +332,35 @@ export const useSocialFeed = (
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
 
+  const loadPrevious = useCallback(() => {
+    if (
+      isWindowedBelowTop &&
+      !isFetchingPreviousPage &&
+      !isFetchingNextPage &&
+      !isError
+    ) {
+      fetchPreviousPage().catch(() => undefined);
+    }
+  }, [
+    fetchPreviousPage,
+    isError,
+    isFetchingNextPage,
+    isFetchingPreviousPage,
+    isWindowedBelowTop,
+  ]);
+
   const refresh = useCallback(async () => {
     if (!request) {
       return;
     }
-    // Refetch only the first page (the stale list stays visible meanwhile, so
-    // no skeleton flash), dropping any older pages loaded via pagination.
+    // Refetch only the newest page (the stale list stays visible meanwhile,
+    // so no skeleton flash), dropping the other pages. The kept page's cursor
+    // is cleared because `maxPages` may have dropped the newest page.
     queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
       old
         ? {
             pages: old.pages.slice(0, 1),
-            pageParams: old.pageParams.slice(0, 1),
+            pageParams: [undefined],
           }
         : old,
     );
@@ -314,7 +373,8 @@ export const useSocialFeed = (
       realtimeScope,
       active: Boolean(request) && enabled && isUnlocked,
       paused,
-      nearTop,
+      // New posts go above the newest post, which is not loaded.
+      nearTop: nearTop && !isWindowedBelowTop,
       holdNewPosts,
       filterPost,
       matchesItem,
@@ -334,6 +394,9 @@ export const useSocialFeed = (
     isFetchingNextPage: hasRequest && isFetchingNextPage,
     hasNextPage: hasRequest && hasNextPage === true && !isError,
     loadMore,
+    hasPreviousPage: hasRequest && isWindowedBelowTop && !isError,
+    isFetchingPreviousPage: hasRequest && isFetchingPreviousPage,
+    loadPrevious,
     error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
     refresh,
     dataUpdatedAt,

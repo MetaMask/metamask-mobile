@@ -5,6 +5,7 @@ import {
   getDefaultDestToken,
   getDefaultTokenPairForChains,
   isNetworkSupportedForNonMarketSwapTab,
+  isPairSupportedForNonMarketSwapTab,
   isSameBridgeToken,
   isTokenSupportedForNonMarketSwapTab,
   tokenMatchesQuery,
@@ -192,7 +193,7 @@ describe('tokenUtils', () => {
       const result = getDefaultDestToken(caipChainId);
 
       expect(result).toBeDefined();
-      expect(result?.symbol).toBe('USDT');
+      expect(result?.symbol).toBe('BSC-USD');
       expect(result?.chainId).toBe(caipChainId); // Should return with original CAIP format
     });
 
@@ -348,6 +349,80 @@ describe('tokenUtils', () => {
     it('returns false for a token on a disabled network', () => {
       expect(
         isTokenSupportedForNonMarketSwapTab(createMockToken(), ['eip155:8453']),
+      ).toBe(false);
+    });
+  });
+
+  describe('isPairSupportedForNonMarketSwapTab', () => {
+    const sourceToken = createMockToken();
+    const destToken = createMockToken({
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+    });
+
+    it('returns true for two tokens on the same enabled network', () => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(sourceToken, destToken, [
+          'eip155:1',
+        ]),
+      ).toBe(true);
+    });
+
+    it('returns false for a pair on a disabled network', () => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(sourceToken, destToken, [
+          'eip155:8453',
+        ]),
+      ).toBe(false);
+    });
+
+    it('returns false for a pair on a non-EVM network', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+
+      expect(
+        isPairSupportedForNonMarketSwapTab(
+          createMockToken({ chainId: solanaChainId }),
+          { ...destToken, chainId: solanaChainId },
+          [solanaChainId],
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for a cross-chain pair on enabled networks', () => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(
+          sourceToken,
+          { ...destToken, chainId: '0x2105' },
+          ['eip155:1', 'eip155:8453'],
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when both sides are the same token', () => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(sourceToken, sourceToken, [
+          'eip155:1',
+        ]),
+      ).toBe(false);
+    });
+
+    it('returns false for an RWA destination token', () => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(
+          sourceToken,
+          { ...destToken, name: 'Ondo Tokenized Apple' },
+          ['eip155:1'],
+        ),
+      ).toBe(false);
+    });
+
+    it.each([
+      ['source token', undefined, destToken],
+      ['destination token', sourceToken, undefined],
+    ])('returns false without a %s', (_label, source, dest) => {
+      expect(
+        isPairSupportedForNonMarketSwapTab(source, dest, ['eip155:1']),
       ).toBe(false);
     });
   });

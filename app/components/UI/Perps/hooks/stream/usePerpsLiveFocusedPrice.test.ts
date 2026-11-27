@@ -295,6 +295,23 @@ describe('usePerpsLiveFocusedPrice', () => {
   });
 
   describe('symbol change resets state', () => {
+    it('withholds the previous venue price until the new venue delivers', () => {
+      const { result, rerender } = renderHook(
+        ({ providerId }: { providerId: 'lighter' | 'hyperliquid' }) =>
+          usePerpsLiveFocusedPrice({ symbol: 'BTC', providerId }),
+        {
+          initialProps: {
+            providerId: 'hyperliquid' as 'lighter' | 'hyperliquid',
+          },
+        },
+      );
+      act(() => {
+        mockSubscribeToSymbol.mock.calls[0][0].callback(mockPriceUpdate);
+      });
+      expect(result.current).toEqual(mockPriceUpdate);
+      rerender({ providerId: 'lighter' });
+      expect(result.current).toBeUndefined();
+    });
     it('clears stale price data when the symbol changes', () => {
       let capturedCallback: (update: PriceUpdate | undefined) => void =
         jest.fn();
