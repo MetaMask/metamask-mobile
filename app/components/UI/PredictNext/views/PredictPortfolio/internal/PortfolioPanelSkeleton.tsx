@@ -5,15 +5,18 @@ const SKELETON_ROW_COUNT = 3;
 
 /** Placeholder rows shown while a Portfolio panel loads its first page. */
 export const PortfolioPanelSkeleton = ({ testID }: { testID: string }) => (
-  <Box testID={testID} twClassName="py-2">
+  <Box testID={testID} className="gap-3 py-4">
     {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-      <Box key={index} twClassName="flex-row items-center py-2">
-        <Skeleton height={40} width={40} />
-        <Box twClassName="ml-3 flex-1 gap-2">
-          <Skeleton height={16} width="70%" />
-          <Skeleton height={12} width="45%" />
+      <Box key={index} className="flex-row items-start gap-4 py-2">
+        <Skeleton height={40} width={40} twClassName="rounded-full" />
+        <Box className="flex-1 gap-2">
+          <Skeleton height={18} width="100%" twClassName="rounded-md" />
+          <Skeleton height={16} width="70%" twClassName="rounded-md" />
         </Box>
-        <Skeleton height={16} width={60} />
+        <Box className="items-end gap-2">
+          <Skeleton height={18} width={64} twClassName="rounded-md" />
+          <Skeleton height={16} width={48} twClassName="rounded-md" />
+        </Box>
       </Box>
     ))}
   </Box>

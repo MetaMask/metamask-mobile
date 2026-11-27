@@ -2,7 +2,12 @@ import React from 'react';
 import {
   Box,
   Button,
+  ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -15,23 +20,31 @@ interface PortfolioPanelErrorProps {
   retryTestID: string;
 }
 
-/** Inline failure state for one independently loaded Portfolio panel. */
+/** Full-panel failure state for one independently loaded Portfolio panel. */
 export const PortfolioPanelError = ({
   onRetry,
   testID,
   retryTestID,
 }: PortfolioPanelErrorProps) => (
-  <Box testID={testID} twClassName="items-center py-8">
+  <Box testID={testID} className="flex-1 items-center justify-center px-6">
+    <Icon
+      name={IconName.Warning}
+      size={IconSize.Xl}
+      color={IconColor.IconMuted}
+      twClassName="mb-4"
+    />
     <Text
-      variant={TextVariant.BodySm}
-      color={TextColor.TextAlternative}
-      twClassName="mb-3 text-center"
+      variant={TextVariant.HeadingMd}
+      color={TextColor.TextDefault}
+      className="mb-2 text-center"
     >
       {strings('predict_next.portfolio.load_failed')}
     </Text>
     <Button
-      variant={ButtonVariant.Tertiary}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
       onPress={onRetry}
+      className="w-full self-center"
       testID={retryTestID}
     >
       {strings('predict_next.portfolio.load_failed_retry')}

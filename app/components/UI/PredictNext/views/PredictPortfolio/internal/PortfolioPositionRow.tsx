@@ -4,15 +4,13 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconName,
   SensitiveText,
   SensitiveTextLength,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -31,8 +29,6 @@ interface PortfolioPositionRowProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
   onPress?: (position: PredictPosition) => void;
-  /** Shows the Cash Out affordance for selling an open Position back. */
-  onCashOut?: (position: PredictPosition) => void;
 }
 
 interface PortfolioPositionMetricsProps {
@@ -52,11 +48,11 @@ const PortfolioPositionMetrics = ({
   const { currentValue, unrealizedPnl, unrealizedPnlPercent } = position;
 
   return (
-    <Box alignItems={BoxAlignItems.End}>
+    <>
       {currentValue === undefined ? (
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          color={TextColor.TextAlternative}
           testID={PredictPortfolioScreenTestIds.POSITION_ROW_VALUE_UNAVAILABLE}
         >
           {strings('predict_next.portfolio.value_unavailable')}
@@ -75,7 +71,8 @@ const PortfolioPositionMetrics = ({
       {unrealizedPnl === undefined ? null : (
         <SensitiveText
           variant={TextVariant.BodySm}
-          twClassName={pnlToneClassName(unrealizedPnl)}
+          fontWeight={FontWeight.Medium}
+          className={pnlToneClassName(unrealizedPnl)}
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
           testID={PredictPortfolioScreenTestIds.POSITION_ROW_PNL}
@@ -83,17 +80,16 @@ const PortfolioPositionMetrics = ({
           {formatPositionPnl(unrealizedPnl, unrealizedPnlPercent)}
         </SensitiveText>
       )}
-    </Box>
+    </>
   );
 };
 
 /** Renders one Position as an optionally pressable row. Resolved Positions
- * carry a status tag; only open ones offer Cash Out. */
+ * carry a status tag. */
 export const PortfolioPositionRow = ({
   position,
   isPrivacyMode,
   onPress,
-  onCashOut,
 }: PortfolioPositionRowProps) => {
   const tw = useTailwind();
   const { context, status } = position;
@@ -107,33 +103,35 @@ export const PortfolioPositionRow = ({
     <TouchableOpacity
       onPress={onPress ? () => onPress(position) : undefined}
       disabled={!onPress}
-      style={tw.style('flex-row items-center py-2')}
+      style={tw.style('flex-row items-start gap-4 py-2')}
       testID={PredictPortfolioScreenTestIds.POSITION_ROW}
     >
-      <Box twClassName="mr-3 h-10 w-10 overflow-hidden rounded-lg bg-muted">
-        {context?.imageUrl ? (
-          <Image
-            source={{ uri: context.imageUrl }}
-            style={tw.style('h-full w-full')}
-            accessibilityLabel={title}
-          />
-        ) : (
-          <Box
-            twClassName="h-full w-full items-center justify-center"
-            testID={PredictPortfolioScreenTestIds.POSITION_ROW_FALLBACK_ICON}
-          >
-            <Icon name={IconName.Tag} />
-          </Box>
-        )}
+      <Box className="pt-1">
+        <Box className="size-10 overflow-hidden rounded-full bg-muted">
+          {context?.imageUrl ? (
+            <Image
+              source={{ uri: context.imageUrl }}
+              style={tw.style('h-full w-full')}
+              accessibilityLabel={title}
+            />
+          ) : (
+            <Box
+              className="size-full items-center justify-center"
+              testID={PredictPortfolioScreenTestIds.POSITION_ROW_FALLBACK_ICON}
+            >
+              <Icon name={IconName.Tag} />
+            </Box>
+          )}
+        </Box>
       </Box>
-      <Box twClassName="flex-1 pr-3">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+      <Box className="flex-1">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {title}
         </Text>
         {context?.marketQuestion ? (
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-alternative"
+            color={TextColor.TextAlternative}
             numberOfLines={1}
           >
             {context.marketQuestion}
@@ -141,14 +139,15 @@ export const PortfolioPositionRow = ({
         ) : null}
         <SensitiveText
           variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
         >
           {metaLine}
         </SensitiveText>
       </Box>
-      <Box twClassName="flex-1 items-end gap-1 pr-1">
+      <Box alignItems={BoxAlignItems.End}>
         <PortfolioPositionMetrics
           position={position}
           isPrivacyMode={isPrivacyMode}
@@ -156,24 +155,13 @@ export const PortfolioPositionRow = ({
         {status === 'open' ? null : (
           <Text
             variant={TextVariant.BodyXs}
-            twClassName="text-alternative"
+            color={TextColor.TextAlternative}
+            className="mt-1"
             testID={PredictPortfolioScreenTestIds.POSITION_ROW_STATUS}
           >
             {strings(`predict_next.portfolio.position_status.${status}`)}
           </Text>
         )}
-        {onCashOut && status === 'open' ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={() => onCashOut(position)}
-            testID={PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT}
-          >
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-              {strings('predict_next.portfolio.cash_out')}
-            </Text>
-          </Button>
-        ) : null}
       </Box>
     </TouchableOpacity>
   );

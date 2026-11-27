@@ -4111,7 +4111,7 @@
       "positions_value": "Positions",
       "claimable_value": "Claimable",
       "unrealized_pnl": "Unrealized P&L",
-      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_incomplete": "Partial P&L: some positions couldn't be valued right now.",
       "summary_unavailable": "Portfolio value unavailable",
       "value_unavailable": "No price",
       "unknown_market": "Market details unavailable",

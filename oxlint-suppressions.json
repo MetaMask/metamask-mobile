@@ -9869,7 +9869,7 @@
   },
   "app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen.view.test.tsx": {
     "typescript/no-base-to-string": {
-      "count": 3
+      "count": 1
     },
     "typescript/promise-function-async": {
       "count": 11

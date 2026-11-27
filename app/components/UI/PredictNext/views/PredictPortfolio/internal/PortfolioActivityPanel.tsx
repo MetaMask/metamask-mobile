@@ -15,7 +15,6 @@ import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds
 import { PortfolioActivityRow } from './PortfolioActivityRow';
 import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
-import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
 import { formatActivityDate } from '../../../utils/portfolioFormatting';
 
 interface PortfolioActivityPanelProps {
@@ -112,24 +111,26 @@ export const PortfolioActivityPanel = ({
 
   const renderItem = useCallback(
     ({ item }: { item: PredictActivityEntry }) => (
-      <PortfolioActivityRow
-        entry={item}
-        isPrivacyMode={isPrivacyMode}
-        onPress={item.context?.eventId ? handlePress : undefined}
-      />
+      <Box className="py-1">
+        <PortfolioActivityRow
+          entry={item}
+          isPrivacyMode={isPrivacyMode}
+          onPress={item.context?.eventId ? handlePress : undefined}
+        />
+      </Box>
     ),
     [handlePress, isPrivacyMode],
   );
 
   const continuation = needsExplicitContinuation ? (
     <Box
-      twClassName="items-center px-8 py-6"
+      className="items-center px-8 py-6"
       testID={PredictPortfolioScreenTestIds.ACTIVITY_CONTINUATION}
     >
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="mb-4 text-center"
+        className="mb-4 text-center"
       >
         {strings(
           isContinuationFailed
@@ -159,7 +160,7 @@ export const PortfolioActivityPanel = ({
         key="horizon"
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
-        twClassName="py-2"
+        className="py-2"
         testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON}
       >
         {strings('predict_next.portfolio.settlements_complete_from', {
@@ -174,7 +175,7 @@ export const PortfolioActivityPanel = ({
         key="degraded"
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
-        twClassName="py-2"
+        className="py-2"
         testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED}
       >
         {strings('predict_next.portfolio.settlements_permission_denied')}
@@ -189,9 +190,9 @@ export const PortfolioActivityPanel = ({
     footer = (
       <Box
         testID={PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING}
-        twClassName="items-center py-4"
+        className="items-center justify-center py-4"
       >
-        <ActivityIndicator />
+        <ActivityIndicator size="small" />
       </Box>
     );
   }
@@ -199,9 +200,12 @@ export const PortfolioActivityPanel = ({
   let content: React.ReactNode;
   if (isPending) {
     content = (
-      <PortfolioPanelSkeleton
-        testID={PredictPortfolioScreenTestIds.ACTIVITY_LOADING}
-      />
+      <Box className="flex-1 items-center justify-center">
+        <ActivityIndicator
+          size="small"
+          testID={PredictPortfolioScreenTestIds.ACTIVITY_LOADING}
+        />
+      </Box>
     );
   } else if (hasInitialError) {
     content = (
@@ -239,7 +243,7 @@ export const PortfolioActivityPanel = ({
   }
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {notices}
       {content}
     </Box>
