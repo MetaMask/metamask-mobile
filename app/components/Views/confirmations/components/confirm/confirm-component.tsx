@@ -154,6 +154,11 @@ export interface FullScreenConfirmationParams extends ConfirmationParams {
   params?: ConfirmationParams;
 }
 
+const SignatureRequestedMetrics = () => {
+  useTrackSignatureRequested();
+  return null;
+};
+
 const ConfirmWrapped = ({
   styles,
   route,
@@ -496,11 +501,6 @@ function InfoLoader({
     </SafeAreaView>
   );
 }
-
-const SignatureRequestedMetrics = () => {
-  useTrackSignatureRequested();
-  return null;
-};
 
 function useDisableScroll() {
   const transaction = useTransactionMetadataRequest();

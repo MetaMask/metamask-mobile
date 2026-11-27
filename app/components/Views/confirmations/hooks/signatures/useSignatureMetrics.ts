@@ -109,9 +109,7 @@ export const useSignatureMetrics = () => {
   ]);
 
   const captureSignatureMetrics = useCallback(
-    async (
-      event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
-    ) => {
+    (event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents]) => {
       if (!analyticsParams) {
         return;
       }
