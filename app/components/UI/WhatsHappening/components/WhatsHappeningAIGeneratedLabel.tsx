@@ -33,7 +33,7 @@ const WhatsHappeningAIGeneratedLabel: React.FC<
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     gap={1}
-    twClassName={twClassName}
+    className={twClassName}
   >
     <Icon
       name={IconName.Sparkle}

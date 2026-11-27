@@ -92,7 +92,7 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
       paddingHorizontal={2}
       paddingVertical={1}
-      twClassName="rounded-full"
+      className="rounded-full"
     >
       <RelatedAssetAvatar
         name={asset.name || asset.symbol}

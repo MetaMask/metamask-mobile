@@ -29,7 +29,7 @@ const WalletHomeOnboardingProgressBar = ({
 
   return (
     <Box
-      twClassName="h-2 w-full rounded-full bg-muted overflow-hidden"
+      className="h-2 w-full rounded-full bg-muted overflow-hidden"
       accessibilityLabel={accessibilityLabel}
       testID={testID}
     >

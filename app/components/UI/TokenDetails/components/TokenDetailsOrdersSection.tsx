@@ -29,7 +29,7 @@ export function TokenDetailsOrdersSection({
         title={strings('asset_overview.orders')}
         isInteractive
         onPress={onOrdersHeaderPress}
-        twClassName="py-3"
+        className="py-3"
         testID={TokenOverviewSelectorsIDs.ORDERS_HEADER}
       />
       <Box paddingHorizontal={4}>

@@ -126,7 +126,7 @@ const AddWallet = () => {
           testID: AddWalletTestIds.BACK_BUTTON,
         }}
       />
-      <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 pt-3">
+      <Box testID={AddWalletTestIds.SCREEN} className="flex-1 pt-3">
         <TitleStandard
           twClassName="mb-2 px-4"
           title={strings('multichain_accounts.add_wallet')}
@@ -141,6 +141,24 @@ const AddWallet = () => {
             testID={config.testID}
             avatar={
               <AvatarIcon
+                iconName={config.iconName}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={config.title}
+            description={config.description}
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+                accessible={false}
+                importantForAccessibility="no"
+                testID={AddWalletTestIds.ROW_ARROW}
+              />
+            }
+          /><AvatarIcon
                 iconName={config.iconName}
                 severity={AvatarIconSeverity.Neutral}
                 size={AvatarIconSize.Lg}

@@ -217,7 +217,7 @@ const WhatsHappeningSection = forwardRef<
         titleTwClassName={aiGeneratedSubtitle ? 'pb-1' : undefined}
       />
       {aiGeneratedSubtitle ? (
-        <Box twClassName="mb-3 px-4">{aiGeneratedSubtitle}</Box>
+        <Box className="mb-3 px-4">{aiGeneratedSubtitle}</Box>
       ) : null}
     </Box>
   ) : (

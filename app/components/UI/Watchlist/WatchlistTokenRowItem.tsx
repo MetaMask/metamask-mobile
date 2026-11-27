@@ -141,6 +141,66 @@ const WatchlistTokenRowItem = ({
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
+            <BadgeNetwork src={networkBadgeImageSource} className="h-5 w-5" />
+          }
+        >
+          <TrendingTokenLogo
+            assetId={token.assetId}
+            symbol={token.symbol}
+            size={40}
+            recyclingKey={token.assetId}
+          />
+        </BadgeWrapper>
+      }
+      title={token.name ?? token.symbol}
+      titleProps={{
+        numberOfLines: 1,
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flexShrink: 1 },
+      }}
+      titleEndAccessory={
+        showTypeTag ? (
+          <Tag severity={TagSeverity.Neutral} className="self-center">
+            {strings('token_watchlist.token_tag')}
+          </Tag>
+        ) : undefined
+      }
+      description={`${token.symbol} • ${formatMarketStats(
+        token.marketCap ?? 0,
+        token.aggregatedUsdVolume ?? 0,
+        currentCurrency,
+      )}`}
+      descriptionProps={{
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+        // Ensure the description yields to the price column before it can
+        // render beneath it on narrow watchlist rows.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flex: 1, minWidth: 0, flexShrink: 1 },
+      }}
+      value={formatPriceWithSubscriptNotation(token.price, currentCurrency)}
+      subvalue={subvalue}
+      subvalueProps={{ color: subvalueColor }}
+      endAccessory={
+        hasStarAction ? (
+          <ButtonIcon
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
+            size={ButtonIconSize.Md}
+            onPress={onWatchlistPress ?? onAddPress}
+            accessibilityLabel={strings(
+              isWatchlisted
+                ? 'token_watchlist.remove_from_watchlist'
+                : 'token_watchlist.add_to_watchlist',
+            )}
+            testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+          />
+        ) : undefined
+      }
+      accessoryGap={hasStarAction ? 3 : undefined}
+      className={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
+    /><BadgeWrapper
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             <BadgeNetwork src={networkBadgeImageSource} twClassName="h-5 w-5" />
           }
         >
@@ -160,7 +220,7 @@ const WatchlistTokenRowItem = ({
       }}
       titleEndAccessory={
         showTypeTag ? (
-          <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+          <Tag severity={TagSeverity.Neutral} className="self-center">
             {strings('token_watchlist.token_tag')}
           </Tag>
         ) : undefined

@@ -52,7 +52,7 @@ const AddCustomTokenView = () => {
         onBack={() => navigation.goBack()}
       />
 
-      <Box twClassName="flex-row px-4 pb-4 pt-2">
+      <Box className="flex-row px-4 pb-4 pt-2">
         <SelectButton
           testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
           placeholder={strings('networks.select_network')}
@@ -61,7 +61,7 @@ const AddCustomTokenView = () => {
         />
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <AddCustomToken
           key={selectedNetwork}
           chainId={selectedNetwork}

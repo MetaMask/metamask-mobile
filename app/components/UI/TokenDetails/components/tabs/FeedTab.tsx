@@ -60,7 +60,7 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
 
   return (
     <SocialEntryOptionsProvider>
-      <Box twClassName="pt-4">
+      <Box className="pt-4">
         <SocialFeed
           {...query}
           location="token_details"

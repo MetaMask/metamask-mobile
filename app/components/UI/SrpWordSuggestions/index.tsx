@@ -45,7 +45,7 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   }
 
   return (
-    <Box twClassName="mx-2 pb-2">
+    <Box className="mx-2 pb-2">
       <BoxGlass
         radiusClassName="rounded-full"
         isGlass={isGlass}

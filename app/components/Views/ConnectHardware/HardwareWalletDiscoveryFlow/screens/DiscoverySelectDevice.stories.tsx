@@ -56,7 +56,7 @@ const DiscoverySelectDeviceMeta = {
   decorators: [
     (Story: React.FC) => (
       <Box
-        twClassName="flex-1"
+        className="flex-1"
         backgroundColor={BoxBackgroundColor.BackgroundDefault}
       >
         <Story />

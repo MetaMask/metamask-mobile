@@ -91,9 +91,9 @@ function PillScrollList<T>({
     ));
 
   return (
-    <Box testID="pill-scroll-list-wrapper" twClassName={wrapperTwClassName}>
+    <Box testID="pill-scroll-list-wrapper" className={wrapperTwClassName}>
       {isLoading && (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Skeleton rowCount={normalizedRowCount} />
         </Box>
       )}
@@ -106,13 +106,13 @@ function PillScrollList<T>({
           style={tw.style('bg-transparent grow-0 shrink-0')}
           contentContainerStyle={tw.style('flex-col px-4')}
         >
-          <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
+          <Box flexDirection={BoxFlexDirection.Column} className="gap-2">
             {rows.map((row, rowIndex) => (
               <Box
                 key={rowIndex}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="flex-nowrap gap-2"
+                className="flex-nowrap gap-2"
                 testID={
                   listTestId ? `${listTestId}-row-${rowIndex}` : undefined
                 }

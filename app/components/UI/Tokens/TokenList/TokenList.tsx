@@ -61,7 +61,7 @@ interface TokenListProps {
 const wrapEdgeNode = (
   node: React.ReactElement | undefined,
   isFullView: boolean,
-) => (isFullView && node ? <Box twClassName="-mx-4">{node}</Box> : node);
+) => (isFullView && node ? <Box className="-mx-4">{node}</Box> : node);
 
 const TokenListComponent = ({
   tokenKeys,
@@ -197,7 +197,7 @@ const TokenListComponent = ({
 
   const tokenList = !isFullView ? (
     <Box
-      twClassName={'bg-default'}
+      className={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       accessible={false}
     >
@@ -218,7 +218,7 @@ const TokenListComponent = ({
         />
       ))}
       {shouldShowViewAllButton && (
-        <Box twClassName="pt-3 pb-9">
+        <Box className="pt-3 pb-9">
           <Button
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllTokens}
@@ -232,7 +232,7 @@ const TokenListComponent = ({
       {listFooterComponent}
     </Box>
   ) : (
-    <Box twClassName={'flex-1 bg-default'}>
+    <Box className={'flex-1 bg-default'}>
       <FlashList
         showsVerticalScrollIndicator={false}
         ref={listRef}
