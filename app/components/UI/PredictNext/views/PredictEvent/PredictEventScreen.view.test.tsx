@@ -1152,10 +1152,12 @@ describe('PredictEventScreen', () => {
       await view.findByTestId(PredictOrderFlowTestIds.SHEET),
     ).toBeOnTheScreen();
     expect(
-      within(view.getByTestId(PredictOrderFlowTestIds.SHEET)).getByText(
-        awayMarket.outcomes[0].label,
+      within(view.getByTestId(PredictOrderFlowTestIds.SHEET)).getByTestId(
+        PredictOrderFlowTestIds.OUTCOME_LABEL,
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(`${awayMarket.outcomes[0].label} at 47%`, {
+      exact: true,
+    });
 
     // The chart never rotates to the selected Team; both team lines stay.
     expect(
