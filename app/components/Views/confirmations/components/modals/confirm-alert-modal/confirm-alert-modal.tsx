@@ -90,7 +90,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
         keyboardAvoidingViewEnabled={false}
         onClose={handleSheetClosed}
       >
-        <Box twClassName="flex flex-col items-center px-4 pt-4">
+        <Box className="flex flex-col items-center px-4 pt-4">
           <View
             style={styles.modalContainer}
             testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL}

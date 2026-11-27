@@ -81,7 +81,7 @@ export function ConfirmationsDeveloperOptions() {
       >
         Confirmations
       </Text>
-      <Box twClassName="mt-4 gap-2">
+      <Box className="mt-4 gap-2">
         {isMoneyAccountDepositEnabled && (
           <>
             <ConfirmMembership />

@@ -416,7 +416,7 @@ function Loader({
 
     return (
       <Box
-        twClassName="grow items-center justify-center"
+        className="grow items-center justify-center"
         testID="confirm-loader-bottom-sheet"
       >
         <Spinner />

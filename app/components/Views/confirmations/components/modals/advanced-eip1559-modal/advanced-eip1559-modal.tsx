@@ -146,7 +146,7 @@ export const AdvancedEIP1559Modal = ({
         >
           {strings('transactions.gas_modal.advanced_gas_fee')}
         </BottomSheetHeaderGlass>
-        <Box twClassName="flex flex-col p-4 pt-0">
+        <Box className="flex flex-col p-4 pt-0">
           <View style={styles.inputsContainer}>
             <MaxBaseFeeInput
               onChange={handleMaxFeePerGasChange}

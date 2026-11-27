@@ -79,7 +79,7 @@ export const EditSpendingCapModal = ({
         >
           {strings('confirm.edit_spending_cap_modal.title')}
         </BottomSheetHeaderGlass>
-        <Box twClassName="flex flex-col p-4 pt-0">
+        <Box className="flex flex-col p-4 pt-0">
           <Text
             variant={TextVariant.BodyMd}
             style={styles.description}

@@ -17,14 +17,15 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
   const testID = config.testID ?? `pay-with-section-${config.id}`;
 
   return (
-    <Box twClassName="py-2" testID={testID}>
+    <Box className="py-2" testID={testID}>
       {config.title ? (
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           testID={`${testID}-title`}
-          twClassName="px-4 pb-2 tracking-wider"
+          // eslint-disable-next-line tailwindcss/no-custom-classname
+          className="tracking-wider px-4 pb-2"
         >
           {config.title}
         </Text>

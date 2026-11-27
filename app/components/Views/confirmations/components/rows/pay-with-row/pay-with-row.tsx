@@ -123,7 +123,7 @@ function PayWithRowLayout({
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
-        twClassName="flex-row items-center justify-between"
+        className="flex-row items-center justify-between"
         style={styles.container}
       >
         <Text
@@ -132,7 +132,7 @@ function PayWithRowLayout({
         >
           {label}
         </Text>
-        <Box twClassName="flex-row items-center gap-2">
+        <Box className="flex-row items-center gap-2">
           {children}
           {showArrow && (
             <Icon
@@ -406,11 +406,11 @@ export function PayWithRowSkeleton() {
   return (
     <Box
       testID="pay-with-row-skeleton"
-      twClassName="flex-row items-center justify-between"
+      className="flex-row items-center justify-between"
       style={styles.container}
     >
       <Skeleton height={18} width={60} />
-      <Box twClassName="flex-row items-center gap-2">
+      <Box className="flex-row items-center gap-2">
         <Skeleton height={20} width={20} style={styles.skeletonCircle} />
         <Skeleton height={18} width={120} />
       </Box>

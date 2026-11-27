@@ -218,7 +218,7 @@ export const Recipient = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <RecipientInput
             isRecipientSelectedFromList={isRecipientSelectedFromList}
             resetStateOnInput={resetStateOnInput}
@@ -246,7 +246,7 @@ export const Recipient = () => {
             )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
-            <Box twClassName="px-4 py-4">
+            <Box className="p-4">
               {poisoningMatch && recipientCandidateAddress && (
                 <BannerAlert
                   testID="address-poisoning-warning-banner"
@@ -283,7 +283,7 @@ export const Recipient = () => {
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}
-                twClassName="w-full"
+                className="w-full"
                 isDanger={!loading && hasBlockingError}
                 disabled={
                   hasBlockingError ||

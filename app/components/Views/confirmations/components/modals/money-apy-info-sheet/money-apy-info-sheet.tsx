@@ -19,7 +19,7 @@ interface MoneyDepositApySheetProps {
 }
 
 const ApySection = ({ title, body }: { title: string; body: string }) => (
-  <Box twClassName="gap-1">
+  <Box className="gap-1">
     <Text
       variant={TextVariant.HeadingSm}
       color={TextColor.TextDefault}
@@ -63,14 +63,14 @@ export const MoneyDepositApySheet = ({
         onClose={onClose}
         testID={MoneyDepositApySheetTestIds.CONTAINER}
         keyboardAvoidingViewEnabled={false}
-        twClassName="bg-section rounded-t-3xl"
+        twClassName="rounded-t-3xl bg-section"
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           testID={MoneyDepositApySheetTestIds.SCROLL_VIEW}
         >
-          <Box twClassName="px-4 pt-4 pb-4 gap-5">
-            <Box twClassName="gap-1">
+          <Box className="gap-5 p-4">
+            <Box className="gap-1">
               {hasApy ? (
                 <Text
                   variant={TextVariant.HeadingLg}

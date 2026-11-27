@@ -98,7 +98,7 @@ function DepositToRowComponent({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
         {isPerpsDeposit ? (
           <Image

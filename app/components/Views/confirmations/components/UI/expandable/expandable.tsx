@@ -82,7 +82,7 @@ const Expandable = ({
             >
               {expandedContentTitle}
             </BottomSheetHeaderGlass>
-            <Box twClassName="flex flex-col">
+            <Box className="flex flex-col">
               <View style={styles.modalExpandedContent}>
                 {copyText && (
                   <View style={styles.copyButtonContainer}>
