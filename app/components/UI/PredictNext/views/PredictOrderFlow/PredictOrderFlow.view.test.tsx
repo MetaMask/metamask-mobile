@@ -665,6 +665,21 @@ describe('PredictOrderFlow', () => {
     );
   });
 
+  it('shows the Pay with row without an amount while the balance is unknown', async () => {
+    mockPredictNextMessenger(async (action: string) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? new Promise(() => undefined)
+        : Promise.resolve(undefined),
+    );
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+    ).toHaveTextContent('Predictions balance', { exact: true });
+  });
+
   it('shows no Total row and labels the primary action Buy', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
