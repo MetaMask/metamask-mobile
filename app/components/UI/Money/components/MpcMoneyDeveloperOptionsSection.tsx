@@ -15,7 +15,7 @@ import Engine from '../../../../core/Engine';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme } from '../../../../util/theme';
 import { MpcMoneyDeveloperOptionsSelectorsIDs } from './MpcMoneyDeveloperOptions.testIds';
-import styleSheet from './DeveloperOptions.styles';
+import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 
 const TEST_MESSAGE = 'MetaMask Money MPC test';
 
