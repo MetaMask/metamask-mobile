@@ -49,7 +49,8 @@ export type SocialEndpoint =
   | 'update_profile'
   | 'check_username'
   | 'connect_x'
-  | 'create_comment';
+  | 'create_comment'
+  | 'appeal';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

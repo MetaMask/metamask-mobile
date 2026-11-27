@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   KeyboardAvoidingView,
@@ -62,9 +62,9 @@ const SOCIAL_APPEAL_MESSAGE_MAX_LENGTH = 1000;
  * Lets someone appeal a moderation decision: an email to hear back on and a
  * message. Opened from the decision screen's Appeal button.
  *
- * TODO(TSA-1668): submitting only confirms receipt for now, see
- * `useSubmitSocialAppeal`. Once the hand-off to Intercom is async, block
- * repeat submits while one is in flight.
+ * Submitting opens a support ticket through the social API, see
+ * `useSubmitSocialAppeal`, which also ignores repeat submits while one is in
+ * flight.
  */
 const SocialPostAppealView: React.FC = () => {
   const tw = useTailwind();
@@ -110,7 +110,7 @@ const SocialPostAppealView: React.FC = () => {
   }, []);
   const dismissSendError = useCallback(() => setHasSendError(false), []);
 
-  const submitAppeal = useSubmitSocialAppeal({
+  const { submitAppeal, isSubmitting } = useSubmitSocialAppeal({
     onSent: handleSent,
     onFailed: handleFailed,
   });
@@ -133,21 +133,50 @@ const SocialPostAppealView: React.FC = () => {
     });
   }, [params, submitAppeal, trimmedEmail, trimmedMessage]);
 
+  const isLeaving = useRef(false);
   const handleDone = useCallback(() => {
-    const index = navigation.getState()?.index ?? 0;
-    const screenCount = Math.min(APPEAL_FLOW_SCREEN_COUNT, index);
-    if (screenCount > 0) {
-      navigation.dispatch(StackActions.pop(screenCount));
+    // `beforeRemove` runs inside the dispatch, so the flag only covers it.
+    isLeaving.current = true;
+    try {
+      const index = navigation.getState()?.index ?? 0;
+      const screenCount = Math.min(APPEAL_FLOW_SCREEN_COUNT, index);
+      if (screenCount > 0) {
+        navigation.dispatch(StackActions.pop(screenCount));
+        return;
+      }
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+    } finally {
+      isLeaving.current = false;
+    }
+  }, [navigation]);
+
+  const isConfirmed = sentToEmail !== undefined;
+  useEffect(() => {
+    if (!isConfirmed) {
       return;
     }
-    navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-  }, [navigation]);
+    // The confirmation ends the flow. Swipe-back and Android back would pop
+    // only this screen and land on the decision with Appeal available again,
+    // so they leave the way Done does.
+    navigation.setOptions({ gestureEnabled: false });
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (isLeaving.current) {
+        return;
+      }
+      event.preventDefault();
+      handleDone();
+    });
+    return () => {
+      unsubscribe();
+      navigation.setOptions({ gestureEnabled: true });
+    };
+  }, [isConfirmed, navigation, handleDone]);
 
   const footerStyle = {
     paddingBottom: Math.max(insets.bottom, MIN_FOOTER_BOTTOM_PADDING),
   };
 
-  if (sentToEmail !== undefined) {
+  if (isConfirmed) {
     return (
       <SafeAreaView
         edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
@@ -329,6 +358,7 @@ const SocialPostAppealView: React.FC = () => {
             variant={ButtonVariant.Primary}
             isFullWidth
             isDisabled={!canSubmit}
+            isLoading={isSubmitting}
             onPress={handleSubmit}
             testID={SocialPostAppealViewSelectorsIDs.SUBMIT_BUTTON}
           >

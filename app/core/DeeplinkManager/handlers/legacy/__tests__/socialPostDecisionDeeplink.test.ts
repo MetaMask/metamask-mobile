@@ -141,6 +141,9 @@ describe('parseSocialPostDecisionParams', () => {
 
   it.each([
     ['1763460000000', 1763460000000],
+    ['8640000000000000', 8640000000000000],
+    ['8640000000000001', undefined],
+    ['9007199254740991', undefined],
     ['abc', undefined],
     ['-5', undefined],
     ['0', undefined],

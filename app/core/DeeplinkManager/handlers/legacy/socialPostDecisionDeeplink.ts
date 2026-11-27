@@ -11,6 +11,9 @@ export const SOCIAL_POST_DECISION_MAX_HANDLE_LENGTH = 64;
 export const SOCIAL_POST_DECISION_MAX_TEXT_LENGTH = 1000;
 export const SOCIAL_POST_DECISION_MAX_REASON_LENGTH = 200;
 
+/** Latest timestamp a JavaScript `Date` can hold. */
+const MAX_DATE_TIMESTAMP_MS = 8.64e15;
+
 const FOXICON_AVATAR_PREFIX = 'foxicon://';
 const HTTPS_AVATAR_PREFIX = 'https://';
 
@@ -50,7 +53,12 @@ const readTimestamp = (
   name: string,
 ): number | undefined => {
   const value = Number(urlParams.get(name));
-  return Number.isSafeInteger(value) && value > 0 ? value : undefined;
+  // `Date` only spans ±8.64e15 ms. Past that `Intl` throws on the Invalid Date.
+  return Number.isSafeInteger(value) &&
+    value > 0 &&
+    value <= MAX_DATE_TIMESTAMP_MS
+    ? value
+    : undefined;
 };
 
 const readAvatarUrl = (urlParams: URLSearchParams): string | undefined => {
