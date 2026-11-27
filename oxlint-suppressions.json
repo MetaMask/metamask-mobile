@@ -557,11 +557,6 @@
       "count": 1
     }
   },
-  "app/components/Nav/Main/HomeTabs/useCanOpenSocialTabDirectly.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/Nav/Main/HomeTabs/useHomeTabDefinitions.ts": {
     "typescript/no-floating-promises": {
       "count": 1
@@ -17390,19 +17385,6 @@
       "count": 2
     }
   },
-  "app/components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 2
-    },
-    "typescript/promise-function-async": {
-      "count": 2
-    }
-  },
-  "app/components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -17865,7 +17847,7 @@
   },
   "app/components/Views/SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection.tsx": {
     "typescript/no-misused-promises": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.tsx": {

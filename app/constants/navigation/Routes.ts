@@ -472,7 +472,6 @@ const Routes = {
     EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
     POSITION_SHEET: 'SocialPositionDetailsSheet',
-    ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',

@@ -1102,7 +1102,6 @@ export type RootStackParamList = {
   };
   TraderPositionView: TraderPositionViewParams;
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
-  SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
   SocialTraderPreviewSheet: { traderId: string; positionId?: string };
 

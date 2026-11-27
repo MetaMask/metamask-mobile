@@ -64,7 +64,6 @@ const renderDefinitions = (
         isMoneyAccountVisible: false,
         showSocialTab: false,
         isSocialV1Enabled: false,
-        canOpenSocialTabDirectly: false,
         showSocialTabNewBadge: false,
         trackMoneyTabPress: jest.fn(),
         ...overrides,
@@ -296,23 +295,10 @@ describe('useHomeTabDefinitions', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('stops the native Social tab from selecting before the Social V1 gate', () => {
+    it('lets UIKit select the Social V1 tab', () => {
       const { result } = renderDefinitions({
         showSocialTab: true,
         isSocialV1Enabled: true,
-      });
-      const social = result.current.tabs.find(
-        (tab) => tab.name === Routes.SOCIAL.TAB,
-      );
-
-      expect(social?.tabBarSelectionEnabled).toBe(false);
-    });
-
-    it('lets UIKit select the Social V1 tab once no gate has to open', () => {
-      const { result } = renderDefinitions({
-        showSocialTab: true,
-        isSocialV1Enabled: true,
-        canOpenSocialTabDirectly: true,
       });
       const social = result.current.tabs.find(
         (tab) => tab.name === Routes.SOCIAL.TAB,
@@ -360,7 +346,7 @@ describe('useHomeTabDefinitions', () => {
       expect(social?.initialParams).toBeUndefined();
     });
 
-    it('selects the Social tab through the onboarding-aware tab helper', () => {
+    it('selects the Social tab through navigateToSocialTab', () => {
       const { result } = renderDefinitions({ showSocialTab: true });
       const social = result.current.tabs.find(
         (tab) => tab.name === Routes.SOCIAL.TAB,

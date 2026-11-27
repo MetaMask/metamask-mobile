@@ -26,7 +26,6 @@ export interface UseHomeTabDefinitionsParams {
   isMoneyAccountVisible: boolean;
   showSocialTab: boolean;
   isSocialV1Enabled: boolean;
-  canOpenSocialTabDirectly: boolean;
   showSocialTabNewBadge: boolean;
   trackMoneyTabPress: () => void;
 }
@@ -51,7 +50,6 @@ export const useHomeTabDefinitions = ({
   isMoneyAccountVisible,
   showSocialTab,
   isSocialV1Enabled,
-  canOpenSocialTabDirectly,
   showSocialTabNewBadge,
   trackMoneyTabPress,
 }: UseHomeTabDefinitionsParams): UseHomeTabDefinitionsResult => {
@@ -163,12 +161,6 @@ export const useHomeTabDefinitions = ({
       nativeIcon: NATIVE_TAB_ICONS.social,
       freezeOnBlur: false,
       showNewBadge: showSocialTabNewBadge,
-      // UIKit selects a native tab before `tabPress`. Social V1 refuses that
-      // selection only while a gate has to open instead, because a refused tap
-      // makes the Liquid Glass highlight slide there, back, and there again.
-      ...(isSocialV1Enabled && !canOpenSocialTabDirectly
-        ? { tabBarSelectionEnabled: false }
-        : null),
       ...(isSocialV1Enabled
         ? { initialParams: { source: SocialEvent.Source.NAV_TAB } }
         : null),
@@ -193,7 +185,6 @@ export const useHomeTabDefinitions = ({
     ];
   }, [
     accountsLength,
-    canOpenSocialTabDirectly,
     chainId,
     createEventBuilder,
     isMoneyAccountVisible,

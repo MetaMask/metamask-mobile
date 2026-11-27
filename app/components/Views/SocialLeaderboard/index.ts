@@ -14,7 +14,6 @@ import ManageProfileViewScreen, {
 } from './ManageProfileView';
 import TraderProfileViewScreen from './TraderProfileView';
 import TraderPositionViewScreen from './TraderPositionView';
-import SocialLeaderboardOnboardingScreen from './Onboarding';
 import SocialProfileOnboardingViewScreen from './ProfileOnboarding';
 
 // Every social screen is gated: a viewer whose account the moderation team
@@ -49,9 +48,6 @@ export const EditProfileAvatarView = withSocialAccountGate(
 export const TraderProfileView = withSocialAccountGate(TraderProfileViewScreen);
 export const TraderPositionView = withSocialAccountGate(
   TraderPositionViewScreen,
-);
-export const SocialLeaderboardOnboarding = withSocialAccountGate(
-  SocialLeaderboardOnboardingScreen,
 );
 export const SocialProfileOnboardingView = withSocialAccountGate(
   SocialProfileOnboardingViewScreen,

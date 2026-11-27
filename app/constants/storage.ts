@@ -88,8 +88,6 @@ export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBann
 
 export const SLOW_NETWORK_BANNER_DISMISSED_AT = `${prefix}slowNetworkBannerDismissedAt`;
 
-export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
-
 export const SOCIAL_TERMS_ACCEPTED = `${prefix}socialTermsAccepted`;
 
 export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;

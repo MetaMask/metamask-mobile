@@ -132,7 +132,6 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
-import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
 import { useHomeTabFlatParamsBridge } from './homeTabFlatParamsBridge';
 import {
@@ -230,7 +229,6 @@ import {
   TraderProfileView,
   TraderPositionView,
   PositionDetailsSheet,
-  SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
   TraderPreviewSheet,
@@ -802,8 +800,6 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
-  const canOpenSocialTabDirectly =
-    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -828,7 +824,6 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
-      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -1681,10 +1676,6 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.SOCIAL.POSITION}
               component={TraderPositionView}
-            />
-            <NativeStack.Screen
-              name={Routes.SOCIAL.ONBOARDING}
-              component={SocialLeaderboardOnboarding}
             />
           </NativeStack.Group>
           <NativeStack.Screen

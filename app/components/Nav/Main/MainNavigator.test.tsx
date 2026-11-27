@@ -86,10 +86,6 @@ jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
   useIsNativeTabBar: () => mockIsNativeTabBar,
 }));
 
-jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
-  useCanOpenSocialTabDirectly: () => false,
-}));
-
 const mockUseSocialTabNewBadge = jest.fn(() => ({
   showSocialTabNewBadge: false,
 }));
@@ -1023,7 +1019,6 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).toEqual([
         Routes.SOCIAL.PROFILE,
         Routes.SOCIAL.POSITION,
-        Routes.SOCIAL.ONBOARDING,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V1);
@@ -2272,9 +2267,6 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.SOCIAL.TAB,
       ]);
-      expect(rootStackScreenNames(container)).toContain(
-        Routes.SOCIAL.ONBOARDING,
-      );
       expect(
         renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
       ).toBe('trade');

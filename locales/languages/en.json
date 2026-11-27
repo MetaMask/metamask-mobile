@@ -1661,26 +1661,6 @@
         }
       }
     },
-    "onboarding": {
-      "slide_trade": {
-        "title": "Trade like a pro",
-        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
-      },
-      "slide_follow": {
-        "title": "Follow the best",
-        "description": "Tap to follow the top ten traders who are up big this week."
-      },
-      "slide_notify": {
-        "title": "Never miss a move",
-        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
-        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
-      },
-      "next": "Next",
-      "follow_top_ten": "Follow the top ten",
-      "maybe_later": "Maybe later",
-      "got_it": "Got it",
-      "allow_notifications": "Allow notifications"
-    },
     "notification_preferences": {
       "title": "Top traders",
       "allow_push_notifications": "Allow push notifications",
@@ -6306,9 +6286,6 @@
       },
       "social_leaderboard": {
         "title": "Social Leaderboard",
-        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
-        "onboarding_seen": "Onboarding seen: {{seen}}",
-        "reset_onboarding": "Reset onboarding",
         "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
         "reset_terms": "Reset Social Terms of Use"
       },

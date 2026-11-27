@@ -24,7 +24,6 @@ export const SocialLeaderboardEventProperties = {
   NOTIFICATION_SUBTYPE: 'notification_subtype',
   DEDUPLICATION_ID: 'deduplication_id',
   INTERACTION_TYPE: 'interaction_type',
-  NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
   PREVIOUS_FEED_TYPE_FILTER: 'previous_feed_type_filter',
@@ -74,20 +73,6 @@ export const SocialLeaderboardEventValues = {
   TRADER_FEED_INTERACTION_TYPE: {
     AUDIENCE_FILTER_CHANGED: 'audience_filter_changed',
     TYPE_FILTER_CHANGED: 'type_filter_changed',
-  },
-  INTERACTION_TYPE: {
-    ALLOW_NOTIFICATIONS: 'allow_notifications',
-    BACK: 'back',
-    CONTINUE: 'continue',
-    DISMISSED: 'dismissed',
-    FOLLOW_TOP_TRADERS: 'follow_top_traders',
-    GOT_IT: 'got_it',
-    MAYBE_LATER: 'maybe_later',
-  },
-  NUX_STEP: {
-    STEP_1: 'step_1',
-    STEP_2: 'step_2',
-    STEP_3: 'step_3',
   },
   TAB: {
     CLOSED: 'closed',

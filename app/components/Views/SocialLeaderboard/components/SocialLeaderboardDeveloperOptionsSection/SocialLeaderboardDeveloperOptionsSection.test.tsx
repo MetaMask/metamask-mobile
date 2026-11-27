@@ -4,17 +4,17 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import SocialLeaderboardDeveloperOptionsSection from './SocialLeaderboardDeveloperOptionsSection';
 import { SocialLeaderboardDeveloperOptionsSectionSelectorsIDs } from './SocialLeaderboardDeveloperOptionsSection.testIds';
 import {
-  hasSeenSocialLeaderboardOnboarding,
-  resetSocialLeaderboardOnboardingSeen,
-} from '../../Onboarding/socialLeaderboardOnboardingNavigation';
+  hasAcceptedSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../terms/socialTermsAcceptance';
 
-jest.mock('../../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
-  hasSeenSocialLeaderboardOnboarding: jest.fn(),
-  resetSocialLeaderboardOnboardingSeen: jest.fn(),
+jest.mock('../../terms/socialTermsAcceptance', () => ({
+  hasAcceptedSocialTerms: jest.fn(),
+  resetSocialTermsAcceptance: jest.fn(),
 }));
 
-const mockHasSeen = jest.mocked(hasSeenSocialLeaderboardOnboarding);
-const mockReset = jest.mocked(resetSocialLeaderboardOnboardingSeen);
+const mockHasAccepted = jest.mocked(hasAcceptedSocialTerms);
+const mockReset = jest.mocked(resetSocialTermsAcceptance);
 
 describe('SocialLeaderboardDeveloperOptionsSection', () => {
   beforeEach(() => {
@@ -22,34 +22,34 @@ describe('SocialLeaderboardDeveloperOptionsSection', () => {
     mockReset.mockResolvedValue(undefined);
   });
 
-  it('shows the current onboarding-seen state', () => {
-    mockHasSeen.mockReturnValue(true);
+  it('shows the current Social Terms of Use state', () => {
+    mockHasAccepted.mockReturnValue(true);
 
     const { getByText } = renderWithProvider(
       <SocialLeaderboardDeveloperOptionsSection />,
     );
 
-    expect(getByText('Onboarding seen: true')).toBeOnTheScreen();
+    expect(getByText('Social Terms of Use accepted: true')).toBeOnTheScreen();
   });
 
-  it('resets the onboarding state and refreshes the readout when pressed', async () => {
-    mockHasSeen.mockReturnValueOnce(true).mockReturnValue(false);
+  it('resets the terms acceptance and refreshes the readout when pressed', async () => {
+    mockHasAccepted.mockReturnValueOnce(true).mockReturnValue(false);
 
     const { getByText, getByTestId } = renderWithProvider(
       <SocialLeaderboardDeveloperOptionsSection />,
     );
 
-    expect(getByText('Onboarding seen: true')).toBeOnTheScreen();
+    expect(getByText('Social Terms of Use accepted: true')).toBeOnTheScreen();
 
     fireEvent.press(
       getByTestId(
-        SocialLeaderboardDeveloperOptionsSectionSelectorsIDs.RESET_ONBOARDING_BUTTON,
+        SocialLeaderboardDeveloperOptionsSectionSelectorsIDs.RESET_TERMS_BUTTON,
       ),
     );
 
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledTimes(1);
     });
-    expect(getByText('Onboarding seen: false')).toBeOnTheScreen();
+    expect(getByText('Social Terms of Use accepted: false')).toBeOnTheScreen();
   });
 });

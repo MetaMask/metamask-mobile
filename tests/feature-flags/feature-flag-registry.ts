@@ -136,17 +136,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialLeaderboardOnboardingEnabled: {
-    name: 'aiSocialLeaderboardOnboardingEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.4.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialMarketAnalysisEnabled: {
     name: 'aiSocialMarketAnalysisEnabled',
     type: FeatureFlagType.Remote,

@@ -35,16 +35,6 @@ export const selectSocialLeaderboardPerpsEnabled = createSelector(
   },
 );
 
-export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.aiSocialLeaderboardOnboardingEnabled as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 export const selectAiSocialAusCacheRefreshEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
