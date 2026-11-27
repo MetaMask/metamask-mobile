@@ -36,6 +36,22 @@ export function moneyActivityViewState({
   const moneyOverrides = withMoneyAccountOverrides(account, {
     includeGeolocation: true,
   });
+  const overrides: DeepPartial<RootState> = { ...moneyOverrides };
+
+  if (cashbackClaim) {
+    overrides.engine = {
+      ...moneyOverrides.engine,
+      backgroundState: {
+        ...moneyOverrides.engine.backgroundState,
+        CardController: {
+          cashbackClaim: cashbackClaim as unknown as Record<
+            string,
+            Json
+          > | null,
+        },
+      },
+    };
+  }
 
   return createStateFixture()
     .withMinimalAccounts()
@@ -60,20 +76,6 @@ export function moneyActivityViewState({
       moneyAccountVaultConfig: MONEY_STANDARD_VAULT,
       moneyAccountPremiumVaultConfig: MONEY_PREMIUM_VAULT,
     })
-    .withOverrides({
-      ...moneyOverrides,
-      engine: {
-        ...moneyOverrides.engine,
-        backgroundState: {
-          ...moneyOverrides.engine.backgroundState,
-          CardController: {
-            cashbackClaim: cashbackClaim as unknown as Record<
-              string,
-              Json
-            > | null,
-          },
-        },
-      },
-    })
+    .withOverrides(overrides)
     .build();
 }
