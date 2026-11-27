@@ -21598,11 +21598,6 @@
       "count": 5
     }
   },
-  "app/core/Engine/wallet-init/keyrings.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/core/Engine/wallet-init/listeners/analytics-controller.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

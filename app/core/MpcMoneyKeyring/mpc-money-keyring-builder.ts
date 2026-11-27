@@ -77,13 +77,21 @@ export interface RealMpcMoneyKeyringBuilderOptions {
   getPrimaryMnemonic: () => Promise<number[]>;
 }
 
+let twoFactorTokenProvider: (() => Promise<string>) | undefined;
+
+export const setMpcTwoFactorTokenProvider = (
+  provider: (() => Promise<string>) | undefined,
+) => {
+  twoFactorTokenProvider = provider;
+};
+
 /**
  * Build the V1 keyring builder for the real Money MPC keyring, backed by the
  * DKLS23/CL24 libraries from `@metamask/mpc-react-native` and the MPC service.
  *
- * The profile bearer token is used as the profile token: the dev MPC service
- * does not enforce the 2FA claims yet. The keyring derives backup keys from
- * the wallet's primary mnemonic.
+ * Calls that need 2FA use the 2FA token provider when one is set, otherwise
+ * the profile bearer token. The keyring derives backup keys from the wallet's
+ * primary mnemonic.
  *
  * @param options - Builder options.
  * @param options.getBearerToken - Returns the profile access token.
@@ -104,7 +112,10 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: async () => getBearerToken(),
+      getProfileToken: async (options?: { twoFactor?: boolean }) =>
+        options?.twoFactor && twoFactorTokenProvider
+          ? twoFactorTokenProvider()
+          : getBearerToken(),
       getPrimaryMnemonic,
       webSocket: WebSocket,
     });

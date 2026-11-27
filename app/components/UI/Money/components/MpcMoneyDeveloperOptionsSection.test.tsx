@@ -23,6 +23,17 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectMoneyAccounts: () =>
+    jest.requireMock('../../../../core/Engine').default.context
+      .MoneyAccountController.state.moneyAccounts,
+}));
+
 jest.mock('../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../util/theme');
   return {

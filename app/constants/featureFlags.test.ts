@@ -1,39 +1,26 @@
-import { isRealMpcMoneyKeyringBuildEnabled } from './featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from './featureFlags';
 
-describe('isRealMpcMoneyKeyringBuildEnabled', () => {
+describe('isMpcMoneyKeyringBuildEnabled', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
   it.each([
-    ['true', 'true', true],
-    ['true', 'false', false],
-    ['false', 'true', false],
-    ['false', 'false', false],
-    [undefined, 'true', false],
-    ['true', undefined, false],
-    [undefined, undefined, false],
-    ['', 'true', false],
-    ['true', '', false],
-  ])(
-    'requires both flags (parent=%s, real=%s, enabled=%s)',
-    (parentFlag, realFlag, expected) => {
-      const env = { ...process.env };
-      if (parentFlag === undefined) {
-        delete env.MM_MONEY_MPC_KEYRING_ENABLED;
-      } else {
-        env.MM_MONEY_MPC_KEYRING_ENABLED = parentFlag;
-      }
-      if (realFlag === undefined) {
-        delete env.MM_MONEY_MPC_REAL_KEYRING;
-      } else {
-        env.MM_MONEY_MPC_REAL_KEYRING = realFlag;
-      }
-      jest.replaceProperty(process, 'env', env);
+    ['true', true],
+    ['false', false],
+    [undefined, false],
+    ['', false],
+  ])("is enabled only for 'true' (flag=%s, enabled=%s)", (flag, expected) => {
+    const env = { ...process.env };
+    if (flag === undefined) {
+      delete env.MM_MONEY_MPC_KEYRING_ENABLED;
+    } else {
+      env.MM_MONEY_MPC_KEYRING_ENABLED = flag;
+    }
+    jest.replaceProperty(process, 'env', env);
 
-      const enabled = isRealMpcMoneyKeyringBuildEnabled();
+    const enabled = isMpcMoneyKeyringBuildEnabled();
 
-      expect(enabled).toBe(expected);
-    },
-  );
+    expect(enabled).toBe(expected);
+  });
 });

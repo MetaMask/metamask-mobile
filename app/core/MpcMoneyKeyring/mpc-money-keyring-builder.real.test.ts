@@ -1,5 +1,8 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
-import { buildRealMpcMoneyKeyringBuilder } from './mpc-money-keyring-builder';
+import {
+  buildRealMpcMoneyKeyringBuilder,
+  setMpcTwoFactorTokenProvider,
+} from './mpc-money-keyring-builder';
 
 jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   MpcMoneyKeyring: Object.assign(
@@ -35,6 +38,7 @@ const buildKeyring = (
 
 describe('buildRealMpcMoneyKeyringBuilder', () => {
   afterEach(() => {
+    setMpcTwoFactorTokenProvider(undefined);
     jest.restoreAllMocks();
   });
 
@@ -113,8 +117,19 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
   it('uses the bearer token as the profile token', async () => {
     const { options, getBearerToken } = buildKeyring();
 
-    expect(await options.getProfileToken()).toBe(TOKEN);
+    expect(await options.getProfileToken({ twoFactor: true })).toBe(TOKEN);
     expect(getBearerToken).toHaveBeenCalled();
+  });
+
+  it('uses the 2FA token provider when the call needs 2FA', async () => {
+    setMpcTwoFactorTokenProvider(jest.fn().mockResolvedValue('2fa-token'));
+    const { options, getBearerToken } = buildKeyring();
+
+    expect(await options.getProfileToken({ twoFactor: true })).toBe(
+      '2fa-token',
+    );
+    expect(await options.getProfileToken()).toBe(TOKEN);
+    expect(getBearerToken).toHaveBeenCalledTimes(1);
   });
 
   it('leaves MFA decisions to the backend', () => {
