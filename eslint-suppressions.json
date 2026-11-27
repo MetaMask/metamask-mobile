@@ -602,11 +602,6 @@
       "count": 2
     }
   },
-  "app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen.view.test.tsx": {
-    "component-view/no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/views/PredictPortfolio/internal/PortfolioRecoveryPanel.view.test.tsx": {
     "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
