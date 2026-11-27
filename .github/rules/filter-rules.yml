@@ -149,21 +149,23 @@ ios_or_ignorable:
 # `all_changes` list below); files Jest cannot follow, such as assets or native
 # code, simply select no tests. Changes to anything in `jest_full_run_triggers`
 # switch the pull request back to the full sharded suite. Only the high-impact
-# paths are listed: Jest and Babel configuration, the dependency manifest, and
-# the setup files, mocks and shared test harnesses that every suite loads
-# without importing them, so the import graph cannot link them to any test.
+# paths are listed: Jest and Babel configuration and Babel scripts, dependency
+# manifests, the lockfile and patches, and the setup files, mocks and shared
+# component-view and integration test helpers that suites load without
+# importing them, so the import graph cannot link them to any test.
 # Merge queue, push and scheduled runs always run the full suite regardless of
 # these filters.
 jest_full_run_triggers:
   - 'jest.config*.js'
   - 'babel.config*.js'
+  - 'scripts/babel/**'
   - 'package.json'
   - 'yarn.lock'
+  - 'patches/**'
   - 'app/util/test/**'
   - '**/__mocks__/**'
   - 'tests/component-view/**'
   - 'tests/integration/**'
-  - 'tests/utils/**'
 
 # JEST DOCS-ONLY DETECTION
 # Used to skip the unit, component-view and integration Jest jobs on pull
