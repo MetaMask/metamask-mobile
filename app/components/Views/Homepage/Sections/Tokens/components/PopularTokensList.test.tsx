@@ -51,7 +51,6 @@ const mockEthTokenWithPrice = {
 describe('PopularTokensList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
 
     // Default mock: loaded state with tokens
     mockUsePopularTokens.mockReturnValue({
@@ -61,10 +60,6 @@ describe('PopularTokensList', () => {
       error: null,
       refetch: mockRefetch,
     });
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('renders skeleton placeholders during initial loading', () => {
@@ -120,52 +115,6 @@ describe('PopularTokensList', () => {
 
     await act(async () => {
       await ref.current?.refresh();
-    });
-
-    expect(mockRefetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('auto-refreshes prices every 60 seconds', async () => {
-    render(<PopularTokensList />);
-
-    // Initial state - no auto-refresh calls yet
-    expect(mockRefetch).not.toHaveBeenCalled();
-
-    // Advance time by 60 seconds
-    await act(async () => {
-      jest.advanceTimersByTime(60_000);
-    });
-
-    await waitFor(() => {
-      expect(mockRefetch).toHaveBeenCalledTimes(1);
-    });
-
-    // Advance time by another 60 seconds
-    await act(async () => {
-      jest.advanceTimersByTime(60_000);
-    });
-
-    await waitFor(() => {
-      expect(mockRefetch).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  it('cleans up interval on unmount', async () => {
-    const { unmount } = render(<PopularTokensList />);
-
-    // Advance time by 60 seconds
-    await act(async () => {
-      jest.advanceTimersByTime(60_000);
-    });
-
-    expect(mockRefetch).toHaveBeenCalledTimes(1);
-
-    // Unmount the component
-    unmount();
-
-    // Advance time - should not trigger more calls
-    await act(async () => {
-      jest.advanceTimersByTime(60_000);
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);

@@ -9,8 +9,6 @@ import PopularTokenRow from './PopularTokenRow';
 import PopularTokensSkeleton from './PopularTokensSkeleton';
 import { SectionRefreshHandle } from '../../../types';
 
-const PRICE_REFRESH_INTERVAL_MS = 60_000; // 1 minute
-
 interface PopularTokensListProps {
   /**
    * Called when error state changes. Parent uses this to render ErrorState
@@ -50,15 +48,6 @@ const PopularTokensList = forwardRef<
   }, [refetch]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-  // Auto-refresh prices every minute
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      refetch();
-    }, PRICE_REFRESH_INTERVAL_MS);
-
-    return () => clearInterval(intervalId);
-  }, [refetch]);
 
   if (isInitialLoading) {
     return <PopularTokensSkeleton />;

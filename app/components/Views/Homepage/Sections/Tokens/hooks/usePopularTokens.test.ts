@@ -1,6 +1,8 @@
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { handleFetch } from '@metamask/controller-utils';
+import { onlineManager } from '@tanstack/react-query';
+import { renderHookWithQueryClient } from '../../../../../../util/test/renderHookWithQueryClient';
+import { getNetworkTierSnapshot } from '../../../../../../util/deviceCapability';
 import { usePopularTokens } from './usePopularTokens';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { selectMoneyHubEnabledFlag } from '../../../../../UI/Money/selectors/featureFlags';
@@ -9,8 +11,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@metamask/controller-utils', () => ({
-  handleFetch: jest.fn(),
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+  getNetworkTierSnapshot: jest.fn(() => 'WIFI'),
+}));
+
+jest.mock('../../../../../../util/deviceCapability/latencyStore', () => ({
+  getLatencySnapshot: () => null,
+  getLatencyThresholds: () => ({ hungMs: 8000 }),
 }));
 
 // Mock the selector to avoid deep import chain issues
@@ -30,14 +38,18 @@ jest.mock('../../../../../UI/Money/selectors/featureFlags', () => ({
 }));
 
 const mockUseSelector = useSelector as unknown as jest.Mock;
-const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
+const originalFetch = global.fetch;
+const mockFetch = jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>();
+const pricesResponse = (body: unknown) =>
+  new Response(JSON.stringify(body), { status: 200 });
 
 const arrangeSelectors = ({
   isMoneyHubEnabled = false,
-}: { isMoneyHubEnabled?: boolean } = {}) => {
+  currency = 'usd',
+}: { isMoneyHubEnabled?: boolean; currency?: string } = {}) => {
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectCurrentCurrency) {
-      return 'usd';
+      return currency;
     }
     if (selector === selectMoneyHubEnabledFlag) {
       return isMoneyHubEnabled;
@@ -48,23 +60,34 @@ const arrangeSelectors = ({
 
 describe('usePopularTokens', () => {
   beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockReset();
     jest.clearAllMocks();
     arrangeSelectors();
+    jest.mocked(getNetworkTierSnapshot).mockReturnValue('WIFI');
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   it('returns isInitialLoading true on first fetch', () => {
-    // Create a promise that never resolves to test the loading state
-    mockHandleFetch.mockReturnValue(
-      // eslint-disable-next-line no-empty-function
-      new Promise(() => {}),
+    mockFetch.mockImplementation(
+      async (_url, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener('abort', () => {
+            reject(new Error('Request cancelled'));
+          });
+        }),
     );
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result, unmount } = renderHookWithQueryClient(usePopularTokens);
 
     expect(result.current.isInitialLoading).toBe(true);
     expect(result.current.isRefreshing).toBe(false);
     expect(result.current.tokens).toEqual([]);
     expect(result.current.error).toBeNull();
+    unmount();
   });
 
   it('fetches prices and returns tokens with price data', async () => {
@@ -79,9 +102,9 @@ describe('usePopularTokens', () => {
       },
     };
 
-    mockHandleFetch.mockResolvedValue(mockPrices);
+    mockFetch.mockResolvedValue(pricesResponse(mockPrices));
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result } = renderHookWithQueryClient(usePopularTokens);
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -97,15 +120,15 @@ describe('usePopularTokens', () => {
   });
 
   it('sets error state when fetch fails', async () => {
-    mockHandleFetch.mockRejectedValue(new Error('Network error'));
+    mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result } = renderHookWithQueryClient(usePopularTokens);
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    expect(result.current.error).toEqual(new Error('Network error'));
+    expect(result.current.error).toMatchObject({ status: 404 });
     // Still returns tokens without prices
     expect(result.current.tokens).toHaveLength(5);
     expect(result.current.tokens[0].price).toBeUndefined();
@@ -114,24 +137,24 @@ describe('usePopularTokens', () => {
 
   it('sets isRefreshing true on subsequent fetches', async () => {
     let resolveRefetch: () => void = () => undefined;
-    const pendingPromise = new Promise<Record<string, unknown>>((resolve) => {
-      resolveRefetch = () => resolve({});
+    const pendingPromise = new Promise<Response>((resolve) => {
+      resolveRefetch = () => resolve(pricesResponse({}));
     });
 
-    // First call resolves immediately, subsequent calls use pending promise
-    mockHandleFetch
-      .mockResolvedValueOnce({})
+    mockFetch
+      .mockResolvedValueOnce(pricesResponse({}))
       .mockReturnValueOnce(pendingPromise);
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result } = renderHookWithQueryClient(usePopularTokens);
 
     // Wait for initial fetch to complete
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    // Trigger refetch - this will use the pending promise
-    result.current.refetch();
+    act(() => {
+      void result.current.refetch();
+    });
 
     // Check refreshing state while fetch is pending
     await waitFor(() => {
@@ -140,7 +163,9 @@ describe('usePopularTokens', () => {
     expect(result.current.isInitialLoading).toBe(false);
 
     // Resolve the refetch
-    resolveRefetch();
+    await act(async () => {
+      resolveRefetch();
+    });
 
     await waitFor(() => {
       expect(result.current.isRefreshing).toBe(false);
@@ -148,15 +173,15 @@ describe('usePopularTokens', () => {
   });
 
   it('calls price API with correct parameters', async () => {
-    mockHandleFetch.mockResolvedValue({});
+    mockFetch.mockResolvedValue(pricesResponse({}));
 
-    renderHook(() => usePopularTokens());
+    renderHookWithQueryClient(usePopularTokens);
 
     await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenCalled();
     });
 
-    const fetchUrl = mockHandleFetch.mock.calls[0][0] as string;
+    const fetchUrl = mockFetch.mock.calls[0][0] as string;
     expect(fetchUrl).toContain(
       'https://price.api.cx.metamask.io/v3/spot-prices',
     );
@@ -170,26 +195,62 @@ describe('usePopularTokens', () => {
   });
 
   it('refetch function triggers new fetch', async () => {
-    mockHandleFetch.mockResolvedValue({});
+    mockFetch.mockResolvedValue(pricesResponse({}));
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result } = renderHookWithQueryClient(usePopularTokens);
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
 
-    await result.current.refetch();
+    await act(async () => {
+      await result.current.refetch();
+    });
 
-    expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
+  it.each([
+    ['WIFI', 4],
+    ['SLOW_CELLULAR', 2],
+  ] as const)(
+    'on %s, makes %i price requests in three minutes',
+    async (tier, requests) => {
+      jest.useFakeTimers();
+      try {
+        jest.mocked(getNetworkTierSnapshot).mockReturnValue(tier);
+        mockFetch.mockImplementation(async () => pricesResponse({}));
+        const { result, unmount } = renderHookWithQueryClient(usePopularTokens);
+        await waitFor(() =>
+          expect(result.current.isInitialLoading).toBe(false),
+        );
+
+        for (let minute = 0; minute < 3; minute += 1) {
+          await act(async () => {
+            await jest.advanceTimersByTimeAsync(60_000);
+          });
+        }
+
+        expect(mockFetch).toHaveBeenCalledTimes(requests);
+        unmount();
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(180_000);
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(requests);
+      } finally {
+        jest.useRealTimers();
+      }
+    },
+  );
+
   it('excludes mUSD from tokens when the Money hub is enabled', async () => {
-    mockHandleFetch.mockResolvedValue({});
+    mockFetch.mockResolvedValue(pricesResponse({}));
     arrangeSelectors({ isMoneyHubEnabled: true });
 
-    const { result } = renderHook(() => usePopularTokens());
+    const { result } = renderHookWithQueryClient(usePopularTokens);
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -202,116 +263,81 @@ describe('usePopularTokens', () => {
     expect(result.current.tokens[0].name).toBe('Ethereum');
   });
 
-  it('keeps the newer fetch loading when an older price response arrives', async () => {
-    let resolveFirst: (value: Record<string, unknown>) => void = () =>
-      undefined;
-    const firstRequest = new Promise<Record<string, unknown>>((resolve) => {
-      resolveFirst = resolve;
-    });
-    let resolveSecond: (value: Record<string, unknown>) => void = () =>
-      undefined;
-    const secondRequest = new Promise<Record<string, unknown>>((resolve) => {
-      resolveSecond = resolve;
-    });
-
-    mockHandleFetch
-      .mockReturnValueOnce(firstRequest)
-      .mockReturnValueOnce(secondRequest);
-
-    const { result } = renderHook(() => usePopularTokens());
-
-    await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
-    });
-
-    act(() => {
-      result.current.refetch();
-    });
-
-    await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
-    });
+  it('keeps the last prices when a refresh fails', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        pricesResponse({ 'eip155:1/slip44:60': { price: 3000 } }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 404 }));
+    const { result } = renderHookWithQueryClient(usePopularTokens);
+    await waitFor(() => expect(result.current.tokens[1]?.price).toBe(3000));
 
     await act(async () => {
-      resolveFirst({
-        'eip155:1/slip44:60': {
-          price: 1,
-          pricePercentChange1d: 1,
-        },
-      });
+      await result.current.refetch();
     });
 
-    expect(result.current.isInitialLoading).toBe(true);
-    expect(result.current.isRefreshing).toBe(false);
-    expect(result.current.tokens).toStrictEqual([]);
-    expect(result.current.error).toBeNull();
-
-    await act(async () => {
-      resolveSecond({
-        'eip155:1/slip44:60': {
-          price: 3000,
-          pricePercentChange1d: 2.5,
-        },
-      });
-    });
-
-    await waitFor(() => {
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
-    expect(result.current.tokens[1].price).toBe(3000);
-    expect(result.current.tokens[1].priceChange1d).toBe(2.5);
-    expect(result.current.error).toBeNull();
+    await waitFor(() =>
+      expect(result.current.error).toMatchObject({ status: 404 }),
+    );
+    expect(result.current.tokens[1]?.price).toBe(3000);
   });
 
-  it('ignores an older price failure while a newer fetch is in flight', async () => {
-    let rejectFirst: (reason: Error) => void = () => undefined;
-    const firstRequest = new Promise<Record<string, unknown>>(
-      (_resolve, reject) => {
-        rejectFirst = reject;
-      },
+  it('finishes manual refresh without making a request while offline', async () => {
+    onlineManager.setOnline(false);
+    const { result, unmount } = renderHookWithQueryClient(usePopularTokens);
+    try {
+      await result.current.refetch();
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(result.current.error).toBeNull();
+    } finally {
+      unmount();
+      onlineManager.setOnline(true);
+    }
+  });
+
+  it('shares an in-flight request with pull-to-refresh', async () => {
+    let resolveRequest: (response: Response) => void = () => undefined;
+    mockFetch.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      }),
     );
-    let resolveSecond: (value: Record<string, unknown>) => void = () =>
-      undefined;
-    const secondRequest = new Promise<Record<string, unknown>>((resolve) => {
-      resolveSecond = resolve;
-    });
-
-    mockHandleFetch
-      .mockReturnValueOnce(firstRequest)
-      .mockReturnValueOnce(secondRequest);
-
-    const { result } = renderHook(() => usePopularTokens());
-
-    await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
-    });
-
-    act(() => {
-      result.current.refetch();
-    });
-
-    await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
-    });
+    const { result } = renderHookWithQueryClient(usePopularTokens);
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
 
     await act(async () => {
-      rejectFirst(new Error('stale network error'));
+      const refresh = result.current.refetch();
+      resolveRequest(pricesResponse({ 'eip155:1/slip44:60': { price: 3000 } }));
+      await refresh;
     });
 
-    expect(result.current.error).toBeNull();
-    expect(result.current.isInitialLoading).toBe(true);
-    expect(result.current.tokens).toStrictEqual([]);
+    await waitFor(() => expect(result.current.tokens[1]?.price).toBe(3000));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
 
+  it('does not show a late USD response as EUR after a fiat currency change', async () => {
+    let resolveUsd: (response: Response) => void = () => undefined;
+    mockFetch
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveUsd = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(
+        pricesResponse({ 'eip155:1/slip44:60': { price: 2600 } }),
+      );
+    const { result, rerender } = renderHookWithQueryClient(usePopularTokens);
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+
+    arrangeSelectors({ currency: 'EUR' });
+    rerender(undefined);
+    await waitFor(() => expect(result.current.tokens[1]?.price).toBe(2600));
     await act(async () => {
-      resolveSecond({});
+      resolveUsd(pricesResponse({ 'eip155:1/slip44:60': { price: 3000 } }));
     });
 
-    await waitFor(() => {
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
-    expect(result.current.error).toBeNull();
-    expect(result.current.tokens).toHaveLength(5);
+    expect(mockFetch.mock.calls[1]?.[0]).toContain('vsCurrency=eur');
+    expect(result.current.tokens[1]?.price).toBe(2600);
   });
 });
