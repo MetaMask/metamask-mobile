@@ -149,9 +149,15 @@ const commitPreviewIds = (): string[] =>
     .filter((match): match is RegExpExecArray => match !== null)
     .map((match) => match[1]);
 
+/** Every other read: Home's Feeds read empty, the rest undefined. */
+const answerOtherReads = async (action: string, feedId: string) =>
+  action === 'PredictMarketDataService:getFeed'
+    ? { venueId: 'kalshi', id: feedId, title: '', events: [] }
+    : undefined;
+
 /** Home's Balance read, which is what the screen validates against. */
 const stubBalance = (available = '12.34') =>
-  mockPredictNextMessenger((action: string) => {
+  mockPredictNextMessenger((action: string, _venueId: never, feedId: never) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
@@ -159,10 +165,7 @@ const stubBalance = (available = '12.34') =>
         available,
       });
     }
-    if (action === 'PredictPortfolioService:invalidateQueries') {
-      return Promise.resolve(undefined);
-    }
-    return Promise.resolve(undefined);
+    return answerOtherReads(action, feedId);
   });
 
 const openWithdrawFlow = async () => {
@@ -421,12 +424,14 @@ describe('PredictWithdrawFlow', () => {
   });
 
   it('distinguishes an unreadable balance from a zero balance', async () => {
-    mockPredictNextMessenger((action: string) => {
-      if (action === 'PredictPortfolioService:getBalance') {
-        return Promise.reject(new Error('unreachable'));
-      }
-      return Promise.resolve(undefined);
-    });
+    mockPredictNextMessenger(
+      (action: string, _venueId: never, feedId: never) => {
+        if (action === 'PredictPortfolioService:getBalance') {
+          return Promise.reject(new Error('unreachable'));
+        }
+        return answerOtherReads(action, feedId);
+      },
+    );
 
     renderWithdrawFlow();
     await openWithdrawFlow();
