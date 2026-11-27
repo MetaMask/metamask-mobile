@@ -170,6 +170,7 @@ const QRScanner = ({
       };
     }, [setMounted, markUnmounted]),
   );
+  // Sole emit of QR Scanner Opened. Callers that open this screen must not track it.
   useEffect(() => {
     if (
       permissionCheckCompleted &&

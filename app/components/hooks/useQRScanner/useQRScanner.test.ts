@@ -6,6 +6,11 @@ import { Authentication } from '../../../core';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({ name: 'test-event' })),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -13,11 +18,8 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(() => ({ name: 'test-event' })),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -47,7 +49,7 @@ describe('useQRScanner', () => {
     jest.restoreAllMocks();
   });
 
-  it('navigates to the QR tab switcher', () => {
+  it('navigates to the QR tab switcher without tracking QR Scanner Opened', () => {
     const { result } = renderHook(() => useQRScanner());
 
     result.current.openQRScanner();
@@ -56,6 +58,8 @@ describe('useQRScanner', () => {
       Routes.QR_TAB_SWITCHER,
       expect.objectContaining({ onScanSuccess: expect.any(Function) }),
     );
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
   it('prompts before importing a scanned private key', () => {
