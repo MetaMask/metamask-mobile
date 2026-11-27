@@ -113,9 +113,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     <>
       <ShakeDetector onShake={handleShake} sensibility={3} />
       {isVisible && (
-        <Box twClassName="absolute top-20 right-4 z-50 shadow-lg min-w-48">
-          <Box twClassName="bg-default rounded-xl p-3 border border-muted">
-            <Box twClassName="flex-row p-2 mb-3 justify-between">
+        <Box className="absolute top-20 right-4 z-50 shadow-lg min-w-48">
+          <Box className="bg-default rounded-xl p-3 border border-muted">
+            <Box className="flex-row p-2 mb-3 justify-between">
               <Text variant={TextVariant.BodyXs}>Performance Profiler</Text>
               <ButtonIcon
                 iconName={IconName.Close}
@@ -125,9 +125,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
               />
             </Box>
 
-            <Box twClassName="flex-row items-center mb-3">
+            <Box className="flex-row items-center mb-3">
               <Box
-                twClassName={`w-2 h-2 rounded-full mr-2 ${
+                className={`w-2 h-2 rounded-full mr-2 ${
                   isRecording ? 'bg-error-default' : 'bg-primary-default'
                 }`}
               />
@@ -135,7 +135,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                 {isRecording ? 'Recording...' : 'Stopped'}
               </Text>
             </Box>
-            <Box twClassName="mb-3 bg-muted rounded-md p-2">
+            <Box className="mb-3 bg-muted rounded-md p-2">
               <Text variant={TextVariant.BodyXs}>
                 Build Type: {process.env.METAMASK_BUILD_TYPE || 'undefined'}
               </Text>
@@ -143,7 +143,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                 Environment: {process.env.METAMASK_ENVIRONMENT || 'undefined'}
               </Text>
             </Box>
-            <Box twClassName="flex-row gap-2 mb-3">
+            <Box className="flex-row gap-2 mb-3">
               <Pressable
                 style={tw.style(
                   'flex-1 p-2 rounded-md items-center justify-center',
@@ -151,7 +151,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                 )}
                 onPress={toggleProfiling}
               >
-                <Text twClassName="text-white" variant={TextVariant.BodySm}>
+                <Text className="text-white" variant={TextVariant.BodySm}>
                   {isRecording ? 'Stop' : 'Start'}
                 </Text>
               </Pressable>
@@ -171,7 +171,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                   onPress={exportTrace}
                 >
                   <Text
-                    twClassName={
+                    className={
                       isRecording || !lastProfilePath
                         ? 'text-muted'
                         : 'text-white'
@@ -184,8 +184,8 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
               )}
             </Box>
 
-            <Box twClassName="pt-3 border-t border-muted max-w-48">
-              <Text variant={TextVariant.BodyXs} twClassName="text-center">
+            <Box className="pt-3 border-t border-muted max-w-48">
+              <Text variant={TextVariant.BodyXs} className="text-center">
                 Shake device to toggle this menu.{' '}
                 {Platform.OS === 'android' &&
                   'You can find the profiling file in the Android Downloads folder.'}

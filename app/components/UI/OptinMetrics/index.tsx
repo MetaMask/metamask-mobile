@@ -396,7 +396,7 @@ const OptinMetrics = () => {
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="flex-1 px-4 pb-6">
+        <Box className="flex-1 px-4 pb-6">
           <Box marginBottom={6}>
             <TitleStandard
               title={strings('privacy_policy.description_title')}
@@ -408,12 +408,12 @@ const OptinMetrics = () => {
               }}
             />
           </Box>
-          <Box twClassName="gap-4">
+          <Box className="gap-4">
             <ListItemMultiSelect
               variant={ContentVariant.MultiLine}
               isSelected={isBasicUsageChecked}
               onPress={handleBasicUsageToggle}
-              twClassName="rounded-xl border border-muted"
+              className="rounded-xl border border-muted"
               title={strings('privacy_policy.gather_basic_usage_title')}
               description={
                 <Text
@@ -437,8 +437,29 @@ const OptinMetrics = () => {
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
+            /><Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
+                  <TextButton
+                    variant={TextVariant.BodySm}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      openLearnMore();
+                    }}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_learn_more')}
+                  </TextButton>
+                </Text>
+              }
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+              }
             />
-            <Box twClassName="gap-2">
+            <Box className="gap-2">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -450,7 +471,7 @@ const OptinMetrics = () => {
                 variant={ContentVariant.MultiLine}
                 isSelected={isMarketingChecked}
                 onPress={handleMarketingToggle}
-                twClassName="rounded-xl border border-muted"
+                className="rounded-xl border border-muted"
                 title={strings('privacy_policy.checkbox_marketing')}
                 description={strings('privacy_policy.checkbox')}
                 testID={

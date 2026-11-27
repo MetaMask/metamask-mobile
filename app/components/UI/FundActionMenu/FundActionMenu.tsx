@@ -174,7 +174,7 @@ const FundActionMenu = () => {
       goBack={navigation.goBack}
       testID="fund-action-menu-bottom-sheet"
     >
-      <Box twClassName="py-4">
+      <Box className="py-4">
         {actionConfigs.map(
           (config) =>
             config.isVisible && (

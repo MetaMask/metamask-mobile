@@ -156,9 +156,31 @@ const DeleteWalletModal: React.FC = () => {
           <Box gap={4}>
             <ListItem
               variant={ListItemVariant.MultiLine}
-              twClassName="min-h-0 py-0"
+              className="min-h-0 py-0"
               avatar={
                 <AvatarIcon
+                  iconName={IconName.FaceId}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('login.forgot_password_point_1')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_1_bold')}
+                  </Text>{' '}
+                  {strings('login.forgot_password_point_1_1')}
+                </Text>
+              }
+            /><AvatarIcon
                   iconName={IconName.FaceId}
                   size={AvatarIconSize.Md}
                   severity={AvatarIconSeverity.Neutral}
@@ -183,9 +205,31 @@ const DeleteWalletModal: React.FC = () => {
             />
             <ListItem
               variant={ListItemVariant.MultiLine}
-              twClassName="min-h-0 pt-0 pb-2"
+              className="min-h-0 pt-0 pb-2"
               avatar={
                 <AvatarIcon
+                  iconName={IconName.ShieldLock}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('login.forgot_password_point_2')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_2_bold')}{' '}
+                  </Text>
+                  {strings('login.forgot_password_point_2_1')}
+                </Text>
+              }
+            /><AvatarIcon
                   iconName={IconName.ShieldLock}
                   size={AvatarIconSize.Md}
                   severity={AvatarIconSeverity.Neutral}
@@ -222,7 +266,7 @@ const DeleteWalletModal: React.FC = () => {
               },
               testID: ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
             }}
-            twClassName="pt-4"
+            className="pt-4"
           />
         </>
       ) : (
@@ -238,7 +282,7 @@ const DeleteWalletModal: React.FC = () => {
               titleProps={{
                 testID: ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
               }}
-              twClassName="pt-6"
+              className="pt-6"
             />
             <Box gap={4}>
               <Text
@@ -284,7 +328,7 @@ const DeleteWalletModal: React.FC = () => {
               testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
               twClassName: 'mt-4',
             }}
-            twClassName="pt-6 flex-col-reverse"
+            className="pt-6 flex-col-reverse"
           />
         </>
       )}

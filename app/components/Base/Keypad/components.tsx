@@ -86,7 +86,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
+    <Box className="flex-1" {...boxWrapperProps}>
       <RectButton
         style={[styles.keypadButton, style]}
         enabled={!isDisabled}
@@ -99,7 +99,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
         {...props}
       >
         <Text
-          twClassName="font-medium text-center"
+          className="font-medium text-center"
           variant={TextVariant.DisplayMd}
           accessibilityRole="none"
         >
@@ -130,7 +130,7 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
 
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
+    <Box className="flex-1" {...boxWrapperProps}>
       <RectButton
         style={[styles.keypadDeleteButton, style]}
         exclusive={false}

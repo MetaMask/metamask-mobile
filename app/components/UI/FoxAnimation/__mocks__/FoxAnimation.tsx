@@ -14,7 +14,7 @@ const FoxAnimation = ({
   return (
     <Box
       testID="fox-animation-mock"
-      twClassName="absolute left-0 right-0 items-center justify-center"
+      className="absolute left-0 right-0 items-center justify-center"
       style={tw.style(
         hasFooter ? 'bottom-[100px] h-[150px]' : 'bottom-[-20px] h-[300px]',
         startFoxAnimation ? 'opacity-100' : 'opacity-0',

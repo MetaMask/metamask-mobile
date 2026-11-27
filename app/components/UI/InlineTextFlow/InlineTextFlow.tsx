@@ -44,7 +44,7 @@ const InlineTextFlow = ({
       variant={variant}
       fontWeight={fontWeight}
       color={color}
-      twClassName={[
+      className={[
         index === 0 && leadingSpace ? 'ml-1' : '',
         twClassName,
         'shrink-0',

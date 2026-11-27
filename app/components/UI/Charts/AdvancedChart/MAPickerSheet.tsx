@@ -115,7 +115,7 @@ const MAPickerSheet = () => {
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Regular}
-                  twClassName="text-text-default"
+                  className="text-text-default"
                 >
                   {label}
                 </Text>
@@ -129,7 +129,7 @@ const MAPickerSheet = () => {
           );
         })}
       </Box>
-      <Box twClassName="px-4 pt-2 pb-4">
+      <Box className="px-4 pt-2 pb-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

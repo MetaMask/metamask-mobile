@@ -91,7 +91,7 @@ export const StackCard: React.FC<StackCardProps> = ({
             />
           )}
           {/* Regular card layout - image + text + close button */}
-          <Box twClassName="w-full h-full flex-row gap-4 items-center">
+          <Box className="w-full h-full flex-row gap-4 items-center">
             <Box
               style={tw.style(
                 'overflow-hidden justify-center items-center self-center rounded-xl',
@@ -107,14 +107,14 @@ export const StackCard: React.FC<StackCardProps> = ({
                 resizeMode="contain"
               />
             </Box>
-            <Box twClassName="flex-1 h-[72px] justify-start">
-              <Box twClassName="flex-row items-center justify-between h-6 overflow-visible">
+            <Box className="flex-1 h-[72px] justify-start">
+              <Box className="flex-row items-center justify-between h-6 overflow-visible">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   testID={`carousel-slide-${slide.id}-title`}
                   numberOfLines={1}
-                  twClassName="flex-1"
+                  className="flex-1"
                 >
                   {slide.title}
                 </Text>
@@ -127,7 +127,7 @@ export const StackCard: React.FC<StackCardProps> = ({
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 />
               </Box>
-              <Box twClassName="mt-1">
+              <Box className="mt-1">
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}

@@ -62,7 +62,7 @@ const MarketingMomentTitle = ({
       {...props}
       variant={presentation.variant}
       fontFamily={presentation.fontFamily ?? FontFamily.Default}
-      twClassName={twClassName}
+      className={twClassName}
       style={titleStyle.length > 0 ? titleStyle : undefined}
     >
       {children}

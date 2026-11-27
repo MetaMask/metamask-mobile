@@ -190,7 +190,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <SafeAreaView
         edges={['right', 'bottom', 'left']}
         style={tw.style('flex-1')}
@@ -208,7 +208,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
           contentContainerStyle={tw.style('flex-grow pb-4')}
           testID={KycVerifyIdentitySelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
+          <Box className="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.verify_identity.title')}
             bottomLabel={
@@ -249,6 +249,14 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
                 }
                 title={strings(step.title)}
                 testID={`${KycVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
+              /><AvatarIcon
+                    iconName={step.icon}
+                    severity={AvatarIconSeverity.Neutral}
+                    size={AvatarIconSize.Lg}
+                  />
+                }
+                title={strings(step.title)}
+                testID={`${KycVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
               />
             ))}
           </Box>
@@ -256,7 +264,7 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-1 pt-6"
+            className="px-4 pb-1 pt-6"
           >
             {strings('kyc.verify_identity.partner_title')}
           </Text>
@@ -265,9 +273,18 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
               <ListItem
                 key={benefit.id}
                 variant={ListItemVariant.MultiLine}
-                twClassName="min-h-0 justify-start py-2"
+                className="min-h-0 justify-start py-2"
                 avatar={
                   <AvatarIcon
+                    iconName={benefit.icon}
+                    severity={AvatarIconSeverity.Neutral}
+                    size={AvatarIconSize.Lg}
+                  />
+                }
+                title={strings(benefit.title)}
+                description={strings(benefit.description)}
+                testID={`${KycVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
+              /><AvatarIcon
                     iconName={benefit.icon}
                     severity={AvatarIconSeverity.Neutral}
                     size={AvatarIconSize.Lg}
@@ -281,16 +298,16 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
           </Box>
         </ScrollView>
 
-        <Box twClassName="gap-4 border-t border-muted px-4 pb-2 pt-4">
+        <Box className="gap-4 border-t border-muted px-4 pb-2 pt-4">
           {error ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Start}
               justifyContent={BoxJustifyContent.Center}
-              twClassName="gap-2"
+              className="gap-2"
               testID={KycVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR}
             >
-              <Box twClassName="shrink-0 pt-0.5">
+              <Box className="shrink-0 pt-0.5">
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}

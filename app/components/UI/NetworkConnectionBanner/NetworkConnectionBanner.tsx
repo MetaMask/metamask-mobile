@@ -77,7 +77,7 @@ const PrimaryMessage = ({
   <Text
     variant={TextVariant.BodyXs}
     fontWeight={FontWeight.Medium}
-    twClassName="inline-block vertical-align-middle pr-1"
+    className="inline-block vertical-align-middle pr-1"
     numberOfLines={2}
   >
     {strings(primaryMessageKey, {
@@ -90,7 +90,7 @@ const SecondaryMessage = ({ content }: { content: React.ReactNode }) => (
   <Text
     variant={TextVariant.BodyXs}
     fontWeight={FontWeight.Medium}
-    twClassName="inline-block vertical-align-middle"
+    className="inline-block vertical-align-middle"
   >
     {content}
   </Text>
@@ -296,9 +296,34 @@ export const NetworkConnectionBannerContent = ({
       <BannerBase
         testID={SLOW_NETWORK_BANNER_TEST_ID}
         backgroundColor={BoxBackgroundColor.BackgroundSection}
-        twClassName="rounded-2xl"
+        className="rounded-2xl"
         startAccessory={
           <Icon
+            name={IconName.Wifi}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+          />
+        }
+        title={strings('network_connection_banner.slow_network_title')}
+        titleProps={{
+          variant: TextVariant.BodyXs,
+          fontWeight: FontWeight.Medium,
+        }}
+        description={strings(
+          'network_connection_banner.slow_network_description',
+        )}
+        descriptionProps={{
+          variant: TextVariant.BodyXs,
+          fontWeight: FontWeight.Medium,
+          color: TextColor.TextAlternative,
+        }}
+        onClose={dismissSlowNetwork}
+        closeButtonProps={{
+          accessibilityLabel: strings(
+            'network_connection_banner.dismiss_slow_network',
+          ),
+        }}
+      /><Icon
             name={IconName.Wifi}
             size={IconSize.Sm}
             color={IconColor.IconDefault}
@@ -337,14 +362,14 @@ export const NetworkConnectionBannerContent = ({
   return (
     <BannerBase
       backgroundColor={backgroundColor}
-      twClassName="rounded-2xl"
+      className="rounded-2xl"
       startAccessory={
         <icon.component
           name={icon.name}
           size={IconSize.Sm}
           color={icon.color}
           // Vertically align icon with text better
-          twClassName="mt-[0.1rem]"
+          className="mt-[0.1rem]"
         />
       }
       title={primaryMessage}

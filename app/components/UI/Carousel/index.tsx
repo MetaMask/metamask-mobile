@@ -627,7 +627,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
                         )}
                       />
                       {/* Simplified content - just show it's there */}
-                      <Box twClassName="w-full h-full flex justify-center items-center">
+                      <Box className="w-full h-full flex justify-center items-center">
                         <Text
                           variant={TextVariant.BodyXs}
                           color={TextColor.TextAlternative}
