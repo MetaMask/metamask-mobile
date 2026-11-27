@@ -155,14 +155,14 @@ describe('useMoneyToasts', () => {
       expect(toastOptions.title).toBe('Adding funds');
     });
 
-    it('inProgress title/body is "Depositing" / "Card orders may take a few minutes." when intent is card', () => {
+    it('inProgress title/body is "Adding funds" / "Card orders may take a few minutes." when intent is card', () => {
       const { result } = renderHook(() => useMoneyToasts());
 
       const toastOptions = result.current.MoneyToastOptions.deposit.inProgress({
         intent: 'card',
       });
 
-      expect(toastOptions.title).toBe('Depositing');
+      expect(toastOptions.title).toBe('Adding funds');
       expect(toastOptions.description).toBe(
         'Card orders may take a few minutes.',
       );
@@ -192,7 +192,7 @@ describe('useMoneyToasts', () => {
       expect(toastOptions.title).toBe('Funds added');
     });
 
-    it('success title/body is "Deposit complete" / amount added when intent is card', () => {
+    it('success title/body is "Funds added" / amount added when intent is card', () => {
       const { result } = renderHook(() => useMoneyToasts());
 
       const toastOptions = result.current.MoneyToastOptions.deposit.success({
@@ -200,7 +200,7 @@ describe('useMoneyToasts', () => {
         intent: 'card',
       });
 
-      expect(toastOptions.title).toBe('Deposit complete');
+      expect(toastOptions.title).toBe('Funds added');
       expect(toastOptions.description).toBe(
         '$1,000.00 added to Money account.',
       );
@@ -228,14 +228,14 @@ describe('useMoneyToasts', () => {
       expect(toastOptions.description).toBe('Unable to add funds. Try again.');
     });
 
-    it('failed title/body is "Deposit failed" / "Unable to add funds. Try again." for card', () => {
+    it('failed title/body is "Failed to add funds" / "Unable to add funds. Try again." for card', () => {
       const { result } = renderHook(() => useMoneyToasts());
 
       const toastOptions = result.current.MoneyToastOptions.deposit.failed({
         intent: 'card',
       });
 
-      expect(toastOptions.title).toBe('Deposit failed');
+      expect(toastOptions.title).toBe('Failed to add funds');
       expect(toastOptions.description).toBe('Unable to add funds. Try again.');
     });
 

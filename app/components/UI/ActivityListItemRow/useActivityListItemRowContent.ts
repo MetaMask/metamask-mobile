@@ -534,7 +534,7 @@ function resolveCoreContent(
           ? 'Received'
           : 'Sent';
       const pendingLabel = isMoneyDeposit
-        ? strings('money.transaction.depositing')
+        ? strings('money.transaction.adding')
         : item.type === 'receive'
           ? 'Receiving'
           : 'Sending';
@@ -544,7 +544,7 @@ function resolveCoreContent(
           ? 'Receive failed'
           : 'Send failed';
       const cancelledLabel = isMoneyDeposit
-        ? 'Deposit cancelled'
+        ? 'Funding cancelled'
         : item.type === 'receive'
           ? 'Receive cancelled'
           : 'Send cancelled';

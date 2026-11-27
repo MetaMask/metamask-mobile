@@ -746,7 +746,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Deposited mUSD',
+      'Added mUSD',
     );
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       `To: ${strings('transaction_details.label.money_account')}`,
@@ -756,7 +756,29 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('uses deposit copy and hides amounts for a cancelled EOA transfer to Money', () => {
+  it('shows "Adding mUSD" for a pending EOA transfer to Money', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'pending',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Adding mUSD',
+    );
+  });
+
+  it('shows "Funding cancelled" and hides amounts for a cancelled EOA transfer to Money', () => {
     const item = makeItem({
       type: 'send',
       status: 'cancelled',
@@ -774,7 +796,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Deposit cancelled',
+      'Funding cancelled',
     );
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
     expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();

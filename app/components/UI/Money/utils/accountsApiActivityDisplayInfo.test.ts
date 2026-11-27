@@ -356,7 +356,7 @@ describe('accountsApiActivityListDisplayInfo', () => {
   it('shows a bank transfer as a single incoming dollar amount', () => {
     const info = accountsApiActivityListDisplayInfo(bankTransfer);
 
-    expect(info.label).toBe('Deposited');
+    expect(info.label).toBe('Added');
     expect(info.description).toBe('Bank transfer');
     expect(info.isIncoming).toBe(true);
     expect(info.fiatAmount).toBe('+$15.00');
