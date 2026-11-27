@@ -534,6 +534,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
