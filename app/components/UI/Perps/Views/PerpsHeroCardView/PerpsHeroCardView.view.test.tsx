@@ -15,8 +15,6 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
 
-const TIMEOUT_MS = 5000;
-
 const longPosition = defaultPositionForViews;
 
 const shortPosition = {
@@ -119,8 +117,6 @@ describe('PerpsHeroCardView', () => {
 
     const shareButton = await screen.findByTestId(
       PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     // Share.open is guarded by a native captureRef call which is unavailable in

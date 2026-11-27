@@ -55,7 +55,6 @@ const Transfer = () => {
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
         enableMetrics
-        isTransactionsRedesign
       />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />

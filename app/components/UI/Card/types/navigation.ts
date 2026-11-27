@@ -122,7 +122,7 @@ export type CardOnboardingStackParamList = {
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
   CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
+  CardOnboardingKYCFailed: { reasons?: string[] } | undefined;
   CardOnboardingImmersveKYC: { url: string; redirectUrl: string };
 };
 

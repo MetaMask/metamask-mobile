@@ -14,6 +14,14 @@ const NATIVE_ASSET = {
   isNative: true,
 };
 
+const BITCOIN_ASSET = {
+  assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+  chainId: 'bip122:000000000019d6689c085ae165831e93',
+  decimals: 8,
+  isNative: true,
+  symbol: 'BTC',
+};
+
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: () => '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
 }));
@@ -172,5 +180,35 @@ describe('usePercentageAmount', () => {
     );
 
     await expect(result.current.getMaxAmount()).resolves.toBe('1');
+  });
+
+  it('does not support Max for a Bitcoin asset', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: BITCOIN_ASSET,
+    } as unknown as ReturnType<typeof useSendContext>);
+    setBalance('100000000', 8);
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    expect(result.current.isMaxAmountSupported).toBe(false);
+  });
+
+  it('returns the full Bitcoin balance when the Snap cannot quote Max', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: BITCOIN_ASSET,
+    } as unknown as ReturnType<typeof useSendContext>);
+    setBalance('100000000', 8);
+    mockGetNonEvmMaxAmount.mockResolvedValue(undefined);
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    await expect(result.current.getMaxAmount()).resolves.toBe('1');
+    expect(mockGetNonEvmMaxAmount).not.toHaveBeenCalled();
   });
 });

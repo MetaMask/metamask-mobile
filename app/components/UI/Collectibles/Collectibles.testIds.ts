@@ -15,6 +15,7 @@ export const collectiblesTestIds = {
   packsView: 'collectibles-packs-view',
   collectionView: 'collectibles-collection-view',
   marketplaceView: 'collectibles-marketplace-view',
+  buySheetClose: 'collectibles-buy-sheet-close',
   packsSkeleton: 'collectibles-packs-skeleton',
   packsEmpty: 'collectibles-packs-empty',
   packsCategoryChip: (id: string) => `collectibles-packs-chip-${id}`,
@@ -28,4 +29,8 @@ export const collectiblesTestIds = {
   packsTileArt: (code: string) => `collectibles-packs-tile-art-${code}`,
   packsTileArtPlaceholder: (code: string) =>
     `collectibles-packs-tile-art-placeholder-${code}`,
+  epicHuntInfoButton: 'collectibles-epic-hunt-info-button',
+  epicHuntInfoSheet: 'collectibles-epic-hunt-info-sheet',
+  epicHuntInfoClose: 'collectibles-epic-hunt-info-close',
+  epicHuntGauge: (code: string) => `collectibles-epic-hunt-gauge-${code}`,
 } as const;

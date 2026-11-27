@@ -127,6 +127,11 @@ afterEach(async () => {
   await resetSocialTermsAcceptance();
 });
 
+// The insights entry card (and its skeleton) resolve only after the
+// AiDigestController fetch completes; the 5s default is not enough on a
+// loaded CV shard. AssetOverviewContent's CV test uses the same budget.
+const INSIGHTS_CARD_LOAD_TIMEOUT_MS = 15000;
+
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
     renderPerpsMarketDetailsView({ initialParams: {} });
@@ -389,8 +394,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -407,8 +410,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -452,8 +453,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -499,11 +498,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     expect(
-      await screen.findByTestId(
-        PerpsPositionCardSelectorsIDs.SIZE_VALUE,
-        {},
-        { timeout: 5000 },
-      ),
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SIZE_VALUE),
     ).toHaveTextContent(/1\s+ETH/u);
 
     act(() => {
@@ -549,8 +544,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -1442,11 +1435,7 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(
-        await screen.findByText(
-          strings('perps.errors.postOnlyWindow'),
-          {},
-          { timeout: 5000 },
-        ),
+        await screen.findByText(strings('perps.errors.postOnlyWindow')),
       ).toBeOnTheScreen();
       expect(updatePositionTPSL).toHaveBeenCalledWith(
         expect.objectContaining({ symbol: 'ETH', stopLossPrice: '2300' }),
@@ -1523,12 +1512,12 @@ describe('PerpsMarketDetailsView', () => {
 
     // The entry card replaces a skeleton only after the AiDigestController fetch
     // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
-    // test uses for this card. The 1s default is not enough on a loaded CV shard.
+    // test uses for this card. The 5s default is not enough on a loaded CV shard.
     const findInsightsEntryCard = (): ReturnType<typeof screen.findByTestId> =>
       screen.findByTestId(
         MarketInsightsSelectorsIDs.ENTRY_CARD,
         {},
-        { timeout: 15000 },
+        { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
       );
 
     const openInsightsFromEntryCard = async (): Promise<void> => {
@@ -1595,7 +1584,7 @@ describe('PerpsMarketDetailsView', () => {
             ),
           ).toBeNull();
         },
-        { timeout: 15000 },
+        { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
       );
       expect(
         screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
@@ -1933,7 +1922,7 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByTestId(
           MarketInsightsSelectorsIDs.ENTRY_CARD,
           {},
-          { timeout: 15000 },
+          { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       const orderedIds = screen.UNSAFE_root.findAll(

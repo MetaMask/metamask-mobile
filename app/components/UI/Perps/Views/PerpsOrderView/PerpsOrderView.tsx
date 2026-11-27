@@ -63,6 +63,8 @@ import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useComplianceGate } from '../../../Compliance';
 import {
   useIsTransactionPayQuoteLoading,
   useIsTransactionPaySubmitReady,
@@ -2798,6 +2800,36 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     navigation.goBack();
   }, [fromTokenDetails, navigation]);
 
+  // Add funds closes the sheet first: iOS would present Ramp from the bottom
+  // over a modal, so Ramp opens as a normal page once the sheet is gone.
+  const { goToBuy } = useRampNavigation();
+  const { gate: complianceGate } = useComplianceGate(
+    getSelectedAccountByScope('eip155:1')?.address,
+  );
+  const isAddFundsPendingRef = useRef(false);
+  const handleAddFundsPress = useCallback(() => {
+    isAddFundsPendingRef.current = true;
+  }, []);
+  const handleTradeSheetClosed = useCallback(() => {
+    handleTradeSheetClose();
+    if (isAddFundsPendingRef.current) {
+      isAddFundsPendingRef.current = false;
+      // Same compliance check as the other Perps add-funds entry points. The
+      // click is tracked inside the gate so blocked wallets do not emit it.
+      complianceGate(async () => {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        });
+        await goToBuy();
+      }).catch(logRejection('addFunds'));
+    }
+  }, [complianceGate, goToBuy, handleTradeSheetClose, track]);
+
   const handleTradeSheetInteractive = useCallback(() => {
     completePerpsTradeSheetInteractiveTrace();
   }, []);
@@ -2932,12 +2964,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             effectivePrice,
             orderLiquidation.distancePrice,
           );
+    // No funds to trade with: the submit button becomes an Add funds CTA.
+    // Wait for the live available-to-trade balance so it can't flash early,
+    // and never swap the button while an order is being placed.
+    const isAddFundsMode =
+      !isLoadingAccount &&
+      !isAvailableToTradeLoading &&
+      !isPlacingOrder &&
+      (spendableBalance === 0 || hasInsufficientFundsError);
     const submitDisabled =
-      isOrderSubmissionBlocked ||
-      isLoadingAccount ||
-      isLoadingMarketData ||
-      isMarketDataUnavailable ||
-      isFeesLoading;
+      !isAddFundsMode &&
+      (isOrderSubmissionBlocked ||
+        isLoadingAccount ||
+        isLoadingMarketData ||
+        isMarketDataUnavailable ||
+        isFeesLoading);
     const bottomSheetErrors = [
       ...(isMarketDataUnavailable && !isMarketDataLoading
         ? [
@@ -3019,7 +3060,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return (
       <>
         <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
-          onClose={handleTradeSheetClose}
+          onClose={handleTradeSheetClosed}
           onOpen={handleTradeSheetOpen}
           onInteractive={handleTradeSheetInteractive}
           onCancelBeforeInteractive={handleTradeSheetCancelBeforeInteractive}
@@ -3077,9 +3118,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   !isAvailableToTradeLoading &&
                   spendableBalance === 0
                 }
-                amountWarningMessage={strings(
-                  'perps.order.validation.insufficient_funds_to_cover_trade',
-                )}
                 isInputFocused={isInputFocused}
                 isLimitPriceFocused={isLimitPriceFocused}
                 payWithName={payWithName}
@@ -3094,7 +3132,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feeDiscountKind={rewardsState.feeDiscountKind}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
-                submitLabel={placeOrderLabel}
+                submitLabel={
+                  isAddFundsMode ? strings('perps.add_funds') : placeOrderLabel
+                }
                 errorMessages={bottomSheetErrors}
                 isAtOICap={isAtOICap}
                 showServiceInterruptionBanner={
@@ -3113,7 +3153,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onPayWithPress={handlePayWithPress}
-                onSubmit={() => handlePlaceOrder()}
+                closesSheetOnSubmit={isAddFundsMode}
+                onSubmit={
+                  isAddFundsMode
+                    ? handleAddFundsPress
+                    : () => handlePlaceOrder()
+                }
               />
             ),
             leverage: (
