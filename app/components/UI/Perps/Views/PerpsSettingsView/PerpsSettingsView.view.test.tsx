@@ -4,11 +4,20 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { cleanup, screen } from '@testing-library/react-native';
+import {
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { renderPerpsSettingsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { PerpsSettingsViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsDefaultExchangeSheetSelectorsIDs,
+  PerpsSettingsViewSelectorsIDs,
+} from '../../Perps.testIds';
 
 const lighterFlag = {
   enabled: true,
@@ -41,6 +50,9 @@ const settingsState = (
 
 describe('PerpsSettingsView', () => {
   afterEach(() => {
+    delete (
+      Engine.context.PerpsController as { setDefaultProvider?: jest.Mock }
+    ).setDefaultProvider;
     cleanup();
   });
 
@@ -77,5 +89,39 @@ describe('PerpsSettingsView', () => {
     expect(
       screen.queryByTestId(PerpsSettingsViewSelectorsIDs.DEFAULT_EXCHANGE),
     ).toBeNull();
+  });
+
+  it('saves the chosen default exchange from the sheet', async () => {
+    const setDefaultProvider = jest.fn().mockReturnValue({
+      success: true,
+      defaultProvider: 'lighter',
+    });
+    const perpsController = Engine.context.PerpsController as {
+      setDefaultProvider?: jest.Mock;
+    };
+    perpsController.setDefaultProvider = setDefaultProvider;
+
+    renderPerpsSettingsView({ overrides: settingsState(true) });
+
+    expect(
+      await screen.findByTestId(PerpsSettingsViewSelectorsIDs.DEFAULT_EXCHANGE),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsSettingsViewSelectorsIDs.DEFAULT_EXCHANGE),
+    );
+
+    const lighterOptionId = `${PerpsDefaultExchangeSheetSelectorsIDs.OPTION}-lighter`;
+    expect(await screen.findByTestId(lighterOptionId)).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(lighterOptionId));
+    fireEvent.press(
+      screen.getByTestId(PerpsDefaultExchangeSheetSelectorsIDs.SAVE),
+    );
+
+    expect(setDefaultProvider).toHaveBeenCalledWith('lighter');
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsDefaultExchangeSheetSelectorsIDs.SHEET),
+      ).toBeNull();
+    });
   });
 });

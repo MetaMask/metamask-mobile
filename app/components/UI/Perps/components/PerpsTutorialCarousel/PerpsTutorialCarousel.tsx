@@ -156,7 +156,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const redirectScreen = route.params?.redirectScreen;
   const redirectParams = route.params?.redirectParams;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
-  const { markTutorialCompleted, isFirstTimeUser } = usePerpsFirstTimeUser();
+  const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
@@ -179,14 +179,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
   const setDefaultExchange = useSetPerpsDefaultExchange();
   const [isDefaultExchangeOpen, setIsDefaultExchangeOpen] = useState(false);
-  const openedFromSettings =
-    tutorialSource === PERPS_EVENT_VALUE.SOURCE.PERPS_HOME;
-
-  useEffect(() => {
-    if (isFirstTimeUser && isLighterEnabled && !openedFromSettings) {
-      setIsDefaultExchangeOpen(true);
-    }
-  }, [isFirstTimeUser, isLighterEnabled, openedFromSettings]);
 
   const isDarkMode = useColorScheme() === 'dark';
 

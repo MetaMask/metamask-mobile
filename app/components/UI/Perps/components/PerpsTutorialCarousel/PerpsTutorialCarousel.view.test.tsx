@@ -15,7 +15,10 @@ import {
   createFundedAccountForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsDefaultExchangeSheetSelectorsIDs,
+  PerpsTutorialSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsTutorialCarousel from './PerpsTutorialCarousel';
 
 const CONTINUE_DEBOUNCE_MS = 120;
@@ -26,6 +29,14 @@ const firstTimeOverrides = {
       PerpsController: {
         isEligible: true,
         isFirstTimeUser: { mainnet: true, testnet: true },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsLighterProviderEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
       },
     },
   },
@@ -101,6 +112,9 @@ describe('PerpsTutorialCarousel', () => {
     expect(
       screen.getByTestId(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsDefaultExchangeSheetSelectorsIDs.CLOSE),
+    ).toBeNull();
 
     fireEvent.press(screen.getByTestId(PerpsTutorialSelectorsIDs.SKIP_BUTTON));
 

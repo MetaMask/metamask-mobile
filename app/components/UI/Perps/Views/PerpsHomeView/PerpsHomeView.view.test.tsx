@@ -2414,7 +2414,7 @@ describe('PerpsHomeView', () => {
   });
 
   describe('settings gear', () => {
-    it('shows the settings gear instead of the mode toggle', async () => {
+    it('opens settings from the header gear instead of the mode toggle', async () => {
       renderPerpsHomeView({
         overrides: eligibleOverrides,
         streamOverrides: {
@@ -2423,6 +2423,14 @@ describe('PerpsHomeView', () => {
           orders: [],
           marketData: [createBtcMarketForViews()],
         },
+        extraRoutes: [
+          {
+            name: Routes.PERPS.SETTINGS,
+            Component: createRouteParamsProbe(
+              Routes.PERPS.SETTINGS,
+            ) as ComponentType<unknown>,
+          },
+        ],
       });
 
       expect(
@@ -2431,6 +2439,16 @@ describe('PerpsHomeView', () => {
       expect(
         screen.queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
       ).toBeNull();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.PERPS.SETTINGS),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 });
