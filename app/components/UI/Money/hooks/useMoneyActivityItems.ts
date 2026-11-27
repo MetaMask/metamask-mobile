@@ -4,6 +4,7 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
   cardProviderItem,
+  cashbackClaimItem,
   microdepositItem,
   neobankItem,
   onchainItem,
@@ -29,6 +30,10 @@ import { selectIsImmersveCardHistoryInMoney } from '../../Card/hooks/useCardTran
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
+import { selectCardCashbackClaim } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
+import { resolveCashbackClaim } from '../utils/cashbackClaim';
 import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
@@ -105,8 +110,9 @@ export interface UseMoneyActivityItemsOptions {
  * tiebreak would sort them above an already-rendered row. In-flight VBA rows
  * are exempt: they are pinned at the top of the list, so the gate cannot
  * reorder them, and withholding one would hide a deposit already known to be
- * in progress. Microdeposits are exempt too: their list is fetched whole, so
- * there is no un-fetched page they could pop in above.
+ * in progress. Pending cashback claims are exempt for the same reason.
+ * Microdeposits are exempt too: their list is fetched whole, so there is no
+ * un-fetched page they could pop in above.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -119,6 +125,7 @@ function safeItems(
     (item) =>
       item.time > watermark ||
       (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)) ||
+      (item.kind === 'cashbackClaim' && item.claim.status === 'pending') ||
       item.kind === 'microdeposit',
   );
 }
@@ -127,6 +134,9 @@ function safeItems(
 function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
   return items.filter((item) => item.kind === 'onchain');
 }
+
+const byTimeDescending = (a: MoneyActivityItem, b: MoneyActivityItem): number =>
+  b.time - a.time || a.id.localeCompare(b.id);
 
 /**
  * Merge local on-chain Money transactions with Accounts-API activity,
@@ -178,7 +188,7 @@ export function mergeMoneyActivity(
     ...declinedCardTxs.map(cardProviderItem),
     ...neobank,
     ...microdeposits.map(microdepositItem),
-  ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
+  ].sort(byTimeDescending);
 }
 
 export function buildMoneyActivityBuckets(
@@ -192,15 +202,24 @@ export function buildMoneyActivityBuckets(
   declinedCardTxs: CardTransaction[] = [],
   neobankActivity: NeobankBankTransferActivity[] = [],
   microdeposits: readonly MicrodepositActivity[] = [],
+  cashbackClaim: CardCashbackClaim | null = null,
 ): MoneyActivityBuckets {
+  const withCashbackClaim = (
+    items: MoneyActivityItem[],
+  ): MoneyActivityItem[] =>
+    cashbackClaim
+      ? [...items, cashbackClaimItem(cashbackClaim)].sort(byTimeDescending)
+      : items;
   return {
     [MoneyActivityFilter.All]: safeItems(
-      mergeMoneyActivity(
-        onchain.all,
-        apiActivity,
-        declinedCardTxs,
-        neobankActivity,
-        microdeposits,
+      withCashbackClaim(
+        mergeMoneyActivity(
+          onchain.all,
+          apiActivity,
+          declinedCardTxs,
+          neobankActivity,
+          microdeposits,
+        ),
       ),
       watermark,
     ),
@@ -226,10 +245,11 @@ export function buildMoneyActivityBuckets(
     [MoneyActivityFilter.Transfers]: onchainOnly(
       safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
     ),
-    // Purchases is API-only (+ declined card rows); the watermark gate still
-    // applies for same-timestamp siblings on the next page.
+    // Purchases is API-only (+ declined card rows and the pending cashback
+    // claim); the watermark gate still applies for same-timestamp siblings on
+    // the next page.
     [MoneyActivityFilter.Purchases]: safeItems(
-      mergeMoneyActivity([], apiActivity, declinedCardTxs),
+      withCashbackClaim(mergeMoneyActivity([], apiActivity, declinedCardTxs)),
       watermark,
     ),
   };
@@ -244,6 +264,7 @@ export function useMoneyActivityItems({
 }: UseMoneyActivityItemsOptions = {}): UseMoneyActivityItemsResult {
   const { allTransactions, deposits, transfers, moneyAddress } =
     useMoneyAccountTransactions();
+  const cashbackClaim = useSelector(selectCardCashbackClaim);
   const {
     activity,
     isLoading,
@@ -255,7 +276,9 @@ export function useMoneyActivityItems({
     isValuationSettling,
     error,
     refetch: refetchApiActivity,
-  } = useMoneyAccountApiActivity();
+  } = useMoneyAccountApiActivity({
+    refetchIntervalMs: cashbackClaim ? 30_000 : false,
+  });
   const pendingActivityEnabled = useSelector(
     selectMoneyVbaPendingActivityEnabled,
   );
@@ -310,6 +333,17 @@ export function useMoneyActivityItems({
       pendingActivityEnabled,
     ],
   );
+
+  const {
+    visibleClaim: visibleCashbackClaim,
+    shouldClear: shouldClearCashbackClaim,
+  } = resolveCashbackClaim(cashbackClaim, activity, moneyAddress);
+
+  useEffect(() => {
+    if (shouldClearCashbackClaim) {
+      Engine.context.CardController.clearCashbackClaim();
+    }
+  }, [shouldClearCashbackClaim]);
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,
@@ -380,6 +414,7 @@ export function useMoneyActivityItems({
         declinedForFeed,
         visibleVbaActivity,
         microdeposits,
+        visibleCashbackClaim,
       ),
     [
       allTransactions,
@@ -391,6 +426,7 @@ export function useMoneyActivityItems({
       declinedForFeed,
       visibleVbaActivity,
       microdeposits,
+      visibleCashbackClaim,
     ],
   );
 

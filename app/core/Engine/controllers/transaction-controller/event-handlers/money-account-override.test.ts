@@ -175,6 +175,51 @@ describe('money-account-override', () => {
     });
 
     it.each([
+      {
+        accountId: 'ledger-account-id',
+        address: '0x3333333333333333333333333333333333333333',
+        keyringType: 'Ledger Hardware',
+      },
+      {
+        accountId: 'qr-account-id',
+        address: '0x4444444444444444444444444444444444444444',
+        keyringType: 'QR Hardware Wallet Device',
+      },
+      {
+        accountId: 'onekey-account-id',
+        address: '0x5555555555555555555555555555555555555555',
+        keyringType: 'OneKey Hardware',
+      },
+    ])(
+      'seeds accountOverride when selected EVM account is a $keyringType account on withdraw',
+      ({ accountId, address, keyringType }) => {
+        getSelectedAccountMock.mockReturnValue({
+          address,
+          id: accountId,
+          metadata: { keyring: { type: keyringType }, name: keyringType },
+          type: EthAccountType.Eoa,
+        } as unknown as InternalAccount);
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
+        );
+
+        expect(setTransactionConfigMock).toHaveBeenCalledWith(
+          TRANSACTION_ID_MOCK,
+          expect.any(Function),
+        );
+
+        const callback = setTransactionConfigMock.mock.calls[0][1];
+        const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+          {};
+        callback(config);
+
+        expect(config.accountOverride).toBe(accountId);
+        expect(config.isQuoteRequired).toBeUndefined();
+      },
+    );
+
+    it.each([
       TransactionType.moneyAccountDeposit,
       MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     ])('sets accountOverride for a batch containing %s', (type) => {

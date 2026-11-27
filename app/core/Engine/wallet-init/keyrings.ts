@@ -38,8 +38,12 @@ import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
+  buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import {
+  isMpcMoneyKeyringBuildEnabled,
+  isRealMpcMoneyKeyringBuildEnabled,
+} from '../../../constants/featureFlags';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -140,8 +144,33 @@ export function getKeyringBuilders(
   // compile-time gate while the feature is unreleased: no released build can
   // yet hold a Money MPC keyring in its vault, so a build without the flag
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
+  // With `MM_MONEY_MPC_REAL_KEYRING` on top, the real keyring (DKLS23/CL24
+  // via `@metamask/mpc-react-native`) replaces the stub.
   if (isMpcMoneyKeyringBuildEnabled()) {
-    keyrings.push(buildMpcMoneyKeyringBuilder());
+    keyrings.push(
+      isRealMpcMoneyKeyringBuildEnabled()
+        ? buildRealMpcMoneyKeyringBuilder({
+            getBearerToken: async () =>
+              await messenger.call('AuthenticationController:getBearerToken'),
+            getPrimaryMnemonic: async () =>
+              await (messenger.call(
+                'KeyringController:withKeyringV2Unsafe',
+                { type: KeyringType.Hd, index: 0 },
+                async ({
+                  keyring,
+                }) /* NOSONAR: this messenger action requires async */ => {
+                  const hdKeyring = keyring as HdKeyringV2;
+                  if (!hdKeyring.mnemonic) {
+                    throw new Error(
+                      'Primary keyring mnemonic unavailable for MPC backups.',
+                    );
+                  }
+                  return encodeMnemonic(hdKeyring.mnemonic);
+                },
+              ) as Promise<number[]>),
+          })
+        : buildMpcMoneyKeyringBuilder(),
+    );
   }
 
   return keyrings;

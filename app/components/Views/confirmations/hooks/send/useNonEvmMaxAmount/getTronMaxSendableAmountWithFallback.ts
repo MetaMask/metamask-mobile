@@ -1,6 +1,6 @@
 import BN from 'bnjs4';
 
-import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
+import { getMaxSendableAmountMultichain } from '../../../utils/multichain-snaps';
 import { isTronAddress } from '../../../../../../core/Multichain/utils';
 import { fromBNWithDecimals } from '../../../utils/send';
 import type { GetMaxSendableAmount } from './types';
@@ -11,11 +11,11 @@ const TRON_NATIVE_MAX_FEE_RESERVE = new BN('1100000');
 export const getTronMaxSendableAmountWithFallback: GetMaxSendableAmount =
   async ({ fromAccount, assetId, toAddress, balance }) => {
     try {
-      const result = (await getTronMaxSendableAmount(fromAccount, {
+      const result = await getMaxSendableAmountMultichain(fromAccount, {
         accountId: fromAccount.id,
         assetId,
         ...(toAddress && isTronAddress(toAddress) ? { toAddress } : {}),
-      })) as { amount?: string } | undefined;
+      });
 
       if (result?.amount) {
         return { amount: result.amount };

@@ -3373,9 +3373,6 @@
     }
   },
   "app/components/UI/Card/hooks/useRedeemableWallet.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/promise-function-async": {
       "count": 4
     }
@@ -5395,9 +5392,6 @@
     }
   },
   "app/components/UI/Money/hooks/useMoneyAccountApiActivity.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -9779,9 +9773,6 @@
   },
   "app/components/UI/PredictNext/views/PredictEvent/internal/PredictMarketHistory.tsx": {
     "typescript/no-misused-promises": {
-      "count": 3
-    },
-    "typescript/prefer-nullish-coalescing": {
       "count": 3
     },
     "typescript/promise-function-async": {
@@ -18322,11 +18313,6 @@
       "count": 1
     }
   },
-  "app/components/Views/confirmations/components/PayAccountSelector/PayAccountSelector.test.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 2
-    }
-  },
   "app/components/Views/confirmations/components/UI/copy-button/copy-button.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
@@ -19525,15 +19511,7 @@
       "count": 1
     }
   },
-  "app/components/Views/confirmations/hooks/signatures/useSignatureMetrics.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 6
-    }
-  },
   "app/components/Views/confirmations/hooks/signatures/useSignatureMetrics.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -19704,9 +19682,6 @@
     }
   },
   "app/components/Views/confirmations/hooks/useConfirmActions.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -19717,11 +19692,6 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
-    }
-  },
-  "app/components/Views/confirmations/hooks/useConfirmReject.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/Views/confirmations/hooks/useERC20TokenBalance.ts": {
@@ -20868,9 +20838,6 @@
     "typescript/await-thenable": {
       "count": 1
     },
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -20878,7 +20845,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 3
+      "count": 2
     },
     "typescript/prefer-readonly": {
       "count": 2
@@ -21591,9 +21558,6 @@
   "app/core/Engine/wallet-init/keyrings.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 5
-    },
-    "typescript/promise-function-async": {
-      "count": 1
     }
   },
   "app/core/Engine/wallet-init/keyrings.ts": {

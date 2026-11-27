@@ -282,7 +282,7 @@ describe('parsePredictVenueCatalog', () => {
           screens: [
             {
               ...nflScreen,
-              icon: 'football',
+              color: 'blue',
               tabs: [{ ...nflScreen.tabs[0], badge: 'new' }],
             },
           ],
@@ -353,14 +353,95 @@ describe('parsePredictVenueCatalog', () => {
       );
     });
 
-    it('drops a subtitle that is not a non-empty string and keeps the screen', () => {
-      const result = parsePredictVenueCatalog(
-        createCatalog({ screens: [{ ...nflScreen, subtitle: 7 }] }),
-        venueId,
+    it.each([
+      ['an empty string', ''],
+      ['a number', 7],
+      ['null', null],
+    ])(
+      'drops and logs a subtitle that is %s, and keeps the screen',
+      (_name, subtitle) => {
+        const result = parsePredictVenueCatalog(
+          createCatalog({ screens: [{ ...nflScreen, subtitle }] }),
+          venueId,
+        );
+
+        const { subtitle: _subtitle, ...withoutSubtitle } = nflScreen;
+        expect(result.screens).toEqual([withoutSubtitle]);
+        expect(Logger.log).toHaveBeenCalledTimes(1);
+        expect(Logger.log).toHaveBeenCalledWith(
+          '[PredictNext] Dropped 1 Venue catalog Feed Screen field for kalshi',
+          {
+            dropped: [
+              {
+                screen: 'sports-football-nfl',
+                field: 'subtitle',
+                value: subtitle,
+              },
+            ],
+          },
+        );
+      },
+    );
+
+    describe('icon', () => {
+      it('keeps an icon as served, without checking it against the app', () => {
+        const screen = { ...nflScreen, icon: 'NotAnAppIcon' };
+
+        const result = parsePredictVenueCatalog(
+          createCatalog({ screens: [screen] }),
+          venueId,
+        );
+
+        expect(result.screens).toEqual([screen]);
+        expect(Logger.log).not.toHaveBeenCalled();
+      });
+
+      it('has no icon when the screen serves none', () => {
+        const result = parsePredictVenueCatalog(
+          createCatalog({ screens: [nflScreen] }),
+          venueId,
+        );
+
+        expect(result.screens[0]).not.toHaveProperty('icon');
+      });
+
+      it.each([
+        ['an empty string', ''],
+        ['a number', 7],
+        ['null', null],
+        ['an object', { name: 'TrendUp' }],
+      ])(
+        'drops and logs an icon that is %s, and keeps the screen',
+        (_name, icon) => {
+          const result = parsePredictVenueCatalog(
+            createCatalog({ screens: [{ ...nflScreen, icon }] }),
+            venueId,
+          );
+
+          expect(result.screens).toEqual([nflScreen]);
+          expect(Logger.log).toHaveBeenCalledTimes(1);
+          expect(Logger.log).toHaveBeenCalledWith(
+            '[PredictNext] Dropped 1 Venue catalog Feed Screen field for kalshi',
+            {
+              dropped: [
+                { screen: 'sports-football-nfl', field: 'icon', value: icon },
+              ],
+            },
+          );
+        },
       );
 
-      const { subtitle: _subtitle, ...withoutSubtitle } = nflScreen;
-      expect(result.screens).toEqual([withoutSubtitle]);
+      it('logs no icon for a screen it drops', () => {
+        const screen = { ...nflScreen, icon: 7, tabs: [] };
+
+        parsePredictVenueCatalog(createCatalog({ screens: [screen] }), venueId);
+
+        expect(Logger.log).toHaveBeenCalledTimes(1);
+        expect(Logger.log).toHaveBeenCalledWith(
+          '[PredictNext] Dropped 1 Venue catalog Feed Screen for kalshi',
+          { dropped: [screen] },
+        );
+      });
     });
 
     it.each([
@@ -589,6 +670,145 @@ describe('parsePredictVenueCatalog', () => {
 
       expect(home?.sections).toEqual(rows.slice(0, 8));
       expect(Logger.log).toHaveBeenCalledWith(...droppedLog(rows.slice(8)));
+    });
+
+    describe('title and limit', () => {
+      const fieldLog = (dropped: unknown[]) =>
+        droppedLog(dropped, 'Home section field');
+
+      it("keeps Trending's title and limit, and a preview's limit", () => {
+        const sections = [
+          { ...trending, title: 'Live now', limit: 5 },
+          { ...politics, limit: 3 },
+        ];
+
+        expect(parseHome({ sections })).toEqual({ sections });
+        expect(Logger.log).not.toHaveBeenCalled();
+      });
+
+      it('has no title or limit when the sections serve none', () => {
+        const home = parseHome({ sections: [trending, politics] });
+
+        expect(home?.sections[0]).not.toHaveProperty('title');
+        expect(home?.sections[0]).not.toHaveProperty('limit');
+        expect(home?.sections[1]).not.toHaveProperty('limit');
+      });
+
+      it.each([
+        ['an empty string', ''],
+        ['a number', 7],
+        ['null', null],
+      ])(
+        "drops and logs Trending's title when it is %s, and keeps the section",
+        (_name, title) => {
+          const home = parseHome({ sections: [{ ...trending, title }] });
+
+          expect(home).toEqual({ sections: [trending] });
+          expect(Logger.log).toHaveBeenCalledTimes(1);
+          expect(Logger.log).toHaveBeenCalledWith(
+            ...fieldLog([
+              { section: 'trending', field: 'title', value: title },
+            ]),
+          );
+        },
+      );
+
+      it.each([
+        ['a fraction', 2.5],
+        ['a numeric string', '5'],
+        ['NaN', Number.NaN],
+        ['Infinity', Number.POSITIVE_INFINITY],
+        ['null', null],
+      ])(
+        'drops and logs a limit that is %s, and keeps its section',
+        (_name, limit) => {
+          const home = parseHome({
+            sections: [
+              { ...trending, limit },
+              { ...politics, limit },
+            ],
+          });
+
+          expect(home).toEqual({ sections: [trending, politics] });
+          expect(Logger.log).toHaveBeenCalledTimes(1);
+          expect(Logger.log).toHaveBeenCalledWith(
+            ...fieldLog([
+              { section: 'trending', field: 'limit', value: limit },
+              { section: 'politics', field: 'limit', value: limit },
+            ]),
+          );
+        },
+      );
+
+      it.each([
+        [0, 1],
+        [-3, 1],
+        [1, 1],
+        [10, 10],
+        [11, 10],
+        [500, 10],
+      ])('clamps a limit of %d to %d', (limit, expected) => {
+        const home = parseHome({
+          sections: [
+            { ...trending, limit },
+            { ...politics, limit },
+          ],
+        });
+
+        expect(home).toEqual({
+          sections: [
+            { ...trending, limit: expected },
+            { ...politics, limit: expected },
+          ],
+        });
+        expect(Logger.log).not.toHaveBeenCalled();
+      });
+
+      it('ignores a limit on a games row, which takes none', () => {
+        expect(parseHome({ sections: [{ ...sportsRow, limit: 3 }] })).toEqual({
+          sections: [sportsRow],
+        });
+      });
+
+      it('keeps the title and limit of a Trending trimmed to the Feed reads that fit', () => {
+        const manyFeeds = Object.fromEntries(
+          Array.from({ length: 9 }, (_, index) => [
+            `feed-${index + 1}`,
+            `feed-id-${index + 1}`,
+          ]),
+        );
+        const sources = Object.keys(manyFeeds);
+
+        const home = parsePredictVenueCatalog(
+          createCatalog({
+            feeds: manyFeeds,
+            home: {
+              sections: [
+                { kind: 'trending', sources, title: 'Live now', limit: 5 },
+              ],
+            },
+          }),
+          venueId,
+        ).home;
+
+        expect(home?.sections).toEqual([
+          {
+            kind: 'trending',
+            sources: sources.slice(0, 8),
+            title: 'Live now',
+            limit: 5,
+          },
+        ]);
+      });
+
+      it('logs no field of a section it drops', () => {
+        const repeated = { ...politics, limit: 'five' };
+
+        parseHome({ sections: [politics, repeated] });
+
+        expect(Logger.log).toHaveBeenCalledTimes(1);
+        expect(Logger.log).toHaveBeenCalledWith(...droppedLog([repeated]));
+      });
     });
 
     describe('Feed reads', () => {
