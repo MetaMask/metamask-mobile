@@ -2,23 +2,21 @@
  * Networks integration-test harness (Shape A).
  *
  * Owns messenger wiring for real NetworkController /
- * NetworkEnablementController / MultichainNetworkController /
- * TokensController and a `buildNetworksIntegrationHarness()` factory.
+ * NetworkEnablementController / MultichainNetworkController and a
+ * `buildNetworksIntegrationHarness()` factory.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * REAL (runs production code paths):
  *   - NetworkController — addNetwork / removeNetwork / in-memory configs
  *   - NetworkEnablementController — enablement map (listens to networkAdded)
  *   - MultichainNetworkController — constructed for Shape B reuse
- *   - TokensController — allTokens keyed by chainId; wipes on NC remove
  *
  * MOCKED (the I/O boundary — never makes real network calls):
  *   - global fetch (Slip44 / MultichainNetworkService / RPC)
  *   - MultichainNetworkService.fetchNetworkActivity
  *   - ConnectivityController:getState / RemoteFeatureFlagController:getState
  *     messenger handlers (required by NetworkController constructor)
- *   - AccountsController account actions (selected account fixture)
- *   - ApprovalController:addRequest / TokenListService / eth provider
+ *   - AccountsController:listMultichainAccounts
  * ─────────────────────────────────────────────────────────────────────────
  *
  * USAGE — see also tests/integration/AGENTS.md
@@ -45,11 +43,6 @@ import {
   MultichainNetworkController,
   type MultichainNetworkControllerMessenger,
 } from '@metamask/multichain-network-controller';
-import {
-  TokensController,
-  type TokensControllerMessenger,
-  type TokensControllerState,
-} from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 
 /**
@@ -67,10 +60,6 @@ type NetworksHarnessRootMessenger = Messenger<
 /** Gnosis-like custom chain used by Core UX smoke tests. */
 export const HARNESS_CUSTOM_CHAIN_ID = '0x64' as Hex;
 
-/** Selected EVM account used when seeding TokensController state. */
-export const HARNESS_ACCOUNT_ADDRESS =
-  '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-
 export const HARNESS_CUSTOM_NETWORK_FIELDS: AddNetworkFields = {
   chainId: HARNESS_CUSTOM_CHAIN_ID,
   name: 'Gnosis',
@@ -86,22 +75,6 @@ export const HARNESS_CUSTOM_NETWORK_FIELDS: AddNetworkFields = {
   ],
 };
 
-/** Seeded mainnet token — must survive custom-network removal. */
-export const HARNESS_MAINNET_TOKEN = {
-  address: '0x1111111111111111111111111111111111111111',
-  symbol: 'MAIN',
-  decimals: 18,
-  aggregators: [] as string[],
-};
-
-/** Seeded custom-chain token — wiped when 0x64 is removed. */
-export const HARNESS_CUSTOM_TOKEN = {
-  address: '0x2222222222222222222222222222222222222222',
-  symbol: 'GNO',
-  decimals: 18,
-  aggregators: [] as string[],
-};
-
 export interface NetworksIntegrationHarnessOptions {
   /** When true, also seeds Polygon (0x89) via addNetwork. */
   seedPolygon?: boolean;
@@ -111,7 +84,6 @@ export interface NetworksIntegrationHarness {
   networkController: NetworkController;
   networkEnablementController: NetworkEnablementController;
   multichainNetworkController: MultichainNetworkController;
-  tokensController: TokensController;
   rootMessenger: NetworksHarnessRootMessenger;
   mocks: {
     fetch: jest.Mock;
@@ -124,20 +96,6 @@ export interface NetworksIntegrationHarness {
 }
 
 const INFURA_PROJECT_ID = '00000000000000000000000000000000';
-
-const HARNESS_ACCOUNT = {
-  id: 'networks-harness-account',
-  address: HARNESS_ACCOUNT_ADDRESS,
-  type: 'eip155:eoa',
-  options: {},
-  methods: [],
-  scopes: ['eip155:0'],
-  metadata: {
-    name: 'Harness Account',
-    importTime: 0,
-    keyring: { type: 'HD Key Tree' },
-  },
-} as const;
 
 const POLYGON_NETWORK_FIELDS: AddNetworkFields = {
   chainId: '0x89',
@@ -163,21 +121,6 @@ function createMockFetch(): jest.Mock {
   }));
 }
 
-function buildSeededTokensState(): Partial<TokensControllerState> {
-  return {
-    allTokens: {
-      '0x1': {
-        [HARNESS_ACCOUNT_ADDRESS]: [HARNESS_MAINNET_TOKEN],
-      },
-      [HARNESS_CUSTOM_CHAIN_ID]: {
-        [HARNESS_ACCOUNT_ADDRESS]: [HARNESS_CUSTOM_TOKEN],
-      },
-    },
-    allIgnoredTokens: {},
-    allDetectedTokens: {},
-  };
-}
-
 export function buildNetworksIntegrationHarness(
   options: NetworksIntegrationHarnessOptions = {},
 ): NetworksIntegrationHarness {
@@ -192,7 +135,7 @@ export function buildNetworksIntegrationHarness(
   }) as NetworksHarnessRootMessenger;
 
   // Stub handlers that NetworkController / MultichainNetworkController /
-  // TokensController call via the root messenger during construction.
+  // NetworkEnablementController call via the root messenger.
   rootMessenger.registerActionHandler(
     'ConnectivityController:getState',
     () =>
@@ -217,22 +160,6 @@ export function buildNetworksIntegrationHarness(
   rootMessenger.registerActionHandler(
     'AccountsController:listMultichainAccounts',
     () => [] as never,
-  );
-  rootMessenger.registerActionHandler(
-    'AccountsController:getSelectedAccount',
-    () => HARNESS_ACCOUNT as never,
-  );
-  rootMessenger.registerActionHandler(
-    'AccountsController:getAccount',
-    () => HARNESS_ACCOUNT as never,
-  );
-  rootMessenger.registerActionHandler(
-    'AccountsController:listAccounts',
-    () => [HARNESS_ACCOUNT] as never,
-  );
-  rootMessenger.registerActionHandler(
-    'ApprovalController:addRequest',
-    async () => undefined as never,
   );
 
   // --- NetworkController -------------------------------------------------
@@ -312,42 +239,6 @@ export function buildNetworksIntegrationHarness(
     messenger: networkEnablementMessenger,
   });
 
-  // --- TokensController --------------------------------------------------
-  // Mirror production getTokensControllerMessenger. Seeded allTokens prove
-  // the NC remove → TokensController wipe seam (UX-NET-TOKEN-WIPE).
-  const tokensControllerMessenger = new Messenger({
-    namespace: 'TokensController',
-    parent: rootMessenger,
-  }) as TokensControllerMessenger;
-
-  rootMessenger.delegate({
-    messenger: tokensControllerMessenger,
-    actions: [
-      'ApprovalController:addRequest',
-      'NetworkController:getNetworkClientById',
-      'AccountsController:getAccount',
-      'AccountsController:getSelectedAccount',
-      'AccountsController:listAccounts',
-    ],
-    events: [
-      'NetworkController:networkDidChange',
-      'NetworkController:stateChange',
-      'AccountsController:selectedEvmAccountChange',
-      'KeyringController:accountRemoved',
-    ],
-  });
-
-  const tokensController = new TokensController({
-    chainId: '0x1',
-    provider: {} as never,
-    messenger: tokensControllerMessenger,
-    tokenListService: {
-      fetchTokensByChainId: jest.fn().mockResolvedValue({}),
-    } as never,
-    state: buildSeededTokensState(),
-    isDeprecated: () => false,
-  });
-
   if (seedPolygon) {
     networkController.addNetwork(POLYGON_NETWORK_FIELDS);
   }
@@ -363,7 +254,6 @@ export function buildNetworksIntegrationHarness(
     networkController,
     networkEnablementController,
     multichainNetworkController,
-    tokensController,
     rootMessenger,
     mocks: {
       fetch: fetchMock,

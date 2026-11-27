@@ -102,9 +102,6 @@ const mockGasFeeController = {
   startPolling: jest.fn().mockReturnValue('perps-gas-poll-token'),
   stopPollingByPollingToken: jest.fn(),
 };
-const mockTokensController = {
-  addToken: jest.fn().mockResolvedValue(undefined),
-};
 const mockTransactionPayController = {
   updatePaymentToken: jest.fn(),
   setTransactionConfig: jest.fn(
@@ -189,7 +186,6 @@ function installMockEngineContext() {
     NetworkController: mockNetworkController,
     NetworkEnablementController: mockNetworkEnablementController,
     GasFeeController: mockGasFeeController,
-    TokensController: mockTokensController,
     TransactionPayController: mockTransactionPayController,
     TransactionController: mockTransactionController,
   });

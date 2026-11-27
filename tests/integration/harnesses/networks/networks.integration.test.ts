@@ -1,15 +1,11 @@
 /**
  * Networks integration harness — Shape A.
- * Proves real NetworkController addNetwork / removeNetwork with mocked I/O,
- * and TokensController wipe when a network config is removed.
+ * Proves real NetworkController addNetwork / removeNetwork with mocked I/O.
  */
 
 import {
   buildNetworksIntegrationHarness,
-  HARNESS_ACCOUNT_ADDRESS,
   HARNESS_CUSTOM_CHAIN_ID,
-  HARNESS_CUSTOM_TOKEN,
-  HARNESS_MAINNET_TOKEN,
 } from './networks';
 
 describe('Networks integration harness — Shape A', () => {
@@ -58,30 +54,5 @@ describe('Networks integration harness — Shape A', () => {
         HARNESS_CUSTOM_CHAIN_ID
       ],
     ).toBeUndefined();
-  });
-
-  it('wipes TokensController state for a removed network without touching mainnet tokens', () => {
-    const { tokensController, addCustomNetwork, removeCustomNetwork } =
-      buildNetworksIntegrationHarness();
-
-    addCustomNetwork();
-
-    expect(
-      tokensController.state.allTokens[HARNESS_CUSTOM_CHAIN_ID]?.[
-        HARNESS_ACCOUNT_ADDRESS
-      ],
-    ).toEqual([HARNESS_CUSTOM_TOKEN]);
-    expect(
-      tokensController.state.allTokens['0x1']?.[HARNESS_ACCOUNT_ADDRESS],
-    ).toEqual([HARNESS_MAINNET_TOKEN]);
-
-    removeCustomNetwork();
-
-    expect(
-      tokensController.state.allTokens[HARNESS_CUSTOM_CHAIN_ID],
-    ).toBeUndefined();
-    expect(
-      tokensController.state.allTokens['0x1']?.[HARNESS_ACCOUNT_ADDRESS],
-    ).toEqual([HARNESS_MAINNET_TOKEN]);
   });
 });

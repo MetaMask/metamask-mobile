@@ -151,9 +151,9 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
     expect(engine.context).toHaveProperty('AssetsController');
+    expect(engine.context).not.toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
-    expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
@@ -1510,18 +1510,14 @@ describe('Engine', () => {
       expect(clearStateSpy).toHaveBeenCalled();
     });
 
-    it('clears asset controllers kept after the legacy cleanup', async () => {
+    it('clears NftController state', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const tokensResetSpy = jest
-        .spyOn(engine.context.TokensController, 'resetState')
-        .mockImplementation(() => undefined);
       const nftResetSpy = jest
         .spyOn(engine.context.NftController, 'resetState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();
 
-      expect(tokensResetSpy).toHaveBeenCalled();
       expect(nftResetSpy).toHaveBeenCalled();
     });
 

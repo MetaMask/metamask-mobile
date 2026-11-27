@@ -208,8 +208,6 @@ export function getTransactionControllerInitMessenger(
       'RampsController:getQuotes',
       // @ts-expect-error See above
       'RampsController:getState',
-      // @ts-expect-error See above
-      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',

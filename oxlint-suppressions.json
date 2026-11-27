@@ -20853,7 +20853,7 @@
       "count": 2
     },
     "typescript/prefer-readonly": {
-      "count": 2
+      "count": 1
     },
     "typescript/promise-function-async": {
       "count": 1
@@ -20897,7 +20897,7 @@
   },
   "app/core/Engine/controllers/assets-controller/assets-controller-init.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 6
+      "count": 5
     },
     "typescript/promise-function-async": {
       "count": 1
@@ -21355,11 +21355,6 @@
   },
   "app/core/Engine/controllers/smart-transactions-controller-init.ts": {
     "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/core/Engine/controllers/tokens-controller-init.ts": {
-    "typescript/unbound-method": {
       "count": 1
     }
   },

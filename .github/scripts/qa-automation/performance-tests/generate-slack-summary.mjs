@@ -55,6 +55,14 @@ export function buildSlackMessage(summary, options = {}) {
   return lines.join('\n');
 }
 
+/** Terminal job conclusions that mean the job recorded no results. */
+const NO_RESULT_CONCLUSIONS = new Set([
+  'failure',
+  'timed_out',
+  'cancelled',
+  'startup_failure',
+]);
+
 /** True when a performance test job failed without leaving failed-test rows. */
 export async function performanceJobFailed(env = process.env) {
   const { GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_RUN_ID } = env;
@@ -77,7 +85,8 @@ export async function performanceJobFailed(env = process.env) {
     const body = await response.json();
     return (body.jobs ?? []).some(
       (job) =>
-        job.conclusion === 'failure' && /Performance Test|HyperExecute/i.test(job.name ?? ''),
+        NO_RESULT_CONCLUSIONS.has(job.conclusion) &&
+        /Performance Test|HyperExecute/i.test(job.name ?? ''),
     );
   } catch {
     return false;
