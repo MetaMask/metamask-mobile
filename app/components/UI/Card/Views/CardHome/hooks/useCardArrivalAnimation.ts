@@ -32,6 +32,8 @@ interface UseCardArrivalAnimationParams {
   fromCardOnboarding: boolean;
   cardType: CardType | undefined;
   isRevealingCardDetails: boolean;
+  /** False while the device or network can't run Rive; the reveal waits. */
+  isRiveAllowed?: boolean;
 }
 
 /**
@@ -43,6 +45,7 @@ export const useCardArrivalAnimation = ({
   fromCardOnboarding,
   cardType,
   isRevealingCardDetails,
+  isRiveAllowed = true,
 }: UseCardArrivalAnimationParams) => {
   const dispatch = useDispatch();
   const arrivalFlagEnabled = useSelector(selectCardArrivalAnimationEnabledFlag);
@@ -50,7 +53,7 @@ export const useCardArrivalAnimation = ({
   // its own kill-switch is on — otherwise we fade in the static card and still
   // burn the one-shot.
   const tiltFlagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
-  const canPlayReveal = arrivalFlagEnabled && tiltFlagEnabled;
+  const canPlayReveal = arrivalFlagEnabled && tiltFlagEnabled && isRiveAllowed;
   const alreadySeen = useSelector(selectCardArrivalAnimationSeen);
   const previewRequested = useSelector(selectCardArrivalPreviewRequested);
   const reduceMotion = useReduceMotionState();
@@ -139,6 +142,8 @@ export const useCardArrivalAnimation = ({
   return {
     /** Yields to the static card once the user asks for their details. */
     usesRiveCard: hasStartedReveal && !isRevealingCardDetails,
+    /** Stays true while the details are open, unlike `usesRiveCard`. */
+    hasStartedReveal,
     /** False once consumed, so a remount renders settled instead of replaying. */
     playReveal: hasStartedReveal && !revealConsumed.current,
     revealKey,

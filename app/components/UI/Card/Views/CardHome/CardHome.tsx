@@ -127,10 +127,12 @@ import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
+import cardArtFallbackPng from '../../../../../images/mm_card_regular.png';
 import CardImage from '../../components/CardImage';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
+import CardFreezeUnfreezeAnimation from '../../components/CardFreezeUnfreezeAnimation';
 import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
 import { cardQueries } from '../../queries';
 import CardHomeActionButtonRow, {
@@ -140,6 +142,7 @@ import CardHomeMoreSheet from './components/CardHomeMoreSheet';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
+import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
@@ -404,6 +407,31 @@ const CardHome = () => {
     rawTokenBalance: primaryToken?.rawTokenBalance,
     rawFiatNumber: primaryToken?.rawFiatNumber,
   });
+
+  const [showFreezeAnimation, setShowFreezeAnimation] = useState(false);
+  // While the card is frozen, the Rive view holds the Freeze pose (no
+  // timeout — the static art only returns after the unfreeze Melt plays
+  // out). A card that loads already frozen also activates the animation.
+  useEffect(() => {
+    if (actions.freeze.isSuccess || actions.unfreeze.isSuccess) {
+      setShowFreezeAnimation(true);
+      // Only the unfreeze success schedules a return to static — the Melt
+      // plays for ~3s before the card art swaps back.
+      // Both mutations keep isSuccess after they settle, so key the return
+      // to static off the card's current state, not off unfreeze.isSuccess.
+      if (!isFrozen) {
+        const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess, isFrozen]);
+
+  // A card that loads already frozen activates the animation at mount.
+  useEffect(() => {
+    if (isFrozen && isAuthenticated && !isLoading) {
+      setShowFreezeAnimation(true);
+    }
+  }, [isFrozen, isAuthenticated, isLoading]);
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
     useState(false);
@@ -870,16 +898,79 @@ const CardHome = () => {
     isAuthenticated;
   const isFreezeLoading =
     actions.freeze.isPending || actions.unfreeze.isPending;
+  const isCardDetailsLoading =
+    actions.isCardDetailsLoading || actions.isSensitiveDetailsLoading;
 
+  // The card-details reveal signal (also drives useCardArrivalAnimation):
+  // the details flow occupies the card art while it loads or shows details.
+  const isRevealingCardDetails =
+    actions.isCardDetailsLoading ||
+    actions.isSensitiveDetailsLoading ||
+    Boolean(actions.cardSensitiveDetails) ||
+    Boolean(actions.cardDetailsImageUrl);
+
+  // Offline: no Rive, on every hardware tier. A low-end phone on a slow
+  // cell connection skips it too. An unknown network keeps the animation.
+  const allowCardRive =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
     cardType: data?.card?.type,
-    isRevealingCardDetails:
-      actions.isCardDetailsLoading ||
-      actions.isSensitiveDetailsLoading ||
-      Boolean(actions.cardSensitiveDetails) ||
-      Boolean(actions.cardDetailsImageUrl),
+    isRevealingCardDetails,
+    isRiveAllowed: allowCardRive,
   });
+  const reduceMotion = useReduceMotion();
+
+  // The arrival reveal holds the card only until a Freeze or Unfreeze press
+  // this visit; then the freeze file takes over so the ice or melt plays.
+  const hasUsedFreezeThisVisit =
+    actions.freeze.isPending ||
+    actions.freeze.isSuccess ||
+    actions.freeze.isError ||
+    actions.unfreeze.isPending ||
+    actions.unfreeze.isSuccess ||
+    actions.unfreeze.isError;
+  const arrivalHoldsCard = arrival.hasStartedReveal && !hasUsedFreezeThisVisit;
+
+  // The freeze file only contains the virtual face. Metal and physical cards,
+  // a blocked card (which dims), and the arrival reveal keep their own art.
+  // Setup reconciliation keeps the image skeleton.
+  // Under Reduce Motion the animation would only show a still image, so the
+  // card image (which dims a frozen card) is used and the .riv never loads.
+  const showFreezeCardArt =
+    allowCardRive &&
+    !reduceMotion &&
+    !arrivalHoldsCard &&
+    !isSetupReconciling &&
+    data?.card?.type === CardType.VIRTUAL &&
+    data?.card?.status !== CardStatus.BLOCKED &&
+    (showFreezeAnimation || (isAuthenticated && !isLoading));
+
+  // Freezing or unfreezing while the card details are open closes them, so
+  // the Freeze/Melt animation is what plays instead of the details. The
+  // animation starts on the optimistic isFrozen flip, so this clears as the
+  // request starts, not when it settles. Only the start transition clears —
+  // details opened afterwards stay open.
+  const wasFreezePendingRef = useRef(false);
+  const wasUnfreezePendingRef = useRef(false);
+  const { clearCardDetails } = actions;
+  useEffect(() => {
+    const freezeJustStarted =
+      actions.freeze.isPending && !wasFreezePendingRef.current;
+    const unfreezeJustStarted =
+      actions.unfreeze.isPending && !wasUnfreezePendingRef.current;
+    wasFreezePendingRef.current = actions.freeze.isPending;
+    wasUnfreezePendingRef.current = actions.unfreeze.isPending;
+    if ((freezeJustStarted || unfreezeJustStarted) && isRevealingCardDetails) {
+      clearCardDetails();
+    }
+  }, [
+    actions.freeze.isPending,
+    actions.unfreeze.isPending,
+    isRevealingCardDetails,
+    clearCardDetails,
+  ]);
 
   // Activity / Manage segments only in the active and frozen states of a
   // fully set-up card whose history is the provider feed. Money-history users
@@ -1196,17 +1287,68 @@ const CardHome = () => {
               />
             )}
 
-            {/* Card art sits on the page at full content width (no panel). */}
-            <Box twClassName="mt-4 mx-4">
+            {/* Card art sits on the page at full content width (no panel).
+                Stacked above the content below so the freeze animation's
+                drips fall over the action buttons; the animation overlay
+                itself ignores touches (pointerEvents="none"). */}
+            <Box twClassName="mt-4 mx-4 z-20 overflow-visible">
               <Animated.View
-                style={[tw.style('w-full relative'), arrival.cardStyle]}
+                style={[
+                  tw.style('w-full relative overflow-visible'),
+                  arrival.cardStyle,
+                ]}
               >
                 {/* Muted while identity is in review, so the card doesn't look ready. */}
                 <Box
-                  twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+                  twClassName={`overflow-visible ${isSignedOutKycPending ? 'opacity-50' : ''}`}
                   testID={CardHomeSelectors.CARD_ART}
                 >
-                  {arrival.usesRiveCard ? (
+                  {/* Freeze/unfreeze only fire triggers on the mounted virtual
+                      face. While the card details are revealed it is only
+                      hidden, and the details render on top at the card face's
+                      exact bounds. */}
+                  {showFreezeCardArt ? (
+                    // Every wrapper stays overflow-visible: Android clips by
+                    // default, which would cut the drips off at the card edge.
+                    <Box twClassName="relative overflow-visible">
+                      <Box
+                        twClassName={
+                          isRevealingCardDetails
+                            ? 'overflow-visible opacity-0'
+                            : 'overflow-visible'
+                        }
+                        testID={CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER}
+                      >
+                        <CardFreezeUnfreezeAnimation
+                          isFrozen={isFrozen && isAuthenticated}
+                          fallbackSource={cardArtFallbackPng}
+                          width={windowWidth - 32}
+                          testID={CardHomeSelectors.CARD_FREEZE_RIVE}
+                        />
+                      </Box>
+                      {isRevealingCardDetails && (
+                        <Box twClassName="absolute inset-0">
+                          <CardImageSection
+                            isLoading={isLoading || isSetupReconciling}
+                            isCardDetailsLoading={
+                              actions.isCardDetailsLoading ||
+                              actions.isSensitiveDetailsLoading
+                            }
+                            cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                            isCardDetailsImageLoading={
+                              actions.isCardDetailsImageLoading
+                            }
+                            onImageLoad={actions.onCardDetailsImageLoad}
+                            onImageError={actions.onCardDetailsImageError}
+                            cardSensitiveDetails={actions.cardSensitiveDetails}
+                            onCopyDetail={actions.copyCardDetail}
+                            cardType={data?.card?.type}
+                            cardStatus={data?.card?.status}
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  ) : arrival.usesRiveCard && allowCardRive ? (
                     <MoneyCardTiltAnimation
                       key={arrival.revealKey}
                       isMetalCard={hasMetalCard}
@@ -1323,13 +1465,14 @@ const CardHome = () => {
                           void actions.handleToggleFreeze();
                         },
                         isFrozen,
-                        disabled: isFreezeLoading,
+                        // A details fetch in flight would cover the freeze
+                        // animation, and clearing details cannot cancel it.
+                        disabled: isFreezeLoading || isCardDetailsLoading,
                       }
                     : undefined
                 }
               />
             )}
-
             {showHomeSegments && (
               <Box twClassName="px-4 mt-4 mb-4">
                 <SegmentedControl
