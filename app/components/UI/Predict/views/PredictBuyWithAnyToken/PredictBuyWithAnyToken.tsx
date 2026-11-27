@@ -176,6 +176,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { data: predictBalance, isLoading: isPredictBalanceLoading } =
     usePredictBalance();
   const { selectedPaymentToken } = usePredictPaymentToken();
+  const [paymentTokenAtSelectorOpen, setPaymentTokenAtSelectorOpen] =
+    useState<typeof selectedPaymentToken>(null);
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
   useAddToken({
@@ -275,7 +277,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     predictBalance !== undefined &&
     predictBalance >= requiredPredictBalance;
   const isExplicitTokenSelection =
-    hasOpenedPaymentSelector && Boolean(selectedPaymentToken);
+    hasOpenedPaymentSelector &&
+    Boolean(selectedPaymentToken) &&
+    selectedPaymentToken !== paymentTokenAtSelectorOpen;
 
   // Money Account is not reachable through this view's own pay-token
   // defaulting, so opt this flow into the shared money-account selection.
@@ -394,8 +398,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handlePaymentSelectorOpen = useCallback(() => {
     setHasOpenedPaymentSelector(true);
+    setPaymentTokenAtSelectorOpen(selectedPaymentToken);
     lockPaymentSelectorNavigation();
-  }, [lockPaymentSelectorNavigation]);
+  }, [lockPaymentSelectorNavigation, selectedPaymentToken]);
 
   const handleChangePaymentMethod = useCallback(() => {
     handlePaymentSelectorOpen();

@@ -1308,6 +1308,27 @@ describe('PredictBuyWithAnyToken', () => {
       });
     });
 
+    it('keeps automatic Money Account selection enabled when the user opens Pay with without changing the default token', () => {
+      mockCurrentValue = 30;
+      mockPredictBalance = 25;
+      mockIsPredictBalanceLoading = false;
+      mockSelectedPaymentToken = {
+        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC',
+      };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyWithAnyToken {...sheetProps} />,
+      );
+      fireEvent.press(screen.getByTestId('predict-pay-with-row'));
+      rerender(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenLastCalledWith({
+        disable: false,
+      });
+    });
+
     it('calls enterPayWithAnyToken with clearError true when Money Account becomes selected', () => {
       mockIsMoneyAccountSelected = false;
       mockActiveOrder = { state: 'preview' };
