@@ -406,7 +406,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       )}
       {showPerpsSection && perpsPosition && (
         <View style={styles.perpsPositionCardContainer}>
-          <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
+          <Text variant={TextVariant.HeadingMd} className="mb-2 px-4">
             {strings('asset_overview.perps_position')}
           </Text>
           <PerpsCard
@@ -443,7 +443,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   return (
-    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box className="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {headerSpacer}
       {token.hasBalanceError ? (
         renderWarning()

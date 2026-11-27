@@ -58,9 +58,7 @@ const Root = ({ foxCode }: RootProps) => {
 
   // We use a ref to make sure the UI messenger is only created once.
   const uiMessengerRef = useRef<UIMessenger | null>(null);
-  if (!uiMessengerRef.current) {
-    uiMessengerRef.current = createUIMessenger();
-  }
+  uiMessengerRef.current ??= createUIMessenger();
 
   const uiMessenger = uiMessengerRef.current;
 

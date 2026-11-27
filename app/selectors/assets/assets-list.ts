@@ -701,7 +701,7 @@ function assetToToken(
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
-  const balanceAmount = parseFloat(asset.balance);
+  const balanceAmount = Number.parseFloat(asset.balance);
 
   return {
     address: asset.assetId,

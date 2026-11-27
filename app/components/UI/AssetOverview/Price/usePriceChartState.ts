@@ -436,7 +436,7 @@ export const usePriceChartState = ({
 
   const completeVisibilityTrace = useCallback(() => {
     const open = activeVisibilityTraceRef.current;
-    if (!open || open.seriesKey !== visibilityTraceStartedRef.current) {
+    if (open?.seriesKey !== visibilityTraceStartedRef.current) {
       return;
     }
     endTrace({
@@ -839,7 +839,7 @@ export const usePriceChartState = ({
   if (realtimeHold.tracked !== realtimeClose) {
     setRealtimeHold({
       tracked: realtimeClose,
-      last: realtimeClose !== undefined ? realtimeClose : realtimeHold.last,
+      last: realtimeClose ?? realtimeHold.last,
     });
   }
   const stablePrice = realtimeClose ?? realtimeHold.last;

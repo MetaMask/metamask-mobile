@@ -67,13 +67,17 @@ function useListenToLivePrices(): boolean {
 /** The open screen subscribes as this caller. */
 const UI_CALLER = 'ui';
 
-function subscribeMarketStats(
+async function subscribeMarketStats(
   subscriptions: { assetId: string; currency: string }[],
-): void {
+): Promise<void> {
   try {
-    Engine.controllerMessenger
-      .call('MarketStatsService:subscribe', subscriptions, UI_CALLER)
-      .catch(() => undefined);
+    // One `try` covers both failure modes: `call` throws synchronously when no
+    // handler is registered, and the returned promise can reject.
+    await Engine.controllerMessenger.call(
+      'MarketStatsService:subscribe',
+      subscriptions,
+      UI_CALLER,
+    );
   } catch {
     // The service is absent until the wallet messenger has MarketStatsService.
   }
@@ -105,13 +109,15 @@ export function useMarketStatsSubscription(assetIds: readonly string[]): void {
     let sent = false;
     const timer = setTimeout(() => {
       sent = true;
-      subscribeMarketStats(assetIds.map((assetId) => ({ assetId, currency })));
+      void subscribeMarketStats(
+        assetIds.map((assetId) => ({ assetId, currency })),
+      );
     }, SUBSCRIBE_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timer);
       if (sent) {
-        subscribeMarketStats([]);
+        void subscribeMarketStats([]);
       }
     };
   }, [assetIds, currency, listen]);

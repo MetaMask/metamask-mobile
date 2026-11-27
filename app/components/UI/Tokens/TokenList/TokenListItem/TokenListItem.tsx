@@ -518,7 +518,7 @@ export const TokenListItem = React.memo(
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        twClassName="uppercase"
+        className="uppercase"
       >
         {'-'}
       </Text>
@@ -565,7 +565,7 @@ export const TokenListItem = React.memo(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="flex-1 ml-5 gap-2.5"
+            className="ml-5 flex-1 gap-2.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -575,7 +575,7 @@ export const TokenListItem = React.memo(
             >
               {asset.name || asset.symbol}
             </Text>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -623,12 +623,12 @@ export const TokenListItem = React.memo(
         {assetLogoWithNetworkBadge}
 
         {/* Column 2*/}
-        <Box twClassName="flex-1 ml-5">
+        <Box className="ml-5 flex-1">
           {/* Row: 1 - Token name, label, earn CTA, stock badge */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
+            className="gap-2.5"
           >
             {/*
              * Token name and label
@@ -700,7 +700,7 @@ export const TokenListItem = React.memo(
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
+            className="gap-2.5"
           >
             {/* Token price and percentage change */}
             <View style={styles.percentageChange}>
@@ -708,7 +708,7 @@ export const TokenListItem = React.memo(
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="uppercase"
+                className="uppercase"
               >
                 {tokenPriceInFiat && !hideFiatForScamWarning
                   ? formatPriceWithSubscriptNotation(
@@ -723,7 +723,7 @@ export const TokenListItem = React.memo(
             </View>
 
             {/* Token balance */}
-            <Box twClassName="shrink">
+            <Box className="shrink">
               <SensitiveText
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}

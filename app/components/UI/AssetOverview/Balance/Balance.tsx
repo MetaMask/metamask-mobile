@@ -124,6 +124,87 @@ export const NetworkBadgeSource = (chainId: Hex) => {
   }
 };
 
+/**
+ * The asset's 1d change. A navigation param wins (e.g. the trending view),
+ * then the EVM token rates, then the multichain rates.
+ */
+const resolvePricePercentChange1d = ({
+  asset,
+  isEvmNetworkSelected,
+  evmPricePercentChange1d,
+  multichainAssetsRates,
+}: {
+  asset: TokenI;
+  isEvmNetworkSelected: boolean;
+  evmPricePercentChange1d: number | undefined;
+  multichainAssetsRates: ReturnType<typeof selectMultichainAssetsRates>;
+}) => {
+  if (
+    asset.pricePercentChange1d !== undefined &&
+    asset.pricePercentChange1d !== null
+  ) {
+    return asset.pricePercentChange1d;
+  }
+  if (isEvmNetworkSelected) {
+    return evmPricePercentChange1d;
+  }
+  return multichainAssetsRates[asset.address as CaipAssetType]?.marketData
+    ?.pricePercentChange?.P1D;
+};
+
+/**
+ * The secondary line under the main balance. Hidden, then the chart's override,
+ * then the live resting change, then the polled change.
+ */
+const resolveSecondaryBalance = ({
+  hidePercentageChange,
+  priceChangeOverride,
+  livePercent,
+  percentageText,
+}: {
+  hidePercentageChange?: boolean;
+  priceChangeOverride?: string;
+  livePercent?: number;
+  percentageText?: string;
+}): string | undefined => {
+  if (hidePercentageChange) {
+    return undefined;
+  }
+  if (priceChangeOverride !== undefined) {
+    return priceChangeOverride;
+  }
+  if (livePercent === undefined) {
+    return percentageText;
+  }
+  return formatSignedPercent(livePercent);
+};
+
+/** Colour of the secondary line. Same precedence as `resolveSecondaryBalance`. */
+const resolveSecondaryBalanceColor = ({
+  hidePercentageChange,
+  priceChangeOverride,
+  priceChangeOverrideColor,
+  livePercent,
+  percentageColor,
+}: {
+  hidePercentageChange?: boolean;
+  priceChangeOverride?: string;
+  priceChangeOverrideColor?: TextColor;
+  livePercent?: number;
+  percentageColor: TextColor;
+}): TextColor | undefined => {
+  if (hidePercentageChange) {
+    return undefined;
+  }
+  if (priceChangeOverride) {
+    return priceChangeOverrideColor;
+  }
+  if (livePercent === undefined) {
+    return percentageColor;
+  }
+  return percentColor(livePercent);
+};
+
 const Balance = ({
   asset,
   balanceCta,
@@ -173,40 +254,18 @@ const Balance = ({
     ),
   );
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
-  const getPricePercentChange1d = () => {
-    // First check if asset has pricePercentChange1d from navigation params (e.g., from trending view)
-    if (
-      asset?.pricePercentChange1d !== undefined &&
-      asset?.pricePercentChange1d !== null
-    ) {
-      return asset.pricePercentChange1d;
-    }
-    if (isEvmNetworkSelected) {
-      return evmPricePercentChange1d;
-    }
-    return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
-      ?.pricePercentChange?.P1D;
-  };
 
-  // Calculate percentage change and color for secondary balance
-  const pricePercentChange1d = getPricePercentChange1d();
+  const pricePercentChange1d = resolvePricePercentChange1d({
+    asset,
+    isEvmNetworkSelected,
+    evmPricePercentChange1d,
+    multichainAssetsRates: allMultichainAssetsRates,
+  });
   const hasPercentageChange =
     !isTestNet(asset.chainId as Hex) &&
     pricePercentChange1d !== null &&
     pricePercentChange1d !== undefined &&
     Number.isFinite(pricePercentChange1d);
-
-  // Determine the color for percentage change
-  let percentageColor = TextColor.Alternative;
-  if (hasPercentageChange) {
-    if (pricePercentChange1d === 0) {
-      percentageColor = TextColor.Alternative;
-    } else if (pricePercentChange1d > 0) {
-      percentageColor = TextColor.Success;
-    } else {
-      percentageColor = TextColor.Error;
-    }
-  }
 
   // Create percentage text for secondary balance
   const percentageText = hasPercentageChange
@@ -214,6 +273,22 @@ const Balance = ({
         2,
       )}%`
     : undefined;
+
+  const resolvedSecondaryBalance = resolveSecondaryBalance({
+    hidePercentageChange,
+    priceChangeOverride,
+    livePercent,
+    percentageText,
+  });
+  const resolvedSecondaryBalanceColor = resolveSecondaryBalanceColor({
+    hidePercentageChange,
+    priceChangeOverride,
+    priceChangeOverrideColor,
+    livePercent,
+    percentageColor: hasPercentageChange
+      ? percentColor(pricePercentChange1d)
+      : TextColor.Alternative,
+  });
 
   const tokenChainId = asset.chainId;
 
@@ -251,23 +326,8 @@ const Balance = ({
         disabled={isDisabled}
         asset={asset}
         balance={shownMainBalance}
-        secondaryBalance={
-          hidePercentageChange
-            ? undefined
-            : (priceChangeOverride ??
-              (livePercent === undefined
-                ? percentageText
-                : formatSignedPercent(livePercent)))
-        }
-        secondaryBalanceColor={
-          hidePercentageChange
-            ? undefined
-            : priceChangeOverride
-              ? priceChangeOverrideColor
-              : livePercent === undefined
-                ? percentageColor
-                : percentColor(livePercent)
-        }
+        secondaryBalance={resolvedSecondaryBalance}
+        secondaryBalanceColor={resolvedSecondaryBalanceColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
       >
