@@ -217,7 +217,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
 
   return (
     <Box
-      twClassName="flex-1"
+      className="flex-1"
       testID={SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP}
     >
       <MarketingMomentTitle
@@ -229,14 +229,14 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="w-full text-center pt-3"
+        className="w-full text-center pt-3"
       >
         {strings(
           'social_leaderboard.profile_onboarding.choose_x_identity_description',
         )}
       </Text>
 
-      <Box alignItems={BoxAlignItems.Center} twClassName="pt-10 w-full" gap={4}>
+      <Box alignItems={BoxAlignItems.Center} className="pt-10 w-full" gap={4}>
         <CrossDissolve
           showPrimary={draft.useXAvatar}
           alignItems="center"
@@ -304,7 +304,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
             </Box>
           }
           secondary={
-            <Box twClassName="self-stretch" gap={2}>
+            <Box className="self-stretch" gap={2}>
               <TextField
                 value={draft.username}
                 onChangeText={onUsernameChange}
@@ -341,7 +341,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
         />
       </Box>
 
-      <Box twClassName="mt-auto w-full pt-10 pb-4" gap={5}>
+      <Box className="mt-auto w-full pt-10 pb-4" gap={5}>
         <Switch
           label={strings(
             'social_leaderboard.profile_onboarding.use_x_username',

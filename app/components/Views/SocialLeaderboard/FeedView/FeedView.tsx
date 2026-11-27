@@ -446,7 +446,7 @@ const FeedView: React.FC<FeedViewProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: SectionListData<FeedItem, FeedSection> }) => (
-      <Box twClassName="px-4 pt-4 pb-1 bg-default">
+      <Box className="px-4 pt-4 pb-1 bg-default">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {section.dateLabel}
         </Text>
@@ -456,7 +456,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   );
 
   const renderItemSeparator = useCallback(
-    () => <Box twClassName="h-px bg-muted my-1" />,
+    () => <Box className="h-px bg-muted my-1" />,
     [],
   );
 
@@ -469,7 +469,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     return (
       <Box
         alignItems={BoxAlignItems.Center}
-        twClassName="py-4"
+        className="py-4"
         testID={FeedViewSelectorsIDs.FOOTER_LOADING}
       >
         <ActivityIndicator size="small" color={colors.icon.default} />
@@ -508,21 +508,21 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-8 py-16 gap-3"
+          className="flex-1 px-8 py-16 gap-3"
           testID={FeedViewSelectorsIDs.ERROR_STATE}
         >
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.feed.error.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('social_leaderboard.feed.error.description')}
           </Text>
@@ -530,7 +530,7 @@ const FeedView: React.FC<FeedViewProps> = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={refresh}
-            twClassName="self-center"
+            className="self-center"
             testID={FeedViewSelectorsIDs.RETRY_BUTTON}
           >
             {strings('social_leaderboard.feed.error.retry')}
@@ -588,7 +588,7 @@ const FeedView: React.FC<FeedViewProps> = ({
             ? BoxJustifyContent.Center
             : BoxJustifyContent.Between
         }
-        twClassName="px-4 py-3"
+        className="px-4 py-3"
         gap={3}
         onLayout={handleFilterRowLayout}
         testID={FeedViewSelectorsIDs.FILTER_ROW}
@@ -690,7 +690,7 @@ const FeedView: React.FC<FeedViewProps> = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       testID={FeedViewSelectorsIDs.CONTAINER}
     >
       {content}

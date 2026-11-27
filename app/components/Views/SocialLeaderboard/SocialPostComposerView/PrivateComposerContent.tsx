@@ -90,7 +90,7 @@ const PrivateComposerContent: React.FC = () => {
         }
         testID={SocialPostComposerViewSelectorsIDs.HEADER}
       />
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+      <Box alignItems={BoxAlignItems.Center} className="px-8 py-12">
         <TabEmptyState
           icon={
             <Box alignItems={BoxAlignItems.Center} gap={4} twClassName="w-full">
@@ -132,7 +132,7 @@ const PrivateComposerContent: React.FC = () => {
             twClassName: 'self-center rounded-xl',
             testID: SocialPostComposerViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
           }}
-          twClassName="w-full max-w-none"
+          className="w-full max-w-none"
           testID={SocialPostComposerViewSelectorsIDs.PRIVATE_STATE}
         />
       </Box>

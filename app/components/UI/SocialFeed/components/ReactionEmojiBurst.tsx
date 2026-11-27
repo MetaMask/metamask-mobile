@@ -199,7 +199,7 @@ const ReactionEmojiBurst: React.FC<ReactionEmojiBurstProps> = ({
   return (
     <Box
       pointerEvents="none"
-      twClassName="absolute overflow-visible"
+      className="absolute overflow-visible"
       style={[styles.origin, { left: originX, top: originY }]}
       testID={REACTION_EMOJI_BURST_TEST_ID}
       accessible={false}

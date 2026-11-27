@@ -37,7 +37,7 @@ const FollowingEmptyState: React.FC<FeedEmptyStateProps> = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1 px-8 py-16 gap-3"
+      className="flex-1 px-8 py-16 gap-3"
       testID={FeedViewSelectorsIDs.EMPTY_STATE}
     >
       <Icon
@@ -49,14 +49,14 @@ const FollowingEmptyState: React.FC<FeedEmptyStateProps> = ({
         variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings(`social_leaderboard.feed.${copyKey}.title`)}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings(`social_leaderboard.feed.${copyKey}.description`)}
       </Text>

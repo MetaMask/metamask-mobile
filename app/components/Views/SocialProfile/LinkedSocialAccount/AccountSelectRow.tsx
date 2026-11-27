@@ -73,7 +73,7 @@ const AccountSelectRow = ({
         <RadioButton isChecked={isSelected} isReadOnly />
       }
       accessoryGap={2}
-      twClassName={[
+      className={[
         showDivider ? 'border-t border-muted' : '',
         isSelected ? 'bg-primary-muted' : '',
       ]

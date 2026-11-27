@@ -67,7 +67,7 @@ const PositionSheetTradeSummary = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <Box twClassName="flex-1 min-w-0">
+        <Box className="flex-1 min-w-0">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -77,7 +77,7 @@ const PositionSheetTradeSummary = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
-              twClassName="shrink"
+              className="shrink"
             >
               {title}
             </Text>
@@ -102,12 +102,12 @@ const PositionSheetTradeSummary = ({
         </Box>
         <Box
           alignItems={BoxAlignItems.End}
-          twClassName="shrink-0 max-w-[45%] min-w-0"
+          className="shrink-0 max-w-[45%] min-w-0"
         >
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName={pnlClassName(isPnlPositive)}
+            className={pnlClassName(isPnlPositive)}
             numberOfLines={1}
           >
             {pnlValueLabel}
@@ -115,7 +115,7 @@ const PositionSheetTradeSummary = ({
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            twClassName={pnlClassName(isPnlPositive)}
+            className={pnlClassName(isPnlPositive)}
             numberOfLines={1}
           >
             {pnlPercentLabel}

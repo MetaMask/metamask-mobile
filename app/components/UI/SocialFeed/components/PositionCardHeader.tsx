@@ -149,11 +149,11 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
-      twClassName="w-full min-w-0"
+      className="w-full min-w-0"
       testID={props.testID}
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -165,12 +165,12 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
           >
             {symbol}
           </Text>
           {tagLabel ? (
-            <Tag severity={tagSeverity} twClassName="shrink-0">
+            <Tag severity={tagSeverity} className="shrink-0">
               {tagLabel}
             </Tag>
           ) : null}
@@ -203,7 +203,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         the row and squeeze the symbol it belongs to down to an ellipsis. */}
       <Box
         alignItems={BoxAlignItems.End}
-        twClassName="shrink-0 max-w-[45%] min-w-0"
+        className="shrink-0 max-w-[45%] min-w-0"
       >
         {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
             `0` but measures the real glyphs. Inter digits are proportional, so a
@@ -225,7 +225,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            twClassName={pnlClassName(isPnlPositive)}
+            className={pnlClassName(isPnlPositive)}
             numberOfLines={1}
           >
             {pnlValueLabel}
@@ -249,7 +249,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            twClassName={pnlClassName(isPnlPositive)}
+            className={pnlClassName(isPnlPositive)}
             numberOfLines={1}
           >
             {pnlLabel}

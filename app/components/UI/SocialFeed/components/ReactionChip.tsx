@@ -101,6 +101,22 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
           style: COUNT_TEXT_STYLE,
           twClassName: COUNT_TW_CLASS,
         }}
+        className={`border px-2 ${
+          isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
+        }`}
+        accessibilityState={{ selected: isSelected }}
+        onPress={onPress}
+        testID={testID}
+      ><View ref={emojiRef} collapsable={false}>
+            <Text variant={TextVariant.BodySm}>{emotion}</Text>
+          </View>
+        }
+        textProps={{
+          variant: TextVariant.BodySm,
+          color: TextColor.TextAlternative,
+          style: COUNT_TEXT_STYLE,
+          twClassName: COUNT_TW_CLASS,
+        }}
         twClassName={`border px-2 ${
           isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
         }`}

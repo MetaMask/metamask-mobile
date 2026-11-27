@@ -206,7 +206,7 @@ const SocialFeedPostFooter = ({
           alignItems={BoxAlignItems.Center}
           gap={2}
           testID={`${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-${postId}`}
-          twClassName="flex-1 min-w-0 flex-wrap"
+          className="flex-1 min-w-0 flex-wrap"
         >
           {chips.map((reaction) => (
             <ReactionChip
@@ -224,7 +224,7 @@ const SocialFeedPostFooter = ({
           ))}
           <ButtonBase
             size={ButtonBaseSize.Sm}
-            twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+            className={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
             accessibilityLabel={strings('social_leaderboard.feed.add_reaction')}
             onPress={onOpenPicker}
             testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${postId}`}
@@ -473,7 +473,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   return (
     <Box
       ref={postRef}
-      twClassName={
+      className={
         post.isPending
           ? 'overflow-visible py-2 opacity-60'
           : 'overflow-visible py-2'
@@ -510,7 +510,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
         {/* 8px before this group. The translation line keeps about 4px under
             its letters, so the space above the card reads near 12px. */}
-        <Box twClassName="mt-2 gap-3">
+        <Box className="mt-2 gap-3">
           {onPositionPress ? (
             <Pressable
               accessibilityRole="button"
@@ -532,7 +532,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
           )}
 
           {post.gifUri ? (
-            <Box twClassName="rounded-2xl overflow-hidden">
+            <Box className="rounded-2xl overflow-hidden">
               <SocialFeedGif
                 uri={post.gifUri}
                 visible={gifVisible}

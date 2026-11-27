@@ -131,7 +131,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextMuted}
-            twClassName="px-4 pt-2 pb-1"
+            className="px-4 pt-2 pb-1"
           >
             {strings('social_leaderboard.composer.section_tokens')}
           </Text>
@@ -150,7 +150,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextMuted}
-            twClassName="px-4 pt-2 pb-1"
+            className="px-4 pt-2 pb-1"
           >
             {strings('social_leaderboard.composer.section_perps')}
           </Text>
@@ -190,7 +190,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
-          <Box twClassName="absolute inset-0">
+          <Box className="absolute inset-0">
             <Pressable
               style={[
                 StyleSheet.absoluteFill,
@@ -213,7 +213,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
               >
                 {strings('social_leaderboard.composer.add_position_title')}
               </BottomSheetHeaderGlass>
-              <Box twClassName="px-4 pb-3">
+              <Box className="px-4 pb-3">
                 <FilterButtonGroup
                   value={tab}
                   onChange={handleTabChange}
@@ -238,7 +238,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
               <ScrollView>
                 {error && positions.length === 0 ? (
                   <Box
-                    twClassName="px-4 py-8 items-center gap-2"
+                    className="px-4 py-8 items-center gap-2"
                     testID={AddPositionBottomSheetSelectorsIDs.ERROR}
                   >
                     <Text
@@ -259,7 +259,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                 ) : isLoading && positions.length === 0 ? (
                   SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
                 ) : positions.length === 0 ? (
-                  <Box twClassName="items-center px-4 pt-8">
+                  <Box className="items-center px-4 pt-8">
                     <TabEmptyState
                       description={
                         showPostEmptyCopy
@@ -270,7 +270,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                         color: TextColor.TextDefault,
                         fontWeight: FontWeight.Medium,
                       }}
-                      twClassName="bg-transparent"
+                      className="bg-transparent"
                       testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
                     />
                   </Box>
@@ -288,7 +288,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                   testID={
                     AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER
                   }
-                  twClassName="px-4 pt-2 pb-4"
+                  className="px-4 pt-2 pb-4"
                 >
                   <TextButton
                     onPress={handleShowHiddenPositionInfo}

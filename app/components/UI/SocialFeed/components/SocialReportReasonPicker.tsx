@@ -31,11 +31,11 @@ const SocialReportReasonPicker: React.FC<SocialReportReasonPickerProps> = ({
   onSelectReason,
   onSubmit,
 }) => (
-  <Box twClassName="px-4 pb-10">
+  <Box className="px-4 pb-10">
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextDefault}
-      twClassName="mb-4"
+      className="mb-4"
     >
       {strings('social_leaderboard.entry_options.report_reason_description')}
     </Text>
@@ -54,7 +54,7 @@ const SocialReportReasonPicker: React.FC<SocialReportReasonPickerProps> = ({
         />
       ))}
     </Box>
-    <Box twClassName="mt-6">
+    <Box className="mt-6">
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}

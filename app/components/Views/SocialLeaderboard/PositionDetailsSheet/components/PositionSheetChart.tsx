@@ -255,7 +255,7 @@ const PositionSheetChart = ({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          twClassName={
+          className={
             activeMarker.isValuePositive
               ? 'text-success-default'
               : 'text-error-default'
@@ -452,7 +452,7 @@ const PositionSheetChart = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pb-2"
+          className="px-4 pb-2"
         >
           {timeAxisLabels.map((label, index) => (
             <Text

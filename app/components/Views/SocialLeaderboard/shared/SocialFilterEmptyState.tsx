@@ -32,22 +32,22 @@ const SocialFilterEmptyState: React.FC<SocialFilterEmptyStateProps> = ({
 }) => (
   <Box
     alignItems={BoxAlignItems.Center}
-    twClassName="w-full px-6 pt-12"
+    className="w-full px-6 pt-12"
     testID={testID}
   >
-    <Box alignItems={BoxAlignItems.Center} twClassName="gap-2">
+    <Box alignItems={BoxAlignItems.Center} className="gap-2">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('social_leaderboard.feed.filter_empty.title')}
       </Text>
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('social_leaderboard.feed.filter_empty.description')}
       </Text>
@@ -55,7 +55,7 @@ const SocialFilterEmptyState: React.FC<SocialFilterEmptyStateProps> = ({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Sm}
         onPress={onClear}
-        twClassName="self-center"
+        className="self-center"
         testID={SOCIAL_FILTER_EMPTY_CLEAR_TEST_ID}
       >
         {strings('social_leaderboard.feed.filter_empty.clear')}

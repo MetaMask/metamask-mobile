@@ -29,7 +29,7 @@ const ShareButtonSpinner = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-8 w-8"
+      className="h-8 w-8"
       accessibilityRole="progressbar"
       accessibilityLabel={strings('social_leaderboard.share_preparing')}
       testID={testID}

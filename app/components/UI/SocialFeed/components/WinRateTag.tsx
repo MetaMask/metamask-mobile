@@ -60,7 +60,7 @@ const WinRateTag: React.FC<WinRateTagProps> = ({
       startIconProps={
         isElite ? { testID: WIN_RATE_TAG_TROPHY_TEST_ID } : undefined
       }
-      twClassName="shrink-0"
+      className="shrink-0"
       testID={testID}
     >
       {isMocked && showMockedFields ? markMocked(label) : label}

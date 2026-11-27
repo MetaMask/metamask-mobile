@@ -44,7 +44,7 @@ export const SocialFeedFooter: React.FC<SocialFeedFooterProps> = ({
     {isFetchingNextPage ? (
       <Box
         alignItems={BoxAlignItems.Center}
-        twClassName="py-2"
+        className="py-2"
         testID={SOCIAL_FEED_NEXT_PAGE_TEST_ID}
       >
         <ActivityIndicator size="small" />

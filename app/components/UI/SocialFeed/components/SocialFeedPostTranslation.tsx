@@ -48,7 +48,7 @@ const FeedCommentBody = ({ text }: { text: string }) => {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         collapsable={false}
-        twClassName="absolute left-0 right-0 opacity-0"
+        className="absolute left-0 right-0 opacity-0"
       >
         <Text
           variant={TextVariant.BodySm}
@@ -155,7 +155,7 @@ const TranslationStatus = ({
   if (phase === 'failed') {
     return (
       <Box
-        twClassName="flex-row items-center gap-1"
+        className="flex-row items-center gap-1"
         accessibilityLiveRegion="polite"
       >
         <Text
@@ -348,7 +348,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   };
 
   return (
-    <Box twClassName="mt-2">
+    <Box className="mt-2">
       <FeedCommentBody
         key={`${post.id}:${visibleComment}`}
         text={visibleComment}

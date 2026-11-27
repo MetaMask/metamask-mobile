@@ -1063,7 +1063,7 @@ const MyProfileView: React.FC = () => {
 
         {isLoading && isOwner && !displayProfile ? (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             paddingTop={12}
             testID={MyProfileViewSelectorsIDs.LOADING}
@@ -1072,7 +1072,7 @@ const MyProfileView: React.FC = () => {
           </Box>
         ) : error && isOwner && !displayProfile ? (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             paddingHorizontal={4}
             paddingTop={12}
@@ -1162,7 +1162,7 @@ const MyProfileView: React.FC = () => {
               {isOwner ? (
                 <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                   {isPrivate ? null : (
-                    <Box twClassName="flex-1">
+                    <Box className="flex-1">
                       <Button
                         variant={ButtonVariant.Secondary}
                         isFullWidth
@@ -1176,7 +1176,7 @@ const MyProfileView: React.FC = () => {
                       </Button>
                     </Box>
                   )}
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
@@ -1192,7 +1192,7 @@ const MyProfileView: React.FC = () => {
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                 >
-                  <Box twClassName="flex-1">
+                  <Box className="flex-1">
                     {isBlocked ? (
                       <Button
                         variant={ButtonVariant.Secondary}
@@ -1235,7 +1235,7 @@ const MyProfileView: React.FC = () => {
             </Box>
 
             {isBlocked ? (
-              <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-12">
+              <Box alignItems={BoxAlignItems.Center} className="px-6 pt-12">
                 <TabEmptyState
                   icon={
                     <>
@@ -1258,14 +1258,14 @@ const MyProfileView: React.FC = () => {
                   description={strings(
                     'social_leaderboard.trader_profile.blocked_description',
                   )}
-                  twClassName="max-w-80"
+                  className="max-w-80"
                   testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
                 />
               </Box>
             ) : isPrivate ? (
               <>
                 <SectionDivider marginVertical={4} />
-                <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+                <Box alignItems={BoxAlignItems.Center} className="px-8 py-12">
                   <TabEmptyState
                     icon={
                       <Box
@@ -1325,7 +1325,7 @@ const MyProfileView: React.FC = () => {
                       twClassName: 'self-center rounded-xl',
                       testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
                     }}
-                    twClassName="w-full max-w-none"
+                    className="w-full max-w-none"
                     testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
                   />
                 </Box>
@@ -1341,9 +1341,9 @@ const MyProfileView: React.FC = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="bg-default mt-5 pr-4"
+                  className="bg-default mt-5 pr-4"
                 >
-                  <Box twClassName="min-w-0 flex-1">
+                  <Box className="min-w-0 flex-1">
                     <TabsBar
                       tabs={profileTabs}
                       activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
@@ -1392,7 +1392,7 @@ const MyProfileView: React.FC = () => {
                 {!isAwaitingPrivacy && !privacyLoadError ? (
                   <Box
                     paddingTop={4}
-                    twClassName={activeTab === 'posts' ? undefined : 'hidden'}
+                    className={activeTab === 'posts' ? undefined : 'hidden'}
                   >
                     <SocialFeed
                       scope="all"
@@ -1415,7 +1415,7 @@ const MyProfileView: React.FC = () => {
                 {activeTab !== 'posts' && isFetchingMorePositions ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
-                    twClassName="px-4"
+                    className="px-4"
                     testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
                   >
                     <Spinner />
@@ -1426,7 +1426,7 @@ const MyProfileView: React.FC = () => {
           </Animated.ScrollView>
         ) : (
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             paddingHorizontal={4}
@@ -1436,14 +1436,14 @@ const MyProfileView: React.FC = () => {
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('social_leaderboard.my_profile.no_profile_title')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {strings('social_leaderboard.my_profile.no_profile_description')}
             </Text>

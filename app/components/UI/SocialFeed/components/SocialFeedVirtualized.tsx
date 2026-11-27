@@ -590,7 +590,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const header = (
     <>
       {title ? (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Text variant={TextVariant.HeadingSm}>{title}</Text>
         </Box>
       ) : null}
@@ -606,7 +606,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
-        <Box twClassName="flex-1 bg-default" testID={testID}>
+        <Box className="flex-1 bg-default" testID={testID}>
           {performance ? (
             <SocialFeedFirstContentTrace
               tab={performance.tab}

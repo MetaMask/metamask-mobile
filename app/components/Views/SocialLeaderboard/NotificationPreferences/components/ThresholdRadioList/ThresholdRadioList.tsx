@@ -135,7 +135,7 @@ const ThresholdRadioList: React.FC<ThresholdRadioListProps> = ({
   testIDForAmount,
 }) => (
   <Box>
-    <Box twClassName={`${withHorizontalPadding ? 'px-4' : ''} pt-4 pb-2`}>
+    <Box className={`${withHorizontalPadding ? 'px-4' : ''} pt-4 pb-2`}>
       <Text
         variant={TextVariant.BodyMd}
         color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}

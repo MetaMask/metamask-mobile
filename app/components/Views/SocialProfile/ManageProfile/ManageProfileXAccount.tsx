@@ -113,7 +113,7 @@ const ManageProfileXAccount = () => {
           },
         ],
         startAccessory: (
-          <Box twClassName="self-start pt-1">
+          <Box className="self-start pt-1">
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Lg}
@@ -195,7 +195,7 @@ const ManageProfileXAccount = () => {
       />
       <Box
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 px-6 pt-8"
+        className="flex-1 px-6 pt-8"
         gap={3}
       >
         <ProfileAvatar
@@ -214,12 +214,12 @@ const ManageProfileXAccount = () => {
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('manage_profile.x_account_disconnect_body')}
         </Text>
       </Box>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Button
           variant={ButtonVariant.Primary}
           isDanger

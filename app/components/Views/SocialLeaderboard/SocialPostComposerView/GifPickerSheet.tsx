@@ -76,7 +76,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
         testID={GifPickerSheetSelectorsIDs.item(item.id)}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="overflow-hidden rounded-xl">
+        <Box className="overflow-hidden rounded-xl">
           <Image
             source={{ uri: item.previewUrl }}
             style={tw.style('w-full', { aspectRatio: 4 / 3 })}
@@ -121,7 +121,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                 {strings('social_leaderboard.composer.gifs_title')}
               </BottomSheetHeaderGlass>
 
-              <Box twClassName="px-4 py-2">
+              <Box className="px-4 py-2">
                 <TextFieldSearch
                   value={query}
                   onChangeText={setQuery}
@@ -141,7 +141,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
 
               {error && gifs.length === 0 ? (
                 <Box
-                  twClassName="flex-1 items-center justify-center gap-2 px-4"
+                  className="flex-1 items-center justify-center gap-2 px-4"
                   testID={GifPickerSheetSelectorsIDs.ERROR}
                 >
                   <Text
@@ -160,16 +160,16 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                   )}
                 </Box>
               ) : isLoading && gifs.length === 0 ? (
-                <Box twClassName="flex-row flex-wrap gap-2 px-4">
+                <Box className="flex-row flex-wrap gap-2 px-4">
                   {SKELETON_KEYS.map((key) => (
-                    <Box key={key} twClassName="w-[48%]">
+                    <Box key={key} className="w-[48%]">
                       <Skeleton height={120} width="100%" />
                     </Box>
                   ))}
                 </Box>
               ) : gifs.length === 0 ? (
                 <Box
-                  twClassName="flex-1 items-center justify-center px-4"
+                  className="flex-1 items-center justify-center px-4"
                   testID={GifPickerSheetSelectorsIDs.EMPTY}
                 >
                   <Text

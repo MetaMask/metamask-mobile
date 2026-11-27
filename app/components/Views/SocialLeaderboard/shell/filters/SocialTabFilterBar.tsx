@@ -40,9 +40,9 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName={twClassName}
+    className={twClassName}
   >
-    <Box twClassName="flex-1 min-w-0">{children}</Box>
+    <Box className="flex-1 min-w-0">{children}</Box>
     <ButtonIcon
       iconName={IconName.Filter}
       size={ButtonIconSize.Lg}
