@@ -26,7 +26,10 @@ The conflict ADR-0003 resolved — the signature must prove what the phone _mean
    `reviewPreview(venueId, previewId)` returns canonical `PredictOrderReview`
    fields: `{ previewId, maxCost, contracts, payout, proceedsIfFullyFilled }`.
    The view renders these fields, then calls `commitPreview` with explicit
-   `{ kind: 'user-approved' }` only at the approval event. Neither interface
+   `{ kind: 'user-approved' }` only at the approval event. A buy approval
+   shows only the signed maximum cost (`maxCost`), opened via **Price details**
+   on the amount entry before the Buy tap; Cash Out still opens the full
+   review step. Neither interface
    accepts Kalshi template inputs, YES-leg pricing or Engine access through a
    generic view helper.
 

@@ -429,55 +429,6 @@ export const PredictOrderFlowSheet = ({
     return () => clearTimeout(timeout);
   }, [preview, now]);
 
-  const isExpired =
-    venueExpired || (preview !== null && isPreviewExpired(preview, now));
-  const isObserving =
-    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
-  const approvalExpired = !isObserving && isExpired;
-  const canReview =
-    phase === 'input' &&
-    preview !== null &&
-    !isQuoting &&
-    !isExpired &&
-    !isStale;
-  // A dispatched order is observed, never re-quoted.
-  const canRefresh =
-    !isStale && !isObserving && (isExpired || Boolean(quoteError));
-
-  /** Leaves the Commit the amount entry shows after a buy that did not
-   * settle: the sheet stops presenting it, so the amount quotes again. */
-  const leaveCommit = useCallback(() => {
-    releasePresentation();
-    setCommitError(null);
-  }, [releasePresentation]);
-
-  const handleRefresh = useCallback(() => {
-    if (isStale) {
-      return;
-    }
-    leaveCommit();
-    setQuoteNonce((nonce) => nonce + 1);
-  }, [isStale, leaveCommit]);
-
-  /** Back to the amount entry from the approval step. A committed
-   * operation this sheet showed goes on to the completion notification. */
-  const handleBack = useCallback(() => {
-    releasePresentation();
-    setPhase('input');
-  }, [releasePresentation]);
-
-  /** A re-quote from the approval step or a receipt outcome: fresh quote
-   * for the entered amount, discarding the receipt. */
-  const handleRequote = useCallback(() => {
-    if (isStale) {
-      return;
-    }
-    releasePresentation();
-    setReceipt(null);
-    setPhase('input');
-    setQuoteNonce((nonce) => nonce + 1);
-  }, [isStale, releasePresentation]);
-
   /** The worst case the phone would sign, from the profile's invariant: the
    * figures the approval shows. Undefined while it is computed or when the
    * profile refuses the order, which keeps Confirm disabled. */
@@ -513,6 +464,62 @@ export const PredictOrderFlowSheet = ({
     preview !== null && signedDisplay?.previewId === preview.previewId
       ? signedDisplay
       : undefined;
+
+  const isExpired =
+    venueExpired || (preview !== null && isPreviewExpired(preview, now));
+  const isObserving =
+    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
+  const isSigningRefusal =
+    intent.action === 'buy' &&
+    commitError?.code === PredictErrorCode.QUOTE_UNAVAILABLE &&
+    currentReview === undefined;
+  const approvalExpired = !isObserving && isExpired;
+  const canReview =
+    phase === 'input' &&
+    preview !== null &&
+    !isQuoting &&
+    !isExpired &&
+    !isStale;
+  // A dispatched order is observed, never re-quoted.
+  const canRefresh =
+    !isStale &&
+    !isObserving &&
+    (isExpired || Boolean(quoteError) || isSigningRefusal);
+
+  /** Leaves the Commit the amount entry shows after a buy that did not
+   * settle: the sheet stops presenting it, so the amount quotes again. */
+  const leaveCommit = useCallback(() => {
+    releasePresentation();
+    setCommitError(null);
+  }, [releasePresentation]);
+
+  const handleRefresh = useCallback(() => {
+    if (isStale) {
+      return;
+    }
+    leaveCommit();
+    setQuoteNonce((nonce) => nonce + 1);
+  }, [isStale, leaveCommit]);
+
+  /** Back to the amount entry from the approval step. A committed
+   * operation this sheet showed goes on to the completion notification. */
+  const handleBack = useCallback(() => {
+    releasePresentation();
+    setPhase('input');
+  }, [releasePresentation]);
+
+  /** A re-quote from the approval step or a receipt outcome: fresh quote
+   * for the entered amount, discarding the receipt. */
+  const handleRequote = useCallback(() => {
+    if (isStale) {
+      return;
+    }
+    releasePresentation();
+    setReceipt(null);
+    setPhase('input');
+    setQuoteNonce((nonce) => nonce + 1);
+  }, [isStale, releasePresentation]);
+
   /** A buy commits straight from the amount entry, and only once the phone
    * has checked what it would sign. A dispatched order is only observed. */
   const canBuy =
