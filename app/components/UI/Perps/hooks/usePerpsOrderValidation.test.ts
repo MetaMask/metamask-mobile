@@ -35,7 +35,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.order.validation.minimum_amount': `Minimum order size is $${values?.amount}`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
-      'perps.order.validation.failed': 'Order validation failed',
+      'perps.order.validation.failed':
+        'We couldn’t check this order. Review the details and try again.',
       'perps.failed_to_load_market_data': 'Failed to load market data',
       'perps.order.validation.error': 'Validation error',
       'perps.order.validation.please_set_a_trigger_price':
@@ -284,7 +285,9 @@ describe('usePerpsOrderValidation', () => {
         expect(result.current.isValidating).toBe(false);
       });
       expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toEqual(['Order validation failed']);
+      expect(result.current.errors).toEqual([
+        'We couldn’t check this order. Review the details and try again.',
+      ]);
     });
 
     it('returns false when protocol validation fails', async () => {
@@ -758,7 +761,9 @@ describe('usePerpsOrderValidation', () => {
         expect(result.current.isValidating).toBe(false);
       });
       expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain('Order validation failed');
+      expect(result.current.errors).toContain(
+        'We couldn’t check this order. Review the details and try again.',
+      );
     });
 
     it('keeps unavailable market data invalid without requesting protocol validation', async () => {
@@ -1229,7 +1234,9 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toHaveLength(2);
-      expect(result.current.errors).toContain('Order validation failed');
+      expect(result.current.errors).toContain(
+        'We couldn’t check this order. Review the details and try again.',
+      );
       expect(result.current.errors).not.toContain(unclassifiedProtocolError);
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',

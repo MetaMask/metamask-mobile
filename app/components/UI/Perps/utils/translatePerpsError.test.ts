@@ -618,7 +618,8 @@ describe('handlePerpsError', () => {
 
     const result = handlePerpsError({
       error,
-      fallbackMessage: 'Order validation failed',
+      fallbackMessage:
+        'We couldn’t check this order. Review the details and try again.',
     });
 
     expect(result).toBe('perps.errors.insufficientMargin');
