@@ -122,7 +122,7 @@ runs:
       if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       working-directory: .ai-analyzer-action
-      run: npm ci
+      run: npm ci --omit=optional # promptfoo (eval-only) is optional
 
     - name: Generate smart-e2e catalog from tags
       if: steps.check-skip-label.outputs.SKIP != 'true'

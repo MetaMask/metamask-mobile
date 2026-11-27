@@ -26,6 +26,17 @@ Gating (when Smart E2E runs at all, labels, platforms) is described in [`.github
 
 Repo-wide analyzer settings (search directories, escalation patterns) live in [`.ai-pr-analyzer/config.yaml`](../../config.yaml).
 
+## Evals
+
+`evals/fixtures/*.yaml` are old PRs pinned to their base/head SHAs, each with the tags a correct selection must include and must not include. Use them to measure a prompt, model or analyzer-version change before shipping it. Run the manual **AI analyzer eval** workflow (`.github/workflows/ai-analyzer-eval.yml`), or run locally from the repo root with an ai-analyzer checkout that includes the eval framework:
+
+```bash
+NODE_PATH=../ai-analyzer/node_modules node -r esbuild-register .ai-pr-analyzer/modes/smart-e2e/generate-catalog.ts
+node -r ../ai-analyzer/node_modules/esbuild-register/register.js ../ai-analyzer/src/index.ts eval --mode smart-e2e --mode-ref main
+```
+
+`--mode-ref main` compares your working tree's mode definition with `main`'s, side by side. Add a fixture with `eval capture --mode smart-e2e --pr <number>`, then fill in `expected`. See [MetaMask/ai-analyzer `docs/evaluating-modes.md`](https://github.com/MetaMask/ai-analyzer/blob/main/docs/evaluating-modes.md).
+
 ## Common changes
 
 - **Model**: edit `config.models.default` and `config.models.escalation` in `mode.yaml`. Keep both tiers pinned to the same model so repo `escalationPatterns` cannot switch it. The name is a LiteLLM model name (for example `claude-sonnet-5-5`), so it must be one the LiteLLM proxy serves. Request parameters (temperature, thinking, message conversion) are handled by the analyzer's LiteLLM provider in `MetaMask/ai-analyzer`, not in this repo.

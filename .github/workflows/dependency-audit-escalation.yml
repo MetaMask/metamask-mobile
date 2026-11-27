@@ -254,7 +254,7 @@ jobs:
         id: install-ai-analyzer-deps
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         working-directory: .ai-analyzer-action
-        run: npm ci
+        run: npm ci --omit=optional # promptfoo (eval-only) is optional
 
       - name: Attempt AI-assisted fix
         id: fix
