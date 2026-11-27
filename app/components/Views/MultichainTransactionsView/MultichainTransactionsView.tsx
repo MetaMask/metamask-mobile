@@ -350,7 +350,7 @@ const MultichainTransactionsView = ({
 
     if (bridgeTransactionByActivityItem.has(item.item)) {
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <ActivityListItemRow
             item={item.item}
             index={index}

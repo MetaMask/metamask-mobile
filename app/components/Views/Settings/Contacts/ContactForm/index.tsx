@@ -422,7 +422,7 @@ const ContactForm = ({
         contentContainerStyle={tw.style('px-4')}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="flex-1 gap-4 py-3">
+        <Box className="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
             addressError={
@@ -445,7 +445,7 @@ const ContactForm = ({
             toEnsName={toEnsName}
           />
 
-          <Box twClassName="gap-2">
+          <Box className="gap-2">
             <Label>{strings('address_book.network')}</Label>
             <ContactNetworkSelector
               chainId={contactChainId || chainId}
@@ -457,7 +457,7 @@ const ContactForm = ({
         </Box>
 
         {mode === EDIT && !editable ? (
-          <Box twClassName="py-3">
+          <Box className="py-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
@@ -469,7 +469,7 @@ const ContactForm = ({
             </Button>
           </Box>
         ) : (
-          <Box twClassName="gap-2 py-3">
+          <Box className="gap-2 py-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}

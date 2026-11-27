@@ -83,11 +83,11 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         )
       }
     >
-      <Box twClassName="gap-4 p-4">
+      <Box className="gap-4 p-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <TraderAvatar
             imageUrl={trader.avatarUri}
@@ -97,7 +97,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             testID={getTopTraderAvatarTestId(trader.id)}
           />
 
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="min-w-0 flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -109,7 +109,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                twClassName="shrink"
+                className="shrink"
               >
                 {trader.username}
               </Text>
@@ -123,7 +123,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
-              twClassName={
+              className={
                 isPnlPositive ? 'text-success-default' : 'text-error-default'
               }
             >

@@ -108,7 +108,7 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
       onPress={handleAddPress}
       size={ButtonSize.Sm}
       testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
-      twClassName="h-7 shrink-0 px-4"
+      className="h-7 shrink-0 px-4"
       variant={ButtonVariant.Secondary}
     >
       {label}
@@ -205,20 +205,20 @@ const HomepageBalanceBreakdownRow = ({
     <Box
       alignItems={BoxAlignItems.Center}
       flexDirection={BoxFlexDirection.Row}
-      twClassName="min-w-0 flex-1"
+      className="min-w-0 flex-1"
       gap={2}
     >
       <Box
         alignItems={BoxAlignItems.Center}
         flexDirection={BoxFlexDirection.Row}
-        twClassName="min-w-0 shrink"
+        className="min-w-0 shrink"
         gap={1}
       >
         <Text
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName="shrink-0"
+          className="shrink-0"
           variant={TextVariant.BodyMd}
         >
           {getSliceLabel(slice.key)}
@@ -238,7 +238,7 @@ const HomepageBalanceBreakdownRow = ({
               length={SensitiveTextLength.Short}
               numberOfLines={1}
               testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(slice.key)}
-              twClassName="shrink"
+              className="shrink"
               variant={TextVariant.BodyMd}
             >
               {percentageLabel}
@@ -256,7 +256,7 @@ const HomepageBalanceBreakdownRow = ({
       ) : moneyApy !== undefined ? (
         <Tag
           testID={HomepageBalanceBreakdownTestIds.APY}
-          twClassName="shrink-0 self-center py-0.5"
+          className="shrink-0 self-center py-0.5"
         >
           <Text
             color={TextColor.SuccessDefault}
@@ -351,7 +351,7 @@ const HomepageBalanceBreakdownRow = ({
         onPress={onPress}
         testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
         title={title}
-        twClassName="min-h-10 py-0"
+        className="min-h-10 py-0"
         value={value}
         variant={ListItemVariant.OneLine}
       />
@@ -384,7 +384,7 @@ const HomepageBalanceBreakdownRow = ({
                     {strings('balance_breakdown.error.title')}
                   </Text>
                 </BottomSheetHeaderGlass>
-                <Box twClassName="px-4 pb-8">
+                <Box className="px-4 pb-8">
                   <Text
                     color={TextColor.TextAlternative}
                     testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION(

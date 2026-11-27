@@ -318,7 +318,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         style={tw.style('flex-1')}
       >
         <Box
-          twClassName="flex-1 bg-default"
+          className="flex-1 bg-default"
           style={{
             paddingTop: insets.top,
             paddingBottom: insets.bottom,
@@ -359,7 +359,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       >
         {showAddWalletModal ? (
           <Box
-            twClassName="flex-1 bg-default"
+            className="flex-1 bg-default"
             style={{
               paddingTop: insets.top,
               paddingBottom: insets.bottom,

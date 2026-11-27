@@ -68,7 +68,7 @@ const BalanceBreakdownSection = ({
   }));
 
   return (
-    <Box twClassName="overflow-hidden">
+    <Box className="overflow-hidden">
       <Animated.View style={animatedSectionStyle}>
         <Box
           onLayout={handleContentLayout}

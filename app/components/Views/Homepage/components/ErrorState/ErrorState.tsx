@@ -54,7 +54,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {title}
       </Text>
@@ -62,7 +62,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleRetry}
-        twClassName={'self-center'}
+        className={'self-center'}
       >
         {strings('homepage.error.retry')}
       </Button>

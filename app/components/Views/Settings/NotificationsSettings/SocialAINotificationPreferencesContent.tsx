@@ -77,7 +77,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={`${withHorizontalPadding ? 'px-4' : ''} py-3${
+      className={`${withHorizontalPadding ? 'px-4' : ''} py-3${
         isDisabled ? ' opacity-50' : ''
       }`}
       testID={NotificationPreferencesSelectorsIDs.TRADER_ROW(traderId)}
@@ -101,7 +101,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="flex-1"
+          className="flex-1"
         >
           {username}
         </Text>
@@ -250,7 +250,7 @@ const SocialAINotificationPreferencesContent = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName={`${horizontalPaddingClassName} py-4`}
+                className={`${horizontalPaddingClassName} py-4`}
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -297,7 +297,7 @@ const SocialAINotificationPreferencesContent = ({
       )}
 
       <Box
-        twClassName={`${horizontalPaddingClassName} pt-5 pb-2`}
+        className={`${horizontalPaddingClassName} pb-2 pt-5`}
         testID={NotificationPreferencesSelectorsIDs.TRADERS_SECTION}
       >
         <Text
@@ -320,7 +320,7 @@ const SocialAINotificationPreferencesContent = ({
               ? TextColor.TextMuted
               : TextColor.TextAlternative
           }
-          twClassName="mt-0.5"
+          className="mt-0.5"
         >
           {strings(
             'social_leaderboard.notification_preferences.traders_you_follow_desc',
@@ -343,13 +343,13 @@ const SocialAINotificationPreferencesContent = ({
         </View>
       ) : showFollowedEmpty ? (
         <Box
-          twClassName={`${horizontalPaddingClassName} py-6`}
+          className={`${horizontalPaddingClassName} py-6`}
           testID={NotificationPreferencesSelectorsIDs.TRADERS_EMPTY}
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings(
               'social_leaderboard.notification_preferences.traders_you_follow_empty',

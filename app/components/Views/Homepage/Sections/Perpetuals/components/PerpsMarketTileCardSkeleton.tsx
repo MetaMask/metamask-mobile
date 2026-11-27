@@ -14,11 +14,12 @@ const SPARKLINE_HEIGHT = 86;
 const SKELETON_CARD_COUNT = 3;
 
 const PerpsMarketTileCardSkeleton: React.FC = () => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2.5">
+  <Box flexDirection={BoxFlexDirection.Row} className="gap-2.5">
     {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
       <Box
         key={i}
-        twClassName={`w-[${CARD_WIDTH}px] h-[${CARD_HEIGHT}px] bg-muted rounded-xl p-4 justify-between`}
+        className="justify-between rounded-xl bg-muted p-4"
+        style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
         testID={HomepagePerpsSelectorsIDs.MARKET_TILE_CARD_SKELETON}
       >
         <Box
@@ -31,7 +32,7 @@ const PerpsMarketTileCardSkeleton: React.FC = () => (
             height={TOKEN_LOGO_SIZE}
             twClassName="rounded-full"
           />
-          <Box twClassName="flex-1 gap-1">
+          <Box className="flex-1 gap-1">
             <Skeleton height={20} width="60%" twClassName="rounded-md" />
             <Skeleton height={18} width="85%" twClassName="rounded-md" />
           </Box>

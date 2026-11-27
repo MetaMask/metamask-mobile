@@ -105,14 +105,14 @@ const ExploreSearchLoadingContent = () => {
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-4 py-3"
+        className="gap-2 px-4 py-3"
       >
         {Array.from({ length: 5 }, (_, index) => (
-          <Box key={index} twClassName="h-9 w-20 rounded-xl bg-muted" />
+          <Box key={index} className="h-9 w-20 rounded-xl bg-muted" />
         ))}
       </Box>
       <ScrollView
@@ -120,8 +120,8 @@ const ExploreSearchLoadingContent = () => {
         contentContainerStyle={tw.style('px-4')}
       >
         {SEARCH_LOADING_FEEDS.map((feedId) => (
-          <Box key={feedId} twClassName="mb-4">
-            <Box twClassName="mb-2 h-6 w-32 rounded bg-muted" />
+          <Box key={feedId} className="mb-4">
+            <Box className="mb-2 h-6 w-32 rounded bg-muted" />
             {Array.from({ length: 3 }, (_, index) => (
               <SearchFeedSkeleton key={index} feedId={feedId} />
             ))}
@@ -264,7 +264,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 
   if (isLoading) {
     return (
-      <Box twClassName="flex-1 px-4">
+      <Box className="flex-1 px-4">
         {Array.from({ length: MAX_ITEMS_PER_SECTION }, (_, i) => (
           <SearchFeedSkeleton key={i} feedId={feedId} />
         ))}
@@ -412,7 +412,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
       : undefined;
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <PillRow
         pills={pills}
         activeKey={activePill}
@@ -571,7 +571,7 @@ const ExploreSearchHeader = ({
         <Animated.View style={homeSearchAnimatedStyle}>
           {exploreSearchBar}
         </Animated.View>
-        <Box twClassName="h-12" />
+        <Box className="h-12" />
       </>
     );
   }
@@ -581,9 +581,9 @@ const ExploreSearchHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-12 px-4 pb-3"
+        className="h-12 px-4 pb-3"
       >
-        <Box twClassName="flex-1">{exploreSearchBar}</Box>
+        <Box className="flex-1">{exploreSearchBar}</Box>
       </Box>
     );
   }
@@ -592,9 +592,9 @@ const ExploreSearchHeader = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2 px-4 pb-3"
+      className="gap-2 px-4 pb-3"
     >
-      <Box twClassName="flex-1">{exploreSearchBar}</Box>
+      <Box className="flex-1">{exploreSearchBar}</Box>
       {showBrowserTabsButton && (
         <BrowserTabsButton
           tabCount={browserTabsCount}
@@ -818,12 +818,12 @@ const ExploreSearchScreen: React.FC = () => {
   });
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box
         style={{
           paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0),
         }}
-        twClassName="flex-1 bg-default"
+        className="flex-1 bg-default"
       >
         <ExploreSearchHeader
           browserTabsCount={browserTabsCount}

@@ -162,7 +162,7 @@ const CryptoTokensSortBottomSheet: React.FC<
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
         secondaryButtonProps={secondaryButtonProps}
-        twClassName="pt-4"
+        className="pt-4"
       />
     </BottomSheet>
   );

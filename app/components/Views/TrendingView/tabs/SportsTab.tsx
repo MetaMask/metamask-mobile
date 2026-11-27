@@ -72,7 +72,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   openPredict,
 }) => (
   <>
-    <Box twClassName={showSportsPredictions ? 'pb-3' : undefined}>
+    <Box className={showSportsPredictions ? 'pb-3' : undefined}>
       <PredictTrendingCarousel
         feed={{
           data: sportsPredictionsData,
@@ -105,11 +105,11 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
         />
 
         {showAllSportsSkeleton && (
-          <Box twClassName="gap-2 px-4">
+          <Box className="gap-2 px-4">
             {[0, 1, 2].map((i) => (
               <Box
                 key={`all-sports-skeleton-${i}`}
-                twClassName="h-[220px] w-full overflow-hidden rounded-2xl"
+                className="h-[220px] w-full overflow-hidden rounded-2xl"
               >
                 <PredictTrendingSkeleton />
               </Box>
@@ -118,7 +118,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
         )}
 
         {showAllSportsEmpty && (
-          <Box twClassName="items-center py-8" testID="all-sports-empty-state">
+          <Box className="items-center py-8" testID="all-sports-empty-state">
             <TabEmptyState
               description={strings('trending.all_sports_no_markets')}
             />
@@ -153,7 +153,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       const sectionName =
         SPORT_KEY_TO_SECTION[activeKeyRef.current] ?? 'predictions_football';
       return (
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <PredictTrendingMarketCard
             market={item}
             onCardPress={() =>
@@ -205,7 +205,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="mt-3 mb-9"
+        className="mb-9 mt-3"
       >
         <TouchableOpacity
           onPress={active.fetchMore}
@@ -226,7 +226,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         </TouchableOpacity>
       </Box>
     ) : (
-      <Box twClassName="mb-9" />
+      <Box className="mb-9" />
     );
 
   const listData =

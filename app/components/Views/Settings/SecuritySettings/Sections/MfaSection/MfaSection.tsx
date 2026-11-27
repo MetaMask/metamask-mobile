@@ -26,7 +26,7 @@ const MfaSection = () => {
 
   return (
     <Box
-      twClassName="mt-6"
+      className="mt-6"
       testID={SecurityPrivacyViewSelectorsIDs.MFA_SECTION}
     >
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -36,14 +36,14 @@ const MfaSection = () => {
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        twClassName="mt-2"
+        className="mt-2"
       >
         {strings('mfa.settings.description')}
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
         onPress={() => navigation.navigate(Routes.MFA.SETTINGS)}
-        twClassName="mt-4"
+        className="mt-4"
         isFullWidth
         size={ButtonSize.Lg}
         testID={SecurityPrivacyViewSelectorsIDs.MFA_BUTTON}

@@ -374,15 +374,15 @@ const ActivityScreen = () => {
   const activityListHeader = useMemo(
     () => (
       <Box>
-        <Box twClassName="px-4 pt-3" onLayout={handleTitleLayout}>
-          <Box twClassName="pb-4">
+        <Box className="px-4 pt-3" onLayout={handleTitleLayout}>
+          <Box className="pb-4">
             <Text variant={TextVariant.HeadingLg}>
               {strings('activity_view.title')}
             </Text>
           </Box>
 
           {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-          <Box twClassName="pb-4">
+          <Box className="pb-4">
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -425,9 +425,9 @@ const ActivityScreen = () => {
   );
 
   const solidPinnedFilterBar = isFilterBarPinned ? (
-    <Box twClassName="absolute top-0 left-0 right-0 bg-default">
+    <Box className="absolute inset-x-0 top-0 bg-default">
       {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-      <Box twClassName="pb-4">
+      <Box className="pb-4">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -479,7 +479,7 @@ const ActivityScreen = () => {
         style={tw.style('flex-1 bg-default')}
         testID={ActivityScreenSelectorsIDs.SAFE_AREA_VIEW}
       >
-        <Box twClassName="flex-1 bg-default">
+        <Box className="flex-1 bg-default">
           <HeaderStandardAnimatedGlass
             isGlass={isGlassHeader}
             onLayout={handleHeaderLayout}
@@ -498,7 +498,7 @@ const ActivityScreen = () => {
             backButtonProps={{ testID: ActivityScreenSelectorsIDs.BACK_BUTTON }}
           />
 
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <ActivityList
               ref={activityListRef}
               header={activityListHeader}

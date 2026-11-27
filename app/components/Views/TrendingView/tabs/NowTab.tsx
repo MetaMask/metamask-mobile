@@ -183,7 +183,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <Box twClassName="px-4 mb-3">
+      <Box className="mb-3 px-4">
         <SegmentedControl
           value={activeMoverDirection}
           onChange={handleMoverPillSelect}

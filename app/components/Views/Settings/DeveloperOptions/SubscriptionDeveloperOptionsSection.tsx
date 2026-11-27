@@ -131,7 +131,8 @@ const SubscriptionDeveloperOptionsSection = () => {
       {isJsonVisible && (
         <Text
           variant={TextVariant.BodySm}
-          twClassName="font-mono"
+          // eslint-disable-next-line tailwindcss/no-custom-classname
+          className="font-mono"
           style={styles.desc}
           selectable
           testID={SUBSCRIPTION_DEV_TEST_IDS.JSON}

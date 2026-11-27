@@ -34,15 +34,15 @@ const AdditionalNetworkItem = ({ item, onAdd }: AdditionalNetworkItemProps) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="pl-4 py-4 pr-2"
+      className="py-4 pl-4 pr-2"
       testID={NetworksManagementViewSelectorsIDs.NETWORK_ITEM(item.chainId)}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
+        className="flex-1"
       >
-        <Box twClassName="mr-4">
+        <Box className="mr-4">
           <AvatarNetwork
             name={item.name}
             size={AvatarSize.Md}

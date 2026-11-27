@@ -28,16 +28,16 @@ const SelectField: React.FC<SelectFieldProps> = ({
 }) => {
   const content = (
     <Box
-      twClassName={`flex-row items-center justify-between min-h-12 rounded-xl border border-solid border-border-muted bg-background-muted px-4 py-2 ${isDisabled ? 'opacity-50' : ''}`}
+      className={`min-h-12 flex-row items-center justify-between rounded-xl border border-solid border-border-muted bg-background-muted px-4 py-2 ${isDisabled ? 'opacity-50' : ''}`}
     >
-      <Box twClassName="flex-1 mr-2">
+      <Box className="mr-2 flex-1">
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {value}
         </Text>
         {secondaryText ? (
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-text-alternative"
+            className="text-text-alternative"
             numberOfLines={1}
           >
             {secondaryText}

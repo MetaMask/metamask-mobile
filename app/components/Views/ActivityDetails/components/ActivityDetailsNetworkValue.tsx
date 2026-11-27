@@ -19,7 +19,7 @@ export function ActivityDetailsNetworkValue({
   const networkImage = getNetworkImageSource({ chainId });
 
   return (
-    <Box twClassName="flex-row items-center gap-1 shrink">
+    <Box className="shrink flex-row items-center gap-1">
       {networkImage ? (
         <AvatarNetwork
           name={name}
@@ -30,7 +30,7 @@ export function ActivityDetailsNetworkValue({
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="shrink"
+        className="shrink"
         numberOfLines={1}
         ellipsizeMode="tail"
       >

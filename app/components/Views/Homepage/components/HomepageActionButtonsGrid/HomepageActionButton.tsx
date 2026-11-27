@@ -68,7 +68,7 @@ const HomepageActionButton = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName={`h-14 w-14 rounded-full border border-muted ${
+              className={`size-14 rounded-full border border-muted ${
                 pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted'
               }`}
             >
@@ -83,7 +83,7 @@ const HomepageActionButton = ({
               ellipsizeMode="tail"
               fontWeight={FontWeight.Medium}
               numberOfLines={labelNumberOfLines}
-              twClassName={
+              className={
                 allowTwoLineLabel
                   ? 'mt-2 min-h-[40px] w-full text-center'
                   : 'mt-2 w-full text-center'

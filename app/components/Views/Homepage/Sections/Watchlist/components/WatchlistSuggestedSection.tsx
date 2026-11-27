@@ -106,7 +106,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName={headerTwClassName}
+          className={headerTwClassName}
           testID="watchlist-suggested-header"
         >
           {strings('token_watchlist.suggested')}

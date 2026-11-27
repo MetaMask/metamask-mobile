@@ -54,11 +54,11 @@ const HomepageBalanceBreakdown = ({
         <HomepageBalanceBreakdownHero hero={hero} />
       )}
       {children ? (
-        <Box twClassName="overflow-hidden">
+        <Box className="overflow-hidden">
           <Animated.View
             layout={LinearTransition.duration(contentLayoutDuration)}
           >
-            <Box twClassName="mt-6 gap-4">{children}</Box>
+            <Box className="mt-6 gap-4">{children}</Box>
           </Animated.View>
         </Box>
       ) : null}

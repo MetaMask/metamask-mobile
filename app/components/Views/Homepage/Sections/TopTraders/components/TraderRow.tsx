@@ -68,7 +68,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4"
+      className="px-4"
       style={{ height: TRADER_ROW_HEIGHT }}
       testID={testID ?? getTraderRowTestId(trader.id)}
     >
@@ -103,7 +103,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             ) : null}
           </View>
 
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="min-w-0 flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -114,7 +114,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {trader.username}
               </Text>
@@ -128,7 +128,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
-              twClassName={
+              className={
                 isMetricPositive ? 'text-success-default' : 'text-error-default'
               }
             >
@@ -148,7 +148,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           }
           size={ButtonSize.Md}
           onPress={() => onFollowPress(trader.id)}
-          twClassName="self-center"
+          className="self-center"
         >
           {trader.isFollowing
             ? strings('social_leaderboard.following')

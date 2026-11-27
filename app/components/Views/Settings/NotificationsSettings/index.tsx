@@ -75,12 +75,12 @@ const NotificationRow = ({
           color={IconColor.IconAlternative}
           size={IconSize.Lg}
         />
-        <Box twClassName="ml-4">
+        <Box className="ml-4">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
           {status ? (
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text variant={TextVariant.BodySm} className="text-alternative">
               {status}
             </Text>
           ) : null}

@@ -151,7 +151,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           );
       return (
         <Box>
-          {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
+          {!item.isFirstHeader ? <SectionDivider className="-mx-4" /> : null}
           <MMDSSectionHeader
             title={item.title}
             twClassName="px-0"
@@ -161,7 +161,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             }}
             endAccessory={
               viewMoreLabel !== null ? (
-                <Box twClassName="flex-1 justify-end items-end">
+                <Box className="flex-1 items-end justify-end">
                   <Pressable
                     onPress={() => handleViewMore(section)}
                     hitSlop={8}
@@ -314,8 +314,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
     const showOtherResults = flatData.length > 0 && !isLoading;
     return (
-      <Box twClassName={showOtherResults ? 'mb-4' : ''}>
-        <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
+      <Box className={showOtherResults ? 'mb-4' : ''}>
+        {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
+        <Box className="bg-secondary mb-4 items-center rounded-xl px-4 py-6">
           <TabEmptyState
             description={
               emptyFeedTitle
@@ -344,7 +345,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-2 mt-2"
+                className="mt-2 gap-2"
               >
                 {POPULAR_SEARCH_ASSETS.map((token, index) => (
                   <CryptoMoversPillItem
@@ -376,7 +377,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   ]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <FlashList
         ref={flashListRef}
         data={flatData}
