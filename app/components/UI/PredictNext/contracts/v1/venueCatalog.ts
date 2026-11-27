@@ -66,6 +66,7 @@ const feedScreenSchema = type({
   id: kebabCase,
   title: nonEmptyString,
   subtitle: optional(unknown()),
+  icon: optional(unknown()),
   tabs: array(unknown()),
 });
 
@@ -74,6 +75,8 @@ const homeSchema = type({ sections: array(unknown()) });
 const trendingSectionSchema = type({
   kind: literal('trending'),
   sources: array(unknown()),
+  title: optional(unknown()),
+  limit: optional(unknown()),
   screen: optional(kebabCase),
 });
 
@@ -92,8 +95,13 @@ const feedPreviewSectionSchema = type({
   id: kebabCase,
   title: nonEmptyString,
   feed: string(),
+  limit: optional(unknown()),
   screen: kebabCase,
 });
+
+/** The range a Home section's `limit` is clamped into. */
+const MIN_HOME_SECTION_LIMIT = 1;
+const MAX_HOME_SECTION_LIMIT = 10;
 
 /** Most Home sections mobile shows, and most Feeds they read together: Home
  * reads its Feeds through a chain of this fixed depth (`HomeFeedReads`). */
@@ -124,6 +132,38 @@ const invalidCatalog = (reason: string) =>
   PredictError.from(PredictErrorCode.INVALID_RESPONSE, {
     message: `Invalid Venue catalog: ${reason}.`,
   });
+
+const parseNonEmptyString = (value: unknown): string | undefined =>
+  is(value, nonEmptyString) ? value : undefined;
+
+/** An integer clamped into 1 to 10; anything else is unusable. */
+const parseHomeSectionLimit = (value: unknown): number | undefined =>
+  typeof value === 'number' && Number.isInteger(value)
+    ? Math.min(Math.max(value, MIN_HOME_SECTION_LIMIT), MAX_HOME_SECTION_LIMIT)
+    : undefined;
+
+/**
+ * An optional field of a kept section or screen, as `{ [field]: value }`.
+ * Absent, it is `{}`. Unusable, it is also `{}` and goes to `dropped` with
+ * its owner, so one bad field never costs its section or screen.
+ */
+const parseOptionalField = <Field extends string, Value>(
+  owner: Readonly<Record<string, string>>,
+  field: Field,
+  value: unknown,
+  parse: (value: unknown) => Value | undefined,
+  dropped: unknown[],
+): Partial<Record<Field, Value>> => {
+  if (value === undefined) {
+    return {};
+  }
+  const parsed = parse(value);
+  if (parsed === undefined) {
+    dropped.push({ ...owner, field, value });
+    return {};
+  }
+  return { [field]: parsed } as Partial<Record<Field, Value>>;
+};
 
 /**
  * The Categories whose entry is a Feed key in the parsed `feeds`, in catalog
@@ -208,8 +248,10 @@ const parseFeedScreenTabs = (
 /**
  * The Feed Screens, in catalog order (PRED-1525). A malformed or repeated
  * screen, a malformed tab, a tab on a Feed key missing from `feeds`, and a
- * screen left without tabs are dropped and logged, never thrown. A missing
- * field is a catalog from before PRED-1525 and means no screens.
+ * screen left without tabs are dropped and logged, never thrown. An `icon`
+ * that is not a non-empty string is dropped and logged, and its screen kept
+ * (PRED-1606). A missing field is a catalog from before PRED-1525 and means
+ * no screens.
  */
 const parseFeedScreens = (
   value: unknown,
@@ -222,6 +264,7 @@ const parseFeedScreens = (
   const screens: PredictVenueFeedScreen[] = [];
   const droppedScreens: unknown[] = Array.isArray(value) ? [] : [value];
   const droppedTabs: unknown[] = [];
+  const droppedFields: unknown[] = [];
   const entries: unknown[] = Array.isArray(value) ? value : [];
   for (const entry of entries) {
     if (
@@ -242,10 +285,21 @@ const parseFeedScreens = (
       ...(is(entry.subtitle, nonEmptyString)
         ? { subtitle: entry.subtitle }
         : {}),
+      ...parseOptionalField(
+        { screen: entry.id },
+        'icon',
+        entry.icon,
+        parseNonEmptyString,
+        droppedFields,
+      ),
       tabs,
     });
   }
   logDropped(venueId, droppedTabs, ['Feed Screen tab', 'Feed Screen tabs']);
+  logDropped(venueId, droppedFields, [
+    'Feed Screen field',
+    'Feed Screen fields',
+  ]);
   logDropped(venueId, droppedScreens, ['Feed Screen', 'Feed Screens']);
   return screens;
 };
@@ -254,15 +308,25 @@ const parseFeedScreens = (
  * One Home section as mobile can use it, or undefined when it is malformed,
  * of an unknown kind, or reads a Feed key missing from `feeds`. Trending
  * keeps its sources in `feeds`, without repeats, and pushes the others to
- * `dropped`; it is unusable without one.
+ * `dropped`; it is unusable without one. An unusable `title` or `limit` goes
+ * to `droppedFields` and the section is kept.
  */
 const parseHomeSection = (
   entry: unknown,
   feeds: Partial<Record<PredictFeedKey, PredictFeedId>>,
   dropped: unknown[],
+  droppedFields: unknown[],
 ): PredictHomeSection | undefined => {
   const withScreen = (screen: string | undefined): { screen?: string } =>
     screen === undefined ? {} : { screen };
+  const withLimit = (section: string, limit: unknown) =>
+    parseOptionalField(
+      { section },
+      'limit',
+      limit,
+      parseHomeSectionLimit,
+      droppedFields,
+    );
   if (is(entry, trendingSectionSchema)) {
     const sources: PredictFeedKey[] = [];
     for (const source of entry.sources) {
@@ -276,9 +340,22 @@ const parseHomeSection = (
         dropped.push(source);
       }
     }
-    return sources.length > 0
-      ? { kind: 'trending', sources, ...withScreen(entry.screen) }
-      : undefined;
+    if (sources.length === 0) {
+      return undefined;
+    }
+    return {
+      kind: 'trending',
+      sources,
+      ...parseOptionalField(
+        { section: 'trending' },
+        'title',
+        entry.title,
+        parseNonEmptyString,
+        droppedFields,
+      ),
+      ...withLimit('trending', entry.limit),
+      ...withScreen(entry.screen),
+    };
   }
   if (is(entry, gamesRowSectionSchema) && hasOwn(feeds, entry.feed)) {
     const { id, title, feed, screen } = entry;
@@ -288,8 +365,15 @@ const parseHomeSection = (
     return { kind: 'categories' };
   }
   if (is(entry, feedPreviewSectionSchema) && hasOwn(feeds, entry.feed)) {
-    const { id, title, feed, screen } = entry;
-    return { kind: 'feed-preview', id, title, feed, screen };
+    const { id, title, feed, limit, screen } = entry;
+    return {
+      kind: 'feed-preview',
+      id,
+      title,
+      feed,
+      ...withLimit(id, limit),
+      screen,
+    };
   }
   return undefined;
 };
@@ -358,6 +442,9 @@ const fitHomeFeedReads = (
  * Trending keeps the sources that fit). A Trending source missing from
  * `feeds`, or repeated, is dropped and logged and the section kept. A `screen` is kept even when
  * `screens` lacks it: the header looks it up and opens nothing without it.
+ * Trending's `title` must be a non-empty string, and a Trending or preview
+ * `limit` an integer, clamped into 1 to 10 (PRED-1606); an unusable one is
+ * dropped and logged, and its section kept.
  * A missing field is a catalog from before PRED-1527 and means no Home
  * sections; so does a `home` that is not an object with a `sections` array,
  * which is logged.
@@ -377,9 +464,16 @@ const parseHome = (
   const sections: PredictHomeSection[] = [];
   const droppedSections: unknown[] = [];
   const droppedSources: unknown[] = [];
+  const droppedFields: unknown[] = [];
   const readKeys = new Set<PredictFeedKey>();
   for (const entry of value.sections) {
-    const parsed = parseHomeSection(entry, feeds, droppedSources);
+    const entryDroppedFields: unknown[] = [];
+    const parsed = parseHomeSection(
+      entry,
+      feeds,
+      droppedSources,
+      entryDroppedFields,
+    );
     const section =
       parsed &&
       sections.length < MAX_HOME_SECTIONS &&
@@ -398,9 +492,14 @@ const parseHome = (
       );
     }
     getHomeSectionFeedKeys(section).forEach((key) => readKeys.add(key));
+    droppedFields.push(...entryDroppedFields);
     sections.push(section);
   }
   logDropped(venueId, droppedSources, ['Trending source', 'Trending sources']);
+  logDropped(venueId, droppedFields, [
+    'Home section field',
+    'Home section fields',
+  ]);
   logDropped(venueId, droppedSections, ['Home section', 'Home sections']);
   return { sections };
 };
@@ -411,8 +510,9 @@ const optionalHome = (
 
 /**
  * Parses a Venue catalog for `expectedVenueId`. Unknown actions are dropped.
- * Feed entries, Categories, Feed Screens and Home sections are checked one by
- * one, and a bad one is dropped and logged (see their parsers). Anything else structurally
+ * Feed entries, Categories, Feed Screens, Home sections and their optional
+ * fields are checked one by one, and a bad one is dropped and logged (see
+ * their parsers). Anything else structurally
  * wrong, or a catalog for another Venue, throws `INVALID_RESPONSE`, so a
  * caller that fails closed enables nothing.
  */
