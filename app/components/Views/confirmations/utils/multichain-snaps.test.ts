@@ -3,9 +3,14 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 // eslint-disable-next-line import-x/no-namespace
 import * as SnapUtils from '../../../../core/Snaps/utils';
 import {
+  getMaxSendableAmountMultichain,
   sendMultichainTransactionForReview,
   validateAmountMultichain,
 } from './multichain-snaps';
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 describe('sendMultichainTransactionForReview', () => {
   it('call handleSnapRequest with correct parameters', () => {
@@ -43,5 +48,32 @@ describe('validateAmountMultichain', () => {
       },
     );
     expect(mockHandleSnapRequest).toHaveBeenCalled();
+  });
+});
+
+describe('getMaxSendableAmountMultichain', () => {
+  it('requests getMaxSendableAmount from the account Snap with the params', async () => {
+    const mockHandleSnapRequest = jest
+      .spyOn(SnapUtils, 'handleSnapRequest')
+      .mockResolvedValue({ amount: '9.5' });
+    const params = {
+      accountId: 'account-id',
+      assetId: 'tron:728126428/slip44:195' as const,
+      toAddress: 'TDepositWallet1234567890abcdefghij',
+    };
+
+    const result = await getMaxSendableAmountMultichain(
+      { metadata: { snap: { id: '123' } } } as unknown as InternalAccount,
+      params,
+    );
+
+    expect(result).toEqual({ amount: '9.5' });
+    expect(mockHandleSnapRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        snapId: '123',
+        request: { method: 'getMaxSendableAmount', params },
+      }),
+    );
   });
 });

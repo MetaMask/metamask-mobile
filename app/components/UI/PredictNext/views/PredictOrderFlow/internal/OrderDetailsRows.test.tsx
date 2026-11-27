@@ -2,7 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictAmount, PredictBuyOrderPreview } from '../../../types';
+import type {
+  PredictAmount,
+  PredictBuyOrderPreview,
+  PredictSellOrderPreview,
+} from '../../../types';
 import { OrderDetailsRows } from './OrderDetailsRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
@@ -115,5 +119,43 @@ describe('OrderDetailsRows', () => {
       '$0.41',
     );
     expect(view.queryByTestId(PredictOrderFlowTestIds.DETAILS_FEES)).toBeNull();
+  });
+
+  it('renders a Cash Out with gross Proceeds as the order and Net Proceeds as the Total', () => {
+    const sellPreview = {
+      action: 'sell',
+      requestedContracts: 75,
+      estimatedContracts: 70,
+      averagePrice: '0.4800',
+      limitPrice: '0.4000',
+      fee: '0.34',
+      feeBreakdown: [
+        { source: 'venue', amount: '0.17' },
+        { source: 'metamask', amount: '0.17' },
+      ],
+      estimatedProceeds: '33.60',
+      estimatedNetProceeds: '33.26',
+    } as unknown as PredictSellOrderPreview;
+
+    const view = render(<OrderDetailsRows preview={sellPreview} />);
+
+    expect(
+      view.getByText(
+        '~70 contracts at 48¢ each. Final amount may vary based on order book availability.',
+      ),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT)).toBe(
+      '$33.60',
+    );
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_METAMASK_FEE)).toBe(
+      '$0.17',
+    );
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE)).toBe(
+      '$0.17',
+    );
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_TOTAL)).toBe('$33.26');
+    expect(
+      view.getByTestId(PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE),
+    ).toBeOnTheScreen();
   });
 });

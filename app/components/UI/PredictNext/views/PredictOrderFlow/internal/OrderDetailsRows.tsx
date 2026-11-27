@@ -7,7 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictBuyOrderPreview } from '../../../types';
+import type { PredictOrderPreview } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
@@ -46,18 +46,25 @@ const FeeRow = ({ title, description, amount, testID }: FeeRowProps) => (
 );
 
 /**
- * The buy Price details sheet's rows, matching Legacy's layout and reading
- * quoted values verbatim from the Preview.
+ * The Price details sheet's rows, matching Legacy's layout and reading
+ * quoted values verbatim from the Preview. A buy and a Cash Out share the
+ * row list; only the order and total figures differ by action.
  *
- * - Prediction order: contracts, per-contract average price, and order cost.
+ * - Prediction order: contracts, per-contract average price, and the order cost (buy) or gross Proceeds (sell).
  * - MetaMask fee / Exchange fee: from `preview.feeBreakdown` when present, falling back to a single Fees row using `preview.fee` when absent/empty.
- * - Total: bold `preview.totalDebit` plus the partial-fill disclaimer note.
+ * - Total: bold `totalDebit` (buy) or `estimatedNetProceeds` (sell), plus the partial-fill disclaimer note.
  */
 export const OrderDetailsRows = ({
   preview,
 }: {
-  preview: PredictBuyOrderPreview;
+  preview: PredictOrderPreview;
 }) => {
+  const orderAmount =
+    preview.action === 'buy' ? preview.orderAmount : preview.estimatedProceeds;
+  const total =
+    preview.action === 'buy'
+      ? preview.totalDebit
+      : preview.estimatedNetProceeds;
   const metamaskFee = preview.feeBreakdown?.find(
     (component) => component.source === 'metamask',
   );
@@ -78,7 +85,7 @@ export const OrderDetailsRows = ({
             price: formatCents(preview.averagePrice),
           },
         )}
-        amount={formatUsd(preview.orderAmount)}
+        amount={formatUsd(orderAmount)}
         testID={PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT}
       />
 
@@ -127,7 +134,7 @@ export const OrderDetailsRows = ({
           fontWeight={FontWeight.Bold}
           testID={PredictOrderFlowTestIds.DETAILS_TOTAL}
         >
-          {formatUsd(preview.totalDebit)}
+          {formatUsd(total)}
         </Text>
       </Box>
 
@@ -135,7 +142,7 @@ export const OrderDetailsRows = ({
         testID={PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE}
         color={TextColor.TextAlternative}
         variant={TextVariant.BodySm}
-        twClassName="pt-2"
+        className="pt-2"
       >
         {strings('predict.fee_summary.fak_partial_fill_note')}
       </Text>
