@@ -21452,11 +21452,6 @@
       "count": 3
     }
   },
-  "app/core/Engine/controllers/transaction-controller/event-handlers/money-account-override.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/core/Engine/controllers/transaction-controller/metrics_properties/base.ts": {
     "typescript/await-thenable": {
       "count": 1
@@ -21487,7 +21482,7 @@
   },
   "app/core/Engine/controllers/transaction-pay-controller/amount-data-callback.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 8
+      "count": 4
     }
   },
   "app/core/Engine/controllers/transaction-pay-controller/amount-data-callback.ts": {

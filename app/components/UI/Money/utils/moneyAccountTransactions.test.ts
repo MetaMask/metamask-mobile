@@ -332,6 +332,54 @@ describe('moneyAccountTransactions', () => {
       expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
     });
 
+    it('encodes a premium self-deposit with the compliance signature and vault allowance', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+      const authorization = {
+        recipient: MOCK_OTHER_TOKEN_ADDRESS,
+        deadline: 1800000000,
+        signature: '0x1234' as const,
+      };
+
+      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+        amount: 500_000n,
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        premiumAuthorization: authorization,
+      });
+
+      expect(depositTx.params.to).toBe(MOCK_TELLER);
+      expect(depositTx.params.data?.slice(0, 10)).toBe('0x7bad3765');
+      const coder = ethers.utils.defaultAbiCoder;
+      const [deposit, recipient, referralAddress, compliance] = coder.decode(
+        [
+          'tuple(address,uint256,uint256)',
+          'address',
+          'address',
+          'tuple(uint256,bytes)',
+        ],
+        `0x${depositTx.params.data?.slice(10)}`,
+      );
+      expect(deposit[0].toLowerCase()).toBe(MOCK_MUSD_ADDRESS.toLowerCase());
+      expect(deposit[1].toString()).toBe('500000');
+      expect(deposit[2].toString()).toBe('998000');
+      expect(recipient.toLowerCase()).toBe(
+        authorization.recipient.toLowerCase(),
+      );
+      expect(referralAddress).toBe(ethers.constants.AddressZero);
+      expect(compliance[0].toNumber()).toBe(authorization.deadline);
+      expect(compliance[1]).toBe(authorization.signature);
+      const [spender, allowance] = coder.decode(
+        ['address', 'uint256'],
+        `0x${approveTx.params.data?.slice(10)}`,
+      );
+      expect(spender.toLowerCase()).toBe(MOCK_BORING_VAULT.toLowerCase());
+      expect(allowance.toString()).toBe('500000');
+    });
+
     it('calls previewDeposit with correct arguments', async () => {
       mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('500000'));
 

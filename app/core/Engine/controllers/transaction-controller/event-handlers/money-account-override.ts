@@ -4,11 +4,11 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { isPremiumDepositCandidate } from '../../../../../components/UI/Money/utils/moneyAccountPremiumDeposit';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 
 import Engine from '../../../../Engine';
 import ReduxService from '../../../../redux';
-import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
@@ -61,9 +61,7 @@ function isMoneyAccountWithdraw(transaction: TransactionMeta): boolean {
  */
 function isMoneyAccountCardLinkApprove(transaction: TransactionMeta): boolean {
   if (transaction.origin !== TransactionTypes.MMM_CARD) return false;
-  const primary = selectPrimaryMoneyAccount(
-    ReduxService.store.getState() as RootState,
-  );
+  const primary = selectPrimaryMoneyAccount(ReduxService.store.getState());
   const from = transaction.txParams?.from;
   if (!primary?.address || !from) return false;
   return from.toLowerCase() === primary.address.toLowerCase();
@@ -115,6 +113,15 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
     if (!isMoneyAccountWithdraw(transaction)) {
       config.isQuoteRequired = true;
+      if (
+        hasTransactionType(transaction, MONEY_ACCOUNT_DEPOSIT_TYPES) &&
+        isPremiumDepositCandidate(
+          ReduxService.store.getState(),
+          transaction.chainId,
+        )
+      ) {
+        config.atomic = false;
+      }
     }
   });
 

@@ -81,6 +81,16 @@ export const isActiveSubscriptionStatus = (
 ): boolean => hasStatus(ACTIVE_SUBSCRIPTION_STATUSES, status);
 
 /**
+ * @param status - Current Plus status.
+ * @returns Whether to check premium-deposit eligibility with Sentinel.
+ */
+export const isPremiumDepositCandidateStatus = (
+  status: SubscriptionStatus | undefined,
+): boolean =>
+  isActiveSubscriptionStatus(status) ||
+  status === SUBSCRIPTION_STATUSES.pastDue;
+
+/**
  * @param status - Plus status, or undefined when there is no plan.
  * @returns Whether payment has cleared (active or trialing).
  */

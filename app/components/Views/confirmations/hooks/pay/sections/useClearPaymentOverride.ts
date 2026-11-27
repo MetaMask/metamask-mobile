@@ -12,6 +12,9 @@ import {
   selectPaymentOverrideByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
+import { isPremiumDepositCandidate } from '../../../../../UI/Money/utils/moneyAccountPremiumDeposit';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../constants/confirmations';
+import { LIGHTER_PAYMENT_OVERRIDE } from '../../../temp-lighter/perps-lighter-transactions';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 /**
@@ -22,10 +25,8 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
  * The Lighter override is kept. It sets the destination of the deposit, not
  * the pay-with method, so changing the pay token must not clear it.
  *
- * `atomic` is re-derived rather than blindly cleared: a max-amount Money
- * Account deposit sets `atomic: false` independently of the pay-with
- * selection (via `useTransactionCustomAmount`'s `setIsMax`), so it must survive
- * a payment-method switch while `isMaxAmount` remains on.
+ * Preserve `atomic: false` for premium deposit candidates and max-amount
+ * Money Account deposits when the payment method changes.
  */
 export function useClearPaymentOverride() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -40,6 +41,14 @@ export function useClearPaymentOverride() {
     TransactionType.moneyAccountDeposit,
   ]);
 
+  const isPremiumDeposit = useSelector((state: RootState) =>
+    Boolean(
+      transactionMeta &&
+        hasTransactionType(transactionMeta, MONEY_ACCOUNT_DEPOSIT_TYPES) &&
+        isPremiumDepositCandidate(state, transactionMeta.chainId),
+    ),
+  );
+
   return useCallback(() => {
     if (
       transactionId &&
@@ -52,9 +61,17 @@ export function useClearPaymentOverride() {
           config.paymentOverride = undefined;
           config.refundTo = undefined;
           config.atomic =
-            isMoneyAccountDeposit && isMaxAmount ? false : undefined;
+            isPremiumDeposit || (isMoneyAccountDeposit && isMaxAmount)
+              ? false
+              : undefined;
         },
       );
     }
-  }, [isMaxAmount, isMoneyAccountDeposit, paymentOverride, transactionId]);
+  }, [
+    isMaxAmount,
+    isMoneyAccountDeposit,
+    isPremiumDeposit,
+    paymentOverride,
+    transactionId,
+  ]);
 }

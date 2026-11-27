@@ -3,6 +3,7 @@ import {
   SentinelChainNotSupportedError,
   type SentinelApiServiceMessenger,
   type SentinelNetwork,
+  type SentinelVaultWhitelistSignResponse,
 } from '@metamask/sentinel-api-service';
 import { Hex } from '@metamask/utils';
 import { prefixError } from './error-prefix';
@@ -89,6 +90,29 @@ export async function getSentinelSigners(chainId: Hex): Promise<Hex[]> {
   const signers = network?.cubistSigners;
 
   return Array.isArray(signers) ? signers : [];
+}
+
+/**
+ * Request a premium vault signature for a Money Account self-deposit.
+ *
+ * @param chainId - The deposit chain.
+ * @param address - The Money Account depositing and receiving shares.
+ * @param amount - The settled amount in raw mUSD units.
+ * @returns The signature and deadline, or an ineligible result.
+ */
+export async function getVaultWhitelistSignature(
+  chainId: Hex,
+  address: Hex,
+  amount: string,
+): Promise<SentinelVaultWhitelistSignResponse> {
+  try {
+    return await getSentinelApiMessenger().call(
+      'SentinelApiService:getVaultWhitelistSignature',
+      { chainId, sender: address, recipient: address, amount },
+    );
+  } catch (error) {
+    throw prefixError(error, ERROR_PREFIX);
+  }
 }
 
 /**
