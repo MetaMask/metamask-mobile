@@ -174,6 +174,10 @@ describe('migrations', () => {
     const versionBeforeMigration75 = 74;
     const lastVersion = numberOfMigrations - 1;
 
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it.each([
       'TokenBalancesController',
       'TransactionController',
