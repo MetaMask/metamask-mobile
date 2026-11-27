@@ -102,7 +102,34 @@ const PerpsProSortSheet = <TField extends string>({
             endAccessory={
               isSelected ? (
                 <Box
-                  twClassName="flex-row items-center gap-2"
+                  className="flex-row items-center gap-2"
+                  accessible={false}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    testID={`${testID}-direction-text-${option.id}`}
+                  >
+                    {draftDirection === 'asc'
+                      ? strings('perps.sort.low_to_high')
+                      : strings('perps.sort.high_to_low')}
+                  </Text>
+                  <Icon
+                    name={
+                      draftDirection === 'asc'
+                        ? IconName.Arrow2Up
+                        : IconName.Arrow2Down
+                    }
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                    testID={`${testID}-direction-indicator-${option.id}`}
+                  />
+                </Box>
+              ) : undefined
+            }
+            testID={`${testID}-option-${option.id}`}
+          /><Box
+                  className="flex-row items-center gap-2"
                   accessible={false}
                 >
                   <Text

@@ -111,7 +111,7 @@ const OptionFilterButton = ({
     size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
-    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
+    className={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}
@@ -323,9 +323,9 @@ const PerpsProOrderBookConfigSheet = ({
           {strings('perps.order_book.config_title')}
         </BottomSheetHeaderGlass>
 
-        <Box twClassName="w-full gap-6 px-0 pb-3 pt-2">
-          <Box twClassName="w-full gap-2">
-            <Box twClassName="px-4">
+        <Box className="w-full gap-6 px-0 pb-3 pt-2">
+          <Box className="w-full gap-2">
+            <Box className="px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -334,10 +334,10 @@ const PerpsProOrderBookConfigSheet = ({
                 {strings('perps.order_book.listed_by')}
               </Text>
             </Box>
-            <Box twClassName="w-full gap-3">
+            <Box className="w-full gap-3">
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="w-full gap-2 px-4"
+                className="w-full gap-2 px-4"
                 testID={`${testID}-currency`}
               >
                 <OptionFilterButton
@@ -355,7 +355,7 @@ const PerpsProOrderBookConfigSheet = ({
               </Box>
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="w-full gap-2 px-4"
+                className="w-full gap-2 px-4"
                 testID={`${testID}-metric`}
               >
                 <OptionFilterButton
@@ -374,8 +374,8 @@ const PerpsProOrderBookConfigSheet = ({
             </Box>
           </Box>
 
-          <Box twClassName="w-full gap-2">
-            <Box twClassName="px-4">
+          <Box className="w-full gap-2">
+            <Box className="px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -384,12 +384,12 @@ const PerpsProOrderBookConfigSheet = ({
                 {strings('perps.order_book.group_by')}
               </Text>
             </Box>
-            <Box twClassName="w-full gap-3">
+            <Box className="w-full gap-3">
               {groupingRows.map((row) => (
                 <Box
                   key={row.join('-')}
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="w-full gap-2 px-4"
+                  className="w-full gap-2 px-4"
                 >
                   {row.map((value) => (
                     <OptionFilterButton
@@ -405,8 +405,8 @@ const PerpsProOrderBookConfigSheet = ({
             </Box>
           </Box>
 
-          <Box twClassName="w-full gap-2">
-            <Box twClassName="px-4">
+          <Box className="w-full gap-2">
+            <Box className="px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -417,7 +417,7 @@ const PerpsProOrderBookConfigSheet = ({
             </Box>
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="w-full gap-2 px-4"
+              className="w-full gap-2 px-4"
               testID={`${testID}-layout`}
             >
               <ThumbnailOption
@@ -447,7 +447,7 @@ const PerpsProOrderBookConfigSheet = ({
             </Box>
           </Box>
 
-          <Box twClassName="w-full px-4">
+          <Box className="w-full px-4">
             <Switch
               label={strings('perps.order_book.size_on_click')}
               isOn={draftSizeOnClick}
@@ -461,7 +461,7 @@ const PerpsProOrderBookConfigSheet = ({
 
         <BottomSheetFooter
           primaryButtonProps={primaryButtonProps}
-          twClassName="pt-4"
+          className="pt-4"
         />
       </BottomSheet>
     </PerpsProModalPortal>
