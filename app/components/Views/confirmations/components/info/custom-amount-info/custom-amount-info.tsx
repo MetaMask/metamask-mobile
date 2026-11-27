@@ -110,6 +110,13 @@ import {
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
+// Buy crypto when a skipped prefill means nothing can fund the deposit.
+// Money account deposit is excluded (CONF-2285, PRED-1533).
+const BUY_FALLBACK_WHEN_PREFILL_SKIPPED: TransactionType[] = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
+
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
   children?: ReactNode;
@@ -499,17 +506,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(accountOverride) &&
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
-    // A skipped prefill means nothing can fund the deposit, so a Predict
-    // deposit falls back to Buy instead of an empty page (PRED-1533).
-    const isPredictDepositWithoutPrefill =
+    const showBuyForSkippedPrefill =
       skipDepositPrefill &&
-      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]);
+      hasTransactionType(transactionMeta, BUY_FALLBACK_WHEN_PREFILL_SKIPPED);
 
     const showBuyButton =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
       !isPayAccountLoading &&
-      (!isDepositPrefillEnabled || isPredictDepositWithoutPrefill);
+      (!isDepositPrefillEnabled || showBuyForSkippedPrefill);
 
     const alertMessage =
       alertMessageBase ??
