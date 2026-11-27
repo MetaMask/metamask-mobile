@@ -649,7 +649,7 @@ const TradingViewChart = React.forwardRef<
 
     return (
       <Box
-        className="bg-default rounded-lg"
+        className="rounded-lg bg-default"
         testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
       >
         {/* Chart WebView */}

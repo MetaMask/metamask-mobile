@@ -57,7 +57,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
   return (
     <Box
-      className="mx-4 mb-4 px-4 py-6 rounded-xl"
+      className="mx-4 mb-4 rounded-xl px-4 py-6"
       style={tw.style('bg-background-section')}
       testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
     >
@@ -262,7 +262,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                className="gap-3 px-4 pt-1 pb-3"
+                className="gap-3 px-4 pb-3 pt-1"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box className="flex-1">
@@ -296,7 +296,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Box>
             )
           ) : (
-            <Box className="px-4 pt-2 pb-4">
+            <Box className="px-4 pb-4 pt-2">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
                   variant={TextVariant.AmountDisplayLg}
@@ -318,7 +318,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               {/* Action Buttons */}
               {showActionButtons && (
                 <Box
-                  className="gap-3 mt-4"
+                  className="mt-4 gap-3"
                   flexDirection={BoxFlexDirection.Row}
                   accessible={false}
                 >

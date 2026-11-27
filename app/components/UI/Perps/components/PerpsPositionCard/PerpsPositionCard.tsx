@@ -304,7 +304,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   return (
     <Box paddingBottom={3}>
-      <Box className="bg-background-default rounded-xl" testID={cardTestID}>
+      <Box className="rounded-xl bg-background-default" testID={cardTestID}>
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
@@ -318,7 +318,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             gap={2}
-            className={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
+            className={isTabsVariant ? 'mb-2 mt-1' : 'mb-2'}
           >
             {/* Accessible cards expose each label with its value natively. */}
             <Card

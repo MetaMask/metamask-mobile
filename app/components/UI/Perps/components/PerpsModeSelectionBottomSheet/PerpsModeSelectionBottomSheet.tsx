@@ -87,7 +87,7 @@ const ModeCard = ({
         twClassName: 'min-w-0 w-full flex-1 items-stretch justify-start',
       }}
     >
-      <Box className="min-w-0 w-full">
+      <Box className="w-full min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}

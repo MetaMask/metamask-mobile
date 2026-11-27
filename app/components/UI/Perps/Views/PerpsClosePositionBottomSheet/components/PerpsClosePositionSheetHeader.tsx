@@ -49,10 +49,10 @@ const PerpsClosePositionSheetHeader: React.FC<
   isOrderTypeToggleDisabled,
   onOrderTypeToggle,
 }) => (
-  <Box className="flex-row items-center gap-3 px-4 pt-4 pb-4">
+  <Box className="flex-row items-center gap-3 p-4">
     <PerpsTokenLogo symbol={symbol} size={32} />
 
-    <Box className="flex-1 min-w-0">
+    <Box className="min-w-0 flex-1">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

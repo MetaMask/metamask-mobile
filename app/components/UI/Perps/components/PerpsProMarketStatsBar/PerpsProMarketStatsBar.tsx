@@ -217,7 +217,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          className="px-4 py-2 gap-4"
+          className="gap-4 px-4 py-2"
         >
           <StatItem
             label={strings('perps.market.funding')}

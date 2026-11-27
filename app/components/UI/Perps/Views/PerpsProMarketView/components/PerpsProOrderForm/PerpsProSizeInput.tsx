@@ -170,7 +170,7 @@ const PerpsProSizeInput = ({
             unit: unitLabel,
           })}
         >
-          <Box className="h-[46px] w-full justify-center px-3 py-3">
+          <Box className="h-[46px] w-full justify-center p-3">
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -233,7 +233,7 @@ const PerpsProSizeInput = ({
         </Box>
       </Box>
       <Box
-        className="overflow-visible px-3 pb-4 pt-4"
+        className="overflow-visible px-3 py-4"
         onTouchCancel={handleSliderDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >

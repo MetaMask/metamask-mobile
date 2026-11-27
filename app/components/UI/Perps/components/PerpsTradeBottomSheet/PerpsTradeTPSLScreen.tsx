@@ -99,7 +99,7 @@ const RoeSign: React.FC<{ sign: '+' | '-'; testID: string }> = ({
     importantForAccessibility="no-hide-descendants"
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    className="h-6 w-6 shrink-0 self-center rounded-full bg-muted"
+    className="size-6 shrink-0 self-center rounded-full bg-muted"
   >
     <Icon
       name={sign === '+' ? IconName.Add : IconName.Minus}

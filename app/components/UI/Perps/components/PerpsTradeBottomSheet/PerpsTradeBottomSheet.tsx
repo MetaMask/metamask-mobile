@@ -227,7 +227,7 @@ export const PerpsTradeSheetPlaceholder: React.FC<{
       alignItems={BoxAlignItems.Center}
       gap={3}
     >
-      <Box className="h-10 w-10 rounded-full bg-muted" />
+      <Box className="size-10 rounded-full bg-muted" />
       <Box gap={2}>
         <Box className="h-4 w-24 rounded bg-muted" />
         <Box className="h-3 w-32 rounded bg-muted" />

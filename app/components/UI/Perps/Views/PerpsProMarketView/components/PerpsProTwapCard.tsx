@@ -176,7 +176,7 @@ const PerpsProTwapCard = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            className="gap-4 px-2 py-2"
+            className="gap-4 p-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -251,7 +251,7 @@ const PerpsProTwapCard = ({
             alignItems={BoxAlignItems.Center}
             className="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box className="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings(
                   'perps.pro_positions_panel.twap_card.total_size',
@@ -283,7 +283,7 @@ const PerpsProTwapCard = ({
                 )}
               />
             </Box>
-            <Box className="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.progress')}
                 value={formatTwapProgressPercent(twapOrder.fillProgressBps)}

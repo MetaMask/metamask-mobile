@@ -1151,7 +1151,7 @@ const PerpsProPositionsPanel = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              className="gap-4 px-2 py-2"
+              className="gap-4 p-2"
             >
               <PerpsTokenLogo symbol={order.symbol} size={40} />
               <Box className="flex-1">
@@ -1366,7 +1366,7 @@ const PerpsProPositionsPanel = ({
         {/* TWAP schedules are venue-ordered. Chase has its own activity
             filters. The sort sheet only knows Positions and Orders. */}
         {!isChaseTab && !isTwapTab ? (
-          <Box className="bg-muted rounded-full">
+          <Box className="rounded-full bg-muted">
             <ButtonIcon
               iconName={IconName.Customize}
               accessibilityLabel={strings(
@@ -1402,7 +1402,7 @@ const PerpsProPositionsPanel = ({
                 : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
           }
         />
-        <Box className="bg-muted rounded-full px-2 py-1">
+        <Box className="rounded-full bg-muted px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
         {/* Sits after the side and ticker filters, so those two keep the same
@@ -1435,7 +1435,7 @@ const PerpsProPositionsPanel = ({
           </Button>
         ) : null}
         {(isChaseTab || isTwapTab) && activityView === 'history' ? (
-          <Box className="bg-muted rounded-full px-2 py-1">
+          <Box className="rounded-full bg-muted px-2 py-1">
             <Checkbox
               label={strings('perps.order.chase.filled_only')}
               labelProps={{ variant: TextVariant.BodySm }}

@@ -302,7 +302,7 @@ const PerpsMarketHeader = ({
               importantForAccessibility="no-hide-descendants"
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              className={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              className={`size-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
               testID={
                 testIDs.walletButton
                   ? `${testIDs.walletButton}-risk-badge`

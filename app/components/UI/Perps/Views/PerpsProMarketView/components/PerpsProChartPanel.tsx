@@ -456,7 +456,7 @@ const PerpsProChartPanel = ({
         >
           <Box
             testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-            className="my-2 h-[344px] px-2 py-2"
+            className="my-2 h-[344px] p-2"
           >
             <Box
               testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
@@ -499,7 +499,7 @@ const PerpsProChartPanel = ({
               >
                 <Box className="relative flex-1">
                   {isMarketContextReady && ohlcData ? (
-                    <Box className="absolute left-0 right-0 top-0 z-10">
+                    <Box className="absolute inset-x-0 top-0 z-10">
                       <PerpsOHLCVBar
                         open={ohlcData.open}
                         high={ohlcData.high}

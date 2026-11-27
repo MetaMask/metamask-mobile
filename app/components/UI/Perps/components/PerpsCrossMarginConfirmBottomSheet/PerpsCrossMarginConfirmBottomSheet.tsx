@@ -151,7 +151,7 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
       >
         {strings('perps.cross_margin_confirm.title')}
       </BottomSheetHeaderGlass>
-      <Box className="px-4 pb-3 gap-4" accessible={false}>
+      <Box className="gap-4 px-4 pb-3" accessible={false}>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -172,7 +172,7 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
               accessibilityRole="checkbox"
               accessibilityState={{ checked: acknowledged[key] }}
               accessoryGap={4}
-              className={`bg-muted rounded-2xl py-4 border ${
+              className={`rounded-2xl border bg-muted py-4 ${
                 acknowledged[key] ? 'border-default' : 'border-transparent'
               }`}
             />

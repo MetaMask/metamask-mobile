@@ -956,7 +956,7 @@ const PerpsHomeView = () => {
             <View>
               {ordersError && (
                 <Box
-                  className="px-4 py-3 gap-2"
+                  className="gap-2 px-4 py-3"
                   testID={PerpsHomeViewSelectorsIDs.ORDERS_ERROR}
                 >
                   <Text

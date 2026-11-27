@@ -582,7 +582,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            className="text-center px-4 py-4"
+            className="p-4 text-center"
           >
             {strings('perps.order.leverage_modal.price_unavailable')}
           </Text>
@@ -593,7 +593,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         <Box
           paddingTop={3}
           paddingBottom={6}
-          className={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
+          style={{ height: LEVERAGE_PICKER_CONTAINER_HEIGHT }}
           accessible={false}
         >
           <MaskedView
@@ -675,7 +675,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              className="px-4 pt-4 pb-3"
+              className="px-4 pb-3 pt-4"
               testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
             >
               {strings('perps.order.leverage_modal.description')}

@@ -152,7 +152,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
           />
         ) : (
           <>
-            <Box className="w-full pt-2 pb-3">
+            <Box className="w-full pb-3 pt-2">
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Start}

@@ -77,7 +77,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
       {startAccessory ? (
         <Box
           accessible={false}
-          className="h-10 w-10 overflow-hidden rounded-xl"
+          className="size-10 overflow-hidden rounded-xl"
         >
           {startAccessory}
         </Box>

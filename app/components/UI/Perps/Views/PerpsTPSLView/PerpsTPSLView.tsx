@@ -1110,7 +1110,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   );
 
   const keypad = (
-    <Box className="px-4 pt-2 bg-default">
+    <Box className="bg-default px-4 pt-2">
       <Keypad
         value={(() => {
           if (focusedInput === 'takeProfitPrice') return takeProfitPrice;
@@ -1276,7 +1276,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                className="mb-2 -mr-3 min-h-8"
+                className="-mr-3 mb-2 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1420,7 +1420,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                className="mb-2 -mr-3 min-h-8"
+                className="-mr-3 mb-2 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1557,7 +1557,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         </Box>
       </ScrollView>
 
-      <Box className="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
+      <Box className="w-full px-0 pb-4" onLayout={handleKeypadFooterLayout}>
         {footerContent}
       </Box>
     </>

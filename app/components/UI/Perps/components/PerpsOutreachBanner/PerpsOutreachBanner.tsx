@@ -151,7 +151,7 @@ const PerpsOutreachBannerContent = ({
             {showImage ? (
               <Box
                 alignItems={BoxAlignItems.Center}
-                className="h-[72px] w-[72px] overflow-hidden rounded-lg p-2"
+                className="size-[72px] overflow-hidden rounded-lg p-2"
               >
                 <Image
                   source={{ uri: campaign.imageUrl }}

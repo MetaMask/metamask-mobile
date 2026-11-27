@@ -344,7 +344,7 @@ const PerpsProPositionCard = ({
             alignItems={BoxAlignItems.Center}
             className="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box className="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.entry_price')}
                 value={entryPriceDisplay}
@@ -390,7 +390,7 @@ const PerpsProPositionCard = ({
                 }
               />
             </Box>
-            <Box className="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}

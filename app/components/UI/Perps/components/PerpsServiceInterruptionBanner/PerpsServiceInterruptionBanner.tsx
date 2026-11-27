@@ -262,7 +262,7 @@ const PerpsServiceInterruptionBanner: React.FC<
         alignItems={BoxAlignItems.Start}
         gap={3}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        className="rounded-xl pl-4 pr-2 pt-2 pb-3"
+        className="rounded-xl pb-3 pl-4 pr-2 pt-2"
       >
         <Box className="pt-1">
           <Icon

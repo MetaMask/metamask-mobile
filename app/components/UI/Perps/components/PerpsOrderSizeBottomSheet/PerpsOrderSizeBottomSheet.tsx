@@ -296,7 +296,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
         )}
       </Box>
 
-      <Box className="mb-4 mt-4 px-4">
+      <Box className="my-4 px-4">
         {isInputReady ? (
           <Keypad
             value={orderSize}

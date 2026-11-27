@@ -403,7 +403,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     );
 
   const Summary = (
-    <Box className="pt-4 pb-4 gap-1">
+    <Box className="gap-1 py-4">
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('perps.adjust_margin.margin_in_position')}
@@ -490,7 +490,7 @@ const PerpsAdjustMarginView: React.FC = () => {
         />
 
         {!isInputFocused && (
-          <Box className="px-4 py-4">
+          <Box className="p-4">
             <PerpsSlider
               value={sliderPercentage}
               onValueChange={handleSliderChange}
@@ -504,7 +504,7 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {hasNoRemovableMargin && (
           <HelpText
-            className="px-4 justify-center text-center"
+            className="justify-center px-4 text-center"
             testID={PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN}
           >
             {strings('perps.adjust_margin.no_removable_margin')}
@@ -515,7 +515,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       {isInputFocused && (
         <Box className="pt-4">
           {Summary}
-          <Box className="flex-row justify-between px-4 mb-3 gap-2">
+          <Box className="mb-3 flex-row justify-between gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}

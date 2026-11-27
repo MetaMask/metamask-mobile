@@ -74,7 +74,7 @@ const PerpsSocialFeedSectionInner: React.FC<
         onPress={handleOpenSocial}
         testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER}
       />
-      <Box className="px-4 mt-1 mb-3">
+      <Box className="mb-3 mt-1 px-4">
         <FilterButtonGroup
           value={tab}
           onChange={(value) => setSelectedTab(value as SocialFeedTab)}

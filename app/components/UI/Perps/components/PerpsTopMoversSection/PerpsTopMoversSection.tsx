@@ -101,7 +101,7 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
         onPress={handleViewAll}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
       />
-      <Box className="px-4 mb-3">
+      <Box className="mb-3 px-4">
         <SegmentedControl
           value={direction === 'desc' ? 'gainers' : 'losers'}
           onChange={(value) =>

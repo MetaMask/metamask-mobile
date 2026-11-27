@@ -61,7 +61,7 @@ const PerpsCrossMarginWarningBottomSheet: React.FC<
       >
         {strings('perps.crossMargin.title')}
       </BottomSheetHeaderGlass>
-      <Box className="px-4 py-4">
+      <Box className="p-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.crossMargin.message')}
         </Text>

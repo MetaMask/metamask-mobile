@@ -402,7 +402,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
         </Box>
       ))}
 
-      <Box flexDirection={BoxFlexDirection.Column} className="gap-1 pt-2 pb-1">
+      <Box flexDirection={BoxFlexDirection.Column} className="gap-1 pb-1 pt-2">
         <Skeleton height={4} width="100%" twClassName="rounded-full" />
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -968,7 +968,7 @@ const PerpsProOrderBookPanel = ({
       {depthRatio ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
-          className="gap-1 pt-2 pb-1"
+          className="gap-1 pb-1 pt-2"
           testID={`${testID}-ratio`}
         >
           <Box

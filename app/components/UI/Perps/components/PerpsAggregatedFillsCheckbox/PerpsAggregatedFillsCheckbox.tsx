@@ -49,7 +49,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
       </Box>
     }
     contentWrapperProps={{ style: { gap: 6 } }}
-    className={isGlass ? 'pl-4 bg-transparent' : 'pl-4'}
+    className={isGlass ? 'bg-transparent pl-4' : 'pl-4'}
     role="checkbox"
     accessibilityState={{ checked: isSelected }}
     onPress={() => onChange(!isSelected)}

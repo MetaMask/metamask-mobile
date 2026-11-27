@@ -3606,7 +3606,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* OI Cap Warning - Shows when market is at capacity */}
       {!isInputFocused && isAtOICap && (
-        <Box className="px-4 mb-4">
+        <Box className="mb-4 px-4">
           <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
         </Box>
       )}

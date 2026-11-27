@@ -204,7 +204,7 @@ const OrderTypeStartAccessory = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      className="h-10 w-10"
+      className="size-10"
       testID={`${testID}-icon`}
       accessibilityLabel={`${testID}-icon-${themeAppearance}`}
     >

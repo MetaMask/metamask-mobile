@@ -361,7 +361,7 @@ const PerpsWithdrawView: React.FC = () => {
 
         {/* Amount Display */}
         <Pressable onPress={handleAmountPress}>
-          <Box alignItems={BoxAlignItems.Center} className="py-12 px-4">
+          <Box alignItems={BoxAlignItems.Center} className="px-4 py-12">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

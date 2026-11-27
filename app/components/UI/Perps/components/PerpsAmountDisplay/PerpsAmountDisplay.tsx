@@ -202,7 +202,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           >
             {/* Mirrors the toggle's width so the value stays optically centered. */}
             {onDisplayToggle ? (
-              <Box accessible={false} className="h-6 w-6" />
+              <Box accessible={false} className="size-6" />
             ) : null}
             <Text
               variant={TextVariant.BodySm}

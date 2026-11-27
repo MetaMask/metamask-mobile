@@ -233,7 +233,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       />
 
       {!isEditingLimitPrice && !isInputFocused && (
-        <Box className="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+        <Box className="p-4" onTouchCancel={handleSliderDragCancel}>
           <PerpsSlider
             value={displayClosePercentage}
             onValueChange={handleSliderValueChange}
@@ -313,7 +313,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isInputFocused && (
         <>
-          <Box className="flex-row gap-2 px-4 pt-3 mb-3">
+          <Box className="mb-3 flex-row gap-2 px-4 pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
@@ -360,7 +360,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isEditingLimitPrice && (
         <>
-          <Box className="flex-row gap-2 px-4 pt-3 mb-3">
+          <Box className="mb-3 flex-row gap-2 px-4 pt-3">
             {limitPriceInput.presets.map((preset) => (
               <Button
                 key={preset.testID}
