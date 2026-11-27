@@ -363,6 +363,39 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       version: 1,
     });
   });
+
+  it('fires hook-level onSuccess even when the component unmounts before the batch settles', async () => {
+    const onSuccess = jest.fn();
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+
+    const { result, unmount } = renderHook(
+      () => useTokenWatchlistAddItemMutation({ onSuccess }),
+      { wrapper: Wrapper },
+    );
+
+    act(() => {
+      result.current.mutate(ASSET_B);
+    });
+
+    await waitFor(() =>
+      expect(readCache(queryClient)).toStrictEqual({
+        assets: [ASSET_A, ASSET_B],
+        version: 1,
+      }),
+    );
+
+    unmount();
+
+    await act(async () => {
+      await drainBatcher();
+    });
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
+    expect(onSuccess).toHaveBeenCalledWith(ASSET_B);
+  });
 });
 
 describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
@@ -521,6 +554,39 @@ describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
       assets: [],
       version: 1,
     });
+  });
+
+  it('fires hook-level onSuccess even when the component unmounts before the batch settles', async () => {
+    const onSuccess = jest.fn();
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, initial);
+
+    const { result, unmount } = renderHook(
+      () => useTokenWatchlistRemoveItemMutation({ onSuccess }),
+      { wrapper: Wrapper },
+    );
+
+    act(() => {
+      result.current.mutate(ASSET_B);
+    });
+
+    await waitFor(() =>
+      expect(readCache(queryClient)).toStrictEqual({
+        assets: [ASSET_A, ASSET_C],
+        version: 1,
+      }),
+    );
+
+    unmount();
+
+    await act(async () => {
+      await drainBatcher();
+    });
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
+    expect(onSuccess).toHaveBeenCalledWith(ASSET_B);
   });
 });
 

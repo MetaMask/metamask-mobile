@@ -48,8 +48,16 @@ import {
   getUnavailablePerpRowTestId,
 } from '../../../../Watchlist/WatchlistUnavailablePerpRow';
 import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { createEthMarketForViews } from '../../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { findTrackedEvent } from '../../../../../../../tests/component-view/helpers/analytics';
 import Engine from '../../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { analytics } from '../../../../../../util/analytics/analytics';
+import {
+  getWatchlistAssetType,
+  WatchlistAnalytics,
+} from '../../constants/watchlistAnalytics';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const SEARCH_TOKEN = mockTrendingTokensData[1];
@@ -59,6 +67,7 @@ const getRowTestId = (assetId: string): string =>
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 beforeEach(() => {
+  jest.mocked(toast).mockClear();
   netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   setupTrendingApiFetchMock(mockTrendingTokensData);
   setupWatchlistStorageMock();
@@ -156,8 +165,11 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      await findByTestId(getPerpsMarketRowItemSelector.addButton('ETH')),
+      await findByTestId(getPerpsMarketRowItemSelector.removeButton('ETH')),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.addButton('ETH')),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).not.toBeOnTheScreen();
@@ -226,7 +238,7 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
-  it('restores an unavailable Perps row when removal fails', async () => {
+  it('restores an unavailable Perps row and shows an error toast when removal fails', async () => {
     const toggleWatchlistMarket = Engine.context.PerpsController
       .toggleWatchlistMarket as jest.Mock;
     const getWatchlistMarkets = Engine.context.PerpsController
@@ -252,6 +264,104 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(
       await findByTestId(getUnavailablePerpRowTestId('DOGE')),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('perps.watchlist.remove_error'),
+          severity: ToastSeverity.Danger,
+        }),
+      );
+    });
+  });
+
+  it('shows an error toast when adding a suggested Perp fails', async () => {
+    setupWatchlistStorageMock({
+      version: 1,
+      assets: [mockWatchlistAssetIds[1]],
+    });
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    const getWatchlistMarkets = Engine.context.PerpsController
+      .getWatchlistMarkets as jest.Mock;
+    getWatchlistMarkets.mockReturnValueOnce([]);
+    toggleWatchlistMarket.mockRejectedValueOnce(new Error('Add failed'));
+
+    const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+      deterministicFiat: true,
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: [],
+      streamOverrides: {
+        marketData: [
+          {
+            ...createEthMarketForViews(),
+            symbol: 'SOL',
+            name: 'Solana Perpetual',
+          },
+        ],
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    );
+
+    await waitFor(() => {
+      expect(toggleWatchlistMarket).toHaveBeenCalledWith('SOL');
+    });
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('perps.watchlist.add_error'),
+          severity: ToastSeverity.Danger,
+        }),
+      );
+    });
+  });
+
+  it('adds a suggested token from the unified watchlist and tracks WATCHLIST_TOKEN_ADDED', async () => {
+    const suggestedAssetId = mockWatchlistAssetIds[0];
+    setupWatchlistStorageMock({
+      version: 1,
+      assets: [mockWatchlistAssetIds[1]],
+    });
+    setupWatchlistTokenApiMock(mockWatchlistTokensResponse);
+    const putScope = setupWatchlistStoragePutMock();
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: [],
+      });
+
+      await findByTestId('watchlist-suggested-section');
+      fireEvent.press(
+        await findByTestId(
+          getTrendingTokenRowAddButtonTestId(suggestedAssetId),
+        ),
+      );
+
+      await waitFor(() => expect(putScope.isDone()).toBe(true));
+
+      await waitFor(() => {
+        expect(
+          findTrackedEvent(
+            trackEventSpy,
+            MetaMetricsEvents.WATCHLIST_TOKEN_ADDED.category,
+          ),
+        ).toMatchObject({
+          properties: {
+            source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
+            asset_id: suggestedAssetId,
+            asset_type: getWatchlistAssetType(suggestedAssetId),
+            has_balance: false,
+          },
+        });
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
   });
 
   it('removes a token directly via its star button and persists the update to storage', async () => {
@@ -442,5 +552,56 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')),
     ).toBeOnTheScreen();
+  });
+
+  it('tracks WATCHLIST_TOKEN_REMOVED when leaving the screen before the batched write settles', async () => {
+    const assetToRemove = mockWatchlistAssetIds[2];
+    const putScope = setupWatchlistStoragePutMock();
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId, queryByTestId } =
+        renderWatchlistSectionWithRoutes({
+          deterministicFiat: true,
+          unifiedWatchlist: true,
+        });
+
+      await findByTestId(getRowTestId(assetToRemove));
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')),
+      );
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.CONTAINER);
+
+      fireEvent.press(
+        await findByTestId(getTrendingTokenRowAddButtonTestId(assetToRemove)),
+      );
+      fireEvent.press(
+        await findByTestId(WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(WatchlistFullScreenViewSelectorsIDs.CONTAINER),
+        ).not.toBeOnTheScreen();
+      });
+      await waitFor(() => expect(putScope.isDone()).toBe(true));
+
+      await waitFor(() => {
+        expect(
+          findTrackedEvent(
+            trackEventSpy,
+            MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED.category,
+          ),
+        ).toMatchObject({
+          properties: {
+            source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN,
+            asset_id: assetToRemove,
+            asset_type: getWatchlistAssetType(assetToRemove),
+          },
+        });
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
   });
 });

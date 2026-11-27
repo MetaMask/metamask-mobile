@@ -223,6 +223,8 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     canFetchSuggestions: !isOffline && hardwareTier !== 'LOW',
     tokenMembershipAssetIds,
     perpsMembershipSymbols: isPerpsEnabled ? watchlistSymbols : EMPTY_SYMBOLS,
+    // Intentionally counts hydrated visible tokens rather than raw membership
+    // IDs so stale/unhydrated blob entries don't skew analytics or suggestions.
     tokenCount: isTokenWatchlistEnabled ? tokens.length : 0,
     perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
     isInitialLoading:

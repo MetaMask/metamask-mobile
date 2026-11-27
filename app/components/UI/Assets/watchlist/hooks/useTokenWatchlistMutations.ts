@@ -136,18 +136,29 @@ interface InvalidateOnSettledOptions {
   hydrated?: boolean;
 }
 
+export interface WatchlistMutationHookOptions<TInput> {
+  /**
+   * Hook-level success callback wired into React Query's `useMutation`
+   * options. Unlike mutate-level callbacks, this still fires if the calling
+   * component unmounts before the batched write settles.
+   */
+  onSuccess?: (input: TInput) => void;
+}
+
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
   optimisticTokens,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
   shouldInvalidateHydrated,
+  onSuccess,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
   optimisticTokens?: (input: TInput) => readonly WatchlistTokenMetadata[];
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
   shouldInvalidateHydrated?: (input: TInput) => boolean;
+  onSuccess?: (input: TInput) => void;
 }) => {
   const queryClient = useQueryClient();
 
@@ -192,6 +203,9 @@ const useWatchlistMutation = <TInput>({
 
       return { prevBlob, prevHydrated };
     },
+    onSuccess: (_data, input) => {
+      onSuccess?.(input);
+    },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prevBlob !== undefined) {
         queryClient.setQueryData(tokenWatchlistQueryKeys.blob, ctx.prevBlob);
@@ -208,7 +222,7 @@ const useWatchlistMutation = <TInput>({
     },
     onSettled: (_data, _error, input) => {
       if (invalidateOnSettled.blob !== false) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.blob,
         });
       }
@@ -216,7 +230,7 @@ const useWatchlistMutation = <TInput>({
         invalidateOnSettled.hydrated !== false &&
         (shouldInvalidateHydrated?.(input) ?? true);
       if (shouldInvalidate) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.hydrated,
         });
       }
@@ -229,10 +243,14 @@ const useWatchlistMutation = <TInput>({
  * optimistic cache updates with rollback and enqueues an `add` op into
  * the shared {@link tokenWatchlistBatcher}.
  */
-export const useTokenWatchlistAddItemMutation = () => {
+export const useTokenWatchlistAddItemMutation = <
+  TInput extends WatchlistAddInput = WatchlistAddInput,
+>(
+  options?: WatchlistMutationHookOptions<TInput>,
+) => {
   const queryClient = useQueryClient();
 
-  return useWatchlistMutation<WatchlistAddInput>({
+  return useWatchlistMutation<TInput>({
     applyOptimistic: (current, input) =>
       mergeAssets(current, toAddedAssetIds(input)),
     optimisticTokens: toAddedTokens,
@@ -253,6 +271,7 @@ export const useTokenWatchlistAddItemMutation = () => {
         blob.assets.some((asset) => asset.toLowerCase() === id.toLowerCase()),
       );
     },
+    onSuccess: options?.onSuccess,
   });
 };
 
@@ -260,13 +279,21 @@ export const useTokenWatchlistAddItemMutation = () => {
  * Remove one or more `CaipAssetType` ids from the watchlist. Mirrors
  * {@link useTokenWatchlistAddItemMutation} but enqueues a `remove` op.
  */
-export const useTokenWatchlistRemoveItemMutation = () =>
-  useWatchlistMutation<WatchlistRemoveInput>({
+export const useTokenWatchlistRemoveItemMutation = <
+  TInput extends WatchlistRemoveInput = WatchlistRemoveInput,
+>(
+  options?: WatchlistMutationHookOptions<TInput>,
+) =>
+  useWatchlistMutation<TInput>({
     applyOptimistic: (current, input) =>
-      filterAssets(current, toStrings(asArray(input))),
-    toOp: (input) => ({ kind: 'remove', ids: toStrings(asArray(input)) }),
+      filterAssets(current, toStrings(asArray<CaipAssetType>(input))),
+    toOp: (input) => ({
+      kind: 'remove',
+      ids: toStrings(asArray<CaipAssetType>(input)),
+    }),
     // Optimistic blob + hydrated updates are sufficient; no Token API refetch.
     invalidateOnSettled: { blob: false, hydrated: false },
+    onSuccess: options?.onSuccess,
   });
 
 /**

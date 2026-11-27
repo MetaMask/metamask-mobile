@@ -105,6 +105,20 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: 'sol',
       enableDebounce: false,
+      enabled: true,
+      filterLowQuality: true,
+      sortBy: undefined,
+      sortTrendingTokensOptions: undefined,
+    });
+  });
+
+  it('forwards enabled=false directly into useTrendingSearch', () => {
+    renderHook(() => useTokensFeed({ query: 'sol', enabled: false }));
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      searchQuery: 'sol',
+      enableDebounce: false,
+      enabled: false,
       filterLowQuality: true,
       sortBy: undefined,
       sortTrendingTokensOptions: undefined,
@@ -121,6 +135,7 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: undefined,
       enableDebounce: false,
+      enabled: true,
       filterLowQuality: true,
       sortBy: 'h1_trending',
       sortTrendingTokensOptions: {

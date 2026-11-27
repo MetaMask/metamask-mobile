@@ -8,6 +8,10 @@ const normalizePerpSymbol = (symbol: string): string => symbol.toLowerCase();
 /** `PerpsMarketData` = optimistic add, `null` = optimistic removal. */
 type OptimisticPerpEntry = PerpsMarketData | null;
 
+export type OptimisticPerpsWatchlistAction = 'add' | 'remove';
+
+const EMPTY_OVERRIDES = new Map<string, OptimisticPerpEntry>();
+
 const deleteFromMap = <Key, Value>(
   current: Map<Key, Value>,
   key: Key,
@@ -21,26 +25,75 @@ const deleteFromMap = <Key, Value>(
 };
 
 interface UseOptimisticPerpsWatchlistOptions {
+  accountGroupId?: string | null;
   orderedItems: readonly UnifiedWatchlistItem[];
   persistedPerps: readonly UnifiedWatchlistPerp[];
   perpsMembershipSymbols: readonly string[];
   addPerpToWatchlist: (symbol: string) => Promise<boolean>;
   removePerpFromWatchlist: (symbol: string) => Promise<boolean>;
   onPerpAdded?: (symbol: string) => void;
+  onMutationError?: (
+    action: OptimisticPerpsWatchlistAction,
+    symbol: string,
+  ) => void;
 }
 
 export const useOptimisticPerpsWatchlist = ({
+  accountGroupId,
   orderedItems,
   persistedPerps,
   perpsMembershipSymbols,
   addPerpToWatchlist,
   removePerpFromWatchlist,
   onPerpAdded,
+  onMutationError,
 }: UseOptimisticPerpsWatchlistOptions) => {
-  const [optimisticOverrides, setOptimisticOverrides] = useState<
-    Map<string, OptimisticPerpEntry>
-  >(() => new Map());
+  const [overrideState, setOverrideState] = useState<{
+    accountGroupId: string | null | undefined;
+    overrides: Map<string, OptimisticPerpEntry>;
+  }>(() => ({
+    accountGroupId,
+    overrides: new Map(),
+  }));
   const mutationSeqRef = useRef<Map<string, number>>(new Map());
+  const prevAccountGroupIdRef = useRef(accountGroupId);
+  const latestAccountGroupIdRef = useRef(accountGroupId);
+  latestAccountGroupIdRef.current = accountGroupId;
+  const accountGroupGenRef = useRef(0);
+
+  const optimisticOverrides =
+    overrideState.accountGroupId === accountGroupId
+      ? overrideState.overrides
+      : EMPTY_OVERRIDES;
+
+  const updateOverrides = useCallback(
+    (
+      updater: (
+        current: Map<string, OptimisticPerpEntry>,
+      ) => Map<string, OptimisticPerpEntry>,
+    ) => {
+      setOverrideState((current) => {
+        const next = updater(current.overrides);
+        return next === current.overrides
+          ? current
+          : { accountGroupId: current.accountGroupId, overrides: next };
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (prevAccountGroupIdRef.current === accountGroupId) {
+      return;
+    }
+    prevAccountGroupIdRef.current = accountGroupId;
+    accountGroupGenRef.current += 1;
+    mutationSeqRef.current.clear();
+    setOverrideState({
+      accountGroupId,
+      overrides: new Map(),
+    });
+  }, [accountGroupId]);
 
   const persistedSymbols = useMemo(
     () =>
@@ -49,7 +102,7 @@ export const useOptimisticPerpsWatchlist = ({
   );
 
   useEffect(() => {
-    setOptimisticOverrides((current) => {
+    updateOverrides((current) => {
       let next = current;
       current.forEach((entry, symbol) => {
         const isPersisted = persistedSymbols.has(symbol);
@@ -62,7 +115,7 @@ export const useOptimisticPerpsWatchlist = ({
       });
       return next;
     });
-  }, [persistedSymbols]);
+  }, [persistedSymbols, updateOverrides]);
 
   const displayOrderedItems = useMemo(() => {
     const existingPerpSymbols = new Set<string>();
@@ -96,57 +149,84 @@ export const useOptimisticPerpsWatchlist = ({
   }, [optimisticOverrides, perpsMembershipSymbols]);
 
   const beginMutation = useCallback(
-    (symbol: string, nextEntry: OptimisticPerpEntry): (() => void) => {
+    (
+      symbol: string,
+      nextEntry: OptimisticPerpEntry,
+    ): { isCurrent: () => boolean; rollbackIfCurrent: () => boolean } => {
+      const capturedAccountGroupId = latestAccountGroupIdRef.current;
+      const capturedGeneration = accountGroupGenRef.current;
       const seq = (mutationSeqRef.current.get(symbol) ?? 0) + 1;
       mutationSeqRef.current.set(symbol, seq);
-      setOptimisticOverrides((current) => {
+      updateOverrides((current) => {
         const next = new Map(current);
         next.set(symbol, nextEntry);
         return next;
       });
-      return () => {
-        if (mutationSeqRef.current.get(symbol) === seq) {
-          setOptimisticOverrides((current) => deleteFromMap(current, symbol));
+
+      const isCurrent = (): boolean =>
+        accountGroupGenRef.current === capturedGeneration &&
+        latestAccountGroupIdRef.current === capturedAccountGroupId &&
+        mutationSeqRef.current.get(symbol) === seq;
+
+      const rollbackIfCurrent = (): boolean => {
+        if (!isCurrent()) {
+          return false;
         }
+        updateOverrides((current) => deleteFromMap(current, symbol));
+        return true;
       };
+
+      return { isCurrent, rollbackIfCurrent };
     },
-    [],
+    [updateOverrides],
   );
 
   const addPerp = useCallback(
     (market: PerpsMarketData) => {
-      const rollbackIfLatest = beginMutation(
+      const { isCurrent, rollbackIfCurrent } = beginMutation(
         normalizePerpSymbol(market.symbol),
         market,
       );
+      const handleError = (): void => {
+        if (rollbackIfCurrent()) {
+          onMutationError?.('add', market.symbol);
+        }
+      };
       addPerpToWatchlist(market.symbol)
         .then((wasAdded) => {
           if (wasAdded) {
-            onPerpAdded?.(market.symbol);
+            if (isCurrent()) {
+              onPerpAdded?.(market.symbol);
+            }
             return;
           }
-          rollbackIfLatest();
+          handleError();
         })
-        .catch(rollbackIfLatest);
+        .catch(handleError);
     },
-    [addPerpToWatchlist, beginMutation, onPerpAdded],
+    [addPerpToWatchlist, beginMutation, onMutationError, onPerpAdded],
   );
 
   const removePerp = useCallback(
     (rawSymbol: string) => {
-      const rollbackIfLatest = beginMutation(
+      const { rollbackIfCurrent } = beginMutation(
         normalizePerpSymbol(rawSymbol),
         null,
       );
+      const handleError = (): void => {
+        if (rollbackIfCurrent()) {
+          onMutationError?.('remove', rawSymbol);
+        }
+      };
       removePerpFromWatchlist(rawSymbol)
         .then((wasRemoved) => {
           if (!wasRemoved) {
-            rollbackIfLatest();
+            handleError();
           }
         })
-        .catch(rollbackIfLatest);
+        .catch(handleError);
     },
-    [beginMutation, removePerpFromWatchlist],
+    [beginMutation, onMutationError, removePerpFromWatchlist],
   );
 
   return {

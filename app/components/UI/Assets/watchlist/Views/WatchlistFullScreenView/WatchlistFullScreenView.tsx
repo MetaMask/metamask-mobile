@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -32,6 +38,8 @@ import {
   IconName,
   Text,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
 import {
@@ -60,12 +68,16 @@ import { useSelector } from 'react-redux';
 import CapsuleGlass from '../../../../../../component-library/components-temp/CapsuleGlass';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { selectSelectedAccountGroupId } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
 import { useUnifiedWatchlistPerpsHandlers } from '../../../../Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
-import { useOptimisticPerpsWatchlist } from '../../../../Watchlist/hooks/useOptimisticPerpsWatchlist';
+import {
+  useOptimisticPerpsWatchlist,
+  type OptimisticPerpsWatchlistAction,
+} from '../../../../Watchlist/hooks/useOptimisticPerpsWatchlist';
 import type {
   UnifiedWatchlistItem,
   WatchlistFilter,
@@ -394,6 +406,25 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
 const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const tw = useTailwind();
   const reduceMotion = useReducedMotion();
+  const accountGroupId = useSelector(selectSelectedAccountGroupId);
+  const prevAccountGroupIdRef = useRef(accountGroupId);
+  const latestAccountGroupIdRef = useRef(accountGroupId);
+  latestAccountGroupIdRef.current = accountGroupId;
+  const accountGroupGenRef = useRef(0);
+  const pendingTokenAddContextRef = useRef<
+    WeakMap<
+      WatchlistTokenWithBalance,
+      { accountGroupId: typeof accountGroupId; generation: number }
+    >
+  >(new WeakMap());
+
+  useEffect(() => {
+    if (prevAccountGroupIdRef.current === accountGroupId) {
+      return;
+    }
+    prevAccountGroupIdRef.current = accountGroupId;
+    accountGroupGenRef.current += 1;
+  }, [accountGroupId]);
   const {
     items: orderedItems,
     tokens,
@@ -415,9 +446,48 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   } = useUnifiedWatchlist();
   const { data: suggestedTokenPool, isLoading: isSuggestedTokenLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
-  const addTokenMutation = useTokenWatchlistAddItemMutation();
-  const removeTokenMutation = useTokenWatchlistRemoveItemMutation();
   const analytics = useAnalytics();
+  const addTokenMutation =
+    useTokenWatchlistAddItemMutation<WatchlistTokenWithBalance>({
+      onSuccess: (token) => {
+        const assetId = String(token.assetId);
+        analytics.trackEvent(
+          analytics
+            .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+            .addProperties({
+              source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
+              asset_id: assetId,
+              asset_type: getWatchlistAssetType(assetId),
+              has_balance: token.isInWallet,
+            })
+            .build(),
+        );
+        const addContext = pendingTokenAddContextRef.current.get(token);
+        const isCurrentAccountGroup =
+          addContext !== undefined &&
+          addContext.generation === accountGroupGenRef.current &&
+          addContext.accountGroupId === latestAccountGroupIdRef.current;
+        if (isCurrentAccountGroup && isOrderReady) {
+          appendOrderKey(getTokenWatchlistKey(assetId)).catch(() => undefined);
+        }
+      },
+    });
+  const removeTokenMutation =
+    useTokenWatchlistRemoveItemMutation<CaipAssetType>({
+      onSuccess: (assetId) => {
+        const assetIdStr = String(assetId);
+        analytics.trackEvent(
+          analytics
+            .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
+            .addProperties({
+              source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN,
+              asset_id: assetIdStr,
+              asset_type: getWatchlistAssetType(assetIdStr),
+            })
+            .build(),
+        );
+      },
+    });
   const {
     addPerpToWatchlist,
     removePerpFromWatchlist,
@@ -446,6 +516,22 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     [appendOrderKey, isOrderReady],
   );
 
+  const handlePerpMutationError = useCallback(
+    (action: OptimisticPerpsWatchlistAction) => {
+      toast({
+        title: strings(
+          action === 'add'
+            ? 'perps.watchlist.add_error'
+            : 'perps.watchlist.remove_error',
+        ),
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+    },
+    [],
+  );
+
   const {
     displayOrderedItems,
     watchlistedPerpSymbols,
@@ -453,12 +539,14 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     addPerp: handleAddPerp,
     removePerp,
   } = useOptimisticPerpsWatchlist({
+    accountGroupId,
     orderedItems,
     persistedPerps: perps.items,
     perpsMembershipSymbols,
     addPerpToWatchlist,
     removePerpFromWatchlist,
     onPerpAdded: handlePerpAdded,
+    onMutationError: handlePerpMutationError,
   });
 
   const visibleItems = useMemo(
@@ -519,54 +607,26 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
   const handleAddToken = useCallback(
     (token: WatchlistTokenWithBalance) => {
-      const assetId = String(token.assetId);
-      addTokenMutation.mutate(token, {
-        onSuccess: () => {
-          analytics.trackEvent(
-            analytics
-              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
-              .addProperties({
-                source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
-                asset_id: assetId,
-                asset_type: getWatchlistAssetType(assetId),
-                has_balance: token.isInWallet,
-              })
-              .build(),
-          );
-          if (isOrderReady) {
-            appendOrderKey(getTokenWatchlistKey(assetId)).catch(
-              () => undefined,
-            );
-          }
-        },
+      const mutationInput: WatchlistTokenWithBalance = { ...token };
+      pendingTokenAddContextRef.current.set(mutationInput, {
+        accountGroupId: latestAccountGroupIdRef.current,
+        generation: accountGroupGenRef.current,
       });
+      addTokenMutation.mutate(mutationInput);
     },
-    [addTokenMutation, analytics, appendOrderKey, isOrderReady],
+    [addTokenMutation],
   );
 
   const handleRemoveFromWatchlist = useCallback(
     (item: UnifiedWatchlistItem) => {
       if (item.kind === 'token') {
-        removeTokenMutation.mutate(item.assetId as CaipAssetType, {
-          onSuccess: () => {
-            analytics.trackEvent(
-              analytics
-                .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
-                .addProperties({
-                  source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN,
-                  asset_id: item.assetId,
-                  asset_type: getWatchlistAssetType(item.assetId),
-                })
-                .build(),
-            );
-          },
-        });
+        removeTokenMutation.mutate(item.assetId as CaipAssetType);
         return;
       }
 
       removePerp(item.symbol);
     },
-    [analytics, removePerp, removeTokenMutation],
+    [removePerp, removeTokenMutation],
   );
 
   const handleDragStart = useCallback(() => {
