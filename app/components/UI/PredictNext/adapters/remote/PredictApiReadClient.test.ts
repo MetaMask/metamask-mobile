@@ -8,6 +8,10 @@ import type {
 } from '../../types';
 import { TemplateError } from '../../auth/signing/profileTemplates';
 import {
+  refreshVenueProfileAfterRefusal,
+  resolveVenueProfile,
+} from '../../auth/venueSigningProfiles';
+import {
   PredictApiReadClient,
   PredictHttpError,
   PredictReadBudgetExhaustedError,
@@ -23,6 +27,13 @@ import {
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { log: jest.fn(), error: jest.fn() },
+}));
+
+jest.mock('../../auth/venueSigningProfiles', () => ({
+  VENUE_READ_HEADER: 'venue-read',
+  resolveVenueProfile: jest.fn().mockResolvedValue({}),
+  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(false),
+  confirmVenueProfileVersion: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockLoggerError = jest.mocked(Logger.error);
@@ -96,6 +107,7 @@ const SIGNED_OPERATION = {
   header: SIGNED_READ_HEADER,
   body: '{"ticker":"MKT-1"}',
   idempotencyKey: 'op-key',
+  profile: { version: 1, sha256: 'sha-v1' },
 };
 
 describe('PredictApiReadClient', () => {
@@ -104,6 +116,8 @@ describe('PredictApiReadClient', () => {
 
   beforeEach(() => {
     mockLoggerError.mockClear();
+    jest.mocked(resolveVenueProfile).mockClear();
+    jest.mocked(refreshVenueProfileAfterRefusal).mockClear();
     fetchMock = jest.fn();
     client = new PredictApiReadClient({
       baseUrl: 'https://predict.example/api/',
@@ -111,6 +125,119 @@ describe('PredictApiReadClient', () => {
       fetch: fetchMock,
       getBearerToken: async () => 'secret-token',
       signOperation: async () => SIGNED_OPERATION,
+    });
+  });
+
+  describe('getSigningProfile', () => {
+    it('requests the public endpoint without resolving a bearer token', async () => {
+      const getBearerToken = jest.fn().mockRejectedValue(new Error('locked'));
+      const profile = { id: 'kalshi-demo-signing', version: 1 };
+      fetchMock.mockResolvedValue(createResponse({ json: profile }));
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken,
+      });
+      const signal = new AbortController().signal;
+
+      await expect(
+        client.getSigningProfile(venueId, { signal }),
+      ).resolves.toEqual(profile);
+
+      expect(getBearerToken).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/kalshi/signing-profile',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'x-metamask-clientproduct': 'metamask-mobile',
+            'x-metamask-clientversion': '7.0.0',
+          },
+          signal,
+        },
+      );
+    });
+
+    it('encodes the venue as one path segment', async () => {
+      fetchMock.mockResolvedValue(
+        createResponse({ json: { id: 'kalshi-demo-signing', version: 1 } }),
+      );
+
+      await client.getSigningProfile('venue/one' as PredictVenueId);
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/venue%2Fone/signing-profile',
+        expect.anything(),
+      );
+    });
+
+    it.each([1, Number.MAX_SAFE_INTEGER])(
+      'accepts positive safe integer version %s',
+      async (version) => {
+        const profile = { id: 'kalshi-demo-signing', version };
+        fetchMock.mockResolvedValue(createResponse({ json: profile }));
+
+        await expect(client.getSigningProfile(venueId)).resolves.toEqual(
+          profile,
+        );
+      },
+    );
+
+    it.each([
+      null,
+      [],
+      'profile',
+      {},
+      { id: 1, version: 1 },
+      { version: 1 },
+      { id: 'kalshi-demo-signing' },
+      ...[
+        0,
+        -1,
+        1.5,
+        Number.MAX_SAFE_INTEGER + 1,
+        NaN,
+        Infinity,
+        '1',
+        null,
+      ].map((version) => ({ id: 'kalshi-demo-signing', version })),
+    ])('rejects an invalid signing profile response %j', async (json) => {
+      fetchMock.mockResolvedValue(createResponse({ json }));
+
+      await expect(client.getSigningProfile(venueId)).rejects.toEqual(
+        new PredictHttpError(200),
+      );
+    });
+
+    it('rejects malformed JSON using the response status', async () => {
+      const response = createResponse();
+      jest.mocked(response.json).mockRejectedValue(new SyntaxError('invalid'));
+      fetchMock.mockResolvedValue(response);
+
+      await expect(client.getSigningProfile(venueId)).rejects.toEqual(
+        new PredictHttpError(200),
+      );
+    });
+
+    it('preserves HTTP error status and code', async () => {
+      fetchMock.mockResolvedValue(errorResponse(503, 'unavailable'));
+
+      await expect(client.getSigningProfile(venueId)).rejects.toMatchObject({
+        status: 503,
+        bodyCode: 'unavailable',
+      });
+    });
+
+    it('does not dispatch an aborted request', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        client.getSigningProfile(venueId, { signal: controller.signal }),
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(fetchMock).not.toHaveBeenCalled();
     });
   });
 
@@ -1054,7 +1181,7 @@ describe('PredictApiReadClient', () => {
       },
       { status: 409, code: 'venue_signature_expired', failure: 'refused' },
     ])(
-      'never marks the mutation unsent when $code renewal is $failure',
+      'preserves the HTTP failure when $code renewal is $failure',
       async ({ status, code, failure }) => {
         const signOperation = jest.fn().mockResolvedValueOnce(SIGNED_OPERATION);
         if (failure === 'refused') {
@@ -1079,13 +1206,12 @@ describe('PredictApiReadClient', () => {
           undefined,
           signing,
         );
-        await expect(failed).rejects.toBeInstanceOf(PredictSigningError);
-        await expect(failed).rejects.not.toBeInstanceOf(
-          PredictRequestNotSentError,
-        );
+        await expect(failed).rejects.toBeInstanceOf(PredictHttpError);
+        await expect(failed).rejects.not.toBeInstanceOf(PredictSigningError);
         await expect(failed).rejects.toMatchObject({
-          bodyCode: `venue_signing_${failure}`,
-          requestSent: true,
+          status,
+          bodyCode: code,
+          outcome: 'unknown',
         });
         expect(signOperation).toHaveBeenCalledTimes(2);
         expect(signOperation).toHaveBeenLastCalledWith(
@@ -1105,6 +1231,42 @@ describe('PredictApiReadClient', () => {
         );
       },
     );
+
+    it('preserves the server not_placed outcome when refresh leaves the reviewed profile unchanged', async () => {
+      const profile = { version: 1, sha256: 'reviewed-profile-hash' };
+      jest.mocked(resolveVenueProfile).mockResolvedValueOnce(profile as never);
+      const pinnedSigning = { ...signing, profile };
+      const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      const body = {
+        code: 'venue_profile_update_required',
+        outcome: 'not_placed',
+      };
+      const response = createResponse({ status: 409, json: body });
+      response.clone = () => createResponse({ status: 409, json: body });
+      fetchMock.mockResolvedValueOnce(response);
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, pinnedSigning),
+      ).rejects.toMatchObject({
+        status: 409,
+        bodyCode: 'venue_profile_update_required',
+        outcome: 'not_placed',
+      });
+      expect(signOperation).toHaveBeenCalledTimes(1);
+      expect(signOperation).toHaveBeenLastCalledWith(
+        'order.place',
+        pinnedSigning,
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(refreshVenueProfileAfterRefusal).toHaveBeenCalledTimes(1);
+    });
 
     it('never re-posts a mutation after an ambiguous fetch failure', async () => {
       const signOperation = jest.fn().mockResolvedValue(SIGNED_OPERATION);
@@ -1370,9 +1532,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.commitWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
-          name: 'AbortError',
-        });
+        const rejected = pending.catch((error: unknown): unknown => error);
         await jest.advanceTimersByTimeAsync(0);
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -1381,7 +1541,7 @@ describe('PredictApiReadClient', () => {
         await jest.advanceTimersByTimeAsync(30_000);
 
         expect(requestSignal?.aborted).toBe(true);
-        await rejected;
+        await expect(rejected).resolves.toMatchObject({ name: 'AbortError' });
       } finally {
         jest.useRealTimers();
       }
@@ -1399,9 +1559,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.observeWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
-          name: 'AbortError',
-        });
+        const rejected = pending.catch((error: unknown): unknown => error);
         await jest.advanceTimersByTimeAsync(0);
 
         expect(requestSignal?.aborted).toBe(false);
@@ -1409,7 +1567,7 @@ describe('PredictApiReadClient', () => {
         await jest.advanceTimersByTimeAsync(15_000);
 
         expect(requestSignal?.aborted).toBe(true);
-        await rejected;
+        await expect(rejected).resolves.toMatchObject({ name: 'AbortError' });
       } finally {
         jest.useRealTimers();
       }

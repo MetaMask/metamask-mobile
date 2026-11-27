@@ -31,7 +31,7 @@ export type SendStackParamList = {
   Amount: SendScreenRouteParams;
   Asset: SendScreenRouteParams;
   Recipient: SendScreenRouteParams;
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  Confirmations: ConfirmationParams | undefined;
 };
 
 /**

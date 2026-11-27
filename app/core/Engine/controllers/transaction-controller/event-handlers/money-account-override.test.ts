@@ -38,6 +38,9 @@ jest.mock('../../../../Engine', () => ({
       TokenBalancesController: {
         updateBalances: jest.fn(),
       },
+      BridgeStatusController: {
+        state: { txHistory: {} },
+      },
     },
   },
 }));
@@ -113,6 +116,10 @@ describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
+    Engine.context.BridgeStatusController.state = {
+      txHistory: {},
+      quoteUpdateStatusStore: {},
+    };
     Engine.context.NetworkController.state = {
       networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
     } as never;
@@ -168,6 +175,51 @@ describe('money-account-override', () => {
     });
 
     it.each([
+      {
+        accountId: 'ledger-account-id',
+        address: '0x3333333333333333333333333333333333333333',
+        keyringType: 'Ledger Hardware',
+      },
+      {
+        accountId: 'qr-account-id',
+        address: '0x4444444444444444444444444444444444444444',
+        keyringType: 'QR Hardware Wallet Device',
+      },
+      {
+        accountId: 'onekey-account-id',
+        address: '0x5555555555555555555555555555555555555555',
+        keyringType: 'OneKey Hardware',
+      },
+    ])(
+      'seeds accountOverride when selected EVM account is a $keyringType account on withdraw',
+      ({ accountId, address, keyringType }) => {
+        getSelectedAccountMock.mockReturnValue({
+          address,
+          id: accountId,
+          metadata: { keyring: { type: keyringType }, name: keyringType },
+          type: EthAccountType.Eoa,
+        } as unknown as InternalAccount);
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
+        );
+
+        expect(setTransactionConfigMock).toHaveBeenCalledWith(
+          TRANSACTION_ID_MOCK,
+          expect.any(Function),
+        );
+
+        const callback = setTransactionConfigMock.mock.calls[0][1];
+        const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+          {};
+        callback(config);
+
+        expect(config.accountOverride).toBe(accountId);
+        expect(config.isQuoteRequired).toBeUndefined();
+      },
+    );
+
+    it.each([
       TransactionType.moneyAccountDeposit,
       MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     ])('sets accountOverride for a batch containing %s', (type) => {
@@ -185,6 +237,39 @@ describe('money-account-override', () => {
         TRANSACTION_ID_MOCK,
         expect.any(Function),
       );
+    });
+
+    it('does nothing for a money deposit that is part of a bridge', () => {
+      Engine.context.BridgeStatusController.state = {
+        txHistory: {
+          'bridge-1': { depositTxMeta: { batchId: '0xbatch' } } as never,
+        },
+        quoteUpdateStatusStore: {},
+      };
+
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({ batchId: '0xbatch' }),
+      );
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for a money withdraw that is part of a bridge', () => {
+      Engine.context.BridgeStatusController.state = {
+        txHistory: {
+          'bridge-1': { withdrawTxMeta: { batchId: '0xbatch' } } as never,
+        },
+        quoteUpdateStatusStore: {},
+      };
+
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          batchId: '0xbatch',
+        }),
+      );
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
     it('does nothing for non-money-account transactions', () => {
@@ -211,9 +296,9 @@ describe('money-account-override', () => {
         transactionData: {
           [TRANSACTION_ID_MOCK]: {
             accountOverride: 'existing-account-id',
-          },
+          } as never,
         },
-      } as never;
+      };
 
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type }),
@@ -303,9 +388,11 @@ describe('money-account-override', () => {
       it('does not load assets when an override is already set', () => {
         Engine.context.TransactionPayController.state = {
           transactionData: {
-            [TRANSACTION_ID_MOCK]: { accountOverride: 'existing-account-id' },
+            [TRANSACTION_ID_MOCK]: {
+              accountOverride: 'existing-account-id',
+            } as never,
           },
-        } as never;
+        };
 
         handleUnapprovedTransactionAddedForMoneyAccount(
           buildTransactionMeta({ chainId: '0x1' }),

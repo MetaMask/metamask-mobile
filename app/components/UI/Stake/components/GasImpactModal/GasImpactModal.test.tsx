@@ -163,11 +163,11 @@ describe('GasImpactModal', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
     });
 
-    it('redesigned stake deposit confirmation view', async () => {
+    it('stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
 
       usePoolStakedDepositMock.mockReturnValue({
@@ -185,7 +185,7 @@ describe('GasImpactModal', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
@@ -219,7 +219,7 @@ describe('GasImpactModal', () => {
     });
   });
 
-  describe('redesigned stake deposit flow', () => {
+  describe('stake deposit flow', () => {
     it('handles case when attemptDepositTransaction is undefined', async () => {
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: undefined,

@@ -383,6 +383,11 @@ export function buildPerpsFlowHarness(
     subscribeToOrderBook: (
       params: Parameters<typeof harness.provider.subscribeToOrderBook>[0],
     ) => harness.provider.subscribeToOrderBook(params),
+    subscribeToAvailableToTrade: (
+      params: Parameters<
+        typeof harness.provider.subscribeToAvailableToTrade
+      >[0],
+    ) => harness.provider.subscribeToAvailableToTrade(params),
     updatePositionTPSL: (
       params: Parameters<typeof harness.provider.updatePositionTPSL>[0],
     ) =>

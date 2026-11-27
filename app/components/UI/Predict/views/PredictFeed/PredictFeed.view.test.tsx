@@ -46,6 +46,11 @@ const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
 const RETRY_TEXT = 'Try again';
 
+// Feed cards and the offline/empty states mount only after the markets read
+// resolves and each card's series/price child reads settle, so awaiting them
+// regularly outlasts the 5s default on a loaded CV shard.
+const FEED_LOAD_TIMEOUT_MS = 10000;
+
 interface PredictRootRouteParams {
   screen?: string;
   params?: {
@@ -213,14 +218,11 @@ describe('PredictFeed', () => {
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 
-      await waitFor(
-        () => {
-          expect(searchMarketsSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ q: 'bitcoin' }),
-          );
-        },
-        { timeout: 5000 },
-      );
+      await waitFor(() => {
+        expect(searchMarketsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ q: 'bitcoin' }),
+        );
+      });
 
       searchMarketsSpy.mockRestore();
     });
@@ -278,14 +280,11 @@ describe('PredictFeed', () => {
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'xyznotfound');
 
-      await waitFor(
-        () => {
-          expect(
-            getByText('No results found for "xyznotfound"'),
-          ).toBeOnTheScreen();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(
+          getByText('No results found for "xyznotfound"'),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('shows complete market data in the search result card after searchMarkets resolves', async () => {
@@ -309,8 +308,6 @@ describe('PredictFeed', () => {
       // Assert — result card contains all significant market fields
       const resultCard = await findByTestId(
         getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
       );
       expect(
         within(resultCard).getByText(MOCK_PREDICT_MARKET.title),
@@ -441,8 +438,6 @@ describe('PredictFeed', () => {
 
       const resultCard = await findByTestId(
         getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
       );
       fireEvent.press(resultCard);
 
@@ -483,7 +478,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -509,7 +504,7 @@ describe('PredictFeed', () => {
       await findByTestId(
         PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
       const callCountBeforeRetry = getMarketsSpy.mock.calls.length;
       getMarketsSpy.mockResolvedValue({
@@ -565,7 +560,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           getPredictFeedSelector.emptyState('trending'),
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     });
@@ -731,7 +726,7 @@ describe('PredictFeed', () => {
               getByTestId(getPredictSearchSelector.resultCard(0)),
             ).getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE),
           ).toBeOnTheScreen(),
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
@@ -861,7 +856,7 @@ describe('PredictFeed', () => {
         await findByTestId(
           PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
           {},
-          { timeout: 10000 },
+          { timeout: FEED_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
 
@@ -885,7 +880,7 @@ describe('PredictFeed', () => {
       await findByTestId(
         PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       );
 
       const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;

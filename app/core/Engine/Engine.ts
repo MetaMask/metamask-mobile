@@ -105,7 +105,6 @@ import { bridgeStatusControllerInit } from './controllers/bridge-status-controll
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
-import { SignatureControllerInit } from './controllers/signature-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -261,9 +260,11 @@ export class Engine {
   #wallet: Wallet;
 
   /**
-   * Creates a CoreController instance
+   * Wires the wallet, Mobile controllers and their subscriptions. Keeping this
+   * private makes callers use {@link Engine.getOrCreate}, so a new Engine always
+   * runs its startup sequence after the controller messengers are registered.
    */
-  constructor(
+  private constructor(
     analyticsId: string,
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState,
@@ -303,7 +304,6 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
-        SignatureController: SignatureControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
@@ -401,7 +401,7 @@ export class Engine {
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const gasFeeController = this.#wallet.getInstance('GasFeeController');
-    const signatureController = messengerClientsByName.SignatureController;
+    const signatureController = this.#wallet.getInstance('SignatureController');
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
     const transactionController = this.#wallet.getInstance(
@@ -538,11 +538,6 @@ export class Engine {
     const networkEnablementController = this.#wallet.getInstance(
       'NetworkEnablementController',
     );
-    // Re-run now that MultichainNetworkController is registered; the call
-    // made by `wallet.init()` cannot read it yet.
-    networkEnablementController.init().catch((error) => {
-      captureException(error);
-    });
 
     const moneyAccountUpgradeController =
       messengerClientsByName.MoneyAccountUpgradeController;
@@ -556,19 +551,6 @@ export class Engine {
         accountsController.state.internalAccounts.accounts,
       ).length,
     });
-
-    // Initialize RPC domain validation cache for analytics
-    // This runs asynchronously and doesn't block Engine initialization
-    initializeRpcProviderDomains().catch((error) => {
-      captureException(error);
-    });
-
-    snapController.init().catch((error) => {
-      captureException(error);
-    });
-    cronjobController.init();
-    // Notification Setup
-    notificationServicesController.init();
 
     this.context = {
       AnalyticsController: analyticsController,
@@ -947,8 +929,45 @@ export class Engine {
         store.dispatch(setHasLinkedSocialLoginProfile(true));
       }
     });
+  }
 
-    Engine.instance = this;
+  /**
+   * Returns the shared Engine. Start Mobile controllers here once their
+   * dependencies are registered. Network enablement, the RPC domain cache and
+   * Snaps initialize asynchronously. Callers receive the Engine without waiting
+   * for them, so onboarding can proceed even when Snaps depend on its completion.
+   *
+   * @param analyticsId - The wallet's analytics ID.
+   * @param initialState - Persisted controller state to restore on creation.
+   * @param initialKeyringState - Keyring state to restore on creation, if provided.
+   * @returns The shared Engine.
+   */
+  static getOrCreate(
+    analyticsId: string,
+    initialState: Partial<EngineState>,
+    initialKeyringState?: KeyringControllerState,
+  ): Engine {
+    if (Engine.instance) {
+      return Engine.instance;
+    }
+
+    const engine = new Engine(analyticsId, initialState, initialKeyringState);
+    // Wallet.init() runs network enablement before Mobile registers
+    // MultichainNetworkController. Re-read its state now that it is available.
+    engine.context.NetworkEnablementController.init().catch((error) => {
+      captureException(error);
+    });
+    initializeRpcProviderDomains().catch((error) => {
+      captureException(error);
+    });
+    engine.context.SnapController.init().catch((error) => {
+      captureException(error);
+    });
+    engine.context.CronjobController.init();
+    engine.context.NotificationServicesController.init();
+
+    Engine.instance = engine;
+    return engine;
   }
 
   handleVaultBackup() {
@@ -1736,7 +1755,7 @@ export default {
     state: Partial<EngineState> | undefined = {},
     keyringState?: KeyringControllerState,
   ) {
-    instance = Engine.instance || new Engine(analyticsId, state, keyringState);
+    instance = Engine.getOrCreate(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;
   },

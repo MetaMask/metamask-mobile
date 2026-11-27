@@ -8,8 +8,7 @@ import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { strings } from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
@@ -33,10 +32,12 @@ import {
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
 import {
+  isFiatMoneyDeposit,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyWithdraw,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
+import { getFiatDepositAttemptedAmount } from '../utils/fiatDepositAmount';
 import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
 import {
   classifyMoneyActivity,
@@ -46,6 +47,7 @@ import {
   type MoneyActivityKind,
   type MoneyActivityStatus,
 } from '../utils/classifyMoneyActivity';
+import { formatMusdAmount } from '../utils/moneyAmount';
 
 export interface MoneyTransactionDisplayInfo {
   label: string;
@@ -84,19 +86,6 @@ function getMusdRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
   return tx.requiredAssets?.find((asset) =>
     isMusdTokenOnChain(asset.address, tx.chainId),
   );
-}
-
-/**
- * Formats an mUSD amount as a signed, symbol-suffixed string, e.g.
- * "+1,000.00 mUSD" / "-0.00 mUSD". The sign follows the row's direction.
- */
-function formatMusdAmount(amount: BigNumber, isIncoming: boolean): string {
-  const formatted = getIntlNumberFormatter(I18n.locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true,
-  }).format(amount.toNumber());
-  return `${isIncoming ? '+' : '-'}${formatted} ${MUSD_TOKEN.symbol}`;
 }
 
 function prettifyFiatProvider(
@@ -270,10 +259,18 @@ export function useMoneyTransactionDisplayInfo(
     }
 
     if (status === 'failed') {
-      primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
-      fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
-        new BigNumber(0),
-      )}`;
+      const attemptedAmount = isFiatMoneyDeposit(tx)
+        ? getFiatDepositAttemptedAmount(tx)
+        : undefined;
+      if (attemptedAmount) {
+        primaryAmount = '';
+        fiatAmount = moneyFormatUsd(new BigNumber(attemptedAmount));
+      } else {
+        primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
+          new BigNumber(0),
+        )}`;
+      }
     }
 
     // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token

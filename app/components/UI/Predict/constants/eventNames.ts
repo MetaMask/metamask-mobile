@@ -179,6 +179,7 @@ export const PredictEventValues = {
   PAYMENT_METHOD: {
     PAY_WITH_ANY_TOKEN: 'pay_with_any_token',
     PREDICT_BALANCE: 'predict_balance',
+    MONEY_ACCOUNT: 'money_account',
   },
   FAILURE_STAGE: {
     SWAP: 'swap',

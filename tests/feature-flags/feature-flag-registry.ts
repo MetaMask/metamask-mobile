@@ -4814,6 +4814,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  mfaRecovery: {
+    name: 'mfaRecovery',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   hapticsKillSwitch: {
     name: 'hapticsKillSwitch',
     type: FeatureFlagType.Remote,
@@ -8236,6 +8247,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '8.9.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  assetsUnifiedWatchlistV1: {
+    name: 'assetsUnifiedWatchlistV1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
     },
     status: FeatureFlagStatus.Active,
   },

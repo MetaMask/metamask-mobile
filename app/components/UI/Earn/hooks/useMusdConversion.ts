@@ -244,7 +244,7 @@ export const useMusdConversion = () => {
          */
         if (existingPendingMusdConversion?.id) {
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
             params: {
               forceBottomSheet: true,
               token,
@@ -351,7 +351,7 @@ export const useMusdConversion = () => {
           // Navigate to modal stack AFTER transaction is created
           // This ensures approvalRequest exists when the confirmation screen renders
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
             params: {
               forceBottomSheet: true,
               token,
@@ -407,7 +407,7 @@ export const useMusdConversion = () => {
       navigateWithDetails(navigation, [
         navigationStack,
         {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           params: {
             loader: ConfirmationLoader.CustomAmount,
             preferredPaymentToken,

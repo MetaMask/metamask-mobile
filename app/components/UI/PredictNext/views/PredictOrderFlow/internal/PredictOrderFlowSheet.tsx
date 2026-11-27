@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, Image, Linking } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
@@ -33,8 +33,6 @@ import {
 import { PredictFlowSheetHost } from '../../../components/PredictFlowSheetHost';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
-import { useTheme } from '../../../../../../util/theme';
-import DottedUnderline from '../../../../DottedUnderline';
 import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
@@ -42,7 +40,6 @@ import { getVenueCapabilitySource } from '../../../capabilities/venueCapabilitie
 import { PredictError, PredictErrorCode } from '../../../errors';
 import type {
   PredictAmount,
-  PredictBuyOrderPreview,
   PredictDecimal,
   PredictEntityId,
   PredictOrderPreview,
@@ -133,7 +130,6 @@ export const PredictOrderFlowSheet = ({
   onAddFunds,
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
   const breakdownSheetRef =
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
@@ -558,9 +554,7 @@ export const PredictOrderFlowSheet = ({
     }
     setIsKeypadOpen(true);
   }, [isAmountEditable]);
-  const buyPreview: PredictBuyOrderPreview | null =
-    preview?.action === 'buy' ? preview : null;
-  const canShowDetails = buyPreview !== null && !isQuoting;
+  const canShowDetails = preview !== null && !isQuoting;
   const handleBreakdownPress = useCallback(() => {
     if (!canShowDetails) {
       return;
@@ -672,7 +666,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.VENUE_CHANGED}
         >
           {strings('predict_next.order_preview.venue_changed')}
@@ -687,7 +681,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.over_sell', {
@@ -701,7 +695,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.minimum_contracts')}
@@ -713,7 +707,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('predict_next.order_preview.minimum_amount', {
             amount: MINIMUM_AMOUNT,
@@ -729,7 +723,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.ERROR}
         >
           {quoteError.message}
@@ -757,7 +751,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.EXPIRED}
         >
           {strings('predict_next.order_preview.expired')}
@@ -780,6 +774,32 @@ export const PredictOrderFlowSheet = ({
     preview,
     quoteError,
   ]);
+
+  let outcomeLabelTrailing: React.ReactNode = null;
+  if (intent.action === 'buy') {
+    // Decorative until product decides what switching the outcome does;
+    // not a control. A Cash Out sells one held Position, so it has no
+    // outcome to switch to.
+    outcomeLabelTrailing = (
+      <Icon
+        name={IconName.SwapHorizontal}
+        size={IconSize.Sm}
+        color={IconColor.SuccessDefault}
+        testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
+      />
+    );
+  } else if (displayedPrice) {
+    outcomeLabelTrailing = (
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.SuccessDefault}
+        numberOfLines={1}
+      >
+        {`· ${formatCents(displayedPrice)}`}
+      </Text>
+    );
+  }
 
   const renderCta = () => {
     if (phase === 'submitting') {
@@ -819,7 +839,7 @@ export const PredictOrderFlowSheet = ({
       >
         {intent.action === 'buy'
           ? strings('predict_next.order_preview.buy')
-          : strings('predict_next.order_preview.review')}
+          : strings('predict_next.order_preview.cash_out')}
       </Button>
     );
   };
@@ -832,25 +852,16 @@ export const PredictOrderFlowSheet = ({
         testID={PredictOrderFlowTestIds.SHEET}
       >
         <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
-          {intent.action === 'buy' ? (
-            // The buy sheet shows the event mark unboxed, as the
-            // Kalshi x Predict design does with team logos.
-            intent.eventImageUrl ? (
-              <Image
-                source={{ uri: intent.eventImageUrl }}
-                style={tw.style('h-10 w-10')}
-                resizeMode="contain"
-              />
-            ) : (
-              <Box twClassName="h-10 w-10 rounded-full bg-muted" />
-            )
-          ) : intent.eventImageUrl ? (
+          {/* The event mark is unboxed, as the Kalshi x Predict design
+           * does with team logos. */}
+          {intent.eventImageUrl ? (
             <Image
               source={{ uri: intent.eventImageUrl }}
-              style={tw.style('h-12 w-12 rounded-lg')}
+              style={tw.style('h-10 w-10')}
+              resizeMode="contain"
             />
           ) : (
-            <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
+            <Box twClassName="h-10 w-10 rounded-full bg-muted" />
           )}
           <Box twClassName="min-w-0 flex-1">
             <Text
@@ -861,56 +872,22 @@ export const PredictOrderFlowSheet = ({
             >
               {intent.eventTitle}
             </Text>
-            {intent.action === 'buy' ? (
-              <Box
-                twClassName="min-w-0 flex-row items-center gap-1"
-                testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+            <Box
+              twClassName="min-w-0 flex-row items-center gap-1"
+              testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                className="shrink"
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  twClassName="shrink"
-                >
-                  {intent.outcomeLabel}
-                </Text>
-                {/* Decorative until product decides what switching the
-                 * outcome does; not a control. */}
-                <Icon
-                  name={IconName.SwapHorizontal}
-                  size={IconSize.Sm}
-                  color={IconColor.SuccessDefault}
-                  testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
-                />
-              </Box>
-            ) : (
-              <Box
-                twClassName="min-w-0 flex-row items-center"
-                testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
-              >
-                <Text
-                  variant={TextVariant.BodyLg}
-                  fontWeight={FontWeight.Bold}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {intent.outcomeLabel}
-                </Text>
-                {displayedPrice ? (
-                  <Text
-                    variant={TextVariant.BodyLg}
-                    fontWeight={FontWeight.Bold}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                  >
-                    {` · ${formatCents(displayedPrice)}`}
-                  </Text>
-                ) : null}
-              </Box>
-            )}
+                {intent.outcomeLabel}
+              </Text>
+              {outcomeLabelTrailing}
+            </Box>
           </Box>
           <ButtonIcon
             iconName={IconName.Close}
@@ -939,7 +916,7 @@ export const PredictOrderFlowSheet = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
-                  twClassName="text-center"
+                  className="text-center"
                   testID={PredictOrderFlowTestIds.ERROR}
                 >
                   {commitError.message}
@@ -974,47 +951,55 @@ export const PredictOrderFlowSheet = ({
                 />
                 {isQuoting ? (
                   <Skeleton width={140} height={24} />
-                ) : intent.action === 'sell' ? (
-                  <Text
-                    variant={TextVariant.BodyLg}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.SuccessDefault}
-                    testID={PredictOrderFlowTestIds.NET_PROCEEDS_LINE}
-                  >
-                    {strings('predict_next.order_preview.net_proceeds_line', {
-                      amount: netProceedsLabel,
-                    })}
-                  </Text>
                 ) : (
                   // The only entry point to the details sheet: live
                   // once a quote exists, inert while quoting or without
                   // one.
-                  // The same dotted underline as Money's APY, so it renders
-                  // on Android.
-                  <DottedUnderline color={colors.success.default}>
-                    <Text
-                      variant={TextVariant.BodyLg}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.SuccessDefault}
-                      onPress={
-                        canShowDetails ? handleBreakdownPress : undefined
-                      }
-                      suppressHighlighting
-                      accessibilityRole={canShowDetails ? 'button' : 'text'}
-                      accessibilityState={{ disabled: !canShowDetails }}
-                      testID={PredictOrderFlowTestIds.TO_WIN}
-                    >
-                      {strings('predict_next.order_preview.to_win', {
-                        amount: toWinLabel,
-                      })}
-                    </Text>
-                  </DottedUnderline>
+                  <Pressable
+                    onPress={canShowDetails ? handleBreakdownPress : undefined}
+                    disabled={!canShowDetails}
+                    hitSlop={8}
+                    accessibilityRole={canShowDetails ? 'button' : 'text'}
+                    accessibilityState={{ disabled: !canShowDetails }}
+                    testID={
+                      intent.action === 'sell'
+                        ? PredictOrderFlowTestIds.NET_PROCEEDS_LINE
+                        : PredictOrderFlowTestIds.TO_WIN
+                    }
+                  >
+                    <Box twClassName="flex-row items-center gap-1">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Bold}
+                        color={TextColor.TextDefault}
+                      >
+                        {intent.action === 'sell'
+                          ? strings(
+                              'predict_next.order_preview.net_proceeds_line',
+                              { amount: netProceedsLabel },
+                            )
+                          : strings('predict_next.order_preview.to_win', {
+                              amount: toWinLabel,
+                            })}
+                      </Text>
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Md}
+                        color={IconColor.IconDefault}
+                        testID={
+                          intent.action === 'sell'
+                            ? PredictOrderFlowTestIds.NET_PROCEEDS_INFO_ICON
+                            : PredictOrderFlowTestIds.TO_WIN_INFO_ICON
+                        }
+                      />
+                    </Box>
+                  </Pressable>
                 )}
                 {intent.action === 'sell' ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="text-center"
+                    className="text-center"
                     testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
                   >
                     {strings('predict_next.order_preview.held_contracts', {
@@ -1051,7 +1036,7 @@ export const PredictOrderFlowSheet = ({
                     variant={TextVariant.BodyXs}
                     color={TextColor.TextAlternative}
                   >
-                    {intent.action === 'buy' && venueDisplayName
+                    {venueDisplayName
                       ? strings('predict_next.order_preview.venue_terms', {
                           venue: venueDisplayName,
                         })
@@ -1077,14 +1062,14 @@ export const PredictOrderFlowSheet = ({
             onKeyPress={handleKeyPress}
             onDelete={handleDelete}
             showsDecimalKey={intent.action !== 'sell'}
-            hasFilledActionKeys={intent.action === 'buy'}
+            hasFilledActionKeys
           />
         )}
       </BottomSheet>
-      {isBreakdownVisible && buyPreview && (
+      {isBreakdownVisible && preview && (
         <OrderBreakdownSheet
           ref={breakdownSheetRef}
-          preview={buyPreview}
+          preview={preview}
           onClose={handleBreakdownClose}
         />
       )}

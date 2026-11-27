@@ -6,7 +6,20 @@ import {
   MpcMoneyKeyring as MpcMoneyKeyringV2,
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
+import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
+
+// Only dev is deployed so far.
+const MPC_CLOUD_URL =
+  // Empty env overrides must fall back to the dev endpoint.
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+  process.env.MM_MONEY_MPC_CLOUD_URL ||
+  'https://mpc-service.dev-api.cx.metamask.io/v1';
+const MPC_RELAYER_URL =
+  // Empty env overrides must fall back to the dev endpoint.
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+  process.env.MM_MONEY_MPC_RELAYER_URL ||
+  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
 
 /**
  * Build the V1 keyring builder for the Money MPC keyring stub.
@@ -53,6 +66,51 @@ export function buildMpcMoneyKeyringV2Builder(): KeyringV2Builder {
       }),
     { type: MpcMoneyKeyring.type },
   );
+
+  return builder;
+}
+
+export interface RealMpcMoneyKeyringBuilderOptions {
+  /** Returns the profile access token used for the MPC service. */
+  getBearerToken: () => Promise<string>;
+  /** Returns the wallet's primary mnemonic as UTF-8 byte values. */
+  getPrimaryMnemonic: () => Promise<number[]>;
+}
+
+/**
+ * Build the V1 keyring builder for the real Money MPC keyring, backed by the
+ * DKLS23/CL24 libraries from `@metamask/mpc-react-native` and the MPC service.
+ *
+ * The profile bearer token is used as the profile token: the dev MPC service
+ * does not enforce the 2FA claims yet. The keyring derives backup keys from
+ * the wallet's primary mnemonic.
+ *
+ * @param options - Builder options.
+ * @param options.getBearerToken - Returns the profile access token.
+ * @param options.getPrimaryMnemonic - Returns the primary mnemonic as UTF-8 bytes.
+ * @returns The real Money MPC keyring builder.
+ */
+export function buildRealMpcMoneyKeyringBuilder({
+  getBearerToken,
+  getPrimaryMnemonic,
+}: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
+  const builder: KeyringBuilder = () => {
+    // Loaded lazily so builds without the real keyring never load the native
+    // module.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { cl24Lib, dkls23Lib } = require('@metamask/mpc-react-native');
+    return new RealMpcMoneyKeyring({
+      cl24Lib,
+      dkls23Lib,
+      cloudURL: MPC_CLOUD_URL,
+      relayerURL: MPC_RELAYER_URL,
+      getProfileToken: async () => getBearerToken(),
+      getPrimaryMnemonic,
+      webSocket: WebSocket,
+    });
+  };
+
+  builder.type = RealMpcMoneyKeyring.type;
 
   return builder;
 }

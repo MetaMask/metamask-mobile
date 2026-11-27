@@ -10,6 +10,10 @@ import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { resolveMoneyAccountDepositPrefillPresented } from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
+import {
+  clearMoneyAccountDepositIntent,
+  setMoneyAccountDepositIntent,
+} from '../../../../../components/UI/Money/utils/moneyAccountDepositIntent';
 
 jest.mock(
   '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics',
@@ -116,6 +120,27 @@ describe('Metamask Pay Metrics', () => {
       },
       sensitiveProperties: {},
     });
+  });
+
+  it('stamps mm_pay_deposit_intent on every transaction lifecycle event', async () => {
+    const events = [
+      TRANSACTION_EVENTS.TRANSACTION_ADDED,
+      TRANSACTION_EVENTS.TRANSACTION_APPROVED,
+      TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
+      TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+      TRANSACTION_EVENTS.TRANSACTION_REJECTED,
+    ];
+    for (const intent of ['addUsdc', 'addUsdt', 'addMusd'] as const) {
+      setMoneyAccountDepositIntent('0xabc', intent);
+      for (const eventType of events) {
+        request.eventType = eventType;
+        request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+        request.transactionMeta.batchId = '0xabc';
+        const result = await getMetaMaskPayProperties(request);
+        expect(result.properties.mm_pay_deposit_intent).toBe(intent);
+      }
+    }
+    clearMoneyAccountDepositIntent('0xabc');
   });
 
   it('derives baseline properties if moneyAccountWithdraw without metamaskPay', () => {

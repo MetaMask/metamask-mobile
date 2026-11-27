@@ -13,6 +13,7 @@ import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
 import type { SocialV1FeedPost } from '../types';
 import { translateComment } from '../translateComment';
+import { stripKlipyGifUrls } from '../utils/klipyGifComment';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 const ENGLISH = 'en';
@@ -275,7 +276,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
       return;
     }
 
-    const cached = post.translations?.[ENGLISH];
+    const cached = stripKlipyGifUrls(post.translations?.[ENGLISH]) || null;
     if (cached) {
       setTranslation({
         identity,
@@ -308,10 +309,21 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
           });
           return;
         }
+        const rawTranslation = result.translations[ENGLISH];
+        const translated = stripKlipyGifUrls(rawTranslation) || null;
+        if (rawTranslation && !translated) {
+          setTranslation({
+            identity,
+            phase: 'failed',
+            translatedText: null,
+            showsOriginal: false,
+          });
+          return;
+        }
         setTranslation({
           identity,
           phase: 'translated',
-          translatedText: result.translations[ENGLISH] || null,
+          translatedText: translated,
           showsOriginal: false,
         });
       })

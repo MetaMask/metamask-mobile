@@ -27,22 +27,31 @@ export const getBaseSemVerVersion = (): string => {
 };
 
 /**
- * Returns the app version including any applied OTA hotfix.
+ * Applies the OTA hotfix version on top of a native base version.
  *
  * OTA hotfixes only bump `OTA_VERSION` (e.g. `v8.18.1` on top of the 8.18.0
- * binary), so `package.json` alone does not reflect them. The higher of the two
- * versions wins, which also guards against a stale `OTA_VERSION` left over on a
- * newer native release. Non-semver `OTA_VERSION` values are ignored.
+ * binary), so native and `package.json` versions do not reflect them. The
+ * higher of the two versions wins, which also guards against a stale
+ * `OTA_VERSION` left over on a newer native release. Non-semver `OTA_VERSION`
+ * or base values are ignored.
  *
- * @returns The effective 3-part SemVer version (e.g., '8.18.1').
+ * @param baseVersion - The native 3-part SemVer version (e.g., '8.18.0').
+ * @returns The OTA version when it is higher, otherwise `baseVersion`.
  */
-export const getEffectiveAppVersion = (): string => {
-  const baseVersion = getBaseSemVerVersion();
+export const applyOtaVersion = (baseVersion: string): string => {
   const otaVersion = STRICT_SEMVER_REGEX.exec(OTA_VERSION)?.[1];
 
-  if (!otaVersion) {
+  if (!otaVersion || !semver.valid(baseVersion)) {
     return baseVersion;
   }
 
   return semver.gt(otaVersion, baseVersion) ? otaVersion : baseVersion;
 };
+
+/**
+ * Returns the app version including any applied OTA hotfix.
+ *
+ * @returns The effective 3-part SemVer version (e.g., '8.18.1').
+ */
+export const getEffectiveAppVersion = (): string =>
+  applyOtaVersion(getBaseSemVerVersion());

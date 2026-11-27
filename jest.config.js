@@ -5,6 +5,17 @@ process.env.METAMASK_ENVIRONMENT ??= 'test';
 
 process.env.MM_INFURA_PROJECT_ID = 'fake-infura-project-id';
 
+// Tests must never inherit the developer's private partner endpoints.
+process.env.PACK_PARTNER_DEVNET_API_KEY = '';
+for (const network of ['MAINNET', 'DEVNET']) {
+  process.env[`MM_PACK_PARTNER_${network}_API_URL`] =
+    'https://gacha.pack-partner.invalid/api';
+  process.env[`MM_PACK_PARTNER_${network}_CARDS_API_URL`] =
+    'https://api.pack-partner.invalid';
+  process.env[`MM_PACK_PARTNER_${network}_WEBSITE_URL`] =
+    'https://pack-partner.invalid';
+}
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -100,6 +111,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/controller-utils',
   '@metamask/core-backend',
   '@metamask/cryptography',
+  '@metamask/money-account-mfa-whitelist',
   '@metamask/eth-block-tracker',
   '@metamask/eth-json-rpc-middleware',
   '@metamask/eth-json-rpc-provider',
@@ -121,6 +133,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  '@metamask/mfa-wallet-cl24',
+  '@metamask/mfa-wallet-dkls23',
+  '@metamask/mfa-wallet-interface',
+  '@metamask/mfa-wallet-network',
+  '@metamask/mpc-interface',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
   '@metamask/money-account-lifecycle-controller',
