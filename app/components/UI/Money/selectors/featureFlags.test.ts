@@ -1600,6 +1600,54 @@ describe('selectMoneyVaultApyRemoteConfig', () => {
       expect(vaultApyOverride).toBeUndefined();
     });
   });
+
+  describe.each(['premiumVaultApyOverride', 'premiumVaultApyFallback'] as const)(
+    '%s',
+    (key) => {
+      const select = (value?: unknown) =>
+        selectMoneyVaultApyRemoteConfig(
+          createState({
+            earnMoneyVaultApyControl: { [key]: value },
+          }) as never,
+        )[key];
+
+      it('parses a numeric value', () => {
+        expect(select(0.07)).toBe(0.07);
+      });
+
+      it('parses a numeric-string value', () => {
+        expect(select('0.07')).toBe(0.07);
+      });
+
+      it('accepts 0', () => {
+        expect(select(0)).toBe(0);
+      });
+
+      it('returns undefined when absent', () => {
+        expect(select(undefined)).toBeUndefined();
+      });
+
+      it.each([-0.01, 'bad', NaN, Infinity, null, {}])(
+        'returns undefined for invalid value %p',
+        (value) => {
+          expect(select(value)).toBeUndefined();
+        },
+      );
+
+      it('does not read the standard vault keys', () => {
+        const config = selectMoneyVaultApyRemoteConfig(
+          createState({
+            earnMoneyVaultApyControl: {
+              vaultApyFallback: 0.04,
+              vaultApyOverride: 0.08,
+            },
+          }) as never,
+        );
+
+        expect(config[key]).toBeUndefined();
+      });
+    },
+  );
 });
 
 /**

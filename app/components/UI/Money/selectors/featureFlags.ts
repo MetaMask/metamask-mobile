@@ -385,7 +385,19 @@ export const selectMoneyVaultApyRemoteConfig = createSelector(
     const vaultApyFallback = parseNonNegativeFinite(raw?.vaultApyFallback);
     const vaultApyOverride = parseNonNegativeFinite(raw?.vaultApyOverride);
 
-    return { vaultApyFallback, vaultApyOverride };
+    const premiumVaultApyFallback = parseNonNegativeFinite(
+      raw?.premiumVaultApyFallback,
+    );
+    const premiumVaultApyOverride = parseNonNegativeFinite(
+      raw?.premiumVaultApyOverride,
+    );
+
+    return {
+      vaultApyFallback,
+      vaultApyOverride,
+      premiumVaultApyFallback,
+      premiumVaultApyOverride,
+    };
   },
 );
 

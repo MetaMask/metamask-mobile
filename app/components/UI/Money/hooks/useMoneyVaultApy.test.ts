@@ -51,6 +51,7 @@ interface SetupOptions {
   isEntitled?: boolean;
   premiumRate?: string;
   premiumRateLoading?: boolean;
+  premiumRateError?: boolean;
   premiumVaultAddress?: string;
   baseVaultConfig?: {
     boringVault?: string;
@@ -62,6 +63,8 @@ interface SetupOptions {
 const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
   vaultApyFallback: undefined,
   vaultApyOverride: undefined,
+  premiumVaultApyFallback: undefined,
+  premiumVaultApyOverride: undefined,
 };
 
 const BASE_VAULT_ADDRESS = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
@@ -112,6 +115,7 @@ const setup = ({
   isEntitled = false,
   premiumRate,
   premiumRateLoading = false,
+  premiumRateError = false,
   premiumVaultAddress,
   baseVaultConfig = {
     boringVault: BASE_VAULT_ADDRESS,
@@ -142,7 +146,7 @@ const setup = ({
     ratePercentFormatted: undefined,
     vaultRateQuery: {
       isLoading: premiumRateLoading,
-      isError: false,
+      isError: premiumRateError,
       data: premiumRate ? { rate: premiumRate } : undefined,
     },
   } as never);
@@ -251,7 +255,7 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the vault catalog is empty', () => {
     setup({
       query: loadedVaults(),
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -262,11 +266,11 @@ describe('useMoneyVaultApy', () => {
   it.each<[string, MoneyVaultApyRemoteConfig, number, number]>([
     [
       'fallback',
-      { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
       0.04,
       4,
     ],
-    ['override', { vaultApyFallback: 0.04, vaultApyOverride: 0.08 }, 0.08, 8],
+    ['override', { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 }, 0.08, 8],
   ])(
     'uses the %s when no vault matches the base vault',
     (_name, remoteApyConfig, expectedApy, expectedPercent) => {
@@ -293,7 +297,7 @@ describe('useMoneyVaultApy', () => {
   it('leaves APY values undefined while the query is loading', () => {
     setup({
       query: { data: undefined, isLoading: true, isError: false },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -308,7 +312,7 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the settled query has no service APY', () => {
     setup({
       query: { data: undefined, isLoading: false, isError: false },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -320,7 +324,7 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the query errors', () => {
     setup({
       query: { data: undefined, isLoading: false, isError: true },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -332,7 +336,7 @@ describe('useMoneyVaultApy', () => {
   it('uses the override over the service APY and fallback', () => {
     setup({
       query: { data: vaultsResponse('0.05'), isLoading: false, isError: false },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -343,7 +347,7 @@ describe('useMoneyVaultApy', () => {
 
   it('preserves a configured zero override', () => {
     setup({
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0 },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0 },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -356,7 +360,7 @@ describe('useMoneyVaultApy', () => {
   it('preserves a zero service APY instead of using the fallback', () => {
     setup({
       query: { data: vaultsResponse('0'), isLoading: false, isError: false },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -383,7 +387,7 @@ describe('useMoneyVaultApy', () => {
   it('does not report the base APY as loading when an override is already set', () => {
     setup({
       query: { data: undefined, isLoading: true, isError: false },
-      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -488,5 +492,209 @@ describe('useMoneyVaultApy', () => {
     });
     expect(result.current.apyDecimal).toBe(0.08);
     expect(result.current.apyPercentFormatted).toBe('8%');
+  });
+
+  describe('premium override and fallback for an entitled user', () => {
+    const premiumConfig = (
+      overrides: Partial<MoneyVaultApyRemoteConfig>,
+    ): MoneyVaultApyRemoteConfig => ({
+      ...DEFAULT_REMOTE_APY_CONFIG,
+      ...overrides,
+    });
+
+    it('uses the premium override over the live premium rate', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.08',
+        remoteApyConfig: premiumConfig({
+          premiumVaultApyOverride: 0.07,
+          premiumVaultApyFallback: 0.06,
+        }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.07);
+      expect(result.current.apyPercent).toBe(7);
+    });
+
+    it('uses the premium override while the premium rate is loading', () => {
+      setup({
+        isEntitled: true,
+        premiumRateLoading: true,
+        remoteApyConfig: premiumConfig({ premiumVaultApyOverride: 0.07 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.07);
+    });
+
+    it('preserves a configured zero premium override', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.08',
+        remoteApyConfig: premiumConfig({ premiumVaultApyOverride: 0 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0);
+    });
+
+    it('uses the live premium rate when it is positive', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.08',
+        remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.08);
+    });
+
+    it.each(['0.0000', '0', '-0.01'])(
+      'uses the premium fallback when the premium rate is %s',
+      (premiumRate) => {
+        setup({
+          isEntitled: true,
+          premiumRate,
+          remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+        });
+
+        const { result } = renderHook(() => useMoneyVaultApy());
+
+        expect(result.current.apyDecimal).toBe(0.06);
+        expect(result.current.apyPercentFormatted).toBe('6%');
+      },
+    );
+
+    it('uses the premium fallback when the user has no premium position', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: undefined,
+        remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.06);
+    });
+
+    it('uses the premium fallback when the positions query errors', () => {
+      setup({
+        isEntitled: true,
+        premiumRateError: true,
+        remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.06);
+    });
+
+    it('uses the premium fallback when the positions query is settled and idle', () => {
+      setup({
+        isEntitled: true,
+        premiumRateLoading: false,
+        remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.06);
+    });
+
+    it('keeps APY undefined during the first premium load without an override', () => {
+      setup({
+        isEntitled: true,
+        premiumRateLoading: true,
+        remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+      expect(result.current.apyPercentFormatted).toBeUndefined();
+    });
+
+    it('keeps APY undefined when no premium fallback is configured', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.0000',
+        remoteApyConfig: premiumConfig({ vaultApyFallback: 0.04 }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+    });
+
+    it('never falls back to the base APY or the standard fallback', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.0000',
+        query: DEFAULT_QUERY,
+        remoteApyConfig: premiumConfig({
+          vaultApyFallback: 0.04,
+          vaultApyOverride: 0.09,
+        }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBeUndefined();
+      expect(result.current.baseApyDecimal).toBe(0.09);
+    });
+
+    it('does not change base APY values when premium controls are set', () => {
+      setup({
+        isEntitled: true,
+        premiumRate: '0.08',
+        remoteApyConfig: premiumConfig({
+          premiumVaultApyOverride: 0.07,
+          premiumVaultApyFallback: 0.06,
+        }),
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.baseApyDecimal).toBe(0.05);
+      expect(result.current.baseApyPercent).toBe(5);
+    });
+  });
+
+  describe('premium controls for a non-entitled user', () => {
+    it('ignores the premium override and fallback', () => {
+      setup({
+        isEntitled: false,
+        remoteApyConfig: {
+          ...DEFAULT_REMOTE_APY_CONFIG,
+          premiumVaultApyOverride: 0.07,
+          premiumVaultApyFallback: 0.06,
+        },
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.05);
+    });
+
+    it('still applies the standard fallback', () => {
+      setup({
+        isEntitled: false,
+        query: { data: undefined, isLoading: false, isError: true },
+        remoteApyConfig: {
+          ...DEFAULT_REMOTE_APY_CONFIG,
+          vaultApyFallback: 0.04,
+          premiumVaultApyFallback: 0.06,
+        },
+      });
+
+      const { result } = renderHook(() => useMoneyVaultApy());
+
+      expect(result.current.apyDecimal).toBe(0.04);
+    });
   });
 });

@@ -57,8 +57,12 @@ export interface UseMoneyVaultApyOptions {
  *
  * Non-subscribers keep the base vault APY. Subscribers with the `premiumApy`
  * entitlement see the premium vault rate from `useMoneyPremiumVaultRate`.
- * While that rate is still loading the APY stays blank so the base rate does
- * not flash for a newly entitled user.
+ * `premiumVaultApyOverride` wins when set. A rate of zero or less (the backend
+ * sends "0.0000" when it has no data) counts as missing. The APY then uses
+ * `premiumVaultApyFallback`, but only after the positions query settles with
+ * an error or no usable rate. While it is still loading the APY stays blank
+ * so neither the base rate nor the fallback flashes. Entitled users never see
+ * the base APY or `vaultApyFallback`.
  *
  * @param options - Optional enable flag and premium positions poll interval.
  * @returns Effective APY values and the query backing the displayed rate.
@@ -67,9 +71,12 @@ const useMoneyVaultApy = ({
   enabled = true,
   positionsRefetchInterval,
 }: UseMoneyVaultApyOptions = {}): UseMoneyVaultApyResult => {
-  const { vaultApyFallback, vaultApyOverride } = useSelector(
-    selectMoneyVaultApyRemoteConfig,
-  );
+  const {
+    vaultApyFallback,
+    vaultApyOverride,
+    premiumVaultApyFallback,
+    premiumVaultApyOverride,
+  } = useSelector(selectMoneyVaultApyRemoteConfig);
   const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
   const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
   const baseVaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -108,9 +115,23 @@ const useMoneyVaultApy = ({
       refetchInterval: positionsRefetchInterval,
     }),
   });
+  // The backend sends "0.0000" when it has no data for the premium vault, so
+  // a non-positive live rate counts as missing.
+  const premiumServiceRate = parseApy(rate);
+  const livePremiumApy =
+    premiumServiceRate !== undefined && premiumServiceRate > 0
+      ? premiumServiceRate
+      : undefined;
+  const shouldUsePremiumFallback =
+    !vaultRateQuery.isLoading &&
+    (vaultRateQuery.isError || livePremiumApy === undefined);
   // Entitled users never fall back to the base APY (including while the
   // premium rate is loading), so the base rate does not flash after subscribe.
-  const apyDecimal = isEntitled ? parseApy(rate) : baseApyDecimal;
+  const premiumApyDecimal =
+    premiumVaultApyOverride ??
+    livePremiumApy ??
+    (shouldUsePremiumFallback ? premiumVaultApyFallback : undefined);
+  const apyDecimal = isEntitled ? premiumApyDecimal : baseApyDecimal;
   const apyPercent = toApyPercent(apyDecimal);
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
