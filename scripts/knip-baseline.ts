@@ -229,8 +229,10 @@ export function runKnip(repoRoot: string): KnipIssueGroup[] {
 }
 
 /**
- * Reads the committed baseline. A missing file is treated as empty so the
- * first `yarn knip:update` can create it.
+ * Reads the committed baseline. A missing file is treated as empty, which
+ * makes every current finding count as growth; since `update()` refuses to
+ * grow without `--allow-grow`, create the first baseline (or re-create a
+ * deleted one) with `yarn knip:update --allow-grow`.
  *
  * @param baselinePath - Absolute path to knip-baseline.json.
  * @returns Baseline entries.
