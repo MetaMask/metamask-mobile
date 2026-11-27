@@ -1,0 +1,43 @@
+diff --git a/index.d.ts b/index.d.ts
+index 3409cbbee16f170c8fb168fa3dd2b876cd1a30ae..7f99d9bedbbfb0eff26297034ef4ec1b9edb1b69 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -12,4 +12,6 @@ decodeUriComponent('st%C3%A5le')
+ //=> 'ståle'
+ ```
+ */
+-export default function decodeUriComponent(encodedURI: string): string;
++declare function decodeUriComponent(encodedURI: string): string;
++
++export = decodeUriComponent;
+diff --git a/index.js b/index.js
+index 4dfca40730089d0b7a8ad9818bc918240ca8cb89..454d50f086915fea0a38116c8719229d433910a9 100644
+--- a/index.js
++++ b/index.js
+@@ -136,7 +136,7 @@ function customDecodeURIComponent(input) {
+ 	return input.replace(multiMatcher, run => decode(run));
+ }
+ 
+-export default function decodeUriComponent(encodedURI) {
++module.exports = function decodeUriComponent(encodedURI) {
+ 	if (typeof encodedURI !== 'string') {
+ 		throw new TypeError(`Expected \`encodedURI\` to be of type \`string\`, got \`${typeof encodedURI}\``);
+ 	}
+diff --git a/package.json b/package.json
+index 5991062db5af96559ed102a22431f2edf29595a0..426f0f962a42edab1f6052f16d0124e6c4c5a0f4 100644
+--- a/package.json
++++ b/package.json
+@@ -10,11 +10,8 @@
+ 		"email": "sam.verschueren@gmail.com",
+ 		"url": "github.com/SamVerschueren"
+ 	},
+-	"type": "module",
+-	"exports": {
+-		"types": "./index.d.ts",
+-		"default": "./index.js"
+-	},
++	"main": "./index.js",
++	"types": "./index.d.ts",
+ 	"engines": {
+ 		"node": ">=14.16"
+ 	},
