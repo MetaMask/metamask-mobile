@@ -174,7 +174,6 @@ jest_full_run_triggers:
   - 'patches/**'
   - '.nvmrc'
   - 'scripts/react-compiler.js'
-  - 'scripts/jest-related*'
   # Setup files, mocks, fixtures and shared test utilities. The setup files
   # (app/util/test/testSetup*.js) import app/util/theme and app/util/device
   # directly, outside any test's own import graph.
