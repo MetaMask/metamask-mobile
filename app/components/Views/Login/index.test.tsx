@@ -952,7 +952,7 @@ describe('Login', () => {
 
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-        skipCache: false,
+        skipCache: true,
         captureSentryError: true,
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
@@ -1011,7 +1011,7 @@ describe('Login', () => {
       });
       await waitFor(() => {
         expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-          skipCache: false,
+          skipCache: true,
           captureSentryError: true,
         });
       });
@@ -1040,7 +1040,7 @@ describe('Login', () => {
       });
       await waitFor(() => {
         expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-          skipCache: false,
+          skipCache: true,
           captureSentryError: true,
         });
       });
@@ -1704,7 +1704,7 @@ describe('Login', () => {
       });
 
       expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-        skipCache: false,
+        skipCache: true,
         captureSentryError: true,
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
@@ -1753,7 +1753,7 @@ describe('Login', () => {
       });
       await waitFor(() => {
         expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-          skipCache: false,
+          skipCache: true,
           captureSentryError: true,
         });
       });
@@ -1778,7 +1778,7 @@ describe('Login', () => {
       });
       await waitFor(() => {
         expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
-          skipCache: false,
+          skipCache: true,
           captureSentryError: true,
         });
       });
