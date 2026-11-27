@@ -74,7 +74,6 @@ describe('SnapControllerInit', () => {
       state: undefined,
       detectSnapLocation: expect.any(Function),
       encryptor: expect.any(Object),
-      environmentEndowmentPermissions: expect.any(Array),
       excludedPermissions: expect.any(Object),
       featureFlags: {
         allowLocalSnaps: false,
