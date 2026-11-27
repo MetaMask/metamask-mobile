@@ -255,7 +255,11 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the vault catalog is empty', () => {
     setup({
       query: loadedVaults(),
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -266,11 +270,24 @@ describe('useMoneyVaultApy', () => {
   it.each<[string, MoneyVaultApyRemoteConfig, number, number]>([
     [
       'fallback',
-      { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
       0.04,
       4,
     ],
-    ['override', { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 }, 0.08, 8],
+    [
+      'override',
+      {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: 0.08,
+      },
+      0.08,
+      8,
+    ],
   ])(
     'uses the %s when no vault matches the base vault',
     (_name, remoteApyConfig, expectedApy, expectedPercent) => {
@@ -297,7 +314,11 @@ describe('useMoneyVaultApy', () => {
   it('leaves APY values undefined while the query is loading', () => {
     setup({
       query: { data: undefined, isLoading: true, isError: false },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -312,7 +333,11 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the settled query has no service APY', () => {
     setup({
       query: { data: undefined, isLoading: false, isError: false },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -324,7 +349,11 @@ describe('useMoneyVaultApy', () => {
   it('uses the fallback when the query errors', () => {
     setup({
       query: { data: undefined, isLoading: false, isError: true },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -336,7 +365,11 @@ describe('useMoneyVaultApy', () => {
   it('uses the override over the service APY and fallback', () => {
     setup({
       query: { data: vaultsResponse('0.05'), isLoading: false, isError: false },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: 0.08,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -347,7 +380,11 @@ describe('useMoneyVaultApy', () => {
 
   it('preserves a configured zero override', () => {
     setup({
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0 },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: 0,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -360,7 +397,11 @@ describe('useMoneyVaultApy', () => {
   it('preserves a zero service APY instead of using the fallback', () => {
     setup({
       query: { data: vaultsResponse('0'), isLoading: false, isError: false },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: undefined },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: undefined,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -387,7 +428,11 @@ describe('useMoneyVaultApy', () => {
   it('does not report the base APY as loading when an override is already set', () => {
     setup({
       query: { data: undefined, isLoading: true, isError: false },
-      remoteApyConfig: { ...DEFAULT_REMOTE_APY_CONFIG, vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+      remoteApyConfig: {
+        ...DEFAULT_REMOTE_APY_CONFIG,
+        vaultApyFallback: 0.04,
+        vaultApyOverride: 0.08,
+      },
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());
@@ -594,12 +639,23 @@ describe('useMoneyVaultApy', () => {
       expect(result.current.apyDecimal).toBe(0.06);
     });
 
-    it('uses the premium fallback when the positions query is settled and idle', () => {
+    it('uses the premium fallback when the positions query is disabled for a missing Money account address', () => {
       setup({
         isEntitled: true,
-        premiumRateLoading: false,
         remoteApyConfig: premiumConfig({ premiumVaultApyFallback: 0.06 }),
       });
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+        vaultRateQuery: {
+          status: 'pending',
+          fetchStatus: 'idle',
+          isLoading: false,
+          isError: false,
+          data: undefined,
+        },
+      } as never);
 
       const { result } = renderHook(() => useMoneyVaultApy());
 
