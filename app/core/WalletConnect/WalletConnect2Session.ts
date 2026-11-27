@@ -68,7 +68,12 @@ import {
 } from './multichain';
 
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import {
+  errorCodes,
+  providerErrors,
+  rpcErrors,
+  serializeError,
+} from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -357,12 +362,15 @@ class WalletConnect2Session {
           result,
         },
       });
-      this._isHandlingRequest = false;
     } catch (err) {
       console.warn(
         `WC2::approveRequest error while approving request id=${id} topic=${topic}`,
         err,
       );
+    } finally {
+      // Must be cleared even when responding fails, otherwise the session stays
+      // wedged in "handling" state and never shows the loading sheet again.
+      this._isHandlingRequest = false;
     }
 
     const requests = this.web3Wallet.getPendingSessionRequests() || [];
@@ -400,12 +408,14 @@ class WalletConnect2Session {
           error: errorResponse,
         },
       });
-      this._isHandlingRequest = false;
     } catch (err) {
       console.warn(
         `WC2::rejectRequest error while rejecting request id=${id} topic=${topic}`,
         err,
       );
+    } finally {
+      // See the equivalent note in approveRequest.
+      this._isHandlingRequest = false;
     }
 
     this.needsRedirect(id);
@@ -605,7 +615,101 @@ class WalletConnect2Session {
     }
   };
 
+  /**
+   * Entry point for every incoming session request.
+   *
+   * Wraps {@link handleRequestInternal} so that a throw can never leave the
+   * request unanswered. Both callers (`WC2Manager.onSessionRequest` and
+   * `checkPendingRequests`) only log what escapes, so an uncaught throw used to
+   * mean: the dapp waited on a promise that never settled, `_isHandlingRequest`
+   * stayed `true` — which makes `connect()` skip the loading sheet for every
+   * later deeplink on this session — and WalletKit kept the request in its
+   * pending store, replaying it on a subsequent app launch.
+   *
+   * See https://github.com/MetaMask/metamask-mobile/issues/25150
+   */
   handleRequest = async (requestEvent: WalletKitTypes.SessionRequest) => {
+    try {
+      return await this.handleRequestInternal(requestEvent);
+    } catch (error) {
+      await this.failRequest(requestEvent, error);
+    }
+  };
+
+  /**
+   * Answer a request that could not be handled, so the dapp stops waiting and
+   * WalletKit drops it from its pending store.
+   */
+  private async failRequest(
+    requestEvent: WalletKitTypes.SessionRequest,
+    error: unknown,
+  ) {
+    Logger.error(
+      error as Error,
+      `WC2::handleRequest unhandled failure requestId=${requestEvent.id} topic=${requestEvent.topic}`,
+    );
+
+    this._isHandlingRequest = false;
+
+    // Only the code and message go back to the dapp. serializeError keeps the
+    // thrown value under `data.cause` — stack included — whenever it isn't
+    // already a JSON-RPC error, and wallet internals are not the dapp's
+    // business.
+    const { code, message } = serializeError(error, {
+      shouldIncludeStack: false,
+    });
+
+    try {
+      await this.web3Wallet.respondSessionRequest({
+        topic: requestEvent.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: { code, message },
+        },
+      });
+    } catch (respondError) {
+      Logger.error(
+        respondError as Error,
+        `WC2::handleRequest could not respond requestId=${requestEvent.id}`,
+      );
+    }
+
+    // Send the user back to the dapp instead of stranding them in the wallet,
+    // matching what rejectRequest does.
+    this.needsRedirect(requestEvent.id + '');
+  }
+
+  /**
+   * Send the error response a branch of {@link handleRequestInternal} already
+   * chose. A relay failure is logged here instead of rethrown: letting it reach
+   * the catch in {@link handleRequest} would make `failRequest` answer the
+   * same request a second time, with the relay error instead of this one.
+   */
+  private async respondWithError(
+    requestId: number,
+    error: { code: number; message: string },
+  ) {
+    try {
+      await this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestId,
+          jsonrpc: '2.0',
+          error,
+        },
+      });
+    } catch (respondError) {
+      Logger.error(
+        respondError as Error,
+        `WC2::handleRequest could not respond requestId=${requestId}`,
+      );
+    }
+  }
+
+  private handleRequestInternal = async (
+    requestEvent: WalletKitTypes.SessionRequest,
+  ) => {
     DevLogger.log(
       'WC2::handleRequest requestEvent',
       JSON.stringify(requestEvent, null, 2),
@@ -635,16 +739,9 @@ class WalletConnect2Session {
     // NOTE: unverifiedOrigin is self-reported by the dapp.
     if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: {
-            code: errorCodes.provider.unauthorized,
-            message: ERROR_MESSAGES.INVALID_ORIGIN,
-          },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: errorCodes.provider.unauthorized,
+        message: ERROR_MESSAGES.INVALID_ORIGIN,
       });
     }
 
@@ -655,13 +752,9 @@ class WalletConnect2Session {
       );
     } catch {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: 4902,
+        message: ERROR_MESSAGES.INVALID_CHAIN,
       });
     }
     const method = requestEvent.params.request.method;
@@ -689,16 +782,12 @@ class WalletConnect2Session {
       );
       if (!isPermittedChains) {
         this._isHandlingRequest = false;
-        return this.web3Wallet.respondSessionRequest({
-          topic: this.session.topic,
-          response: {
-            id: requestEvent.id,
-            jsonrpc: '2.0',
-            error: providerErrors.unauthorized({
-              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
-            }),
-          },
-        });
+        return this.respondWithError(
+          requestEvent.id,
+          providerErrors.unauthorized({
+            message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
+          }),
+        );
       }
 
       return this.handleAdapterRequest({
@@ -726,13 +815,9 @@ class WalletConnect2Session {
       caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
     } catch (err) {
       this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-        },
+      return this.respondWithError(requestEvent.id, {
+        code: 4902,
+        message: ERROR_MESSAGES.INVALID_CHAIN,
       });
     }
 
@@ -766,13 +851,9 @@ class WalletConnect2Session {
         return this.approveRequest({ id: requestEvent.id + '', result: true });
       } catch (error) {
         this._isHandlingRequest = false;
-        return this.web3Wallet.respondSessionRequest({
-          topic: this.session.topic,
-          response: {
-            id: requestEvent.id,
-            jsonrpc: '2.0',
-            error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-          },
+        return this.respondWithError(requestEvent.id, {
+          code: 4902,
+          message: ERROR_MESSAGES.INVALID_CHAIN,
         });
       }
     }
