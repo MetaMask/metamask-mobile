@@ -104,19 +104,9 @@
       "count": 1
     }
   },
-  "app/components/UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 2
-    }
-  },
   "app/components/UI/BlockingActionModal/index.tsx": {
     "design-system/spacing-grid": {
       "count": 1
-    }
-  },
-  "app/components/UI/Bridge/Views/BridgeView/BridgeView.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 7
     }
   },
   "app/components/UI/Bridge/components/CancelLimitOrderModal/CancelLimitOrderModal.view.test.tsx": {
@@ -633,9 +623,6 @@
     }
   },
   "app/components/UI/QuickBuy/QuickBuySheet.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 10
-    },
     "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
@@ -825,19 +812,9 @@
       "count": 1
     }
   },
-  "app/components/UI/TokenDetails/Views/TokenDetailsV1.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 1
-    }
-  },
   "app/components/UI/TokenDetails/components/AssetOverviewContent.tsx": {
     "design-system/spacing-grid": {
       "count": 1
-    }
-  },
-  "app/components/UI/TokenDetails/components/AssetOverviewContent.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 3
     }
   },
   "app/components/UI/TokenDetails/components/SecurityBanner.tsx": {
@@ -856,9 +833,6 @@
     }
   },
   "app/components/UI/Tokens/Tokens.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 1
-    },
     "component-view/no-clear-all-mocks-without-reset": {
       "count": 2
     }
@@ -919,9 +893,6 @@
     }
   },
   "app/components/Views/ActivityList/ActivityList.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 3
-    },
     "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     },
@@ -930,9 +901,6 @@
     }
   },
   "app/components/Views/ActivityScreen/ActivityScreen.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 13
-    },
     "component-view/no-restricted-syntax": {
       "count": 7
     }
@@ -1190,11 +1158,6 @@
       "count": 1
     }
   },
-  "app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 3
-    }
-  },
   "app/components/Views/TrendingView/components/PillRow.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -1227,11 +1190,6 @@
   },
   "app/components/Views/confirmations/components/UI/text-field-with-label/text-field-with-label.styles.ts": {
     "design-system/spacing-grid": {
-      "count": 1
-    }
-  },
-  "app/components/Views/confirmations/components/activity/eip-7702-sponsored-relay-api-failure.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
       "count": 1
     }
   },
@@ -1293,21 +1251,6 @@
   "app/components/Views/confirmations/components/rows/transactions/gas-fee-details-row/gas-fee-details-row.styles.ts": {
     "design-system/spacing-grid": {
       "count": 1
-    }
-  },
-  "app/components/Views/confirmations/components/send/asset/asset.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 3
-    }
-  },
-  "app/components/Views/confirmations/components/send/send.non-evm.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 20
-    }
-  },
-  "app/components/Views/confirmations/components/send/send.view.test.tsx": {
-    "component-view/no-bare-query-timeout": {
-      "count": 34
     }
   },
   "app/components/Views/confirmations/components/token-conversion-asset-header/token-conversion-asset-header.styles.ts": {
