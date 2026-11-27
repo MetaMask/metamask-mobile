@@ -1,12 +1,12 @@
 import { assetIdsMatch } from '@metamask/bridge-controller';
-import { getGaslessFeeAsset, type GaslessFeeAsset } from './getGaslessFeeAsset';
+import { getNetworkFeeAsset, type NetworkFeeAsset } from './getNetworkFeeAsset';
 
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   assetIdsMatch: jest.fn(),
 }));
 
-const mockAsset: GaslessFeeAsset = {
+const mockAsset: NetworkFeeAsset = {
   assetId: 'eip155:1/erc20:0xtoken',
   symbol: 'USDC',
   name: 'USD Coin',
@@ -14,29 +14,29 @@ const mockAsset: GaslessFeeAsset = {
   iconUrl: 'https://example.com/usdc.png',
 };
 
-type TxFee = NonNullable<Parameters<typeof getGaslessFeeAsset>[0]>[number];
+type TxFee = NonNullable<Parameters<typeof getNetworkFeeAsset>[0]>[number];
 
-const createTxFee = (asset: GaslessFeeAsset): TxFee => ({
+const createTxFee = (asset: NetworkFeeAsset): TxFee => ({
   amount: '1',
   asset,
   maxFeePerGas: '1',
   maxPriorityFeePerGas: '1',
 });
 
-describe('getGaslessFeeAsset', () => {
+describe('getNetworkFeeAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(assetIdsMatch).mockReturnValue(true);
   });
 
   it('returns undefined when no transaction fees are provided', () => {
-    expect(getGaslessFeeAsset(undefined)).toBeUndefined();
-    expect(getGaslessFeeAsset([])).toBeUndefined();
+    expect(getNetworkFeeAsset(undefined)).toBeUndefined();
+    expect(getNetworkFeeAsset([])).toBeUndefined();
   });
 
   it('returns undefined when the first fee asset is incomplete', () => {
     expect(
-      getGaslessFeeAsset([
+      getNetworkFeeAsset([
         createTxFee({
           ...mockAsset,
           symbol: '',
@@ -46,7 +46,7 @@ describe('getGaslessFeeAsset', () => {
   });
 
   it('returns the fee asset when all fees use the same asset', () => {
-    const feeAsset = getGaslessFeeAsset([
+    const feeAsset = getNetworkFeeAsset([
       createTxFee(mockAsset),
       { ...createTxFee(mockAsset), amount: '2' },
     ]);
@@ -58,11 +58,20 @@ describe('getGaslessFeeAsset', () => {
     );
   });
 
+  it('fills in the icon URL when the fee asset has none', () => {
+    expect(
+      getNetworkFeeAsset([createTxFee({ ...mockAsset, iconUrl: undefined })])
+        ?.iconUrl,
+    ).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xtoken.png',
+    );
+  });
+
   it('returns undefined when fees use different assets', () => {
     jest.mocked(assetIdsMatch).mockReturnValue(false);
 
     expect(
-      getGaslessFeeAsset([
+      getNetworkFeeAsset([
         createTxFee(mockAsset),
         {
           ...createTxFee({

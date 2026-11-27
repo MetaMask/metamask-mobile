@@ -1188,6 +1188,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   AMOUNT_KEYPAD_DONE_BUTTON: 'perps-trade-sheet-amount-keypad-done-button',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
+  AMOUNT_SECTION_DISABLED: 'perps-trade-sheet-amount-section-disabled',
 };
 
 export const PerpsFeeDiscountLabelSelectorsIDs = {
@@ -1611,4 +1612,15 @@ export const PerpsRecentActivityListSelectorsIDs = {
 } as const;
 export const PerpsRecoveryPanelTestIds = {
   PANEL: 'perps-recovery-panel',
+} as const;
+
+// ========================================
+// PERPS TRADE ON SELECTOR SELECTORS
+// ========================================
+
+export const PerpsTradeOnSelectorsIDs = {
+  /** "Trade on" trigger row on the Lite market page. */
+  ROW: 'perps-trade-on-row',
+  SHEET: 'perps-trade-on-sheet',
+  SHEET_OPTION: 'perps-trade-on-sheet-option',
 } as const;

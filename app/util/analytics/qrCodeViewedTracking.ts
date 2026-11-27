@@ -33,11 +33,13 @@ export const getQrCodeViewedAccountType = (
  * @property location - Entry point in kebab-case (e.g. address-list)
  * @property account_type - Account type from getQrCodeViewedAccountType
  * @property chain_id_caip - Optional CAIP-2 chain ID when a specific chain is shown
+ * @property source - Optional address list entry point (matches Address List Viewed source)
  */
 export interface QrCodeViewedProperties extends JsonMap {
   location: string;
   account_type: string;
   chain_id_caip?: string;
+  source?: string;
 }
 
 type QrCodeViewedEventFactory<TEvent> = (event: IMetaMetricsEvent) => {
@@ -58,7 +60,7 @@ export const trackQrCodeViewed = <TEvent>(
   createEventBuilder: QrCodeViewedEventFactory<TEvent>,
   properties: QrCodeViewedProperties,
 ): void => {
-  const { location, account_type, chain_id_caip } = properties;
+  const { location, account_type, chain_id_caip, source } = properties;
 
   trackEvent(
     createEventBuilder(MetaMetricsEvents.QR_CODE_VIEWED)
@@ -66,6 +68,7 @@ export const trackQrCodeViewed = <TEvent>(
         location,
         account_type,
         ...(chain_id_caip !== undefined && { chain_id_caip }),
+        ...(source !== undefined && { source }),
       })
       .build(),
   );
