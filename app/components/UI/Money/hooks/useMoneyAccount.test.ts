@@ -29,6 +29,7 @@ import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
   type MoneyAccountDepositIntent,
+  DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -82,7 +83,18 @@ jest.mock('../../../../core/Engine', () => ({
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn(),
       },
+      TransactionController: {
+        state: { transactions: [] },
+      },
+      ApprovalController: {
+        hasRequest: jest.fn(),
+      },
     },
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
+    rejectPendingApproval: jest.fn(),
   },
 }));
 jest.mock('../utils/moneyAccountTransactions');
@@ -818,6 +830,191 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
     expect(showDevErrorAlert).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('confirmation load timeout', () => {
+    const BATCH_ID = '0xbatch' as Hex;
+    const TIMEOUT_ERROR = new Error(
+      `[Money Account] Deposit confirmation did not load within ${DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS}ms`,
+    );
+    const transactionControllerState = Engine.context.TransactionController
+      .state as unknown as { transactions: { id?: string; batchId?: Hex }[] };
+    const mockHasApprovalRequest = Engine.context.ApprovalController
+      .hasRequest as jest.Mock;
+    const mockSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
+    const mockUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
+    const mockRejectPendingApproval = Engine.rejectPendingApproval as jest.Mock;
+
+    const startDepositAndReachTimeout = async (): Promise<{
+      settled: Promise<{ error: Error | undefined }>;
+    }> => {
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+      const deposit = result.current.initiateDeposit({ batchId: BATCH_ID });
+      const settled = deposit.then(
+        () => ({ error: undefined }),
+        (error: Error) => ({ error }),
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(
+          DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS,
+        );
+      });
+
+      return { settled };
+    };
+
+    const publishApprovalStateChange = (): void => {
+      const [, handler] = mockSubscribe.mock.calls.find(
+        ([event]) => event === 'ApprovalController:stateChange',
+      );
+      handler();
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      transactionControllerState.transactions = [];
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('backs out with a failure toast when the batch never reaches the transaction list', async () => {
+      mockAddTransactionBatch.mockReturnValue(new Promise(() => undefined));
+
+      await startDepositAndReachTimeout();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+      expect(Logger.error).toHaveBeenCalledWith(
+        TIMEOUT_ERROR,
+        '[Money Account] Deposit setup failed',
+      );
+    });
+
+    it('rejects the deposit with the timeout error even though the batch never settles', async () => {
+      mockAddTransactionBatch.mockReturnValue(new Promise(() => undefined));
+
+      const { settled } = await startDepositAndReachTimeout();
+      const { error } = await settled;
+
+      expect(error).toEqual(TIMEOUT_ERROR);
+    });
+
+    it('rejects the batch approval when it is requested after the timeout', async () => {
+      mockAddTransactionBatch.mockReturnValue(new Promise(() => undefined));
+      await startDepositAndReachTimeout();
+      transactionControllerState.transactions = [
+        { id: 'late-batch', batchId: BATCH_ID },
+      ];
+      mockHasApprovalRequest.mockReturnValue(true);
+
+      publishApprovalStateChange();
+
+      expect(mockRejectPendingApproval).toHaveBeenCalledWith(
+        'late-batch',
+        expect.objectContaining({ code: 4001 }),
+        { ignoreMissing: true, logErrors: false },
+      );
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the approval request before rejecting a late batch', async () => {
+      mockAddTransactionBatch.mockReturnValue(new Promise(() => undefined));
+      await startDepositAndReachTimeout();
+      transactionControllerState.transactions = [
+        { id: 'late-batch', batchId: BATCH_ID },
+      ];
+      mockHasApprovalRequest.mockReturnValue(false);
+
+      publishApprovalStateChange();
+
+      expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+      expect(mockUnsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('stops watching for a late batch once the batch settles', async () => {
+      let rejectBatch: (error: Error) => void = () => undefined;
+      mockAddTransactionBatch.mockReturnValue(
+        new Promise((_resolve, reject) => {
+          rejectBatch = reject;
+        }),
+      );
+      await startDepositAndReachTimeout();
+
+      await act(async () => {
+        rejectBatch(new Error('late failure'));
+        await jest.advanceTimersByTimeAsync(0);
+      });
+
+      expect(mockUnsubscribe).toHaveBeenCalledWith(
+        'ApprovalController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it('does not add the batch when the timeout fires while it is being built', async () => {
+      let resolveBuild: (
+        batch: Awaited<ReturnType<typeof buildMoneyAccountDepositBatch>>,
+      ) => void = () => undefined;
+      mockBuildDepositBatch.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBuild = resolve;
+        }),
+      );
+      await startDepositAndReachTimeout();
+
+      await act(async () => {
+        resolveBuild({
+          approveTx: { data: '0xapprove' as Hex, to: '0xmusd' as Hex },
+          depositTx: { data: '0xdeposit' as Hex, to: '0xteller' as Hex },
+        } as never);
+        await jest.advanceTimersByTimeAsync(0);
+      });
+
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the confirmation open when the batch is awaiting approval', async () => {
+      mockAddTransactionBatch.mockReturnValue(new Promise(() => undefined));
+      transactionControllerState.transactions = [{ batchId: BATCH_ID }];
+
+      await startDepositAndReachTimeout();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports the failure only once when the batch rejects after the timeout', async () => {
+      let rejectBatch: (error: Error) => void = () => undefined;
+      mockAddTransactionBatch.mockReturnValue(
+        new Promise((_resolve, reject) => {
+          rejectBatch = reject;
+        }),
+      );
+
+      await startDepositAndReachTimeout();
+      await act(async () => {
+        rejectBatch(new Error('late failure'));
+        await jest.advanceTimersByTimeAsync(0);
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire after the batch has already failed', async () => {
+      mockAddTransactionBatch.mockRejectedValue(new Error('fast failure'));
+
+      await startDepositAndReachTimeout();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
