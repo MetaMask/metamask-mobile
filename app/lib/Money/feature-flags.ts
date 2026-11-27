@@ -7,6 +7,8 @@ export const MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME = 'moneyEnableMoneyAccount';
 
 export const IS_MONEY_MFA_ENABLED_FLAG_NAME = 'isMoneyMfaEnabled';
 
+export const IS_MONEY_MFA_ENABLED_V2_FLAG_NAME = 'isMoneyMfaEnabledV2';
+
 /**
  * Checks if the Money account feature is enabled based on
  * environment variables and remote feature flags.
@@ -42,6 +44,26 @@ export function isMoneyMfaEnabled(
   const localFlag = process.env.MM_MONEY_MFA_ENABLED === 'true';
   const remoteFlag = remoteFeatureFlags?.[
     IS_MONEY_MFA_ENABLED_FLAG_NAME
+  ] as VersionGatedFeatureFlag;
+
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+}
+
+/**
+ * Checks if Money MFA V2 is enabled: the Money 2-step verification toggle
+ * moves from the Money menu to Settings > Security > 2-step verification.
+ * Remote `isMoneyMfaEnabledV2` takes precedence when valid; otherwise
+ * `MM_MONEY_MFA_V2_ENABLED` is used as a local fallback (default off).
+ *
+ * @param remoteFeatureFlags - The remote feature flags object.
+ * @returns True if Money MFA V2 is enabled, false otherwise.
+ */
+export function isMoneyMfaV2Enabled(
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): boolean {
+  const localFlag = process.env.MM_MONEY_MFA_V2_ENABLED === 'true';
+  const remoteFlag = remoteFeatureFlags?.[
+    IS_MONEY_MFA_ENABLED_V2_FLAG_NAME
   ] as VersionGatedFeatureFlag;
 
   return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;

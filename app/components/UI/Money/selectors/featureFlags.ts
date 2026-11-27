@@ -9,6 +9,7 @@ import {
 import {
   isMoneyAccountEnabled,
   isMoneyMfaEnabled,
+  isMoneyMfaV2Enabled,
 } from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
@@ -174,6 +175,16 @@ export const selectMoneyAccountStatusPageEnabled = createSelector(
 export const selectMoneyEnableMfaFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyMfaEnabled,
+);
+
+/**
+ * Selects whether Money MFA V2 is enabled: the Money 2-step verification
+ * toggle lives in Settings > Security > 2-step verification instead of the
+ * Money menu. Remote flag: `isMoneyMfaEnabledV2`.
+ */
+export const selectMoneyEnableMfaV2Flag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaV2Enabled,
 );
 
 /**
