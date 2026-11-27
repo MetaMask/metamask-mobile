@@ -39,6 +39,8 @@ import {
 } from '../../SocialFeed/utils/formatters';
 import { formatAddress, toChecksumAddress } from '../../../../util/address';
 
+// Token details hydrate through a chain of metadata, pricing and security
+// reads; those chains regularly outlast the 5s default on a loaded CV shard.
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
 const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
