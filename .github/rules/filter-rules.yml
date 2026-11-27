@@ -92,9 +92,8 @@ e2e_spec_files:
 cv_test_files:
   - '**/*.view.test.{ts,tsx}'
 
-# Application source files, used to scope Jest coverage to the files a PR
-# touches. Test, spec, story and test-support files (mocks, fixtures, test
-# utilities) are dropped in get-requirements.yml.
+# App source files, used to scope Jest coverage to the files a PR touches.
+# Test and test-support files are dropped in get-requirements.yml.
 app_source_files:
   - 'app/**/*.{js,ts,tsx,jsx}'
 
@@ -144,20 +143,10 @@ ios_or_ignorable:
   - *e2e_ignorable
 
 # JEST RELATED-TESTS TIER
-# On pull requests the unit, component view and integration Jest jobs run only
-# the tests that `jest --findRelatedTests` links to the changed files (the
-# `all_changes` list below); files Jest cannot follow, such as assets or native
-# code, simply select no tests. Changes to anything in `jest_full_run_triggers`
-# switch the pull request back to the full sharded suite. Only the high-impact
-# paths are listed: Jest and Babel configuration and Babel scripts, dependency
-# manifests, the lockfile and patches, and the setup files, mocks and shared
-# component-view and integration test helpers that suites load without
-# importing them, so the import graph cannot link them to any test.
-# A pull request that deletes or renames a file also runs the full suite
-# (`jest_removed_files`): Jest cannot follow a path that no longer exists, so
-# the tests that imported it would not be selected.
-# Merge queue, push and scheduled runs always run the full suite regardless of
-# these filters.
+# A change to any of these runs the full suite instead of only the related
+# tests: config, manifests and lockfile affect every test, and setup files,
+# mocks and shared view or integration helpers are loaded without being
+# imported, so the import graph cannot link them to any test.
 jest_full_run_triggers:
   - 'jest.config*.js'
   - 'babel.config*.js'
@@ -170,6 +159,8 @@ jest_full_run_triggers:
   - 'tests/component-view/**'
   - 'tests/integration/**'
 
+# Jest cannot follow a deleted or renamed path, so the tests that imported it
+# would not be selected.
 jest_removed_files:
   - deleted|renamed: '**'
 

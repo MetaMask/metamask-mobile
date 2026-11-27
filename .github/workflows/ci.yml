@@ -1193,12 +1193,8 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      # Pull requests that qualify (see get-requirements) run only the suites
-      # related to the changed files: the same script, plus --findRelatedTests.
-      # Every shard gets the whole file list and Jest's --shard splits the
-      # resolved suites (--passWithNoTests covers a shard that gets none).
-      # Coverage is scoped to the changed files (JEST_COVERAGE_ARGS).
-      # Everything else runs the full shard.
+      # Related runs give every shard the whole changed-file list and let Jest's
+      # --shard split the resolved suites; --passWithNoTests covers an empty shard.
       - name: Run unit tests
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
@@ -1207,9 +1203,10 @@ jobs:
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
             # --findRelatedTests ignores the script's path roots, so without this
             # it would also load files outside the unit suite (Playwright specs,
-            # .ai-pr-analyzer, .yarn). Ignore everything the script does not root
-            # in: ./app/, ./locales/ and *.test.ts under tests, scripts, .github.
-            # JEST_RELATED_FILES is validated in get-requirements and must word-split.
+            # .ai-pr-analyzer, .yarn). Keep only ./app/, ./locales/ and *.test.ts
+            # under tests, scripts, .github.
+            # Both file lists are validated in get-requirements, so word-splitting
+            # them is intended.
             # shellcheck disable=SC2206
             related_args=(
               '--testPathIgnorePatterns=^(?!<rootDir>/(app|locales)/)(?!<rootDir>/(tests|scripts|\.github)/.*\.test\.ts$)'
@@ -1217,7 +1214,6 @@ jobs:
               --findRelatedTests $JEST_RELATED_FILES
             )
           fi
-          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
           yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json "${related_args[@]}"
         env:
@@ -1231,10 +1227,8 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          # The merge job expects one coverage file per shard. A related-tests shard
-          # that selects no suite normally still gets an empty one from Jest; create
-          # it here if not. Full runs keep the strict behaviour: a missing file
-          # fails the mv below.
+          # The merge job needs one coverage file per shard, so a related shard that
+          # selects no suite gets an empty one. Full runs still fail on a missing file.
           if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
@@ -1394,9 +1388,8 @@ jobs:
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
-      # Global thresholds need whole-app coverage. Pull requests collect coverage
-      # for changed files only, so the thresholds are enforced in the merge queue
-      # and on push, not on pull requests.
+      # Pull requests collect coverage for changed files only, so the global
+      # thresholds are enforced in the merge queue and on push instead.
       - name: Validate global coverage thresholds
         if: ${{ github.event_name != 'pull_request' }}
         run: yarn test:validate-coverage
@@ -1551,11 +1544,9 @@ jobs:
         run: |
           related_args=()
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            # JEST_RELATED_FILES is validated in get-requirements and must word-split.
             # shellcheck disable=SC2206
             related_args=(--passWithNoTests --findRelatedTests $JEST_RELATED_FILES)
           fi
-          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
           yarn test:view:ci \
             --shard=${{ matrix.shard }}/6 \
@@ -1750,11 +1741,9 @@ jobs:
         run: |
           related_args=()
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            # JEST_RELATED_FILES is validated in get-requirements and must word-split.
             # shellcheck disable=SC2206
             related_args=(--passWithNoTests --findRelatedTests $JEST_RELATED_FILES)
           fi
-          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
           yarn test:integration:ci \
             --shard=${{ matrix.shard }}/2 \

@@ -183,14 +183,9 @@ jobs:
           filters: .github/rules/filter-rules.yml
           list-files: shell
 
-      # Decide whether the Jest jobs can run only the tests related to the files a
-      # pull request changes. Anything that is not a plain pull request, or that
-      # Jest cannot follow through the import graph (see jest_full_run_triggers in
-      # filter-rules.yml), keeps the full sharded suite. The file list ends up in
-      # command-line arguments of the Jest shards, so it is capped and validated
-      # here; a list that is too long or has an unusual path falls back to the full
-      # suite. A pull request that deletes or renames a file also keeps the full
-      # suite, because Jest cannot follow a path that no longer exists.
+      # Related-tests mode is only for plain pull requests (see filter-rules.yml
+      # for what forces the full suite). The file list goes into the command line
+      # of every Jest shard, so it is capped and validated here.
       # Put [full-jest] in the head commit message to force the full suite.
       - name: Resolve Jest test scope
         id: jest-scope
@@ -203,9 +198,8 @@ jobs:
           ALL_CHANGES_LIST: ${{ steps.filter.outputs.all_changes_count <= 300 && steps.filter.outputs.all_changes_files || '' }}
         run: |
           set -f
-          # The changed-file list goes into the command line of every Jest shard
-          # and into a step output. Past 300 changed files the related set is close to the
-          # whole suite anyway, so the full suite is the simpler, safe fallback.
+          # Past 300 changed files the related set is close to the whole suite
+          # anyway, so the full suite is the simpler fallback.
           MAX_FILES=300
           related=false
           reason=""
@@ -213,9 +207,7 @@ jobs:
 
           head_message=""
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            # HEAD_COMMIT_HASH is the job-level env and the "Fetch HEAD commit"
-            # step above fetched it. Verify it anyway: a missing commit must fail
-            # the step instead of reading as "no [full-jest] tag".
+            # A missing commit must fail the step, not read as "no [full-jest] tag".
             if ! git rev-parse --verify --quiet "${HEAD_COMMIT_HASH}^{commit}" > /dev/null; then
               echo "::error::Head commit ${HEAD_COMMIT_HASH} is not available in the checkout"
               exit 1
@@ -305,11 +297,9 @@ jobs:
             echo "CV_TEST_FILES_EOF"
           } >> "$GITHUB_OUTPUT"
 
-      # Scope Jest coverage to the app source files a PR changes. The list goes
-      # into command-line arguments of the Jest shards, so it is validated here:
-      # a count above the cap or any path outside the safe character set falls
-      # back to whole-app coverage. Untested changed files are still reported
-      # (at 0%) because they are listed explicitly.
+      # Scope Jest coverage to the app files a PR changes. Too many files or an
+      # unsafe path falls back to whole-app coverage. Changed files without tests
+      # still show up (at 0%) because they are listed explicitly.
       - name: Resolve Jest coverage scope
         id: coverage-scope
         if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request'
@@ -318,9 +308,8 @@ jobs:
           APP_SOURCE_FILES_LIST: ${{ steps.filter.outputs.app_source_files_count <= 400 && steps.filter.outputs.app_source_files_files || '' }}
         run: |
           set -f
-          # Only a command-line length guard (one --collectCoverageFrom argument
-          # per file), so it is looser than the 300-file test cap above. Past it
-          # the fallback is whole-app coverage.
+          # Command-line length guard only (one argument per file), so looser than
+          # the 300-file test cap.
           MAX_FILES=400
           if [ "${APP_SOURCE_FILES_COUNT:-0}" -gt "$MAX_FILES" ]; then
             echo "-> ${APP_SOURCE_FILES_COUNT} app source files changed (cap ${MAX_FILES}); collecting whole-app coverage"
@@ -339,7 +328,6 @@ jobs:
               echo "-> Unsafe path '${file}'; collecting whole-app coverage"
               exit 0
             fi
-            # Deleted files have nothing to cover.
             [ -f "$file" ] || continue
             args="${args} --collectCoverageFrom=${file}"
             files=$((files + 1))
