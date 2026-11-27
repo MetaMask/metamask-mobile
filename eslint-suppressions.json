@@ -74,11 +74,6 @@
       "count": 1
     }
   },
-  "app/components/UI/AccountOverview/index.js": {
-    "design-system/spacing-grid": {
-      "count": 11
-    }
-  },
   "app/components/UI/AccountRightButton/index.tsx": {
     "design-system/spacing-grid": {
       "count": 2
@@ -92,16 +87,6 @@
   "app/components/UI/ActivityListItemRow/ActivityListItemRow.styles.ts": {
     "design-system/spacing-grid": {
       "count": 3
-    }
-  },
-  "app/components/UI/AddToAddressBookWrapper/styles.ts": {
-    "design-system/spacing-grid": {
-      "count": 1
-    }
-  },
-  "app/components/UI/AddressInputs/index.js": {
-    "design-system/spacing-grid": {
-      "count": 5
     }
   },
   "app/components/UI/AssetOverview/Price/Price.styles.tsx": {
@@ -307,16 +292,6 @@
   "app/components/UI/NetworkConnectionBanner/NetworkConnectionBanner.tsx": {
     "design-system/spacing-grid": {
       "count": 1
-    }
-  },
-  "app/components/UI/NetworkInfo/InfoDescription/infoDescription.tsx": {
-    "design-system/spacing-grid": {
-      "count": 2
-    }
-  },
-  "app/components/UI/NetworkInfo/index.tsx": {
-    "design-system/spacing-grid": {
-      "count": 9
     }
   },
   "app/components/UI/NetworkManager/index.styles.ts": {
@@ -936,11 +911,6 @@
   "app/components/UI/WebviewError/index.js": {
     "design-system/spacing-grid": {
       "count": 1
-    }
-  },
-  "app/components/UI/WhatsNewModal/WhatsNewModal.styles.ts": {
-    "design-system/spacing-grid": {
-      "count": 2
     }
   },
   "app/components/Views/AccountStatus/AccountStatus.view.test.tsx": {
