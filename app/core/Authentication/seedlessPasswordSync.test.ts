@@ -576,6 +576,7 @@ describe('seedlessPasswordSync', () => {
       expect(deps.lockApp).toHaveBeenCalledWith({
         locked: true,
         reset: false,
+        navigateToLogin: false,
       });
       expect(deps.resetPassword).not.toHaveBeenCalled();
     });
@@ -612,6 +613,7 @@ describe('seedlessPasswordSync', () => {
       expect(deps.lockApp).toHaveBeenCalledWith({
         locked: true,
         reset: false,
+        navigateToLogin: false,
       });
       expect(mockSignOutCardAfterPasswordChange).not.toHaveBeenCalled();
       expect(deps.resetPassword).not.toHaveBeenCalled();

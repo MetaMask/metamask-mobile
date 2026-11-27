@@ -31,7 +31,11 @@ export interface CheckIsSeedlessPasswordOutdatedOptions {
 
 export interface SyncPasswordAndUnlockWalletDependencies {
   rehydrateSeedPhrase: (password: string) => Promise<void>;
-  lockApp: (options: { locked: boolean; reset: boolean }) => Promise<void>;
+  lockApp: (options: {
+    locked: boolean;
+    reset: boolean;
+    navigateToLogin?: boolean;
+  }) => Promise<void>;
   resetPassword: () => Promise<void>;
 }
 
@@ -289,8 +293,9 @@ export const syncPasswordAndUnlockWallet = async (
       skipCache: true,
     });
   } catch (err) {
-    // Lock app again on error after partial unlock/reconciliation.
-    await deps.lockApp({ locked: true, reset: false });
+    // Lock app again on error after partial unlock/reconciliation without
+    // resetting navigation so the caller's error handler can route cleanly.
+    await deps.lockApp({ locked: true, reset: false, navigateToLogin: false });
     throw err;
   }
 
