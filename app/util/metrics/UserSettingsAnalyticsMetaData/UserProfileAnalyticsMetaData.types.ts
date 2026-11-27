@@ -21,6 +21,8 @@ export enum UserProfileProperty {
   CHAIN_IDS = 'chain_id_list',
   CANONICAL_PROFILE_ID = 'canonical_profile_id',
   HAS_REWARDS_OPTED_IN = 'has_rewards_opted_in',
+  HAS_SOCIAL_PROFILE = 'has_social_profile',
+  SOCIAL_PROFILE_CREATED_AT = 'social_profile_created_at',
   REWARDS_REFERRED = 'rewards_referred',
   REWARDS_REFERRAL_CODE_USED = 'rewards_referral_code_used',
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
