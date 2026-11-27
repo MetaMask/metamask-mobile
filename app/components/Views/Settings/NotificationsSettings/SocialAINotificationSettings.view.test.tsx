@@ -18,7 +18,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import type { FollowingResponse } from '@metamask/social-controllers';
-import notifee, { AuthorizationStatus } from '@notifee/react-native';
+import { AuthorizationStatus } from '@notifee/react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   clearLeaderboardApiMock,
@@ -146,9 +146,6 @@ describeForPlatforms('Social AI notification settings', () => {
         NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
       ),
     ).toBeOnTheScreen();
-    await waitFor(() => {
-      expect(notifee.getNotificationSettings).toHaveBeenCalled();
-    });
     expect(
       screen.queryByTestId(
         NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,

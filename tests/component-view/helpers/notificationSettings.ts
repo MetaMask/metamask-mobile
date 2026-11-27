@@ -3,19 +3,18 @@ import notifee, { type AuthorizationStatus } from '@notifee/react-native';
 import { AppState, Linking, Platform, type AppStateStatus } from 'react-native';
 
 export const setPushPermissionStatus = (status: AuthorizationStatus): void => {
-  jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+  jest.spyOn(notifee, 'getNotificationSettings').mockResolvedValue({
     authorizationStatus: status,
   } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
 };
 
 export const mockOpenSystemSettings = (): (() => void) => {
-  const openSettings = jest
-    .spyOn(Linking, 'openSettings')
-    .mockResolvedValue(undefined);
+  const openSettings =
+    Platform.OS === 'ios'
+      ? jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined)
+      : jest.spyOn(notifee, 'openNotificationSettings');
   return () => {
-    const open =
-      Platform.OS === 'ios' ? openSettings : notifee.openNotificationSettings;
-    expect(open).toHaveBeenCalledTimes(1);
+    expect(openSettings).toHaveBeenCalledTimes(1);
   };
 };
 
