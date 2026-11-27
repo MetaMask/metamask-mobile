@@ -3,6 +3,7 @@ import { collectiblesTestIds } from '../Collectibles.testIds';
 import { Image } from '../../primitives/Image';
 import { View } from '../../primitives/View';
 import { PackOpensBadge } from './PackOpensBadge';
+import { ArtworkFallback } from './ArtworkFallback';
 
 interface Props {
   code: string;
@@ -37,8 +38,8 @@ export function PackArt({
           testID={collectiblesTestIds.packsTileArt(code)}
         />
       ) : (
-        <View
-          className={`w-full rounded-lg bg-alternative ${artClassName}`}
+        <ArtworkFallback
+          className={`w-full rounded-lg ${artClassName}`}
           testID={collectiblesTestIds.packsTileArtPlaceholder(code)}
         />
       )}
