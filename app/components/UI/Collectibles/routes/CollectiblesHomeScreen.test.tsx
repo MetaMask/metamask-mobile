@@ -14,12 +14,12 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockParams }),
 }));
 
-jest.mock('#app/components/UI/Collectibles/hooks/useCollectionCards', () => ({
-  useCollectionCards: () => ({ data: [], isPending: false, isError: false }),
-}));
-
 jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
   useEpicHuntPacks: () => ({ data: [], isPending: true }),
+}));
+
+jest.mock('#app/components/UI/Collectibles/hooks/useCollectionCards', () => ({
+  useCollectionCards: () => ({ data: [], isPending: false, isError: false }),
 }));
 
 describe('CollectiblesHomeScreen', () => {

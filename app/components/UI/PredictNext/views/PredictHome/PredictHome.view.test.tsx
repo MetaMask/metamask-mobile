@@ -10,6 +10,7 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/fetchStub';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import Engine from '../../../../../core/Engine';
@@ -715,6 +716,28 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-7')),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders Trending, Sports, and Politics cards on Home with the shared 20pt muted outline', async () => {
+      const view = renderPredictNext();
+
+      const trendingCard = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-1'),
+      );
+      const sportsCard = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      const politicsCard = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-1'),
+      );
+
+      [trendingCard, sportsCard, politicsCard].forEach((card) => {
+        expect(card).toHaveStyle({
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: lightTheme.colors.border.muted,
+        });
+      });
     });
 
     it('replaces the NFL and NCAAF previews with the two rows', async () => {

@@ -1640,7 +1640,7 @@ describe('EarnWithdrawInputView', () => {
 
   describe('Tracing', () => {
     describe('Pooled Staking flow tracing', () => {
-      it('calls trace with EarnWithdrawConfirmationScreen when redesigned confirmations are enabled', async () => {
+      it('calls trace with EarnWithdrawConfirmationScreen when withdrawing from pooled staking', async () => {
         const mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue({});
         jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
           () => ({

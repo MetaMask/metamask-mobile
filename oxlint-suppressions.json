@@ -6215,7 +6215,7 @@
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx": {
     "typescript/no-misused-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 12
@@ -9095,7 +9095,7 @@
   },
   "app/components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyActions.ts": {
     "typescript/no-floating-promises": {
-      "count": 4
+      "count": 2
     }
   },
   "app/components/UI/Predict/views/PredictBuyWithAnyToken/hooks/usePredictBuyError.test.ts": {
@@ -9532,7 +9532,7 @@
   },
   "app/components/UI/PredictNext/notifications/PredictOrderNotifications.view.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 3
+      "count": 1
     }
   },
   "app/components/UI/PredictNext/notifications/usePredictOrderToastRegistrations.ts": {
@@ -9868,9 +9868,6 @@
   "app/components/UI/PredictNext/views/PredictOrderFlow/PredictOrderFlow.view.test.tsx": {
     "typescript/no-base-to-string": {
       "count": 5
-    },
-    "typescript/promise-function-async": {
-      "count": 7
     }
   },
   "app/components/UI/PredictNext/views/PredictOrderFlow/internal/OrderReceiptOutcome.tsx": {
@@ -13485,11 +13482,6 @@
       "count": 3
     }
   },
-  "app/components/UI/TokenDetails/Views/TokenDetails.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/TokenDetails/Views/TokenDetails.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
@@ -13538,7 +13530,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 7
+      "count": 5
     }
   },
   "app/components/UI/TokenDetails/components/AssetOverviewContent.view.test.tsx": {
@@ -13841,11 +13833,6 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/TokenDetails/hooks/useTokenSecurityData.ts": {
-    "typescript/no-floating-promises": {
       "count": 1
     }
   },

@@ -126,6 +126,9 @@
       "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
+    "pay_amount_too_low": {
+      "message": "This amount is below the minimum for this route. Enter a higher amount to continue."
+    },
     "account_no_funds": {
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
@@ -5521,6 +5524,25 @@
     "marketplace": {
       "coming_soon": "Coming soon"
     },
+    "buy_sheet": {
+      "open_hint": "Opens the buy sheet for {{name}}",
+      "pack_count": {
+        "one": "{{count}} pack",
+        "other": "{{count}} packs"
+      },
+      "quantity": "Number of packs",
+      "max": "Max",
+      "auto_buyback": "Auto-buyback for Commons",
+      "skip_reveals": "Skip reveals",
+      "pay_with": "Pay with",
+      "pay_with_balance": "{{symbol}} ({{balance}})",
+      "total": "Total",
+      "no_fees": "No fees",
+      "open_packs": {
+        "one": "Open {{count}} pack",
+        "other": "Open {{count}} packs"
+      }
+    },
     "packs": {
       "all": "All",
       "categories": "Pack categories",
@@ -5533,6 +5555,17 @@
       "open_pack_price": "Open {{name}}, {{price}}",
       "tile_label": "{{name}}, {{opens}}",
       "empty": "No packs available right now"
+    },
+    "epic_hunt": {
+      "info": "About Epic Hunt",
+      "pulls_line": {
+        "one": "Epic {{odds}} · {{formattedCount}} pull since last Epic",
+        "other": "Epic {{odds}} · {{formattedCount}} pulls since last Epic"
+      },
+      "gauge_label": "{{value}} pulls compared with the average per Epic",
+      "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
+      "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
+      "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
     },
     "collection": {
       "value_label": "Collection value",
@@ -5548,17 +5581,6 @@
       "browse_packs": "Browse packs",
       "no_results": "No cards found",
       "error": "Couldn't load your cards. Try again later."
-    },
-    "epic_hunt": {
-      "info": "About Epic Hunt",
-      "pulls_line": {
-        "one": "Epic {{odds}} · {{formattedCount}} pull since last Epic",
-        "other": "Epic {{odds}} · {{formattedCount}} pulls since last Epic"
-      },
-      "gauge_label": "{{value}} pulls compared with the average per Epic",
-      "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
-      "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
-      "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
     }
   },
   "collectible": {

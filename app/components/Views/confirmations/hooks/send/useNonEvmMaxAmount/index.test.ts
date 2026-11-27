@@ -23,6 +23,21 @@ const TRON_ASSET = {
   symbol: 'TRX',
 };
 
+const BITCOIN_ACCOUNT = {
+  id: 'bitcoin-account-id',
+  address: 'bc1qsqvczpxkgvp3lw230p7jffuuqnw9pp4j5tawmf',
+  metadata: { snap: { id: 'npm:@metamask/bitcoin-wallet-snap' } },
+};
+
+const BITCOIN_ASSET = {
+  assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+  chainId: 'bip122:000000000019d6689c085ae165831e93',
+  address: 'bc1qsqvczpxkgvp3lw230p7jffuuqnw9pp4j5tawmf',
+  decimals: 8,
+  isNative: true,
+  symbol: 'BTC',
+};
+
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: () => '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
 }));
@@ -137,6 +152,24 @@ describe('useNonEvmMaxAmount', () => {
       asset: SOLANA_ASSET,
     } as unknown as ReturnType<typeof useSendContext>);
     setBalance('10');
+
+    const { result } = renderHookWithProvider(
+      () => useNonEvmMaxAmount(),
+      mockState,
+    );
+
+    expect(result.current.isNonEvmMaxSupported).toBe(false);
+    await expect(result.current.getNonEvmMaxAmount()).resolves.toBeUndefined();
+    expect(mockGetTronMaxSendableAmountWithFallback).not.toHaveBeenCalled();
+  });
+
+  it('has no quote for a Bitcoin asset', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: BITCOIN_ASSET,
+      fromAccount: BITCOIN_ACCOUNT,
+      to: 'bc1qsqvczpxkgvp3lw230p7jffuuqnw9pp4j5tawmf',
+    } as unknown as ReturnType<typeof useSendContext>);
+    setBalance('100000000');
 
     const { result } = renderHookWithProvider(
       () => useNonEvmMaxAmount(),
