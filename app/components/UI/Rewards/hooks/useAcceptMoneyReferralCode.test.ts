@@ -588,6 +588,91 @@ describe('useAcceptMoneyReferralCode', () => {
       }
     });
 
+    it('keeps the Retry-After wait running when the user edits the code', async () => {
+      jest.useFakeTimers();
+      try {
+        mockMessenger({
+          registerError: new RewardsMoneyHttpError(
+            'Register referee failed: 429',
+            429,
+            'Too many requests',
+            10,
+          ),
+        });
+
+        const { result } = renderAcceptHook();
+        await act(async () => {
+          await result.current.acceptReferralCode(CODE);
+        });
+
+        expect(result.current.acceptBlockedUntil).toBe(Date.now() + 10_000);
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(9_000);
+        });
+
+        // Editing the code calls clearError first; the wait stays in place.
+        act(() => {
+          result.current.clearError();
+        });
+        expect(result.current.errorMessage).toBe(
+          strings('rewards.error_messages.rate_limited'),
+        );
+        expect(result.current.refusalReason).toBe('rate_limited');
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1_000);
+        });
+
+        // The wait ends at the original Retry-After moment, not 10 s after
+        // the edit.
+        expect(result.current.acceptBlockedUntil).toBeNull();
+        expect(result.current.errorMessage).toBe('');
+        expect(result.current.refusalReason).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('accepts again once the network recovers after a 500', async () => {
+      mockMessenger({
+        registerError: new RewardsMoneyHttpError(
+          'Register referee failed: 500',
+          500,
+          'boom',
+        ),
+      });
+
+      const { result } = renderAcceptHook();
+      let refused: AcceptReferralCodeResult | undefined;
+      await act(async () => {
+        refused = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(refused).toEqual({
+        accepted: false,
+        refusalReason: 'registration_failed',
+      });
+      expect(result.current.errorMessage).toBe(
+        strings('rewards.error_messages.something_went_wrong'),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      mockMessenger();
+
+      let retried: AcceptReferralCodeResult | undefined;
+      await act(async () => {
+        retried = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(retried).toEqual({ accepted: true });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
+      expect(result.current.errorMessage).toBe('');
+    });
+
     it('asks to try again shortly without blocking when validation is still a 503', async () => {
       mockMessenger({
         validateError: new RewardsMoneyHttpError(

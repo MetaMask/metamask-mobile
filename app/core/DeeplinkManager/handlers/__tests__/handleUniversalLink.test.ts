@@ -3879,6 +3879,25 @@ describe('handleUniversalLink', () => {
       expect(handleRewardsUrl).toHaveBeenCalled();
     });
 
+    it('stores the code from a swap link and still opens the swap', async () => {
+      const link = buildLink(ACTIONS.SWAP, '?ref=kol123');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingReferralCode('KOL123'),
+      );
+      expect(handleSwapUrl).toHaveBeenCalledWith({ swapPath: '?ref=kol123' });
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+    });
+
     it('stores the code for a whitelisted HOME link without an interstitial', async () => {
       const link = buildLink(ACTIONS.HOME, '?ref=kol123');
 

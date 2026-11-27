@@ -12,6 +12,7 @@ import initialRootState from '../../util/test/initial-root-state';
 import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
+  isCopyTradingOnly,
   moneyDashboardPersona,
   refereeMoneySections,
   selectCashbackLedger,
@@ -203,6 +204,31 @@ describe('rewardsMoney selectors', () => {
       expect(moneyDashboardPersona({ roles: [], ui_variant: 'NONE' })).toBe(
         'plain',
       );
+    });
+
+    it('treats a cashback-experiment member who also shares copy trades as a referee', () => {
+      expect(
+        moneyDashboardPersona({
+          roles: ['CASHBACK_EXPERIMENT', 'COPY_TRADING'],
+          ui_variant: 'REFEREE',
+        }),
+      ).toBe('referee');
+    });
+  });
+
+  describe('isCopyTradingOnly', () => {
+    it('keeps the cashback identity for a member who is also a copy-trading sharer', () => {
+      expect(isCopyTradingOnly(['CASHBACK_EXPERIMENT', 'COPY_TRADING'])).toBe(
+        false,
+      );
+      expect(isCopyTradingOnly(['REFEREE', 'COPY_TRADING'])).toBe(false);
+    });
+
+    it('drops the cashback identity only for a copy-trading sharer with no rebates', () => {
+      expect(isCopyTradingOnly(['COPY_TRADING'])).toBe(true);
+      expect(isCopyTradingOnly(['CASHBACK_EXPERIMENT'])).toBe(false);
+      expect(isCopyTradingOnly(['REFERRER'])).toBe(false);
+      expect(isCopyTradingOnly([])).toBe(false);
     });
   });
 

@@ -121,6 +121,10 @@ const newOverrides = [
       'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
+      // The Hyperliquid builder address must stay runtime-readable so tests
+      // can exercise the env override the Perps client and Rewards share.
+      'app/core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address.ts',
+      'app/core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address.test.ts',
       'app/core/Engine/controllers/rewards-money-controller/utils/rewards-money-api-url.ts',
       'app/core/Engine/controllers/rewards-money-controller/utils/rewards-money-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',

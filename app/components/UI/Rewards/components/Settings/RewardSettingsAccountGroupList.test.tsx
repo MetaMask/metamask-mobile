@@ -429,6 +429,33 @@ const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
 
+/**
+ * testIDs of a rendered subtree in document order, excluding the root. The
+ * flash-list mock nests fragments between host views, so a direct children
+ * read misses their props; the walk keeps the referral-section-before-accounts
+ * assertion honest.
+ */
+function collectTestIdsInOrder(node: {
+  children?: readonly unknown[];
+}): string[] {
+  const ids: string[] = [];
+  const visit = (instance: unknown): void => {
+    if (!instance || typeof instance !== 'object') {
+      return;
+    }
+    const testID = (instance as { props?: { testID?: string } }).props?.testID;
+    if (testID) {
+      ids.push(testID);
+    }
+    const children = (instance as { children?: readonly unknown[] }).children;
+    if (Array.isArray(children)) {
+      children.forEach(visit);
+    }
+  };
+  (node.children ?? []).forEach(visit);
+  return ids;
+}
+
 describe('RewardSettingsAccountGroupList', () => {
   const mockWalletData = [
     {
@@ -980,7 +1007,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Expand/Collapse Functionality', () => {
-    it('should initially show only 2 account groups per wallet', () => {
+    it('initially shows only 2 account groups per wallet', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1054,7 +1081,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('show-more-button-wallet-1')).toBeOnTheScreen();
     });
 
-    it('should expand to show all groups when "Show more" is pressed', () => {
+    it('expands to show all groups when "Show more" is pressed', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1117,7 +1144,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('should collapse to show only 2 groups when "Show less" is pressed', () => {
+    it('collapses to show only 2 groups when "Show less" is pressed', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1189,7 +1216,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(queryByTestId('account-group-group-3')).toBeNull();
     });
 
-    it('should not show "Show more" button when there are 2 or fewer groups', () => {
+    it('hides the "Show more" button when there are 2 or fewer groups', () => {
       const walletDataWithFewGroups = [
         {
           wallet: {
@@ -1241,7 +1268,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Bulk Link State', () => {
-    it('should show bulk link progress when bulk link is running', () => {
+    it('shows bulk link progress when bulk link is running', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1288,7 +1315,7 @@ describe('RewardSettingsAccountGroupList', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should show "Add all accounts" button when not all accounts are linked', () => {
+    it('shows the "Add all accounts" button when not all accounts are linked', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1312,7 +1339,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-add-all-button')).toBeOnTheScreen();
     });
 
-    it('should call startBulkLink when "Add all accounts" button is pressed', () => {
+    it('calls startBulkLink when the "Add all accounts" button is pressed', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1338,7 +1365,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(mockStartBulkLink).toHaveBeenCalledTimes(1);
     });
 
-    it('should not show "Add all accounts" button when bulk link is running', () => {
+    it('hides the "Add all accounts" button when bulk link is running', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1416,6 +1443,34 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
       expect(getByTestId('opt-out-section')).toBeOnTheScreen();
       expect(getByLabelText('environmentToggle')).toBeOnTheScreen();
+    });
+
+    it('keeps the referral section first in the header and opt-out below the accounts', () => {
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroupList onRequestOptOut={jest.fn()} />,
+      );
+
+      const flashList = getByTestId('rewards-settings-flash-list');
+      const rowTestIds = collectTestIdsInOrder(flashList);
+
+      // The referral section owns the header, ahead of every list row, and
+      // the accounts header follows it under the trailing divider.
+      expect(rowTestIds[0]).toBe('list-header');
+      const header = getByTestId('list-header');
+      const headerTestIds = collectTestIdsInOrder(header);
+      expect(headerTestIds[0]).toBe('referred-by-code-section-with-divider');
+      expect(headerTestIds).toContain('rewards-settings-header');
+
+      // Account management rows and the opt-out row stay below the header.
+      const lastAccountGroupIndex = rowTestIds.indexOf(
+        'flash-list-item-accountGroup-group-3',
+      );
+      const optOutIndex = rowTestIds.indexOf('flash-list-item-optOut');
+      expect(lastAccountGroupIndex).toBeGreaterThan(0);
+      expect(optOutIndex).toBeGreaterThan(lastAccountGroupIndex);
+      expect(
+        rowTestIds.indexOf('flash-list-item-environmentToggle'),
+      ).toBeGreaterThan(optOutIndex);
     });
 
     it('keeps the referral field mounted when account counts change', () => {

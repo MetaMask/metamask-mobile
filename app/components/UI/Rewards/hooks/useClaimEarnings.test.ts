@@ -47,6 +47,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import useRewardsToast from './useRewardsToast';
+import { useClaimMechanisms } from './useFollowTradeClaimOpen';
 import {
   ClaimBatchConfirmationError,
   submitClaimVoucher,
@@ -280,6 +281,13 @@ describe('useClaimEarnings', () => {
     storedClaimWait = undefined;
     storedClaimLock = undefined;
     jest.clearAllMocks();
+    // jest.clearAllMocks clears call history but keeps mockReturnValue, so a
+    // per-test override (the mixed-refusal case below) would leak into every
+    // later test. Re-arm the module default each test instead.
+    jest.mocked(useClaimMechanisms).mockReturnValue({
+      followTradeClaimOpen: false,
+      revShareClaimOpen: false,
+    });
     mockDispatch.mockImplementation((action: Action) => {
       if (setClaimWaitingUntil.match(action)) {
         storedClaimWait =
@@ -774,6 +782,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureRetryToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'retry',
+    });
     expect(onSubmitted).not.toHaveBeenCalled();
   });
 
@@ -1117,6 +1129,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureUnavailableToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'unsupported',
+    });
     expect(result.current.isClaiming).toBe(true);
 
     mockEngineCall.mockClear();
@@ -1215,6 +1231,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureRetryToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'retry',
+    });
     expect(onOpened).toHaveBeenCalledTimes(1);
     expect(onSubmitted).not.toHaveBeenCalled();
   });
@@ -1241,6 +1261,10 @@ describe('useClaimEarnings', () => {
         'error',
       );
       expect(mockErrorToast).not.toHaveBeenCalled();
+      expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+        claim_type: 'cashback',
+        failure_reason: 'retry',
+      });
       expect(onOpened).toHaveBeenCalledTimes(1);
       expect(onSubmitted).not.toHaveBeenCalled();
     },
@@ -1277,6 +1301,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureAddressBlockedToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'address_blocked',
+    });
     expect(onOpened).not.toHaveBeenCalled();
   });
 
@@ -1312,6 +1340,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureRetryToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'retry',
+    });
     expect(onSubmitted).not.toHaveBeenCalled();
   });
 
@@ -1328,6 +1360,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureTooLargeToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'too_large',
+    });
     expect(onSubmitted).not.toHaveBeenCalled();
   });
 
@@ -1374,14 +1410,14 @@ describe('useClaimEarnings', () => {
   });
 
   it.each([
-    'SUSPENDED',
-    'MECHANISM_NOT_CLAIMABLE',
-    'EARNING_ADDRESS_UNSCREENABLE',
-    'UNDER_REVIEW',
-    'EARNING_ADDRESS_MISSING',
+    ['SUSPENDED', 'paused'],
+    ['MECHANISM_NOT_CLAIMABLE', 'not_claimable'],
+    ['EARNING_ADDRESS_UNSCREENABLE', 'paused'],
+    ['UNDER_REVIEW', 'paused'],
+    ['EARNING_ADDRESS_MISSING', 'paused'],
   ] as const)(
     'opens the paused sheet instead of a toast when the claim is refused as %s',
-    async (reason) => {
+    async (reason, failureReason) => {
       mockEngineCall.mockRejectedValue(
         new RewardsMoneyClaimRefusalError(422, reason),
       );
@@ -1396,16 +1432,104 @@ describe('useClaimEarnings', () => {
       expect(mockErrorToast).not.toHaveBeenCalled();
       expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(onSubmitted).not.toHaveBeenCalled();
+      expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+        claim_type: 'cashback',
+        failure_reason: failureReason,
+      });
     },
   );
 
+  it('shows the unavailable toast when the payout address is not a Money account', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(
+        422,
+        'PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT',
+      ),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureUnavailableToast,
+    );
+    expect(onClaimsPaused).not.toHaveBeenCalled();
+    expect(onTaxRequired).not.toHaveBeenCalled();
+    expect(onSubmitted).not.toHaveBeenCalled();
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'other',
+    });
+  });
+
+  it('shows the contact-support toast when a missing earning address refusal rides with another route refusal', async () => {
+    // A pure missing-address refusal opens the paused sheet instead. The
+    // mapped toast only reaches the user when a second open route refused
+    // too, which is what keeps isClaimsPausedRefusal false.
+    jest.mocked(useClaimMechanisms).mockReturnValue({
+      followTradeClaimOpen: false,
+      revShareClaimOpen: true,
+    });
+    (selectReferralMeLocalizedText as jest.Mock).mockReturnValue({
+      ...localizedText,
+      taxFormUrl: 'https://rewards.example.test/tax-form',
+    });
+    const mixed = summary(ONE_DOLLAR);
+    mixed.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      lifetime: '0',
+      claimable: ONE_DOLLAR,
+      pending: '0',
+      claimed: '0',
+      voided: '0',
+    };
+    let routeCall = 0;
+    mockEngineCall.mockImplementation(async () => {
+      routeCall += 1;
+      if (routeCall === 1) {
+        throw new RewardsMoneyClaimRefusalError(422, 'EARNING_ADDRESS_MISSING');
+      }
+      throw new RewardsMoneyClaimRefusalError(422, 'NO_ELIGIBLE_BALANCE');
+    });
+
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(mixed);
+    });
+
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureContactSupportToast,
+    );
+    expect(onClaimsPaused).not.toHaveBeenCalled();
+    expect(onTaxRequired).not.toHaveBeenCalled();
+    expect(onSubmitted).not.toHaveBeenCalled();
+    const failedEvents = mockTrackEvent.mock.calls
+      .map(
+        ([event]) =>
+          event as { name: string; properties: { failure_reason?: string } },
+      )
+      .filter(
+        (event) =>
+          event.name === MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED.category,
+      );
+    expect(
+      failedEvents.map((event) => event.properties.failure_reason),
+    ).toEqual(['paused', 'nothing_to_claim']);
+  });
+
   it.each([
-    ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
-    ['VOIDED', 'claimFailureToast'],
-    ['CLAIM_TOO_LARGE', 'claimFailureTooLargeToast'],
+    [
+      'NO_ELIGIBLE_BALANCE',
+      'claimFailureNoEligibleBalanceToast',
+      'nothing_to_claim',
+    ],
+    ['VOIDED', 'claimFailureToast', 'other'],
+    ['CLAIM_TOO_LARGE', 'claimFailureTooLargeToast', 'too_large'],
   ] as const)(
     'shows the %s toast when the route refuses the claim',
-    async (reason, toast) => {
+    async (reason, toast, failureReason) => {
       mockEngineCall.mockRejectedValue(
         new RewardsMoneyClaimRefusalError(422, reason),
       );
@@ -1416,6 +1540,10 @@ describe('useClaimEarnings', () => {
       });
 
       expect(mockErrorToast).toHaveBeenCalledWith(localizedText[toast]);
+      expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+        claim_type: 'cashback',
+        failure_reason: failureReason,
+      });
       expect(onClaimsPaused).not.toHaveBeenCalled();
       expect(onSubmitted).not.toHaveBeenCalled();
     },
@@ -1459,6 +1587,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureMinimumToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'below_minimum',
+    });
   });
 
   it('shows the wait toast and does not ask for a signature when the hourly limit is short', async () => {
@@ -1475,6 +1607,10 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureWaitToast,
     );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'wait',
+    });
     expect(onOpened).not.toHaveBeenCalled();
     expect(onSubmitted).not.toHaveBeenCalled();
   });
