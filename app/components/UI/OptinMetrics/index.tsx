@@ -13,6 +13,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
+  Checkbox,
   ContentVariant,
   FontWeight,
   ListItem,
@@ -68,7 +69,6 @@ import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeO
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
-import OnboardingSquareCheckbox from '../OnboardingSquareCheckbox';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -422,7 +422,12 @@ const OptinMetrics = () => {
                 isBasicUsageChecked ? ' bg-background-muted' : ''
               }`}
               startAccessory={
-                <OnboardingSquareCheckbox isChecked={isBasicUsageChecked} />
+                <Checkbox
+                  isSelected={isBasicUsageChecked}
+                  onChange={handleBasicUsageToggle}
+                  pointerEvents="none"
+                  checkboxContainerProps={{ className: 'rounded' }}
+                />
               }
               title={strings('privacy_policy.gather_basic_usage_title')}
               description={
@@ -465,7 +470,12 @@ const OptinMetrics = () => {
                   isMarketingChecked ? ' bg-background-muted' : ''
                 }`}
                 startAccessory={
-                  <OnboardingSquareCheckbox isChecked={isMarketingChecked} />
+                  <Checkbox
+                    isSelected={isMarketingChecked}
+                    onChange={handleMarketingToggle}
+                    pointerEvents="none"
+                    checkboxContainerProps={{ className: 'rounded' }}
+                  />
                 }
                 title={strings('privacy_policy.checkbox_marketing')}
                 description={strings('privacy_policy.checkbox')}

@@ -16,6 +16,7 @@ import {
   BoxFlexDirection,
   TextVariant,
   ButtonSize,
+  Checkbox,
   TextField,
   IconName,
   ButtonIcon,
@@ -108,7 +109,6 @@ import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDef
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import OnboardingSquareCheckbox from '../../UI/OnboardingSquareCheckbox';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
@@ -1103,7 +1103,12 @@ const ChoosePassword = () => {
                   marketingOptInChecked ? ' bg-background-muted' : ''
                 }`}
                 startAccessory={
-                  <OnboardingSquareCheckbox isChecked={marketingOptInChecked} />
+                  <Checkbox
+                    isSelected={marketingOptInChecked}
+                    onChange={setSelection}
+                    pointerEvents="none"
+                    checkboxContainerProps={{ className: 'rounded' }}
+                  />
                 }
                 titleProps={{
                   variant: TextVariant.BodySm,

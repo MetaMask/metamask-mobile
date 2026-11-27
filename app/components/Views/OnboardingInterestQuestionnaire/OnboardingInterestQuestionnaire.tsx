@@ -6,6 +6,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
+  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -18,7 +19,6 @@ import {
   FontWeight,
   TitleStandard,
 } from '@metamask/design-system-react-native';
-import OnboardingSquareCheckbox from '../../UI/OnboardingSquareCheckbox';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import OtherBottomSheet from './OtherBottomSheet';
@@ -262,7 +262,15 @@ const OnboardingInterestQuestionnaire = () => {
               }`}
               startAccessory={
                 <Box twClassName="flex-row items-center gap-2">
-                  {isSelected && <OnboardingSquareCheckbox isChecked />}
+                  {isSelected && (
+                    <Checkbox
+                      isSelected
+                      onChange={() => handleOptionPress(option.id)}
+                      pointerEvents="none"
+                      accessibilityLabel={strings(option.labelKey)}
+                      checkboxContainerProps={{ className: 'rounded' }}
+                    />
+                  )}
                   <Text
                     variant={TextVariant.HeadingMd}
                     fontWeight={FontWeight.Medium}
