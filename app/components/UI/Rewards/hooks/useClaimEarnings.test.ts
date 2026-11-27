@@ -75,6 +75,7 @@ let storedClaimLock: ClaimLock | undefined;
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
   useDispatch: () => mockDispatch,
+  useStore: () => ({ getState: () => ({}) }),
 }));
 
 jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({

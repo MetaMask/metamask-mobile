@@ -25,8 +25,6 @@ export interface SocialFeedRowProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
-  requireSocialTerms?: boolean;
-  requireSocialProfile?: boolean;
   /** Viewer's profile ID to hide copy trade on their own posts. */
   viewerProfileId?: string;
   /**
@@ -62,8 +60,6 @@ export const areSocialFeedRowPropsEqual = (
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
-  previous.requireSocialTerms === next.requireSocialTerms &&
-  previous.requireSocialProfile === next.requireSocialProfile &&
   previous.viewerProfileId === next.viewerProfileId &&
   previous.gifVisible === next.gifVisible &&
   previous.post.id === next.post.id &&
@@ -97,8 +93,6 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  requireSocialTerms,
-  requireSocialProfile,
   viewerProfileId,
   gifVisible = true,
 }) => {
@@ -114,8 +108,6 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
-          requireSocialTerms={requireSocialTerms}
-          requireSocialProfile={requireSocialProfile}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}

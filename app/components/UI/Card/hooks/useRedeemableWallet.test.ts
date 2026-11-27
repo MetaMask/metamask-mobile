@@ -172,6 +172,42 @@ describe('useRedeemableWallet', () => {
       expect(mockWithdrawRedeemable).toHaveBeenCalledWith({
         mode: 'cashback',
         amount: '5.00',
+        moneyAccountAddress: undefined,
+      });
+    });
+  });
+
+  it('forwards the Money account address on withdraw', async () => {
+    mockGetCashbackWallet.mockResolvedValue({
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    });
+    mockWithdrawRedeemable.mockResolvedValue({ txHash: '0xabc123' });
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useRedeemableWallet('cashback'), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      result.current.withdraw({
+        amount: '5.00',
+        moneyAccountAddress: '0xMoneyAccount',
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockWithdrawRedeemable).toHaveBeenCalledWith({
+        mode: 'cashback',
+        amount: '5.00',
+        moneyAccountAddress: '0xMoneyAccount',
       });
     });
   });

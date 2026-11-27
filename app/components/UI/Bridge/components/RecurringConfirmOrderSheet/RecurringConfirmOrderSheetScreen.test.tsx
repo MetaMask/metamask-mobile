@@ -34,6 +34,7 @@ import {
   startRecurringOrderCreateTrace,
 } from '../../utils/recurringOrderTrace';
 import { TraceName } from '../../../../../util/trace';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 const expectAdvancedOrderProperties = (
   event: { category: string },
@@ -152,6 +153,8 @@ jest.mock('../../utils/showGenericErrorToast', () => ({
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringOrderCreatedToast: jest.fn(),
 }));
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('./RecurringConfirmOrderSheet', () => ({
   __esModule: true,
@@ -427,6 +430,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledWith();
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
     expect(getByTestId('confirm-order')).toHaveTextContent('Submitting');
 
@@ -571,6 +575,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(confirmButton.props.accessibilityState.disabled).toBe(true);
     expect(mockAutoUpgradeEIP7702Account).not.toHaveBeenCalled();
     expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('resets shared market inputs while preserving recurring fields', async () => {
@@ -717,6 +722,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledTimes(1);
   });
 
   it('does not open the transaction confirmation modal', async () => {

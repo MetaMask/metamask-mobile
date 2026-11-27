@@ -110,6 +110,7 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        listTransactions: jest.fn().mockResolvedValue({ items: [] }),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
           phone: '+441234567890',
@@ -117,6 +118,7 @@ jest.mock('../../app/core/Engine', () => {
         patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
         clearRedeemWithdrawal: jest.fn(),
+        clearCashbackClaim: jest.fn(),
         withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
@@ -497,6 +499,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
+        submitIntent: jest.fn().mockResolvedValue({ success: true }),
+        state: { txHistory: {} },
+      },
+      MoneyAccountController: {
+        getMoneyAccount: jest.fn().mockReturnValue(undefined),
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},
@@ -616,6 +623,25 @@ jest.mock('../../app/core/Engine', () => {
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToAvailableToTrade: jest.fn(
+          (params: {
+            symbol: string;
+            callback: (update: {
+              providerId: string;
+              symbol: string;
+              long: string;
+              short: string;
+            }) => void;
+          }) => {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: '100000',
+              short: '100000',
+            });
+            return () => undefined;
+          },
+        ),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
@@ -674,6 +700,10 @@ jest.mock('../../app/core/Engine', () => {
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        estimateCrossLiquidation: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'provider',
+        }),
         calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
         updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),

@@ -2990,10 +2990,14 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
         const existing = this.cache.get('markets');
+        const normalizedError = ensureError(
+          error,
+          'PerpsStreamManager.fetchMarketData',
+        );
         const cacheStalenessMs = this.lastFetchTime
           ? Date.now() - this.lastFetchTime
           : null;
-        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
+        Logger.error(normalizedError, {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
           },
@@ -3017,6 +3021,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
             },
           );
           this.notifySubscribers(existing, 'cache');
+        } else {
+          this.notifyError(normalizedError);
         }
       }
     })();

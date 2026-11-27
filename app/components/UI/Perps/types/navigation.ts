@@ -102,7 +102,7 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  /** Resolved bottom-sheet assignment forwarded to confirmation routing. */
   useBottomSheet?: boolean;
   /**
    * Read by the shared `Confirm` screen: while the Trade sheet variant has no
@@ -199,8 +199,8 @@ export type PerpsStackParamList = {
          */
         enableHaptics?: boolean;
         /**
-         * Stamped when Perps Home was removed from this stack (TAT-3786).
-         * Extra params otherwise compile, which is how earlier resets dropped it.
+         * Stamped when Perps Home is removed from this stack. Extra params
+         * otherwise compile, which is how earlier resets dropped it.
          */
         homeDroppedFromHistory?: true;
       }
@@ -219,14 +219,16 @@ export type PerpsStackParamList = {
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
     source_section?: string;
+    /** Venue to preselect for this order; falls back to the saved default. */
+    providerId?: PerpsProviderType;
     /** Telemetry-only reason when the header picker replaces the active market. */
     detailGenerationTrigger?: 'market_switch';
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
     /**
-     * Stamped when Perps Home was removed from this stack (TAT-3786).
-     * Extra params otherwise compile, which is how earlier resets dropped it.
+     * Stamped when Perps Home is removed from this stack. Extra params
+     * otherwise compile, which is how earlier resets dropped it.
      */
     homeDroppedFromHistory?: true;
   };
@@ -250,7 +252,7 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
-    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    /** Resolved bottom-sheet assignment for the amount-entry experience. */
     useBottomSheet?: boolean;
   };
 
@@ -446,7 +448,7 @@ export type PerpsStackParamList = {
         animation?: NativeStackNavigationOptions['animation'];
         animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
-         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * Stamped when Perps Home is removed from this stack.
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
          */
         homeDroppedFromHistory?: true;

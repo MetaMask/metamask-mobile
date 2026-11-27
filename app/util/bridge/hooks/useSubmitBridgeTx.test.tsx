@@ -10,16 +10,22 @@ import {
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
 import {
   MetaMetricsSwapsEventSource,
+  MoneyAccountAction,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { recordSocialTrade } from '../../social/socialActivityStorage';
+import { useBridgeSession } from '../../../components/UI/Bridge/hooks/useBridgeSession';
+import { loadAssetsForAddresses } from '../../../core/Assets/accountGroupAssetLoader';
+import {
+  type BridgeToken,
+  SecurityDataType,
+} from '../../../components/UI/Bridge/types';
 
 type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
@@ -30,10 +36,12 @@ interface MockABTestResult {
 
 let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, unknown[]>;
 let mockSubmitIntent: jest.Mock<Promise<TransactionMeta>, unknown[]>;
+let mockGetMoneyAccount: jest.Mock;
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<Promise<TransactionMeta>, unknown[]>();
   mockSubmitIntent = jest.fn<Promise<TransactionMeta>, unknown[]>();
+  mockGetMoneyAccount = jest.fn();
   return {
     controllerMessenger: {},
     context: {
@@ -42,9 +50,20 @@ jest.mock('../../../core/Engine', () => {
         submitTx: mockSubmitTx,
         submitIntent: mockSubmitIntent,
       },
+      MoneyAccountController: {
+        getMoneyAccount: mockGetMoneyAccount,
+      },
     },
   };
 });
+
+jest.mock('../../../core/Assets/accountGroupAssetLoader', () => ({
+  loadAssetsForAddresses: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../components/UI/Bridge/hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
 
 jest.mock('../../social/socialActivityStorage', () => ({
   ...jest.requireActual('../../social/socialActivityStorage'),
@@ -91,16 +110,28 @@ jest.mock('../../../selectors/networkController', () => {
   };
 });
 
-jest.mock('../../../selectors/bridge', () => ({
-  ...jest.requireActual('../../../selectors/bridge'),
-  selectSourceWalletAddress: jest.fn(
-    () => '0x1234567890123456789012345678901234567890',
-  ),
-}));
-
 jest.mock('../../../hooks', () => ({
   useABTest: jest.fn(),
 }));
+
+const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
+const mockLoadAssetsForAddresses = jest.mocked(loadAssetsForAddresses);
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
+
+const defaultQuoteParams = {
+  walletAddress: WALLET_ADDRESS,
+  srcToken: undefined as BridgeToken | undefined,
+  destToken: undefined as BridgeToken | undefined,
+  slippage: undefined as string | undefined,
+};
+
+const mockBridgeSession = (
+  quoteParams: Partial<typeof defaultQuoteParams> = {},
+) => {
+  mockUseBridgeSession.mockReturnValue({
+    quoteParams: { ...defaultQuoteParams, ...quoteParams },
+  } as ReturnType<typeof useBridgeSession>);
+};
 
 const mockStore = configureMockStore();
 const inactiveABTestResult: MockABTestResult = {
@@ -151,6 +182,8 @@ describe('useSubmitBridgeTx', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBridgeSession();
+    mockGetMoneyAccount.mockReturnValue(undefined);
     // Default every test to the non-experiment path unless it opts in.
     mockABTests();
   });
@@ -244,6 +277,7 @@ describe('useSubmitBridgeTx', () => {
       batchSellTrades: undefined,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: '1.5',
+      operation: undefined,
     });
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -305,6 +339,7 @@ describe('useSubmitBridgeTx', () => {
       batchSellTrades: undefined,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: '1.5',
+      operation: undefined,
     });
   });
 
@@ -350,6 +385,7 @@ describe('useSubmitBridgeTx', () => {
       batchSellTrades: undefined,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: '1.5',
+      operation: undefined,
     });
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -429,8 +465,7 @@ describe('useSubmitBridgeTx', () => {
   });
 
   it('should throw error when wallet address is not set', async () => {
-    // Make the mocked selector return undefined for this test
-    jest.mocked(selectSourceWalletAddress).mockReturnValueOnce(undefined);
+    mockBridgeSession({ walletAddress: undefined });
 
     const { result } = renderHook(() => useSubmitBridgeTx(), {
       wrapper: createWrapper(),
@@ -555,6 +590,7 @@ describe('useSubmitBridgeTx', () => {
       inputPrimaryDenomination: 'token_amount',
       quotesReceivedContext: expectedDefaultQuotesReceivedContext,
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+      operation: undefined,
     });
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
     mockABTests({
@@ -590,6 +626,7 @@ describe('useSubmitBridgeTx', () => {
       inputPrimaryDenomination: 'token_amount',
       quotesReceivedContext: expectedDefaultQuotesReceivedContext,
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+      operation: undefined,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -639,6 +676,7 @@ describe('useSubmitBridgeTx', () => {
       batchSellTrades: undefined,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+      operation: undefined,
     });
   });
 
@@ -707,10 +745,22 @@ describe('useSubmitBridgeTx', () => {
       batchSellTrades: undefined,
       inputPrimaryDenomination: 'token_amount',
       migrationPhase: '1.5',
+      operation: undefined,
     });
   });
 
   it('forwards tokenSecurityTypeDestination and inputPrimaryDenomination', async () => {
+    mockBridgeSession({
+      destToken: {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'SCAM',
+        decimals: 18,
+        chainId: '0x1',
+        securityData: {
+          type: SecurityDataType.Malicious,
+        },
+      },
+    });
     const { result } = renderHook(() => useSubmitBridgeTx(), {
       wrapper: createWrapper(
         {
@@ -719,12 +769,6 @@ describe('useSubmitBridgeTx', () => {
             isGasIncludedSTXSendBundleSupported: true,
             slippage: undefined,
             isSlippageUserOverride: false,
-            destToken: {
-              symbol: 'SCAM',
-              securityData: {
-                type: 'Malicious',
-              },
-            },
           },
         },
         {
@@ -764,7 +808,63 @@ describe('useSubmitBridgeTx', () => {
       tokenSecurityTypeDestination: 'Malicious',
       inputPrimaryDenomination: 'fiat_value',
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+      operation: undefined,
     });
+  });
+
+  it('submits a money deposit and refreshes the money account assets', async () => {
+    const moneyAccountAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    mockBridgeSession({
+      destToken: {
+        address: moneyAccountAddress,
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x1',
+        isMoneyToken: true,
+      },
+    });
+    mockGetMoneyAccount.mockReturnValue({ address: moneyAccountAddress });
+    mockSubmitTx.mockResolvedValueOnce({} as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: createQuoteResponse(),
+    });
+
+    expect(mockSubmitTx).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: MoneyAccountAction.Deposit }),
+    );
+    expect(mockLoadAssetsForAddresses).toHaveBeenCalledWith([
+      moneyAccountAddress,
+    ]);
+  });
+
+  it('submits a money withdraw without refreshing assets when no money account is set', async () => {
+    mockBridgeSession({
+      srcToken: {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x1',
+        isMoneyToken: true,
+      },
+    });
+    mockGetMoneyAccount.mockReturnValue(undefined);
+    mockSubmitTx.mockResolvedValueOnce({} as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: createQuoteResponse(),
+    });
+
+    expect(mockSubmitTx).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: MoneyAccountAction.Withdraw }),
+    );
+    expect(mockLoadAssetsForAddresses).not.toHaveBeenCalled();
   });
 
   it.each(SOCIAL_BRIDGE_LOCATIONS)(

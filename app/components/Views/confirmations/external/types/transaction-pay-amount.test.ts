@@ -52,6 +52,19 @@ describe('getTransactionPayAmountCalls', () => {
     expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
   });
 
+  it('returns no calls for a Lighter withdraw so only the required asset amount is committed', async () => {
+    const result = await getTransactionPayAmountCalls(
+      {
+        id: 'test-id',
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: TransactionType.perpsLighterWithdraw }],
+      } as TransactionMeta,
+      AMOUNT_MOCK,
+    );
+
+    expect(result).toStrictEqual([]);
+  });
+
   describe('money account deposit', () => {
     it.each([
       TransactionType.moneyAccountDeposit,

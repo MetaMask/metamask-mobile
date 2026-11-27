@@ -1,6 +1,8 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
+import { Theme, ThemeProvider } from '@metamask/design-system-twrnc-preset';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -32,8 +34,89 @@ const event = (): PredictEvent => ({
   markets: [market()],
 });
 
+describe('EventCard.Root', () => {
+  it('uses the elevated1 surface, 20pt radius, muted border, and default padding', () => {
+    render(
+      <EventCard.Root testID="card-root">
+        <EventCard.Title>Election winner</EventCard.Title>
+      </EventCard.Root>,
+    );
+
+    const card = screen.getByTestId('card-root');
+    expect(card).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.elevated1,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 12,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
+    });
+  });
+
+  it('uses dark theme elevated1 surface and muted border in dark mode', () => {
+    render(
+      <ThemeProvider theme={Theme.Dark}>
+        <EventCard.Root testID="card-root">
+          <EventCard.Title>Election winner</EventCard.Title>
+        </EventCard.Root>
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByTestId('card-root')).toHaveStyle({
+      backgroundColor: darkTheme.colors.background.elevated1,
+      borderColor: darkTheme.colors.border.muted,
+    });
+  });
+
+  it('keeps the shared outline and default surface when twClassName overrides layout', () => {
+    render(
+      <EventCard.Root testID="card-root" twClassName="gap-3 py-4">
+        <EventCard.Title>Election winner</EventCard.Title>
+      </EventCard.Root>,
+    );
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId('card-root').props.style,
+    );
+    expect(style).toMatchObject({
+      backgroundColor: lightTheme.colors.background.elevated1,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 16,
+      paddingBottom: 16,
+    });
+    expect(style.paddingLeft).toBeUndefined();
+    expect(style.paddingRight).toBeUndefined();
+  });
+
+  it('keeps the shared outline when twClassName sets another surface or radius', () => {
+    render(
+      <EventCard.Root
+        testID="card-root"
+        twClassName="rounded-2xl border-0 bg-section p-4"
+      >
+        <EventCard.Title>Election winner</EventCard.Title>
+      </EventCard.Root>,
+    );
+
+    expect(screen.getByTestId('card-root')).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.section,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
+    });
+  });
+});
+
 describe('EventCard primitives', () => {
-  it('composes header content', () => {
+  it('composes header content with BodySm title and BodyXs subtitle', () => {
     render(
       <EventCard.Header>
         <EventCard.Title>Election winner</EventCard.Title>
@@ -43,10 +126,18 @@ describe('EventCard primitives', () => {
       </EventCard.Header>,
     );
 
-    expect(screen.getByText('Election winner')).toBeOnTheScreen();
-    expect(screen.getByTestId('event-subtitle')).toHaveTextContent(
-      'Closes Jul 2028 · $4.2M',
-    );
+    expect(screen.getByText('Election winner')).toHaveStyle({
+      fontSize: 14,
+      lineHeight: 22,
+      color: lightTheme.colors.text.default,
+    });
+    const subtitle = screen.getByTestId('event-subtitle');
+    expect(subtitle).toHaveTextContent('Closes Jul 2028 · $4.2M');
+    expect(subtitle).toHaveStyle({
+      fontSize: 12,
+      lineHeight: 20,
+      color: lightTheme.colors.text.alternative,
+    });
   });
 
   it('composes footer metadata and its action', () => {
@@ -112,11 +203,14 @@ describe('EventCard.OutcomeRow', () => {
     return { value, valueMarket, valueOutcome };
   };
 
-  it('shows the outcome label, Ask Price, and chance without a multiplier', () => {
+  it('shows the outcome label in BodySm, percentage price, and chance without a multiplier', () => {
     renderRow({ askPrice: '0.42' });
 
-    expect(screen.getByText('Yes')).toBeOnTheScreen();
-    expect(screen.getByText('42¢')).toBeOnTheScreen();
+    expect(screen.getByText('Yes')).toHaveStyle({
+      fontSize: 14,
+      lineHeight: 22,
+    });
+    expect(screen.getByText('42%')).toBeOnTheScreen();
     expect(screen.queryByText('2.38x')).not.toBeOnTheScreen();
     expect(
       screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
@@ -131,10 +225,21 @@ describe('EventCard.OutcomeRow', () => {
     ).toHaveStyle({ backgroundColor: lightTheme.colors.icon.alternative });
   });
 
-  it('labels the price with the Event title, Outcome, and price', () => {
+  it('labels the price with the Event title, Outcome, and percentage price', () => {
     renderRow({ askPrice: '0.42' });
 
-    expect(screen.getByLabelText('Election winner, Yes 42¢')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Election winner, Yes 42%')).toBeOnTheScreen();
+  });
+
+  it('shows a dash and price unavailable label when Ask Price is missing', () => {
+    renderRow();
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes'),
+    ).toHaveTextContent('—');
+    expect(
+      screen.getByLabelText('Election winner, Yes price unavailable'),
+    ).toBeOnTheScreen();
   });
 
   it('shows the avatar image when one is given', () => {

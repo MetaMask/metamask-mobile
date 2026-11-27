@@ -447,8 +447,6 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByTestId(
           BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
-          {},
-          { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
@@ -532,8 +530,6 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByTestId(
           BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
-          {},
-          { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -1468,19 +1464,16 @@ describeForPlatforms('BridgeView', () => {
     await waitFor(() => {
       expect(store.getState().bridge.sourceAmount).toBe('0.025');
     });
-    await waitFor(
-      () => {
-        expect(updateQuoteSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            srcTokenAmount: '25000000000000000',
-          }),
-          expect.anything(),
-          expect.anything(),
-          expect.anything(),
-        );
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(updateQuoteSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '25000000000000000',
+        }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
@@ -1583,12 +1576,9 @@ describeForPlatforms('BridgeView', () => {
       store.dispatch(setSlippage('5'));
     });
 
-    await waitFor(
-      () => {
-        expect(store.getState().bridge.slippage).toBe('5');
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(store.getState().bridge.slippage).toBe('5');
+    });
   });
 
   it('navigates to dest token selector on press', async () => {
@@ -1983,9 +1973,8 @@ describeForPlatforms('BridgeView', () => {
 
       fireEvent.press(await findByText('Swap to'));
 
-      const searchInput = await waitFor(
-        () => getByTestId('bridge-token-search-input'),
-        { timeout: 5000 },
+      const searchInput = await waitFor(() =>
+        getByTestId('bridge-token-search-input'),
       );
       fireEvent.changeText(searchInput, 'USDT');
 
@@ -1998,6 +1987,8 @@ describeForPlatforms('BridgeView', () => {
         () => {
           expect(getByText('Tether USD (duplicate)')).toBeOnTheScreen();
         },
+        // The duplicated token appears only after the import's token-list
+        // refresh lands; the 5s default is not enough on a loaded CV shard.
         { timeout: 10000 },
       );
 
@@ -2150,18 +2141,15 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
       ).toBeOnTheScreen();
 
-      await waitFor(
-        () => {
-          expect(
-            getByTestId(
-              getTrendingTokenRowItemTestId(
-                'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-              ),
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            getTrendingTokenRowItemTestId(
+              'eip155:1/erc20:0x0000000000000000000000000000000000000000',
             ),
-          ).toBeOnTheScreen();
-        },
-        { timeout: 5000 },
-      );
+          ),
+        ).toBeOnTheScreen();
+      });
 
       fireEvent.press(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),

@@ -14,6 +14,12 @@ export const MONEY_ACCOUNT_DEPOSIT_TYPES = [
   TransactionType.membershipSubscription,
 ];
 
+/**
+ * Transaction types where Pay cannot resolve the source balance for Max, so
+ * Max is requested as the entered balance net of fees instead of `isMaxAmount`.
+ */
+export const NO_PAY_MAX_BALANCE_TYPES = [TransactionType.perpsLighterWithdraw];
+
 export const CONVERT_DEPOSIT_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.perpsDeposit,

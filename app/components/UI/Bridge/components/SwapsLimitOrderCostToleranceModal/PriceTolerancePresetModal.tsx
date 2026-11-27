@@ -22,6 +22,7 @@ import type {
   CostToleranceOption,
   PriceTolerancePresetModalProps,
 } from './types';
+import { playSelection } from '../../../../../util/haptics';
 
 export function PriceTolerancePresetModal({
   initialValue,
@@ -50,15 +51,29 @@ export function PriceTolerancePresetModal({
         id: value,
         label: `${value}%`,
         selected: value === selectedPriceTolerance,
-        onPress: () => setSelectedPriceTolerance(value),
+        onPress: () => {
+          if (value === selectedPriceTolerance) {
+            return;
+          }
+          playSelection().catch(() => undefined);
+          setSelectedPriceTolerance(value);
+        },
       }),
     );
 
+    const isCustomSelected = !COST_TOLERANCE_OPTIONS.includes(
+      selectedPriceTolerance,
+    );
     options.push({
       id: CUSTOM_COST_TOLERANCE_OPTION_ID,
       label: strings('bridge.custom'),
-      selected: !COST_TOLERANCE_OPTIONS.includes(selectedPriceTolerance),
-      onPress: onCustomPress,
+      selected: isCustomSelected,
+      onPress: () => {
+        if (!isCustomSelected) {
+          playSelection().catch(() => undefined);
+        }
+        onCustomPress();
+      },
     });
 
     return options;

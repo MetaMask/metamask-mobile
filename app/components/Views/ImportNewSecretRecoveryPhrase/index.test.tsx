@@ -12,6 +12,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import Routes from '../../../constants/navigation/Routes';
 import type { UseAnalyticsHook } from '../../hooks/useAnalytics/useAnalytics.types';
 import {
   ImportNewSecretRecoveryPhraseOptions,
@@ -254,7 +255,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       undefined,
       expect.any(Function),
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('imports valid pasted 24-word SRP', async () => {
@@ -290,7 +291,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       undefined,
       expect.any(Function),
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('disables import button when SRP is empty', () => {
@@ -455,7 +456,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     expect(toast).toHaveBeenCalledWith({

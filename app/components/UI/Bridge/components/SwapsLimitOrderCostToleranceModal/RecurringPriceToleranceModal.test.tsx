@@ -13,6 +13,9 @@ import { CUSTOM_COST_TOLERANCE_OPTION_ID } from './constants';
 import { RecurringCustomPriceToleranceModal } from './RecurringCustomPriceToleranceModal';
 import { RecurringDefaultPriceToleranceModal } from './RecurringDefaultPriceToleranceModal';
 import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 const mockDispatch = jest.fn();
 const mockSelector = jest.fn();
@@ -147,6 +150,27 @@ describe('Recurring price tolerance modals', () => {
       Routes.BRIDGE.MODALS.RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL,
       undefined,
     );
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the active recurring tolerance preset silent', () => {
+    const { getByTestId } = render(<RecurringDefaultPriceToleranceModal />);
+
+    fireEvent.press(
+      getByTestId(SwapsLimitOrderCostToleranceModalSelectorsIDs.OPTION('3')),
+    );
+
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
+  it('plays selection feedback for a different recurring tolerance preset', () => {
+    const { getByTestId } = render(<RecurringDefaultPriceToleranceModal />);
+
+    fireEvent.press(
+      getByTestId(SwapsLimitOrderCostToleranceModalSelectorsIDs.OPTION('2')),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('forwards the confirmation modal when opening custom tolerance', () => {

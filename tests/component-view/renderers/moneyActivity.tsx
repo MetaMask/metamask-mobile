@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import type { CardCashbackClaim } from '../../../app/core/Engine/controllers/card-controller/types';
 import MoneyActivityView from '../../../app/components/UI/Money/Views/MoneyActivityView';
 import { MoneyApiActivityDetailsView } from '../../../app/components/UI/Money/Views/MoneyApiActivityDetailsView/MoneyApiActivityDetailsView';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -8,10 +9,15 @@ import { moneyActivityViewState } from '../presets/moneyActivity';
 
 export function renderMoneyActivityView({
   historicalValuationsEnabled,
+  cashbackClaim,
 }: {
   historicalValuationsEnabled: boolean;
+  cashbackClaim?: CardCashbackClaim | null;
 }): ReturnType<typeof renderScreenWithRoutes> {
-  const state = moneyActivityViewState({ historicalValuationsEnabled });
+  const state = moneyActivityViewState({
+    historicalValuationsEnabled,
+    cashbackClaim,
+  });
 
   return renderScreenWithRoutes(
     MoneyActivityView as unknown as React.ComponentType,

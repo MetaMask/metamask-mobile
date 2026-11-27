@@ -25,12 +25,9 @@ const SitesList: React.FC<SitesListProps> = ({
     ({ item }: { item: SiteData }) => {
       const handlePress = () => {
         navigation.navigate(Routes.BROWSER.HOME, {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: item.url,
-            timestamp: Date.now(),
-            fromTrending: true,
-          },
+          newTabUrl: item.url,
+          timestamp: Date.now(),
+          fromTrending: true,
         });
       };
 

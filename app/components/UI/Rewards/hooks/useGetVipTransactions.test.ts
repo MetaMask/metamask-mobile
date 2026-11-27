@@ -40,9 +40,7 @@ jest.mock('../../../../reducers/rewards', () => ({
   })),
 }));
 
-const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
-  typeof Engine.controllerMessenger.call
->;
+const mockCall = Engine.controllerMessenger.call as jest.Mock;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSelectVipTransactionsById =
@@ -135,7 +133,7 @@ describe('useGetVipTransactions', () => {
   });
 
   it('fetches first page and dispatches result', async () => {
-    mockCall.mockResolvedValueOnce(MOCK_PAGE_1 as never);
+    mockCall.mockResolvedValueOnce(MOCK_PAGE_1);
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
@@ -164,7 +162,7 @@ describe('useGetVipTransactions', () => {
   });
 
   it('sets error on fetch failure', async () => {
-    mockCall.mockRejectedValueOnce(new Error('Network failure') as never);
+    mockCall.mockRejectedValueOnce(new Error('Network failure'));
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
@@ -178,8 +176,8 @@ describe('useGetVipTransactions', () => {
 
   it('loads more pages and appends results', async () => {
     mockCall
-      .mockResolvedValueOnce(MOCK_PAGE_1 as never)
-      .mockResolvedValueOnce(MOCK_PAGE_2 as never);
+      .mockResolvedValueOnce(MOCK_PAGE_1)
+      .mockResolvedValueOnce(MOCK_PAGE_2);
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
@@ -219,7 +217,7 @@ describe('useGetVipTransactions', () => {
 
   it('does not loadMore when hasMore is false', async () => {
     const noMorePage = { ...MOCK_PAGE_1, has_more: false, cursor: null };
-    mockCall.mockResolvedValueOnce(noMorePage as never);
+    mockCall.mockResolvedValueOnce(noMorePage);
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
@@ -277,10 +275,10 @@ describe('useGetVipTransactions', () => {
   it('keeps cached transactions visible while an enabled first-page fetch is in flight', async () => {
     let resolveFetch: (value: typeof MOCK_PAGE_1) => void = () => undefined;
     mockCall.mockImplementation(
-      () =>
+      async () =>
         new Promise((resolve) => {
           resolveFetch = resolve;
-        }) as never,
+        }),
     );
     setupSelectors({
       subscriptionId: SUBSCRIPTION_ID,
@@ -306,7 +304,7 @@ describe('useGetVipTransactions', () => {
   });
 
   it('keeps cached transactions and reports the error when a first-page fetch fails', async () => {
-    mockCall.mockRejectedValueOnce(new Error('Network failure') as never);
+    mockCall.mockRejectedValueOnce(new Error('Network failure'));
     setupSelectors({
       subscriptionId: SUBSCRIPTION_ID,
       cachedTransactions: [MOCK_TX],
@@ -323,11 +321,11 @@ describe('useGetVipTransactions', () => {
   });
 
   it('refresh resets and re-fetches first page with forceFresh', async () => {
-    mockCall.mockResolvedValueOnce(MOCK_PAGE_1 as never).mockResolvedValueOnce({
+    mockCall.mockResolvedValueOnce(MOCK_PAGE_1).mockResolvedValueOnce({
       results: [{ ...MOCK_TX, volumeUsd: '9999.00' }],
       has_more: false,
       cursor: null,
-    } as never);
+    });
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 
@@ -358,11 +356,11 @@ describe('useGetVipTransactions', () => {
   });
 
   it('retry force-fetches without setting isRefreshing', async () => {
-    mockCall.mockResolvedValueOnce(MOCK_PAGE_1 as never).mockResolvedValueOnce({
+    mockCall.mockResolvedValueOnce(MOCK_PAGE_1).mockResolvedValueOnce({
       results: [{ ...MOCK_TX, volumeUsd: '50.00' }],
       has_more: false,
       cursor: null,
-    } as never);
+    });
 
     const { result } = renderHook(() => useGetVipTransactions('PERPS'));
 

@@ -26,6 +26,7 @@ import { ConfirmationContextProvider } from '../../context/confirmation-context'
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
+import { useTrackSignatureRequested } from '../../hooks/signatures/useSignatureMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -38,6 +39,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { MoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import {
@@ -135,6 +137,8 @@ export interface ConfirmationParams {
     address: Hex;
     chainId: Hex;
   };
+  /** Funding intent for this confirmation. Set by the Money add-funds sheet. */
+  depositIntent?: MoneyAccountDepositIntent;
 }
 
 /**
@@ -149,6 +153,11 @@ export interface FullScreenConfirmationParams extends ConfirmationParams {
   showPerpsHeader?: boolean;
   params?: ConfirmationParams;
 }
+
+const SignatureRequestedMetrics = () => {
+  useTrackSignatureRequested();
+  return null;
+};
 
 const ConfirmWrapped = ({
   styles,
@@ -169,6 +178,7 @@ const ConfirmWrapped = ({
         <ConfirmationAssetPollingProvider>
           <ConfirmationAlerts>
             <ConfirmationAlertMetrics />
+            <SignatureRequestedMetrics />
             <QRHardwareContextProvider>
               <Title />
               <ScrollView
