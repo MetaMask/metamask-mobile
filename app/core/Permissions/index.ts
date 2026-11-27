@@ -1,4 +1,5 @@
 import ImportedEngine from '../Engine';
+import AppConstants from '../AppConstants';
 import TransactionTypes from '../TransactionTypes';
 import {
   CaipAccountId,
@@ -517,6 +518,11 @@ export const getPermittedAccounts = (
 ) => {
   const { AccountsController, PermissionController, KeyringController } =
     Engine.context;
+
+  // Reserved placeholder for unattributed in-app browser requests; never resolves to accounts.
+  if (origin === AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER) {
+    return [];
+  }
 
   let caveat;
   try {
