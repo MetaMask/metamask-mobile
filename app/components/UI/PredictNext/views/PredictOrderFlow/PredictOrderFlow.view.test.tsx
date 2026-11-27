@@ -651,6 +651,50 @@ describe('PredictOrderFlow', () => {
     );
   });
 
+  it('lets the Pay with label truncate before clipping a wide balance amount', async () => {
+    stubBalance(undefined, '123456789.12');
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+      ).toHaveTextContent('Predictions balance ($123,456,789.12)'),
+    );
+
+    const payWith = within(
+      screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+    );
+    const label = payWith.getByText(
+      strings('predict_next.order_preview.predictions_balance'),
+    );
+    const amount = payWith.getByText(/\(\$123,456,789\.12\)/u);
+
+    expect(label).toHaveProp('numberOfLines', 1);
+    expect(StyleSheet.flatten(label.props.style)).toMatchObject({
+      flexShrink: 1,
+    });
+    expect(StyleSheet.flatten(amount.props.style)).toMatchObject({
+      flexShrink: 0,
+    });
+  });
+
+  it('shows the Pay with row without an amount while the balance is unknown', async () => {
+    mockPredictNextMessenger(async (action: string) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? new Promise(() => undefined)
+        : Promise.resolve(undefined),
+    );
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+    ).toHaveTextContent('Predictions balance', { exact: true });
+  });
+
   it('shows no Total row and labels the primary action Buy', async () => {
     stubFetch(() => ({ body: makePreview() }));
 

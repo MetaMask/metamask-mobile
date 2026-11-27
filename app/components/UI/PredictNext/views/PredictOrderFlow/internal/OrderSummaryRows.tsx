@@ -2,10 +2,6 @@ import React from 'react';
 import {
   Box,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -30,8 +26,8 @@ interface OrderSummaryRowsProps {
  * The rows beneath the amount on the buy sheet.
  *
  * Pay with is a static Predictions-balance display. There is one funding
- * source today, so the trailing chevron is decorative and the row does not
- * respond to presses.
+ * source today, so the row has no chevron and does not respond to presses.
+ * Add both when a second funding source exists.
  *
  * Maximum cost (signed) is the worst case the phone signs (ADR-0004), shown
  * before Buy because the Buy tap approves it. A dash stands in until the
@@ -46,46 +42,47 @@ export const OrderSummaryRows = ({
     <Box className="flex-row items-center justify-between gap-4 py-2">
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        fontWeight={FontWeight.Regular}
         color={TextColor.TextAlternative}
+        className="shrink-0"
       >
         {strings('predict_next.order_preview.pay_with')}
       </Text>
       {/* TODO(PRED): Take the balance label from the backend balance payload
        * (pUSD for Polymarket, base USDC for Kalshi) once it carries one. */}
       <Box
-        className="min-w-0 flex-row items-center gap-1"
+        className="min-w-0 shrink flex-row items-center justify-end"
         testID={PredictOrderFlowTestIds.PAY_WITH}
       >
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextDefault}
           numberOfLines={1}
+          ellipsizeMode="tail"
+          className="min-w-0 shrink"
         >
           {strings('predict_next.order_preview.predictions_balance')}
-          {balance ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {` ($${balance})`}
-            </Text>
-          ) : null}
         </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
+        {balance ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            className="shrink-0"
+          >
+            {` ($${balance})`}
+          </Text>
+        ) : null}
       </Box>
     </Box>
     <Box className="flex-row items-center justify-between gap-4 py-2">
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        fontWeight={FontWeight.Regular}
         color={TextColor.TextAlternative}
+        className="shrink-0"
       >
         {strings('predict_next.order_preview.max_cost')}
       </Text>
@@ -94,7 +91,7 @@ export const OrderSummaryRows = ({
       ) : (
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextDefault}
           testID={PredictOrderFlowTestIds.MAX_COST}
         >
