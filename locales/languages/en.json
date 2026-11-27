@@ -6517,7 +6517,7 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
+    "seed_phrase_warning_explanation": "Make sure nobody is looking at your screen. MetaMask Support will never ask for this. No website needs your Secret Recovery Phrase to sign you in.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
     "reveal_credential_modal": [
@@ -11839,7 +11839,7 @@
     "private_key_list": {
       "list_title": "Private keys",
       "warning_title": "Don't share your private key",
-      "warning_description": "This key grants full control of your account for the associated chain.",
+      "warning_description": "This key grants full control of your account for the associated chain. No website needs your Private Key to sign you in.",
       "learn_more": "Learn more",
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
