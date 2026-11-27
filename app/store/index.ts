@@ -54,7 +54,11 @@ const createStoreAndPersistor = async () => {
     devTools: false,
     enhancers: (getDefaultEnhancers) =>
       process.env.METAMASK_ENVIRONMENT === 'dev'
-        ? getDefaultEnhancers.concat(devToolsEnhancer())
+        ? getDefaultEnhancers.concat(
+            // Limit large history payloads on reconnect. Lower if DevTools stays blank,
+            // at the cost of fewer actions available for debugging.
+            devToolsEnhancer({ maxAge: 5 }),
+          )
         : getDefaultEnhancers,
   });
   // Set the store in the Redux class
