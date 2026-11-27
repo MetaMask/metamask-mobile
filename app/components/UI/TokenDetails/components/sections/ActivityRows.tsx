@@ -12,8 +12,11 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { type CaipAssetType, type Hex, TransactionType } from '@metamask/utils';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import { type CaipAssetType, type Hex } from '@metamask/utils';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
   getGroupedActivityListItemKey,
@@ -292,19 +295,22 @@ function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
 
 export interface ActivityRowsProps {
   token: TokenDetailsRouteParams;
-  transactions: TransactionMeta[];
-  submittedTxs: TransactionMeta[];
-  confirmedTxs: TransactionMeta[];
   renderItem: (info: {
     item: ActivityListItem;
     index: number;
   }) => React.ReactNode;
   showSectionRule?: boolean;
   footer?: React.ReactNode;
+  // For pre-grouped items (e.g., NonEvmActivityRows)
+  groupedItems?: GroupedActivityListItem[];
+  // For EVM with API integration (ActivitySection)
+  transactions?: TransactionMeta[];
+  submittedTxs?: TransactionMeta[];
+  confirmedTxs?: TransactionMeta[];
   chainId?: Hex;
   caipAssetId?: CaipAssetType;
   selectedAddress?: string;
-  assetSymbol: string;
+  assetSymbol?: string;
   isActivityLoading?: boolean;
 }
 
@@ -321,7 +327,11 @@ const ActivityRows = ({
   selectedAddress,
   assetSymbol,
   isActivityLoading,
+  groupedItems: providedGroupedItems,
 }: ActivityRowsProps): React.ReactElement | null => {
+  // If groupedItems provided (NonEvmActivityRows), use simple rendering
+  const isSimpleMode = Boolean(providedGroupedItems);
+
   const {
     groupedItems: activityGroupedItems,
     apiItemCount,
@@ -331,25 +341,34 @@ const ActivityRows = ({
     isApiError,
     fetchNextVisiblePage,
   } = useGroupedTokenActivity({
-    transactions,
-    submittedTxs,
-    confirmedTxs,
-    assetSymbol,
+    transactions: transactions ?? [],
+    submittedTxs: submittedTxs ?? [],
+    confirmedTxs: confirmedTxs ?? [],
+    assetSymbol: assetSymbol ?? '',
     chainId,
     caipAssetId,
     selectedAddress,
   });
+
+  // Use provided items for simple mode, or computed items for API mode
+  const finalGroupedItems = isSimpleMode
+    ? providedGroupedItems!
+    : activityGroupedItems;
 
   const {
     visibleItems,
     hasMore: hasHiddenLoadedRows,
     visibleRowCount,
     handleShowMore: revealMoreLoadedRows,
-  } = useVisibleActivityRows(activityGroupedItems);
+  } = useVisibleActivityRows(finalGroupedItems);
 
   const handleShowMore = useCallback(() => {
+    if (isSimpleMode) {
+      revealMoreLoadedRows();
+      return;
+    }
     const nextVisibleRowCount = visibleRowCount + ACTIVITY_EXPAND_STEP_ROWS;
-    const loadedRowCount = countActivityRows(activityGroupedItems);
+    const loadedRowCount = countActivityRows(finalGroupedItems);
     if (hasNextApiPage && loadedRowCount < nextVisibleRowCount) {
       Promise.resolve(
         fetchNextVisiblePage({
@@ -360,7 +379,8 @@ const ActivityRows = ({
     }
     revealMoreLoadedRows();
   }, [
-    activityGroupedItems,
+    isSimpleMode,
+    finalGroupedItems,
     apiItemCount,
     fetchNextVisiblePage,
     hasNextApiPage,
@@ -368,20 +388,27 @@ const ActivityRows = ({
     visibleRowCount,
   ]);
 
-  const hasActivity = activityGroupedItems.length > 0;
-  // Receive-only accounts have no local txs. Keep the section up while the
-  // API read is in flight, after it fails, or while older pages can still
-  // hold this token.
-  const showActivitySection =
-    isActivityLoading ||
-    isApiLoading ||
-    isApiError ||
-    hasActivity ||
-    hasNextApiPage;
-  const isInitialApiLoad = isApiLoading && !isFetchingNextApiPage;
-  const hasMore = hasHiddenLoadedRows || (hasNextApiPage && !isInitialApiLoad);
+  const hasActivity = finalGroupedItems.length > 0;
+  
+  // Simple mode: show if has activity
+  // API mode: keep section up while loading, on error, or if has/may have activity
+  const showActivitySection = isSimpleMode
+    ? hasActivity
+    : isActivityLoading ||
+      isApiLoading ||
+      isApiError ||
+      hasActivity ||
+      hasNextApiPage;
+
+  const isInitialApiLoad = !isSimpleMode && isApiLoading && !isFetchingNextApiPage;
+  const hasMore = isSimpleMode
+    ? hasHiddenLoadedRows
+    : hasHiddenLoadedRows || (hasNextApiPage && !isInitialApiLoad);
   const isLoadingOlderPages =
-    isFetchingNextApiPage && hasNextApiPage && !hasHiddenLoadedRows;
+    !isSimpleMode &&
+    isFetchingNextApiPage &&
+    hasNextApiPage &&
+    !hasHiddenLoadedRows;
 
   if (!showActivitySection) {
     return null;

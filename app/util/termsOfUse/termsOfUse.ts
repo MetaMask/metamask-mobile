@@ -6,7 +6,7 @@ import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from './TermsOfUseModal.testIds';
 import StorageWrapper from '../../store/storage-wrapper';
-import termsOfUse from './termsOfUseContent';
+import termsOfUse from './socialTermsOfUseContent';
 
 interface TermsOfUseParamsI {
   screen: string;
