@@ -141,6 +141,9 @@ export function getErrorTypeFromConnectionState(
 /**
  * Maps HardwareWalletType to the capitalised manufacturer name
  * expected by the segment schema `device_type` property.
+ *
+ * OneKey connects over QR codes on mobile, so it reports as `QR Hardware`,
+ * the same grouping the account type and user trait properties use.
  */
 export function getAnalyticsDeviceType(
   walletType: HardwareWalletType | null,
@@ -150,11 +153,10 @@ export function getAnalyticsDeviceType(
       return 'Ledger';
     case HardwareWalletType.Trezor:
       return 'Trezor';
-    case HardwareWalletType.OneKey:
-      return 'OneKey';
     case HardwareWalletType.Lattice:
       return 'Lattice';
     case HardwareWalletType.Qr:
+    case HardwareWalletType.OneKey:
       return 'QR Hardware';
     default:
       return 'Unknown';
