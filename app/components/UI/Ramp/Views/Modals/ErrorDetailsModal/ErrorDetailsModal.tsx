@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
@@ -24,7 +23,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import Logger from '../../../../../../util/Logger';
+import { useOpenProviderSupportUrl } from '../../../hooks/useOpenProviderSupportUrl';
 import styleSheet from './ErrorDetailsModal.styles';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useSelector } from 'react-redux';
@@ -65,29 +64,15 @@ function ErrorDetailsModal() {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const openSupportUrl = useOpenProviderSupportUrl({
+    sheetRef,
+    logContext: 'ErrorDetailsModal',
+  });
+
   const handleContactSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
-    try {
-      if (await InAppBrowser.isAvailable()) {
-        handleClose();
-        await InAppBrowser.open(providerSupportUrl);
-      } else {
-        handleClose();
-        navigation.navigate('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: providerSupportUrl,
-            title: providerName,
-          },
-        });
-      }
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'ErrorDetailsModal: Failed to open support URL',
-      );
-    }
-  }, [providerSupportUrl, providerName, handleClose, navigation]);
+    await openSupportUrl(providerSupportUrl, { title: providerName });
+  }, [providerSupportUrl, providerName, openSupportUrl]);
 
   const handleChangeProvider = useCallback(() => {
     navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });

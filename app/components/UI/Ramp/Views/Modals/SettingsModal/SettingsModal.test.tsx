@@ -214,7 +214,7 @@ describe('SettingsModal', () => {
       expect(getByText('Contact support')).toBeOnTheScreen();
     });
 
-    it('opens support URL via InAppBrowser when available', async () => {
+    it('opens support URL via InAppBrowser before closing the sheet', async () => {
       mockInAppBrowser.isAvailable.mockResolvedValue(true);
       mockInAppBrowser.open.mockResolvedValue({ type: 'dismiss' });
 
@@ -225,9 +225,27 @@ describe('SettingsModal', () => {
       });
 
       expect(mockInAppBrowser.open).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockInAppBrowser.open.mock.invocationCallOrder[0]).toBeLessThan(
+        mockGoBack.mock.invocationCallOrder[0],
+      );
     });
 
-    it('falls back to SimpleWebview when InAppBrowser is unavailable', async () => {
+    it('keeps the sheet open while the InAppBrowser is showing', async () => {
+      mockInAppBrowser.isAvailable.mockResolvedValue(true);
+      mockInAppBrowser.open.mockReturnValue(new Promise(() => undefined));
+
+      const { getByText } = renderWithProvider(SettingsModal);
+
+      await act(async () => {
+        fireEvent.press(getByText('Contact support'));
+      });
+
+      expect(mockInAppBrowser.open).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('falls back to SimpleWebview without closing the sheet when InAppBrowser is unavailable', async () => {
       mockInAppBrowser.isAvailable.mockResolvedValue(false);
 
       const { getByText } = renderWithProvider(SettingsModal);
@@ -240,6 +258,7 @@ describe('SettingsModal', () => {
         'Webview',
         expect.objectContaining({ screen: 'SimpleWebview' }),
       );
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('hides contact support when provider has no support URL', () => {

@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
   IconName,
@@ -15,6 +14,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Logger from '../../../../../../util/Logger';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
+import { useOpenProviderSupportUrl } from '../../../hooks/useOpenProviderSupportUrl';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -49,6 +49,10 @@ function SettingsModal() {
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
+  const openSupportUrl = useOpenProviderSupportUrl({
+    sheetRef,
+    logContext: 'SettingsModal',
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -109,32 +113,19 @@ function SettingsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
-        .addProperties({
-          option: 'Contact Support',
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    try {
-      if (await InAppBrowser.isAvailable()) {
-        sheetRef.current?.onCloseBottomSheet();
-        await InAppBrowser.open(supportUrl);
-      } else {
-        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
-        // goBack would run after the close animation and pop the Webview screen off the
-        // stack instead of the modal.
-        navigation.navigate('Webview', {
-          screen: 'SimpleWebview',
-          params: { url: supportUrl },
-        });
-      }
-    } catch (error) {
-      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
-    }
-  }, [supportUrl, navigation, trackEvent, createEventBuilder]);
+    await openSupportUrl(supportUrl, {
+      onOpen: () =>
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+            .addProperties({
+              option: 'Contact Support',
+              location: 'Amount Input',
+              ramp_type: 'UNIFIED_BUY_2',
+            })
+            .build(),
+        ),
+    });
+  }, [supportUrl, openSupportUrl, trackEvent, createEventBuilder]);
 
   const handleLogOut = useCallback(async () => {
     trackEvent(
