@@ -157,7 +157,7 @@ export function PriceToleranceCustomModal({
         padding={4}
         gap={3}
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
@@ -167,7 +167,7 @@ export function PriceToleranceCustomModal({
             {strings('bridge.cancel')}
           </Button>
         </Box>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

@@ -31,7 +31,7 @@ export const TokenAmountValue = ({
           variant={TextVariant.BodyMd}
           fontWeight={fontWeight}
           color={amountColor}
-          twClassName="-top-[1.5px]"
+          className="top-[-1.5px]"
           testID={TokenAmountValueSelectorsIDs.PREFIX}
         >
           {prefix}
@@ -41,7 +41,7 @@ export const TokenAmountValue = ({
         variant={TextVariant.BodyMd}
         fontWeight={fontWeight}
         color={amountColor}
-        twClassName="text-right"
+        className="text-right"
         testID={TokenAmountValueSelectorsIDs.AMOUNT}
       >
         {amount}
@@ -54,7 +54,7 @@ export const TokenAmountValue = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={1}
-      twClassName="shrink"
+      className="shrink"
       testID={TokenAmountValueSelectorsIDs.CONTAINER}
     >
       {showTokenSymbol ? (

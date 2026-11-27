@@ -390,7 +390,7 @@ export const BridgeTransactionDetails = (
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
@@ -500,7 +500,7 @@ export const BridgeTransactionDetails = (
                   <Button
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
-                    twClassName="w-full"
+                    className="w-full"
                     onPress={handleViewBlockExplorer}
                     testID="bridge-transaction-details-view-block-explorer"
                   >

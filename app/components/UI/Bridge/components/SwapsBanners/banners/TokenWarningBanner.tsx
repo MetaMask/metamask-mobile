@@ -78,7 +78,7 @@ export const TokenWarningBanner = () => {
       testID={SwapsBannersSelectorsIDs.TOKEN_WARNING}
     >
       <BannerBase
-        twClassName={
+        className={
           isMalicious ? ERROR_BANNER_TW_CLASSNAME : WARNING_BANNER_TW_CLASSNAME
         }
         startAccessory={

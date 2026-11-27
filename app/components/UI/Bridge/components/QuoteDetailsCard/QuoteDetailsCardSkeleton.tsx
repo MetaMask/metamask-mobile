@@ -17,7 +17,7 @@ const ROWS: readonly (readonly [string, string])[] = [
 
 const QuoteDetailsCardSkeleton = () => (
   <Box
-    twClassName="mx-4 p-4 rounded-xl border border-muted bg-default gap-3.5"
+    className="mx-4 gap-3.5 rounded-xl border border-muted bg-default p-4"
     testID={BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON}
   >
     {ROWS.map(([left, right], i) => (

@@ -224,7 +224,7 @@ const SwapDiscoveryFeedContent: React.FC = () => {
   }
 
   return (
-    <Box twClassName="px-1" testID={SwapDiscoveryFeedTestIds.ROOT}>
+    <Box className="px-1" testID={SwapDiscoveryFeedTestIds.ROOT}>
       <ExploreSectionList sections={sections} includeDividers={false} />
     </Box>
   );

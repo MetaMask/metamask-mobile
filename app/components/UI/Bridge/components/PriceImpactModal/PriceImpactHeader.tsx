@@ -33,19 +33,19 @@ export function PriceImpactHeader({
       paddingHorizontal={2}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={'py-2'}
+      className={'py-2'}
     >
-      <Box twClassName="flex-1" />
+      <Box className="flex-1" />
       <Box alignItems={BoxAlignItems.Center}>
         {iconColor && iconName && (
           <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
         )}
-        <Text variant={TextVariant.HeadingMd} twClassName={'text-center mt-4'}>
+        <Text variant={TextVariant.HeadingMd} className={'mt-4 text-center'}>
           {strings(content)}
         </Text>
       </Box>
       <Box
-        twClassName="flex-1"
+        className="flex-1"
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.End}
       >

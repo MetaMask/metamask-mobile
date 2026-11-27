@@ -77,10 +77,10 @@ export const MissingPriceModal = () => {
         paddingHorizontal={4}
         gap={2}
       >
-        <Text variant={TextVariant.BodyLg} twClassName="text-center">
+        <Text variant={TextVariant.BodyLg} className="text-center">
           {strings('swaps.market_price_unavailable_title')}
         </Text>
-        <Text variant={TextVariant.BodyMd} twClassName="text-center">
+        <Text variant={TextVariant.BodyMd} className="text-center">
           {strings('swaps.market_price_unavailable')}
         </Text>
       </Box>

@@ -43,7 +43,7 @@ const LimitOrderAccountUpgradeFeeInfoSheet = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.BODY}
         >
           {strings('bridge.limit.account_upgrade_fee_info_body')}

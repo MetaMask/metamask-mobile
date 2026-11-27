@@ -91,7 +91,7 @@ function TotalReceivedValue({
       variant={TextVariant.AmountDisplayLg}
       fontFamily={FontFamily.Hero}
       color={TextColor.SuccessDefault}
-      twClassName="min-w-0 flex-1"
+      className="min-w-0 flex-1"
     >
       {totalReceived.formattedFiat}
     </Text>
@@ -364,7 +364,7 @@ export function BatchSellReview() {
     >
       <Box
         testID={BatchSellReviewSelectorsIDs.CONTAINER}
-        twClassName="flex-1 bg-default"
+        className="flex-1 bg-default"
       >
         <HeaderStandardGlass
           isGlass={isGlassHeader}
@@ -373,7 +373,7 @@ export function BatchSellReview() {
           onBack={handleBackPress}
           includesTopInset
         />
-        <Box twClassName="gap-1 px-4 pt-4 pb-3">
+        <Box className="gap-1 px-4 pb-3 pt-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -479,7 +479,7 @@ export function BatchSellReview() {
             );
           })}
         </ScrollView>
-        <Box twClassName="border-t border-muted px-4 pb-4 pt-3">
+        <Box className="border-t border-muted px-4 pb-4 pt-3">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

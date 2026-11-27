@@ -44,7 +44,7 @@ const RecurringDelegationFeeInfoSheet = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={RecurringDelegationFeeInfoSheetSelectorsIDs.BODY}
         >
           {strings('bridge.recurring.account_upgrade_fee_info_body')}

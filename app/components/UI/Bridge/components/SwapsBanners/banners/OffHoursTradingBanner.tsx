@@ -20,7 +20,7 @@ export const OffHoursTradingBanner = () => {
   }
 
   return (
-    <Box twClassName="mb-3">
+    <Box className="mb-3">
       <BannerAlert
         severity={BannerAlertSeverity.Warning}
         title={strings('bridge.off_hours_trading.title')}

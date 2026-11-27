@@ -131,7 +131,7 @@ export const BridgeMarketViewFooter = ({
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
-                  twClassName={isFreeBadge ? 'line-through' : ''}
+                  className={isFreeBadge ? 'line-through' : ''}
                 >
                   {infoText}
                 </Text>
@@ -141,7 +141,7 @@ export const BridgeMarketViewFooter = ({
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
-                  twClassName="line-through"
+                  className="line-through"
                 >
                   {baseFeePercentage}
                 </Text>

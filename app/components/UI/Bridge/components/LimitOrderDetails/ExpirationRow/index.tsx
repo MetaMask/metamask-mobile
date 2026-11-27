@@ -60,7 +60,7 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
         </Box>
       </TouchableOpacity>
     }
-    twClassName="h-auto"
+    className="h-auto"
   />
 );
 

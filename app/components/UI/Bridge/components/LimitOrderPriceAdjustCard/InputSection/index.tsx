@@ -210,7 +210,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           alignItems={BoxAlignItems.Center}
           gap={1}
           marginBottom={3}
-          twClassName="flex-wrap"
+          className="flex-wrap"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -265,7 +265,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           </Text>
         </Box>
         <Box
-          twClassName="w-full min-w-0"
+          className="w-full min-w-0"
           marginBottom={shouldShowSecondaryRow ? 2 : 3}
           onLayout={onContainerLayout}
         >
@@ -280,7 +280,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="min-w-0"
+              className="min-w-0"
               pointerEvents={isInputPressDisabled ? 'none' : 'auto'}
               testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW}
             >
@@ -289,7 +289,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
                   style={amountTextStyle}
-                  twClassName="p-0 leading-none"
+                  // eslint-disable-next-line tailwindcss/no-custom-classname
+                  className="leading-none p-0"
                 >
                   {inputPrefix}
                 </Text>
@@ -320,7 +321,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            className="mb-4"
           >
             {shouldShowAmountTypeToggle ? (
               <Text
