@@ -5,10 +5,8 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
-import {
-  selectMoneyEnableMfaFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../selectors/featureFlags';
+import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../selectors/visibility';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
@@ -127,19 +125,18 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
-  isMoneyAccountEnabled = true,
+  isMoneyAccountVisible = true,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
-  isMoneyAccountEnabled?: boolean;
+  isMoneyAccountVisible?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMfaFlag) return isFlagEnabled;
     if (selector === selectMfaUiKitEnabled) return isKitEnabled;
-    if (selector === selectMoneyEnableMoneyAccountFlag)
-      return isMoneyAccountEnabled;
+    if (selector === selectIsMoneyAccountVisible) return isMoneyAccountVisible;
     return undefined;
   });
   mockUseMfa.mockReturnValue({
@@ -182,8 +179,8 @@ describe('useMoneyMfa', () => {
       expect(result.current.status).toBe('unavailable');
     });
 
-    it('returns unavailable when the Money account flag is off', () => {
-      const { result } = arrange({ isMoneyAccountEnabled: false });
+    it('returns unavailable when the Money account is not visible', () => {
+      const { result } = arrange({ isMoneyAccountVisible: false });
 
       expect(result.current.status).toBe('unavailable');
     });

@@ -20,10 +20,8 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import {
-  selectMoneyEnableMfaFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../selectors/featureFlags';
+import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../selectors/visibility';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
@@ -82,7 +80,7 @@ const migrate = async (): Promise<void> => {
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
   const isKitEnabled = useSelector(selectMfaUiKitEnabled);
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
@@ -112,7 +110,7 @@ export const useMoneyMfa = () => {
     !isMfaDevBuild() ||
     !isFlagEnabled ||
     !isKitEnabled ||
-    !isMoneyAccountEnabled
+    !isMoneyAccountVisible
   ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
