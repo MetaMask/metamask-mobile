@@ -34,6 +34,13 @@ describeForPlatforms('Contacts component views', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    // The tests restore their spies on the success path; restore here too so
+    // a failing test's spy (ENS lookup, address book) cannot leak into the
+    // next case.
+    jest.restoreAllMocks();
+  });
+
   it('opens the add contact form from the contacts list', async () => {
     const { getByTestId, findByTestId } = renderContactsWithRoutes();
 

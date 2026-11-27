@@ -21596,9 +21596,6 @@
   "app/core/Engine/wallet-init/keyrings.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 5
-    },
-    "typescript/promise-function-async": {
-      "count": 1
     }
   },
   "app/core/Engine/wallet-init/keyrings.ts": {
