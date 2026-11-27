@@ -2,14 +2,9 @@ import React from 'react';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Skeleton,
@@ -154,30 +149,12 @@ const SummaryRows = ({
         testID={PredictPortfolioScreenTestIds.UNREALIZED_PNL}
       />
     </SummaryRow>
-    {summary.complete ? null : (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        className="gap-1 px-4 pb-3"
-        testID={PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE}
-      >
-        <Icon
-          name={IconName.Info}
-          size={IconSize.Sm}
-          color={IconColor.WarningDefault}
-        />
-        <Text variant={TextVariant.BodyXs} color={TextColor.WarningDefault}>
-          {strings('predict_next.portfolio.summary_incomplete')}
-        </Text>
-      </Box>
-    )}
   </>
 );
 
 /**
  * Renders the backend-computed Portfolio Summary. Every figure is formatted
- * from the Summary as served; nothing is summed from loaded rows. An
- * incomplete Summary keeps its values and says that it is partial.
+ * from the Summary as served; nothing is summed from loaded rows.
  */
 export const PortfolioSummaryCard = ({
   summary,
