@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable } from 'react-native';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Image,
+  Linking,
+  Pressable,
+} from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
@@ -170,6 +176,22 @@ export const PredictOrderFlowSheet = ({
   // settle: the approval step for a sell, the amount entry for a buy.
   const approvalPhase: SubmitPhase =
     intent.action === 'buy' ? 'input' : 'approval';
+
+  // VoiceOver ignores RN live regions on iOS, so announce commit errors
+  // explicitly whenever they become visible (including retries, since
+  // handleCommit clears commitError before each attempt).
+  const visibleCommitErrorMessage =
+    commitError !== null &&
+    ((phase === 'input' && intent.action === 'buy') ||
+      (phase === 'approval' && preview !== null))
+      ? commitError.message
+      : null;
+
+  useEffect(() => {
+    if (visibleCommitErrorMessage) {
+      AccessibilityInfo.announceForAccessibility(visibleCommitErrorMessage);
+    }
+  }, [visibleCommitErrorMessage]);
 
   // The sheet's Venue must still be the Active Venue. When it is not, the
   // service has already cancelled every uncommitted Preview, so the sheet
@@ -1007,6 +1029,7 @@ export const PredictOrderFlowSheet = ({
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
                   className="text-center"
+                  accessibilityRole="alert"
                   testID={PredictOrderFlowTestIds.ERROR}
                 >
                   {commitError.message}
@@ -1128,6 +1151,7 @@ export const PredictOrderFlowSheet = ({
                     variant={TextVariant.BodySm}
                     color={TextColor.ErrorDefault}
                     className="text-center"
+                    accessibilityRole="alert"
                     testID={PredictOrderFlowTestIds.ERROR}
                   >
                     {commitError.message}

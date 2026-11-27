@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { Linking, StyleSheet } from 'react-native';
+import { AccessibilityInfo, Linking, StyleSheet } from 'react-native';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -1488,6 +1488,45 @@ describe('PredictOrderFlow', () => {
     expect(previewCalls()).toHaveLength(1);
   }, 30000);
 
+  it('announces a failed Buy commit to screen readers on every attempt', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    announce.mockClear();
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({
+        status: 503,
+        body: {
+          code: 'venue_unavailable',
+          message: 'Venue unavailable.',
+          outcome: 'not_placed',
+        },
+      }),
+    });
+
+    await buyOrder();
+
+    const error = await screen.findByTestId(PredictOrderFlowTestIds.ERROR);
+    expect(error).toHaveProp('accessibilityRole', 'alert');
+    expect(announce).toHaveBeenCalledTimes(1);
+    expect(announce).toHaveBeenLastCalledWith(
+      'This prediction venue is unavailable.',
+    );
+
+    announce.mockClear();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(announce).toHaveBeenCalledTimes(1);
+    expect(announce).toHaveBeenLastCalledWith(
+      'This prediction venue is unavailable.',
+    );
+  }, 30000);
+
   it('clears a refused Buy and re-quotes when the amount changes', async () => {
     stubFetch(
       (_url, init) => {
@@ -1712,6 +1751,8 @@ describe('PredictOrderFlow', () => {
   }, 30000);
 
   it('keeps an ambiguous Buy on the buy sheet with observe-only Keep checking', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    announce.mockClear();
     stubFetch(() => ({ body: makePreview() }), {
       commit: () => ({
         status: 500,
@@ -1730,11 +1771,19 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.ERROR),
       ).toBeOnTheScreen(),
     );
+    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
     expect(
       screen.getByText(
         'Order outcome could not be confirmed. Check your activity or contact support.',
       ),
     ).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledTimes(1);
+    expect(announce).toHaveBeenCalledWith(
+      'Order outcome could not be confirmed. Check your activity or contact support.',
+    );
     expect(
       screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
     ).not.toBeOnTheScreen();
@@ -2692,6 +2741,33 @@ describe('PredictOrderFlow', () => {
       expect(commitCalls()).toHaveLength(1);
       expect(observeCalls()).toContainEqual(
         expect.stringContaining('/orders/b3c2a1d0-1111-4222-8333-444455556666'),
+      );
+    }, 30000);
+
+    it('announces a failed Cash Out commit on the approval step to screen readers', async () => {
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      announce.mockClear();
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({
+          status: 503,
+          body: {
+            code: 'venue_unavailable',
+            message: 'Venue unavailable.',
+            outcome: 'not_placed',
+          },
+        }),
+      });
+
+      await approveSellOrder();
+
+      const error = await screen.findByTestId(PredictOrderFlowTestIds.ERROR);
+      expect(error).toHaveProp('accessibilityRole', 'alert');
+      expect(announce).toHaveBeenCalledTimes(1);
+      expect(announce).toHaveBeenCalledWith(
+        'This prediction venue is unavailable.',
       );
     }, 30000);
   });
