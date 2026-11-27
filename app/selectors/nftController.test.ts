@@ -9,6 +9,7 @@ import {
   selectAllNftContracts,
   selectAllNfts,
   selectAllNftsFlat,
+  selectNftsByIdentity,
   selectNftByIdentity,
   multichainCollectibleForEvmAccount,
 } from './nftController';
@@ -329,7 +330,126 @@ describe('NftController Selectors', () => {
     });
   });
 
+  describe('selectNftsByIdentity', () => {
+    beforeEach(() => {
+      selectAllNfts.clearCache();
+      selectNftsByIdentity.clearCache();
+      selectNftsByIdentity.resetRecomputations();
+    });
+
+    it('indexes NFTs across accounts and chains by normalized key', () => {
+      const mockState = createMockRootState();
+
+      const index = selectNftsByIdentity(mockState);
+
+      expect(index.get('0x1:0xcontract1:1')).toBe(mockNft1);
+      expect(index.get('0x1:0xcontract2:2')).toBe(mockNft2);
+      expect(index.get('0x89:0xcontract3:3')).toBe(mockNft3);
+      expect(index.size).toBe(3);
+    });
+
+    it('reuses the cached map on unrelated root state updates', () => {
+      const stateA = createMockRootState({
+        allNfts: { ...mockNftControllerState.allNfts },
+      });
+      const stateB: RootState = {
+        ...stateA,
+        engine: {
+          backgroundState: {
+            ...stateA.engine.backgroundState,
+          },
+        },
+      };
+
+      const recomputationsBefore = selectNftsByIdentity.recomputations();
+      const first = selectNftsByIdentity(stateA);
+      const second = selectNftsByIdentity(stateB);
+
+      expect(second).toBe(first);
+      expect(selectNftsByIdentity.recomputations()).toBe(
+        recomputationsBefore + 1,
+      );
+    });
+
+    it('rebuilds the map when allNfts reference changes', () => {
+      const stateA = createMockRootState({
+        allNfts: { ...mockNftControllerState.allNfts },
+      });
+      const stateB = createMockRootState({
+        allNfts: {
+          [mockAccountAddress]: {
+            '0x1': [mockNft1],
+          },
+        },
+      });
+
+      const recomputationsBefore = selectNftsByIdentity.recomputations();
+      const first = selectNftsByIdentity(stateA);
+      const second = selectNftsByIdentity(stateB);
+
+      expect(second).not.toBe(first);
+      expect(second.size).toBe(1);
+      expect(selectNftsByIdentity.recomputations()).toBe(
+        recomputationsBefore + 2,
+      );
+    });
+
+    it('returns a stable empty map when allNfts is empty', () => {
+      const emptyStateA = createMockRootState({ allNfts: {} });
+      const emptyStateB = createMockRootState({ allNfts: {} });
+
+      const first = selectNftsByIdentity(emptyStateA);
+      const second = selectNftsByIdentity(emptyStateB);
+
+      expect(first.size).toBe(0);
+      expect(second).toBe(first);
+    });
+
+    it('keeps the first matching NFT when multiple accounts hold the same token', () => {
+      const duplicateInSecondAccount: Nft = {
+        ...mockNft2,
+        name: 'Duplicate in account 2',
+      };
+      const mockState = createMockRootState({
+        allNfts: {
+          [mockAccountAddress]: {
+            '0x1': [mockNft2],
+          },
+          [mockAccountAddress2]: {
+            '0x1': [duplicateInSecondAccount],
+          },
+        },
+      });
+
+      const index = selectNftsByIdentity(mockState);
+
+      expect(index.get('0x1:0xcontract2:2')).toBe(mockNft2);
+    });
+
+    it('skips NFT entries missing an address', () => {
+      const malformedNft = { tokenId: '99' } as unknown as Nft;
+      const mockState = createMockRootState({
+        allNfts: {
+          [mockAccountAddress]: {
+            '0x1': [malformedNft, mockNft1],
+          },
+        },
+      });
+
+      const index = selectNftsByIdentity(mockState);
+
+      expect(index.size).toBe(1);
+      expect(index.get('0x1:0xcontract1:1')).toBe(mockNft1);
+    });
+  });
+
   describe('selectNftByIdentity', () => {
+    beforeEach(() => {
+      selectAllNfts.clearCache();
+      selectNftsByIdentity.clearCache();
+      selectNftsByIdentity.resetRecomputations();
+    });
+
     it('finds an NFT by contract address, token id, and chain (case-insensitive)', () => {
       const mockState = createMockRootState();
 
@@ -377,6 +497,35 @@ describe('NftController Selectors', () => {
       expect(
         selectNftByIdentity(mockState, '0xContract1', '1', '0xa'),
       ).toBeUndefined();
+    });
+
+    it('builds the identity index once across multiple lookups and unrelated state updates', () => {
+      const stateA = createMockRootState({
+        allNfts: { ...mockNftControllerState.allNfts },
+      });
+      const stateB: RootState = {
+        ...stateA,
+        engine: {
+          backgroundState: {
+            ...stateA.engine.backgroundState,
+          },
+        },
+      };
+
+      const recomputationsBefore = selectNftsByIdentity.recomputations();
+
+      expect(selectNftByIdentity(stateA, '0xcontract1', '1', '0x1')).toBe(
+        mockNft1,
+      );
+      expect(selectNftByIdentity(stateA, '0xContract3', '3', '0x89')).toBe(
+        mockNft3,
+      );
+      expect(
+        selectNftByIdentity(stateB, '0xContract1', '999', '0x1'),
+      ).toBeUndefined();
+      expect(selectNftsByIdentity.recomputations()).toBe(
+        recomputationsBefore + 1,
+      );
     });
   });
 
