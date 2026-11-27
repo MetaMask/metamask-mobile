@@ -1,26 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { Modal } from 'react-native';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  AvatarNetwork,
+  AvatarNetworkSize,
   BottomSheet,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { formatAddress } from '../../../../../util/address';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import type { KalshiWalletNetwork } from './demoOnboardingConfig';
 import { KALSHI_ONBOARDING_MESSAGES } from './kalshiOnboardingMessages';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
 import type { KalshiActivation } from './useKalshiActivation';
 
+/** Display name and icon source for each payout network. */
+const WALLET_NETWORKS: Record<
+  KalshiWalletNetwork,
+  { name: string; chainId: string }
+> = {
+  base: { name: 'Base', chainId: NETWORKS_CHAIN_ID.BASE },
+  polygon: { name: 'Polygon', chainId: NETWORKS_CHAIN_ID.POLYGON },
+};
+
 interface KalshiActivationModalProps {
   activation: KalshiActivation;
   walletAddress?: string;
-  network: string;
+  network: KalshiWalletNetwork;
   onDismiss: () => void;
 }
 
@@ -54,6 +75,7 @@ export const KalshiActivationModal = ({
   const coolingDown = useCooldown(activation.failure?.cooldownSec);
   const disabled = activation.busy || coolingDown;
   const action = activation.failure?.action ?? 'activate';
+  const walletNetwork = WALLET_NETWORKS[network];
   const message = activation.failure
     ? KALSHI_ONBOARDING_MESSAGES[activation.failure.message]
     : undefined;
@@ -90,14 +112,51 @@ export const KalshiActivationModal = ({
             ) : (
               <>
                 {walletAddress ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    testID={TestIds.WALLET_ADDRESS}
-                  >
-                    Withdrawals go to {walletAddress} on {network}. Activate to
-                    start trading.
-                  </Text>
+                  <>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName="gap-3"
+                    >
+                      <AvatarAccount
+                        size={AvatarAccountSize.Md}
+                        address={walletAddress}
+                        variant={AvatarAccountVariant.Maskicon}
+                      />
+                      <Box twClassName="min-w-0 flex-1">
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                          numberOfLines={1}
+                          testID={TestIds.WALLET_ADDRESS}
+                        >
+                          {formatAddress(walletAddress, 'short')}
+                        </Text>
+                      </Box>
+                      <Tag
+                        twClassName="shrink-0 self-center rounded-full bg-alternative px-2 py-0.5"
+                        startAccessory={
+                          <AvatarNetwork
+                            size={AvatarNetworkSize.Xs}
+                            name={walletNetwork.name}
+                            src={getNetworkImageSource({
+                              chainId: walletNetwork.chainId,
+                            })}
+                          />
+                        }
+                        severity={TagSeverity.Neutral}
+                        testID={TestIds.WALLET_NETWORK}
+                      >
+                        <Text>{walletNetwork.name}</Text>
+                      </Tag>
+                    </Box>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      Activate to send your Kalshi withdrawals to this wallet.
+                    </Text>
+                  </>
                 ) : (
                   <Text
                     variant={TextVariant.BodyMd}
