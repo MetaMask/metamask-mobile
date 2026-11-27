@@ -388,6 +388,20 @@ describe('BridgeController Init', () => {
       expect(swapQuoteFetchTrace.mark).not.toHaveBeenCalled();
     });
 
+    it('does not wrap getQuoteStream when no quote trace is active', async () => {
+      const getReader = jest.fn();
+      jest
+        .mocked(expoFetch)
+        .mockResolvedValue({ body: { getReader } } as never);
+
+      const response = await handleBridgeFetch(
+        'http://localhost:3000/getQuoteStream',
+      );
+
+      expect(response.body?.getReader).toBe(getReader);
+      expect(swapQuoteFetchTrace.mark).toHaveBeenCalledTimes(1);
+    });
+
     it('marks the first quote chunk of getQuoteStream once and passes reads through', async () => {
       const chunks = [
         'event: token_warning\n',

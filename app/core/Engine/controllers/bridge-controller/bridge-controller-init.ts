@@ -38,6 +38,9 @@ export const handleBridgeFetch = async (
   // Marks run on the JS thread, so on a busy device they include queueing delay.
   if (urlString.includes('/getQuoteStream')) {
     const traceId = swapQuoteFetchTrace.mark('stream_fetch_start_ms');
+    if (!traceId) {
+      return expoFetch(urlString, options);
+    }
     const response = await expoFetch(urlString, options);
     swapQuoteFetchTrace.mark('stream_headers_ms', traceId);
     const { body } = response;
