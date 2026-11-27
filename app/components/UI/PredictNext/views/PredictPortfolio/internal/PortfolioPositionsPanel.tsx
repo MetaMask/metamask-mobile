@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { usePositions } from '../../../hooks/usePositions';
 import type { PredictEntityId, PredictPosition } from '../../../types';
@@ -38,6 +39,7 @@ export const PortfolioPositionsPanel = ({
     isPending,
     refetch,
   } = query;
+  const tw = useTailwind();
   const positions = useMemo(
     () => dedupeLatestPositions(data?.pages ?? []),
     [data],
@@ -109,14 +111,15 @@ export const PortfolioPositionsPanel = ({
         keyExtractor={positionKey}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
+        contentContainerStyle={tw.style('pt-3 pb-8')}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
           isFetchingNextPage ? (
             <Box
               testID={PredictPortfolioScreenTestIds.POSITIONS_NEXT_PAGE_LOADING}
-              twClassName="items-center py-4"
+              className="items-center justify-center py-4"
             >
-              <ActivityIndicator />
+              <ActivityIndicator size="small" />
             </Box>
           ) : null
         }
@@ -124,5 +127,5 @@ export const PortfolioPositionsPanel = ({
     );
   }
 
-  return <Box twClassName="flex-1">{content}</Box>;
+  return <Box className="flex-1">{content}</Box>;
 };

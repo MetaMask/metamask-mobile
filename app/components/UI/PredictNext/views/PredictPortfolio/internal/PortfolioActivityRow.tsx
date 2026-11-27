@@ -10,6 +10,7 @@ import {
   SensitiveText,
   SensitiveTextLength,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -26,7 +27,6 @@ import {
   formatSettlementProceeds,
   formatSharesAmount,
   formatUsdAmount,
-  isNonZeroAmount,
 } from '../../../utils/portfolioFormatting';
 
 interface PortfolioActivityRowProps {
@@ -69,19 +69,18 @@ const TradeAmount = ({
   <>
     <SensitiveText
       variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
       isHidden={isPrivacyMode}
       length={SensitiveTextLength.Short}
-      twClassName={entry.action === 'sell' ? 'text-success-default' : undefined}
       testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT}
     >
       {formatTradeAmount(entry)}
     </SensitiveText>
     <SensitiveText
       variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
       isHidden={isPrivacyMode}
       length={SensitiveTextLength.Short}
-      twClassName="text-alternative"
     >
       {strings('predict_next.portfolio.activity_rows.shares_at_price', {
         shares: formatSharesAmount(entry.shares),
@@ -100,14 +99,9 @@ const SettlementAmount = ({
 }) => (
   <SensitiveText
     variant={TextVariant.BodyMd}
-    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
     isHidden={isPrivacyMode}
     length={SensitiveTextLength.Short}
-    twClassName={
-      isNonZeroAmount(entry.proceeds)
-        ? 'text-success-default'
-        : 'text-alternative'
-    }
     testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT}
   >
     {formatSettlementProceeds(entry.proceeds)}
@@ -139,10 +133,10 @@ export const PortfolioActivityRow = ({
     <TouchableOpacity
       onPress={onPress ? () => onPress(entry) : undefined}
       disabled={!onPress}
-      style={tw.style('flex-row items-center py-2')}
+      style={tw.style('flex-row items-start py-2')}
       testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW}
     >
-      <Box twClassName="mr-3 h-10 w-10 overflow-hidden rounded-full bg-muted">
+      <Box className="mr-3 mt-1 size-10 overflow-hidden rounded-full bg-muted">
         {context?.imageUrl ? (
           <Image
             source={{ uri: context.imageUrl }}
@@ -151,28 +145,28 @@ export const PortfolioActivityRow = ({
           />
         ) : (
           <Box
-            twClassName="h-full w-full items-center justify-center"
+            className="size-full items-center justify-center"
             testID={PredictPortfolioScreenTestIds.ACTIVITY_ROW_FALLBACK_ICON}
           >
             <Icon name={IconName.Activity} />
           </Box>
         )}
       </Box>
-      <Box twClassName="flex-1 pr-3">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {title}
-        </Text>
+      <Box className="flex-1">
         <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-alternative"
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           numberOfLines={1}
         >
+          {title}
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {subtitle}
         </Text>
       </Box>
-      <Box alignItems={BoxAlignItems.End}>
+      <Box alignItems={BoxAlignItems.End} className="ml-3">
         <ActivityAmount entry={entry} isPrivacyMode={isPrivacyMode} />
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {formatActivityTimestamp(entry.timestamp)}
         </Text>
       </Box>

@@ -512,12 +512,21 @@ describe('PredictPortfolioScreen', () => {
           unrealizedPnl: '1.78',
           unrealizedPnlPercent: '55.28',
         }),
+        makePredictNextPosition({
+          marketId: 'KXNBAGAME-21MAY01-LALBOS-LAL',
+          status: 'claimable',
+          shares: '4',
+          costBasis: '2.00',
+          currentValue: '4.00',
+          unrealizedPnl: '2.00',
+          unrealizedPnlPercent: '100',
+        }),
       ],
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
-    const [open, settled] = view.getAllByTestId(
+    const [open, settled, claimable] = view.getAllByTestId(
       PredictPortfolioScreenTestIds.POSITION_ROW,
     );
 
@@ -549,6 +558,16 @@ describe('PredictPortfolioScreen', () => {
     ).toHaveTextContent('$5.00');
     expect(
       within(settled).queryByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(claimable).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_STATUS,
+      ),
+    ).toHaveTextContent('Claimable');
+    expect(
+      within(claimable).queryByTestId(
         PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
       ),
     ).not.toBeOnTheScreen();
@@ -1297,24 +1316,40 @@ describe('PredictPortfolioScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders first-load skeletons for Positions and Activity', async () => {
-    // Never-resolving reads keep both panels in their loading state.
+  it('renders first-load placeholders for the Summary, Positions and Activity', async () => {
+    // Never-resolving reads keep every panel in its loading state.
     mockPredictNextMessenger(() => new Promise(() => undefined));
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
+    const summaryLoading = await view.findByTestId(
+      PredictPortfolioScreenTestIds.SUMMARY_LOADING,
+    );
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_LOADING),
+      view.getAllByTestId(PredictPortfolioScreenTestIds.SUMMARY_LOADING),
+    ).toHaveLength(1);
+    expect(within(summaryLoading).getByText('Total value')).toBeOnTheScreen();
+    expect(
+      within(summaryLoading).getByText('Available balance'),
     ).toBeOnTheScreen();
+    expect(within(summaryLoading).getByText('Positions')).toBeOnTheScreen();
+    expect(
+      within(summaryLoading).getByText('Unrealized P&L'),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).not.toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
     ).toBeOnTheScreen();
+
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
+
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOADING),
-    ).toBeOnTheScreen();
+      view.getAllByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOADING),
+    ).toHaveLength(1);
   });
 
   it('retries a failed Positions read independently of the Summary', async () => {
