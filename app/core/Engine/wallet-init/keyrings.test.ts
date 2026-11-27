@@ -353,6 +353,18 @@ describe('wallet-init/keyrings', () => {
       });
     });
 
+    it('verifies with any enrolled method without asking to set up a missing one', async () => {
+      jest
+        .mocked(verifyOrEnroll)
+        .mockResolvedValue({ token: { accessToken: 'token' } } as never);
+
+      await getTwoFactorToken();
+
+      expect(verifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({ verifyOnly: true }),
+      );
+    });
+
     it('rejects as a user rejection when the user closes the prompt', async () => {
       jest
         .mocked(verifyOrEnroll)

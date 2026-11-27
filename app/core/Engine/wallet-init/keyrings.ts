@@ -95,6 +95,7 @@ async function verifyMoneyMpc(
       methods: MONEY_MFA_METHODS,
       verifyWith: MONEY_MFA_METHODS,
       maxSessionAgeMs,
+      verifyOnly: true,
       reason: { operation },
     }));
   } catch (error) {
