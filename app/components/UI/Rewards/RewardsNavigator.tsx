@@ -12,7 +12,8 @@ import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import RewardsVipTransactionsView from './Views/RewardsVipTransactionsView';
 import CampaignsView from './Views/CampaignsView';
-import RewardsTradingCommissionsView from './Views/RewardsTradingCommissionsView';
+import RewardsMoneyReferralsView from './Views/RewardsMoneyReferralsView';
+import RewardsCopyTradingView from './Views/RewardsCopyTradingView';
 import RewardsTradingRebatesView from './Views/RewardsTradingRebatesView';
 import RewardsEarningsHistoryView from './Views/RewardsEarningsHistoryView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
@@ -93,12 +94,12 @@ const RewardsNavigator: React.FC = () => {
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata)
-  // intentionally live on RewardsDashboard, not here.
-  // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
-  // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
-  // and keeps event-driven refetches running. Re-declaring those hooks here would
-  // duplicate the focus-driven fetches on every entry into the flow.
+  // The tab-level data hook (useReferralDetails) intentionally lives on
+  // RewardsDashboard, not here. RewardsDashboard is the Rewards tab entry and
+  // stays mounted while this pushed REWARDS_FLOW stack is open, so it already
+  // populates Redux for these sub-pages and keeps event-driven refetches
+  // running. Re-declaring that hook here would duplicate the focus-driven
+  // fetches on every entry into the flow.
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
@@ -219,8 +220,12 @@ const RewardsNavigator: React.FC = () => {
           component={RewardsSettingsView}
         />
         <Stack.Screen
-          name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
-          component={RewardsTradingCommissionsView}
+          name={Routes.REWARDS_MONEY_REFERRALS_VIEW}
+          component={RewardsMoneyReferralsView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_COPY_TRADING_VIEW}
+          component={RewardsCopyTradingView}
         />
         <Stack.Screen
           name={Routes.REWARDS_TRADING_REBATES_VIEW}
@@ -275,8 +280,12 @@ const RewardsNavigator: React.FC = () => {
         component={CampaignsView}
       />
       <Stack.Screen
-        name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
-        component={RewardsTradingCommissionsView}
+        name={Routes.REWARDS_MONEY_REFERRALS_VIEW}
+        component={RewardsMoneyReferralsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_COPY_TRADING_VIEW}
+        component={RewardsCopyTradingView}
       />
       <Stack.Screen
         name={Routes.REWARDS_TRADING_REBATES_VIEW}

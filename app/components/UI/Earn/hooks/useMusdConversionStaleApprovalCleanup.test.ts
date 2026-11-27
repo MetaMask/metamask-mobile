@@ -228,7 +228,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -267,7 +267,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
     it('does not navigate back when no stale approvals exist', () => {
       mockSelectUnapprovedMusdConversions.mockReturnValue([]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -284,12 +284,12 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   });
 
   describe('screen-aware guard (on confirmation screen without deeplink)', () => {
-    it('skips cleanup when on REDESIGNED_CONFIRMATIONS and no deeplink received', () => {
+    it('skips cleanup when on Confirmations and no deeplink received', () => {
       mockSelectUnapprovedMusdConversions.mockReturnValue([
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -333,7 +333,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -390,7 +390,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -421,7 +421,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());
@@ -446,7 +446,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         { id: 'tx-1' } as never,
       ]);
       mockGetCurrentRoute.mockReturnValue({
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       } as never);
 
       renderHook(() => useMusdConversionStaleApprovalCleanup());

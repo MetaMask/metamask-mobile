@@ -28,6 +28,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { useIsCopyTradeAllowed } from '../../../UI/SocialFeed/hooks/useIsCopyTradeAllowed';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
@@ -61,9 +62,11 @@ import {
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import {
   SocialEvent,
+  getSocialEventSource,
   useSocialAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
+import { resolveQuickBuyOriginalEntryPointFromPositionSource } from '../../../UI/QuickBuy/analytics/resolveQuickBuyOriginalEntryPoint';
 import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
@@ -139,6 +142,7 @@ const PositionDetailsSheet = () => {
   // `null` (unknown) is treated as online; only a confirmed `NONE` skips the
   // price fetch and the line draw.
   const networkTier = useNetworkTier();
+  const copyTradeAllowed = useIsCopyTradeAllowed();
   const isNetworkAvailable = networkTier !== 'NONE';
 
   // The caller's flag describes its snapshot; a newer copy carries its own.
@@ -168,8 +172,6 @@ const PositionDetailsSheet = () => {
   });
 
   const { profile } = useMyProfile();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
@@ -285,6 +287,15 @@ const PositionDetailsSheet = () => {
     }
   }, []);
 
+  // Onboarding pushed from this transparent modal would open inside the sheet,
+  // so the gates close it first and onboarding opens full screen.
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    runNavigation: closeThen,
+  });
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({
+    runNavigation: closeThen,
+  });
+
   const handleOpenAsset = useCallback(() => {
     if (data.isPerp) {
       if (!data.perpTradeSymbol) {
@@ -358,12 +369,12 @@ const PositionDetailsSheet = () => {
         traderName: author.username,
         traderAddress: author.address,
         traderAvatarUri: author.avatarUri ?? undefined,
-        source: 'trader_feed',
+        source: getSocialEventSource(orderSource) ?? 'trader_feed',
         viewerProfileId: profile?.profileId ?? undefined,
         viewerAddress: profile?.linkedAccountAddress ?? undefined,
       });
     });
-  }, [author, closeThen, navigation, profile]);
+  }, [author, closeThen, navigation, orderSource, profile]);
 
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const { isSharing, runShare } = useSocialShareInProgress();
@@ -487,15 +498,26 @@ const PositionDetailsSheet = () => {
   );
 
   const openPerpsMarketOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    (direction: PerpDirection, leverage?: number, isCopyTrade = false) => {
       if (!data.perpTradeSymbol) return;
-      openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
+      openPerpsOrder({
+        direction,
+        asset: data.perpTradeSymbol,
+        leverage,
+        ...(isCopyTrade ? { isCopyTrade: true } : {}),
+      });
     },
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
   const handlePerpsOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    function perpsOrder(direction: PerpDirection, leverage?: number): void {
+      if (
+        !ensureSocialTermsAccepted(() => perpsOrder(direction, leverage)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED, {
         direction:
           direction === 'short'
@@ -504,15 +526,31 @@ const PositionDetailsSheet = () => {
       });
       openPerpsMarketOrder(direction, leverage);
     },
-    [openPerpsMarketOrder, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openPerpsMarketOrder,
+      trackInteraction,
+    ],
   );
 
   const handleSpotTrade = useCallback(
-    (mode: QuickBuyTradeMode) => {
+    function spotTrade(mode: QuickBuyTradeMode): void {
+      if (
+        !ensureSocialTermsAccepted(() => spotTrade(mode)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED);
       openQuickBuy(mode);
     },
-    [openQuickBuy, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openQuickBuy,
+      trackInteraction,
+    ],
   );
 
   const handleCopyTrade = useCallback(
@@ -531,7 +569,7 @@ const PositionDetailsSheet = () => {
       }
       trackInteraction(Interaction.COPY_TRADE_TAPPED);
       if (data.isPerp) {
-        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
+        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage, true);
         return;
       }
       openQuickBuy('buy', true);
@@ -609,6 +647,7 @@ const PositionDetailsSheet = () => {
       isClosed={data.isClosed}
       isOwnPost={isOwnPost}
       canSell={Boolean(heldBalance)}
+      showCopyTrade={copyTradeAllowed}
       onCopyTrade={handleCopyTrade}
       onPerpsOrder={handlePerpsOrder}
       onSpotTrade={handleSpotTrade}
@@ -655,6 +694,7 @@ const PositionDetailsSheet = () => {
             onPressTrader={handleOpenTraderProfile}
             onShare={shareSource ? handleSharePosition : undefined}
             isSharing={isSharing}
+            runNavigation={closeThen}
           />
           {/* Always bounces so content that fits still stretches at both ends. */}
           <ScrollView
@@ -673,7 +713,6 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
-              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}
@@ -717,7 +756,9 @@ const PositionDetailsSheet = () => {
           traderAddress={author.address}
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
-          originalEntryPoint="trader_feed"
+          originalEntryPoint={resolveQuickBuyOriginalEntryPointFromPositionSource(
+            orderSource,
+          )}
           // An open position reads as buy, so an own open position reports the
           // pressed action instead (sell or buy).
           isTraderPositionClosed={

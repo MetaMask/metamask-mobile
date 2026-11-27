@@ -82,11 +82,6 @@ export const getSnapPermissionSpecifications = (
       ),
       isOnPhishingList: (origin: string) =>
         messenger.call('PhishingController:testOrigin', origin).result,
-      getClientCryptography: () => ({
-        pbkdf2Sha512: pbkdf2,
-        hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
-          hmacSha512(key, data),
-      }),
       getPreferences: () => {
         const {
           securityAlertsEnabled,

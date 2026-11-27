@@ -17,8 +17,18 @@ import com.braze.reactbridge.BrazeReactUtils
 class MainActivity : ReactActivity() {
     override fun onPause() {
         PrivacyCover.markAuthenticationUnavailable()
-        PrivacyCover.show(this)
         super.onPause()
+    }
+
+    /**
+     * The cover is shown once the activity is no longer visible, not on pause.
+     * A pause that never leaves the app (a deeplink relaunch, a dialog) must not
+     * paint it: the cover is held for a minimum interval, so a few milliseconds
+     * of pause would show the splash for a quarter of a second.
+     */
+    override fun onStop() {
+        PrivacyCover.show(this)
+        super.onStop()
     }
 
     override fun onPostResume() {

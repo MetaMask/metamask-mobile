@@ -8,7 +8,7 @@
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
 import {
   EMPTY_BLOB,
   type WatchlistBlob,
@@ -18,7 +18,9 @@ import {
   clearAllNockMocks,
   disableNetConnect,
   teardownNock,
+  nockRequestUri,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import {
   mockRwaTokensData,
   mockTrendingTokensData,
@@ -115,18 +117,23 @@ const filterWatchlistResponse = (
  */
 export function setupWatchlistTokenApiMock(
   tokens: typeof mockWatchlistTokensResponse = mockWatchlistTokensResponse,
-): Scope {
+): nock.Scope {
   disableNetConnect();
 
-  return nock(TOKEN_API_BASE_URL)
+  const scope = nock(TOKEN_API_BASE_URL)
     .get('/assets')
     .query(true)
-    .reply(200, (uri: string) => {
-      const url = new URL(uri, TOKEN_API_BASE_URL);
-      const assetIds = url.searchParams.get('assetIds') ?? undefined;
-      return filterWatchlistResponse(assetIds, tokens);
+    .reply(200, (request: Request) => {
+      const uri = nockRequestUri(request);
+      const assetIds = new URLSearchParams(uri.slice(uri.indexOf('?') + 1)).get(
+        'assetIds',
+      );
+      return filterWatchlistResponse(assetIds ?? undefined, tokens);
     })
     .persist();
+
+  installDefaultApiMocks();
+  return scope;
 }
 
 /**
@@ -163,6 +170,7 @@ export function setupWatchlistSearchApiMock(
   );
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
+  installDefaultApiMocks();
 }
 
 /**

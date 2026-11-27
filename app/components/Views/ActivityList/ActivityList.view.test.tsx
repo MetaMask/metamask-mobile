@@ -34,6 +34,12 @@ import {
 
 const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 
+// Activity rows hydrate through a chain of adapter and template reads that
+// starts once the transactions land, so waiting for the loading indicator to
+// clear or a specific row to appear regularly outlasts the 5s default on a
+// loaded CV shard.
+const ACTIVITY_LOAD_TIMEOUT_MS = 10000;
+
 describeForPlatforms('ActivityList', () => {
   beforeEach(() => {
     // Configured EVM networks start the accounts history query. Local rows stay
@@ -65,7 +71,7 @@ describeForPlatforms('ActivityList', () => {
           queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
         ).toBeNull();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     const pendingRow = await findByTestId(
@@ -132,7 +138,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
 
     const incomingTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(incomingHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     expect(incomingTitle).toHaveTextContent('Received ETH');
@@ -162,7 +168,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
 
     const outgoingTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(outgoingHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     expect(outgoingTitle).toHaveTextContent('Sent ETH');

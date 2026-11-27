@@ -640,17 +640,14 @@ describe('V2 unified-buy BuildQuote', () => {
       wireRampsController: true,
     });
 
-    await waitFor(
-      () => {
-        expect(
-          String(
-            getByTestId(`route-${Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}`).props
-              .children,
-          ),
-        ).toContain(ETH_ASSET_ID);
-      },
-      { timeout: 4000 },
-    );
+    await waitFor(() => {
+      expect(
+        String(
+          getByTestId(`route-${Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}`).props
+            .children,
+        ),
+      ).toContain(ETH_ASSET_ID);
+    });
     expect(queryByText('Powered by Transak')).not.toBeOnTheScreen();
   });
 });

@@ -36,6 +36,7 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
 let mockSocialV1Enabled = false;
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+  selectHasSocialV1Access: jest.fn(() => mockSocialV1Enabled),
 }));
 
 jest.mock('./WalletHeaderProfileAvatar', () => {

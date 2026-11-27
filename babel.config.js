@@ -68,6 +68,46 @@ const privateMethodsLoose = [
   ['@babel/plugin-transform-private-methods', { loose: true }],
 ];
 
+// babel-preset-expo rewrites every `import.meta` to
+// `globalThis.__ExpoImportMetaRegistry`, which only exists inside the Expo
+// native runtime. ESM-only test dependencies that read `import.meta.url` at
+// import time (e.g. @mswjs/interceptors loading its llhttp WASM parser, pulled
+// in by nock 15) therefore crash under Jest with "Cannot read properties of
+// undefined (reading 'url')". These packages are never part of a Metro bundle
+// (they are dev-only), so rewrite `import.meta` to the CommonJS module's own
+// file URL, which resolves package-relative resources correctly under Jest.
+// Inlined to avoid pulling in another dependency.
+// eslint-disable-next-line import-x/no-commonjs
+const importMetaToFileUrl = ({ types: t }) => ({
+  name: 'transform-import-meta-to-file-url',
+  visitor: {
+    MetaProperty(path) {
+      const { node } = path;
+      if (node.meta.name === 'import' && node.property.name === 'meta') {
+        path.replaceWith(
+          t.objectExpression([
+            t.objectProperty(
+              t.identifier('url'),
+              t.memberExpression(
+                t.callExpression(
+                  t.memberExpression(
+                    t.callExpression(t.identifier('require'), [
+                      t.stringLiteral('url'),
+                    ]),
+                    t.identifier('pathToFileURL'),
+                  ),
+                  [t.identifier('__filename')],
+                ),
+                t.identifier('href'),
+              ),
+            ),
+          ]),
+        );
+      }
+    },
+  },
+});
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [
@@ -223,6 +263,21 @@ module.exports = {
           },
         ],
       ],
+    },
+    {
+      // nock 15 and its @mswjs/interceptors dependency tree are ESM-only and
+      // read `import.meta.url` at import time. See `importMetaToFileUrl` above
+      // for why babel-preset-expo's own rewrite crashes under Jest.
+      test: (filename) => {
+        const f = posixPath(filename);
+        return (
+          f.includes('/node_modules/nock/') ||
+          f.includes('/node_modules/@mswjs/interceptors/') ||
+          f.includes('/node_modules/@open-draft/until/') ||
+          f.includes('/node_modules/rettime/')
+        );
+      },
+      plugins: [importMetaToFileUrl],
     },
     {
       test: pathIncludes('/node_modules/@noble/secp256k1'),

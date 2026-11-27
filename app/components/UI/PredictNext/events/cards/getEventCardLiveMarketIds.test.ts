@@ -1,3 +1,4 @@
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -30,6 +31,9 @@ const createMarket = (
   question: id,
   status: 'active',
   outcomes,
+  ...(outcomes.some((outcome) => outcome.gameSelection)
+    ? fullGameMoneylineMetadata()
+    : {}),
 });
 
 const createEvent = (

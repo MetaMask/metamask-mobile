@@ -44,7 +44,7 @@ jest.mock('../../../../reducers/rewards', () => ({
   })),
 }));
 
-const mockCall = jest.mocked(Engine.controllerMessenger.call);
+const mockCall = Engine.controllerMessenger.call as jest.Mock;
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseSeries = jest.mocked(useMoneyAccountSweepstakesSeries);
@@ -80,8 +80,12 @@ function defaultCampaigns() {
 
 function setupHooks({
   campaigns = defaultCampaigns(),
-  subscriptionId = SUBSCRIPTION_ID as string | null,
-  statuses = {} as Record<string, { optedIn: boolean }>,
+  subscriptionId = SUBSCRIPTION_ID,
+  statuses = {},
+}: {
+  campaigns?: ReturnType<typeof defaultCampaigns>;
+  subscriptionId?: string | null;
+  statuses?: Record<string, { optedIn: boolean }>;
 } = {}) {
   lastSetup = { campaigns, subscriptionId };
   mockUseSeries.mockReturnValue({
@@ -140,7 +144,7 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
     mockCall.mockResolvedValue({
       optedIn: true,
       participantCount: 1,
-    } as never);
+    });
     setupHooks();
   });
 
@@ -218,10 +222,10 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
   it('reports loading until the first status fetch settles', async () => {
     const resolvers: ((value: unknown) => void)[] = [];
     mockCall.mockImplementation(
-      () =>
+      async () =>
         new Promise((resolve) => {
           resolvers.push(resolve);
-        }) as never,
+        }),
     );
 
     const { result } = renderHook(() =>
@@ -240,7 +244,7 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
   });
 
   it('stops reporting loading when the fetch fails', async () => {
-    mockCall.mockRejectedValue(new Error('network down') as never);
+    mockCall.mockRejectedValue(new Error('network down'));
 
     const { result } = renderHook(() =>
       useMoneyAccountSweepstakesParticipation(),
@@ -256,7 +260,7 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
         [`${SUBSCRIPTION_ID}:week-2`]: { optedIn: true },
       },
     });
-    mockCall.mockImplementation(() => new Promise(() => undefined) as never);
+    mockCall.mockImplementation(async () => new Promise(() => undefined));
 
     const { result } = renderHook(() =>
       useMoneyAccountSweepstakesParticipation(),

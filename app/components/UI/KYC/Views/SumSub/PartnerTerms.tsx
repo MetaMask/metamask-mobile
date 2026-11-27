@@ -35,6 +35,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  IDOS_TERMS_AND_CONDITIONS_URL,
   SUMSUB_BIOMETRICS_CONSENT_URL,
   SUMSUB_PERSONAL_DATA_PROCESSING_URL,
   SUMSUB_PRIVACY_NOTICE_URL,
@@ -49,6 +50,7 @@ import {
 } from '../../kycScreenPerformance';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import CrossfadeButton from './CrossfadeButton';
 import SentenceWithLinks, {
@@ -209,6 +211,7 @@ const KycPartnerTerms = ({
   );
 
   const handleAgree = useCallback(async () => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     trackIdentityTerms('page2_accepted');
     await onAgree();
   }, [onAgree]);
@@ -402,6 +405,7 @@ const KycPartnerTerms = ({
                   strings('kyc.partner_terms.agreement_terms'),
                   findDisclaimerByKeyword(idos, 'terms'),
                   KycPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
+                  IDOS_TERMS_AND_CONDITIONS_URL,
                 ),
                 color: TextColor.PrimaryDefault,
               },

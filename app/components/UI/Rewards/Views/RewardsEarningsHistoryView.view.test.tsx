@@ -7,7 +7,7 @@ import '../../../../../tests/component-view/mocks';
 import { act, fireEvent, within } from '@testing-library/react-native';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
-import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton.testIds';
 import { renderEarningsHistory } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   EARNINGS_HISTORY_ROW,
@@ -39,7 +39,7 @@ describe('RewardsEarningsHistoryView', () => {
       within(pendingRow).getByText(REFERRAL_LOCALIZED_TEXT.historyClaimed),
     ).toBeOnTheScreen();
     expect(
-      within(settledRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
+      within(settledRow).getByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
     ).toBeOnTheScreen();
     expect(within(settledRow).getByText('+$1.00')).toBeOnTheScreen();
     expect(
@@ -79,7 +79,7 @@ describe('RewardsEarningsHistoryView', () => {
       });
 
     expect(
-      await findByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.SKELETON_SLOT),
+      await findByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
@@ -98,7 +98,7 @@ describe('RewardsEarningsHistoryView', () => {
       await findByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.SKELETON_SLOT),
+      queryByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
     expect(
       await findByText(

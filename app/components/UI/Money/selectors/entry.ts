@@ -1,23 +1,31 @@
 import { createSelector } from 'reselect';
-import {
-  selectMoneyOnboardingSeen,
-  selectMoneySplashSeen,
-} from '../../../../reducers/user/selectors';
-import {
-  selectMoneyOnboardingStepperAnimationEnabled,
-  selectMoneySplashEnabled,
-} from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
+import { selectLastKnownMoneyBalance } from '../../../../core/redux/slices/moneyBalance';
+import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectMoneyAccountAccessBlockReason } from './visibility';
 import type { MoneyEntryContext } from '../navigation/moneyEntryDecision';
+import {
+  hasConfirmedMoneyAccountTransaction,
+  isPositiveMoneyBalance,
+} from '../utils/moneyAccountUsage';
 
 /**
- * Resolves whether an entry must show Money onboarding before its destination.
+ * Users who have already funded, deposited into or withdrawn from Money should
+ * not see the intro splash again.
  */
-export const selectIsMoneyOnboardingRedirectNeeded = createSelector(
-  selectMoneyOnboardingSeen,
-  selectMoneyOnboardingStepperAnimationEnabled,
-  (hasSeenOnboarding, isOnboardingEnabled) =>
-    !hasSeenOnboarding && isOnboardingEnabled,
+export const selectHasUsedMoneyAccount = createSelector(
+  selectLastKnownMoneyBalance,
+  selectNonReplacedTransactions,
+  (lastKnownBalance, transactions) =>
+    isPositiveMoneyBalance(lastKnownBalance) ||
+    hasConfirmedMoneyAccountTransaction(transactions),
+);
+
+export const selectIsMoneySplashRedirectNeeded = createSelector(
+  selectMoneySplashSeen,
+  selectHasUsedMoneyAccount,
+  (hasSeenSplash, hasUsedMoneyAccount) =>
+    !hasSeenSplash && !hasUsedMoneyAccount,
 );
 
 /**
@@ -25,39 +33,9 @@ export const selectIsMoneyOnboardingRedirectNeeded = createSelector(
  */
 export const selectMoneyEntryContext = createSelector(
   selectMoneyAccountAccessBlockReason,
-  selectIsMoneyOnboardingRedirectNeeded,
-  (accessBlockReason, isOnboardingRedirectNeeded): MoneyEntryContext => ({
-    accessBlockReason,
-    isOnboardingRedirectNeeded,
-  }),
-);
-
-/**
- * Resolves whether a Money CTA must show the intro splash first.
- */
-export const selectIsMoneySplashRedirectNeeded = createSelector(
-  selectMoneySplashSeen,
-  selectMoneySplashEnabled,
-  (hasSeenSplash, isSplashEnabled) => isSplashEnabled && !hasSeenSplash,
-);
-
-/**
- * Context for Money CTAs on token, Explore and Earn surfaces. The splash
- * replaces the Rive onboarding on those surfaces while it is enabled; the Money
- * tab and deeplinks keep the base context.
- */
-export const selectMoneyCtaEntryContext = createSelector(
-  selectMoneyEntryContext,
   selectIsMoneySplashRedirectNeeded,
-  selectMoneySplashEnabled,
-  (
-    entryContext,
-    isSplashRedirectNeeded,
-    isSplashEnabled,
-  ): MoneyEntryContext => ({
-    ...entryContext,
-    isOnboardingRedirectNeeded:
-      !isSplashEnabled && entryContext.isOnboardingRedirectNeeded,
+  (accessBlockReason, isSplashRedirectNeeded): MoneyEntryContext => ({
+    accessBlockReason,
     isSplashRedirectNeeded,
   }),
 );

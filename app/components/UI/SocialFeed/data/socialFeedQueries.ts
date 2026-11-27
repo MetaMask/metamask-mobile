@@ -5,6 +5,13 @@ import type { FeedScope, SocialFeedRequest } from './socialFeedSource';
 /** Page size requested per feed page. */
 export const FEED_PAGE_LIMIT = 30;
 
+/**
+ * Pages the Live list keeps loaded. Scrolling past it drops the newest page
+ * and fetches it again on the way back up, so memory stays bounded however
+ * far the reader scrolls. 10 pages is 300 posts.
+ */
+export const SOCIAL_LIVE_FEED_MAX_PAGES = 10;
+
 /** Messenger actions that return a `FeedResponse`; also the query-key roots. */
 export const SOCIAL_FEED_QUERY_ACTIONS = [
   'SocialService:fetchFeed',
@@ -54,19 +61,27 @@ export const FOLLOWING_FEED_QUERY_KEY_PREFIXES = (
 ).map((scope) => ['SocialService:fetchFeed', { scope }] as const);
 
 /**
- * Refetches the viewer's following feeds after their follow graph changes.
+ * Invalidates the viewer's following feeds. Follow and unfollow leave the
+ * cache in place; FollowingView calls this when the tab is opened again,
+ * which refetches the active query. Pull-to-refresh passes `refetchType:
+ * 'none'` so the drop does not fetch, and the list reload is the only fetch.
  * The UI client forwards each invalidation to `SocialService`, so its own
  * cache cannot serve the old page back. A key, not a predicate, because only
  * the key crosses the messenger. `ReactQueryService` is imported lazily to
  * keep it out of this module's load-time import graph.
  */
-export const invalidateFollowingFeed = async (): Promise<void> => {
+export const invalidateFollowingFeed = async (options?: {
+  refetchType?: 'none';
+}): Promise<void> => {
   const { default: ReactQueryService } = await import(
     '../../../../core/ReactQueryService'
   );
   await Promise.all(
     FOLLOWING_FEED_QUERY_KEY_PREFIXES.map((queryKey) =>
-      ReactQueryService.queryClient.invalidateQueries({ queryKey }),
+      ReactQueryService.queryClient.invalidateQueries({
+        queryKey,
+        ...(options?.refetchType ? { refetchType: options.refetchType } : {}),
+      }),
     ),
   );
 };
@@ -80,9 +95,14 @@ export const invalidateFollowingFeed = async (): Promise<void> => {
 export const fetchSocialFeedPage = (
   request: SocialFeedRequest,
   limit: number,
-  olderThan?: string,
+  cursor?: string,
+  direction: 'older' | 'newer' = 'older',
 ): Promise<FeedResponse> => {
-  const paging = olderThan ? { limit, olderThan } : { limit };
+  const paging = !cursor
+    ? { limit }
+    : direction === 'newer'
+      ? { limit, newerThan: cursor }
+      : { limit, olderThan: cursor };
   switch (request.action) {
     case 'SocialService:fetchFeed': {
       const { chains, assetIds, ...options } = request.options;
@@ -115,3 +135,19 @@ export const fetchSocialFeedPage = (
 export const getSocialFeedNextPageParam = (
   lastPage: FeedResponse,
 ): string | undefined => lastPage.pagination?.olderCursor ?? undefined;
+
+/**
+ * Cursor for the page a bounded feed dropped off the top. `undefined` while
+ * the first page loaded is the newest one (its param is `undefined`), so the
+ * top of the feed never asks for newer posts; realtime and refresh bring those.
+ * An empty page also stops it, in case the API keeps returning a cursor once
+ * nothing newer is left.
+ */
+export const getSocialFeedPreviousPageParam = (
+  firstPage: FeedResponse,
+  _pages: FeedResponse[],
+  firstPageParam: string | undefined,
+): string | undefined =>
+  firstPageParam === undefined || (firstPage.items ?? []).length === 0
+    ? undefined
+    : (firstPage.pagination?.newerCursor ?? undefined);

@@ -28,17 +28,15 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockSelectMoneyEntryContext = jest.mocked(selectMoneyEntryContext);
 
 const setupSelectorMocks = ({
-  hasSeenOnboarding = false,
-  isOnboardingEnabled = true,
+  hasSeenSplash = false,
   accessBlockReason,
 }: {
-  hasSeenOnboarding?: boolean;
-  isOnboardingEnabled?: boolean;
+  hasSeenSplash?: boolean;
   accessBlockReason?: 'feature_disabled' | 'geo_blocked';
 } = {}) => {
   const entryContext = {
     accessBlockReason,
-    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
+    isSplashRedirectNeeded: !hasSeenSplash,
   };
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyEntryContext) {
@@ -57,31 +55,19 @@ describe('useMoneyHomeNavigation', () => {
   });
 
   describe('navigateToMoneyHome', () => {
-    it('navigates to onboarding when user has not seen onboarding and flag is enabled', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: false,
-        isOnboardingEnabled: true,
-      });
-
+    it('navigates to the splash when the user has not seen it', () => {
       const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
     });
 
-    it('skips the onboarding redirect when the caller already showed an intro', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: false,
-        isOnboardingEnabled: true,
-      });
-
+    it('skips the splash redirect when the caller already showed it', () => {
       const { result } = renderHook(() => useMoneyHomeNavigation());
 
-      act(() =>
-        result.current.navigateToMoneyHome({ skipOnboardingRedirect: true }),
-      );
+      act(() => result.current.navigateToMoneyHome({ skipFtueRedirect: true }));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.HOME_TABS,
@@ -93,21 +79,18 @@ describe('useMoneyHomeNavigation', () => {
       );
     });
 
-    it('forwards analytics context through Money onboarding', () => {
+    it('forwards analytics context through the Money splash', () => {
       const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH, {
         analyticsContext,
       });
     });
 
-    it('navigates to Money home when user has seen onboarding', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: true,
-        isOnboardingEnabled: true,
-      });
+    it('navigates to Money home when the user has seen the splash', () => {
+      setupSelectorMocks({ hasSeenSplash: true });
 
       const { result } = renderHook(() => useMoneyHomeNavigation());
 
@@ -125,10 +108,7 @@ describe('useMoneyHomeNavigation', () => {
     });
 
     it('forwards analytics context to Money home', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: true,
-        isOnboardingEnabled: true,
-      });
+      setupSelectorMocks({ hasSeenSplash: true });
       const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome({ analyticsContext }));
@@ -141,27 +121,6 @@ describe('useMoneyHomeNavigation', () => {
             screen: Routes.MONEY.HOME,
             params: { analyticsContext },
           },
-        },
-        { pop: true },
-      );
-    });
-
-    it('navigates to Money home when onboarding flag is disabled even if onboarding not seen', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: false,
-        isOnboardingEnabled: false,
-      });
-
-      const { result } = renderHook(() => useMoneyHomeNavigation());
-
-      act(() => result.current.navigateToMoneyHome());
-
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
         },
         { pop: true },
       );
@@ -195,7 +154,7 @@ describe('useMoneyHomeNavigation', () => {
       );
     });
 
-    it('tracks before navigating to Money home', () => {
+    it('tracks before navigating to the splash', () => {
       const callOrder: string[] = [];
       mockNavigate.mockImplementation(() => callOrder.push('navigate'));
       const track = jest.fn(() => callOrder.push('track'));
@@ -205,8 +164,8 @@ describe('useMoneyHomeNavigation', () => {
 
       expect(callOrder).toStrictEqual(['track', 'navigate']);
       expect(track).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
       });
     });
   });

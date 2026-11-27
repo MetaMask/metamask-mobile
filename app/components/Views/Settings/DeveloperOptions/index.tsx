@@ -14,6 +14,7 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import SubscriptionDeveloperOptionsSection from './SubscriptionDeveloperOptionsSection';
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -24,6 +25,8 @@ import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDev
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
+import { MpcMoneyDeveloperOptionsSection } from './MpcMoneyDeveloperOptionsSection';
+import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
@@ -104,8 +107,12 @@ const DeveloperOptions = () => {
         <ConfirmationsDeveloperOptions />
         {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
+        {isRealMpcMoneyKeyringBuildEnabled() && (
+          <MpcMoneyDeveloperOptionsSection />
+        )}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
+        <SubscriptionDeveloperOptionsSection />
         <NotificationsDeveloperOptionsSection />
         {isSocialLeaderboardEnabled && (
           <SocialLeaderboardDeveloperOptionsSection />

@@ -8,6 +8,7 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
@@ -47,13 +48,6 @@ appiumTest.describe(
     appiumTest(
       'withdraws Predict balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
-        // Skipped on Android: this test consistently fails in Appium CI while
-        // returning to wallet home after confirming the deposit.
-        appiumTest.skip(
-          currentDeviceDetails.platform === 'android',
-          'Flaky on Android Appium CI: wallet home readiness after Predict deposit',
-        );
-
         await withFixtures(
           {
             fixture: new FixtureBuilder()
@@ -109,7 +103,15 @@ appiumTest.describe(
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
             await PredictHome.tapBackButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+            if (currentDeviceDetails.platform === 'android') {
+              await dismissToWalletHomePlaywright(
+                resolveE2EWaitTimeoutMs(30_000),
+              );
+            } else {
+              await waitForWalletHomePlaywright(
+                resolveE2EWaitTimeoutMs(20_000),
+              );
+            }
             await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();

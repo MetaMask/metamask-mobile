@@ -4,6 +4,8 @@ import type { RootState } from '../../../app/reducers';
 
 interface InitialStateWatchlistOptions {
   deterministicFiat?: boolean;
+  unifiedWatchlist?: boolean;
+  perpsWatchlistSymbols?: string[];
 }
 
 /**
@@ -31,11 +33,33 @@ export const initialStateWatchlist = (
     .withMinimalEarnController()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({
-      assetsGlobalWatchlistV1: { enabled: true, minimumVersion: '7.0.0' },
+      assetsGlobalWatchlistV1: { enabled: true, minimumVersion: '0.0.0' },
+      ...(options?.unifiedWatchlist
+        ? {
+            assetsUnifiedWatchlistV1: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+            },
+            perpsPerpTradingEnabled: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+            },
+          }
+        : {}),
     })
     .withOverrides({
       engine: {
         backgroundState: {
+          PerpsController: {
+            activeProvider: 'hyperliquid',
+            isEligible: true,
+            isTestnet: false,
+            initializationState: 'initialized',
+            watchlistMarkets: {
+              mainnet: options?.perpsWatchlistSymbols ?? [],
+              testnet: [],
+            },
+          },
           CurrencyRateController: {
             currentCurrency: 'USD',
             currencyRates: {},

@@ -24,32 +24,38 @@ const expectSkipLogged = (reason: string) =>
 const PROFILE_ID = 'rewards-profile-1';
 const mockFetchReferralMe = jest.fn();
 
-jest.mock('../../../UI/Rewards/hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
-
 jest.mock('../../../UI/Rewards/hooks/useReferralMe', () => ({
   useReferralMe: () => ({ fetchReferralMe: mockFetchReferralMe }),
 }));
 
-const buildReferralMe = (roles: ReferralMeDto['roles'] = []): ReferralMeDto =>
-  ({ roles, excluded_regions: [] }) as unknown as ReferralMeDto;
+const TERMS_URL = 'https://link.metamask.io/rewards/terms';
+
+const buildReferralMe = (
+  roles: ReferralMeDto['roles'] = [],
+  localizedText: Partial<ReferralMeDto['localized_text']> = {},
+): ReferralMeDto =>
+  ({
+    roles,
+    excluded_regions: [],
+    localized_text: localizedText,
+  }) as unknown as ReferralMeDto;
 
 const renderOffer = ({
   pendingReferralCode = 'KOL1',
   referralMe = buildReferralMe(),
+  readErrored = false,
 }: {
   pendingReferralCode?: string | null;
   referralMe?: ReferralMeDto;
+  readErrored?: boolean;
 } = {}) => {
   const store = configureStore({
     rewardsMoney: {
       referralMe: {
-        [PROFILE_ID]: { loading: false, error: false, data: referralMe },
+        [PROFILE_ID]: { loading: false, error: readErrored, data: referralMe },
       },
       pendingReferralCode,
     },
-    rewards: { geoLocation: null },
   });
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
@@ -83,6 +89,8 @@ describe('useSocialPreviewReferralOffer', () => {
     expect(result.current).toEqual({
       status: 'none',
       pendingReferralCode: null,
+      benefitTitle: null,
+      termsLink: null,
     });
     expect(mockFetchReferralMe).not.toHaveBeenCalled();
   });
@@ -95,6 +103,52 @@ describe('useSocialPreviewReferralOffer', () => {
     expect(result.current.pendingReferralCode).toBe('KOL1');
     expect(DevLogger.log).not.toHaveBeenCalled();
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
+    expect(result.current.termsLink).toBeNull();
+    expect(result.current.benefitTitle).toBeNull();
+  });
+
+  it('takes the benefit copy from invitedBenefitTitle', async () => {
+    const { result } = renderOffer({
+      referralMe: buildReferralMe([], {
+        invitedBenefitTitle: '  Earning 50% rebates on Swaps and Perps  ',
+      }),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('offered'));
+    expect(result.current.benefitTitle).toBe(
+      'Earning 50% rebates on Swaps and Perps',
+    );
+  });
+
+  it('has no benefit copy when invitedBenefitTitle is blank', async () => {
+    const { result } = renderOffer({
+      referralMe: buildReferralMe([], { invitedBenefitTitle: '   ' }),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('offered'));
+    expect(result.current.benefitTitle).toBeNull();
+  });
+
+  it('resolves the invite terms link with the offer', async () => {
+    const { result } = renderOffer({
+      referralMe: buildReferralMe([], {
+        inviteTermsLearnMore: 'Learn more',
+        inviteTermsUrl: TERMS_URL,
+      }),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('offered'));
+    expect(result.current.termsLink).toEqual({
+      label: 'Learn more',
+      url: TERMS_URL,
+    });
+  });
+
+  it('does not offer the code when the fresh read failed and only stale data is cached', async () => {
+    const { result } = renderOffer({ readErrored: true });
+
+    await waitFor(() => expect(result.current.status).toBe('none'));
+    expectSkipLogged('read_failed');
   });
 
   it('does not offer the code to a user who was already referred', async () => {

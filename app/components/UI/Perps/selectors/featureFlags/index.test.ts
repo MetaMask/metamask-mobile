@@ -32,6 +32,8 @@ import {
   selectPerpsPriceAlertsEnabledFlag,
   selectPerpsPriceAlertsPercentChangeEnabledFlag,
   selectPerpsSocialEnabledFlag,
+  selectPerpsSocialVersionSupported,
+  selectIsPerpsSocialEnabled,
   PERPS_SOCIAL_ENABLED_FLAG_KEY,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
@@ -367,6 +369,73 @@ describe('Perps Feature Flag Selectors', () => {
 
       expect(result).toBe(false);
     });
+  });
+
+  describe('selectPerpsSocialVersionSupported', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags:
+              flag === undefined
+                ? {}
+                : { [PERPS_SOCIAL_ENABLED_FLAG_KEY]: flag },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns true when the app meets minimumVersion while the flag is disabled', () => {
+      jest.mocked(getVersion).mockReturnValue('8.21.0');
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.21.0',
+      });
+
+      const result = selectPerpsSocialVersionSupported(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false below minimumVersion', () => {
+      jest.mocked(getVersion).mockReturnValue('8.20.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.21.0',
+      });
+
+      const result = selectPerpsSocialVersionSupported(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is missing', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsSocialVersionSupported(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsPerpsSocialEnabled', () => {
+    it.each([
+      [true, true, true],
+      [true, false, false],
+      [false, true, false],
+      [false, false, false],
+    ])(
+      'with version supported %s and Social V1 access %s, returns %s',
+      (isVersionSupported, hasSocialV1Access, expected) => {
+        const result = selectIsPerpsSocialEnabled.resultFunc(
+          isVersionSupported,
+          hasSocialV1Access,
+        );
+
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe('selectPerpsEnabledFlag', () => {
