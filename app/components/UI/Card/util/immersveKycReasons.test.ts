@@ -1,86 +1,97 @@
 import {
-  describeImmersveKycFailureDetail,
-  describeImmersveKycRejection,
+  describeImmersveKycFinal,
+  describeImmersveKycReasonLines,
 } from './immersveKycReasons';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-describe('describeImmersveKycRejection', () => {
-  it('maps an ID document code to the document line', () => {
-    expect(describeImmersveKycRejection(['ID_DOCUMENT_EXPIRED'], true)).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.id_document',
-    );
-  });
+const line = (key: string) => `card.card_onboarding.kyc_reasons.${key}`;
 
-  it('keeps one line when several codes share a group', () => {
+describe('describeImmersveKycReasonLines', () => {
+  it('returns one line per failed check, in the order the codes arrived', () => {
     expect(
-      describeImmersveKycRejection(
-        ['DOCUMENT_PHOTO_UNCLEAR', 'DOCUMENT_PHOTO_OTHER'],
-        true,
-      ),
-    ).toBe('card.card_onboarding.kyc_rejected.reasons.document_photo');
+      describeImmersveKycReasonLines([
+        'ID_DOCUMENT_EXPIRED',
+        'BIOMETRICS_FAILED',
+      ]),
+    ).toStrictEqual([line('id_document_expired'), line('biometrics_failed')]);
   });
 
-  it('joins distinct groups in the order the codes arrived', () => {
+  it('drops a repeated code', () => {
     expect(
-      describeImmersveKycRejection(
-        ['BIOMETRICS_FAILED', 'PROOF_OF_ADDRESS_TOO_OLD'],
-        true,
-      ),
-    ).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.biometrics card.card_onboarding.kyc_rejected.reasons.proof_of_address',
-    );
+      describeImmersveKycReasonLines([
+        'DOCUMENT_PHOTO_UNCLEAR',
+        'DOCUMENT_PHOTO_UNCLEAR',
+      ]),
+    ).toStrictEqual([line('document_photo_unclear')]);
   });
 
-  it('ignores unknown codes when a known code is present', () => {
+  it('returns only the first incomplete step', () => {
     expect(
-      describeImmersveKycRejection(['RETRIABLE', 'VISA_NOT_FOUND'], true),
-    ).toBe('card.card_onboarding.kyc_rejected.reasons.personal_details');
+      describeImmersveKycReasonLines([
+        'PROOF_OF_ADDRESS_REQUIRED',
+        'IDV_NOT_COMPLETED',
+      ]),
+    ).toStrictEqual([line('proof_of_address_required')]);
   });
 
-  it('uses the retry generic line for unknown codes when a retry is allowed', () => {
-    expect(describeImmersveKycRejection(['KYC_RESET', 'UNKNOWN'], true)).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.generic',
-    );
+  it('prefers failed checks over incomplete steps', () => {
+    expect(
+      describeImmersveKycReasonLines([
+        'IDV_NOT_COMPLETED',
+        'NAME_NOT_VERIFIED',
+      ]),
+    ).toStrictEqual([line('name_not_verified')]);
   });
 
-  it('uses the permanent generic line when no retry is allowed', () => {
-    expect(describeImmersveKycRejection(undefined, false)).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.generic_permanent',
-    );
+  it('gives RETRIABLE the generic line when no specific failure is present', () => {
+    expect(describeImmersveKycReasonLines(['RETRIABLE'])).toStrictEqual([
+      line('generic_retry'),
+    ]);
   });
 
-  it('maps ineligible codes', () => {
-    expect(describeImmersveKycRejection(['PROFILE_LIMIT_REACHED'], false)).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.ineligible',
-    );
+  it('drops RETRIABLE when a specific failure is present', () => {
+    expect(
+      describeImmersveKycReasonLines(['RETRIABLE', 'VISA_NOT_FOUND']),
+    ).toStrictEqual([line('visa_not_found')]);
+  });
+
+  it.each([
+    ['CHECKS_IN_PROGRESS'],
+    ['KYC_RESET'],
+    ['UNKNOWN'],
+    ['INELIGIBLE'],
+    ['PROFILE_LIMIT_REACHED'],
+    ['SOME_NEW_CODE'],
+  ])('shows nothing for %s', (code) => {
+    expect(describeImmersveKycReasonLines([code])).toStrictEqual([]);
+  });
+
+  it('shows nothing without reasons', () => {
+    expect(describeImmersveKycReasonLines(undefined)).toStrictEqual([]);
   });
 });
 
-describe('describeImmersveKycFailureDetail', () => {
-  it('returns the known reason line', () => {
-    expect(describeImmersveKycFailureDetail(['ID_DOCUMENT_EXPIRED'])).toBe(
-      'card.card_onboarding.kyc_rejected.reasons.id_document',
-    );
+describe('describeImmersveKycFinal', () => {
+  it('uses the ineligible copy for INELIGIBLE', () => {
+    expect(describeImmersveKycFinal(['INELIGIBLE'])).toStrictEqual({
+      title: 'card.card_onboarding.kyc_failed.ineligible_title',
+      description: 'card.card_onboarding.kyc_failed.ineligible_description',
+    });
   });
 
-  it('returns null when there is no known reason', () => {
-    expect(describeImmersveKycFailureDetail(undefined)).toBeNull();
-    expect(describeImmersveKycFailureDetail(['RETRIABLE'])).toBeNull();
-  });
-
-  it('returns null when the only reason is ineligibility', () => {
-    expect(describeImmersveKycFailureDetail(['INELIGIBLE'])).toBeNull();
-    expect(
-      describeImmersveKycFailureDetail(['PROFILE_LIMIT_REACHED']),
-    ).toBeNull();
-  });
-
-  it('keeps a specific reason when ineligibility is also present', () => {
-    expect(
-      describeImmersveKycFailureDetail(['INELIGIBLE', 'BIOMETRICS_FAILED']),
-    ).toBe('card.card_onboarding.kyc_rejected.reasons.biometrics');
+  it.each([
+    [['PROFILE_LIMIT_REACHED']],
+    [['UNKNOWN']],
+    [['SOME_NEW_CODE']],
+    [[]],
+    [undefined],
+  ])('sends %p to support', (reasons) => {
+    expect(describeImmersveKycFinal(reasons)).toStrictEqual({
+      title: 'card.card_onboarding.kyc_failed.support_title',
+      description: 'card.card_onboarding.kyc_failed.support_description',
+    });
   });
 });

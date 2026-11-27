@@ -8,14 +8,15 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useReorderableDrag } from 'react-native-reorderable-list';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
-import styleSheet from './WatchlistFullScreenView.styles';
+import { useWatchlistRowReorder } from './useWatchlistRowReorder';
 
 interface WatchlistEditableRowChromeProps {
   isEditMode: boolean;
   onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   rowTestID?: string;
   children: React.ReactNode;
 }
@@ -29,16 +30,23 @@ interface WatchlistEditableRowChromeProps {
 const WatchlistEditableRowChrome = ({
   isEditMode,
   onRemove,
+  onMoveUp,
+  onMoveDown,
   rowTestID,
   children,
 }: WatchlistEditableRowChromeProps): React.JSX.Element => {
-  const { styles } = useStyles(styleSheet, {});
-  const drag = useReorderableDrag();
+  const tw = useTailwind();
+  const { handleLongPress, accessibilityActions, handleAccessibilityAction } =
+    useWatchlistRowReorder({ enabled: isEditMode, onMoveUp, onMoveDown });
 
   const rowBody = (
     <>
       <View
-        style={isEditMode ? styles.dragHandle : styles.editControlHidden}
+        style={tw.style(
+          isEditMode
+            ? 'h-10 mt-2 items-center justify-center pr-3'
+            : 'w-0 overflow-hidden',
+        )}
         pointerEvents="none"
       >
         <Icon
@@ -49,7 +57,7 @@ const WatchlistEditableRowChrome = ({
       </View>
 
       <View
-        style={styles.editableRowContent}
+        style={tw.style('flex-1 min-w-0')}
         pointerEvents={isEditMode ? 'none' : 'auto'}
       >
         {children}
@@ -58,24 +66,30 @@ const WatchlistEditableRowChrome = ({
   );
 
   return (
-    <View style={styles.editableRow} testID={rowTestID}>
+    <View style={tw.style('flex-row items-start')} testID={rowTestID}>
       {isEditMode ? (
         <Pressable
-          style={styles.dragArea}
-          onLongPress={drag}
+          style={tw.style('flex-1 flex-row items-start min-w-0')}
+          onLongPress={handleLongPress}
           delayLongPress={300}
           testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
           accessibilityRole="button"
           accessibilityLabel="Drag to reorder"
+          accessibilityActions={accessibilityActions}
+          onAccessibilityAction={handleAccessibilityAction}
         >
           {rowBody}
         </Pressable>
       ) : (
-        <View style={styles.dragArea}>{rowBody}</View>
+        <View style={tw.style('flex-1 flex-row items-start min-w-0')}>
+          {rowBody}
+        </View>
       )}
 
       {isEditMode ? (
-        <View style={styles.unwatchStar}>
+        <View
+          style={tw.style('h-10 mt-2 items-center justify-center pl-4 z-1')}
+        >
           <ButtonIcon
             iconName={IconName.Trash}
             size={ButtonIconSize.Md}

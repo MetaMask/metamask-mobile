@@ -7,13 +7,13 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import type { ListedPack } from '../types/packs';
 import { usePacksCatalog } from '../hooks/usePacksCatalog';

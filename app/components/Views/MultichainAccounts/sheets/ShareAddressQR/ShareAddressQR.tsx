@@ -50,6 +50,8 @@ export interface ShareAddressQRParams {
   chainId: string;
   groupId: AccountGroupId;
   location: string;
+  /** Address list entry point (`Address List Viewed` source), when known. */
+  source?: string;
   account: InternalAccount;
 }
 
@@ -67,7 +69,7 @@ export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId, location, account } =
+  const { address, networkName, chainId, groupId, location, source, account } =
     route.params;
   const accountGroup = useSelector((state: RootState) =>
     selectAccountGroupById(state, groupId),
@@ -91,8 +93,9 @@ export const ShareAddressQR = () => {
       location,
       account_type: getQrCodeViewedAccountType(account),
       chain_id_caip: formatChainIdToCaip(chainId),
+      ...(source && { source }),
     });
-  }, [account, chainId, createEventBuilder, location, trackEvent]);
+  }, [account, chainId, createEventBuilder, location, source, trackEvent]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -152,6 +155,7 @@ export const ShareAddressQR = () => {
           <QRAccountDisplay
             accountAddress={address}
             analyticsLocation="qr-code"
+            analyticsSource={source}
             chainId={chainId}
             label={strings('multichain_accounts.share_address_qr.title', {
               networkName,

@@ -8,9 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextColor,
-  TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,16 +16,25 @@ import VbaAccountCreateFailure from '../../../Ramp/Views/VirtualBankAccount/asse
 interface KYCFailedContentProps {
   /** Back to home. The caller decides whether that is a header arrow or this button. */
   onClose: () => void;
-  /** Specific rejection reason. Omitted when it would repeat the title. */
-  reasonLine?: string | null;
+  /** Immersve final copy. Baanx omits both and keeps the default copy. */
+  title?: string;
+  description?: string;
+  /** Adds a Contact support button when set. */
+  onContactSupport?: () => void;
 }
 
 /**
- * "Not eligible" body: the failure illustration, copy, and Back to home button.
+ * Final KYC body: the failure illustration, copy, Back to home, and optional
+ * Contact support.
  * Shared by the KYCFailed screen and the Immersve KYC result, which swaps this
  * in without leaving the screen. No tracking and no navigation.
  */
-const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
+const KYCFailedContent = ({
+  onClose,
+  title,
+  description,
+  onContactSupport,
+}: KYCFailedContentProps) => {
   const tw = useTailwind();
 
   return (
@@ -37,8 +43,11 @@ const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
         contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
       >
         <TitleStandard
-          title={strings('card.card_onboarding.kyc_failed.title')}
-          bottomLabel={strings('card.card_onboarding.kyc_failed.description')}
+          title={title ?? strings('card.card_onboarding.kyc_failed.title')}
+          bottomLabel={
+            description ??
+            strings('card.card_onboarding.kyc_failed.description')
+          }
           titleProps={{
             twClassName: 'text-center',
             testID: 'kyc-failed-title',
@@ -62,16 +71,6 @@ const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
             </Box>
           }
         />
-        {reasonLine ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
-            testID="kyc-failed-reason"
-          >
-            {reasonLine}
-          </Text>
-        ) : null}
       </ScrollView>
       <Box gap={2} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
         <Button
@@ -83,6 +82,17 @@ const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
         >
           {strings('card.card_onboarding.kyc_failed.close_button')}
         </Button>
+        {onContactSupport ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            onPress={onContactSupport}
+            isFullWidth
+            testID="kyc-failed-contact-support-button"
+          >
+            {strings('card.card_home.contact_support')}
+          </Button>
+        ) : null}
       </Box>
     </View>
   );
