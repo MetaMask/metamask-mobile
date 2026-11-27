@@ -7,6 +7,7 @@ import {
   SOCIAL_X_SIGN_IN_FAILURE_REASONS,
   SocialEvent,
   type SocialComposerEntry,
+  type SocialDirection,
   type SocialErrorArea,
   type SocialEventSource,
   type SocialFailureReason,
@@ -71,7 +72,11 @@ export type SocialMilestoneEmission =
     }
   | {
       event: (typeof MetaMetricsEvents)['SOCIAL_PROFILE_CREATED'];
-      properties: { path?: SocialOnboardingPath; uses_x_username?: boolean };
+      properties: {
+        path?: SocialOnboardingPath;
+        uses_x_username?: boolean;
+        has_social_profile: true;
+      };
     }
   | {
       event: (typeof MetaMetricsEvents)['SOCIAL_PROFILE_CREATION_FAILED'];
@@ -86,6 +91,23 @@ export type SocialMilestoneEmission =
         composer_entry?: SocialComposerEntry;
         trade_type?: SocialTradeType;
         has_gif?: boolean;
+        source?: SocialEventSource;
+        post_id?: string;
+      };
+    }
+  | {
+      event: (typeof MetaMetricsEvents)['SOCIAL_COPY_TRADE_SUBMITTED'];
+      properties: {
+        trade_type: SocialTradeType;
+        screen_name?: SocialScreenName;
+        source?: SocialEventSource;
+        asset?: string;
+        direction?: SocialDirection;
+        amount_usd?: number;
+        metamask_fee?: number;
+        order_id?: string;
+        post_id?: string;
+        author_trader_id?: string;
       };
     }
   | {
@@ -272,10 +294,15 @@ const getInteractionMilestones = (
         return [
           {
             event: MetaMetricsEvents.SOCIAL_PROFILE_CREATED,
-            properties: definedOnly({
-              path: properties.path,
-              uses_x_username: properties.uses_x_username,
-            }),
+            properties: {
+              ...definedOnly({
+                path: properties.path,
+                uses_x_username: properties.uses_x_username,
+              }),
+              // The profile now exists, even if the linked account has not
+              // synced to state yet.
+              has_social_profile: true,
+            },
           },
         ];
       }
@@ -307,6 +334,28 @@ const getInteractionMilestones = (
             composer_entry: properties.composer_entry,
             trade_type: properties.trade_type,
             has_gif: properties.has_gif,
+            source: properties.source,
+            post_id: properties.post_id,
+          }),
+        },
+      ];
+
+    case Interaction.COPY_TRADE_SUBMITTED:
+      // Perps copy trades. Spot copy trades are emitted from Quick Buy.
+      return [
+        {
+          event: MetaMetricsEvents.SOCIAL_COPY_TRADE_SUBMITTED,
+          properties: definedOnly({
+            trade_type: properties.trade_type ?? SocialEvent.Trade.PERPS,
+            screen_name: properties.screen_name,
+            source: properties.source,
+            asset: properties.asset,
+            direction: properties.direction,
+            amount_usd: properties.amount_usd,
+            metamask_fee: properties.metamask_fee,
+            order_id: properties.order_id,
+            post_id: properties.post_id,
+            author_trader_id: properties.author_trader_id,
           }),
         },
       ];
