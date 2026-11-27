@@ -9,7 +9,12 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import type { CaipAssetType, CaipChainId } from '@metamask/utils';
+import {
+  KnownCaipNamespace,
+  toCaipAccountId,
+  toCaipAssetType,
+  toCaipChainId,
+} from '@metamask/utils';
 import {
   CARD_BLOCK_NUMBER,
   CARD_TX_HASH,
@@ -74,29 +79,34 @@ function inferAssetClass(transferType?: string): 'ft' | 'nft' {
   return 'ft';
 }
 
-function toCaipAssetId(
+function toValueTransferAssetType(
   chainId: number,
   transfer: NonNullable<MockAccountsApiTransaction['valueTransfers']>[number],
-): CaipAssetType {
-  const chain: CaipChainId = `eip155:${chainId}`;
+) {
+  const reference = String(chainId);
   if (transfer.contractAddress) {
     const assetClass = inferAssetClass(transfer.transferType);
-    if (assetClass === 'nft') {
-      return `${chain}/erc721:${transfer.contractAddress}`;
-    }
-    return `${chain}/erc20:${transfer.contractAddress}`;
+    return toCaipAssetType(
+      KnownCaipNamespace.Eip155,
+      reference,
+      assetClass === 'nft' ? 'erc721' : 'erc20',
+      transfer.contractAddress,
+    );
   }
-  return `${chain}/slip44:60`;
+  return toCaipAssetType(KnownCaipNamespace.Eip155, reference, 'slip44', '60');
 }
 
 function toV5TransactionRecord(
   transaction: MockAccountsApiTransaction,
   subjectAddress: string,
 ): V5TransactionRecord {
-  const chainId: CaipChainId = `eip155:${transaction.chainId}`;
+  const chainId = toCaipChainId(
+    KnownCaipNamespace.Eip155,
+    String(transaction.chainId),
+  );
 
   return {
-    accountId: `eip155:0:${subjectAddress}`,
+    accountId: toCaipAccountId(KnownCaipNamespace.Eip155, '0', subjectAddress),
     tx: {
       id: transaction.hash,
       chainId,
@@ -116,7 +126,7 @@ function toV5TransactionRecord(
       assetClass: inferAssetClass(transfer.transferType),
       from: transfer.from,
       to: transfer.to,
-      assetId: toCaipAssetId(transaction.chainId, transfer),
+      assetId: toValueTransferAssetType(transaction.chainId, transfer),
       amount: transfer.amount,
       decimal: transfer.decimal,
       symbol: transfer.symbol,

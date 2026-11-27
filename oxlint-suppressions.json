@@ -14492,7 +14492,7 @@
   },
   "app/components/Views/ActivityDetails/hooks/useActivityDetailsItem.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 10
+      "count": 4
     }
   },
   "app/components/Views/ActivityDetails/templates/Earn/useActivityDetailsLendAgain.test.ts": {
@@ -14574,12 +14574,7 @@
   },
   "app/components/Views/ActivityList/helpers/transformations.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
-  "app/components/Views/ActivityList/hooks/activity/useApiTransaction.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/Views/ActivityList/hooks/activity/useCachedEvmTransaction.test.ts": {
