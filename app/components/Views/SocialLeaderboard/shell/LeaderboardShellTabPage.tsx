@@ -207,7 +207,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const listTopPadding = 16 + contentTopInset;
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={containerTestID}>
+    <Box className="flex-1 bg-default" testID={containerTestID}>
       {hasBeenActive && (
         <>
           <SocialFeedSurfaceProvider showMockedFields>

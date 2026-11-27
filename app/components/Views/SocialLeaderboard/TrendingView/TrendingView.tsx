@@ -59,7 +59,7 @@ const TRENDING_INLINE_ROWS: readonly SocialFeedInlineRow[] = [
       // The rail pulls itself 16px up and the header has no vertical padding,
       // so 8px sits above the title. With the divider's 4px margin, that reads
       // as 12px, the same gap a post keeps above its content.
-      <Box twClassName="pt-6 pb-2">
+      <Box className="pt-6 pb-2">
         <PopularTradersCarousel />
       </Box>
     ),
@@ -68,7 +68,7 @@ const TRENDING_INLINE_ROWS: readonly SocialFeedInlineRow[] = [
 
 // Cancels the padding above the slot so the copy starts 48px under the tabs.
 const TRENDING_EMPTY_STATE = (
-  <Box twClassName="-mt-4">
+  <Box className="-mt-4">
     <SocialV1FeedEmptyState tab="trending" />
   </Box>
 );
@@ -187,7 +187,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
     () => (
       // The filter rail cancels 16px of the space under it, which leaves 8px
       // above the first post's own 8px.
-      <Box twClassName="pt-4 pb-6">
+      <Box className="pt-4 pb-6">
         <TrendingFilterRail
           onOpenFilters={onOpenFilters}
           isFilterActive={isFilterActive}
@@ -217,7 +217,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   const emptyState = useMemo(() => {
     if (isFilterActive) {
       return (
-        <Box twClassName="-mt-4">
+        <Box className="-mt-4">
           <SocialFilterEmptyState
             onClear={onClearFilters ?? (() => undefined)}
           />
@@ -228,7 +228,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   }, [isFilterActive, onClearFilters, selectedToken]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       {hasBeenActive ? (
         <SocialFeed
           {...TRENDING_FEED_QUERY}

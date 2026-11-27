@@ -92,7 +92,7 @@ function FilterOptionSheetInner<T extends string>({
       */}
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
-          <Box twClassName="absolute inset-0">
+          <Box className="absolute inset-0">
             <Pressable
               style={[
                 StyleSheet.absoluteFill,
@@ -113,7 +113,7 @@ function FilterOptionSheetInner<T extends string>({
               >
                 {title}
               </BottomSheetHeaderGlass>
-              <Box twClassName="pb-4">
+              <Box className="pb-4">
                 {options.map((option) => {
                   const isSelected = option === value;
                   return (

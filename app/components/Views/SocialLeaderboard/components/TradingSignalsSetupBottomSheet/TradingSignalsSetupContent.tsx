@@ -90,14 +90,14 @@ const TradingSignalsSetupContent = () => {
 
   return (
     <>
-      <Box twClassName="px-4 pt-2 pb-4">
+      <Box className="px-4 pt-2 pb-4">
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_opts.social_ai_title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {strings('app_settings.notifications_opts.social_ai_desc')}
         </Text>
@@ -107,7 +107,7 @@ const TradingSignalsSetupContent = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-4"
+        className="px-4 py-4"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('app_settings.notifications_opts.push_recommended')}
@@ -130,7 +130,7 @@ const TradingSignalsSetupContent = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pb-4"
+        className="px-4 pb-4"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('app_settings.notifications_opts.in_app')}

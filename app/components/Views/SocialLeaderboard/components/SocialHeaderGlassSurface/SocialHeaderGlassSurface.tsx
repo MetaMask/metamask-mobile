@@ -48,7 +48,7 @@ const SocialHeaderGlassSurface = ({
 
   return (
     <Box
-      twClassName={`h-10 flex-row items-center rounded-full border border-muted bg-section ${twClassName}`}
+      className={`h-10 flex-row items-center rounded-full border border-muted bg-section ${twClassName}`}
       testID={testID}
     >
       {children}
