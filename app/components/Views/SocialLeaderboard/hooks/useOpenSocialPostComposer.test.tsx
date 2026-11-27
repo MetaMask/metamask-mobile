@@ -149,7 +149,12 @@ describe('useOpenSocialPostComposer', () => {
 
     result.current.openComposer();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: 'post_composer',
+      },
+    );
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 

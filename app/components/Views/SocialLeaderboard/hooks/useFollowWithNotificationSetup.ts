@@ -1,4 +1,6 @@
 import { useCallback } from 'react';
+import { SocialEvent, useTrackSocialActionBlocked } from '../analytics';
+import type { SocialScreenName } from '../analytics/socialEvents';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
@@ -6,7 +8,15 @@ import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnbo
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
 
+const FOLLOW_GATE = { trigger: SocialEvent.OnboardingTrigger.FOLLOW } as const;
+
 export interface UseFollowWithNotificationSetupOptions {
+  /**
+   * The Social screen that hosts the Follow button. A redirected Follow is
+   * reported as `action_blocked` on it. Leave it out only on hosts that turn
+   * both gates off.
+   */
+  screenName?: SocialScreenName;
   requireSocialTerms?: boolean;
   /**
    * Gates Follow behind a linked social wallet. Social V1 hosts pass this;
@@ -52,14 +62,20 @@ export interface UseFollowWithNotificationSetupResult {
  * all wrap their own `toggleFollow` call in this same prompt.
  */
 export const useFollowWithNotificationSetup = ({
+  screenName,
   requireSocialTerms = false,
   requireSocialProfile = false,
   runNavigation,
 }: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
-  const { ensureSocialTermsAccepted } = useSocialTermsGate({ runNavigation });
+  const onBlocked = useTrackSocialActionBlocked(screenName);
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({
+    runNavigation,
+    onBlocked,
+  });
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
     runNavigation,
+    onBlocked,
   });
 
   const followWithSetup = useCallback(
@@ -70,13 +86,13 @@ export const useFollowWithNotificationSetup = ({
       // The gate blocked the toggle, so replaying it after Accept runs it once.
       if (
         requireSocialTerms &&
-        !ensureSocialTermsAccepted(() => {
+        !ensureSocialTermsAccepted(FOLLOW_GATE, () => {
           follow(isFollowing, performFollow).catch(() => undefined);
         })
       ) {
         return;
       }
-      if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
+      if (requireSocialProfile && !ensureSocialProfileOnboarding(FOLLOW_GATE)) {
         return;
       }
       await performFollow();

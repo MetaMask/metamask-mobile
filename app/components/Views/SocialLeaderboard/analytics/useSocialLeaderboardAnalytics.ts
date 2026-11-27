@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
+import { hasSocialProfileFromLinkedAddress } from '../../../../util/social/socialProfileAnalytics';
 
 /**
  * Imperative analytics hook for the social leaderboard / follow-trading
@@ -13,17 +16,26 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
  */
 export const useSocialLeaderboardAnalytics = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const linkedAddress = useSelector(selectProfileControllerLinkedEvmAddress);
+  const hasSocialProfile = hasSocialProfileFromLinkedAddress(linkedAddress);
 
+  // `has_social_profile` is the value when the event fires. A caller can set
+  // its own value, as the profile-created event does.
   const track = useCallback(
     (
       eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
       properties: Record<string, unknown> = {},
     ): void => {
       trackEvent(
-        createEventBuilder(eventName).addProperties(properties).build(),
+        createEventBuilder(eventName)
+          .addProperties({
+            has_social_profile: hasSocialProfile,
+            ...properties,
+          })
+          .build(),
       );
     },
-    [trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, hasSocialProfile],
   );
 
   return { track };

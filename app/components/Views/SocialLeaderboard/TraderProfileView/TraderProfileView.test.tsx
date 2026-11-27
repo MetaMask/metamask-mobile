@@ -693,6 +693,7 @@ describe('TraderProfileView', () => {
     expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
       requireSocialTerms: true,
       requireSocialProfile: true,
+      screenName: 'trader_profile',
     });
   });
 
@@ -702,6 +703,7 @@ describe('TraderProfileView', () => {
     expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
       requireSocialTerms: false,
       requireSocialProfile: false,
+      screenName: 'trader_profile',
     });
   });
 

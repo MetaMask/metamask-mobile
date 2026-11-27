@@ -2,9 +2,10 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useFollowWithNotificationSetup } from './useFollowWithNotificationSetup';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 
-const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
-  () => true,
-);
+const mockEnsureSocialTermsAccepted = jest.fn<
+  boolean,
+  [unknown, (() => void)?]
+>(() => true);
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
 const mockTermsGateOptions = jest.fn();
 const mockProfileGateOptions = jest.fn();
@@ -25,6 +26,10 @@ jest.mock('./useRequireSocialProfileOnboarding', () => ({
     mockProfileGateOptions(options);
     return { ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding };
   },
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => undefined,
 }));
 jest.mock('./useOpenTradingSignalsSetup');
 
@@ -86,7 +91,7 @@ describe('useFollowWithNotificationSetup', () => {
     );
     await result.current.followWithSetup(false, performFollow);
 
-    mockEnsureSocialTermsAccepted.mock.calls[0][0]?.();
+    mockEnsureSocialTermsAccepted.mock.calls[0][1]?.();
 
     await waitFor(() => expect(openSetupIfNeeded).toHaveBeenCalledTimes(1));
     expect(performFollow).toHaveBeenCalledTimes(1);

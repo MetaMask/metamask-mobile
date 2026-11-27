@@ -196,6 +196,7 @@ jest.mock('../analytics', () => {
     ...events,
     ...socialEvents,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useTrackSocialActionBlocked: () => jest.fn(),
     useSocialFeedInteractions: () => mockFeedInteractions,
     useSocialInteraction: () => mockTrack,
     useSocialScreenAnalytics: () => mockTrack,

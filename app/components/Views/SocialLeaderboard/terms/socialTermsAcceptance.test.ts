@@ -2,6 +2,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import ReduxService from '../../../../core/redux/ReduxService';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import { SocialEvent } from '../analytics/socialEvents';
 import {
   SOCIAL_TERMS_VERSION,
   acceptSocialTerms,
@@ -22,6 +23,8 @@ jest.mock('../../../../store/storage-wrapper', () => ({
     removeItem: jest.fn(() => Promise.resolve()),
   },
 }));
+
+const GATE = { trigger: SocialEvent.OnboardingTrigger.FOLLOW };
 
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
 const mockGetItem = jest.mocked(StorageWrapper.getItem);
@@ -122,7 +125,7 @@ describe('socialTermsAcceptance', () => {
       mockGetItemSync.mockReturnValue(SOCIAL_TERMS_VERSION);
       const navigate = jest.fn();
 
-      expect(ensureSocialTermsAccepted(navigate)).toBe(true);
+      expect(ensureSocialTermsAccepted(navigate, GATE)).toBe(true);
       expect(navigate).not.toHaveBeenCalled();
     });
 
@@ -130,8 +133,10 @@ describe('socialTermsAcceptance', () => {
       mockGetItemSync.mockReturnValue(null);
       const navigate = jest.fn();
 
-      expect(ensureSocialTermsAccepted(navigate)).toBe(false);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+      expect(ensureSocialTermsAccepted(navigate, GATE)).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: GATE.trigger,
+      });
     });
 
     it('opens profile onboarding through runNavigation when one is given', () => {
@@ -140,11 +145,26 @@ describe('socialTermsAcceptance', () => {
       const runNavigation = jest.fn();
 
       expect(
-        ensureSocialTermsAccepted(navigate, undefined, runNavigation),
+        ensureSocialTermsAccepted(navigate, { ...GATE, runNavigation }),
       ).toBe(false);
       expect(navigate).not.toHaveBeenCalled();
       runNavigation.mock.calls[0][0]();
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: GATE.trigger,
+      });
+    });
+
+    it('passes the gated trigger to onboarding as a route param', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+
+      ensureSocialTermsAccepted(navigate, {
+        trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      });
     });
 
     it('records the current version and skips the sheet when a profile exists and nothing is stored', () => {
@@ -160,7 +180,7 @@ describe('socialTermsAcceptance', () => {
       } as typeof ReduxService.store);
       const navigate = jest.fn();
 
-      expect(ensureSocialTermsAccepted(navigate)).toBe(true);
+      expect(ensureSocialTermsAccepted(navigate, GATE)).toBe(true);
 
       expect(navigate).not.toHaveBeenCalled();
       expect(mockSetItem).toHaveBeenCalledWith(
@@ -183,10 +203,11 @@ describe('socialTermsAcceptance', () => {
       } as typeof ReduxService.store);
       const navigate = jest.fn();
 
-      expect(ensureSocialTermsAccepted(navigate)).toBe(false);
+      expect(ensureSocialTermsAccepted(navigate, GATE)).toBe(false);
 
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
         termsOnly: true,
+        trigger: GATE.trigger,
       });
       expect(mockSetItem).not.toHaveBeenCalled();
     });
@@ -195,7 +216,10 @@ describe('socialTermsAcceptance', () => {
       mockGetItemSync.mockReturnValue(null);
       const openEntry = jest.fn();
 
-      ensureSocialTermsAccepted(jest.fn(), openEntry);
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: openEntry,
+      });
 
       expect(takePendingSocialEntry()).toBe(openEntry);
       expect(takePendingSocialEntry()).toBeUndefined();
@@ -204,8 +228,11 @@ describe('socialTermsAcceptance', () => {
     it('replaces an older blocked entry on the next gate call', () => {
       mockGetItemSync.mockReturnValue(null);
 
-      ensureSocialTermsAccepted(jest.fn(), jest.fn());
-      ensureSocialTermsAccepted(jest.fn());
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: jest.fn(),
+      });
+      ensureSocialTermsAccepted(jest.fn(), GATE);
 
       expect(takePendingSocialEntry()).toBeUndefined();
     });
@@ -213,7 +240,10 @@ describe('socialTermsAcceptance', () => {
     it('holds nothing when the terms are already accepted', () => {
       mockGetItemSync.mockReturnValue(SOCIAL_TERMS_VERSION);
 
-      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: jest.fn(),
+      });
 
       expect(takePendingSocialEntry()).toBeUndefined();
     });

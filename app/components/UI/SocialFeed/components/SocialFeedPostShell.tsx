@@ -64,9 +64,14 @@ import {
   SocialEvent,
   type SocialBlockedReason,
   type SocialCopyTradeAnalyticsProperties,
+  type SocialGate,
   type SocialPositionAnalyticsProperties,
 } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
+
+const REACT_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.REACT,
+};
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
@@ -294,21 +299,35 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const postRef = useRef<View>(null);
   const windowOffsetY = useContext(SocialFeedWindowOffsetContext);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked: tracked.onActionBlocked,
+  });
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({
+    onBlocked: tracked.onActionBlocked,
+  });
+  const postAnalytics = useMemo(() => socialFeedPostAnalytics(post), [post]);
   const getCopyTradeBlockedReason = useCallback(
     (onAccepted?: () => void): SocialBlockedReason | null => {
-      if (!ensureSocialTermsAccepted(onAccepted)) {
+      const gate: SocialGate = {
+        trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+        ...(postAnalytics.trade_type
+          ? { tradeType: postAnalytics.trade_type }
+          : {}),
+      };
+      if (!ensureSocialTermsAccepted(gate, onAccepted)) {
         return SocialEvent.BlockedReason.TERMS;
       }
-      if (!ensureSocialProfileOnboarding()) {
+      if (!ensureSocialProfileOnboarding(gate)) {
         return SocialEvent.BlockedReason.PROFILE_ONBOARDING;
       }
       return null;
     },
-    [ensureSocialProfileOnboarding, ensureSocialTermsAccepted],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      postAnalytics.trade_type,
+    ],
   );
-  const postAnalytics = useMemo(() => socialFeedPostAnalytics(post), [post]);
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -382,8 +401,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const openPicker = useCallback(
     function open(): void {
       if (
-        !ensureSocialTermsAccepted(open) ||
-        !ensureSocialProfileOnboarding()
+        !ensureSocialTermsAccepted(REACT_GATE, open) ||
+        !ensureSocialProfileOnboarding(REACT_GATE)
       ) {
         return;
       }
@@ -410,8 +429,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const toggleEmotion = useCallback(
     function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsAccepted(() => toggle(emotion, withHaptic)) ||
-        !ensureSocialProfileOnboarding() ||
+        !ensureSocialTermsAccepted(REACT_GATE, () =>
+          toggle(emotion, withHaptic),
+        ) ||
+        !ensureSocialProfileOnboarding(REACT_GATE) ||
         isPending
       ) {
         return;

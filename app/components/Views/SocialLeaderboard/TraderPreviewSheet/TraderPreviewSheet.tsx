@@ -53,8 +53,10 @@ import { InviteTermsLink } from '../../../UI/Rewards/components/InviteTermsLink'
 import type { InviteTermsLink as InviteTermsLinkValue } from '../../../UI/Rewards/utils/inviteTermsLink';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import { traderProfileResponseToMySocialProfile } from '../MyProfileView/utils/traderProfileResponseToMySocialProfile';
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
+import { SocialEvent, useTrackSocialActionBlocked } from '../analytics';
+import type { SocialGate } from '../analytics/socialEvents';
 import {
   getPendingSocialPreviewTarget,
   setPendingSocialPreviewTarget,
@@ -300,6 +302,10 @@ const ReferralCodeRow = ({
     </Skeleton>
   );
 
+const JOIN_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.TRADER_PREVIEW_JOIN,
+};
+
 /**
  * Opened over Home when someone who has not joined Social opens a trader
  * profile or position link. Shows the trader's public profile: followers and
@@ -310,7 +316,13 @@ const ReferralCodeRow = ({
  */
 const TraderPreviewSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const onBlocked = useTrackSocialActionBlocked(
+    SocialEvent.Screen.TRADER_PREVIEW_SHEET,
+  );
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked,
+  });
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({ onBlocked });
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
@@ -422,14 +434,14 @@ const TraderPreviewSheet = () => {
     }
     sheetRef.current?.onCloseBottomSheet(() => {
       // Opens onboarding, or the terms alone for an existing profile.
-      if (ensureSocialTermsAccepted(navigation.navigate)) {
-        ensureSocialProfileOnboarding();
+      if (ensureSocialTermsAccepted(JOIN_GATE)) {
+        ensureSocialProfileOnboarding(JOIN_GATE);
       }
     });
   }, [
     dispatch,
     ensureSocialProfileOnboarding,
-    navigation,
+    ensureSocialTermsAccepted,
     offeredReferralCode,
     referralOffer.pendingReferralCode,
   ]);

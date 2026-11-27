@@ -49,6 +49,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
+  useSelector: () => undefined,
 }));
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -593,7 +594,10 @@ describe('TraderPreviewSheet', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         clearPendingReferralCode('CODE1234'),
       );
-      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
+        mockNavigate,
+        expect.objectContaining({ trigger: 'trader_preview_join' }),
+      );
     });
 
     it('opens profile onboarding on join once the terms are accepted', () => {
@@ -615,7 +619,10 @@ describe('TraderPreviewSheet', () => {
         screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
       );
 
-      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
+        mockNavigate,
+        expect.objectContaining({ trigger: 'trader_preview_join' }),
+      );
       expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
     });
 

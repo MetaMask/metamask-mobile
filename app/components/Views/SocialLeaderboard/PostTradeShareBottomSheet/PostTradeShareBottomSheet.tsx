@@ -217,7 +217,9 @@ const PostTradeShareBottomSheet: React.FC = () => {
     }
     if (session.variant === 'create_profile') {
       clearPostTradeShareSession();
-      NavigationService.navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      NavigationService.navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: SocialEvent.OnboardingTrigger.POST_COMPOSER,
+      });
       return;
     }
     if (!canShare) {

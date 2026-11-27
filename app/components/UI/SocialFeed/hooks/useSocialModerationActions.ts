@@ -8,12 +8,22 @@ import { reportSocialServiceFailure } from '../../../../util/social/socialServic
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import {
+  SocialEvent,
+  useTrackSocialActionBlocked,
+} from '../../../Views/SocialLeaderboard/analytics';
+import type { SocialGate } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import {
   blockComment,
   blockProfile,
   invalidateBlockLists,
 } from '../moderationApi';
 import { SocialEntryReportReason } from '../reportReasons';
 import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
+
+/** Block and report need a Social profile. */
+const MODERATION_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.MODERATION,
+};
 
 /** The post an action is about. */
 export interface SocialModerationTarget {
@@ -58,7 +68,12 @@ export interface SocialModerationActions {
  */
 export const useSocialModerationActions = (): SocialModerationActions => {
   const { toastRef } = useContext(ToastContext);
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const onBlocked = useTrackSocialActionBlocked(
+    SocialEvent.Screen.POST_OPTIONS_SHEET,
+  );
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked,
+  });
   const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
 
   const showToast = useCallback(
@@ -79,7 +94,7 @@ export const useSocialModerationActions = (): SocialModerationActions => {
       operation: string,
       request?: () => Promise<void>,
     ) => {
-      if (!ensureSocialProfileOnboarding()) {
+      if (!ensureSocialProfileOnboarding(MODERATION_GATE)) {
         return;
       }
       update.apply();

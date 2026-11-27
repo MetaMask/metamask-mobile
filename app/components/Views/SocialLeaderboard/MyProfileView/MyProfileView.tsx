@@ -247,6 +247,7 @@ const MyProfileView: React.FC = () => {
     toggleFollow,
   } = liveProfile;
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.MY_PROFILE,
     requireSocialTerms: true,
     requireSocialProfile: true,
   });
@@ -589,7 +590,9 @@ const MyProfileView: React.FC = () => {
   }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+      trigger: SocialEvent.OnboardingTrigger.MY_PROFILE_AVATAR,
+    });
   }, [navigation]);
 
   const buildProfileOgImageRequest = useCallback(

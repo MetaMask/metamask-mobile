@@ -78,6 +78,12 @@ import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {
+  getSocialProfileCreatedAt,
+  recordSocialProfileCreatedAt,
+} from '../../../../util/social/socialProfileAnalytics';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   applyXOnboardingProfile,
@@ -123,21 +129,28 @@ import XProfileIdentityStep from './XProfileIdentityStep';
 import {
   SocialEvent,
   getXSignInFailureReason,
+  isSocialOnboardingTrigger,
   useSocialScreenAnalytics,
 } from '../analytics';
 import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
+  hasPendingSocialEntry,
   takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { useOpenPendingSocialPreviewTarget } from '../TraderPreviewSheet/useOpenPendingSocialPreviewTarget';
-import { takePendingSocialPreviewTarget } from '../TraderPreviewSheet/pendingSocialPreviewTarget';
+import {
+  getPendingSocialPreviewTarget,
+  takePendingSocialPreviewTarget,
+} from '../TraderPreviewSheet/pendingSocialPreviewTarget';
+import { getOnboardingExitMethod } from './utils/getOnboardingExitMethod';
+import { isPendingActionResumable } from './utils/isPendingActionResumable';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
-const { Interaction, Outcome, Path, Screen, Step } = SocialEvent;
+const { DismissMethod, Interaction, Outcome, Path, Screen, Step } = SocialEvent;
 
 const onboardingPathFor = (
   path: ProfileOnboardingPath,
@@ -664,8 +677,20 @@ const SocialProfileOnboardingView: React.FC = () => {
   const isProfileCreatedAndVerified =
     profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
+  // The gated action that sent the user here. Rides on the screen view, every
+  // interaction in onboarding and onboarding_completed.
+  const routeTrigger = route.params?.trigger;
+  const onboardingTrigger = isSocialOnboardingTrigger(routeTrigger)
+    ? routeTrigger
+    : undefined;
+  const triggerProperties = useMemo(
+    () =>
+      onboardingTrigger ? { onboarding_trigger: onboardingTrigger } : undefined,
+    [onboardingTrigger],
+  );
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
+    properties: triggerProperties,
   });
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -688,6 +713,11 @@ const SocialProfileOnboardingView: React.FC = () => {
   const fetchAndUpdateProfileRef = useRef(fetchAndUpdateProfile);
   const existingProfileLookupResultRef = useRef(existingProfileLookupResult);
   const trackInteractionRef = useRef(trackInteraction);
+  const { identify } = useAnalytics();
+  const identifyRef = useRef(identify);
+  identifyRef.current = identify;
+  /** The exit was already reported, so a second signal must not repeat it. */
+  const exitTrackedRef = useRef(false);
   draftRef.current = draft;
   accountsRef.current = accounts;
   stepRef.current = step;
@@ -782,9 +812,37 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleClose = useCallback(() => {
     cancelConnectX();
     setIsConnectingX(false);
-    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
+    exitTrackedRef.current = true;
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: Outcome.DISMISSED,
+      dismiss_method: DismissMethod.CLOSE_BUTTON,
+    });
     navigation.goBack();
   }, [cancelConnectX, navigation, trackInteraction]);
+
+  // Swipe-back and the Android back button leave without touching a button, so
+  // read how the screen is being removed instead.
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (event) => {
+        if (exitTrackedRef.current) {
+          return;
+        }
+        const dismissMethod = getOnboardingExitMethod(
+          event.data.action,
+          Platform.OS,
+        );
+        if (!dismissMethod) {
+          return;
+        }
+        exitTrackedRef.current = true;
+        trackInteractionRef.current(Interaction.BUTTON_CLICKED, {
+          outcome: Outcome.DISMISSED,
+          dismiss_method: dismissMethod,
+        });
+      }),
+    [navigation],
+  );
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -1126,12 +1184,20 @@ const SocialProfileOnboardingView: React.FC = () => {
   ]);
 
   const handleTermsClose = useCallback(() => {
-    trackInteraction(Interaction.SHEET_DISMISSED, {
-      outcome: Outcome.DISMISSED,
+    const termsProperties = {
       step: Step.TERMS,
       ...(pendingTermsPath
         ? { path: onboardingPathFor(pendingTermsPath) }
         : {}),
+    };
+    // Closing the sheet is the user declining the terms.
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: Outcome.DECLINED,
+      ...termsProperties,
+    });
+    trackInteraction(Interaction.SHEET_DISMISSED, {
+      outcome: Outcome.DISMISSED,
+      ...termsProperties,
     });
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
@@ -1342,11 +1408,30 @@ const SocialProfileOnboardingView: React.FC = () => {
     setProfileCreated(true);
     setIsSubmitting(false);
     if (isFirstPublish) {
+      // The profile trait is set now, because the linked account the trait
+      // reads from may not have synced to redux yet.
+      const createdAt = new Date();
+      recordSocialProfileCreatedAt(createdAt)
+        .then(() =>
+          identifyRef.current({
+            [UserProfileProperty.HAS_SOCIAL_PROFILE]: true,
+            [UserProfileProperty.SOCIAL_PROFILE_CREATED_AT]:
+              getSocialProfileCreatedAt() ?? createdAt.toISOString(),
+          }),
+        )
+        .catch(() => undefined);
       trackInteractionRef.current(Interaction.ONBOARDING_COMPLETED, {
         outcome: Outcome.SUCCESS,
         traders_followed_count: 0,
         path: onboardingPathFor(current.path),
         uses_x_username: current.useXUsername,
+        // Predicted here: the user has not tapped the ready step's CTA yet.
+        // Uses the same pending state, in the same order, as `handleFinish`.
+        is_action_resumed: isPendingActionResumable({
+          previewTarget: getPendingSocialPreviewTarget(),
+          hasPendingEntry: hasPendingSocialEntry(),
+          path: current.path,
+        }),
       });
     }
   };

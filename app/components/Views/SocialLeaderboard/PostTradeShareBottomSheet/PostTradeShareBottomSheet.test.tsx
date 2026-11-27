@@ -245,7 +245,9 @@ describe('PostTradeShareBottomSheet', () => {
         screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView', {
+        trigger: 'post_composer',
+      });
       expect(getPostTradeShareSession()).toBeNull();
     });
   });

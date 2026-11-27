@@ -25,6 +25,7 @@ import { selectHasSocialV1Access } from '../../../../selectors/featureFlagContro
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { TopTrader } from '../../../Views/Homepage/Sections/TopTraders/types';
 import {
+  SocialEvent,
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../../../Views/SocialLeaderboard/analytics';
@@ -187,6 +188,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const hasSocialV1Access = useSelector(selectHasSocialV1Access);
   const { track } = useSocialLeaderboardAnalytics();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.LEADERBOARD,
     requireSocialTerms: true,
     requireSocialProfile: requireSocialProfile ?? hasSocialV1Access,
   });

@@ -41,6 +41,7 @@ import {
   displayNameFromUsername,
   MAX_DISPLAY_NAME_LENGTH,
 } from './profileOnboardingDraft';
+import { SocialEvent } from '../analytics/socialEvents';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { strings } from '../../../../../locales/i18n';
 import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
@@ -500,6 +501,8 @@ const restoreProfileControllerMocks = () => {
   });
 };
 
+const GATE = { trigger: SocialEvent.OnboardingTrigger.FOLLOW };
+
 describe('SocialProfileOnboardingView', () => {
   beforeEach(async () => {
     restoreProfileControllerMocks();
@@ -805,7 +808,10 @@ describe('SocialProfileOnboardingView', () => {
 
     it('continues to the blocked Social entry once the terms-only sheet is accepted', () => {
       const openBlockedEntry = jest.fn();
-      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: openBlockedEntry,
+      });
       renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
 
       agreeToTerms();
@@ -816,7 +822,10 @@ describe('SocialProfileOnboardingView', () => {
 
     it('drops the blocked Social entry when the terms-only sheet is closed', () => {
       const openBlockedEntry = jest.fn();
-      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: openBlockedEntry,
+      });
       renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
 
       fireEvent.press(
@@ -828,7 +837,10 @@ describe('SocialProfileOnboardingView', () => {
     });
 
     it('forgets the blocked Social entry when onboarding closes', () => {
-      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: jest.fn(),
+      });
       const { unmount } = renderSocialProfileOnboarding([], {
         initialParams: { termsOnly: true },
       });
@@ -840,7 +852,10 @@ describe('SocialProfileOnboardingView', () => {
 
     it('opens the blocked Social entry instead of the feed after a new profile', async () => {
       const openBlockedEntry = jest.fn();
-      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: openBlockedEntry,
+      });
       await acceptSocialTerms();
       await renderOnboarding([
         { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
@@ -857,7 +872,10 @@ describe('SocialProfileOnboardingView', () => {
 
     it('opens My Profile after the X path even with a blocked Social entry', async () => {
       const openBlockedEntry = jest.fn();
-      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      ensureSocialTermsAccepted(jest.fn(), {
+        ...GATE,
+        onAccepted: openBlockedEntry,
+      });
       await acceptSocialTerms();
       signIn();
       await renderOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);

@@ -13,6 +13,8 @@ import {
 import {
   getSocialReactionType,
   SocialEvent,
+  type SocialBlockedAction,
+  type SocialBlockedHandler,
   type SocialBlockedReason,
   type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
@@ -42,7 +44,11 @@ interface UseSocialScreenViewedOptions {
 type SocialScreenContextProperties = SocialPositionAnalyticsProperties &
   Pick<
     SocialScreenViewedProperties,
-    'composer_entry' | 'share_id' | 'order_id' | 'transaction_hash'
+    | 'composer_entry'
+    | 'share_id'
+    | 'order_id'
+    | 'transaction_hash'
+    | 'onboarding_trigger'
   >;
 type SocialInteractionContext = Partial<
   Pick<SocialUIInteractionProperties, 'source' | 'tab_name' | 'step'>
@@ -162,6 +168,28 @@ export const useSocialInteraction = (
   const { trackInteraction: emit } = useSocialAnalytics();
   return useBoundSocialInteraction(emit, screenName, context, enabled);
 };
+/**
+ * Reports `action_blocked` for the surface that owns a gated tap. Hand the
+ * result to `useRequireSocialProfileOnboarding` and `useSocialTermsGate` as
+ * `onBlocked`. Pass `undefined` for a surface that must stay silent.
+ */
+export const useTrackSocialActionBlocked = (
+  screenName: SocialScreenName | undefined,
+): SocialBlockedHandler | undefined => {
+  const track = useSocialInteraction(
+    screenName ?? SocialEvent.Screen.TRENDING,
+    undefined,
+    screenName !== undefined,
+  );
+  return useMemo(
+    () =>
+      screenName === undefined
+        ? undefined
+        : (blocked: SocialBlockedAction) =>
+            track(Interaction.ACTION_BLOCKED, blocked),
+    [screenName, track],
+  );
+};
 export const useSocialFeedInteractions = (
   screenName: SocialScreenName,
   context?: SocialInteractionContext,
@@ -177,6 +205,8 @@ export const useSocialFeedInteractions = (
         blocked_reason: SocialBlockedReason,
       ) =>
         track(Interaction.COPY_TRADE_BLOCKED, { ...position, blocked_reason }),
+      onActionBlocked: (blocked: SocialBlockedAction) =>
+        track(Interaction.ACTION_BLOCKED, blocked),
       onPositionTap: (position: SocialPositionAnalyticsProperties) =>
         track(Interaction.TAP, position),
       onReactionInteraction: (

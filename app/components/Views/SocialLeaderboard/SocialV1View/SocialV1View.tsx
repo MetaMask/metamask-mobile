@@ -54,7 +54,9 @@ import {
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   useSocialInteraction,
+  useTrackSocialActionBlocked,
 } from '../analytics';
+import type { SocialGate } from '../analytics/socialEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -190,6 +192,11 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
 
+/** The header avatar opens My Profile, which needs a Social profile. */
+const MY_PROFILE_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.MY_PROFILE_AVATAR,
+};
+
 /** Matches the icons of the header's Md `ButtonIcon`s (`IconSize.Lg`). */
 const ANON_AVATAR_ICON_SIZE = 24;
 
@@ -233,7 +240,6 @@ const SocialV1ViewContent: React.FC = () => {
   const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const { openComposer } = useOpenSocialPostComposer();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { track } = useSocialLeaderboardAnalytics();
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
@@ -253,6 +259,12 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  const onActionBlocked = useTrackSocialActionBlocked(
+    SOCIAL_EVENT_TAB_CONTEXT[tabOrder[activeIndex] ?? 'trending'][0],
+  );
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked: onActionBlocked,
+  });
   const { pageActiveIndex, activate, onPagerRest } =
     usePageActivation(landingIndex);
   const socialPerformanceByTab = useMemo(
@@ -447,7 +459,7 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenMyProfile = useCallback(() => {
     playSelection().catch(() => undefined);
-    if (!ensureSocialProfileOnboarding()) {
+    if (!ensureSocialProfileOnboarding(MY_PROFILE_GATE)) {
       return;
     }
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
