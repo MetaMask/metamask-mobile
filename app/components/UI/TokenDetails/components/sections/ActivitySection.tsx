@@ -101,14 +101,9 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           />
         ) : null
       }
-      renderItem={({ item, index }) => {
-        // Check if this is an API activity item (doesn't have a mapped transaction)
-        const transaction = [...submittedTxs, ...confirmedTxs, ...transactions].find(
-          tx => tx.id === item.hash
-        );
-        
-        if (!transaction) {
-          // This is an API-only item
+      renderItem={({ item, index, transaction, isApiItem }) => {
+        // Use API item rendering if explicitly marked as API or no transaction found
+        if (isApiItem || !transaction) {
           return (
             <ActivityListItemRow
               item={item}
@@ -123,6 +118,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           );
         }
 
+        // Render local transaction
         return (
           <AssetDetailsActivityListItem
             transaction={transaction}

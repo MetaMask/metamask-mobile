@@ -60,6 +60,7 @@ interface UseGroupedTokenActivityParams {
 interface GroupedTokenActivityResult {
   groupedItems: GroupedActivityListItem[];
   transactionByActivityItem: Map<ActivityListItem, TransactionWithImportTime>;
+  apiItemHashes: Set<string>;
   apiItemCount: number;
   hasNextApiPage: boolean;
   isApiLoading: boolean;
@@ -230,7 +231,12 @@ function useGroupedTokenActivity({
 
     const groupedItems = groupActivityListItems(mergedActivityItems);
 
-    return { groupedItems, transactionByActivityItem };
+    // Track which items in the merged list came from API
+    const apiItemHashes = new Set(
+      apiItems.flatMap((item) => (item.hash ? [item.hash.toLowerCase()] : [])),
+    );
+
+    return { groupedItems, transactionByActivityItem, apiItemHashes };
   }, [
     submittedTxs,
     confirmedTxs,
@@ -298,6 +304,8 @@ export interface ActivityRowsProps {
   renderItem: (info: {
     item: ActivityListItem;
     index: number;
+    transaction?: TransactionWithImportTime;
+    isApiItem?: boolean;
   }) => React.ReactNode;
   showSectionRule?: boolean;
   footer?: React.ReactNode;
@@ -334,6 +342,8 @@ const ActivityRows = ({
 
   const {
     groupedItems: activityGroupedItems,
+    transactionByActivityItem,
+    apiItemHashes,
     apiItemCount,
     hasNextApiPage,
     isApiLoading,
@@ -456,7 +466,17 @@ const ActivityRows = ({
           ) : item.type === 'date-header' ? (
             <ActivityListDateHeader timestamp={item.date} />
           ) : (
-            renderItem({ item: item.item, index })
+            renderItem({
+              item: item.item,
+              index,
+              transaction: isSimpleMode
+                ? undefined
+                : transactionByActivityItem.get(item.item),
+              isApiItem:
+                isSimpleMode || !item.item.hash
+                  ? undefined
+                  : apiItemHashes.has(item.item.hash.toLowerCase()),
+            })
           )}
         </React.Fragment>
       ))}
