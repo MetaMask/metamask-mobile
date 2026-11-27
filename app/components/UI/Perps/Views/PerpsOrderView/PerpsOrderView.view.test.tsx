@@ -3,7 +3,9 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  */
 import '../../../../../../tests/component-view/mocks';
+import { createRouteParamsProbe } from '../../../../../../tests/component-view/render';
 
+import type { ComponentType } from 'react';
 import { Text } from 'react-native';
 import {
   act,
@@ -11,6 +13,7 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import {
   calculatePositionSize,
@@ -1016,6 +1019,31 @@ describe('PerpsOrderView', () => {
     expect(screen.getByText(/^Minimum order size/)).toBeOnTheScreen();
   });
 
+  it('explains a zero balance on the full-screen form', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '0',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [marketDetailsRoute],
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByText(strings('perps.deposit.no_funds_available')),
+    ).toBeOnTheScreen();
+  });
+
   describe('Trade sheet (bottom-sheet treatment)', () => {
     const tradeSheetParams = {
       asset: 'ETH',
@@ -1090,6 +1118,129 @@ describe('PerpsOrderView', () => {
       waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
       );
+
+    it('turns the order button into Add funds that opens the Ramp token picker when the balance is zero', async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              // A known location lets goToBuy skip the eligibility modal.
+              GeolocationController: { location: 'US', status: 'complete' },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: accountWithBalance('0'),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [
+          marketDetailsRoute,
+          {
+            name: Routes.RAMP.TOKEN_SELECTION,
+            Component: createRouteParamsProbe(
+              Routes.RAMP.TOKEN_SELECTION,
+            ) as ComponentType<unknown>,
+            mount: 'root',
+          },
+        ],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const addFunds = await findEnabledSubmitButton();
+      expect(within(addFunds).getByText('Add funds')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+          {
+            includeHiddenElements: true,
+          },
+        ),
+      ).toBeOnTheScreen();
+
+      // Only the bottom error is shown, not a second warning under the amount.
+      expect(
+        screen.getAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+
+      await act(async () => {
+        fireEvent.press(addFunds);
+      });
+
+      const rampParams = await screen.findByTestId(
+        `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      // No preset asset: Ramp opens its token picker first.
+      expect(rampParams).not.toHaveTextContent('assetId', { exact: false });
+    });
+
+    it('still opens Ramp when the location has to be refreshed after the sheet closes', async () => {
+      // Unknown location makes goToBuy await a geolocation refresh, which
+      // finishes after the order screen has been dismissed.
+      (
+        Engine.context.GeolocationController.refreshGeolocation as jest.Mock
+      ).mockImplementationOnce(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return 'US';
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              GeolocationController: { location: 'UNKNOWN', status: 'idle' },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: accountWithBalance('0'),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [
+          marketDetailsRoute,
+          {
+            name: Routes.RAMP.TOKEN_SELECTION,
+            Component: createRouteParamsProbe(
+              Routes.RAMP.TOKEN_SELECTION,
+            ) as ComponentType<unknown>,
+            mount: 'root',
+          },
+        ],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const addFunds = await findEnabledSubmitButton();
+      await act(async () => {
+        fireEvent.press(addFunds);
+      });
+
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        Engine.context.GeolocationController.refreshGeolocation,
+      ).toHaveBeenCalled();
+    });
 
     it('shows promotional pricing when Core returns a grant fee quote', async () => {
       const calculateFees = Engine.context.PerpsController
