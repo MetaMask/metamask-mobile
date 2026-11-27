@@ -76,7 +76,9 @@ describe('PostTradeShareBottomSheet', () => {
 
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.swap_in_progress');
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.trade_in_progress',
+    );
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
     ).toHaveTextContent(
@@ -110,6 +112,32 @@ describe('PostTradeShareBottomSheet', () => {
     ).toHaveTextContent(
       'social_leaderboard.post_trade_share.order_in_progress',
     );
+  });
+
+  it.each([
+    ['pending', 'social_leaderboard.post_trade_share.close_in_progress'],
+    ['complete', 'social_leaderboard.post_trade_share.position_closed'],
+    ['failed', 'social_leaderboard.post_trade_share.close_failed'],
+  ] as const)('shows the %s title for a perps close', (status, title) => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      status,
+      orderId: status === 'complete' ? '42' : undefined,
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        action: 'close',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent(title);
   });
 
   describe('View activity', () => {
@@ -222,13 +250,14 @@ describe('PostTradeShareBottomSheet', () => {
     });
   });
 
-  it('navigates to the composer with tradeInFlight on Share', () => {
-    beginPostTradeShareSession({
+  it('opens a trader-address share that is not a copy trade as post_trade_swap', () => {
+    const sessionId = beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'complete',
       tradeInFlightChain: 'base',
       transactionHash: '0xabc',
+      traderAddress: '0xtrader',
       preview: {
         tokenSymbol: 'PUMP',
         tokenAddress: '0xpump',
@@ -255,6 +284,8 @@ describe('PostTradeShareBottomSheet', () => {
         chain: 'base',
         side: 'buy',
       },
+      spotComposerEntry: 'post_trade_swap',
+      shareId: sessionId,
     });
   });
 
@@ -405,7 +436,7 @@ describe('PostTradeShareBottomSheet', () => {
   });
 
   it('navigates to the composer with a Hyperliquid order id on Share', () => {
-    beginPostTradeShareSession({
+    const sessionId = beginPostTradeShareSession({
       product: 'perps',
       status: 'complete',
       orderId: '42',
@@ -444,6 +475,7 @@ describe('PostTradeShareBottomSheet', () => {
         direction: 'long',
         leverageLabel: '40x',
       },
+      shareId: sessionId,
     });
     expect(mockNavigate.mock.calls[0][1].tradeInFlight.transactionHash).toBe(
       undefined,

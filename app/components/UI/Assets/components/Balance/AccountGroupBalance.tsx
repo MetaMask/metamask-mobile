@@ -36,6 +36,7 @@ import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
+import { useWalletHomeOnboardingChecklistReceivePress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistReceivePress';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
 import { useWalletHomeOnboardingBalanceRefreshEffect } from './useWalletHomeOnboardingBalanceRefreshEffect';
 
@@ -77,6 +78,8 @@ const AccountGroupBalance = ({
   const { goToBuy } = useRampNavigation();
   const onFundPrimaryPressWithChecklistAnalytics =
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
+  const onReceivePressWithChecklistAnalytics =
+    useWalletHomeOnboardingChecklistReceivePress();
   const { popularNetworks } = useNetworkEnablement();
 
   // Collapse to a value (string) first, since primitives compare by value in a deps
@@ -134,7 +137,13 @@ const AccountGroupBalance = ({
   const zeroBalance = formatCurrency(0, userCurrency);
   const skipBalanceAnimation = Boolean(previousPrivacyMode) && !privacyMode;
 
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  // Soft-gate like extension: keep a non-zero balance visible while the
+  // latched load is still settling so returning users are not blanked by
+  // background Snap/RPC work.
+  const isLoading =
+    !groupBalance ||
+    (!hasBalanceFetched &&
+      (groupBalance.totalBalanceInUserCurrency ?? 0) === 0);
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
@@ -226,6 +235,7 @@ const AccountGroupBalance = ({
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
           onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
+          onReceivePress={onReceivePressWithChecklistAnalytics}
           canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}

@@ -3,23 +3,19 @@ import { Theme } from '../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isTransactionsRedesign: boolean; noBalanceChanges?: boolean };
+  vars: { noBalanceChanges?: boolean };
 }) => {
   const { theme, vars } = params;
-  const { isTransactionsRedesign, noBalanceChanges = false } = vars;
+  const { noBalanceChanges = false } = vars;
 
   return StyleSheet.create({
     container: {
-      borderWidth: isTransactionsRedesign ? 0 : 1,
-      borderColor: theme.colors.border.default,
       flexDirection: noBalanceChanges ? 'row' : 'column',
       justifyContent: noBalanceChanges ? 'space-between' : 'flex-start',
       borderRadius: 8,
       padding: 16,
       gap: 16,
-      backgroundColor: isTransactionsRedesign
-        ? theme.colors.background.muted
-        : undefined,
+      backgroundColor: theme.colors.background.muted,
     },
     errorContentContainer: {
       flexDirection: 'row',
@@ -42,7 +38,7 @@ const styleSheet = (params: {
       flexDirection: 'column',
       gap: 16,
     },
-    redesignedRowContainer: {
+    rowContainer: {
       paddingBottom: 8,
     },
   });

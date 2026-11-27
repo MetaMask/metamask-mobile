@@ -13,7 +13,7 @@ import {
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
+import { usePerpsActivityItems } from './perps/usePerpsActivityItems';
 import { usePredictActivityItems } from '../../UI/PredictNext';
 import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
@@ -546,7 +546,7 @@ let mockPredictSourceState: {
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
 
-jest.mock('./hooks/usePerpsActivityItems', () => ({
+jest.mock('./perps/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 

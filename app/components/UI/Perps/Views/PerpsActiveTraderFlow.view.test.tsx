@@ -217,11 +217,8 @@ describe('Active Trader Flow', () => {
     // covered in PerpsCompactOrderRow.test.tsx; avoid asserting it here — unstable on CI)
     cleanup();
     renderRow(shortMarketOrder);
-    const wait5s = { timeout: 5000 };
-    expect(
-      await screen.findByText(/market short/i, {}, wait5s),
-    ).toBeOnTheScreen();
-    expect(await screen.findByText(/BTC/i, {}, wait5s)).toBeOnTheScreen();
+    expect(await screen.findByText(/market short/i)).toBeOnTheScreen();
+    expect(await screen.findByText(/BTC/i)).toBeOnTheScreen();
 
     // Trader taps an order row to see details
     cleanup();
@@ -360,7 +357,7 @@ describe('Active Trader Flow', () => {
     fireEvent.press(dismissButton);
 
     // ── PHASE 8: Bulk close all positions ────────────────────────────────
-    // Trader reviews close-all summary: title, description, margin, receive,
+    // Trader reviews close-all summary: title, description, receive, P&L,
     // Keep Positions and Close All buttons
     cleanup();
     renderPerpsCloseAllPositionsView({
@@ -375,10 +372,13 @@ describe('Active Trader Flow', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.margin')),
+      screen.queryByText(strings('perps.close_position.margin')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.close_position.total_receive')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.you_receive')),
+      screen.getByText(strings('perps.close_position.included_pnl')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_all_modal.keep_positions')),

@@ -176,7 +176,12 @@ const CardMessageBox = ({
       },
       [CardMessageBoxType.SetupIncomplete]: {
         variant: CardMessageBoxVariant.Warning,
-        title: strings('card.card_home.messages.setup_incomplete.title'),
+        // A rejection is final, so it must not read as a step to finish.
+        title: strings(
+          values?.step === 'rejected'
+            ? 'card.card_home.messages.setup_incomplete.rejected_title'
+            : 'card.card_home.messages.setup_incomplete.title',
+        ),
         description: setupIncompleteDescription(values?.step),
         confirmButtonLabel: strings(
           'card.card_home.messages.setup_incomplete.confirm_button_label',

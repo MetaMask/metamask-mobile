@@ -1,5 +1,4 @@
 import { RootMessenger } from '../types';
-import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
   KeyringBuilder,
@@ -24,8 +23,6 @@ import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
-import { hmacSha512 } from '@metamask/native-utils';
-import { pbkdf2 } from '../../Encryptor';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
@@ -41,8 +38,12 @@ import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
+  buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import {
+  isMpcMoneyKeyringBuildEnabled,
+  isRealMpcMoneyKeyringBuildEnabled,
+} from '../../../constants/featureFlags';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -71,12 +72,6 @@ export function getKeyringBuilders(
   messenger: RootMessenger,
   useDmk: boolean,
 ): KeyringControllerOptions['keyringBuilders'] {
-  // Required by the HD keyring and money keyring to use native crypto functions.
-  const cryptographicFunctions: CryptographicFunctions = {
-    pbkdf2Sha512: pbkdf2,
-    hmacSha512: async (key, data) => hmacSha512(key, data),
-  };
-
   const keyrings: KeyringBuilder[] = [];
 
   const qrKeyringBuilder = () => {
@@ -103,10 +98,7 @@ export function getKeyringBuilders(
 
   keyrings.push(ledgerKeyringBuilder);
 
-  const hdKeyringBuilder = () =>
-    new HdKeyring({
-      cryptographicFunctions,
-    });
+  const hdKeyringBuilder = () => new HdKeyring();
   hdKeyringBuilder.type = HdKeyring.type;
   keyrings.push(hdKeyringBuilder);
 
@@ -115,7 +107,6 @@ export function getKeyringBuilders(
   // disabled at that time).
   const moneyKeyringBuilder = () =>
     new MoneyKeyring({
-      cryptographicFunctions,
       getMnemonic: async (entropySource: string) =>
         messenger.call(
           'KeyringController:withKeyringV2Unsafe',
@@ -153,8 +144,33 @@ export function getKeyringBuilders(
   // compile-time gate while the feature is unreleased: no released build can
   // yet hold a Money MPC keyring in its vault, so a build without the flag
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
+  // With `MM_MONEY_MPC_REAL_KEYRING` on top, the real keyring (DKLS23/CL24
+  // via `@metamask/mpc-react-native`) replaces the stub.
   if (isMpcMoneyKeyringBuildEnabled()) {
-    keyrings.push(buildMpcMoneyKeyringBuilder());
+    keyrings.push(
+      isRealMpcMoneyKeyringBuildEnabled()
+        ? buildRealMpcMoneyKeyringBuilder({
+            getBearerToken: async () =>
+              await messenger.call('AuthenticationController:getBearerToken'),
+            getPrimaryMnemonic: async () =>
+              await (messenger.call(
+                'KeyringController:withKeyringV2Unsafe',
+                { type: KeyringType.Hd, index: 0 },
+                async ({
+                  keyring,
+                }) /* NOSONAR: this messenger action requires async */ => {
+                  const hdKeyring = keyring as HdKeyringV2;
+                  if (!hdKeyring.mnemonic) {
+                    throw new Error(
+                      'Primary keyring mnemonic unavailable for MPC backups.',
+                    );
+                  }
+                  return encodeMnemonic(hdKeyring.mnemonic);
+                },
+              ) as Promise<number[]>),
+          })
+        : buildMpcMoneyKeyringBuilder(),
+    );
   }
 
   return keyrings;

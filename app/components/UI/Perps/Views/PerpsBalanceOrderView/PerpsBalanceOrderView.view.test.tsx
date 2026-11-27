@@ -3,6 +3,8 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { withLighterBuildEnabled } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import type { ComponentType } from 'react';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -60,6 +62,8 @@ const options = {
 };
 
 describe('PerpsBalanceOrderView', () => {
+  withLighterBuildEnabled();
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest
@@ -114,12 +118,10 @@ describe('PerpsBalanceOrderView', () => {
       );
       // Controller acceptance precedes the stream-confirmation/toast promise.
       // Keep the screen mounted until the full submission finishes.
-      await waitFor(
-        () =>
-          expect(
-            screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
-          ).toHaveProp('value', ''),
-        { timeout: 5000 },
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        ).toHaveProp('value', ''),
       );
       expect(
         Engine.context.PerpsController.depositWithOrder,
@@ -235,23 +237,13 @@ describe('PerpsBalanceOrderView', () => {
   });
 
   it('selects the explicit Lighter market while aggregated', async () => {
-    const hyperliquidMarket = {
-      ...market,
-      name: 'Ethereum HyperLiquid',
-      providerId: 'hyperliquid' as const,
-    };
+    const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
     renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
       ...options,
-      overrides: {
-        engine: {
-          backgroundState: {
-            PerpsController: { activeProvider: 'aggregated' as const },
-          },
-        },
-      },
+      overrides: twoExchange.overrides,
       streamOverrides: {
         ...options.streamOverrides,
-        marketData: [hyperliquidMarket, market],
+        ...twoExchange.streamOverrides,
       },
       initialParams: {
         asset: 'ETH',
@@ -278,12 +270,10 @@ describe('PerpsBalanceOrderView', () => {
         }),
       ),
     );
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
-        ).toHaveProp('value', ''),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+      ).toHaveProp('value', ''),
     );
     expect(
       Engine.context.PerpsController.depositWithOrder,

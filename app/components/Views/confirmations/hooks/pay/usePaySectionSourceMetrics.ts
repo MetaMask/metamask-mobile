@@ -12,6 +12,7 @@ import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { useSectionTracking } from './useSectionTracking';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { getAddressAccountType } from '../../../../../util/address';
@@ -62,53 +63,60 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsLighterDepositAndOrder,
   ]);
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
-  const isPayingAccountReady =
-    !isMoneyAccountDeposit || Boolean(accountOverride);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
 
   const isMoneyAccountActive =
     paymentOverride === PaymentOverride.MoneyAccount ||
     (isDefaultMoneyAccount && !hasPayToken && !hasFiatPaymentSelected);
 
-  const currentSection = getActiveSectionId({
+  const nonCryptoSection = getNonCryptoSectionId({
+    hasFiatPaymentSelected,
     isMoneyAccountActive,
     isPerpsBalanceSelected: isPerpsDepositAndOrder && isPerpsBalanceSelected,
     isPredictBalanceSelected:
       isPredictDepositAndOrder && isPredictBalanceSelected,
-    hasFiatPaymentSelected,
-    cryptoAccountType,
   });
+  const isPayingAccountReady =
+    !isMoneyAccountDeposit ||
+    Boolean(accountOverride) ||
+    Boolean(nonCryptoSection);
+  const currentSection = nonCryptoSection ?? cryptoAccountType;
+  const switchKey =
+    !nonCryptoSection && payingAccount
+      ? `${currentSection}:${payingAccount.toLowerCase()}`
+      : currentSection;
 
   return useSectionTracking(
     currentSection,
     hasPayToken && isPayingAccountReady,
+    switchKey,
   );
 }
 
-function getActiveSectionId({
+function getNonCryptoSectionId({
+  hasFiatPaymentSelected,
   isMoneyAccountActive,
   isPerpsBalanceSelected,
   isPredictBalanceSelected,
-  hasFiatPaymentSelected,
-  cryptoAccountType,
 }: {
+  hasFiatPaymentSelected: boolean;
   isMoneyAccountActive: boolean;
   isPerpsBalanceSelected: boolean;
   isPredictBalanceSelected: boolean;
-  hasFiatPaymentSelected: boolean;
-  cryptoAccountType: PayWithSectionId;
-}): PayWithSectionId {
+}): PayWithSectionId | undefined {
   if (isMoneyAccountActive) return 'money-account';
   if (isPerpsBalanceSelected) return 'perps';
   if (isPredictBalanceSelected) return 'predict';
   if (hasFiatPaymentSelected) return 'bank-card';
-  return cryptoAccountType;
+  return undefined;
 }
 
 function getCryptoAccountType(

@@ -228,6 +228,9 @@ describe('ImmersveKYCModal', () => {
 
     expect(capturedProps.mediaPlaybackRequiresUserGesture).toBe(false);
     expect(capturedProps.injectedJavaScript).toContain('getUserMedia');
+    expect(capturedProps.injectedJavaScript).toContain(
+      'session-progress-header',
+    );
     expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
       'session-progress-header',
     );

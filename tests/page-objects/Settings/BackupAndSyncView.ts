@@ -1,7 +1,9 @@
 import { BackupAndSyncViewSelectorsIDs } from '../../selectors/Settings/BackupAndSyncView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities';
 import { type AppiumElement } from '../../framework';
+import Assertions from '../../framework/Assertions';
 
 class BackupAndSyncView {
   get accountSyncToggle(): Promise<AppiumElement> {
@@ -29,9 +31,25 @@ class BackupAndSyncView {
   }
 
   async toggleAccountSync() {
-    await Gestures.waitAndTap(this.accountSyncToggle, {
+    const toggle = await this.accountSyncToggle;
+    const wasEnabled = await Assertions.isToggleOn(toggle);
+    await Gestures.waitAndTap(Promise.resolve(toggle), {
       elemDescription: 'Account Sync Toggle in Backup and Sync View',
     });
+    await Utilities.executeWithRetry(
+      async () => {
+        const currentToggle = await this.accountSyncToggle;
+        const isEnabled = await Assertions.isToggleOn(currentToggle);
+        if (isEnabled === wasEnabled) {
+          throw new Error('Account Sync Toggle state is still updating');
+        }
+      },
+      {
+        timeout: 10_000,
+        interval: 250,
+        description: 'Account Sync Toggle update',
+      },
+    );
   }
 
   async toggleContactSync() {

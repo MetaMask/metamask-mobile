@@ -47,6 +47,7 @@ const renderComponent = ({
   renewDate = 'Nov 5, 2026',
   isTrial = false,
   billedOn = '',
+  isConfirming = false,
 } = {}) =>
   renderWithProvider(
     <ConfirmMembershipContent
@@ -56,6 +57,7 @@ const renderComponent = ({
       renewDate={renewDate}
       isTrial={isTrial}
       billedOn={billedOn}
+      isConfirming={isConfirming}
       onClose={mockOnClose}
       onConfirm={mockOnConfirm}
     />,
@@ -141,6 +143,22 @@ describe('ConfirmMembershipContent', () => {
     );
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the confirm button while confirmation is in progress', () => {
+    const { getByTestId } = renderComponent({ isConfirming: true });
+    const confirmButton = getByTestId(
+      ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
   it('labels the confirm button "Confirm and pay" when not a trial', () => {

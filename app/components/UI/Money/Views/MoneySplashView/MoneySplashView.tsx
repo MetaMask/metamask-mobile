@@ -24,12 +24,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { setMoneySplashSeen } from '../../../../../actions/user';
 import AppConstants from '../../../../../core/AppConstants';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { ensureError } from '../../../../../util/errorUtils';
-import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import { MoneyFaqList } from '../../components/MoneyFaqList/MoneyFaqList';
 import {
   COMPONENT_NAMES,
@@ -38,9 +37,8 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import { useMoneySplashRedirect } from '../../hooks/useMoneySplashRedirect';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMountEffect from '../../hooks/useMountEffect';
 import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
@@ -77,6 +75,29 @@ const BENEFITS = [
   },
 ] as const;
 
+const resolveCtaAnalytics = (
+  redirect: MoneySplashParams['postOnboardingRedirect'],
+) => {
+  if (redirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+    };
+  }
+
+  if (redirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    };
+  }
+
+  return {
+    button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+    redirect_target: SCREEN_NAMES.MONEY_HOME,
+  };
+};
+
 const BenefitRow = ({
   title,
   body,
@@ -103,20 +124,22 @@ const BenefitRow = ({
   </Box>
 );
 
-const MoneySplashView = () => {
+export const MoneySplashView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { postOnboardingRedirect, analyticsContext } =
+  const { postOnboardingRedirect, analyticsContext, infoMode } =
     useParams<MoneySplashParams>();
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const isOffline = networkTier === 'NONE';
   const showHero = !(hardwareTier === 'LOW' && isOffline);
   const { apyPercent } = useMoneyVaultApy({ enabled: !isOffline });
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { navigateToMoneyHome } = useMoneyHomeNavigation();
+  const { redirectAfterSplash } = useMoneySplashRedirect(
+    postOnboardingRedirect,
+    analyticsContext,
+  );
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
 
@@ -125,18 +148,13 @@ const MoneySplashView = () => {
   });
 
   useMountEffect(() => {
-    dispatch(setMoneySplashSeen(true));
+    if (!infoMode) {
+      dispatch(setMoneySplashSeen(true));
+    }
   });
   useMountEffect(trackScreenViewed);
 
   const depositStartedRef = useRef(false);
-
-  const goToMoneyHome = useCallback(() => {
-    navigateToMoneyHome({
-      skipOnboardingRedirect: true,
-      ...(analyticsContext ? { analyticsContext } : {}),
-    });
-  }, [analyticsContext, navigateToMoneyHome]);
 
   const handleStartEarning = useCallback(() => {
     const isDepositRedirect =
@@ -146,48 +164,18 @@ const MoneySplashView = () => {
       return;
     }
 
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: isDepositRedirect
-        ? MONEY_BUTTON_INTENTS.ADD_MONEY
-        : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
-      label_key: 'money.splash.cta',
-      redirect_target: isDepositRedirect
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.MONEY_HOME,
-    });
-
-    if (!isDepositRedirect) {
-      goToMoneyHome();
-      return;
+    if (isDepositRedirect) {
+      depositStartedRef.current = true;
     }
 
-    depositStartedRef.current = true;
-
-    initiateDeposit({
-      preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-      ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-        ? {
-            autoSelectFiatPayment: postOnboardingRedirect.autoSelectFiatPayment,
-          }
-        : {}),
-      ...(postOnboardingRedirect.intent
-        ? { intent: postOnboardingRedirect.intent }
-        : {}),
-      replaceConfirmation: true,
-      onDepositSetupFailure: goToMoneyHome,
-    }).catch((error) => {
-      Logger.error(
-        ensureError(error, '[Money Splash] Deposit setup failed'),
-        '[Money Splash] Failed to initiate deposit after splash',
-      );
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      ...resolveCtaAnalytics(postOnboardingRedirect),
+      label_key: 'money.splash.cta',
     });
-  }, [
-    goToMoneyHome,
-    initiateDeposit,
-    postOnboardingRedirect,
-    trackButtonClicked,
-  ]);
+
+    redirectAfterSplash();
+  }, [postOnboardingRedirect, redirectAfterSplash, trackButtonClicked]);
 
   const handleClose = useCallback(() => {
     trackButtonClicked({
@@ -275,43 +263,49 @@ const MoneySplashView = () => {
             ))}
           </Box>
         </Box>
-        <Box twClassName="bg-border-muted" style={styles.divider} />
-        <Box twClassName="px-4" style={styles.faqTitle}>
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            testID={MoneySplashViewTestIds.FAQ_TITLE}
-          >
-            {strings('money.how_it_works_page.faq_title')}
-          </Text>
-        </Box>
-        <MoneyFaqList
-          apyPercent={apyPercent}
-          tokenBullets={tokenBullets}
-          onCardFeesPress={handleCardFeesPress}
-          itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
-          linkTestId={MoneySplashViewTestIds.FAQ_LINK}
-        />
+        {!infoMode && (
+          <>
+            <Box twClassName="bg-border-muted" style={styles.divider} />
+            <Box twClassName="px-4" style={styles.faqTitle}>
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+                testID={MoneySplashViewTestIds.FAQ_TITLE}
+              >
+                {strings('money.how_it_works_page.faq_title')}
+              </Text>
+            </Box>
+            <MoneyFaqList
+              apyPercent={apyPercent}
+              tokenBullets={tokenBullets}
+              onCardFeesPress={handleCardFeesPress}
+              itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
+              linkTestId={MoneySplashViewTestIds.FAQ_LINK}
+            />
+          </>
+        )}
       </ScrollView>
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom: insets.bottom + 16,
-            backgroundColor: colors.background.default,
-          },
-        ]}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleStartEarning}
-          testID={MoneySplashViewTestIds.CTA}
+      {!infoMode && (
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: insets.bottom + 16,
+              backgroundColor: colors.background.default,
+            },
+          ]}
         >
-          {strings('money.splash.cta')}
-        </Button>
-      </View>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleStartEarning}
+            testID={MoneySplashViewTestIds.CTA}
+          >
+            {strings('money.splash.cta')}
+          </Button>
+        </View>
+      )}
       <ButtonIcon
         iconName={IconName.Close}
         size={ButtonIconSize.Md}
@@ -325,4 +319,27 @@ const MoneySplashView = () => {
   );
 };
 
-export default MoneySplashView;
+// Used in E2E and performance tests to resolve the splash without rendering it.
+const MoneySplashViewE2E = () => {
+  const dispatch = useDispatch();
+  const { postOnboardingRedirect } = useParams<MoneySplashParams>();
+  const { redirectAfterSplash } = useMoneySplashRedirect(
+    postOnboardingRedirect,
+  );
+
+  useMountEffect(() => {
+    dispatch(setMoneySplashSeen(true));
+    redirectAfterSplash();
+  });
+
+  return null;
+};
+
+const MoneySplashViewGate = () => {
+  if (isE2EOrPerformanceTest) {
+    return <MoneySplashViewE2E />;
+  }
+  return <MoneySplashView />;
+};
+
+export default MoneySplashViewGate;

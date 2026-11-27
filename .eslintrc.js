@@ -112,19 +112,60 @@ const utilNumberImportBurndownFiles = [
 // Shared by the *.view.test.* and tests/component-view/** overrides so the
 // fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
 // variants included.
+// no-restricted-syntax is one severity per override, so the error bans stay
+// here and the warn-level flake checks are a later block in eslint.config.mjs.
+// A second override for the same files would replace this list.
+const CV_SKILL_URL =
+  'https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md';
+
 const cvFakeTimerBan = {
   selector:
     "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
   message:
-    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+    'Component-view tests must not use fake timers. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state. See the mobile-testing skill: ' +
+    CV_SKILL_URL,
 };
+
+const cvViewMockMessage =
+  'Arbitrary jest.mock() is not allowed in a component-view test. Drive behaviour through Redux state, presets, and renderers, or intercept HTTP with tests/component-view/api-mocking (nock). Only Engine (core/Engine or core/Engine/Engine) and react-native-device-info may be mocked. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+const cvHelperMockMessage =
+  'Arbitrary jest.mock() is not allowed in component-view helpers. Add a framework mock only in tests/component-view/mocks.ts, and only for Engine, react-native-device-info, expo-web-browser, generateDeviceAnalyticsMetaData, or react-native/Libraries/Animated/Easing. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+// Exact module specifiers already passed to jest.mock in tests/component-view/mocks.ts.
+const cvHelperMockModules = [
+  'expo-web-browser',
+  '../../app/core/Engine',
+  '../../app/core/Engine/Engine.ts',
+  'react-native-device-info',
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  'react-native/Libraries/Animated/Easing',
+];
+
+const cvViewMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+  message: cvViewMockMessage,
+};
+
+const cvHelperMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal']" +
+    cvHelperMockModules.map((mod) => `[arguments.0.value!='${mod}']`).join(''),
+  message: cvHelperMockMessage,
+};
+
+const cvDynamicMockBan = (message) => ({
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock']:not([arguments.0.type='Literal'])",
+  message,
+});
 
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   extends: [
     '@react-native',
     'eslint:recommended',
@@ -185,7 +226,18 @@ module.exports = {
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
         // Pairs with the `import-x/no-restricted-paths` fence on
         // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
+        // in type-aware mode (oxlint-tsgolint), so it is off here.
+        '@typescript-eslint/no-deprecated': 'off',
+        // Oxlint owns these five too, as errors. The shared config turns
+        // them on and they need type information. ESLint no longer loads the
+        // TypeScript project (no parserOptions.project), so a rule that needs
+        // type information throws if it is turned on here.
+        '@typescript-eslint/no-array-delete': 'off',
+        '@typescript-eslint/no-for-in-array': 'off',
+        '@typescript-eslint/no-meaningless-void-operator': 'off',
+        '@typescript-eslint/no-unnecessary-qualifier': 'off',
+        '@typescript-eslint/no-unsafe-unary-minus': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
@@ -196,17 +248,9 @@ module.exports = {
           },
         ],
 
-        // Fast checks. These do not need type information. The options match
-        // the shared config.
-        //
-        // no-wrapper-object-types and prefer-enum-initializers are errors in
-        // @metamask/eslint-config-typescript, so this file does not set them.
-        // Their existing hits are in eslint-suppressions.json.
-        // no-empty-object-type is an error in that package too, and stays a
-        // warning here: its hits are interface aliases and generic defaults
-        // such as Props = {}. The style rules and no-unused-vars stay
-        // warnings for now.
-        '@typescript-eslint/explicit-function-return-type': 'warn',
+        // Fast check. Warn, rather than error, so new hits from main do not
+        // fail CI. The options match the shared config. Oxlint 1.93 has no
+        // equivalent, so this stays on ESLint.
         '@typescript-eslint/naming-convention': [
           'warn',
           {
@@ -273,34 +317,29 @@ module.exports = {
             modifiers: ['requiresQuotes'],
           },
         ],
-        '@typescript-eslint/no-empty-object-type': 'warn',
-        '@typescript-eslint/no-unused-vars': [
-          'warn',
-          {
-            vars: 'all',
-            args: 'all',
-            argsIgnorePattern: '[_]+',
-            ignoreRestSiblings: true,
-          },
-        ],
-        // Slow type checks. The shared ESLint config turns these on, but they
-        // need type information, so they stay off through the ESLint 9
-        // upgrade. Turn them on in Oxlint and park existing hits in
-        // oxlint-suppressions.json.
+        // Oxlint owns these. explicit-function-return-type, no-empty-object-type,
+        // and no-unused-vars are warnings there. no-wrapper-object-types and
+        // prefer-enum-initializers are errors there, and their existing hits
+        // are in oxlint-suppressions.json. The shared config turns all five
+        // on, so they are set to off here.
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        // Slow type checks. The shared config turns these on and they need type
+        // information. Oxlint owns them, as errors, for TypeScript files, with
+        // the shared config's options. Existing hits are in
+        // oxlint-suppressions.json. unbound-method is off in *.test and *.spec
+        // files, where asserting on a method reference is the usual pattern.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -314,6 +353,13 @@ module.exports = {
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        // The shared config leaves these off, so they are off in Oxlint too.
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         'no-restricted-syntax': [
           'error',
           {
@@ -504,8 +550,24 @@ module.exports = {
         tailwindcss: {
           callees: ['twClassName', 'tw'],
           config: './tailwind.config.js',
+          // React Native has no CSS files. Without this, no-custom-classname
+          // searches the whole repo for *.css every 5 seconds.
+          cssFiles: [],
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      // The React Compiler does not run under Jest (see
+      // scripts/react-compiler.js), so it never compiles these files.
+      files: [
+        '**/*.test.{js,jsx,ts,tsx}',
+        '**/__mocks__/**',
+        '**/*.mock.{js,ts,tsx}',
+        'tests/**',
+      ],
+      rules: {
+        'react-compiler/react-compiler': 'off',
       },
     },
     {
@@ -513,20 +575,15 @@ module.exports = {
       rules: {
         'no-restricted-syntax': [
           'error',
-          {
-            selector:
-              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            message:
-              'Only Engine and react-native-device-info can be mocked in component-view tests.',
-          },
+          cvViewMockBan,
+          cvDynamicMockBan(cvViewMockMessage),
           cvFakeTimerBan,
         ],
       },
     },
     {
-      // Shared component-view helpers keep the base no-restricted-syntax bans
-      // and add the fake-timer ban. The jest.mock ban above does not apply
-      // here (mocks.ts mocks Engine).
+      // Helpers keep the base bans and the fake-timer ban. jest.mock is
+      // limited to the modules tests/component-view/mocks.ts already mocks.
       files: ['tests/component-view/**/*.{ts,tsx}'],
       rules: {
         'no-restricted-syntax': [
@@ -540,6 +597,8 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           cvFakeTimerBan,
+          cvHelperMockBan,
+          cvDynamicMockBan(cvHelperMockMessage),
         ],
       },
     },
@@ -579,8 +638,6 @@ module.exports = {
     //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
     //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
     //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
@@ -671,6 +728,7 @@ module.exports = {
         '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
         '@typescript-eslint/prefer-nullish-coalescing': 'error',
         '@typescript-eslint/prefer-readonly': 'error',
+        // Oxlint ignores these generated files, so this stays an error here.
         '@typescript-eslint/explicit-function-return-type': 'error',
         '@typescript-eslint/naming-convention': [
           'error',
@@ -927,6 +985,7 @@ module.exports = {
     process: true,
     beforeAll: true,
     afterAll: true,
+    afterEach: true,
     describe: true,
     expect: true,
     it: true,
@@ -1072,9 +1131,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // rules-of-hooks is an error from @react-native/eslint-config. Existing
-    // hits are in eslint-suppressions.json.
-    'react-hooks/rules-of-hooks': 'error',
+    // Oxlint owns these. Existing hits are in oxlint-suppressions.json.
+    'react-hooks/rules-of-hooks': 'off',
+    'no-loss-of-precision': 'off',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],

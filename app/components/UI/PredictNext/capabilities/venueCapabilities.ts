@@ -5,6 +5,7 @@ import type {
   PredictFeedId,
   PredictFeedKey,
   PredictVenueAction,
+  PredictVenueEnvironment,
   PredictVenueId,
 } from '../types';
 import type { PredictSurfaceFeed, PredictVenueCapabilities } from './types';
@@ -33,7 +34,7 @@ const VENUE_CAPABILITY_SOURCES: Record<
     displayName: 'Polymarket',
     catalog: { type: 'client', catalog: POLYMARKET_STATIC_VENUE_CATALOG },
   },
-  // The adapter serves KALSHI_STATIC_VENUE_CATALOG until PRED-1403.
+  // Read from the Predict API catalog; the adapter holds no fallback.
   kalshi: { displayName: 'Kalshi', catalog: { type: 'service' } },
 };
 
@@ -98,7 +99,8 @@ export const canPerformVenueAction = (
   action: PredictVenueAction,
 ): boolean =>
   capabilities.status === 'ready' &&
-  capabilities.descriptor.actions.includes(action);
+  capabilities.descriptor.actions.includes(action) &&
+  (action !== 'deposit' || capabilities.descriptor.environment !== undefined);
 
 export const getVenueFeedId = (
   capabilities: PredictVenueCapabilities,
@@ -106,6 +108,13 @@ export const getVenueFeedId = (
 ): PredictFeedId | undefined =>
   capabilities.status === 'ready'
     ? capabilities.descriptor.feeds[feedKey]
+    : undefined;
+
+export const getVenueEnvironment = (
+  capabilities: PredictVenueCapabilities,
+): PredictVenueEnvironment | undefined =>
+  capabilities.status === 'ready'
+    ? capabilities.descriptor.environment
     : undefined;
 
 export const isVenueSearchSupported = (

@@ -28,6 +28,11 @@ jest.mock('../data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(),
 }));
 
+const mockIsEntryHidden = jest.fn((_target: { postId: string }) => false);
+jest.mock('./SocialEntryOptionsBottomSheet', () => ({
+  useSocialEntryModeration: () => ({ isEntryHidden: mockIsEntryHidden }),
+}));
+
 jest.mock('./SocialFeedPostShell', () => {
   const { View: MockView } = jest.requireActual('react-native');
   return {
@@ -89,6 +94,7 @@ const post = (id: string): SocialV1FeedPost => ({
 describe('SocialFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsEntryHidden.mockReturnValue(false);
     mockSelectEnabled.mockReturnValue(true);
     mockUseSocialFeed.mockReturnValue(feedState());
   });
@@ -224,6 +230,42 @@ describe('SocialFeed', () => {
     );
 
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it('drops a hidden post and reports the empty list', () => {
+    const onListStateChange = jest.fn();
+    mockIsEntryHidden.mockImplementation(({ postId }) => postId === 'one');
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="token_details"
+        onListStateChange={onListStateChange}
+      />,
+    );
+
+    expect(screen.queryByTestId('post-one')).toBeNull();
+    expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
+    expect(onListStateChange).toHaveBeenCalledWith(
+      expect.objectContaining({ showEmpty: true }),
+    );
+  });
+
+  it('does not page a feed whose tab is not showing', () => {
+    const loadMore = jest.fn();
+    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+      cb(0, 100, 1, 1);
+    });
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('one')], hasNextPage: true, loadMore }),
+    );
+
+    renderWithProvider(
+      <SocialFeed {...query} location="token_details" isActive={false} />,
+    );
+
+    expect(loadMore).not.toHaveBeenCalled();
   });
 
   it('does not load another page when the footer is still below the screen', () => {

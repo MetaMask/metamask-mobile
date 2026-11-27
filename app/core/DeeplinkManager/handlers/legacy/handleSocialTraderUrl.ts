@@ -7,7 +7,6 @@ import {
   popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { openSocialTraderPreviewIfNotJoined } from '../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
 
 interface HandleSocialTraderUrlParams {
@@ -23,14 +22,6 @@ const parseTraderId = (actionPath: string): string | undefined => {
 
 const navigateToFallback = () => {
   if (isSocialV1Treatment()) {
-    if (
-      !ensureSocialTermsAccepted(
-        NavigationService.navigation.navigate,
-        navigateToFallback,
-      )
-    ) {
-      return;
-    }
     popToSocialTab(NavigationService.navigation);
     return;
   }

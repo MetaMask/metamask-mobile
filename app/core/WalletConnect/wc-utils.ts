@@ -338,17 +338,6 @@ export const getChainIdForCaipChainId = (caipChainId: CaipChainId) => {
   return chainId as Hex;
 };
 
-export const getRequestCaip2ChainId = (
-  request: WalletKitTypes.SessionRequest,
-) => {
-  const isSwitchingChain = isSwitchingChainRequest(request);
-  const hexChainId = isSwitchingChain
-    ? request.params.request.params[0].chainId
-    : getChainIdForCaipChainId(request.params.chainId as CaipChainId);
-  const caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
-  return caip2ChainId;
-};
-
 export const getNetworkClientIdForCaipChainId = (caipChainId: CaipChainId) => {
   const networkConfigurationsByChainId =
     selectEvmNetworkConfigurationsByChainId(store.getState());

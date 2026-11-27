@@ -17,4 +17,9 @@ export interface TimeSlotPickerProps {
   selectedMarketId?: string;
   /** Callback fired when the user taps a pill. */
   onMarketSelected: (market: PredictMarket) => void;
+  /**
+   * When true, hides the live badge and countdown so pills render their clock
+   * time (for example while a non-crypto market is on a scheduled break).
+   */
+  hideLiveIndicator?: boolean;
 }

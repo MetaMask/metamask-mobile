@@ -25,10 +25,13 @@ export interface SocialFeedRowProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
-  requireSocialTerms?: boolean;
-  requireSocialProfile?: boolean;
   /** Viewer's profile ID to hide copy trade on their own posts. */
   viewerProfileId?: string;
+  /**
+   * Decodes an attached GIF only while the row is on screen. Off-screen rows
+   * keep the frame so recycling does not jump.
+   */
+  gifVisible?: boolean;
 }
 
 const areReactionsEqual = (
@@ -57,9 +60,8 @@ export const areSocialFeedRowPropsEqual = (
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
-  previous.requireSocialTerms === next.requireSocialTerms &&
-  previous.requireSocialProfile === next.requireSocialProfile &&
   previous.viewerProfileId === next.viewerProfileId &&
+  previous.gifVisible === next.gifVisible &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -91,9 +93,8 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  requireSocialTerms,
-  requireSocialProfile,
   viewerProfileId,
+  gifVisible = true,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
@@ -107,12 +108,11 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
-          requireSocialTerms={requireSocialTerms}
-          requireSocialProfile={requireSocialProfile}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
           showCopyTrade={post.item.author.id !== viewerProfileId}
+          gifVisible={gifVisible}
         />
       </Box>
       {dividerTestID ? (

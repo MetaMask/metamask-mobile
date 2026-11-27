@@ -59,6 +59,15 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ controller, getPerpsTradingFeeGrant }`
 - **Use when:** a Mobile fee source must be proven through Core’s resolver and provider pricing
 
+### Perps persisted state — [`perps.ts`](perps.ts)
+
+- **Shape:** focused Shape D — real controller startup migration on the Shape A I/O mocks
+- **Real:** `PerpsController` construction and its persisted-state migrations
+- **Mocked:** Shape A SDK/wallet/subscription I/O and the optional version-gated multi-provider flag (unknown when omitted)
+- **Factory:** `buildPerpsPersistedStateHarness(state, { multiProviderModeEnabled? }?)`
+- **Returns:** `{ controller }`
+- **Use when:** an older persisted Perps state must survive the installed controller's startup migration and stay readable through the selectors Mobile uses
+
 ### Perps Flow — [`perps-flow.ts`](perps-flow.ts)
 
 - **Shape:** B — hook-flow harness built on Shape A

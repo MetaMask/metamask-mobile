@@ -9,6 +9,26 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockNavigateToSocialTab = jest.fn();
+let mockSelectorResult: unknown = false;
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockSelectorResult,
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+jest.mock(
+  '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: (...args: unknown[]) =>
+      mockNavigateToSocialTab(...args),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -156,6 +176,7 @@ describe('OndoCampaignCTA', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
+    mockSelectorResult = false;
   });
 
   afterEach(() => {
@@ -300,6 +321,24 @@ describe('OndoCampaignCTA', () => {
         );
         expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
         expect(getByText('Entries closed')).toBeOnTheScreen();
+      });
+
+      it('keeps entries closed ahead of a required social profile', () => {
+        mockSelectorResult = true;
+        const { getByTestId, queryByTestId } = render(
+          <OndoCampaignCTA
+            campaign={buildCampaign({ socialProfileRequired: true })}
+            participantStatus={notOptedIn}
+            {...defaultProps}
+            notEligibleForCampaign
+          />,
+        );
+
+        fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+        expect(mockEntriesClosed).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+        expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
       });
 
       it('fires entries-closed toast (not the opt-in sheet) when pressed', () => {

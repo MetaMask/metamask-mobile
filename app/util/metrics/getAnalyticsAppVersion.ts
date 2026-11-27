@@ -1,4 +1,5 @@
 import { getVersion } from 'react-native-device-info';
+import { applyOtaVersion } from '../version';
 
 const ENVIRONMENT_SUFFIXES: Record<string, string> = {
   exp: 'experimental',
@@ -55,11 +56,12 @@ export const formatAnalyticsAppVersion = (
 /**
  * Analytics App Version for Segment/Mixpanel.
  *
+ * Includes any applied OTA hotfix (e.g. `8.21.2` on the 8.21.0 binary).
  * Does not change native CFBundleShortVersionString / Android versionName.
  */
 const getAnalyticsAppVersion = (): string =>
   formatAnalyticsAppVersion(
-    getVersion(),
+    applyOtaVersion(getVersion()),
     process.env.METAMASK_ENVIRONMENT,
     process.env.METAMASK_BUILD_ATTRIBUTION,
   );

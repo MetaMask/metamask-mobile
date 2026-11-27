@@ -2,6 +2,7 @@ import React from 'react';
 import { render, within } from '@testing-library/react-native';
 import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
@@ -74,7 +75,12 @@ describe('PerpsProMarketStatsBar', () => {
 
   it('renders every Figma stat item label and value inline', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '64620.00', markPrice: '64639.00', funding: 0.0001 },
+      BTC: {
+        price: '64615.00',
+        markPrice: '64620.00',
+        oraclePrice: '64639.00',
+        funding: 0.0001,
+      },
     });
 
     const { getByText } = renderComponent();
@@ -173,6 +179,22 @@ describe('PerpsProMarketStatsBar', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps a missing funding rate in the default color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: PERPS_CONSTANTS.FallbackPercentageDisplay,
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) =>
+        textElement.props.children ===
+        `${PERPS_CONSTANTS.FallbackPercentageDisplay} / 39:24`,
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+  });
+
   it('displays a positive threshold funding rate in success color', () => {
     mockUsePerpsMarketStats.mockReturnValue({
       ...mockMarketStats,
@@ -216,9 +238,13 @@ describe('PerpsProMarketStatsBar', () => {
     expect(queryByText('$1.37B')).not.toBeOnTheScreen();
   });
 
-  it('renders mark price from the live price field and oracle price from the live markPrice field', () => {
+  it('renders mark from markPrice and oracle from oraclePrice, not the mid', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '83908', markPrice: '83947' },
+      BTC: {
+        price: '83900',
+        markPrice: '83908',
+        oraclePrice: '83947',
+      },
     });
 
     const { getByTestId } = renderComponent();
@@ -230,17 +256,20 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // Mark and oracle are distinct values sourced from distinct fields:
-    // `price` is the live mark, `markPrice` carries the exchange oracle price.
+    // Mid, mark and oracle are three distinct values from three distinct
+    // fields: `price` is the mid, `markPrice` the venue mark, `oraclePrice`
+    // the exchange oracle. Each row shows only its own.
     expect(within(markItem).getByText(/\$83,908/)).toBeOnTheScreen();
+    expect(within(markItem).queryByText(/\$83,900/)).toBeNull();
     expect(within(markItem).queryByText(/\$83,947/)).toBeNull();
     expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
+    expect(within(oracleItem).queryByText(/\$83,900/)).toBeNull();
     expect(within(oracleItem).queryByText(/\$83,908/)).toBeNull();
   });
 
-  it('renders a fallback for mark price when only the oracle price is available', () => {
+  it('renders a fallback for mark price when only the mid and oracle price are available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { markPrice: '83947' },
+      BTC: { price: '83900', oraclePrice: '83947' },
     });
 
     const { getByTestId } = renderComponent();
@@ -252,14 +281,15 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // Mark must not silently fall back to the oracle value.
+    // Mark must not silently fall back to the mid or the oracle value.
     expect(within(markItem).getByText('-')).toBeOnTheScreen();
+    expect(within(markItem).queryByText(/\$83,900/)).toBeNull();
     expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
   });
 
-  it('renders a fallback for oracle price when only the mark price is available', () => {
+  it('renders a fallback for oracle price when only the mid and mark price are available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '83908' },
+      BTC: { price: '83900', markPrice: '83908' },
     });
 
     const { getByTestId } = renderComponent();
@@ -271,8 +301,9 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // Oracle must not silently fall back to the mark value.
+    // Oracle must not silently fall back to the mid or the mark value.
     expect(within(markItem).getByText(/\$83,908/)).toBeOnTheScreen();
     expect(within(oracleItem).getByText('-')).toBeOnTheScreen();
+    expect(within(oracleItem).queryByText(/\$83,900/)).toBeNull();
   });
 });

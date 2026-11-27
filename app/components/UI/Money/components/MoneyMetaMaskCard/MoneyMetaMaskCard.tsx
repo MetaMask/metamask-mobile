@@ -59,6 +59,8 @@ interface MoneyMetaMaskCardProps {
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  /** Called when the "Log in" button is pressed (sign_in mode only). */
+  onSignInPress?: () => void;
   setupView?: MoneyCardSetupView;
   onSetupContinuePress?: () => void;
   /** True while a Money account funding approval is running in the background. */
@@ -266,6 +268,7 @@ const HEADER_TITLE_KEY_BY_MODE = {
   verifying: 'money.metamask_card.title',
   loading: 'money.metamask_card.title',
   setup: 'money.metamask_card.title',
+  sign_in: 'money.metamask_card.title',
 } as const satisfies Record<MoneyMetaMaskCardMode, string>;
 
 /**
@@ -298,7 +301,11 @@ const getSetupCopy = (
         };
       }
       return {
-        title: strings('card.card_home.messages.setup_incomplete.title'),
+        title: strings(
+          setupView.step === 'rejected'
+            ? 'card.card_home.messages.setup_incomplete.rejected_title'
+            : 'card.card_home.messages.setup_incomplete.title',
+        ),
         description: strings(
           `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
         ),
@@ -364,11 +371,35 @@ const SetupContent = ({
   );
 };
 
+const SignInContent = () => (
+  <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="pt-3 gap-4"
+    >
+      <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART}>
+        <MoneyCardTiltAnimation isMetalCard={false} />
+      </Box>
+      <Box twClassName="gap-1 flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          testID={MoneyMetaMaskCardTestIds.SIGN_IN_PROMPT}
+        >
+          {strings('money.metamask_card.sign_in_prompt')}
+        </Text>
+      </Box>
+    </Box>
+  </Box>
+);
+
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onSignInPress,
   onSetupContinuePress,
   setupView,
   isSetupContinueLoading = false,
@@ -487,6 +518,11 @@ const MoneyMetaMaskCard = ({
     onSetupContinuePress?.();
   }, [trackCardButtonClick, onSetupContinuePress]);
 
+  const handleSignInPress = useCallback(() => {
+    trackCardButtonClick(CardActions.AUTHENTICATION_LOGIN_BUTTON);
+    onSignInPress?.();
+  }, [trackCardButtonClick, onSignInPress]);
+
   const isInteractionDisabled =
     mode === 'verifying' ||
     mode === 'loading' ||
@@ -503,6 +539,7 @@ const MoneyMetaMaskCard = ({
               link: handleLinkPress,
               manage: handleManagePress,
               setup: handleSetupSectionPress,
+              sign_in: handleSignInPress,
             } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
           )[mode],
     [
@@ -510,6 +547,7 @@ const MoneyMetaMaskCard = ({
       handleLinkPress,
       handleManagePress,
       handleSetupSectionPress,
+      handleSignInPress,
       isInteractionDisabled,
       mode,
     ],
@@ -547,6 +585,8 @@ const MoneyMetaMaskCard = ({
     content = setupView ? (
       <SetupContent setupView={setupView} showMetalCard={showMetalCard} />
     ) : null;
+  } else if (mode === 'sign_in') {
+    content = <SignInContent />;
   } else if (mode === 'verifying') {
     content = (
       <Box twClassName="pt-3">
@@ -596,6 +636,7 @@ const MoneyMetaMaskCard = ({
   // turn, and a tap can fire either action.
   const showsSetupContinue =
     mode === 'setup' && setupView?.kind === 'action_required';
+  const showsSignIn = mode === 'sign_in';
 
   const contentPressable = (
     <Pressable
@@ -629,6 +670,18 @@ const MoneyMetaMaskCard = ({
             testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
           >
             {strings('money.metamask_card.setup.continue')}
+          </Button>
+        </Box>
+      ) : showsSignIn ? (
+        <Box twClassName="gap-4">
+          {contentPressable}
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            onPress={handleSignInPress}
+            testID={MoneyMetaMaskCardTestIds.SIGN_IN_BUTTON}
+          >
+            {strings('money.metamask_card.sign_in_cta')}
           </Button>
         </Box>
       ) : (

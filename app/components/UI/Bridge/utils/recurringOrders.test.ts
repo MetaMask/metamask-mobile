@@ -9,6 +9,8 @@ import {
   formatRecurringOrderDate,
   formatRecurringPriceRange,
   formatRecurringTokenAmount,
+  getRecurringOrderDuplicateSourceAmount,
+  getRecurringOrderMinAmountUsd,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getOrderTypeFromDraftPriceRange,
@@ -16,6 +18,41 @@ import {
   isRecurringSwapEligibleForAddFunds,
 } from './recurringOrders';
 import { OrderType } from '../types/advancedOrders';
+
+describe('getRecurringOrderMinAmountUsd', () => {
+  it.each([
+    { chainId: 'eip155:1' as const, expected: 100 },
+    { chainId: '0x1' as const, expected: 100 },
+    { chainId: 'eip155:8453' as const, expected: 10 },
+    { chainId: undefined, expected: 10 },
+  ])('returns $$expected for chain $chainId', ({ chainId, expected }) => {
+    const result = getRecurringOrderMinAmountUsd(chainId);
+
+    expect(result).toBe(expected);
+  });
+});
+
+describe('getRecurringOrderDuplicateSourceAmount', () => {
+  it('converts the per-swap source amount out of minimal units', () => {
+    const result = getRecurringOrderDuplicateSourceAmount(
+      MOCK_RECURRING_OPEN_ORDER,
+    );
+
+    expect(result).toBe('0.0015');
+  });
+
+  it.each(['0', 'not-a-number'])(
+    'returns undefined for source amount %s',
+    (amount) => {
+      const result = getRecurringOrderDuplicateSourceAmount({
+        ...MOCK_RECURRING_OPEN_ORDER,
+        src: { ...MOCK_RECURRING_OPEN_ORDER.src, amount },
+      });
+
+      expect(result).toBeUndefined();
+    },
+  );
+});
 
 describe('recurring order formatting', () => {
   it('converts V2 native and ERC-20 assets to Bridge tokens', () => {
@@ -116,7 +153,7 @@ describe('recurring order formatting', () => {
     const result = formatRecurringPriceRange({
       priceRange: {
         side: 'dest',
-        currency: 'usd',
+        currency: 'USD',
         min: '1800',
       },
       currentCurrency: 'EUR',

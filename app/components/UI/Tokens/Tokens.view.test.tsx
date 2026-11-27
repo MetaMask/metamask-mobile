@@ -49,13 +49,10 @@ describeForPlatforms('Tokens — network filtering', () => {
     await waitForTokenListLoad();
 
     // Mainnet tokens should NOT be visible when filtered to Sepolia
-    await waitFor(
-      () => {
-        expect(queryByTestId(getAssetTestId('ETH'))).not.toBeOnTheScreen();
-        expect(queryByTestId(getAssetTestId('USDC'))).not.toBeOnTheScreen();
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(queryByTestId(getAssetTestId('ETH'))).not.toBeOnTheScreen();
+      expect(queryByTestId(getAssetTestId('USDC'))).not.toBeOnTheScreen();
+    });
   });
 
   // E2E test 7: "should filter tokens by Solana" (adapted — proves USDC also appears on Ethereum)

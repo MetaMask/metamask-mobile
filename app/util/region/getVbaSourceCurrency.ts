@@ -4,12 +4,13 @@ import { isVbaRegionEnabled } from './isVbaRegionEnabled';
  * Fiat codes a Virtual Bank Account autoramp can be created in. Each needs a
  * deposit screen and its own `moneyMovementNeobank<Currency>` flag.
  */
-export type VbaSourceCurrency = 'BRL' | 'USD';
+export type VbaSourceCurrency = 'BRL' | 'USD' | 'EUR';
 
 /** Supported currencies, in Choose Currency display order. */
 export const VBA_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] = [
   'BRL',
   'USD',
+  'EUR',
 ];
 
 /** One open per-currency flag: the currency and the countries it serves. */

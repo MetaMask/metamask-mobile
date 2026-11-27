@@ -39,10 +39,6 @@ on:
         description: 'GitHub environment name for secrets/approvals'
         type: string
         required: true
-      secrets_json:
-        description: 'JSON mapping of secret aliases from builds.yml'
-        type: string
-        required: true
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -71,7 +67,8 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      # OTA-specific vars only — build config + secrets come from builds.yml via steps below
+      # OTA-specific vars only. Build config comes from builds.yml via the steps below;
+      # secrets are mapped only on the two bundling steps.
       TARGET_COMMIT_HASH: ${{ inputs.commit_sha }}
       ARTIFACT_NAME: ${{ inputs.artifact_name }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
@@ -140,12 +137,6 @@ jobs:
           eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
           node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
 
-      - name: Set secrets from builds.yml mapping
-        env:
-          CONFIG_SECRETS: ${{ inputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node scripts/set-secrets-from-config.js
-
       - name: Determine signing secret name
         shell: bash
         env:
@@ -168,14 +159,26 @@ jobs:
           esac
           echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
 
+      # Credentials go to step outputs, not the job environment, so later steps cannot
+      # re-read the signer secret from Secrets Manager.
       - name: Configure AWS credentials
+        id: aws
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: 'us-east-2'
+          output-credentials: true
+          output-env-credentials: false
 
-      - name: Fetch secret and export as environment variables
+      # The signer goes to a 0600 temp file (RUNNER_TEMP is emptied at the end of every
+      # job), not GITHUB_ENV, so only the step that signs the update can read it.
+      - name: Fetch signing secret into a temp env file
+        id: expo-signer
         shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
         run: |
           echo "🔐 Fetching secret from Secrets Manager..."
           secret_json=$(aws secretsmanager get-secret-value \
@@ -184,13 +187,22 @@ jobs:
             --query SecretString \
             --output text)
 
+          env_file="$RUNNER_TEMP/expo-signer.env"
+          (umask 077 && : > "$env_file")
+
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
+            # The file is sourced by bash, so only plain variable names are allowed.
+            if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+              echo "::warning::Skipping signer secret key '$key': not a valid environment variable name."
+              continue
+            fi
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            echo "✅ Set secret for key: $key"
+            printf 'export %s=%q\n' "$key" "$value" >> "$env_file"
+            echo "✅ Stored secret for key: $key"
           done
+          echo "env-file=$env_file" >> "$GITHUB_OUTPUT"
 
       - name: Display configuration
         env:
@@ -205,6 +217,7 @@ jobs:
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
 
+      # Bundles to a throwaway directory, so it runs without the app secrets.
       - name: Diagnose - expo export in isolation
         env:
           NODE_OPTIONS: '--max_old_space_size=8192'
@@ -214,8 +227,6 @@ jobs:
           echo "   METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-<not set>}"
           echo "   METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-<not set>}"
           echo "   METAMASK_BUILD_ATTRIBUTION=${METAMASK_BUILD_ATTRIBUTION:-<not set>}"
-          echo "   EXPO_PROJECT_ID is set: $([[ -n "${EXPO_PROJECT_ID}" ]] && echo yes || echo NO)"
-          echo "   EXPO_TOKEN is set:      $([[ -n "${EXPO_TOKEN}" ]] && echo yes || echo NO)"
           yarn expo export \
             --platform "${OTA_PUSH_PLATFORM}" \
             --dump-sourcemap \
@@ -228,6 +239,58 @@ jobs:
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
           EXPO_DEBUG: '1'
+          EXPO_SIGNER_ENV_FILE: ${{ steps.expo-signer.outputs.env-file }}
+          # App secrets are mapped on this step only, so no other step can read them. The
+          # same list is in build.yml, build-rc-repack.yml and
+          # build-android-upload-to-testmu.yml; keep them in sync.
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
+          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
+          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
+          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
+          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          # Publishes OTA updates; only this workflow gets it.
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           # --- Resource monitor ---------------------------------------------------
           # GitHub-hosted runners expose no live machine metrics, so log memory,
@@ -248,6 +311,8 @@ jobs:
           trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
 
           echo "📦 Configuring EXPO key..."
+          # shellcheck source=/dev/null
+          . "$EXPO_SIGNER_ENV_FILE"
           if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
             echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
             exit 1
@@ -275,10 +340,55 @@ jobs:
               ;;
           esac
 
+      # build.sh passes --emit-metadata, so dist/ holds both the exported bundle and the
+      # published update. TARGET_COMMIT_HASH is the commit that was bundled; it can differ
+      # from github.sha, which is what the attestation certificate records.
+      # The update is already live here, so attestation failures must not fail the job:
+      # a failed push invites a re-run, which would publish a second OTA.
+      - name: Resolve published OTA update
+        id: ota-update
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          update=$(jq -ce --arg p "$OTA_PUSH_PLATFORM" '.updates[] | select(.platform == $p)' dist/eas-update-metadata.json)
+          bundle=$(jq -er --arg p "$OTA_PUSH_PLATFORM" '.fileMetadata[$p].bundle' dist/metadata.json)
+          predicate=$(jq -cn \
+            --argjson update "$update" \
+            --arg channel "$TARGET_CHANNEL" \
+            --arg commit "$TARGET_COMMIT_HASH" \
+            '{channel: $channel, branch: $update.branch, platform: $update.platform, updateId: $update.id, updateGroupId: $update.group, runtimeVersion: $update.runtimeVersion, commit: $commit}')
+          {
+            echo "bundle-path=dist/${bundle}"
+            echo "predicate=${predicate}"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "**Update ID:** \`$(jq -r .updateId <<< "$predicate")\`"
+            echo "**Update group:** \`$(jq -r .updateGroupId <<< "$predicate")\`"
+            echo "**Commit:** \`${TARGET_COMMIT_HASH}\`"
+            echo "**Bundle sha256:** \`$(sha256sum "dist/${bundle}" | cut -d' ' -f1)\`"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest OTA bundle
+        id: attest-ota
+        if: steps.ota-update.outcome == 'success'
+        continue-on-error: true
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.ota-update.outputs.bundle-path }}
+          predicate-type: https://github.com/MetaMask/metamask-mobile/attestations/eas-update/v1
+          predicate: ${{ steps.ota-update.outputs.predicate }}
+
       - name: Update summary
         if: success()
+        env:
+          ATTEST_OUTCOME: ${{ steps.attest-ota.outcome }}
         run: |
           PLATFORM_LABEL=$(echo "${OTA_PUSH_PLATFORM}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+          if [ "${ATTEST_OUTCOME}" != "success" ]; then
+            echo "::warning title=OTA bundle not attested::The update is live but has no attestation. Do not re-run this job; that publishes a second update."
+            echo "> ⚠️ **OTA bundle not attested.** The update is live. Do not re-run this job." >> "$GITHUB_STEP_SUMMARY"
+          fi
           {
             echo "### ✅ EAS Update Published Successfully (${PLATFORM_LABEL})"
             echo

@@ -1,6 +1,6 @@
 import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useCallback } from 'react';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -35,8 +35,13 @@ import {
 const UNAVAILABLE_VALUE = PERPS_CONSTANTS.FallbackDataDisplay;
 
 export interface PerpsCloseSummaryProps {
-  /** Total margin including P&L (undefined when unavailable) */
+  /**
+   * Margin returned (undefined when unavailable). Isolated margin includes
+   * the P&L; cross margin does not.
+   */
   totalMargin: number | undefined;
+  /** Margin mode of the closed position; cross margin excludes the P&L. */
+  marginMode?: MarginMode;
   /** P&L realized by the close (for "includes P&L" breakdown; undefined when unavailable) */
   totalPnl: number | undefined;
 
@@ -104,6 +109,7 @@ export interface PerpsCloseSummaryProps {
  */
 const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalMargin,
+  marginMode,
   totalPnl,
   totalFees,
   originalTotalFees,
@@ -209,7 +215,11 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {strings('perps.close_position.includes_pnl')}
+              {strings(
+                marginMode === 'cross'
+                  ? 'perps.close_position.pnl'
+                  : 'perps.close_position.includes_pnl',
+              )}
             </Text>
             <Text
               variant={TextVariant.BodySm}

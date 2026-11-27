@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -126,9 +129,11 @@ import {
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
-import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
+import { getNetworkFeeAsset } from '../../../utils/getNetworkFeeAsset';
+import { isGaslessQuote } from '../../../utils/isGaslessQuote';
 import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { BridgeTabKey } from '../BridgeView.constants';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -257,16 +262,16 @@ const BridgeMarketViewContent = ({
     }, [navigation, route.params?.scrollToTopOnNav]),
   );
 
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
-  const { latestSourceBalance } = useBridgeSession();
+  const { latestSourceBalance, renderedTab } = useBridgeSession();
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const {
     activeQuote,
-    formattedQuoteData,
     isLoading,
     destTokenAmount,
     isNoQuotesAvailable,
@@ -381,7 +386,7 @@ const BridgeMarketViewContent = ({
     // Both tokens must be on the same chain
     if (sourceToken.chainId !== destToken.chainId) return false;
     // Check if the chain is sponsored
-    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId);
   }, [
     sourceToken?.chainId,
     destToken?.chainId,
@@ -418,6 +423,8 @@ const BridgeMarketViewContent = ({
   );
 
   useBridgeQuoteEvents({
+    enabled: renderedTab === BridgeTabKey.Market,
+    eventName: UnifiedSwapBridgeEventName.QuotesReceived,
     hasInsufficientBalance,
     hasInsufficientNativeReserveError:
       quoteEventWarningState.hasInsufficientNativeReserveError,
@@ -449,7 +456,7 @@ const BridgeMarketViewContent = ({
       previousNonSlippageQuoteRequestKey === nonSlippageQuoteRequestKey;
 
     if (hasValidBridgeInputs && !isHydrationOnlySlippageChange) {
-      updateQuoteParams();
+      void updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
@@ -469,7 +476,7 @@ const BridgeMarketViewContent = ({
     const wasClosed = wasStockMarketClosedRef.current;
     wasStockMarketClosedRef.current = isStockMarketClosed;
     if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
-      updateQuoteParams();
+      void updateQuoteParams();
     }
   }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
 
@@ -527,8 +534,10 @@ const BridgeMarketViewContent = ({
     return 'quote';
   };
   const contentMode = getContentMode();
-  const gaslessFeeAsset = getGaslessFeeAsset(
-    activeQuote?.quote?.feeData?.txFee,
+  const networkFeeAsset = getNetworkFeeAsset(
+    isGaslessQuote(activeQuote?.quote)
+      ? activeQuote?.quote?.feeData?.txFee
+      : activeQuote?.quote?.feeData?.network,
   );
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
@@ -636,7 +645,29 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  showFiatAmountAsPrimary={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceAmountInput.isFiatMode ||
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceToken?.isMoneyToken ||
+                    destToken?.isMoneyToken
+                  }
+                  secondaryValue={
+                    destToken?.isMoneyToken
+                      ? strings('bridge.money_name')
+                      : undefined
+                  }
+                  subtitle={
+                    destToken?.apy !== undefined
+                      ? strings('money.asset_overview.balance_cta.earn_apy', {
+                          apy: destToken.apy,
+                        })
+                      : undefined
+                  }
+                  hideFiatValueWhenUnpriced={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    destToken?.isMoneyToken || sourceToken?.isMoneyToken
+                  }
                 />
               </Box>
             </Box>
@@ -671,7 +702,7 @@ const BridgeMarketViewContent = ({
                 <QuoteDetailsCard
                   location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
-                  gaslessFeeAsset={gaslessFeeAsset}
+                  networkFeeAsset={networkFeeAsset}
                 />
               </Box>
             ) : null}

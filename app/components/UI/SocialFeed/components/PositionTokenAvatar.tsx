@@ -132,6 +132,7 @@ const PositionTokenAvatarComponent: React.FC<PositionTokenAvatarProps> = ({
       imageOrSvgProps={{
         onImageError: handleImageError,
         onSvgError: handleImageError,
+        imageProps: { cachePolicy: 'disk' },
       }}
     />
   );

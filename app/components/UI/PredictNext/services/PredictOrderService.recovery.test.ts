@@ -252,7 +252,7 @@ describe('Predict order durable recovery', () => {
       code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
       metadata: {
         phase: 'commit',
-        mutationRelay: 'unknown',
+        outcome: 'unknown',
         causeCode: PredictErrorCode.UNAUTHENTICATED,
       },
     });
@@ -295,7 +295,6 @@ describe('Predict order durable recovery', () => {
       metadata: {
         phase: 'observe',
         bodyCode: 'operation_not_found',
-        mutationRelay: 'not_a_mutation',
       },
     });
     trading.observeOrder.mockRejectedValue(missing);
@@ -560,7 +559,7 @@ describe('Predict order durable recovery', () => {
     await expect(
       service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing),
     ).rejects.toMatchObject({
-      metadata: { mutationRelay: 'not_relayed_this_invocation' },
+      metadata: { phase: 'commit', requestSent: false },
     });
     expect(trading.commitOrder).not.toHaveBeenCalled();
     await journal.put(reference);

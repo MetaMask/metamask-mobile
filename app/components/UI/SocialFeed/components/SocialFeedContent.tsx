@@ -19,6 +19,7 @@ import {
   SocialFeedFooter,
   SocialFeedPlaceholder,
 } from './SocialFeedListStates';
+import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SOCIAL_FEED_SENTINEL_TEST_ID } from './SocialFeedStates.testIds';
 import SocialV1FeedPostList from './SocialV1FeedPostList';
@@ -112,9 +113,9 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  requireSocialProfile,
   realtime = false,
   refreshRef,
+  onListStateChange,
   testID,
 }) => {
   const query = useMemo(
@@ -138,15 +139,36 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   } = useSocialFeed(query, { filterPost, realtime });
   useImperativeHandle(refreshRef, () => ({ refresh }), [refresh]);
   const { profileId: viewerProfileId } = useSocialProfileId();
-  const state = getSocialFeedListState({
-    postCount: posts.length,
-    isLoading,
-    error,
-  });
+  const { isEntryHidden } = useSocialEntryModeration();
+  const visiblePosts = useMemo(
+    () =>
+      posts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+            commentId: post.commentId,
+          }),
+      ),
+    [isEntryHidden, posts],
+  );
+  const state = useMemo(
+    () =>
+      getSocialFeedListState({
+        postCount: visiblePosts.length,
+        isLoading,
+        error,
+      }),
+    [error, isLoading, visiblePosts.length],
+  );
+  useEffect(() => {
+    onListStateChange?.(state);
+  }, [onListStateChange, state]);
   useSocialFeedScreenView(
     location,
     analyticsSource,
-    [isLoading, Boolean(error), posts.length > 0],
+    [isLoading, Boolean(error), visiblePosts.length > 0],
     isActive,
   );
 
@@ -154,21 +176,13 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
-        requireSocialTerms
-        requireSocialProfile={requireSocialProfile}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
         showCopyTrade={post.item.author.id !== viewerProfileId}
       />
     ),
-    [
-      onAuthorPress,
-      onCopyTrade,
-      onPositionPress,
-      requireSocialProfile,
-      viewerProfileId,
-    ],
+    [onAuthorPress, onCopyTrade, onPositionPress, viewerProfileId],
   );
 
   return (
@@ -182,9 +196,9 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {renderHeader?.()}
         <SocialFeedPlaceholder state={state} emptyState={emptyState} />
-        {posts.length > 0 ? (
+        {visiblePosts.length > 0 ? (
           <SocialV1FeedPostList
-            posts={posts}
+            posts={visiblePosts}
             dividerKeyPrefix={location}
             renderPost={renderPost}
           />
@@ -195,7 +209,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
           onRetry={() => refresh()}
         />
         <LoadMoreSentinel
-          enabled={hasNextPage && !isFetchingNextPage}
+          enabled={isActive !== false && hasNextPage && !isFetchingNextPage}
           onVisible={loadMore}
         />
       </Box>

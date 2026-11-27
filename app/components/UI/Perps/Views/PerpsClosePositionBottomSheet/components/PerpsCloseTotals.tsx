@@ -1,5 +1,5 @@
 import React from 'react';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
@@ -7,6 +7,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
@@ -34,50 +35,105 @@ export interface PerpsCloseTotalsProps {
   roePercentage?: number;
   /** Cash the close returns; undefined while unavailable. */
   receiveAmount: number | undefined;
+  /** Margin the close returns, without its P&L. */
+  margin?: number;
+  /** Margin mode of the close; selects the P&L label and the margin row's tag. */
+  marginMode?: MarginMode;
+  /** Show the margin row when the margin mode is known (Close all only). */
+  showMargin?: boolean;
+  /**
+   * Optional test IDs. A caller with its own selector namespace (the Close
+   * all sheet) passes its own IDs; defaults to the close position sheet's.
+   */
+  testIDs?: {
+    marginValue?: string;
+    receiveValue?: string;
+    pnlValue?: string;
+    pnlRow?: string;
+  };
 }
 
 /**
  * Receive and P&L rows for the close sheet. Deliberately shorter than
  * `PerpsCloseSummary`, which the full-screen close flow uses: the sheet drops
- * the margin, fees, and rewards rows.
+ * the fees and rewards rows, and shows margin only when `showMargin` is set.
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
   roePercentage,
   receiveAmount,
-}) => (
-  <>
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('perps.close_position.total_receive')}
-      value={formatCloseSummaryFiat(receiveAmount)}
-      valueTextProps={{
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
-      }}
-    />
+  margin,
+  marginMode,
+  showMargin = false,
+  testIDs,
+}) => {
+  const marginValueTestID =
+    testIDs?.marginValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE;
+  const receiveValueTestID =
+    testIDs?.receiveValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE;
+  const pnlValueTestID =
+    testIDs?.pnlValue ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL;
+  const pnlRowTestID =
+    testIDs?.pnlRow ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW;
 
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      twClassName="mt-0.5"
-      // One native element carries the label with its value for automation.
-      accessible
-      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
-      keyLabel={strings('perps.close_position.included_pnl')}
-      value={
-        pnl === undefined
-          ? PERPS_CONSTANTS.FallbackDataDisplay
-          : `${formatSignedCloseSummaryFiat(pnl)}${
-              roePercentage !== undefined
-                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-                : ''
-            }`
-      }
-      valueTextProps={{
-        color: getCloseSummaryPnlColor(pnl),
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      }}
-    />
-  </>
-);
+  return (
+    <>
+      {showMargin && marginMode ? (
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('perps.close_position.margin')}
+          keyEndAccessory={
+            <PerpsMarginModeTag
+              marginMode={marginMode}
+              testID={PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG}
+            />
+          }
+          value={formatCloseSummaryFiat(margin)}
+          valueTextProps={{
+            testID: marginValueTestID,
+          }}
+        />
+      ) : null}
+
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.close_position.total_receive')}
+        value={formatCloseSummaryFiat(receiveAmount)}
+        valueTextProps={{
+          testID: receiveValueTestID,
+        }}
+      />
+
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        twClassName="mt-0.5"
+        // One native element carries the label with its value for automation.
+        accessible
+        testID={pnlRowTestID}
+        keyLabel={strings(
+          // Cross margin never holds the P&L, so it is not "included".
+          marginMode === 'cross'
+            ? 'perps.close_position.pnl'
+            : 'perps.close_position.included_pnl',
+        )}
+        value={
+          pnl === undefined
+            ? PERPS_CONSTANTS.FallbackDataDisplay
+            : `${formatSignedCloseSummaryFiat(pnl)}${
+                roePercentage !== undefined
+                  ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                  : ''
+              }`
+        }
+        valueTextProps={{
+          color: getCloseSummaryPnlColor(pnl),
+          testID: pnlValueTestID,
+        }}
+      />
+    </>
+  );
+};
 
 export default PerpsCloseTotals;
