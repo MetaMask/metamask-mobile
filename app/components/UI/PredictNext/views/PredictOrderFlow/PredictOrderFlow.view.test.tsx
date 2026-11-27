@@ -777,6 +777,14 @@ describe('PredictOrderFlow', () => {
 
   it('shows the signed maximum cost on the buy sheet before Buy is tapped', async () => {
     stubFetch(() => ({ body: makePreview() }));
+    const service = Engine.context.PredictOrderService;
+    const review = service.reviewPreview.bind(service);
+    jest
+      .spyOn(service, 'reviewPreview')
+      .mockImplementation(async (venueId, previewId) => ({
+        ...(await review(venueId, previewId)),
+        maxCost: '19.95',
+      }));
 
     await openSheet();
     expect(
@@ -788,14 +796,20 @@ describe('PredictOrderFlow', () => {
 
     typeAmount('20');
 
-    // All 41 contracts at the 46.51¢ limit plus the fee ceiling.
     await waitFor(() =>
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
-      ).toHaveTextContent('$19.89'),
+      ).toHaveTextContent('$19.95'),
     );
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled();
     expect(commitCalls()).toHaveLength(0);
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    expect(
+      within(screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN)).getByTestId(
+        PredictOrderFlowTestIds.DETAILS_TOTAL,
+      ),
+    ).toHaveTextContent('$19.89');
   });
 
   it('keeps Buy disabled until the phone has checked what it would sign', async () => {
@@ -834,12 +848,112 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()).toHaveLength(0);
   });
 
+  it('ignores a replaced preview review that lands after the next quote settles', async () => {
+    const previewIdA = 'aaaaaaaa-1111-4222-8333-444455556666';
+    const previewIdB = 'bbbbbbbb-1111-4222-8333-444455556666';
+    stubFetch(
+      (_url, init) => {
+        const { amount } = JSON.parse(init?.body as string) as {
+          amount: string;
+        };
+        const reply = quoteFlatBook(amount, {
+          priceCents: 50,
+          balance: '123.12',
+        });
+        return {
+          ...reply,
+          body: {
+            ...(reply.body as Record<string, unknown>),
+            previewId: amount === '20' ? previewIdA : previewIdB,
+          },
+        };
+      },
+      { commit: () => ({ body: makeReceipt({ previewId: previewIdB }) }) },
+    );
+    const service = Engine.context.PredictOrderService;
+    const review = service.reviewPreview.bind(service);
+    const releases = new Map<string, () => void>();
+    const reviewPromises = new Map<string, Promise<unknown>>();
+    jest
+      .spyOn(service, 'reviewPreview')
+      .mockImplementation(async (venueId, previewId) => {
+        const run = async () => {
+          await new Promise<void>((resolve) => {
+            releases.set(previewId, resolve);
+          });
+          return review(venueId, previewId);
+        };
+        const promise = run();
+        reviewPromises.set(previewId, promise);
+        return promise;
+      });
+    const commit = jest.spyOn(service, 'commitPreview');
+
+    await openSheet();
+    typeAmount('20');
+    await waitFor(() => expect(releases.has(previewIdA)).toBe(true));
+
+    replaceAmount('20', '10');
+    await waitFor(() => expect(releases.has(previewIdB)).toBe(true));
+
+    await act(async () => {
+      releases.get(previewIdB)?.();
+      await reviewPromises.get(previewIdB);
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+      ).toHaveTextContent('$9.88'),
+    );
+
+    await act(async () => {
+      releases.get(previewIdA)?.();
+      await reviewPromises.get(previewIdA);
+    });
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+    ).toHaveTextContent('$9.88');
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+    await screen.findByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED);
+
+    expect(commit).toHaveBeenCalledTimes(1);
+    expect(commit).toHaveBeenCalledWith(KALSHI_VENUE_ID, previewIdB, {
+      kind: 'user-approved',
+    });
+  });
+
   it('keeps Buy disabled with the reason when the signing profile refuses the quote', async () => {
     // One contract at the 99¢ limit plus the fee ceiling costs more than the
     // $1 entered, so the phone has no order it may sign.
-    stubFetch(() => ({
-      body: makePreview({ requestedAmount: '1.00', limitPrice: '0.99' }),
-    }));
+    let quotes = 0;
+    stubFetch(() => {
+      quotes += 1;
+      return {
+        body: makePreview(
+          quotes === 1
+            ? { requestedAmount: '1.00', limitPrice: '0.99' }
+            : {
+                previewId: 'cccccccc-1111-4222-8333-444455556666',
+                requestedAmount: '1.00',
+                orderAmount: '0.50',
+                estimatedContracts: 1,
+                averagePrice: '0.50',
+                limitPrice: '0.50',
+                fee: '0.02',
+                feeBreakdown: [
+                  { source: 'venue', amount: '0.01' },
+                  { source: 'metamask', amount: '0.01' },
+                ],
+                totalDebit: '0.52',
+                potentialPayout: '1.00',
+                potentialProfit: '0.48',
+              },
+        ),
+      };
+    });
 
     await openSheet();
     typeAmount('1');
@@ -847,12 +961,21 @@ describe('PredictOrderFlow', () => {
     expect(
       await screen.findByTestId(PredictOrderFlowTestIds.ERROR),
     ).toHaveTextContent('A quote is unavailable right now.');
-    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
     ).toHaveTextContent('—');
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(commitCalls()).toHaveLength(0);
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.ERROR)).toBeNull();
+    expect(previewCalls()).toHaveLength(2);
     expect(commitCalls()).toHaveLength(0);
   });
 
