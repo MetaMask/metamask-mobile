@@ -285,6 +285,28 @@ describe('KalshiActivationPrompt', () => {
     ).toBeOnTheScreen();
   });
 
+  it('still shows readiness when portfolio invalidation fails', async () => {
+    jest.useFakeTimers();
+    mockInvalidateQueries.mockRejectedValueOnce(new Error('offline'));
+    (mockClient.getStatus as jest.Mock)
+      .mockResolvedValueOnce({ state: 'approved' })
+      .mockResolvedValueOnce({ state: 'active' });
+    (mockClient.activate as jest.Mock).mockResolvedValue({});
+
+    renderPrompt();
+    await act(async () => {
+      await jest.runAllTimersAsync();
+    });
+    fireEvent.press(screen.getByTestId(KalshiDemoOnboardingTestIds.ACTIVATE));
+    await act(async () => {
+      await jest.runAllTimersAsync();
+    });
+
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.DONE),
+    ).toBeOnTheScreen();
+  });
+
   it('stays closed when activation completes away from Home', async () => {
     const { rerender } = renderPrompt();
     await flush();

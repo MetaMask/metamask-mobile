@@ -1,6 +1,6 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
 import { KalshiActivationModal } from './KalshiActivationModal';
@@ -43,6 +43,7 @@ describe('KalshiActivationModal', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     announceForAccessibility.mockRestore();
   });
 
@@ -116,5 +117,27 @@ describe('KalshiActivationModal', () => {
 
     expect(screen.queryByTestId(TestIds.ACTIVATE)).toBeNull();
     expect(screen.getByTestId(TestIds.NOT_NOW)).toBeOnTheScreen();
+  });
+
+  it('disables the retry until the rate-limit cooldown ends', () => {
+    jest.useFakeTimers();
+    renderModal(
+      buildActivation({
+        failure: {
+          message: 'rate_limited',
+          action: 'activate',
+          cooldownSec: 2,
+        },
+      }),
+    );
+
+    const button = screen.getByTestId(TestIds.ACTIVATE);
+    expect(button).toBeDisabled();
+
+    act(() => {
+      jest.advanceTimersByTime(2_000);
+    });
+
+    expect(button).toBeEnabled();
   });
 });
