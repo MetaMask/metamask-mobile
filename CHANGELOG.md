@@ -72,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the Money referral invite not appearing when the eligibility check failed, timed out, or returned nothing, causing the referral code to be dropped without prompting (#40341)
+- Fixed Android briefly showing the invalid-link screen when opening Branch short links (#40421)
 - Fixed a bug that sent users back to the MetaMask Card sign-in screen after they signed in (#40536)
 - Fixed a bug that could create two MetaMask Cards for one card request (#40495)
 - Fixed networks added from the config registry showing a letter fallback instead of their network logo in the network selector, tokens page, and networks management screens (#39669)
