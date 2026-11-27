@@ -517,4 +517,27 @@ describe('PredictMarketChart', () => {
       view.getByLabelText('Market probability history. Vikings –'),
     ).toBeOnTheScreen();
   });
+
+  it('draws the series label alone when endpoint labels are compact', () => {
+    const view = render(
+      <PredictMarketChart
+        series={[
+          { ...testSeries[0], label: '61%' },
+          { ...testSeries[1], label: '38%' },
+        ]}
+        compactEndpointLabels
+        testID="market-chart"
+      />,
+    );
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+
+    expect(view.getByTestId('market-chart-label-home')).toBeOnTheScreen();
+    expect(view.queryByTestId('market-chart-value-home')).toBeNull();
+    expect(view.queryByTestId('market-chart-value-away')).toBeNull();
+    expect(
+      view.getByLabelText('Market probability history. 61%, 38%'),
+    ).toBeOnTheScreen();
+  });
 });

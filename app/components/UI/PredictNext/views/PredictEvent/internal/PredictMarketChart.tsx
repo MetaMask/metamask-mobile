@@ -61,6 +61,11 @@ interface PredictMarketChartProps {
   fillOpacity?: number;
   formatValue?: (value: number) => string;
   formatTime?: (time: number) => string;
+  /**
+   * Draws only the series label at the line end. Used when three or more
+   * series would collide with the name-and-value stack.
+   */
+  compactEndpointLabels?: boolean;
   testID?: string;
 }
 
@@ -86,6 +91,7 @@ export const PredictMarketChart = ({
       hour: 'numeric',
       minute: '2-digit',
     }).format(new Date(time)),
+  compactEndpointLabels = false,
   testID = 'predict-market-chart',
 }: PredictMarketChartProps) => {
   const { colors } = useTheme();
@@ -98,13 +104,15 @@ export const PredictMarketChart = ({
     labelGutter,
     fontScale,
     labels: series.map((entry) => entry.label),
-    values: series.flatMap((entry) => {
-      if (entry.endValue === null) {
-        return [NO_END_VALUE];
-      }
-      const value = entry.endValue ?? entry.data.at(-1)?.value;
-      return value === undefined ? [] : [formatValue(value)];
-    }),
+    values: compactEndpointLabels
+      ? []
+      : series.flatMap((entry) => {
+          if (entry.endValue === null) {
+            return [NO_END_VALUE];
+          }
+          const value = entry.endValue ?? entry.data.at(-1)?.value;
+          return value === undefined ? [] : [formatValue(value)];
+        }),
   });
   const baseModel = useMemo(
     () =>
@@ -116,12 +124,14 @@ export const PredictMarketChart = ({
         continuationWidth,
         lineWidth,
         fontScale: layout.fontScale,
+        compactLabels: compactEndpointLabels,
       }),
     [
       continuationWidth,
       layout.fontScale,
       layout.height,
       layout.labelGutter,
+      compactEndpointLabels,
       lineWidth,
       series,
       width,
@@ -191,7 +201,11 @@ export const PredictMarketChart = ({
   };
   const accessibilityValues =
     model?.displayedSeries
-      .map((entry) => `${entry.label} ${getShownValue(entry)}`)
+      .map((entry) =>
+        compactEndpointLabels
+          ? entry.label
+          : `${entry.label} ${getShownValue(entry)}`,
+      )
       .join(', ') ?? '';
   const clipId = `${idPrefix}-plot-clip`;
   const fadeId = `${idPrefix}-edge-fade`;
@@ -412,22 +426,24 @@ export const PredictMarketChart = ({
                 >
                   {entry.label}
                 </SvgText>
-                <SvgText
-                  fill={entry.color}
-                  fontSize={28 * layout.fontScale}
-                  fontWeight="700"
-                  transform={[
-                    { translateX: labelX },
-                    {
-                      translateY:
-                        entry.endpoint.labelY +
-                        LABEL_VALUE_BASELINE_OFFSET * layout.fontScale,
-                    },
-                  ]}
-                  testID={`${testID}-value-${entry.id}`}
-                >
-                  {getShownValue(entry)}
-                </SvgText>
+                {compactEndpointLabels ? null : (
+                  <SvgText
+                    fill={entry.color}
+                    fontSize={28 * layout.fontScale}
+                    fontWeight="700"
+                    transform={[
+                      { translateX: labelX },
+                      {
+                        translateY:
+                          entry.endpoint.labelY +
+                          LABEL_VALUE_BASELINE_OFFSET * layout.fontScale,
+                      },
+                    ]}
+                    testID={`${testID}-value-${entry.id}`}
+                  >
+                    {getShownValue(entry)}
+                  </SvgText>
+                )}
               </G>
             );
           })}
