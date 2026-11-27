@@ -812,6 +812,9 @@ const MoneyHomeView = () => {
         scrollY,
       };
 
+  const isMfaSettingUp =
+    mfaStatus === 'setting_up' || mfaStatus === 'signing_in';
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -829,12 +832,21 @@ const MoneyHomeView = () => {
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: labelKey,
         component_name: componentName,
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+        redirect_target: isMfaSettingUp
+          ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+          : BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
         ...(buttonPosition && { button_position: buttonPosition }),
         ...(buttonRowButtonCount && {
           button_row_button_count: buttonRowButtonCount,
         }),
       });
+
+      if (isMfaSettingUp) {
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+        });
+        return;
+      }
 
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
@@ -845,7 +857,7 @@ const MoneyHomeView = () => {
         }),
       });
     },
-    [navigation, trackButtonClicked, launchedFrom],
+    [navigation, trackButtonClicked, launchedFrom, isMfaSettingUp],
   );
 
   const handleTransferPress = useCallback(() => {
@@ -853,8 +865,6 @@ const MoneyHomeView = () => {
       handleMfaSignIn();
       return;
     }
-    const isMfaSettingUp =
-      mfaStatus === 'setting_up' || mfaStatus === 'signing_in';
     const blockedSheet = isMfaSettingUp
       ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
       : undefined;
@@ -880,6 +890,7 @@ const MoneyHomeView = () => {
     mfaStatus,
     isMfaSignInRequired,
     handleMfaSignIn,
+    isMfaSettingUp,
   ]);
 
   const navigateToCardHome = useCallback(() => {
@@ -921,10 +932,19 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
       label_key: 'money.action.card',
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
+      redirect_target: isMfaSettingUp
+        ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+        : SCREEN_NAMES.CARD_HOME,
       button_position: 3,
       button_row_button_count: actionButtonRowCount,
     });
+
+    if (isMfaSettingUp) {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+      });
+      return;
+    }
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -949,6 +969,8 @@ const MoneyHomeView = () => {
     isMfaSignInRequired,
     mfaStatus,
     handleMfaSignIn,
+    isMfaSettingUp,
+    navigation,
   ]);
 
   const handleActionButtonDetailsPress = useCallback(() => {

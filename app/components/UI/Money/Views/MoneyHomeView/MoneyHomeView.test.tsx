@@ -2740,6 +2740,36 @@ describe('MoneyHomeView', () => {
       });
     });
 
+    it.each<[string, string, MoneyMfaStatus]>([
+      ['Add', MoneyActionButtonRowTestIds.ADD_BUTTON, 'setting_up'],
+      ['Add', MoneyActionButtonRowTestIds.ADD_BUTTON, 'signing_in'],
+      ['Card', MoneyActionButtonRowTestIds.CARD_BUTTON, 'setting_up'],
+      ['Card', MoneyActionButtonRowTestIds.CARD_BUTTON, 'signing_in'],
+    ])(
+      'opens the setting up sheet instead of %s when the status is %s',
+      (_label, testId, status) => {
+        mockMfaStatus(status);
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        fireEvent.press(getByTestId(testId));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.MONEY.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+          }),
+        );
+        expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+          expect.objectContaining({
+            redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET,
+          }),
+        );
+      },
+    );
+
     it.each<MoneyMfaStatus>(['sign_in_required', 'sign_in_failed'])(
       'starts sign-in instead of Transfer when the status is %s',
       (status) => {
