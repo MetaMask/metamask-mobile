@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StatusBar, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Linking,
+  ScrollView,
+  StatusBar,
+  View,
+} from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,8 +42,9 @@ import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFunding
 import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
 import {
-  describeImmersveKycFailureDetail,
-  describeImmersveKycRejection,
+  describeImmersveKycFinal,
+  describeImmersveKycGenericRetry,
+  describeImmersveKycReasonLines,
 } from '../../util/immersveKycReasons';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -48,7 +55,8 @@ import {
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { KYC_REDIRECT_URL } from '../../constants';
+import { IMMERSVE_SUPPORT_EMAIL, KYC_REDIRECT_URL } from '../../constants';
+import { useCardIntercomSupport } from '../../Views/CardHome/hooks/useCardIntercomSupport';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
 import {
   setImmersveKycOnClose,
@@ -97,7 +105,6 @@ type ImmersveKycView =
   | 'verifying'
   | 'verified'
   | 'failed'
-  | 'retry'
   | 'reopen'
   | 'pollError'
   | 'expired';
@@ -167,7 +174,7 @@ export const deriveImmersveKycView = ({
     case 'active':
       return 'verified';
     case 'rejected':
-      return nextAction.canRetry ? 'retry' : 'failed';
+      return 'failed';
     case 'pending':
       // Sumsub finished, but Immersve's own checks are still running. Keep the
       // spinner until a terminal result arrives or the completion hold ends.
@@ -207,35 +214,25 @@ export const deriveImmersveKycView = ({
 const announcementForKycView = ({
   view,
   error,
-  failureDetail,
-  retryDescription,
+  finalCopy,
   reopenTitle,
   reopenDescription,
-  reasonLine,
+  reasonLines,
 }: {
   view: ImmersveKycView;
   error: string | null;
-  failureDetail: string | null;
-  retryDescription: string | null;
+  finalCopy: { title: string; description: string } | null;
   reopenTitle: string;
   reopenDescription: string;
-  reasonLine: string | null;
+  reasonLines: string[];
 }): string | null => {
   switch (view) {
     case 'verified':
       return strings('card.card_onboarding.complete.title');
-    case 'failed': {
-      const title = strings('card.card_onboarding.kyc_failed.title');
-      return failureDetail ? `${title}. ${failureDetail}` : title;
-    }
-    case 'retry':
-      return retryDescription
-        ? `${strings('card.card_onboarding.kyc_rejected.retry_title')}. ${retryDescription}`
-        : strings('card.card_onboarding.kyc_rejected.retry_title');
-    case 'reopen': {
-      const spoken = `${reopenTitle}. ${reopenDescription}`;
-      return reasonLine ? `${spoken}. ${reasonLine}` : spoken;
-    }
+    case 'failed':
+      return finalCopy ? `${finalCopy.title}. ${finalCopy.description}` : null;
+    case 'reopen':
+      return [`${reopenTitle}. ${reopenDescription}`, ...reasonLines].join(' ');
     case 'pollError':
       return `${strings(
         'card.card_onboarding.immersve_kyc_processing.error_title',
@@ -256,10 +253,11 @@ interface KycIdentityLayoutProps {
   buttonLabel?: string;
   onButtonPress?: () => void;
   buttonTestID?: string;
-  reasonLine?: string | null;
+  reasonLines?: string[];
+  onContactSupport?: () => void;
 }
 
-/** Verifying, Finish verifying, retry, and the two error states share this layout. */
+/** Verifying, Finish verifying, and the two error states share this layout. */
 const KycIdentityLayout = ({
   title,
   description,
@@ -267,7 +265,8 @@ const KycIdentityLayout = ({
   buttonLabel,
   onButtonPress,
   buttonTestID,
-  reasonLine,
+  reasonLines = [],
+  onContactSupport,
 }: KycIdentityLayoutProps) => {
   const tw = useTailwind();
 
@@ -302,15 +301,36 @@ const KycIdentityLayout = ({
             </Box>
           }
         />
-        {reasonLine ? (
+        {reasonLines.length === 1 ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-4 text-center"
             testID="immersve-kyc-processing-reason"
           >
-            {reasonLine}
+            {reasonLines[0]}
           </Text>
+        ) : null}
+        {reasonLines.length > 1 ? (
+          <Box twClassName="mt-4 gap-2" testID="immersve-kyc-processing-reason">
+            {reasonLines.map((line) => (
+              <Box key={line} twClassName="flex-row gap-2">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {'\u2022'}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  twClassName="flex-1"
+                >
+                  {line}
+                </Text>
+              </Box>
+            ))}
+          </Box>
         ) : null}
       </ScrollView>
       {buttonLabel ? (
@@ -324,6 +344,17 @@ const KycIdentityLayout = ({
           >
             {buttonLabel}
           </Button>
+          {onContactSupport ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={onContactSupport}
+              testID="immersve-kyc-processing-contact-support-button"
+            >
+              {strings('card.card_home.contact_support')}
+            </Button>
+          ) : null}
         </Box>
       ) : null}
     </View>
@@ -338,7 +369,7 @@ const KycIdentityLayout = ({
  * - no result yet, the minimum after close, and the wait after Sumsub completes → spinner
  * - pending during that wait → spinner; a pending review otherwise, and expected_spend → Verifying, with the illustration
  * - funding / active → You're verified; Finish setup routes onward
- * - rejected and retryable → retry prompt; permanent → Not eligible, in place
+ * - rejected (blocked, final) → final copy + Contact support, in place; signs out on leave
  * - kyc still outstanding → Finish verifying (never auto-reopens)
  * - poll failure → Try again; KYC_EXPIRING → Back to home
  * - still pending when the post-Sumsub wait ends, or pending or expected_spend for 30s → opener, or Card home, plus an in-review toast
@@ -391,7 +422,29 @@ const ImmersveKYCProcessing = () => {
   const { approveFunding } = useImmersveMoneyAccountFundingApproval();
   const route = useImmersveOnboardingRouter();
   const exitCardFlow = useExitCardFlow();
-  const { notifyKycRejected, notifyKycInReview } = useImmersveKycOutcome();
+  const { notifyKycRejected, notifyKycInReview, signOutOfRejectedKyc } =
+    useImmersveKycOutcome();
+  const openIntercomSupport = useCardIntercomSupport();
+  const contactSupport = useCallback(() => {
+    if (openIntercomSupport) {
+      openIntercomSupport();
+      return;
+    }
+    Linking.openURL(`mailto:${IMMERSVE_SUPPORT_EMAIL}`).catch(() => undefined);
+  }, [openIntercomSupport]);
+  // The final result signs out when the user leaves, not when it shows, so
+  // Contact support still carries the provider user id.
+  const owesSignOutRef = useRef(false);
+  const signOutRef = useRef(signOutOfRejectedKyc);
+  signOutRef.current = signOutOfRejectedKyc;
+  const signOutIfOwed = useCallback(() => {
+    if (!owesSignOutRef.current) {
+      return;
+    }
+    owesSignOutRef.current = false;
+    signOutRef.current().catch(() => undefined);
+  }, []);
+  useEffect(() => signOutIfOwed, [signOutIfOwed]);
   const hasStartedFundingApproval = useRef(false);
   const hasNotifiedRejection = useRef(false);
   const hasLeftForReview = useRef(false);
@@ -464,13 +517,9 @@ const ImmersveKYCProcessing = () => {
     isExpiring,
   });
 
-  const failureDetail =
+  const finalCopy =
     nextAction?.type === 'rejected'
-      ? describeImmersveKycFailureDetail(nextAction.reasons)
-      : null;
-  const retryDescription =
-    view === 'retry' && nextAction?.type === 'rejected'
-      ? describeImmersveKycRejection(nextAction.reasons, true)
+      ? describeImmersveKycFinal(nextAction.reasons)
       : null;
   const reopenTitle = strings(
     isInfoNeeded
@@ -482,20 +531,20 @@ const ImmersveKYCProcessing = () => {
       ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
       : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
   );
-  const reasonLine =
-    isInfoNeeded &&
-    nextAction?.type === 'kyc' &&
-    (nextAction.reasons?.length ?? 0) > 0
-      ? describeImmersveKycRejection(nextAction.reasons, true)
-      : null;
+  const kycReasons =
+    nextAction?.type === 'kyc' ? nextAction.reasons : undefined;
+  const describedReasonLines = describeImmersveKycReasonLines(kycReasons);
+  const reasonLines =
+    isInfoNeeded && describedReasonLines.length === 0
+      ? [describeImmersveKycGenericRetry()]
+      : describedReasonLines;
   const announcement = announcementForKycView({
     view,
     error,
-    failureDetail,
-    retryDescription,
+    finalCopy,
     reopenTitle,
     reopenDescription,
-    reasonLine,
+    reasonLines,
   });
 
   useEffect(() => {
@@ -527,8 +576,9 @@ const ImmersveKYCProcessing = () => {
   );
 
   const leaveToHome = useCallback(() => {
+    signOutIfOwed();
     exitCardFlow();
-  }, [exitCardFlow]);
+  }, [exitCardFlow, signOutIfOwed]);
 
   // The pending-review timeout and the end of the post-Sumsub wait share this.
   // The screen can reach both, so the second one must not exit again.
@@ -680,17 +730,13 @@ const ImmersveKYCProcessing = () => {
   }, [holdForCompletion, nextAction, isLoading, error, refresh]);
 
   useEffect(() => {
-    if (
-      (view !== 'failed' && view !== 'retry') ||
-      nextAction?.type !== 'rejected'
-    ) {
+    if (view !== 'failed' || nextAction?.type !== 'rejected') {
       return;
     }
-    // The screen is the explanation, so this does not toast. Only a permanent
-    // rejection resets onboarding; notifyKycRejected signs that session out.
-    if (!nextAction.canRetry) {
-      dispatch(resetOnboardingState());
-    }
+    // The screen is the explanation, so this does not toast. The session
+    // signs out when the user leaves (signOutIfOwed).
+    dispatch(resetOnboardingState());
+    owesSignOutRef.current = true;
     if (hasNotifiedRejection.current) {
       return;
     }
@@ -698,6 +744,7 @@ const ImmersveKYCProcessing = () => {
     notifyKycRejected(nextAction, {
       source: 'processing',
       toast: false,
+      signOut: false,
     }).catch(() => undefined);
   }, [view, nextAction, dispatch, notifyKycRejected]);
 
@@ -708,7 +755,13 @@ const ImmersveKYCProcessing = () => {
         ? CardScreens.COMPLETE
         : view === 'failed'
           ? CardScreens.KYC_FAILED
-          : null;
+          : view === 'reopen'
+            ? CardScreens.KYC_ACTION_REQUIRED
+            : null;
+  // Raw codes, unrecognised ones included, so new codes show up in analytics.
+  const reasonCodes = (kycReasons ?? []).join(',');
+  const viewedCtaHint = view === 'reopen' ? ctaHint : undefined;
+  const viewedReasonCodes = view === 'reopen' ? reasonCodes : undefined;
 
   useEffect(() => {
     if (!viewedScreen) {
@@ -719,11 +772,20 @@ const ImmersveKYCProcessing = () => {
         .addProperties(
           withCardProvider(CardProviderIds.Immersve, {
             screen: viewedScreen,
+            ...(viewedScreen === CardScreens.KYC_ACTION_REQUIRED
+              ? { cta_hint: viewedCtaHint, reason_codes: viewedReasonCodes }
+              : {}),
           }),
         )
         .build(),
     );
-  }, [viewedScreen, trackEvent, createEventBuilder]);
+  }, [
+    viewedScreen,
+    viewedCtaHint,
+    viewedReasonCodes,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   // 30s cutoff while background checks are pending, and when Immersve asks for
   // an expected spend amount (no form on this screen, so it must not sit on
@@ -773,28 +835,20 @@ const ImmersveKYCProcessing = () => {
           withCardProvider(CardProviderIds.Immersve, {
             action: CardActions.KYC_REOPEN,
             cta_hint: ctaHint,
+            reason_codes: reasonCodes,
           }),
         )
         .build(),
     );
     openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
-  }, [trackEvent, createEventBuilder, ctaHint, openKycWebview, nextAction]);
-
-  const handleRejectedRetry = useCallback(() => {
-    if (nextAction?.type !== 'rejected') {
-      return;
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_REOPEN,
-          }),
-        )
-        .build(),
-    );
-    openKycWebview(nextAction.retryUrl ?? '');
-  }, [nextAction, trackEvent, createEventBuilder, openKycWebview]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    ctaHint,
+    reasonCodes,
+    openKycWebview,
+    nextAction,
+  ]);
 
   const handleRetry = useCallback(() => {
     setIsRetryingPoll(true);
@@ -841,19 +895,11 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'failed') {
       return (
-        <KYCFailedContent onClose={leaveToHome} reasonLine={failureDetail} />
-      );
-    }
-    if (view === 'retry') {
-      return (
-        <KycIdentityLayout
-          title={strings('card.card_onboarding.kyc_rejected.retry_title')}
-          description={retryDescription ?? ''}
-          buttonLabel={strings(
-            'card.card_onboarding.immersve_kyc_processing.continue_button',
-          )}
-          onButtonPress={handleRejectedRetry}
-          buttonTestID="immersve-kyc-processing-rejected-retry-button"
+        <KYCFailedContent
+          onClose={leaveToHome}
+          title={finalCopy?.title}
+          description={finalCopy?.description}
+          onContactSupport={contactSupport}
         />
       );
     }
@@ -886,7 +932,8 @@ const ImmersveKYCProcessing = () => {
           )}
           onButtonPress={handleReopen}
           buttonTestID="immersve-kyc-processing-reopen-button"
-          reasonLine={reasonLine}
+          reasonLines={reasonLines}
+          onContactSupport={isInfoNeeded ? contactSupport : undefined}
         />
       );
     }

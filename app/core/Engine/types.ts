@@ -342,6 +342,12 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import {
+  CollectiblesController,
+  type CollectiblesControllerActions,
+  type CollectiblesControllerEvents,
+  type CollectiblesControllerState,
+} from '../../components/UI/Collectibles/controllers/CollectiblesController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -734,6 +740,7 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CollectiblesControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
@@ -853,6 +860,7 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CollectiblesControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
@@ -919,12 +927,6 @@ export type RootMessenger<
   AllowedActions extends GlobalActions = GlobalActions,
   AllowedEvents extends GlobalEvents = GlobalEvents,
 > = Messenger<'Root', AllowedActions, AllowedEvents>;
-
-export const getRootMessenger = (): RootMessenger =>
-  new Messenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-    captureException,
-  });
 
 /**
  * All mobile controllers, keyed by name
@@ -1009,6 +1011,7 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CollectiblesController: CollectiblesController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
@@ -1118,6 +1121,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   PredictVenueController: PredictVenueControllerState;
+  CollectiblesController: CollectiblesControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1201,12 +1205,12 @@ export type MessengerClientsToInitialize =
   | 'TokensController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'SignatureController'
   | 'SmartTransactionsController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionPayController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CollectiblesController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
@@ -1270,11 +1274,6 @@ type MessengerClientPersistedState = Partial<{
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
   >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
-
-/**
- * Map of messenger client messengers by name.
- */
-export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
  * Request to initialize and return a messenger client instance.

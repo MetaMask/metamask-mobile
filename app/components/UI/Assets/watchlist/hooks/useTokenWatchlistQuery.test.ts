@@ -271,6 +271,30 @@ describe('useTokenWatchlistQuery', () => {
     expect(result.current.error).toStrictEqual(new Error('storage boom'));
   });
 
+  it('uses cached data without remote hydration when requested', () => {
+    const { Wrapper, queryClient } = createWrapper();
+    queryClient.setQueryData(tokenWatchlistQueryKeys.hydrated, [
+      {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+    ]);
+
+    const { result } = renderHook(
+      () => useTokenWatchlistQuery({ skipRemoteFetch: true }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.data?.[0]?.assetId).toStrictEqual(
+      'eip155:1/slip44:60',
+    );
+    expect(result.current.fetchStatus).toStrictEqual('idle');
+    expect(mockedReadFromTokenWatchList).not.toHaveBeenCalled();
+    expect(mockedGetTokens).not.toHaveBeenCalled();
+  });
+
   describe('when the watchlist feature flag is disabled', () => {
     beforeEach(() => {
       mockIsWatchlistEnabled = false;

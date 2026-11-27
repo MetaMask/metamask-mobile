@@ -240,35 +240,19 @@ describe('useImmersveOnboardingRouter', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('resets to KYC_FAILED when rejected', () => {
-    getRoute()({ type: 'rejected', canRetry: false });
+  it('resets to KYC_FAILED with the reason codes when rejected', () => {
+    getRoute()({ type: 'rejected', reasons: ['INELIGIBLE'] });
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
+      routes: [
+        {
+          name: Routes.CARD.ONBOARDING.KYC_FAILED,
+          params: { reasons: ['INELIGIBLE'] },
+        },
+      ],
     });
-  });
-
-  it('opens KYC processing with the retry link when the rejection can be retried', () => {
-    getRoute()(
-      {
-        type: 'rejected',
-        canRetry: true,
-        retryUrl: 'https://verify.immersve.com/retry',
-        reasons: ['ID_DOCUMENT_EXPIRED'],
-      },
-      { countryKey: 'GB' },
-    );
-
-    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('identity');
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CARD.ONBOARDING.KYC_PROCESSING,
-      {
-        countryKey: 'GB',
-        kycUrl: 'https://verify.immersve.com/retry',
-      },
-    );
-    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('shows a toast and resets to Card Home when active', () => {
@@ -395,12 +379,13 @@ describe('useImmersveOnboardingRouter', () => {
 
     it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {
       getRoute()(
-        { type: 'rejected', canRetry: false },
+        { type: 'rejected', reasons: ['UNKNOWN'] },
         { navigateFromRoot: true },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+        params: { reasons: ['UNKNOWN'] },
       });
       expect(mockReset).not.toHaveBeenCalled();
     });
@@ -498,12 +483,14 @@ describe('useImmersveOnboardingRouter', () => {
 
     it('routes a rejected identity check through the Card root', () => {
       getRoute()(
-        { type: 'rejected', canRetry: false },
+        { type: 'rejected', reasons: ['PROFILE_LIMIT_REACHED'] },
         { navigateFromOutsideCard: true },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED),
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED, {
+          reasons: ['PROFILE_LIMIT_REACHED'],
+        }),
       );
       expect(mockReset).not.toHaveBeenCalled();
     });

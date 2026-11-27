@@ -706,7 +706,7 @@ describe('EarnWithdrawInputView', () => {
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: expect.objectContaining({
           amountWei: expect.any(String),
           amountFiat: expect.any(String),
@@ -1075,7 +1075,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: {
           amountWei: '1000000000000000000',
           amountFiat: '2000',
@@ -1640,7 +1640,7 @@ describe('EarnWithdrawInputView', () => {
 
   describe('Tracing', () => {
     describe('Pooled Staking flow tracing', () => {
-      it('calls trace with EarnWithdrawConfirmationScreen when redesigned confirmations are enabled', async () => {
+      it('calls trace with EarnWithdrawConfirmationScreen when withdrawing from pooled staking', async () => {
         const mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue({});
         jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
           () => ({

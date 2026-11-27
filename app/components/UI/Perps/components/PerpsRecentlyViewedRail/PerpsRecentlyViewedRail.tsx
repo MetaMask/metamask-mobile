@@ -54,6 +54,7 @@ const PerpsRecentlyViewedPill: React.FC<{
 
   // Same live-price overlay as PerpsMarketRowItem so the pill % matches the list.
   const livePrices = usePerpsLivePrices({
+    providerId: market.providerId,
     symbols: [market.symbol],
     throttleMs: 3000,
   });

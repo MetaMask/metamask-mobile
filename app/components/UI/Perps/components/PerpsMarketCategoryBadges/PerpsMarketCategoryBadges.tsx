@@ -128,6 +128,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
           testID={testID ? `${testID}-watchlist` : undefined}
           contentWrapperProps={{ gap: 0 }}
+          twClassName="px-2"
         >
           {null}
         </FilterButton>

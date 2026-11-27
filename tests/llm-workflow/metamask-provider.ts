@@ -119,6 +119,14 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
       const { driver: mobileDriver, state } = await adapter.launch(resolved);
       this.platformDriver = mobileDriver;
+      // Core only keeps the `--metro-port` flag for `cdp`/`hermes-targets`;
+      // pass the resolved port so `MM_METRO_PORT` is kept as well.
+      mobileDriver.setHermesDefaults?.({
+        deviceId: resolved.deviceId,
+        ...(resolved.metroPort === undefined
+          ? {}
+          : { metroPort: resolved.metroPort }),
+      });
 
       const sessionId = generateSessionId();
       const startedAt = new Date().toISOString();

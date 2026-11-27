@@ -8,6 +8,8 @@ import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-option
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
+import { getSignatureControllerInstanceOptions } from './instance-options/signature-controller';
+import { getSignatureControllerInitMessenger } from './messengers/signature-controller-messenger';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
@@ -108,6 +110,9 @@ export function initializeWallet({
       selectedNetworkController: {
         domainProxyMap: new DomainProxyMap(),
       },
+      signatureController: getSignatureControllerInstanceOptions({
+        initMessenger: getSignatureControllerInitMessenger(messenger),
+      }),
       storageService: getStorageServiceInstanceOptions(),
       subscriptionService: getSubscriptionServiceInstanceOptions(),
       shieldApiService: getShieldApiServiceInstanceOptions(),

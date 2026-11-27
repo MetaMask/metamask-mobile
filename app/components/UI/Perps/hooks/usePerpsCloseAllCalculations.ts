@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../providers/venueKeys';
 import {
   getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
@@ -235,9 +236,11 @@ export function usePerpsCloseAllCalculations({
               // Calculate position value using current market price for accurate fee estimation
               // Fees must reflect the actual USD value being closed at current market conditions
               // Use ref to get latest price without triggering re-renders
-              const currentPrice = priceDataRef.current[pos.symbol]?.price
-                ? parseFloat(priceDataRef.current[pos.symbol].price)
-                : parseFloat(pos.entryPrice); // Fallback to entry price if current price unavailable
+              const livePrice =
+                priceDataRef.current[
+                  buildVenueSymbolKey(pos.symbol, pos.providerId)
+                ]?.price;
+              const currentPrice = parseFloat(livePrice || pos.entryPrice);
               const size = Math.abs(parseFloat(pos.size));
               const positionValue = size * currentPrice;
 
@@ -580,7 +583,8 @@ export function usePerpsCloseAllCalculations({
         position: pos,
         providerId: pos.providerId ?? resolveProviderId(activeProvider),
         closeSize: Math.abs(Number.parseFloat(pos.size)),
-        price: priceData[pos.symbol]?.price,
+        price:
+          priceData[buildVenueSymbolKey(pos.symbol, pos.providerId)]?.price,
         feeRate: feeRates.get(positionKey(pos)),
       }),
     );

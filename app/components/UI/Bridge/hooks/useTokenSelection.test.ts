@@ -92,6 +92,14 @@ jest.mock('../../../../core/Engine/index', () => ({
   },
 }));
 
+const mockUpgradeMoneyAccount = jest.fn((signal: AbortSignal) => ({
+  type: 'upgradeMoneyAccount',
+  signal,
+}));
+jest.mock('../../../../actions/money', () => ({
+  upgradeMoneyAccount: (signal: AbortSignal) => mockUpgradeMoneyAccount(signal),
+}));
+
 jest.mock('../../../../util/networks/customNetworks', () => {
   const actual = jest.requireActual('../../../../util/networks/customNetworks');
 
@@ -141,7 +149,7 @@ const defaultSelectorState: SelectorState = {
   networkConfigurations: {
     '0x1': { name: 'Ethereum Mainnet' },
     '0xa': { name: 'OP Mainnet' },
-  } as Record<string, unknown>,
+  },
 };
 
 const renderTokenSelectionHook = (
@@ -226,6 +234,52 @@ describe('useTokenSelection', () => {
       const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       expect(result.current.selectedToken).toBe(mockSourceToken);
+    });
+
+    it('upgrades the money account when the selected token is a money token', async () => {
+      const moneyToken = createMockToken({
+        address: '0xmoney',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      });
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
+        destToken: mockDestToken,
+      });
+
+      await act(async () => {
+        await result.current.handleTokenPress(moneyToken);
+      });
+
+      expect(mockUpgradeMoneyAccount).toHaveBeenCalledWith(
+        expect.any(AbortSignal),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'upgradeMoneyAccount',
+        signal: expect.any(AbortSignal),
+      });
+    });
+
+    it('keeps the money account upgrade alive after the token selector unmounts', async () => {
+      const moneyToken = createMockToken({
+        address: '0xmoney',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      });
+      const { result, unmount } = renderTokenSelectionHook(
+        TokenSelectorType.Source,
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(moneyToken);
+      });
+
+      const signal = mockUpgradeMoneyAccount.mock.calls[0][0];
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(signal.aborted).toBe(false);
+
+      unmount();
+
+      expect(signal.aborted).toBe(false);
     });
 
     it('does not swap when dest network is disabled', async () => {

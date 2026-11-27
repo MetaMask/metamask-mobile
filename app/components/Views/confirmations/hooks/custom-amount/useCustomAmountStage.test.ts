@@ -61,7 +61,7 @@ type HookOptions = Parameters<typeof useCustomAmountStage>[0];
 const DEFAULT_OPTIONS: HookOptions = {
   amountFiat: '10',
   disablePay: false,
-  isAddMusdIntent: false,
+  isFullBalanceMoneyDeposit: false,
   isDepositPrefillEnabled: false,
   isDepositPrefillLoading: false,
   skipDepositPrefill: false,
@@ -104,7 +104,7 @@ describe('useCustomAmountStage', () => {
     });
 
     it('starts in Loading for an add-mUSD intent', () => {
-      const { result } = runHook({ isAddMusdIntent: true });
+      const { result } = runHook({ isFullBalanceMoneyDeposit: true });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
       expect(result.current.isAmountUpdating).toBe(true);
@@ -206,7 +206,7 @@ describe('useCustomAmountStage', () => {
       // any fetch signal is reflected reactively.
       setupState({ isQuotesLoading: false, quotes: [] });
 
-      const { result } = runHook({ isAddMusdIntent: true });
+      const { result } = runHook({ isFullBalanceMoneyDeposit: true });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
     });
@@ -214,7 +214,7 @@ describe('useCustomAmountStage', () => {
     it('derives NoQuote when the fetch settles with no quotes', () => {
       setupState({ isQuotesLoading: false, quotes: [] });
 
-      const view = runHook({ isAddMusdIntent: true });
+      const view = runHook({ isFullBalanceMoneyDeposit: true });
       act(() => {
         view.result.current.setStage(null);
       });
@@ -227,7 +227,7 @@ describe('useCustomAmountStage', () => {
     it('shows totals once a quote arrives', () => {
       setupState({ quotes: [{}], quotesLastUpdated: 1 });
 
-      const view = runHook({ isAddMusdIntent: true });
+      const view = runHook({ isFullBalanceMoneyDeposit: true });
       act(() => {
         view.result.current.setStage(null);
       });

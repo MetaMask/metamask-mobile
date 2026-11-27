@@ -58,8 +58,10 @@ import reducer, {
   setRecurringRepeatCount,
   setRecurringEveryUnit,
   setRecurringPriceRange,
+  setRecurringPriceTolerance,
   selectRecurring,
   selectRecurringPriceRange,
+  selectRecurringPriceTolerance,
   selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
@@ -703,19 +705,24 @@ describe('bridge slice', () => {
       expect(newState.visiblePillChainIds).toBeUndefined();
     });
 
-    it('keeps the limit order settings for the rest of the app session', () => {
-      const stateWithLimitOrderSettings = {
+    it('keeps advanced order settings for the rest of the app session', () => {
+      const stateWithAdvancedOrderSettings = {
         ...initialState,
         limitOrderCostTolerance: '3',
         limitOrderExpirationMinutes: 10080 as SwapsLimitOrderExpirationMinutes,
+        recurringPriceTolerance: '2',
         sourceAmount: '1.5',
       };
 
-      const newState = reducer(stateWithLimitOrderSettings, resetBridgeState());
+      const newState = reducer(
+        stateWithAdvancedOrderSettings,
+        resetBridgeState(),
+      );
 
       expect(newState.sourceAmount).toBeUndefined();
       expect(newState.limitOrderCostTolerance).toBe('3');
       expect(newState.limitOrderExpirationMinutes).toBe(10080);
+      expect(newState.recurringPriceTolerance).toBe('2');
     });
   });
 
@@ -727,6 +734,7 @@ describe('bridge slice', () => {
       destToken: mockDestToken,
       selectedDestChainId: '0x89' as Hex,
       isDestTokenManuallySet: true,
+      destAddress: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
       slippage: '3.5',
       isSlippageUserOverride: true,
     };
@@ -744,6 +752,12 @@ describe('bridge slice', () => {
 
       expect(newState.slippage).toBeUndefined();
       expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('clears the recipient since it was chosen for the cleared destination', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destAddress).toBeUndefined();
     });
 
     it('leaves the source selection and amount untouched', () => {
@@ -1885,6 +1899,35 @@ describe('bridge slice', () => {
   });
 
   describe('recurring', () => {
+    it('stores a recurring price tolerance override independently', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          slippage: '1',
+          limitOrderCostTolerance: '2',
+        },
+        setRecurringPriceTolerance('0.5'),
+      );
+
+      expect(state.recurringPriceTolerance).toBe('0.5');
+      expect(state.slippage).toBe('1');
+      expect(state.limitOrderCostTolerance).toBe('2');
+    });
+
+    it('selects the recurring price tolerance override', () => {
+      const state = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurringPriceTolerance: '2.5',
+        },
+      } as RootState;
+
+      const result = selectRecurringPriceTolerance(state);
+
+      expect(result).toBe('2.5');
+    });
+
     it('sets the every value', () => {
       const action = setRecurringEveryValue('6');
 

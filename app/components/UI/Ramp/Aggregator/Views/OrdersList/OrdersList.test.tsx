@@ -8,6 +8,7 @@ import { DepositOrderType } from '../../../types/legacyDeposit';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
+import { getOrderRowFiatAmountTestId } from './OrdersList.testIds';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
@@ -295,6 +296,21 @@ describe('OrdersList', () => {
       screen.getAllByRole('button', { name: /Purchased ETH/ }).length,
     ).toBeGreaterThan(0);
   });
+
+  it.each([
+    ['1234.5', 'USD', '$1,234.50'],
+    ['1234.5', 'EUR', '€1,234.50'],
+    ['1234.5', 'JPY', '¥1,235'],
+  ])(
+    'formats a %s %s order fiat amount as %s',
+    (amount, currency, expected) => {
+      render(<OrdersList />, [{ ...testOrders[0], amount, currency }]);
+
+      expect(
+        screen.getByTestId(getOrderRowFiatAmountTestId('buy', 1)),
+      ).toHaveTextContent(expected);
+    },
+  );
 
   it('navigates when pressing item', () => {
     render(<OrdersList />);

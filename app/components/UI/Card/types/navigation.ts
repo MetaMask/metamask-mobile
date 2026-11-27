@@ -122,7 +122,7 @@ export type CardOnboardingStackParamList = {
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
   CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
+  CardOnboardingKYCFailed: { reasons?: string[] } | undefined;
   CardOnboardingImmersveKYC: { url: string; redirectUrl: string };
 };
 
@@ -171,16 +171,3 @@ export type CardRootParamList = {
 export type CardRootEntryParams = NavigatorScreenParams<CardRootParamList> & {
   returnToCaller?: boolean;
 };
-
-/**
- * Feature-level Card navigation params for nested `CardScreens` / `CardModals` entry.
- */
-// Intersection (`&`) requires `type`; `interface` cannot express this.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CardNavigationParamList = CardScreensStackParamList &
-  CardModalsNavigationParamList & {
-    CardScreens: CardRootEntryParams | undefined;
-    CardModals:
-      | NavigatorScreenParams<CardModalsNavigationParamList>
-      | undefined;
-  };

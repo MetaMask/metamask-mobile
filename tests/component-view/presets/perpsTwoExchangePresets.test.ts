@@ -40,6 +40,63 @@ describe('perpsTwoExchangeState', () => {
       { marginUsed: '8.33', unrealizedPnl: '1' },
     ]);
   });
+
+  it.each<[PerpsTwoExchangeScenario, 'partial' | 'complete']>([
+    ['bothFunded', 'complete'],
+    ['oneFunded', 'complete'],
+    ['sameMarketOnBoth', 'complete'],
+    ['lighterDown', 'partial'],
+  ])('%s carries %s aggregate-completeness metadata', (scenario, status) => {
+    const { streamOverrides } = perpsTwoExchangeState(scenario);
+
+    // The stream override and the account snapshot agree on completeness.
+    expect(streamOverrides.aggregate).toMatchObject({ status });
+    expect(streamOverrides.account).toMatchObject({
+      aggregate: streamOverrides.aggregate,
+    });
+  });
+
+  it('marks a funded venue available with its own snapshot', () => {
+    const { streamOverrides } = perpsTwoExchangeState('bothFunded');
+
+    const { providerStates } = streamOverrides.account as {
+      providerStates: Record<
+        string,
+        { status: string; providerId: string; state?: { totalBalance: string } }
+      >;
+    };
+    expect(providerStates.hyperliquid).toMatchObject({
+      status: 'available',
+      providerId: 'hyperliquid',
+      state: { totalBalance: '100' },
+    });
+    expect(providerStates.lighter).toMatchObject({
+      status: 'available',
+      providerId: 'lighter',
+      state: { totalBalance: '50' },
+    });
+  });
+
+  it('gives a down venue no verdict instead of a zero balance', () => {
+    const { streamOverrides } = perpsTwoExchangeState('lighterDown');
+
+    const { providerStates } = streamOverrides.account as {
+      providerStates: Record<
+        string,
+        { status: string; providerId: string; state?: unknown }
+      >;
+    };
+    expect(providerStates.lighter).toEqual({
+      status: 'unavailable',
+      providerId: 'lighter',
+    });
+    expect('state' in providerStates.lighter).toBe(false);
+    expect(streamOverrides.aggregate).toMatchObject({
+      status: 'partial',
+      availableProviders: ['hyperliquid'],
+      unavailableProviders: ['lighter'],
+    });
+  });
 });
 
 describe.each<[string, string | undefined]>([

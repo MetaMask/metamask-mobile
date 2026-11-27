@@ -579,8 +579,7 @@ export type CardPrerequisiteStatus =
   | 'action-required'
   | 'pending'
   | 'ok'
-  | 'blocked'
-  | 'kyc_check_failed';
+  | 'blocked';
 
 export type CardKycCtaHint =
   | 'KYC_NOT_STARTED'

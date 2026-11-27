@@ -215,8 +215,8 @@ const renderShell = (
     onAuthorPress?: (post: SocialV1FeedPost) => void;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
-    requireSocialProfile?: boolean;
     showCopyTrade?: boolean;
+    gifVisible?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Feed surface. Sets the Perps order source for that tab. */
@@ -240,12 +240,11 @@ const renderShell = (
     const postShell = (
       <SocialFeedPostShell
         post={currentPost}
-        requireSocialTerms
-        requireSocialProfile={options?.requireSocialProfile}
         onAuthorPress={options?.onAuthorPress}
         onPositionPress={options?.onPositionPress}
         onCopyTrade={options?.onCopyTrade}
         showCopyTrade={options?.showCopyTrade}
+        gifVisible={options?.gifVisible}
       />
     );
     const shell =
@@ -596,6 +595,17 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
     ).toBeOnTheScreen();
+  });
+
+  it('drops the decoded gif while the row is off screen', () => {
+    renderShell(basePost({ gifUri: 'https://media.test/cat.gif' }), {
+      gifVisible: false,
+    });
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`).props
+        .source,
+    ).toBeUndefined();
   });
 
   it('shows the add-reaction button and no zero when the Call has no reactions', () => {
@@ -956,6 +966,23 @@ describe('SocialFeedPostShell', () => {
       expect(onAuthorPress).toHaveBeenCalledWith(post);
     });
 
+    it('opens the author without a linked wallet or accepted terms', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      const onAuthorPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onAuthorPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onAuthorPress).toHaveBeenCalledWith(post);
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+    });
+
     it('does not wrap the identity in a pressable when onAuthorPress is omitted', () => {
       renderShell(basePost());
 
@@ -982,8 +1009,9 @@ describe('SocialFeedPostShell', () => {
       expect(onPositionPress).toHaveBeenCalledWith(post);
     });
 
-    it('opens the position once the Social terms are accepted', () => {
-      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+    it('opens the position without a linked wallet or accepted terms', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
       const onPositionPress = jest.fn();
       const post = basePost();
       renderShell(post, { onPositionPress });
@@ -993,10 +1021,10 @@ describe('SocialFeedPostShell', () => {
           `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
         ),
       );
-      expect(onPositionPress).not.toHaveBeenCalled();
-      mockEnsureSocialTermsAccepted.mock.calls[0][1]?.();
 
       expect(onPositionPress).toHaveBeenCalledWith(post);
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
     });
 
     it('keeps copy trade on its own press inside a pressable card', async () => {
@@ -1227,7 +1255,7 @@ describe('SocialFeedPostShell', () => {
         return false;
       });
 
-      renderShell(basePost(), { requireSocialProfile: true });
+      renderShell(basePost());
       fireEvent.press(
         screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
       );
@@ -1241,24 +1269,6 @@ describe('SocialFeedPostShell', () => {
       );
     });
 
-    it('copies a trade without a linked wallet when the profile gate is off', async () => {
-      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
-
-      renderShell(basePost());
-      fireEvent.press(
-        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.PERPS.MODALS.ROOT,
-          expect.objectContaining({
-            screen: Routes.PERPS.ORDER_REDIRECT,
-          }),
-        );
-      });
-    });
-
     it('forwards a spot copy only after the linked wallet gate passes', () => {
       mockEnsureSocialProfileOnboarding.mockImplementation(() => {
         mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -1267,10 +1277,7 @@ describe('SocialFeedPostShell', () => {
       const onCopyTrade = jest.fn();
       const item = mockOpenSpotFeedItem({ id: 'item-spot' });
 
-      renderShell(basePost({ item }), {
-        onCopyTrade,
-        requireSocialProfile: true,
-      });
+      renderShell(basePost({ item }), { onCopyTrade });
       fireEvent.press(
         screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
       );

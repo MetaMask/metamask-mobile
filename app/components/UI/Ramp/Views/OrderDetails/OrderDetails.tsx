@@ -43,9 +43,14 @@ import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-import { endRampsBuyCufTrace } from '../../utils/rampsBuyCufTrace';
 import {
-  RAMPS_BUY_CUF_BOUNDARY,
+  buildRampsBuyOrderDetailsCufEndData,
+  isRampsNativeProviderId,
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufTrace,
+} from '../../utils/rampsBuyCufTrace';
+import { TraceName } from '../../../../../util/trace';
+import {
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
@@ -269,12 +274,22 @@ const OrderDetails = () => {
       return;
     }
     hasEndedBuyCuf.current = true;
-    endRampsBuyCufTrace({
-      data: {
+    // Ending the parent abandons any child still open (TRAM-4173), so close the
+    // native child first. Only for native orders: a leftover native span from an
+    // abandoned attempt must not be marked successful by a widget or aggregator
+    // order. The order exists on this screen, so creation succeeded whatever its
+    // current status is, matching Bank Details and Order Processing.
+    if (isRampsNativeProviderId(order.provider?.id)) {
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
         [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
-        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
         orderId: order.providerOrderId,
-      },
+      });
+    }
+    endRampsBuyCufTrace({
+      data: buildRampsBuyOrderDetailsCufEndData(
+        order.status,
+        order.providerOrderId,
+      ),
     });
   }, [order]);
 
@@ -320,7 +335,8 @@ const OrderDetails = () => {
     }
     hasAttemptedInitialPendingRefreshRef.current = true;
     if (isPending && !hasCallbackParams) {
-      handleOnRefresh();
+      // handleOnRefresh reports its own errors; the catch only marks it handled.
+      handleOnRefresh().catch(() => undefined);
     }
   }, [isPending, hasCallbackParams, handleOnRefresh]);
 
@@ -336,12 +352,13 @@ const OrderDetails = () => {
     }
     hasFetchedFromCallback.current = true;
 
+    // executeCallbackFetch reports its own errors; the catch only marks it handled.
     executeCallbackFetch(
       params.providerCode,
       params.callbackUrl,
       params.walletAddress,
       '',
-    );
+    ).catch(() => undefined);
   }, [
     hasCallbackParams,
     params.callbackUrl,

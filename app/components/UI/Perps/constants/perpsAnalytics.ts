@@ -24,3 +24,16 @@ export const PERPS_ANALYTICS_SIZE_UNIT = 'size_unit' as const;
 
 /** Perps market-details `source` when opened from Explore omni-search. */
 export const PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH = 'explore_search' as const;
+
+/**
+ * Interaction types for the Lite market page's "Trade on" selector.
+ * Segment values: `trade_on_sheet_opened`, `trade_on_venue_changed`.
+ *
+ * TODO: not published in `@metamask/perps-controller`'s
+ * `PERPS_EVENT_VALUE` yet; switch to the controller constants in the same
+ * change that consumes them.
+ */
+export const PERPS_TRADE_ON_INTERACTION = {
+  SHEET_OPENED: 'trade_on_sheet_opened',
+  VENUE_CHANGED: 'trade_on_venue_changed',
+} as const;

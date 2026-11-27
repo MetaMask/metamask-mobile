@@ -165,6 +165,8 @@ interface FetchOptions {
 export const useTrendingRequest = (
   options: {
     chainIds?: CaipChainId[];
+    /** When false, preserve no remote results and skip refresh/polling. */
+    enabled?: boolean;
     /**
      * When true, removes tokens that lack a meaningful symbol/name or are
      * flagged as risky (Warning/Spam/Malicious) by the Token API security scan.
@@ -172,9 +174,15 @@ export const useTrendingRequest = (
      */
     filterLowQuality?: boolean;
   } & TrendingTokensQueryParams,
-) => {
+): {
+  results: Awaited<ReturnType<typeof getTrendingTokens>>;
+  isLoading: boolean;
+  error: Error | null;
+  fetch: (fetchOptions?: FetchOptions) => Promise<void>;
+} => {
   const {
     chainIds: providedChainIds = [],
+    enabled = true,
     sort = 'h24_trending',
     minLiquidity: providedMinLiquidity,
     minVolume24hUsd: providedMinVolume24hUsd,
@@ -217,13 +225,22 @@ export const useTrendingRequest = (
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
+  const previousEnabledRef = useRef(enabled);
 
   const [error, setError] = useState<Error | null>(null);
 
   const fetchTrendingTokens = useCallback(
     async (fetchOptions: FetchOptions = {}) => {
       const { isSilentUpdate = false } = fetchOptions;
+
+      if (!enabled) {
+        requestIdRef.current += 1;
+        setResults([]);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
 
       if (!stableChainIds.length) {
         if (!isSilentUpdate) {
@@ -281,27 +298,38 @@ export const useTrendingRequest = (
       minMarketCap,
       maxMarketCap,
       currentCurrency,
+      enabled,
     ],
   );
 
   // Automatically trigger fetch when options change
   useEffect(() => {
-    fetchTrendingTokens();
+    fetchTrendingTokens().catch(() => undefined);
   }, [fetchTrendingTokens]);
+
+  const isEnabling = enabled && !previousEnabledRef.current;
+  useEffect(() => {
+    previousEnabledRef.current = enabled;
+  }, [enabled]);
 
   // Track if initial load has completed successfully
   useEffect(() => {
+    if (!enabled) {
+      initialLoadCompleteRef.current = false;
+      return;
+    }
     if (!isLoading && !initialLoadCompleteRef.current) {
       if (results.length > 0 || !error) {
         initialLoadCompleteRef.current = true;
       }
     }
-  }, [isLoading, results.length, error]);
+  }, [enabled, isLoading, results.length, error]);
 
   // Refresh interval effect
   useEffect(() => {
     // Don't poll if we are loading, or initial fetch did not return data
     if (
+      !enabled ||
       isLoading ||
       !initialLoadCompleteRef.current ||
       (!results.length && error)
@@ -309,14 +337,14 @@ export const useTrendingRequest = (
       return;
     }
 
-    const pollingInterval = setInterval(() => {
-      fetchTrendingTokens({ isSilentUpdate: true });
+    const pollingInterval = setInterval((): void => {
+      fetchTrendingTokens({ isSilentUpdate: true }).catch(() => undefined);
     }, POLLING_INTERVAL_MS);
 
-    return () => {
+    return (): void => {
       clearInterval(pollingInterval);
     };
-  }, [isLoading, results.length, error, fetchTrendingTokens]);
+  }, [enabled, error, fetchTrendingTokens, isLoading, results.length]);
 
   const filteredResults = useMemo(
     () => (filterLowQuality ? filterLowQualityTokens(results) : results),
@@ -324,9 +352,9 @@ export const useTrendingRequest = (
   );
 
   return {
-    results: filteredResults,
-    isLoading,
-    error,
+    results: enabled ? filteredResults : [],
+    isLoading: enabled && (isLoading || isEnabling),
+    error: enabled ? error : null,
     fetch: fetchTrendingTokens,
   };
 };

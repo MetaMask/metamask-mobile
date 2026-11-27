@@ -54,6 +54,20 @@ const selectPerpsOrderProvider = createSelector(
   },
 );
 
+/**
+ * Routing default venue (TAT-4407): the venue grouped market rows display and
+ * untagged streams follow. Null before the controller resolves one.
+ */
+const selectPerpsDefaultProvider = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsProviderType | null => {
+    if (!perpsControllerState) {
+      return null;
+    }
+    return perpsControllerState.defaultProvider ?? null;
+  },
+);
+
 const selectPerpsAccountState = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) => perpsControllerState?.accountState || null,
@@ -405,6 +419,7 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 
 export {
   selectPerpsProvider,
+  selectPerpsDefaultProvider,
   selectPerpsOrderProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,

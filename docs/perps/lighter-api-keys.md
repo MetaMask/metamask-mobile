@@ -57,7 +57,6 @@ export MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET=""
 | `MM_PERPS_LIGHTER_API_KEY_INDEX`         | Preferred slot. Mobile accepts an integer from 0 to 254 and fails configuration on anything else. Core drops a slot below 2 from its candidates.                                                                                                                                       |
 | `MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET` | Testnet account override, an integer from 0 to `Number.MAX_SAFE_INTEGER`. Core refuses an account that is not a Standard account owned by the selected address.                                                                                                                        |
 | `MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE`   | `true` enables the bounded testnet Chase probe. Pro mode and the Chase flag are still required.                                                                                                                                                                                        |
-| `MM_PERPS_LIGHTER_CONFIRMATION_ENABLED`  | `true` shows the deposit confirmation "Receive to" row. Also needs the provider flags.                                                                                                                                                                                                 |
 
 - The account and slot variables are read only when `MM_PERPS_LIGHTER_PROVIDER_ENABLED` is `true`.
 - Put these in `.js.env`. Local builds source it after `builds.yml`, so it overrides values exported in your shell.
@@ -65,4 +64,4 @@ export MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET=""
 - Restart Metro with a cleared cache after changing them.
 - Changing the preferred slot is not the recovery procedure.
 
-Code: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` `createMobileClientConfig`, `parseLighterIndex`; `app/components/UI/Perps/utils/lighterFeatureFlags.ts` `isLighterProviderEnabled`, `isPerpsLighterConfirmationEnabled`; `app/components/UI/Perps/selectors/featureFlags/index.ts` `selectPerpsLighterProviderEnabledFlag`; `app/components/UI/Perps/hooks/usePerpsProvider.ts`; `app/components/Views/Root/index.tsx`; `.js.env.example`; `scripts/build.sh`; `babel.config.js`; `builds.yml`.
+Code: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` `createMobileClientConfig`, `parseLighterIndex`; `app/components/UI/Perps/utils/lighterFeatureFlags.ts` `isLighterProviderEnabled`; `app/components/UI/Perps/selectors/featureFlags/index.ts` `selectPerpsLighterProviderEnabledFlag`; `app/components/UI/Perps/hooks/usePerpsProvider.ts`; `app/components/Views/Root/index.tsx`; `.js.env.example`; `scripts/build.sh`; `babel.config.js`; `builds.yml`.

@@ -1,32 +1,53 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
 
 const mockGoBack = jest.fn();
+let mockParams: { tab?: string } | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useRoute: () => ({ params: mockParams }),
+}));
+
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
+  useEpicHuntPacks: () => ({ data: [], isPending: true }),
 }));
 
 describe('CollectiblesHomeScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
+    mockParams = undefined;
   });
 
-  it('shows the Collectibles header', () => {
+  it('shows the Collectibles header, the tabs and the Popular tab', () => {
     renderWithProvider(<CollectiblesHomeScreen />);
 
     expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(collectiblesTestIds.landingHero),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(collectiblesTestIds.tabBar)).toBeOnTheScreen();
+  });
+
+  it('opens the tab from the route param', () => {
+    mockParams = { tab: 'marketplace' };
+
+    renderWithProvider(<CollectiblesHomeScreen />);
+
+    expect(
+      screen.getByTestId(collectiblesTestIds.marketplaceView),
+    ).toBeOnTheScreen();
   });
 
   it('goes back when the back button is pressed', () => {
     renderWithProvider(<CollectiblesHomeScreen />);
 
-    // The design-system back button's default testID.
-    fireEvent.press(screen.getByTestId('button-icon'));
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

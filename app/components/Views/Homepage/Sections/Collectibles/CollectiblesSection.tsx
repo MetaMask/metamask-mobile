@@ -1,10 +1,11 @@
 import React, {
   ComponentRef,
+  useCallback,
   useImperativeHandle,
   useRef,
   type Ref,
 } from 'react';
-import { useLinkProps } from '@react-navigation/native';
+import { useFocusEffect, useLinkProps } from '@react-navigation/native';
 import {
   SectionDivider,
   SectionHeader,
@@ -24,6 +25,7 @@ import {
 } from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
+  CollectiblesCarouselEmpty,
   CollectiblesCarouselSkeleton,
 } from '../../../../UI/Collectibles/components/CollectiblesCarousel';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
@@ -50,7 +52,19 @@ export function CollectiblesSection({
   });
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
-  const isHidden = !isPending && isEmpty;
+  const isFirstFocus = useRef(true);
+
+  // Refetch when Home regains focus, so a pack that reopened shows again.
+  // useFocusEffect needs a stable callback.
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      void refetch();
+    }, [refetch]),
+  );
 
   // Pull-to-refresh on Home refetches the packs.
   useImperativeHandle(ref, () => ({
@@ -60,7 +74,7 @@ export function CollectiblesSection({
   }));
 
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: isHidden ? null : sectionViewRef,
+    sectionRef: sectionViewRef,
     isLoading: isPending,
     sectionName: HomeSectionNames.COLLECTIBLES,
     sectionIndex,
@@ -74,12 +88,9 @@ export function CollectiblesSection({
     sectionId: HomeSectionNames.COLLECTIBLES,
     contentReady: !isPending,
     isEmpty,
+    demandStarted: isPending || Boolean(packs?.length),
     isLoading: isPending,
   });
-
-  if (isHidden) {
-    return null;
-  }
 
   return (
     <View
@@ -95,10 +106,12 @@ export function CollectiblesSection({
         {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      {packs ? (
-        <CollectiblesCarousel packs={packs} />
-      ) : (
+      {isPending ? (
         <CollectiblesCarouselSkeleton />
+      ) : isEmpty ? (
+        <CollectiblesCarouselEmpty />
+      ) : (
+        <CollectiblesCarousel packs={packs} />
       )}
     </View>
   );

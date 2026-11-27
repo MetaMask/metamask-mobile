@@ -327,6 +327,7 @@ describe('AddressList', () => {
           chainId: 'eip155:1',
           groupId: ACCOUNT_GROUP_ID,
           location: 'address-list',
+          source: 'copy_button',
           account: expect.objectContaining({ id: mockEthEoaAccount.id }),
         },
       },
@@ -431,6 +432,7 @@ describe('AddressList', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'address-list',
         chain_id_caip: 'eip155:1', // CAIP format chain ID
+        source: 'copy_button',
       });
 
       // Verify build was called
@@ -458,6 +460,44 @@ describe('AddressList', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'address-list',
         chain_id_caip: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana Mainnet
+        source: 'copy_button',
+      });
+    });
+
+    it('forwards the onboarding checklist source on the copy event', async () => {
+      const { useParams } = jest.requireMock(
+        '../../../../util/navigation/navUtils',
+      );
+      useParams.mockReturnValue({
+        title: TITLE,
+        groupId: ACCOUNT_GROUP_ID,
+        source: 'onboarding_checklist',
+      });
+      const { getAllByTestId } = renderWithAddressList();
+
+      fireEvent.press(getAllByTestId('multichain-address-row-copy-button')[0]);
+      await new Promise(process.nextTick);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'address-list',
+        chain_id_caip: 'eip155:1',
+        source: 'onboarding_checklist',
+      });
+    });
+
+    it('omits source from the copy event when the screen has no source', async () => {
+      const { useParams } = jest.requireMock(
+        '../../../../util/navigation/navUtils',
+      );
+      useParams.mockReturnValue({ title: TITLE, groupId: ACCOUNT_GROUP_ID });
+      const { getAllByTestId } = renderWithAddressList();
+
+      fireEvent.press(getAllByTestId('multichain-address-row-copy-button')[0]);
+      await new Promise(process.nextTick);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'address-list',
+        chain_id_caip: 'eip155:1',
       });
     });
 
