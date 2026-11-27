@@ -420,7 +420,37 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      # `incremental` in tsconfig.json makes tsc write tsconfig.tsbuildinfo
+      # (gitignored). tsc compares file content hashes, not mtimes, so the file
+      # stays valid on a fresh checkout and only changed files and their
+      # dependents are rechecked. Only PRs restore it. Push and merge_group runs
+      # check from scratch, so the cache a PR falls back to always comes from a
+      # cold run on its base branch.
+      - name: Restore tsc incremental build info
+        if: ${{ matrix.scripts == 'lint:tsc' && github.event_name == 'pull_request' }}
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the result of the
+        # type check. PR runs can only write PR-scoped entries, and base branch entries are only
+        # written by cold push runs.
+        uses: actions/cache/restore@v6
+        with:
+          path: tsconfig.tsbuildinfo
+          key: tsbuildinfo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: tsbuildinfo-${{ runner.os }}-
       - run: yarn ${{ matrix['scripts'] }}
+      # Saved after type errors too: tsc records them in the file, so the next
+      # push on the PR still reports them without a full recheck.
+      - name: Save tsc incremental build info
+        if: >-
+          ${{
+            !cancelled() &&
+            matrix.scripts == 'lint:tsc' &&
+            (github.event_name == 'push' || github.event_name == 'pull_request') &&
+            hashFiles('tsconfig.tsbuildinfo') != ''
+          }}
+        uses: actions/cache/save@v6
+        with:
+          path: tsconfig.tsbuildinfo
+          key: tsbuildinfo-${{ runner.os }}-${{ github.sha }}
       - name: Require clean working directory
         shell: bash
         run: |

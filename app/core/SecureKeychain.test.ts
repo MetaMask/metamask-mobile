@@ -215,7 +215,7 @@ describe('SecureKeychain - Secure Item Methods', () => {
       jest.spyOn(QuickCrypto.subtle, 'decrypt').mockImplementation(() => {
         const jsonString = JSON.stringify({ password: originalValue });
         const encoder = new TextEncoder();
-        return Promise.resolve(encoder.encode(jsonString));
+        return Promise.resolve(encoder.encode(jsonString).buffer);
       });
 
       await SecureKeychain.setSecureItem(key, originalValue, scopeOptions);

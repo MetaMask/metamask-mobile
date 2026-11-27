@@ -25,7 +25,7 @@ export const scrypt = (
   r: number,
   p: number,
   size: number,
-): Promise<Uint8Array> =>
+): Promise<Uint8Array<ArrayBuffer>> =>
   new Promise((resolve, reject) =>
     QuickCrypto.scrypt(
       Buffer.from(passwd),
