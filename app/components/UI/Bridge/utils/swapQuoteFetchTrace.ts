@@ -55,6 +55,7 @@ const toAssetId = (
 };
 
 let activeTraceId: string | undefined;
+let activeStartTime = 0;
 let stopWatchingQuotes: (() => void) | undefined;
 
 const unwatchQuotes = (): void => {
@@ -169,6 +170,7 @@ export const swapQuoteFetchTrace = {
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
+    activeStartTime = startTime;
     try {
       const state = ReduxService.store.getState();
       const srcToken = toAssetId(srcTokenAddress, srcChainId);
@@ -207,5 +209,24 @@ export const swapQuoteFetchTrace = {
     reason?: QuoteStreamCompleteReason,
   ): void {
     finishTrace(result, id, reason);
+  },
+
+  // Binds to the span active now, so a later span never gets stale marks.
+  bindMark(): ((key: string) => void) | undefined {
+    const id = activeTraceId;
+    const startTime = activeStartTime;
+    if (!id) {
+      return undefined;
+    }
+    return (key) => {
+      try {
+        annotateTraceByRequest(
+          { name: TraceName.SwapQuoteFetch, id },
+          { [key]: Date.now() - startTime },
+        );
+      } catch {
+        // Telemetry only.
+      }
+    };
   },
 };

@@ -239,6 +239,29 @@ describe('swapQuoteFetchTrace', () => {
     now.mockRestore();
   });
 
+  it('binds marks to the span active when bound, relative to its start', () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    const mark = swapQuoteFetchTrace.bindMark();
+    mockUuid.mockReturnValue('next-trace-id');
+    now.mockReturnValue(2000);
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    jest.mocked(annotateTraceByRequest).mockClear();
+
+    now.mockReturnValue(2300);
+    mark?.('stream_headers_ms');
+
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      { stream_headers_ms: 1300 },
+    );
+    now.mockRestore();
+  });
+
+  it('returns no mark when no quote trace is active', () => {
+    expect(swapQuoteFetchTrace.bindMark()).toBeUndefined();
+  });
+
   it('still traces when the Redux store is unavailable', () => {
     jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => {
       throw new Error('no store');
