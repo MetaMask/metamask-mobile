@@ -52,6 +52,9 @@ export const PredictHomeTestIds = {
   SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
   CATEGORIES: 'predict-next-home-categories',
   CATEGORIES_LIST: 'predict-next-home-categories-list',
+  /** A row of Category chips, by its zero-based index. */
+  categoryRow: (rowIndex: number) =>
+    `predict-next-home-categories-row-${rowIndex}`,
   categoryChip: (categoryId: string) =>
     `predict-next-home-category-${categoryId}`,
   categoryChipIcon: (categoryId: string) =>

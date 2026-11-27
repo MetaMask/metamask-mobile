@@ -28,13 +28,16 @@ const readyCapabilities = (
 
 describe('getHomeCategoryIcon', () => {
   it.each([
+    ['trending', IconName.TrendUp],
+    ['football', IconName.Football],
+    ['basketball', IconName.Basketball],
     ['politics', IconName.Global],
     ['sports', IconName.Trophy],
     ['crypto', IconName.MoneyBag],
     ['esports', IconName.GameController],
     ['culture', IconName.StarFilled],
-    ['finance', IconName.Bank],
-    ['tech', IconName.Data],
+    ['finance', IconName.Cash],
+    ['tech', IconName.Monitor],
     ['economics', IconName.Chart],
   ] as const)('maps %s to %s', (categoryId, expectedIcon) => {
     const icon = getHomeCategoryIcon(categoryId);
@@ -47,6 +50,31 @@ describe('getHomeCategoryIcon', () => {
 
     expect(icon).toBe(IconName.Explore);
   });
+
+  it('prefers a catalog icon that names a design-system icon over the map', () => {
+    const icon = getHomeCategoryIcon('politics', 'Bank');
+
+    expect(icon).toBe(IconName.Bank);
+  });
+
+  it.each([
+    ['an unknown name', 'politics', 'Microphone', IconName.Global],
+    ['an empty name', 'politics', '', IconName.Global],
+    ['a differently cased name', 'politics', 'bank', IconName.Global],
+    [
+      'an unknown name for an unmapped category',
+      'weather',
+      'Microphone',
+      IconName.Explore,
+    ],
+  ] as const)(
+    'ignores a catalog icon with %s',
+    (_case, categoryId, catalogIcon, expectedIcon) => {
+      const icon = getHomeCategoryIcon(categoryId, catalogIcon);
+
+      expect(icon).toBe(expectedIcon);
+    },
+  );
 });
 
 describe('resolveHomeCategories', () => {
@@ -65,17 +93,44 @@ describe('resolveHomeCategories', () => {
       {
         id: 'sports',
         label: 'Sports',
-        iconName: IconName.Trophy,
         feedScreenId: 'sports',
         tabId: 'nfl',
       },
       {
         id: 'politics',
         label: 'Politics',
-        iconName: IconName.Global,
         feedScreenId: 'politics',
         tabId: 'trump',
       },
+    ]);
+  });
+
+  it("carries each Feed Screen's catalog icon and the app's label for a localized Category", () => {
+    const capabilities = readyCapabilities({
+      feeds: { ...KALSHI_STATIC_VENUE_CATALOG.feeds, tech: 'tech' },
+      categories: ['tech', 'politics'],
+      screens: [
+        {
+          id: 'tech',
+          title: 'Technology',
+          icon: 'Monitor',
+          tabs: [{ id: 'all', title: 'All', feed: 'tech' }],
+        },
+        {
+          id: 'politics',
+          title: 'Politics',
+          tabs: [{ id: 'trump', title: 'Trump', feed: 'politics-trump' }],
+        },
+      ],
+    });
+
+    const categories = resolveHomeCategories(capabilities);
+
+    expect(
+      categories.map(({ id, label, icon }) => ({ id, label, icon })),
+    ).toEqual([
+      { id: 'tech', label: 'Tech', icon: 'Monitor' },
+      { id: 'politics', label: 'Politics', icon: undefined },
     ]);
   });
 
