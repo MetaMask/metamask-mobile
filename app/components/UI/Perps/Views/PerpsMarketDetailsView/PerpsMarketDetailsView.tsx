@@ -103,6 +103,7 @@ import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarn
 import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
+import { usePerpsSocialTabsPrefetch } from '../../hooks/usePerpsSocialTabsPrefetch';
 import PerpsMarketSocialTabs from '../../components/PerpsMarketSocialTabs';
 import type { PerpsMarketSocialTab } from '../../components/PerpsMarketSocialTabs/PerpsMarketSocialTabs';
 import SocialFeedVirtualized from '../../../SocialFeed/components/SocialFeedVirtualized';
@@ -2075,6 +2076,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       : null;
     return assetId ? [assetId] : null;
   }, [market?.symbol]);
+
+  usePerpsSocialTabsPrefetch({
+    symbol: market?.symbol,
+    feedAssetIds,
+    enabled: isPerpsSocialEnabled,
+  });
 
   if (!market) {
     return (
