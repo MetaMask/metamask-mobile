@@ -55,7 +55,7 @@ const TooltipModal = () => {
         testID="tooltip-modal-header"
         closeButtonProps={{ testID: 'tooltip-modal-close' }}
       />
-      <Box twClassName="px-4">
+      <Box className="px-4">
         {isValidElement(tooltip) ? (
           tooltip
         ) : (
@@ -70,7 +70,7 @@ const TooltipModal = () => {
           children: buttonText ?? strings('browser.got_it'),
           onPress: handleGotItPress,
         }}
-        twClassName="px-4 pt-6"
+        className="px-4 pt-6"
         style={tw.style({ paddingBottom: footerText ? 0 : insets.bottom })}
       />
       {footerText && (

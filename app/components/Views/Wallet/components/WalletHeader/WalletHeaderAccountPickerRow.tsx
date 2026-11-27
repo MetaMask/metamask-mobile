@@ -37,7 +37,7 @@ const WalletHeaderAccountPickerRow = ({
       accessibilityLabel={displayName}
       hitSlop={hitSlop}
       isFullWidth={false}
-      twClassName="flex-row items-center gap-2 self-start bg-transparent px-4 pb-2 pt-1"
+      className="flex-row items-center gap-2 self-start bg-transparent px-4 pb-2 pt-1"
     >
       <Text
         variant={TextVariant.BodyMd}

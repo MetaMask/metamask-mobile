@@ -53,24 +53,24 @@ const getRecoveryCopy = (
 };
 
 export const AddDeviceScannerPermissionDenied = () => (
-  <Box twClassName="flex-1 justify-center px-6">
+  <Box className="flex-1 justify-center px-6">
     <Text
       variant={TextVariant.HeadingSm}
       color={TextColor.TextDefault}
-      twClassName="text-center mb-2"
+      className="text-center mb-2"
     >
       {strings('app_settings.add_device.scanner.permission_title')}
     </Text>
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center mb-6"
+      className="text-center mb-6"
     >
       {strings('app_settings.add_device.scanner.permission_description')}
     </Text>
     <Button
       variant={ButtonVariant.Primary}
-      twClassName="w-full"
+      className="w-full"
       onPress={() => Linking.openSettings()}
     >
       {strings('app_settings.add_device.scanner.open_settings')}
@@ -85,24 +85,24 @@ const AddDeviceScannerRecovery = ({
   const { title, description } = getRecoveryCopy(state);
 
   return (
-    <Box twClassName="flex-1 justify-center px-6">
+    <Box className="flex-1 justify-center px-6">
       <Text
         variant={TextVariant.HeadingSm}
         color={TextColor.TextDefault}
-        twClassName="text-center mb-2"
+        className="text-center mb-2"
       >
         {title}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center mb-6"
+        className="text-center mb-6"
       >
         {description}
       </Text>
       <Button
         variant={ButtonVariant.Primary}
-        twClassName="w-full"
+        className="w-full"
         onPress={onTryAgain}
       >
         {strings('app_settings.add_device.scanner.try_again')}

@@ -108,7 +108,7 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
               testID: PaymentFailedSheetTestIds.CLOSE,
             }}
           >
-            <Box twClassName="flex-row items-center gap-2">
+            <Box className="flex-row items-center gap-2">
               <Icon
                 name={IconName.Danger}
                 color={IconColor.ErrorDefault}
@@ -122,7 +122,7 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
               </Text>
             </Box>
           </BottomSheetHeaderGlass>
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -133,7 +133,7 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
           </Box>
           <BottomSheetFooter
             primaryButtonProps={primaryButtonProps}
-            twClassName="pt-6"
+            className="pt-6"
           />
         </BottomSheet>
       </GestureHandlerRootView>

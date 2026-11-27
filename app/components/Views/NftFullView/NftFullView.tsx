@@ -45,7 +45,7 @@ const NftFullView = () => {
           backButtonProps={{ testID: 'back-button' }}
         />
       ) : (
-        <Box twClassName="flex-row items-center h-14 px-2">
+        <Box className="flex-row items-center h-14 px-2">
           <ButtonIcon
             size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
@@ -53,7 +53,7 @@ const NftFullView = () => {
             testID="back-button"
           />
           <Box
-            twClassName="absolute inset-0 items-center justify-center"
+            className="absolute inset-0 items-center justify-center"
             pointerEvents="none"
           >
             <Text variant={TextVariant.HeadingSm}>
@@ -62,7 +62,7 @@ const NftFullView = () => {
           </Box>
         </Box>
       )}
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <NftGrid isFullView />
       </Box>
     </SafeAreaView>

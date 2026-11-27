@@ -213,7 +213,7 @@ export function useBasicFunctionalityConsolidation(): void {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="flex-1"
+            className="flex-1"
           >
             {strings('basic_functionality_migration.title')}
           </Text>
