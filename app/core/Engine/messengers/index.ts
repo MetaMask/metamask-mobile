@@ -35,7 +35,10 @@ import { getNotificationServicesPushControllerMessenger } from './notifications/
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getPackPartnerDataServiceMessenger } from './collectibles-data-services-messenger';
+import {
+  getPackPartnerDataServiceMessenger,
+  getCollectiblesApiDataServiceMessenger,
+} from './collectibles-data-services-messenger';
 import { getCollectiblesControllerMessenger } from './collectibles-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
@@ -306,6 +309,10 @@ export const MESSENGER_FACTORIES = {
   },
   PackPartnerDataService: {
     getMessenger: getPackPartnerDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesApiDataService: {
+    getMessenger: getCollectiblesApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   CollectiblesController: {

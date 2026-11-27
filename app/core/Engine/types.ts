@@ -353,6 +353,11 @@ import type {
   PackPartnerDataServiceActions,
   PackPartnerDataServiceEvents,
 } from '../../components/UI/Collectibles/services/data/PackPartnerDataService';
+import type {
+  CollectiblesApiDataService,
+  CollectiblesApiDataServiceActions,
+  CollectiblesApiDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -741,6 +746,7 @@ export type GlobalActions =
   | PredictControllerActions
   | CollectiblesControllerActions
   | PackPartnerDataServiceActions
+  | CollectiblesApiDataServiceActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
@@ -861,6 +867,7 @@ export type GlobalEvents =
   | PredictControllerEvents
   | CollectiblesControllerEvents
   | PackPartnerDataServiceEvents
+  | CollectiblesApiDataServiceEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
@@ -1012,6 +1019,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   CollectiblesController: CollectiblesController;
   PackPartnerDataService: PackPartnerDataService;
+  CollectiblesApiDataService: CollectiblesApiDataService;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
@@ -1210,6 +1218,7 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'CollectiblesController'
   | 'PackPartnerDataService'
+  | 'CollectiblesApiDataService'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
