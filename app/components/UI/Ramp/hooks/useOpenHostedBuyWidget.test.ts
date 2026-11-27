@@ -222,4 +222,45 @@ describe('useOpenHostedBuyWidget', () => {
 
     expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
   });
+
+  it('system-opens on iOS when browser is EXTERNAL_OS_BROWSER', async () => {
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockInAppBrowser.isAvailable.mockResolvedValue(true);
+
+    const { result } = renderHook(() => useOpenHostedBuyWidget());
+
+    await act(async () => {
+      await result.current.openHostedBuyWidget({
+        ...BASE_PARAMS,
+        browser: 'EXTERNAL_OS_BROWSER',
+      });
+    });
+
+    expect(mockLinkingOpenURL).toHaveBeenCalledWith(BASE_PARAMS.url);
+    expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+    expect(mockNavigationReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
+    });
+  });
+
+  it('prefers buy-widget browser over quote snapshot for system open', async () => {
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockInAppBrowser.isAvailable.mockResolvedValue(true);
+
+    const { result } = renderHook(() => useOpenHostedBuyWidget());
+
+    await act(async () => {
+      await result.current.openHostedBuyWidget({
+        ...BASE_PARAMS,
+        browser: 'EXTERNAL_OS_BROWSER',
+        quote: {
+          quote: { buyWidget: { browser: 'IN_APP_OS_BROWSER' } },
+        } as never,
+      });
+    });
+
+    expect(mockLinkingOpenURL).toHaveBeenCalledWith(BASE_PARAMS.url);
+    expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+  });
 });

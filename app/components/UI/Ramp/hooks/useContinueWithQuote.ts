@@ -365,6 +365,8 @@ export function useContinueWithQuote(
             orderId: buyWidget.orderId,
             walletAddress: effectiveWalletAddress,
             chainId: effectiveChainId,
+            browser: buyWidget.browser,
+            quote,
           });
           return;
         }

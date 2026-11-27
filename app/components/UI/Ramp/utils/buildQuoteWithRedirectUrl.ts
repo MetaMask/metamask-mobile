@@ -1,6 +1,9 @@
 import { isExternalBrowserQuote, type Quote } from '@metamask/ramps-controller';
 import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
+/** True system open — partner universal links can fire (e.g. Revolut native). */
+export const EXTERNAL_OS_BROWSER = 'EXTERNAL_OS_BROWSER' as const;
+
 /**
  * Returns a quote with buyURL rewritten to use the given redirect URL.
  * Ideally this logic would live in the API or controller — the client
@@ -28,6 +31,36 @@ export function getProviderDeeplinkRedirectUrl(providerCode: string): string {
   return `metamask://on-ramp/providers/${providerCode}`;
 }
 
+function getQuoteBrowser(quote: Quote): string | null | undefined {
+  return quote.quote?.buyWidget?.browser;
+}
+
+/**
+ * Whether MetaMask should leave the in-app WebView for this quote.
+ * Includes API `EXTERNAL_OS_BROWSER` (not yet in published isExternalBrowserQuote).
+ */
+export function shouldUseExternalBrowser(quote: Quote): boolean {
+  return (
+    isExternalBrowserQuote(quote) ||
+    getQuoteBrowser(quote) === EXTERNAL_OS_BROWSER
+  );
+}
+
+/**
+ * Whether iOS should use Linking.openURL instead of ASWebAuthenticationSession.
+ * Required for partner universal links (e.g. Revolut /app/onramp).
+ *
+ * Prefer the buy-widget response `browser` when present (stamped at open time);
+ * fall back to the quote's embedded `buyWidget.browser`.
+ */
+export function shouldUseSystemOpen(
+  quote: Quote,
+  buyWidgetBrowser?: string | null,
+): boolean {
+  const browser = buyWidgetBrowser ?? getQuoteBrowser(quote);
+  return browser === EXTERNAL_OS_BROWSER;
+}
+
 /**
  * Returns redirect config for aggregator flow: deeplink when quote indicates
  * external browser, callbackBaseUrl for Checkout WebView.
@@ -40,7 +73,7 @@ export function getAggregatorRedirectConfig(
   quote: Quote,
   providerCode: string,
 ): { useExternalBrowser: boolean; redirectUrl: string } {
-  const useExternalBrowser = isExternalBrowserQuote(quote);
+  const useExternalBrowser = shouldUseExternalBrowser(quote);
   return {
     useExternalBrowser,
     redirectUrl: useExternalBrowser
