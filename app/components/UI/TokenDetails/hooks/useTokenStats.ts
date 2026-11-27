@@ -56,7 +56,20 @@ const LISTED_ON_EXCHANGE_FEATURE_ID = 'LISTED_ON_CENTRALIZED_EXCHANGE';
 
 export interface UseTokenStatsParams {
   /** Resolved by `useTokenMarketData`, in the user's selected currency. */
-  marketData: TokenMarketData | null;
+  marketData:
+    | (Pick<
+        TokenMarketData,
+        | 'marketCap'
+        | 'dilutedMarketCap'
+        | 'liquidity'
+        | 'totalVolume'
+        | 'high1d'
+        | 'low1d'
+        | 'circulatingSupply'
+        | 'price'
+      > &
+        Partial<Pick<FungibleAssetPrice, 'usdPrice'>>)
+    | null;
   /** True while the market-data fetch is in flight. */
   isMarketDataLoading: boolean;
   securityData?: TokenSecurityData | null;
@@ -94,7 +107,7 @@ const getLiquidityUsd = (
  * decides whether to show an unconverted figure or nothing.
  */
 const getUsdToSelectedCurrencyRate = (
-  marketData: FungibleAssetPrice | null,
+  marketData: UseTokenStatsParams['marketData'],
 ): number | null => {
   const { price, usdPrice } = marketData ?? {};
 
