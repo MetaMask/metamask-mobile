@@ -4171,7 +4171,7 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order",
+      "cash_out": "Cash out",
       "buy": "Buy",
       "venue_changed": "Your prediction market changed. Close this order to continue."
     },
