@@ -6,8 +6,8 @@ import Routes from '../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import {
   selectCardActiveProviderId,
-  selectCardCountryOfResidence,
   selectCardHomeData,
+  selectCardSupportRegion,
   selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../selectors/cardController';
@@ -42,8 +42,8 @@ jest.mock('../Logger', () => ({
 
 jest.mock('../../selectors/cardController', () => ({
   selectCardActiveProviderId: jest.fn(),
-  selectCardCountryOfResidence: jest.fn(),
   selectCardHomeData: jest.fn(),
+  selectCardSupportRegion: jest.fn(),
   selectCardProviderUserId: jest.fn(),
   selectIsCardAuthenticated: jest.fn(),
 }));
@@ -70,7 +70,7 @@ const mockSignedInToCard = (
   jest.mocked(selectCardIntercomSupportEnabled).mockReturnValue(flag);
   jest.mocked(selectCardProviderUserId).mockReturnValue('cardholder-1');
   jest.mocked(selectCardActiveProviderId).mockReturnValue('baanx');
-  jest.mocked(selectCardCountryOfResidence).mockReturnValue(region);
+  jest.mocked(selectCardSupportRegion).mockReturnValue(region);
   jest
     .mocked(selectCardHomeData)
     .mockReturnValue(hasCard ? ({ card: { id: 'card-1' } } as never) : null);

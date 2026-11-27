@@ -10,8 +10,8 @@ import {
 import Routes from '../../constants/navigation/Routes';
 import {
   selectCardActiveProviderId,
-  selectCardCountryOfResidence,
   selectCardHomeData,
+  selectCardSupportRegion,
   selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../selectors/cardController';
@@ -71,7 +71,7 @@ export const appendCardSupportParams = (url: string): string => {
       {
         providerUserId: selectCardProviderUserId(state),
         providerName: selectCardActiveProviderId(state),
-        cardRegion: hasCard ? selectCardCountryOfResidence(state) : null,
+        cardRegion: hasCard ? selectCardSupportRegion(state) : null,
       },
       url,
     );

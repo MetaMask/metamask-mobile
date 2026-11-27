@@ -26,7 +26,6 @@ import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
   AuthTokenValidity,
   CardAccountLookupResult,
-  CardAccountStatus,
   CardAction,
   CardAuthResult,
   CardAuthSession,
@@ -177,6 +176,16 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'immersve' },
     context: { name: 'ImmersveProvider', data: { method, ...extra } },
   };
+}
+
+function normalizeSupportRegion(
+  region: string | null | undefined,
+): string | null {
+  const normalized = region?.trim().toUpperCase();
+  if (!normalized) {
+    return null;
+  }
+  return normalized;
 }
 
 /**
@@ -1455,29 +1464,10 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
-  private mapAccountFromRegion(
-    region: string | null | undefined,
-  ): CardAccountStatus | null {
-    const countryOfResidence = region?.trim().toUpperCase();
-    if (!countryOfResidence) {
-      return null;
-    }
-    return {
-      verificationStatus: null,
-      holderName: null,
-      shippingAddress: null,
-      countryOfResidence,
-      usState: null,
-      createdAt: null,
-    };
-  }
-
-  private provisioningHomeData(
-    account: CardAccountStatus | null,
-  ): CardHomeData {
+  private provisioningHomeData(supportRegion: string | null): CardHomeData {
     return {
       ...emptyCardHomeData(),
-      account,
+      supportRegion,
       alerts: [{ type: 'card_provisioning', dismissable: false }],
     };
   }
@@ -1505,14 +1495,16 @@ export class ImmersveProvider implements ICardProvider {
         this.resolveCurrentCard(tokens),
         this.fetchKycRegion(tokens),
       ]);
-      const account = this.mapAccountFromRegion(kycRegion ?? card?.regionCode);
+      const supportRegion = normalizeSupportRegion(
+        kycRegion ?? card?.regionCode,
+      );
 
       if (!card) {
-        return this.provisioningHomeData(account);
+        return this.provisioningHomeData(supportRegion);
       }
 
       if (card.status === 'created') {
-        return this.provisioningHomeData(account);
+        return this.provisioningHomeData(supportRegion);
       }
 
       const detail = await this.service.get<ImmersveCardDetail>(
@@ -1536,7 +1528,7 @@ export class ImmersveProvider implements ICardProvider {
       if (this.isRevokedAllowance(primaryFundingAsset)) {
         return {
           ...emptyCardHomeData(),
-          account,
+          supportRegion,
           card: cardDetails,
           walletProvisioning,
           primaryFundingAsset,
@@ -1553,7 +1545,7 @@ export class ImmersveProvider implements ICardProvider {
 
       return {
         ...emptyCardHomeData(),
-        account,
+        supportRegion,
         card: cardDetails,
         walletProvisioning,
         primaryFundingAsset,

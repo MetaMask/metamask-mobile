@@ -1544,7 +1544,7 @@ describe('ImmersveProvider', () => {
       ]);
     });
 
-    it('maps the KYC profile region to account.countryOfResidence', async () => {
+    it('maps the KYC profile region to supportRegion without setting account', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
         routeGet({
@@ -1561,14 +1561,8 @@ describe('ImmersveProvider', () => {
         '/api/accounts/cardholder-1/kyc-profile',
         TOKENS,
       );
-      expect(data.account).toStrictEqual({
-        verificationStatus: null,
-        holderName: null,
-        shippingAddress: null,
-        countryOfResidence: 'GB',
-        usState: null,
-        createdAt: null,
-      });
+      expect(data.supportRegion).toBe('GB');
+      expect(data.account).toBeNull();
     });
 
     it('returns the region for users still onboarding without a card', async () => {
@@ -1582,7 +1576,8 @@ describe('ImmersveProvider', () => {
 
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
-      expect(data.account?.countryOfResidence).toBe('NZ');
+      expect(data.supportRegion).toBe('NZ');
+      expect(data.account).toBeNull();
       expect(data.alerts).toStrictEqual([
         { type: 'card_provisioning', dismissable: false },
       ]);
@@ -1606,10 +1601,11 @@ describe('ImmersveProvider', () => {
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
       expect(data.card).not.toBeNull();
-      expect(data.account?.countryOfResidence).toBe('GB');
+      expect(data.supportRegion).toBe('GB');
+      expect(data.account).toBeNull();
     });
 
-    it('leaves account null when neither the KYC profile nor the card has a region', async () => {
+    it('leaves supportRegion null when neither the KYC profile nor the card has a region', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
         routeGet({
@@ -1623,6 +1619,7 @@ describe('ImmersveProvider', () => {
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
       expect(data.card).not.toBeNull();
+      expect(data.supportRegion).toBeNull();
       expect(data.account).toBeNull();
     });
 
