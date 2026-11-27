@@ -495,6 +495,29 @@ const createMockState = (): DeepPartial<RootState> => ({
   },
 });
 
+const renderConnectForOrigin = (origin: string, permissionRequestId: string) =>
+  renderWithProvider(
+    <MultichainAccountConnect
+      route={{
+        params: {
+          hostInfo: {
+            metadata: {
+              id: 'mockId',
+              origin,
+            },
+            permissions: createMockCaip25Permission({
+              'wallet:eip155': {
+                accounts: [],
+              },
+            }),
+          },
+          permissionRequestId,
+        },
+      }}
+    />,
+    { state: createMockState() },
+  );
+
 mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
@@ -602,27 +625,7 @@ describe('MultichainAccountConnect', () => {
   it('handles cancel button press correctly', () => {
     Engine.context.PermissionController.rejectPermissionsRequest =
       mockRejectPermissionsRequest;
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'mockOrigin',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
+    const { getByTestId } = renderConnectForOrigin('mockOrigin', 'test');
 
     const cancelButton = getByTestId(CommonSelectorsIDs.CANCEL_BUTTON);
     fireEvent.press(cancelButton);
@@ -709,27 +712,7 @@ describe('MultichainAccountConnect', () => {
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
       it('does not show phishing modal for safe URLs', async () => {
-        const { queryByText } = renderWithProvider(
-          <MultichainAccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'safe-site.com',
-                  },
-                  permissions: createMockCaip25Permission({
-                    'wallet:eip155': {
-                      accounts: [],
-                    },
-                  }),
-                },
-                permissionRequestId: 'test',
-              },
-            }}
-          />,
-          { state: createMockState() },
-        );
+        const { queryByText } = renderConnectForOrigin('safe-site.com', 'test');
 
         await waitFor(() => {
           expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
@@ -749,26 +732,9 @@ describe('MultichainAccountConnect', () => {
           result: true,
         });
 
-        const { findByText } = renderWithProvider(
-          <MultichainAccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'https://phishing.com',
-                  },
-                  permissions: createMockCaip25Permission({
-                    'wallet:eip155': {
-                      accounts: [],
-                    },
-                  }),
-                },
-                permissionRequestId: 'test-phishing-url',
-              },
-            }}
-          />,
-          { state: createMockState() },
+        const { findByText } = renderConnectForOrigin(
+          'https://phishing.com',
+          'test-phishing-url',
         );
 
         Engine.context.PermissionController.rejectPermissionsRequest =
@@ -909,26 +875,9 @@ describe('MultichainAccountConnect', () => {
     Engine.context.PermissionController.acceptPermissionsRequest =
       mockAcceptPermissionsRequestError;
 
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-error',
-          },
-        }}
-      />,
-      { state: createMockState() },
+    const { getByTestId } = renderConnectForOrigin(
+      'https://example.com',
+      'test-error',
     );
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
@@ -1257,26 +1206,9 @@ describe('MultichainAccountConnect', () => {
   });
 
   it('handles invalid origin URLs', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'invalid-url',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-invalid-origin',
-          },
-        }}
-      />,
-      { state: createMockState() },
+    const { getByTestId } = renderConnectForOrigin(
+      'invalid-url',
+      'test-invalid-origin',
     );
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
@@ -1479,26 +1411,9 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('creates phishing navigation callback functions', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-phishing-callbacks',
-            },
-          }}
-        />,
-        { state: createMockState() },
+      const { getByTestId } = renderConnectForOrigin(
+        'https://example.com',
+        'test-phishing-callbacks',
       );
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
@@ -1533,26 +1448,9 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('sets up phishing modal callbacks with proper dependencies', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://test-site.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-dependencies',
-            },
-          }}
-        />,
-        { state: createMockState() },
+      const { getByTestId } = renderConnectForOrigin(
+        'https://test-site.com',
+        'test-dependencies',
       );
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
