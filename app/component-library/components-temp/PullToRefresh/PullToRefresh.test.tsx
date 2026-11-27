@@ -255,8 +255,12 @@ describe('PullToRefresh', () => {
         createTouchEvent(0),
         scrolledStateManager,
       );
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(PULL_REFRESH_THRESHOLD / 2),
+        scrolledStateManager,
+      );
     });
-    expect(scrolledStateManager.fail).toHaveBeenCalled();
+    expect(scrolledStateManager.activate).not.toHaveBeenCalled();
 
     const atTopStateManager = createStateManager();
     act(() => {
@@ -301,8 +305,12 @@ describe('PullToRefresh', () => {
         createTouchEvent(0),
         scrolledDownStateManager,
       );
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(PULL_REFRESH_THRESHOLD / 2),
+        scrolledDownStateManager,
+      );
     });
-    expect(scrolledDownStateManager.fail).toHaveBeenCalled();
+    expect(scrolledDownStateManager.activate).not.toHaveBeenCalled();
   });
 
   it('updates the top scroll baseline when the inset changes after mount', () => {
@@ -539,8 +547,9 @@ describe('PullToRefresh', () => {
     expect(__getRivePropertySetter('pullProgress')).toHaveBeenLastCalledWith(0);
   });
 
-  it('does not activate when the scroll view is not at the top', () => {
-    const { getByTestId } = renderPullToRefreshScrollView();
+  it('does not activate while the scroll view stays below the top', () => {
+    const onRefresh = jest.fn();
+    const { getByTestId } = renderPullToRefreshScrollView({ onRefresh });
     const scrollView = getByTestId('pull-refresh-scroll-view');
     const stateManager = createStateManager();
 
@@ -549,10 +558,139 @@ describe('PullToRefresh', () => {
     });
     act(() => {
       mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(PULL_REFRESH_THRESHOLD),
+        stateManager,
+      );
+      mockGestureCallbacks.onEnd?.({ translationY: PULL_REFRESH_THRESHOLD });
     });
 
-    expect(stateManager.fail).toHaveBeenCalled();
     expect(stateManager.activate).not.toHaveBeenCalled();
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
+
+  it('activates seamlessly when a single drag scrolls to the top and keeps pulling', async () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    const { getByTestId } = renderPullToRefreshScrollView({ onRefresh });
+    const scrollView = getByTestId('pull-refresh-scroll-view');
+    const stateManager = createStateManager();
+
+    // Start scrolled partway down the page
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 200 } },
+    });
+    await act(async () => {
+      mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
+      mockGestureCallbacks.onTouchesMove?.(createTouchEvent(150), stateManager);
+      await Promise.resolve();
+    });
+    expect(stateManager.activate).not.toHaveBeenCalled();
+    expect(stateManager.fail).not.toHaveBeenCalled();
+
+    // Scroll view reaches top during the same drag
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 0 } },
+    });
+    await act(async () => {
+      mockGestureCallbacks.onTouchesMove?.(createTouchEvent(220), stateManager);
+      await Promise.resolve();
+    });
+    expect(stateManager.activate).toHaveBeenCalledTimes(1);
+
+    // Pre-top travel (220px) is subtracted so progress stays at 0 rather than jumping to 100
+    await act(async () => {
+      mockGestureCallbacks.onUpdate?.({ translationY: 220 });
+      await Promise.resolve();
+    });
+    expect(__getRivePropertySetter('isPulling')).toHaveBeenLastCalledWith(true);
+    expect(__getRivePropertySetter('pullProgress')).toHaveBeenLastCalledWith(0);
+
+    // Pulling halfway past the activation point yields 50% progress
+    await act(async () => {
+      mockGestureCallbacks.onUpdate?.({
+        translationY: 220 + PULL_REFRESH_THRESHOLD / 2,
+      });
+      await Promise.resolve();
+    });
+    expect(__getRivePropertySetter('pullProgress')).toHaveBeenLastCalledWith(
+      50,
+    );
+
+    // Releasing past PULL_REFRESH_THRESHOLD from the activation point commits refresh
+    await act(async () => {
+      mockGestureCallbacks.onEnd?.({
+        translationY: 220 + PULL_REFRESH_THRESHOLD,
+      });
+      await Promise.resolve();
+    });
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not commit refresh when released shortly after reaching the top', async () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    const { getByTestId } = renderPullToRefreshScrollView({ onRefresh });
+    const scrollView = getByTestId('pull-refresh-scroll-view');
+    const stateManager = createStateManager();
+
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 200 } },
+    });
+    await act(async () => {
+      mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
+      mockGestureCallbacks.onTouchesMove?.(createTouchEvent(190), stateManager);
+      await Promise.resolve();
+    });
+
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 0 } },
+    });
+    await act(async () => {
+      mockGestureCallbacks.onTouchesMove?.(createTouchEvent(210), stateManager);
+      mockGestureCallbacks.onUpdate?.({ translationY: 210 });
+      // Only pulled 20px past top (well below PULL_REFRESH_THRESHOLD), even though total translationY is 230
+      mockGestureCallbacks.onEnd?.({ translationY: 230 });
+      await Promise.resolve();
+    });
+
+    expect(stateManager.activate).toHaveBeenCalledTimes(1);
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
+
+  it('fails the gesture when scrolling deeper down or swiping horizontally while below the top', () => {
+    const { getByTestId } = renderPullToRefreshScrollView();
+    const scrollView = getByTestId('pull-refresh-scroll-view');
+
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 150 } },
+    });
+
+    const scrollDeeperManager = createStateManager();
+    act(() => {
+      mockGestureCallbacks.onTouchesDown?.(
+        createTouchEvent(100),
+        scrollDeeperManager,
+      );
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(80),
+        scrollDeeperManager,
+      );
+    });
+    expect(scrollDeeperManager.fail).toHaveBeenCalled();
+    expect(scrollDeeperManager.activate).not.toHaveBeenCalled();
+
+    const horizontalSwipeManager = createStateManager();
+    act(() => {
+      mockGestureCallbacks.onTouchesDown?.(
+        createTouchEvent(100, 100),
+        horizontalSwipeManager,
+      );
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(102, 130),
+        horizontalSwipeManager,
+      );
+    });
+    expect(horizontalSwipeManager.fail).toHaveBeenCalled();
+    expect(horizontalSwipeManager.activate).not.toHaveBeenCalled();
   });
 
   it('maps a programmatic refresh to the Rive refresh lifecycle', () => {

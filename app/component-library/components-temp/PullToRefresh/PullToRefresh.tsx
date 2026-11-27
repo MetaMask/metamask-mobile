@@ -99,6 +99,7 @@ const PullToRefresh = ({
   const pullProgress = useSharedValue(0);
   const initialTouchY = useSharedValue(0);
   const initialTouchX = useSharedValue(0);
+  const activationTranslationY = useSharedValue<number | null>(null);
   const gestureType = useSharedValue<'pending' | 'active' | null>(null);
   const pullingStateSent = useSharedValue(false);
   const refreshingShared = useSharedValue(refreshing);
@@ -338,6 +339,7 @@ const PullToRefresh = ({
     pullProgress,
     initialTouchY,
     initialTouchX,
+    activationTranslationY,
     gestureType,
     pullingStateSent,
     riveReady: riveReadyShared,

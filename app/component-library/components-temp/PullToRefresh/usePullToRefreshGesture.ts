@@ -24,6 +24,7 @@ export interface PullToRefreshGestureState {
   pullProgress: SharedValue<number>;
   initialTouchY: SharedValue<number>;
   initialTouchX: SharedValue<number>;
+  activationTranslationY: SharedValue<number | null>;
   gestureType: SharedValue<'pending' | 'active' | null>;
   pullingStateSent: SharedValue<boolean>;
   riveReady: SharedValue<boolean>;
@@ -62,14 +63,14 @@ export const usePullToRefreshGesture = ({
       }
 
       const touch = event.allTouches[0];
-      if (
-        !touch ||
-        gestureState.scrollY.value >
-          gestureState.topScrollOffset.value + SCROLL_TOP_THRESHOLD
-      ) {
+      if (!touch) {
         stateManager.fail();
         return;
       }
+
+      const isAtTop =
+        gestureState.scrollY.value <=
+        gestureState.topScrollOffset.value + SCROLL_TOP_THRESHOLD;
 
       gestureState.gestureType.value = 'pending';
       gestureState.pullingStateSent.value = false;
@@ -78,6 +79,7 @@ export const usePullToRefreshGesture = ({
       gestureState.thresholdHapticSent.value = false;
       gestureState.initialTouchY.value = touch.y;
       gestureState.initialTouchX.value = touch.x;
+      gestureState.activationTranslationY.value = isAtTop ? 0 : null;
       gestureState.pullDistance.value = 0;
       gestureState.pullProgress.value = 0;
     })
@@ -96,6 +98,29 @@ export const usePullToRefreshGesture = ({
 
       const deltaY = touch.y - gestureState.initialTouchY.value;
       const deltaX = Math.abs(touch.x - gestureState.initialTouchX.value);
+      const isAtTop =
+        gestureState.scrollY.value <=
+        gestureState.topScrollOffset.value + SCROLL_TOP_THRESHOLD;
+
+      if (!isAtTop) {
+        if (
+          (deltaX > PULL_MOVE_ACTIVATION && deltaX > Math.abs(deltaY)) ||
+          deltaY < -PULL_MOVE_ACTIVATION
+        ) {
+          gestureState.gestureType.value = null;
+          gestureState.pullingStateSent.value = false;
+          stateManager.fail();
+          return;
+        }
+
+        // Re-anchor while scrolling back toward the top so pre-top travel is
+        // not counted toward pull-to-refresh activation or progress.
+        gestureState.initialTouchY.value = touch.y;
+        gestureState.initialTouchX.value = touch.x;
+        gestureState.activationTranslationY.value = null;
+        return;
+      }
+
       if (deltaY > PULL_MOVE_ACTIVATION && deltaY > deltaX) {
         gestureState.gestureType.value = 'active';
         gestureState.pullingStateSent.value = false;
@@ -115,7 +140,12 @@ export const usePullToRefreshGesture = ({
         return;
       }
 
-      if (event.translationY < 0) {
+      gestureState.activationTranslationY.value ??= event.translationY;
+
+      const effectiveTranslationY =
+        event.translationY - gestureState.activationTranslationY.value;
+
+      if (effectiveTranslationY < 0) {
         gestureState.gestureType.value = null;
         gestureState.pullingStateSent.value = false;
         gestureState.refreshCommitRequested.value = false;
@@ -126,11 +156,11 @@ export const usePullToRefreshGesture = ({
       }
 
       const nextProgress = Math.min(
-        Math.max((event.translationY / PULL_REFRESH_THRESHOLD) * 100, 0),
+        Math.max((effectiveTranslationY / PULL_REFRESH_THRESHOLD) * 100, 0),
         100,
       );
       gestureState.pullDistance.value = getResistedPullDistance(
-        event.translationY,
+        effectiveTranslationY,
       );
       gestureState.pullProgress.value = nextProgress;
       if (nextProgress >= 100 && !gestureState.thresholdHapticSent.value) {
@@ -151,7 +181,12 @@ export const usePullToRefreshGesture = ({
         return;
       }
 
-      if (event.translationY >= PULL_REFRESH_THRESHOLD) {
+      const effectiveTranslationY =
+        gestureState.activationTranslationY.value === null
+          ? 0
+          : event.translationY - gestureState.activationTranslationY.value;
+
+      if (effectiveTranslationY >= PULL_REFRESH_THRESHOLD) {
         if (!gestureState.thresholdHapticSent.value) {
           gestureState.thresholdHapticSent.value = true;
           scheduleOnRN(onThreshold);
@@ -169,6 +204,7 @@ export const usePullToRefreshGesture = ({
       gestureState.gestureType.value = null;
       gestureState.pullingStateSent.value = false;
       gestureState.thresholdHapticSent.value = false;
+      gestureState.activationTranslationY.value = null;
       gestureState.pullProgress.value = withTiming(0, { duration: 200 });
     })
     .onFinalize(() => {
@@ -176,6 +212,7 @@ export const usePullToRefreshGesture = ({
       gestureState.gestureType.value = null;
       gestureState.pullingStateSent.value = false;
       gestureState.thresholdHapticSent.value = false;
+      gestureState.activationTranslationY.value = null;
       if (!gestureState.refreshCommitRequested.value) {
         gestureState.pullDistance.value = withTiming(0, { duration: 200 });
       }
