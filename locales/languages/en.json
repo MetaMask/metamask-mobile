@@ -8877,8 +8877,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
-    "tron_validation": {
-      "validation_unavailable": "Unable to verify this amount. Please try again."
+    "snap_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again.",
+      "insufficient_funds_max": "Insufficient funds. You can send up to {{amount}} {{symbol}}."
     },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
