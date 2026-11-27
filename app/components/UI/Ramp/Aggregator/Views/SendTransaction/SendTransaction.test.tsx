@@ -499,7 +499,7 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
 
 const mockSendMultichainTransactionForReview =
   sendMultichainTransactionForReview as jest.Mock;
-const mockValidateTronTransferAmount = validateAmountMultichain as jest.Mock;
+const mockValidateSnapTransferAmount = validateAmountMultichain as jest.Mock;
 const mockGetInternalAccountByAddress =
   getMemoizedInternalAccountByAddress as unknown as jest.Mock;
 
@@ -522,7 +522,7 @@ describe('SendTransaction View', () => {
     mockTrackEvent.mockClear();
     mockAddTransaction.mockClear();
     mockSendMultichainTransactionForReview.mockClear();
-    mockValidateTronTransferAmount.mockReset();
+    mockValidateSnapTransferAmount.mockReset();
     mockGetInternalAccountByAddress.mockReset();
   });
 
@@ -530,7 +530,7 @@ describe('SendTransaction View', () => {
     mockUseParamsValues = {
       orderId: 'test-id-1',
     };
-    mockValidateTronTransferAmount.mockResolvedValue({
+    mockValidateSnapTransferAmount.mockResolvedValue({
       valid: true,
       errors: [],
     });
@@ -900,7 +900,7 @@ describe('SendTransaction View', () => {
       await act(async () => fireEvent.press(nextButton));
 
       expect(mockAddTransaction).not.toHaveBeenCalled();
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -936,7 +936,7 @@ describe('SendTransaction View', () => {
     it('blocks a Tron transfer when the account lacks TRX or network resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -945,7 +945,7 @@ describe('SendTransaction View', () => {
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await act(async () => fireEvent.press(nextButton));
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -979,7 +979,7 @@ describe('SendTransaction View', () => {
       await act(async () => fireEvent.press(nextButton));
 
       const assetId = `tron:728126428/${TRON_USDT_ASSET_REFERENCE}`;
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -1010,7 +1010,7 @@ describe('SendTransaction View', () => {
     it('blocks Tron USDT when the account lacks TRX or network resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron-usdt' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -1019,7 +1019,7 @@ describe('SendTransaction View', () => {
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await act(async () => fireEvent.press(nextButton));
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -1040,7 +1040,7 @@ describe('SendTransaction View', () => {
     it('shows insufficient funds when the Tron Snap reports InsufficientBalance', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalance' }],
       });
@@ -1060,7 +1060,7 @@ describe('SendTransaction View', () => {
     it('fails closed with a retryable error when Tron validation throws', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockRejectedValueOnce(
+      mockValidateSnapTransferAmount.mockRejectedValueOnce(
         new Error('Snap unavailable'),
       );
 
@@ -1087,7 +1087,7 @@ describe('SendTransaction View', () => {
     it('fails closed when the Tron Snap returns no validation result', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce(undefined);
+      mockValidateSnapTransferAmount.mockResolvedValueOnce(undefined);
 
       render(SendTransaction);
       await act(async () =>
@@ -1106,7 +1106,7 @@ describe('SendTransaction View', () => {
     it('keeps Next disabled when a Tron retry still lacks resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValue({
+      mockValidateSnapTransferAmount.mockResolvedValue({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -1121,7 +1121,7 @@ describe('SendTransaction View', () => {
         ),
       );
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(2);
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledTimes(2);
       expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
       expect(
         screen.getByTestId('send-transaction-validation-error'),
@@ -1132,7 +1132,7 @@ describe('SendTransaction View', () => {
     it('re-enables Next after a successful Tron retry without sending, then sends on Next', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount
+      mockValidateSnapTransferAmount
         .mockResolvedValueOnce({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
@@ -1169,7 +1169,7 @@ describe('SendTransaction View', () => {
       );
 
       // Next validates again right before sending.
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(3);
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledTimes(3);
       expect(mockSendMultichainTransactionForReview).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -1195,7 +1195,7 @@ describe('SendTransaction View', () => {
       it('announces the validation error and exposes it as an alert', async () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-        mockValidateTronTransferAmount.mockResolvedValueOnce({
+        mockValidateSnapTransferAmount.mockResolvedValueOnce({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
         });
@@ -1215,7 +1215,7 @@ describe('SendTransaction View', () => {
       it('announces again when a retry fails with the same error', async () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-        mockValidateTronTransferAmount.mockResolvedValue({
+        mockValidateSnapTransferAmount.mockResolvedValue({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
         });
@@ -1238,7 +1238,7 @@ describe('SendTransaction View', () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
         let resolveRetry: (value: unknown) => void = () => undefined;
-        mockValidateTronTransferAmount
+        mockValidateSnapTransferAmount
           .mockResolvedValueOnce({
             valid: false,
             errors: [{ code: 'InsufficientBalanceToCoverFee' }],

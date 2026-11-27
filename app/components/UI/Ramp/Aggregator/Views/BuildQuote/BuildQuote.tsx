@@ -650,11 +650,11 @@ const BuildQuote = () => {
       }
 
       try {
-        const maxResult = (await getMaxSendableAmountMultichain(fromAccount, {
+        const maxResult = await getMaxSendableAmountMultichain(fromAccount, {
           accountId: fromAccount.id,
           assetId:
             `${selectedAsset.network.chainId}/${selectedAsset.assetId}` as CaipAssetType,
-        })) as { amount?: string } | undefined;
+        });
 
         if (maxRequestTokenRef.current !== requestToken) {
           return null;
@@ -1266,7 +1266,7 @@ const BuildQuote = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
-                  testID={BuildQuoteSelectors.TRON_VALIDATION_ERROR}
+                  testID={BuildQuoteSelectors.SNAP_VALIDATION_ERROR}
                   accessibilityRole="alert"
                 >
                   {snapValidationError}

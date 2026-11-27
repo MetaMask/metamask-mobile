@@ -15,6 +15,13 @@ export interface SnapAmountValidationResult {
   errors?: { code: string }[];
 }
 
+/**
+ * Result returned by a wallet Snap's `getMaxSendableAmount` client request.
+ */
+export interface SnapMaxSendableAmountResult {
+  amount: string;
+}
+
 export async function sendMultichainTransactionForReview(
   fromAccount: InternalAccount,
   params: {
@@ -62,8 +69,8 @@ export async function getMaxSendableAmountMultichain(
     assetId: CaipAssetType;
     toAddress?: string;
   },
-) {
-  return await handleSnapRequest(controllerMessenger, {
+): Promise<SnapMaxSendableAmountResult | undefined> {
+  return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',
     handler: HandlerType.OnClientRequest,
@@ -71,5 +78,5 @@ export async function getMaxSendableAmountMultichain(
       method: 'getMaxSendableAmount',
       params,
     },
-  });
+  })) as SnapMaxSendableAmountResult | undefined;
 }

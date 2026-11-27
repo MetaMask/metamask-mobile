@@ -169,6 +169,40 @@ describe('useSnapAmountValidation', () => {
     });
   });
 
+  it('shows the max sendable amount on InsufficientBalance', async () => {
+    mockValidateSnapTransferAmount.mockResolvedValue({
+      valid: false,
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+    mockGetMaxSendableSnapAmount.mockResolvedValue({ amount: '42.5' });
+
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useSnapAmountValidation({
+          enabled: true,
+          amount: '100',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          assetSymbol: 'TRX',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.validationError).toBe(
+        'Insufficient funds. You can send up to 42.5 TRX.',
+      );
+    });
+    expect(mockGetMaxSendableSnapAmount).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockAccount.id }),
+      { accountId: mockAccount.id, assetId: 'tron:728126428/slip44:195' },
+    );
+  });
+
   it('shows error when validation fails with InsufficientBalanceToCoverFee', async () => {
     mockValidateSnapTransferAmount.mockResolvedValue({
       valid: false,

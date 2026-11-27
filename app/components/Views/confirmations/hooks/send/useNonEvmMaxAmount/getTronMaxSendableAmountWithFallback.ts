@@ -11,11 +11,11 @@ const TRON_NATIVE_MAX_FEE_RESERVE = new BN('1100000');
 export const getTronMaxSendableAmountWithFallback: GetMaxSendableAmount =
   async ({ fromAccount, assetId, toAddress, balance }) => {
     try {
-      const result = (await getMaxSendableAmountMultichain(fromAccount, {
+      const result = await getMaxSendableAmountMultichain(fromAccount, {
         accountId: fromAccount.id,
         assetId,
         ...(toAddress && isTronAddress(toAddress) ? { toAddress } : {}),
-      })) as { amount?: string } | undefined;
+      });
 
       if (result?.amount) {
         return { amount: result.amount };

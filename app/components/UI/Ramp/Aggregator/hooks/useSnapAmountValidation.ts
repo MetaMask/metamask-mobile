@@ -54,6 +54,10 @@ const FEE_SHORTFALL_MESSAGES: Partial<Record<string, string>> = {
 };
 const DEFAULT_FEE_SHORTFALL_MESSAGE = 'send.insufficient_balance_to_cover_fee';
 
+export const getFeeShortfallMessageKey = (chainId?: string): string =>
+  FEE_SHORTFALL_MESSAGES[getNamespace(chainId) ?? ''] ??
+  DEFAULT_FEE_SHORTFALL_MESSAGE;
+
 /**
  * Maps a Snap validation result to a user-facing error message.
  * Returns undefined when the transfer is valid.
@@ -65,7 +69,7 @@ function getValidationErrorMessage(
 ): string | undefined {
   if (!result) {
     return strings(
-      'fiat_on_ramp_aggregator.tron_validation.validation_unavailable',
+      'fiat_on_ramp_aggregator.snap_validation.validation_unavailable',
     );
   }
   if (result.valid) {
@@ -81,10 +85,7 @@ function getValidationErrorMessage(
       : strings('send.insufficient_funds');
   }
   if (errorCode === 'InsufficientBalanceToCoverFee') {
-    return strings(
-      FEE_SHORTFALL_MESSAGES[getNamespace(assetChainId) ?? ''] ??
-        DEFAULT_FEE_SHORTFALL_MESSAGE,
-    );
+    return strings(getFeeShortfallMessageKey(assetChainId));
   }
   return strings('send.invalid_value');
 }
@@ -108,10 +109,10 @@ async function getMaxSendable(
     return undefined;
   }
   try {
-    const maxResult = (await getMaxSendableAmountMultichain(fromAccount, {
+    const maxResult = await getMaxSendableAmountMultichain(fromAccount, {
       accountId: fromAccount.id,
       assetId,
-    })) as { amount?: string } | undefined;
+    });
     return maxResult?.amount && Number(maxResult.amount) > 0
       ? { amount: maxResult.amount, symbol: assetSymbol }
       : undefined;
@@ -197,7 +198,7 @@ export function useSnapAmountValidation({
       if (latestValidationRef.current === validationId) {
         setValidationError(
           strings(
-            'fiat_on_ramp_aggregator.tron_validation.validation_unavailable',
+            'fiat_on_ramp_aggregator.snap_validation.validation_unavailable',
           ),
         );
       }
