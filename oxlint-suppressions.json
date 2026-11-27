@@ -18327,11 +18327,6 @@
       "count": 1
     }
   },
-  "app/components/Views/confirmations/components/PayAccountSelector/PayAccountSelector.test.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 2
-    }
-  },
   "app/components/Views/confirmations/components/UI/copy-button/copy-button.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
