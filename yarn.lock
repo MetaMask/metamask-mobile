@@ -44426,14 +44426,14 @@ __metadata:
 
 "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
+  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#commit=397d5db5250e8e7408294807965b5b9fd4ca6a25"
   checksum: 10/e3b24ed8a550e84ea12a60c9711760eb3601e69f1a836a191baeb78377c3a1340cdb9cf3fdd86e2245bc2a577da653b740de883c605dc065e703e22dd68e1206
   languageName: node
   linkType: hard
 
 "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=3cd186"
+  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23commit=397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=3cd186"
   checksum: 10/366cd68ad5a813d2be4e7c704a24c2f4bd2066d8776eee0c67748391eaa080992c57e1997566ce950407e659677cc2747fdff23842d4cc25f15e29a44ea300fd
   languageName: node
   linkType: hard
