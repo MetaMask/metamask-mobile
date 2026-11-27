@@ -19519,15 +19519,7 @@
       "count": 1
     }
   },
-  "app/components/Views/confirmations/hooks/signatures/useSignatureMetrics.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 6
-    }
-  },
   "app/components/Views/confirmations/hooks/signatures/useSignatureMetrics.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -19698,9 +19690,6 @@
     }
   },
   "app/components/Views/confirmations/hooks/useConfirmActions.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -19711,11 +19700,6 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
-    }
-  },
-  "app/components/Views/confirmations/hooks/useConfirmReject.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/Views/confirmations/hooks/useERC20TokenBalance.ts": {
