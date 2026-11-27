@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createLogger } from '../../framework/logger';
+import { summarizeApiCallsByStep } from '../utils/attributeApiCallsToSteps';
 import type {
   ReportData,
   MetricsEntry,
@@ -111,6 +112,7 @@ export class JsonReportGenerator {
         profilingData: metric.profilingData ?? null,
         apiCalls: metric.apiCalls ?? null,
         apiCallsError: metric.apiCallsError ?? null,
+        apiCallsSummary: summarizeApiCallsByStep(metric),
       };
 
       fs.writeFileSync(profilingPath, JSON.stringify(artifact, null, 2));

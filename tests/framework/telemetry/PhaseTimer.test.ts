@@ -7,6 +7,7 @@ import {
   getPhaseTimerAlsStore,
   recordElapsedPhase,
   recordPhase,
+  recordPhaseWindow,
   runWithPhaseTimer,
   startPhase,
   stopPhase,
@@ -176,6 +177,78 @@ describe('PhaseTimer', () => {
     await expect(run()).rejects.toThrow('login_app_ready after 10ms: boom');
 
     expect(timer.snapshot().phases['nested:login_app_ready']).toBe(10);
+  });
+
+  describe('phase windows', () => {
+    it('records an absolute window for every started phase, including repeats', () => {
+      let now = 1_000;
+      const timer = createPhaseTimer({ now: () => now });
+
+      timer.start('login');
+      now += 10;
+      timer.start('test_body');
+      now += 20;
+      timer.start('login');
+      now += 5;
+
+      expect(timer.snapshot().windows).toEqual([
+        { phase: 'login', startedAt: 1_000, endedAt: 1_010 },
+        { phase: 'test_body', startedAt: 1_010, endedAt: 1_030 },
+        { phase: 'login', startedAt: 1_030, endedAt: 1_035 },
+      ]);
+    });
+
+    it('records the window of an elapsed step under its plain (un-nested) name', async () => {
+      let now = 5_000;
+      const timer = createPhaseTimer({ now: () => now });
+
+      await runWithPhaseTimer(timer, async () =>
+        recordElapsedPhase(
+          'login_wallet_home',
+          async () => {
+            now += 40;
+          },
+          () => now,
+        ),
+      );
+
+      expect(timer.snapshot().windows).toEqual([
+        { phase: 'login_wallet_home', startedAt: 5_000, endedAt: 5_040 },
+      ]);
+      expect(timer.snapshot().phases['nested:login_wallet_home']).toBe(40);
+    });
+
+    it('records the window of a failed elapsed step', async () => {
+      let now = 100;
+      const timer = createPhaseTimer({ now: () => now });
+
+      await expect(
+        runWithPhaseTimer(timer, async () =>
+          recordElapsedPhase(
+            'login_app_ready',
+            async () => {
+              now += 7;
+              throw new Error('nope');
+            },
+            () => now,
+          ),
+        ),
+      ).rejects.toThrow('nope');
+
+      expect(timer.snapshot().windows).toEqual([
+        { phase: 'login_app_ready', startedAt: 100, endedAt: 107 },
+      ]);
+    });
+
+    it('ignores invalid windows and no-ops without a bound timer', () => {
+      const timer = createPhaseTimer();
+
+      timer.recordWindow('bad', Number.NaN, 1);
+      timer.recordWindow('backwards', 5, 1);
+
+      expect(timer.snapshot().windows).toEqual([]);
+      expect(() => recordPhaseWindow('x', 1, 2)).not.toThrow();
+    });
   });
 
   it('no-ops convenience helpers when no timer is bound', () => {

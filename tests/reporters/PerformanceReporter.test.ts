@@ -80,6 +80,11 @@ jest.mock('./generators/JsonReportGenerator', () => ({
   })),
 }));
 
+jest.mock('./providers/sentry/PerformanceSentryPublisher', () => ({
+  publishPerformanceScenarioToSentry: jest.fn().mockResolvedValue(true),
+  publishApiCallsSummaryToSentry: jest.fn().mockResolvedValue(true),
+}));
+
 import fs from 'fs';
 import PerformanceReporter from './PerformanceReporter';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
@@ -88,6 +93,10 @@ import { JsonReportGenerator } from './generators/JsonReportGenerator';
 import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { clearQualityGateFailures } from '../framework/quality-gates';
+import {
+  publishApiCallsSummaryToSentry,
+  publishPerformanceScenarioToSentry,
+} from './providers/sentry/PerformanceSentryPublisher';
 
 function makeTest(overrides: Record<string, unknown> = {}) {
   return {
@@ -652,6 +661,408 @@ describe('PerformanceReporter', () => {
       await reporter.onEnd();
 
       expect(TestMuAIEnricher).not.toHaveBeenCalled();
+    });
+
+    describe('API calls summary publishing', () => {
+      const recordTest = (
+        sessionOverrides: Record<string, unknown>,
+        resultOverrides: Record<string, unknown> = {},
+      ) => {
+        const [test, result] = [
+          makeTest(),
+          makeResult({
+            attachments: [
+              makeSessionAttachment(sessionOverrides),
+              makeMetricsAttachment({ timestamp: '2026-07-22T12:00:00.000Z' }),
+            ],
+            ...resultOverrides,
+          }),
+        ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+        reporter.onTestEnd(test, result);
+      };
+
+      it('publishes the summary even when there is no profiling summary', async () => {
+        recordTest({
+          networkLogsEntries: [
+            { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+            { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+          ],
+        });
+
+        await reporter.onEnd();
+
+        expect(publishPerformanceScenarioToSentry).not.toHaveBeenCalled();
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledTimes(1);
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            testTitle: 'Login Test',
+            projectName: 'browserstack-android',
+            status: 'passed',
+            testEndTimestamp:
+              new Date('2026-07-22T12:00:00.000Z').getTime() / 1000,
+            summary: expect.objectContaining({
+              status: 'captured',
+              total: 2,
+              unique: 1,
+              duplicates: 1,
+            }),
+          }),
+        );
+      });
+
+      it('publishes a captured empty log as zero requests', async () => {
+        recordTest({ networkLogsEntries: [] });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            summary: expect.objectContaining({ status: 'captured', total: 0 }),
+          }),
+        );
+      });
+
+      it('publishes a capture error instead of a count', async () => {
+        recordTest({ networkLogsError: 'HAR download failed' });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            summary: { status: 'error', error: 'HAR download failed' },
+          }),
+        );
+      });
+
+      it('publishes nothing when no network capture was attempted', async () => {
+        recordTest({});
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).not.toHaveBeenCalled();
+      });
+
+      it('reports the failed status for failed scenarios', async () => {
+        recordTest({ networkLogsEntries: [] }, { status: 'failed' });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'failed' }),
+        );
+      });
+
+      describe('step attribution against the real test window', () => {
+        const startTime = new Date('2026-07-22T11:55:00.000Z');
+        const start = startTime.getTime();
+        const timedStep = {
+          name: 'open TDP',
+          duration: 2000,
+          baseThreshold: null,
+          threshold: null,
+          startedAt: start + 200_000,
+          endedAt: start + 202_000,
+        };
+        const record = (networkLogsEntries: unknown[]) => {
+          const test = makeTest();
+          const result = makeResult({
+            startTime,
+            duration: 300_000,
+            attachments: [
+              makeSessionAttachment({ networkLogsEntries }),
+              makeMetricsAttachment({
+                steps: [timedStep],
+                timestamp: '2026-07-22T12:00:00.000Z',
+              }),
+            ],
+          });
+          const args = [test, result] as unknown as Parameters<
+            PerformanceReporter['onTestEnd']
+          >;
+          reporter.onTestEnd(...args);
+        };
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+
+        it('keeps ok when many calls precede the first step inside the test window', async () => {
+          record([
+            ...Array.from({ length: 40 }, () => callAt(10_000)),
+            callAt(201_000),
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'ok',
+                  attributed: 1,
+                  unattributed: 40,
+                  outsideTestWindow: 0,
+                }),
+              }),
+            }),
+          );
+        });
+
+        it('flags skewed when the HAR is far outside the test window', async () => {
+          record(Array.from({ length: 12 }, () => callAt(-3_600_000)));
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'skewed',
+                  outsideTestWindow: 12,
+                }),
+              }),
+            }),
+          );
+        });
+
+        it('reports no_overlap when the HAR ends well before the first step', async () => {
+          record([callAt(10_000), callAt(60_000)]);
+
+          await reporter.onEnd();
+
+          expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+            expect.objectContaining({
+              summary: expect.objectContaining({
+                stepAttribution: expect.objectContaining({
+                  status: 'no_overlap',
+                }),
+              }),
+            }),
+          );
+        });
+      });
+
+      describe('network windows and phase windows', () => {
+        const startTime = new Date('2026-07-22T11:55:00.000Z');
+        const start = startTime.getTime();
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+        const phaseAttachment = (
+          windows: unknown[],
+        ): { name: string; body: Buffer } => ({
+          name: 'appium-phase-timings',
+          body: Buffer.from(JSON.stringify({ phases: {}, windows, meta: {} })),
+        });
+
+        const record = (
+          networkLogsEntries: unknown[],
+          metricsOverrides: Record<string, unknown>,
+          extraAttachments: { name: string; body: Buffer }[] = [],
+        ): void => {
+          const args = [
+            makeTest(),
+            makeResult({
+              startTime,
+              duration: 300_000,
+              attachments: [
+                makeSessionAttachment({ networkLogsEntries }),
+                makeMetricsAttachment(metricsOverrides),
+                ...extraAttachments,
+              ],
+            }),
+          ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+          reporter.onTestEnd(...args);
+        };
+
+        const publishedSteps = (): {
+          step: string;
+          source: string;
+          total: number;
+        }[] =>
+          (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0].summary
+            .steps;
+
+        it('attributes calls to phase windows named phase:<name> and to network-only windows', async () => {
+          record(
+            [
+              callAt(1_000),
+              callAt(5_000),
+              callAt(100_000),
+              callAt(500_000 - 1),
+            ],
+            {
+              steps: [
+                {
+                  name: 'tap Add Funds',
+                  duration: 1000,
+                  baseThreshold: null,
+                  threshold: null,
+                  startedAt: start + 200_000,
+                  endedAt: start + 201_000,
+                },
+              ],
+              networkWindows: [
+                {
+                  name: 'type amount → quote shown',
+                  startedAt: start + 4_000,
+                  endedAt: start + 6_000,
+                },
+              ],
+            },
+            [
+              phaseAttachment([
+                {
+                  phase: 'login_wallet_home',
+                  startedAt: start,
+                  endedAt: start + 3_000,
+                },
+                { phase: 'bad' },
+              ]),
+            ],
+          );
+
+          await reporter.onEnd();
+
+          expect(
+            publishedSteps().map(({ step, source, total }) => [
+              step,
+              source,
+              total,
+            ]),
+          ).toEqual([
+            ['type amount → quote shown', 'network_only', 1],
+            ['phase:login_wallet_home', 'phase', 1],
+            ['unattributed', 'none', 2],
+          ]);
+        });
+      });
+
+      describe('session selection for retried tests', () => {
+        const startTime = new Date('2026-07-22T14:10:00.000Z');
+        const start = startTime.getTime();
+        const timedStep = {
+          name: 'tap Add Funds',
+          duration: 2000,
+          baseThreshold: null,
+          threshold: null,
+          startedAt: start + 400_000,
+          endedAt: start + 402_000,
+        };
+        const callAt = (offsetMs: number) => ({
+          method: 'GET',
+          url: 'https://api.example.com/a',
+          status: 200,
+          startedAt: start + offsetMs,
+        });
+        const earlierHar = [callAt(0), callAt(30_000)];
+        const stepHar = [callAt(399_000), callAt(401_000), callAt(401_500)];
+
+        const recordAttempt = (
+          sessionId: string | null,
+          networkLogsEntries: unknown[],
+        ): void => {
+          const args = [
+            makeTest(),
+            makeResult({
+              startTime,
+              duration: 500_000,
+              attachments: [
+                ...(sessionId
+                  ? [
+                      makeSessionAttachment({
+                        sessionId,
+                        projectName: 'testmu-android',
+                        networkLogsEntries,
+                      }),
+                    ]
+                  : []),
+                makeMetricsAttachment({ steps: [timedStep] }),
+              ],
+            }),
+          ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+          reporter.onTestEnd(...args);
+        };
+
+        const setSessions = (
+          sessions: { sessionId: string; networkLogsEntries: unknown[] }[],
+        ): void => {
+          Reflect.set(
+            reporter,
+            'sessions',
+            sessions.map((session) => ({
+              ...session,
+              testTitle: 'Login Test',
+            })),
+          );
+        };
+
+        const publishedTotal = (): number =>
+          (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0].summary
+            .total;
+
+        it('uses the session of the attempt that produced the metrics, not an earlier one', async () => {
+          recordAttempt('sess-early', earlierHar);
+          recordAttempt('sess-final', stepHar);
+          expect(
+            Reflect.get(reporter, 'sessions').map(
+              (session: { sessionId: string }) => session.sessionId,
+            ),
+          ).toEqual(['sess-early', 'sess-final']);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(stepHar.length);
+        });
+
+        it('without a metric session id, picks the session whose network log overlaps the steps', async () => {
+          recordAttempt(null, []);
+          setSessions([
+            { sessionId: 'sess-early', networkLogsEntries: earlierHar },
+            { sessionId: 'sess-overlap', networkLogsEntries: stepHar },
+            {
+              sessionId: 'sess-later-no-overlap',
+              networkLogsEntries: earlierHar,
+            },
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(stepHar.length);
+        });
+
+        it('without a metric session id or overlap, falls back to the latest session', async () => {
+          recordAttempt(null, []);
+          setSessions([
+            { sessionId: 'sess-first', networkLogsEntries: earlierHar },
+            { sessionId: 'sess-last', networkLogsEntries: [callAt(1)] },
+          ]);
+
+          await reporter.onEnd();
+
+          expect(publishedTotal()).toBe(1);
+          expect(
+            (publishApiCallsSummaryToSentry as jest.Mock).mock.calls[0][0]
+              .summary.stepAttribution.status,
+          ).toBe('no_overlap');
+        });
+      });
+
+      it('keeps generating reports when publishing throws', async () => {
+        (publishApiCallsSummaryToSentry as jest.Mock).mockRejectedValueOnce(
+          new Error('sentry down'),
+        );
+        recordTest({ networkLogsEntries: [] });
+
+        await expect(reporter.onEnd()).resolves.toBeUndefined();
+
+        expect(JsonReportGenerator).toHaveBeenCalled();
+      });
     });
   });
 });

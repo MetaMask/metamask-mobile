@@ -7,7 +7,12 @@ jest.mock('../../../framework/logger.ts', () => ({
   })),
 }));
 
-import { publishPerformanceScenarioToSentry } from './PerformanceSentryPublisher';
+import {
+  API_COUNT_ATTRIBUTES,
+  publishApiCallsSummaryToSentry,
+  publishPerformanceScenarioToSentry,
+} from './PerformanceSentryPublisher';
+import type { ApiCallsSummary } from '../../types';
 import type { MetricsOutput } from '../../PerformanceTracker';
 
 function createMetrics(overrides: Partial<MetricsOutput> = {}): MetricsOutput {
@@ -692,5 +697,603 @@ describe('PerformanceSentryPublisher', () => {
 
     expect(payload.tags.release_version).toBe('7.59.1');
     expect(payload.tags.github_ref).toBe('release/7.59.1');
+  });
+
+  describe('publishApiCallsSummaryToSentry', () => {
+    const DSN = 'https://publicKey@o123.ingest.sentry.io/4567';
+
+    const capturedSummary: ApiCallsSummary = {
+      status: 'captured',
+      total: 12,
+      unique: 8,
+      duplicates: 4,
+      failed: 2,
+      byHost: { 'api.example.com': 9, 'mainnet.infura.io': 3 },
+      app: { total: 9, unique: 6, duplicates: 3, failed: 2 },
+      topEndpoints: [
+        {
+          method: 'GET',
+          kind: 'app',
+          url: 'api.example.com/v1/accounts',
+          count: 4,
+          failed: 1,
+        },
+        {
+          method: 'POST',
+          kind: 'app',
+          url: 'mainnet.infura.io/v3/***',
+          count: 3,
+          failed: 0,
+        },
+      ],
+    };
+
+    const baseOptions = {
+      metrics: {
+        device: createMetrics().device,
+        team: createMetrics().team,
+        total: 1.3,
+      },
+      testTitle: 'Import wallet flow',
+      projectName: 'testmu-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: ['@PerformanceOnboarding'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 2,
+      videoRecordingUrl: 'https://testmu.example/session/1',
+      testEndTimestamp: 1_800_000_000,
+    };
+
+    const publish = async (summary: ApiCallsSummary) => {
+      const sent = await publishApiCallsSummaryToSentry({
+        ...baseOptions,
+        summary,
+      });
+      const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+      const body = (requestInit?.body as string | undefined) ?? '';
+      const [, itemHeaderLine, payloadLine] = body.split('\n');
+      return {
+        sent,
+        itemHeaders: itemHeaderLine ? JSON.parse(itemHeaderLine) : null,
+        payload: payloadLine ? JSON.parse(payloadLine) : null,
+      };
+    };
+
+    beforeEach(() => {
+      process.env.E2E_PERFORMANCE_SENTRY_DSN = DSN;
+      process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'exp';
+      process.env.GITHUB_REF_NAME = 'main';
+      process.env.GITHUB_RUN_ID = '12345';
+      fetchMock.mockResolvedValue({ ok: true, status: 200 } as Response);
+    });
+
+    it('does not send when DSN is missing', async () => {
+      Reflect.deleteProperty(process.env, 'E2E_PERFORMANCE_SENTRY_DSN');
+
+      const { sent } = await publish(capturedSummary);
+
+      expect(sent).toBe(false);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('does not send when upload is disabled', async () => {
+      process.env.E2E_PERFORMANCE_SENTRY_ENABLED = 'false';
+
+      const { sent } = await publish(capturedSummary);
+
+      expect(sent).toBe(false);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('sends a dedicated network summary transaction with the scenario name and tags', async () => {
+      const { sent, itemHeaders, payload } = await publish(capturedSummary);
+
+      expect(sent).toBe(true);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(itemHeaders.type).toBe('transaction');
+      expect(payload.transaction).toBe('Import wallet flow');
+      expect(payload.timestamp).toBe(1_800_000_000);
+      expect(payload.start_timestamp).toBeCloseTo(1_800_000_000 - 1.3);
+      expect(payload.contexts.trace.op).toBe('e2e.performance.network_summary');
+      expect(payload.tags).toMatchObject({
+        source: 'playwright-e2e-performance',
+        project_name: 'testmu-android',
+        build_variant: 'exp',
+        github_ref: 'main',
+        github_run_id: '12345',
+        test_team: 'qa-automation',
+        provider: 'browserstack',
+        api_capture_status: 'captured',
+      });
+      expect(payload.extra.api_calls_summary).toEqual(capturedSummary);
+    });
+
+    it('does not reuse the timing transaction op, measurements or step spans', async () => {
+      const { payload } = await publish(capturedSummary);
+
+      expect(payload.contexts.trace.op).not.toBe('e2e.performance.scenario');
+      expect(payload.measurements.scenario_total_time_ms).toBeUndefined();
+      expect(
+        payload.spans.some(
+          (span: { op: string }) => span.op === 'e2e.performance.step',
+        ),
+      ).toBe(false);
+    });
+
+    it('puts the request counts on an e2e.performance.network span', async () => {
+      const { payload } = await publish(capturedSummary);
+
+      const networkSpans = payload.spans.filter(
+        (span: { op: string }) => span.op === 'e2e.performance.network',
+      );
+      expect(networkSpans).toHaveLength(1);
+      expect(networkSpans[0].parent_span_id).toBe(
+        payload.contexts.trace.span_id,
+      );
+      expect(networkSpans[0].data).toMatchObject({
+        'api.capture.status': 'captured',
+        'api.requests.total': 12,
+        'api.requests.unique': 8,
+        'api.requests.duplicates': 4,
+        'api.requests.failed': 2,
+        'api.requests.app.total': 9,
+        'api.requests.app.unique': 6,
+        'api.requests.app.duplicates': 3,
+        'api.requests.app.failed': 2,
+        'api.hosts.count': 2,
+        project_name: 'testmu-android',
+        build_variant: 'exp',
+        github_ref: 'main',
+        github_run_id: '12345',
+        device_name: 'Samsung Galaxy S25 Ultra',
+      });
+    });
+
+    it('also sends the totals as transaction measurements', async () => {
+      const { payload } = await publish(capturedSummary);
+
+      expect(payload.measurements).toEqual({
+        api_requests_total: { value: 12, unit: 'none' },
+        api_requests_unique: { value: 8, unit: 'none' },
+        api_requests_duplicates: { value: 4, unit: 'none' },
+        api_requests_failed: { value: 2, unit: 'none' },
+        api_requests_app_total: { value: 9, unit: 'none' },
+      });
+    });
+
+    it('sends one span per host and per top endpoint with the grouping attributes', async () => {
+      const { payload } = await publish(capturedSummary);
+
+      const hostSpans = payload.spans.filter(
+        (span: { op: string }) => span.op === 'e2e.performance.network.host',
+      );
+      expect(
+        hostSpans.map((span: { data: Record<string, unknown> }) => [
+          span.data['api.host'],
+          span.data['api.host.requests'],
+        ]),
+      ).toEqual([
+        ['api.example.com', 9],
+        ['mainnet.infura.io', 3],
+      ]);
+      expect(hostSpans[0].data.github_ref).toBe('main');
+
+      const endpointSpans = payload.spans.filter(
+        (span: { op: string }) =>
+          span.op === 'e2e.performance.network.endpoint',
+      );
+      expect(endpointSpans).toHaveLength(2);
+      expect(endpointSpans[0].description).toBe(
+        'GET api.example.com/v1/accounts',
+      );
+      expect(endpointSpans[0].data).toMatchObject({
+        'api.method': 'GET',
+        'api.kind': 'app',
+        'api.endpoint': 'api.example.com/v1/accounts',
+        'api.endpoint.requests': 4,
+        'api.endpoint.failed': 1,
+        project_name: 'testmu-android',
+      });
+    });
+
+    it('caps the number of host spans', async () => {
+      const byHost = Object.fromEntries(
+        Array.from({ length: 30 }, (_, index) => [
+          `host-${index}.test`,
+          30 - index,
+        ]),
+      );
+
+      const { payload } = await publish({ ...capturedSummary, byHost });
+
+      const hostSpans = payload.spans.filter(
+        (span: { op: string }) => span.op === 'e2e.performance.network.host',
+      );
+      expect(hostSpans).toHaveLength(20);
+      expect(hostSpans[0].data['api.host']).toBe('host-0.test');
+      const networkSpan = payload.spans.find(
+        (span: { op: string }) => span.op === 'e2e.performance.network',
+      );
+      expect(networkSpan.data['api.hosts.count']).toBe(30);
+    });
+
+    describe('unitless counts', () => {
+      const getNetworkSpans = (payload: {
+        spans: { op: string; data: Record<string, unknown> }[];
+      }) =>
+        payload.spans.filter((span) =>
+          span.op.startsWith('e2e.performance.network'),
+        );
+
+      it('sends every count attribute as a plain integer', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        const countKeys = Object.values(API_COUNT_ATTRIBUTES);
+        const sentCounts = getNetworkSpans(payload).flatMap((span) =>
+          countKeys
+            .filter((key) => key in span.data)
+            .map((key) => [key, span.data[key]] as const),
+        );
+
+        expect(sentCounts.map(([key]) => key).sort()).toEqual(
+          [
+            'api.requests.total',
+            'api.requests.unique',
+            'api.requests.duplicates',
+            'api.requests.failed',
+            'api.requests.app.total',
+            'api.requests.app.unique',
+            'api.requests.app.duplicates',
+            'api.requests.app.failed',
+            'api.hosts.count',
+            'api.host.requests',
+            'api.host.requests',
+            'api.endpoint.requests',
+            'api.endpoint.requests',
+            'api.endpoint.failed',
+            'api.endpoint.failed',
+          ].sort(),
+        );
+        for (const [key, value] of sentCounts) {
+          expect({ key, isInteger: Number.isInteger(value) }).toEqual({
+            key,
+            isInteger: true,
+          });
+        }
+      });
+
+      it('serializes counts as bare JSON integers without a unit or typed wrapper', async () => {
+        await publish(capturedSummary);
+
+        const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+        const rawPayload = (requestInit?.body as string).split('\n')[2];
+
+        expect(rawPayload).toContain('"api.requests.total":12,');
+        expect(rawPayload).toContain('"api.endpoint.requests":4,');
+        expect(rawPayload).toContain('"api.host.requests":9,');
+        expect(rawPayload).not.toMatch(/"api\.[a-z.]*requests[a-z.]*":\s*\{/u);
+      });
+
+      it('never puts a unit on span data', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        for (const span of getNetworkSpans(payload)) {
+          expect(
+            Object.keys(span.data).filter((key) => /unit/iu.test(key)),
+          ).toEqual([]);
+        }
+      });
+
+      it('uses unit none for every measurement', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        expect(
+          Object.values<{ unit: string }>(payload.measurements).map(
+            ({ unit }) => unit,
+          ),
+        ).toEqual(['none', 'none', 'none', 'none', 'none']);
+      });
+
+      it('keeps api attribute names free of duration-like tokens', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        const apiKeys = getNetworkSpans(payload).flatMap((span) =>
+          Object.keys(span.data).filter((key) => key.startsWith('api.')),
+        );
+
+        expect(apiKeys.length).toBeGreaterThan(0);
+        expect(
+          apiKeys.filter((key) =>
+            /duration|time|latency|(^|[._])ms($|[._])|elapsed|delay/iu.test(
+              key,
+            ),
+          ),
+        ).toEqual([]);
+        expect(
+          Object.keys(payload.measurements).filter((key) =>
+            /duration|time|latency|(^|_)ms($|_)/iu.test(key),
+          ),
+        ).toEqual([]);
+      });
+    });
+
+    it('sends zero requests as a real count', async () => {
+      const { payload } = await publish({
+        status: 'captured',
+        total: 0,
+        unique: 0,
+        duplicates: 0,
+        failed: 0,
+        byHost: {},
+        app: { total: 0, unique: 0, duplicates: 0, failed: 0 },
+        topEndpoints: [],
+      });
+
+      expect(payload.measurements.api_requests_total.value).toBe(0);
+      expect(payload.spans).toHaveLength(1);
+      expect(payload.spans[0].data['api.requests.total']).toBe(0);
+      expect(payload.tags.api_capture_status).toBe('captured');
+    });
+
+    it('marks a failed capture without sending any counts', async () => {
+      const { sent, payload } = await publish({
+        status: 'error',
+        error: 'HAR download failed',
+      });
+
+      expect(sent).toBe(true);
+      expect(payload.tags.api_capture_status).toBe('error');
+      expect(payload.measurements).toEqual({});
+      expect(payload.spans).toHaveLength(1);
+      expect(payload.spans[0].op).toBe('e2e.performance.network');
+      expect(payload.spans[0].data['api.capture.status']).toBe('error');
+      expect(payload.spans[0].data['api.capture.error']).toBe(
+        'HAR download failed',
+      );
+      expect(payload.spans[0].data['api.requests.total']).toBeUndefined();
+    });
+
+    describe('per-step attribution', () => {
+      const stepSummary: ApiCallsSummary = {
+        ...capturedSummary,
+        steps: [
+          {
+            step: 'open Token Details Page',
+            source: 'timed',
+            phase: 'during',
+            total: 4,
+            appTotal: 3,
+            failed: 0,
+            topEndpoints: [
+              {
+                method: 'POST',
+                kind: 'app',
+                url: 'mainnet.infura.io/v3/***',
+                count: 3,
+                failed: 0,
+              },
+              {
+                method: 'OPTIONS',
+                kind: 'preflight',
+                url: 'mainnet.infura.io/v3/***',
+                count: 1,
+                failed: 0,
+              },
+            ],
+          },
+          {
+            step: 'open Token Details Page',
+            source: 'timed',
+            phase: 'after',
+            total: 2,
+            appTotal: 2,
+            failed: 0,
+            topEndpoints: [
+              {
+                method: 'GET',
+                kind: 'app',
+                url: 'api.example.com/v1/accounts',
+                count: 2,
+                failed: 0,
+              },
+            ],
+          },
+          {
+            step: 'unattributed',
+            source: 'none',
+            phase: 'none',
+            total: 1,
+            appTotal: 0,
+            failed: 1,
+            topEndpoints: [],
+          },
+        ],
+        stepAttribution: {
+          status: 'ok',
+          attributed: 3,
+          unattributed: 1,
+          outsideTestWindow: 0,
+          missingTimestamp: 0,
+        },
+      };
+
+      it('publishes step spans with api.step and request counts', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const stepSpans = payload.spans.filter(
+          (span: { op: string }) => span.op === 'e2e.performance.network.step',
+        );
+        expect(stepSpans.map((span: { data: unknown }) => span.data)).toEqual([
+          expect.objectContaining({
+            'api.step': 'open Token Details Page',
+            'api.step.phase': 'during',
+            'api.step.source': 'timed',
+            'api.step.requests': 4,
+            'api.step.requests.app': 3,
+            'api.step.failed': 0,
+          }),
+          expect.objectContaining({
+            'api.step': 'open Token Details Page',
+            'api.step.phase': 'after',
+            'api.step.requests': 2,
+          }),
+          expect.objectContaining({
+            'api.step': 'unattributed',
+            'api.step.phase': 'none',
+            'api.step.source': 'none',
+            'api.step.requests': 1,
+            'api.step.failed': 1,
+          }),
+        ]);
+      });
+
+      it('puts the step in the description and a combined attribute on step endpoint spans', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const endpointSpans = payload.spans.filter(
+          (span: { op: string }) =>
+            span.op === 'e2e.performance.network.step_endpoint',
+        );
+        expect(endpointSpans).toHaveLength(3);
+        expect(endpointSpans[0].description).toBe(
+          '[open Token Details Page] POST mainnet.infura.io/v3/***',
+        );
+        expect(endpointSpans[0].data).toMatchObject({
+          'api.step': 'open Token Details Page',
+          'api.step.phase': 'during',
+          'api.step.source': 'timed',
+          'api.step_endpoint':
+            'open Token Details Page | POST mainnet.infura.io/v3/***',
+          'api.method': 'POST',
+          'api.kind': 'app',
+          'api.endpoint': 'mainnet.infura.io/v3/***',
+          'api.endpoint.requests': 3,
+          'api.endpoint.failed': 0,
+        });
+        expect(endpointSpans[1].data['api.kind']).toBe('preflight');
+      });
+
+      it('tags network-only and phase windows with api.step.source', async () => {
+        const { payload } = await publish({
+          ...stepSummary,
+          steps: [
+            {
+              step: 'type amount → quote shown',
+              source: 'network_only',
+              phase: 'during',
+              total: 2,
+              appTotal: 2,
+              failed: 0,
+              topEndpoints: [
+                {
+                  method: 'GET',
+                  kind: 'app',
+                  url: 'api.example.com/getQuoteStream',
+                  count: 2,
+                  failed: 0,
+                },
+              ],
+            },
+            {
+              step: 'phase:login_wallet_home',
+              source: 'phase',
+              phase: 'during',
+              total: 1,
+              appTotal: 1,
+              failed: 0,
+              topEndpoints: [],
+            },
+          ],
+        });
+
+        const stepSpans = payload.spans.filter(
+          (span: { op: string }) => span.op === 'e2e.performance.network.step',
+        );
+        expect(
+          stepSpans.map(
+            (span: { data: Record<string, unknown> }) =>
+              [span.data['api.step'], span.data['api.step.source']] as const,
+          ),
+        ).toEqual([
+          ['type amount → quote shown', 'network_only'],
+          ['phase:login_wallet_home', 'phase'],
+        ]);
+        const endpointSpan = payload.spans.find(
+          (span: { op: string }) =>
+            span.op === 'e2e.performance.network.step_endpoint',
+        );
+        expect(endpointSpan.data['api.step.source']).toBe('network_only');
+        expect(endpointSpan.data['api.step_endpoint']).toBe(
+          'type amount → quote shown | GET api.example.com/getQuoteStream',
+        );
+      });
+
+      it('labels the after phase in descriptions and the combined attribute only', async () => {
+        const { payload } = await publish(stepSummary);
+
+        const afterSpan = payload.spans.find(
+          (span: { op: string; data: Record<string, unknown> }) =>
+            span.op === 'e2e.performance.network.step_endpoint' &&
+            span.data['api.step.phase'] === 'after',
+        );
+        expect(afterSpan.description).toBe(
+          '[open Token Details Page (after)] GET api.example.com/v1/accounts',
+        );
+        expect(afterSpan.data['api.step']).toBe('open Token Details Page');
+        expect(afterSpan.data['api.step_endpoint']).toBe(
+          'open Token Details Page (after) | GET api.example.com/v1/accounts',
+        );
+      });
+
+      it('tags the attribution status and mirrors it on the network span', async () => {
+        const { payload } = await publish({
+          ...stepSummary,
+          stepAttribution: {
+            ...(stepSummary.status === 'captured' &&
+              stepSummary.stepAttribution),
+            status: 'skewed',
+            attributed: 0,
+            unattributed: 4,
+            outsideTestWindow: 4,
+            missingTimestamp: 0,
+          },
+        });
+
+        expect(payload.tags.api_step_attribution).toBe('skewed');
+        const networkSpan = payload.spans.find(
+          (span: { op: string }) => span.op === 'e2e.performance.network',
+        );
+        expect(networkSpan.data['api.step.attribution']).toBe('skewed');
+        expect(networkSpan.data['api.requests.unattributed']).toBe(4);
+      });
+
+      it('omits step spans and the attribution tag without step data', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        expect(payload.tags.api_step_attribution).toBeUndefined();
+        expect(
+          payload.spans.some((span: { op: string }) =>
+            span.op.startsWith('e2e.performance.network.step'),
+          ),
+        ).toBe(false);
+      });
+    });
+
+    it('returns false when Sentry rejects the envelope', async () => {
+      fetchMock.mockResolvedValue({ ok: false, status: 429 } as Response);
+
+      const { sent } = await publish(capturedSummary);
+
+      expect(sent).toBe(false);
+    });
+
+    it('returns false when the request throws', async () => {
+      fetchMock.mockRejectedValue(new Error('network down'));
+
+      const { sent } = await publish(capturedSummary);
+
+      expect(sent).toBe(false);
+    });
   });
 });

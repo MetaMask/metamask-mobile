@@ -12,11 +12,22 @@ export interface MetricStep {
   duration: number;
   baseThreshold: number | null;
   threshold: number | null;
+  /** Wall-clock epoch ms when the timer started (test-runner clock). */
+  startedAt?: number;
+  /** Wall-clock epoch ms when the timer stopped (test-runner clock). */
+  endedAt?: number;
   validation?: {
     passed: boolean;
     exceeded: number | null;
     percentOver: string | null;
   } | null;
+}
+
+/** A named time window (epoch ms, runner clock) used to attribute API calls. */
+export interface NetworkWindow {
+  name: string;
+  startedAt: number;
+  endedAt: number;
 }
 
 export interface DeviceInfo {
@@ -39,6 +50,10 @@ export interface MetricsEntry {
   testFilePath?: string;
   tags?: string[];
   steps: MetricStep[];
+  /** Network-only timer windows (see `TimerHelper` `networkOnly`). */
+  networkWindows?: NetworkWindow[];
+  /** Phase windows (login, test_body, ...) from `appium-phase-timings`. */
+  phaseWindows?: NetworkWindow[];
   total: number;
   totalThreshold?: number | null;
   hasThresholds?: boolean;
@@ -57,6 +72,10 @@ export interface MetricsEntry {
   timestamp?: string;
   message?: string;
   testDuration?: number;
+  /** Epoch ms the Playwright attempt started (test-runner clock). */
+  testStartedAt?: number;
+  /** Epoch ms the Playwright attempt ended, teardown included. */
+  testEndedAt?: number;
   qualityGates?: QualityGatesResult | null;
   videoURL?: string | null;
   sessionId?: string | null;
@@ -166,6 +185,93 @@ export interface NetworkLogEntry {
   url: string;
   status?: number;
   time?: number;
+  /** Request start, epoch ms (HAR `startedDateTime`, TestMu clock). */
+  startedAt?: number;
+}
+
+/**
+ * What produced a request, so test and telemetry noise can be filtered out:
+ * `app` (default), `preflight` (CORS OPTIONS), `test_infra` (local mock
+ * server, health checks) or `telemetry` (obvious Sentry/Google beacons).
+ */
+export type ApiKind = 'app' | 'preflight' | 'test_infra' | 'telemetry';
+
+export interface ApiEndpointSummary {
+  method: string;
+  kind: ApiKind;
+  /** Sanitized `host/path` (no protocol, query or key-like segments). */
+  url: string;
+  count: number;
+  failed: number;
+}
+
+/**
+ * Request-count summary for one scenario, derived from the captured network
+ * log. `captured` carries the counts; `error` means capture was attempted but
+ * failed, so no count is available (distinct from a captured count of 0).
+ */
+export type ApiCallsSummary =
+  | {
+      status: 'captured';
+      total: number;
+      /** Distinct method + sanitized URL pairs. */
+      unique: number;
+      /** `total - unique`: repeated calls to an already-seen endpoint. */
+      duplicates: number;
+      /** Requests with status >= 400, or a missing / zero status. */
+      failed: number;
+      byHost: Record<string, number>;
+      /** Same counts as above, restricted to `api.kind: app` requests. */
+      app: ApiCountSummary;
+      topEndpoints: ApiEndpointSummary[];
+      /** Per measured step; present only when step windows were provided. */
+      steps?: ApiStepSummary[];
+      stepAttribution?: ApiStepAttribution;
+    }
+  | { status: 'error'; error: string };
+
+export type ApiStepSource = 'timed' | 'network_only' | 'phase';
+
+export interface ApiCountSummary {
+  total: number;
+  unique: number;
+  duplicates: number;
+  failed: number;
+}
+
+/**
+ * Request counts for one measured step (or `unattributed`). `during` also
+ * covers the short pre-roll before the timer started; `after` holds calls
+ * shortly after the timer stopped, kept apart so `during` stays clean;
+ * `none` is the `unattributed` bucket.
+ */
+export interface ApiStepSummary {
+  step: string;
+  /** `timed`: a measured step; `network_only`: window-only timer; `phase`: harness phase. */
+  source: ApiStepSource | 'none';
+  phase: 'during' | 'after' | 'none';
+  total: number;
+  /** Requests with `api.kind: app`. */
+  appTotal: number;
+  failed: number;
+  topEndpoints: ApiEndpointSummary[];
+}
+
+export interface ApiStepAttribution {
+  /**
+   * `ok`: usable. `skewed`: many calls fall outside the real test window, so
+   * HAR and test-runner clocks probably disagree. `no_overlap`: no call
+   * landed in a step and the HAR timespan does not intersect the steps'.
+   * `unavailable`: no step windows or no request timestamps.
+   */
+  status: 'ok' | 'skewed' | 'no_overlap' | 'unavailable';
+  attributed: number;
+  unattributed: number;
+  /** Calls starting outside the test window (+ tolerance). */
+  outsideTestWindow: number;
+  /** Calls without a start timestamp (always unattributed). */
+  missingTimestamp: number;
+  reason?: string;
 }
 
 /**
@@ -184,6 +290,8 @@ export interface AppProfilingArtifact {
   profilingData: ProfilingData | null;
   apiCalls: NetworkLogEntry[] | null;
   apiCallsError: string | null;
+  /** `null` when no network capture was attempted for the scenario. */
+  apiCallsSummary: ApiCallsSummary | null;
 }
 
 export interface FailedTestEntry {

@@ -18,6 +18,7 @@ function makeTimer(
     durationInSeconds: number;
     hasThresholdVal: boolean;
     includeInTotal: boolean;
+    networkOnly: boolean;
   }> = {},
 ) {
   const {
@@ -28,12 +29,14 @@ function makeTimer(
     durationInSeconds = 0.5,
     hasThresholdVal = threshold !== null,
     includeInTotal = true,
+    networkOnly,
   } = overrides;
   return {
     id,
     threshold,
     baseThreshold,
     includeInTotal,
+    networkOnly,
     getDuration: jest.fn(() => duration),
     getDurationInSeconds: jest.fn(() => durationInSeconds),
     hasThreshold: jest.fn(() => hasThresholdVal),
@@ -144,6 +147,66 @@ describe('PerformanceTracker', () => {
         osVersion: '12',
         provider: 'browserstack',
       });
+    });
+
+    it('records absolute start/end on steps when the timer exposes a window', async () => {
+      tracker.addTimer({
+        ...makeTimer({ id: 'windowed' }),
+        getWindow: jest.fn(() => ({ start: 1_000, end: 1_500 })),
+      });
+      tracker.addTimer(makeTimer({ id: 'no-window' }));
+
+      const result = await tracker.attachToTest(makeTestInfo());
+
+      expect(result.steps[0]).toMatchObject({
+        name: 'windowed',
+        duration: 500,
+        startedAt: 1_000,
+        endedAt: 1_500,
+      });
+      expect(result.steps[1]).not.toHaveProperty('startedAt');
+      expect(result.steps[1]).not.toHaveProperty('endedAt');
+    });
+
+    it('routes networkOnly timers to networkWindows, not steps, total or gates', async () => {
+      tracker.addTimer(makeTimer({ id: 'timed', threshold: 1000 }));
+      tracker.addTimer({
+        ...makeTimer({
+          id: 'quote window',
+          threshold: null,
+          baseThreshold: null,
+          duration: 9_000,
+          durationInSeconds: 9,
+          includeInTotal: false,
+          networkOnly: true,
+        }),
+        getWindow: jest.fn(() => ({ start: 1_000, end: 10_000 })),
+      });
+
+      const result = await tracker.attachToTest(makeTestInfo());
+
+      expect(tracker.timers.map((t) => t.id)).toEqual(['timed']);
+      expect(tracker.networkTimers.map((t) => t.id)).toEqual(['quote window']);
+      expect(result.steps.map((step) => step.name)).toEqual(['timed']);
+      expect(result.total).toBe(0.5);
+      expect(result.totalThreshold).toBe(1000);
+      expect(result.hasThresholds).toBe(true);
+      expect(result.networkWindows).toEqual([
+        { name: 'quote window', startedAt: 1_000, endedAt: 10_000 },
+      ]);
+    });
+
+    it('omits networkWindows when none were recorded and dedupes by id', async () => {
+      const windowed = {
+        ...makeTimer({ id: 'w', networkOnly: true }),
+        getWindow: jest.fn(() => null),
+      };
+      tracker.addTimers(windowed, windowed);
+
+      const result = await tracker.attachToTest(makeTestInfo());
+
+      expect(tracker.networkTimers).toHaveLength(1);
+      expect(result.networkWindows).toBeUndefined();
     });
 
     it('excludes timers with includeInTotal=false from scenario total', async () => {

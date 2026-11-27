@@ -11,6 +11,7 @@ import {
   NESTED_PHASE_PREFIX,
   isNestedPhase,
   recordPhase,
+  recordPhaseWindow,
 } from '../telemetry/PhaseTimer.ts';
 import {
   getElementForLocator,
@@ -716,6 +717,7 @@ export class InterruptingScreenGuard {
           const elapsedMs = this.#adapter.now() - startedAt;
           TimerStore.excludeFromActiveTimers(elapsedMs);
           recordPhase(nestedPhase(phase), elapsedMs);
+          recordPhaseWindow(phase, startedAt, startedAt + elapsedMs);
         }
         this.#handling = false;
       }

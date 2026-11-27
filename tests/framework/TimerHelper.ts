@@ -12,6 +12,15 @@ export interface PlatformThreshold {
   android: number;
 }
 
+export interface TimerHelperOptions {
+  /**
+   * Only marks a time window so network calls can be attributed to it. No
+   * threshold and no Appium overhead subtraction; the tracker keeps it out of
+   * timing steps, spans, quality gates and the scenario total.
+   */
+  networkOnly?: boolean;
+}
+
 /**
  * Helper class that wraps a TimerStore timer with threshold-based
  * performance validation and convenience methods.
@@ -20,6 +29,7 @@ class TimerHelper {
   private _id: string;
   private _baseThreshold: number | null;
   private readonly _platform?: 'android' | 'ios';
+  readonly networkOnly: boolean;
 
   includeInTotal = true;
 
@@ -28,15 +38,21 @@ class TimerHelper {
    * @param id - Timer description/identifier
    * @param threshold - Platform-specific thresholds in ms (effective threshold = base + THRESHOLD_MARGIN_PERCENT)
    * @param currentPlatform - The current platform of the device being tested
+   * @param options - `networkOnly` windows ignore the threshold
    */
   constructor(
     id: string,
     threshold?: PlatformThreshold,
     currentPlatform?: 'android' | 'ios',
+    options: TimerHelperOptions = {},
   ) {
     this._id = id;
     this._platform = currentPlatform;
-    this._baseThreshold = this._resolveThreshold(threshold, currentPlatform);
+    this.networkOnly = options.networkOnly === true;
+    this.includeInTotal = !this.networkOnly;
+    this._baseThreshold = this.networkOnly
+      ? null
+      : this._resolveThreshold(threshold, currentPlatform);
     TimerStore.createTimer(this.id);
   }
 
@@ -106,6 +122,16 @@ class TimerHelper {
   }
 
   /**
+   * Absolute wall-clock window (epoch ms) of the stopped timer, or null while
+   * it never started or is still running. Unlike `getDuration()`, it is not
+   * reduced by `subtractOverhead`, so it reflects when requests could happen.
+   */
+  getWindow(): { start: number; end: number } | null {
+    const { start, end } = TimerStore.getTimer(this.id);
+    return start !== null && end !== null ? { start, end } : null;
+  }
+
+  /**
    * Records an externally measured duration (e.g. in-app Sentry-equivalent TTC)
    * without using wall-clock start/stop.
    */
@@ -156,6 +182,9 @@ class TimerHelper {
    * @returns This TimerHelper instance for chaining
    */
   async measure(action: () => Promise<void>): Promise<TimerHelper> {
+    if (this.networkOnly) {
+      return this.measureRaw(action);
+    }
     return this.measureWithOverhead(action);
   }
 
@@ -244,6 +273,21 @@ class TimerHelper {
   get id(): string {
     return this._id;
   }
+}
+
+/**
+ * Measures a transition from before the tap until the destination is ready,
+ * so the timer window also covers requests fired by the tap itself.
+ */
+export async function measureTransition(
+  timer: TimerHelper,
+  tap: () => Promise<void>,
+  ready: () => Promise<void>,
+): Promise<TimerHelper> {
+  return timer.measure(async () => {
+    await tap();
+    await ready();
+  });
 }
 
 export default TimerHelper;

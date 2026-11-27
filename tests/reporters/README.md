@@ -18,7 +18,10 @@ tests/reporters/
 │   ├── CsvReportGenerator.ts           # CSV report generation
 │   └── JsonReportGenerator.ts          # JSON device reports + per-scenario app profiling + failed-tests-by-team
 └── utils/
-    └── DeviceInfoExtractor.ts          # Device info extraction helper
+    ├── DeviceInfoExtractor.ts          # Device info extraction helper
+    ├── sanitizeApiCallUrl.ts           # Secret-free, low-cardinality request URL key
+    ├── summarizeApiCalls.ts            # Per-scenario request counts from the network log
+    └── attributeApiCallsToSteps.ts     # Per-timer-step request counts + clock-skew check
 ```
 
 ## Module Responsibilities
@@ -46,6 +49,30 @@ Each generator takes a `ReportData` object and produces output in a specific for
 - **HtmlReportGenerator** — Full HTML report with test tables, quality gates, profiling cards
 - **CsvReportGenerator** — CSV with per-test step rows and profiling summaries
 - **JsonReportGenerator** — Device-specific JSON files + one `reports/app-profiling/app-profiling-*.json` file per scenario (profiling + API calls) + `failed-tests-by-team.json`
+
+### utils/summarizeApiCalls.ts
+
+Turns a scenario's captured network log into `ApiCallsSummary`: `total`, `unique` (method + sanitized URL), `duplicates`, `failed` (status >= 400, missing or 0), `byHost` and `topEndpoints`. A failed capture (`apiCallsError`) yields `{ status: 'error' }` and no capture yields `null`, so neither is mistaken for 0 requests. The summary is written to `apiCallsSummary` in each `app-profiling-*.json` and sent to Sentry by `publishApiCallsSummaryToSentry` as its own transaction (op `e2e.performance.network_summary`, same transaction name as the scenario). Query it in Sentry Explore (spans) with `span.op:e2e.performance.network` and the numeric attributes `api.requests.total`, `api.requests.unique`, `api.requests.duplicates` and `api.requests.failed`; per-host (`e2e.performance.network.host`) and per-endpoint (`e2e.performance.network.endpoint`) spans carry `api.host` / `api.endpoint` breakdowns.
+
+#### Per-step attribution
+
+Calls are attributed to named windows from three sources, tagged `api.step.source`:
+
+- `timed`: measured steps (the timers recorded in `metrics.steps`).
+- `network_only`: window-only timers, `new TimerHelper(name, undefined, platform, { networkOnly: true })`. They have no threshold and no overhead subtraction, and `PerformanceTracker.addTimer` routes them to `metrics.networkWindows` instead of `steps`, so they never appear in timing measurements, spans, reports, quality gates or the total. Use them to attribute requests fired before a thresholded timer starts: `start()` before the action and `stop()` after, or `measureTransition(timer, tap, ready)` to start before the tap. The swap specs use this for `type amount → quote shown`, because the thresholded quote timer starts after the keypad is dismissed and would miss the `getQuoteStream` call.
+- `phase`: harness phases from the `appium-phase-timings` attachment (`windows`: absolute start/end per phase, e.g. `login`, `login_app_ready`, `login_wallet_home`, `interrupting_screens_recovery`, `test_body`), named `phase:<name>`. No spec changes needed.
+
+Each call is assigned by its HAR `startedDateTime` against a window's `[startedAt, endedAt]` (epoch ms, from `TimerHelper.getWindow()`); the rest go to `unattributed`. Precedence is strict, so a call is counted once: `during` (inside the window; all sources compete and the shortest window wins, then the latest start, then list order timed > network_only > phase, so a specific step beats the broad `test_body` phase) > pre-roll (up to 750 ms before a timed or network-only start, counted as `during`) > `after` (up to 5 s after a timed or network-only end; a next window's `during` or pre-roll outranks it) > the containing phase. Phases get no pre-roll or `after`, and a phase never swallows a step's pre-roll or `after` calls. `after` calls are summarized and published separately (`api.step.phase` = `during` | `after`, `none` for `unattributed`) so `during` counts stay clean.
+
+The summary gains `steps[]` and `stepAttribution` (`ok` | `skewed` | `no_overlap` | `unavailable`). Unattributed calls (app launch, login, setup) are normal and never count as skew. `skewed` means at least 30% of calls (with 10 or more) start outside the real test window (`testStartedAt` .. `testEndedAt`, from Playwright's `startTime` and `duration`, +/- 30s for HAR start/teardown), so the clocks probably disagree. `no_overlap` means no call landed in a step and the HAR timespan does not intersect the steps' timespan.
+
+When a test is retried, each attempt leaves a session. The metrics carry the `sessionId` of the attempt that produced them and that session's HAR is used; without it, the session whose HAR overlaps the steps is used, else the latest.
+
+Every endpoint carries `api.kind`: `app`, `preflight` (OPTIONS), `test_infra` (local mock server `localhost` / `10.0.2.2` on port 8000, `health-check` on local hosts) or `telemetry` (`*.ingest.sentry.io`, `clients2.google.com`); only obvious cases are labelled, everything else is `app`. The summary has app-only totals (`app`), and top endpoints list `app` first so noise cannot crowd them out.
+
+Sentry gets `e2e.performance.network.step` (`api.step`, `api.step.phase`, `api.step.source`, `api.step.requests`, `api.step.requests.app`, `api.step.failed`) and `e2e.performance.network.step_endpoint` (top 10 per step and phase: `api.step`, `api.step.phase`, `api.step.source`, `api.step_endpoint` = `<step> | <METHOD> <endpoint>` (`<step> (after)` for the after phase), `api.method`, `api.kind`, `api.endpoint`, `api.endpoint.requests`, description `[<step>] <METHOD> <endpoint>`), plus the `api_step_attribution` tag. Recommended filters: `api_step_attribution:ok api.step.phase:during api.kind:app`, plus `api.step.source:timed` (or `network_only`) to leave out the broad `phase:` windows.
+
+**WebSockets are out of scope.** The TestMu proxy HAR only holds HTTP/HTTPS. Services on WebSockets are invisible here: `gateway.api.cx.metamask.io`, Polymarket WS, Hyperliquid `WebSocketTransport` and the `mm-sdk-relay`. An HTTP-to-WebSocket migration will therefore look like a drop in request counts, not a real saving.
 
 ### utils/DeviceInfoExtractor.ts
 

@@ -348,6 +348,144 @@ describe('JsonReportGenerator', () => {
       expect(artifact.profilingData).toBeNull();
     });
 
+    describe('apiCallsSummary', () => {
+      const writeArtifact = (metric: Partial<MetricsEntry>) => {
+        generator.generate(
+          makeReportData({
+            metrics: [
+              makeMetricsEntry({ testName: 'Summary Scenario', ...metric }),
+            ],
+          }),
+          '/reports',
+        );
+        const write = mockWriteFileSync.mock.calls.find((c: unknown[]) =>
+          (c[0] as string).includes(`${path.sep}app-profiling${path.sep}`),
+        );
+        return JSON.parse(write[1] as string);
+      };
+
+      it('summarizes captured api calls', () => {
+        const artifact = writeArtifact({
+          apiCalls: [
+            {
+              method: 'GET',
+              url: 'https://api.example.com/v1/a?x=1',
+              status: 200,
+            },
+            {
+              method: 'GET',
+              url: 'https://api.example.com/v1/a?x=2',
+              status: 200,
+            },
+            { method: 'GET', url: 'https://other.example.com/b', status: 500 },
+          ],
+        });
+
+        expect(artifact.apiCallsSummary).toEqual({
+          status: 'captured',
+          total: 3,
+          unique: 2,
+          duplicates: 1,
+          failed: 1,
+          byHost: { 'api.example.com': 2, 'other.example.com': 1 },
+          app: { total: 3, unique: 2, duplicates: 1, failed: 1 },
+          topEndpoints: [
+            {
+              method: 'GET',
+              kind: 'app',
+              url: 'api.example.com/v1/a',
+              count: 2,
+              failed: 0,
+            },
+            {
+              method: 'GET',
+              kind: 'app',
+              url: 'other.example.com/b',
+              count: 1,
+              failed: 1,
+            },
+          ],
+          steps: [],
+          stepAttribution: {
+            status: 'unavailable',
+            attributed: 0,
+            unattributed: 3,
+            outsideTestWindow: 0,
+            missingTimestamp: 3,
+            reason: 'no timer windows recorded',
+          },
+        });
+        expect(artifact.apiCalls).toHaveLength(3);
+      });
+
+      it('includes the per-step breakdown when timers and request starts are known', () => {
+        const artifact = writeArtifact({
+          steps: [
+            {
+              name: 'open Token Details Page',
+              duration: 900,
+              baseThreshold: null,
+              threshold: null,
+              startedAt: 1_000,
+              endedAt: 2_000,
+            },
+          ],
+          apiCalls: [
+            {
+              method: 'GET',
+              url: 'https://a.test/x',
+              status: 200,
+              startedAt: 1_500,
+            },
+            {
+              method: 'GET',
+              url: 'https://a.test/y',
+              status: 200,
+              startedAt: 9_000,
+            },
+          ],
+        });
+
+        expect(artifact.apiCallsSummary.stepAttribution.status).toBe('ok');
+        expect(
+          artifact.apiCallsSummary.steps.map(
+            (s: { step: string; total: number }) => [s.step, s.total],
+          ),
+        ).toEqual([
+          ['open Token Details Page', 1],
+          ['unattributed', 1],
+        ]);
+      });
+
+      it('writes zero requests as a captured summary', () => {
+        const artifact = writeArtifact({ apiCalls: [] });
+
+        expect(artifact.apiCallsSummary).toMatchObject({
+          status: 'captured',
+          total: 0,
+        });
+      });
+
+      it('distinguishes a capture error from zero requests', () => {
+        const artifact = writeArtifact({
+          apiCalls: null,
+          apiCallsError: 'HAR download failed',
+        });
+
+        expect(artifact.apiCallsSummary).toEqual({
+          status: 'error',
+          error: 'HAR download failed',
+        });
+      });
+
+      it('writes a null summary when no capture was attempted', () => {
+        const artifact = writeArtifact({ profilingSummary: { issues: 0 } });
+
+        expect(artifact.apiCalls).toBeNull();
+        expect(artifact.apiCallsSummary).toBeNull();
+      });
+    });
+
     it('disambiguates colliding filenames', () => {
       const data = makeReportData({
         metrics: [

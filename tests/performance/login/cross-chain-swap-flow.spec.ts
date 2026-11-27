@@ -37,6 +37,16 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
       });
 
       await QuoteView.selectNetworkAndTokenTo('BNB', 'USDC');
+
+      // Window-only: attributes the quote request, which fires while typing,
+      // before the thresholded timer below starts.
+      const quoteRequestWindow = new TimerHelper(
+        'type amount → quote shown',
+        undefined,
+        currentDeviceDetails.platform,
+        { networkOnly: true },
+      );
+      quoteRequestWindow.start();
       await QuoteView.enterSourceTokenAmount('0.1');
 
       const timer2 = new TimerHelper(
@@ -46,8 +56,9 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
       );
 
       await timer2.measure(() => QuoteView.isQuoteDisplayed());
+      quoteRequestWindow.stop();
 
-      performanceTracker.addTimers(timer1, timer2);
+      performanceTracker.addTimers(timer1, timer2, quoteRequestWindow);
 
       if (process.env.SUBMIT_SWAP === 'true') {
         await QuoteView.dismissKeypad();

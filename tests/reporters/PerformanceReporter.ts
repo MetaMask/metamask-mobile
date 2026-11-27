@@ -14,9 +14,19 @@ import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
-import { publishPerformanceScenarioToSentry } from './providers/sentry/PerformanceSentryPublisher';
+import {
+  publishApiCallsSummaryToSentry,
+  publishPerformanceScenarioToSentry,
+} from './providers/sentry/PerformanceSentryPublisher';
+import {
+  getAttributionWindows,
+  networkLogOverlapsSteps,
+  summarizeApiCallsByStep,
+} from './utils/attributeApiCallsToSteps';
+import { PHASE_TIMINGS_ATTACHMENT_NAME } from '../framework/telemetry/PhaseTimer';
 import type {
   MetricsEntry,
+  NetworkWindow,
   SessionData,
   FailedTestsByTeam,
   TeamInfo,
@@ -42,12 +52,67 @@ interface PlaywrightTestCase {
 interface PlaywrightTestResult {
   status: string;
   duration: number;
+  startTime?: Date;
   attachments: { name: string; body?: Buffer }[];
   annotations?: { type: string; description?: string }[];
   retry?: number;
   error?: { message?: string };
   errors?: { message?: string }[];
 }
+
+/** Real attempt window (runner clock) used to sanity-check HAR alignment. */
+const getTestWindowFields = (
+  result: PlaywrightTestResult,
+): Pick<MetricsEntry, 'testStartedAt' | 'testEndedAt'> => {
+  const startedAt = result.startTime?.getTime();
+  return startedAt !== undefined && Number.isFinite(startedAt)
+    ? { testStartedAt: startedAt, testEndedAt: startedAt + result.duration }
+    : {};
+};
+
+/** Session of this attempt: the session-data attachment, else the annotation. */
+const getAttemptSessionId = (
+  result: PlaywrightTestResult,
+): string | undefined => {
+  const body = result.attachments
+    .find((att) => att.name === 'session-data')
+    ?.body?.toString();
+  try {
+    const fromAttachment = body ? JSON.parse(body).sessionId : undefined;
+    if (typeof fromAttachment === 'string' && fromAttachment) {
+      return fromAttachment;
+    }
+  } catch {
+    // Unparseable attachment: fall back to the annotation below.
+  }
+  return result.annotations?.find((a) => a.type === 'sessionId')?.description;
+};
+
+/** Harness phase windows from `appium-phase-timings`, as `phase:<name>`. */
+const getPhaseWindows = (result: PlaywrightTestResult): NetworkWindow[] => {
+  const body = result.attachments
+    .find((att) => att.name === PHASE_TIMINGS_ATTACHMENT_NAME)
+    ?.body?.toString();
+  if (!body) {
+    return [];
+  }
+  try {
+    const { windows } = JSON.parse(body) as {
+      windows?: { phase?: string; startedAt?: number; endedAt?: number }[];
+    };
+    return (windows ?? []).flatMap(({ phase, startedAt, endedAt }) =>
+      phase &&
+      typeof startedAt === 'number' &&
+      typeof endedAt === 'number' &&
+      Number.isFinite(startedAt) &&
+      Number.isFinite(endedAt)
+        ? [{ name: `phase:${phase}`, startedAt, endedAt }]
+        : [],
+    );
+  } catch {
+    return [];
+  }
+};
 
 const isTestFailureStatus = (status: string): boolean =>
   status === 'failed' || status === 'timedOut' || status === 'interrupted';
@@ -85,6 +150,23 @@ const hasSessionId = (result: PlaywrightTestResult): boolean => {
   )?.description;
   return Boolean(sessionId) && sessionId !== 'no-session';
 };
+
+/**
+ * Status matching what the fixture sends: timedOut is a distinct Sentry
+ * status and must not be collapsed to 'failed'.
+ */
+const getSentryTestStatus = (
+  metric: MetricsEntry,
+): 'passed' | 'timedOut' | 'failed' => {
+  if (!metric.testFailed) {
+    return 'passed';
+  }
+  return metric.failureReason === 'timedOut' ? 'timedOut' : 'failed';
+};
+
+/** Anchors a Sentry transaction to the actual test end time, not report time. */
+const getSentryTestEndTimestamp = (metric: MetricsEntry): number | undefined =>
+  metric.timestamp ? new Date(metric.timestamp).getTime() / 1000 : undefined;
 
 /**
  * Main Playwright reporter for performance test runs.
@@ -326,7 +408,16 @@ class PerformanceReporter {
           tags: testTags,
           ...metrics,
           projectName,
+          ...getTestWindowFields(result),
         };
+        const phaseWindows = getPhaseWindows(result);
+        if (phaseWindows.length > 0) {
+          metricsEntry.phaseWindows = phaseWindows;
+        }
+        const attemptSessionId = getAttemptSessionId(result);
+        if (attemptSessionId) {
+          metricsEntry.sessionId = attemptSessionId;
+        }
 
         // Mark actual failures
         if (isTestFailureStatus(result.status)) {
@@ -586,6 +677,9 @@ class PerformanceReporter {
       // Publish profiling data (FPS, CPU, memory) to Sentry for enriched metrics
       await this.publishProfilingDataToSentry(metricsWithSession);
 
+      // Publish per-scenario request counts (only available after enrichment)
+      await this.publishApiCallsSummaryToSentry(metricsWithSession);
+
       const reportData: ReportData = {
         metrics: metricsWithSession,
         sessions: this.sessions,
@@ -643,18 +737,8 @@ class PerformanceReporter {
       // (an enricher sets profilingSummary to { error: '...' } on failure)
       if (!metric.profilingSummary || metric.profilingSummary.error) continue;
 
-      // Derive status that matches what the fixture sends: timedOut is a
-      // distinct Sentry status and must not be collapsed to 'failed'.
-      const testStatus = !metric.testFailed
-        ? 'passed'
-        : metric.failureReason === 'timedOut'
-          ? 'timedOut'
-          : 'failed';
-
-      // Anchor Sentry transaction to the actual test end time, not report time.
-      const testEndTimestamp = metric.timestamp
-        ? new Date(metric.timestamp).getTime() / 1000
-        : undefined;
+      const testStatus = getSentryTestStatus(metric);
+      const testEndTimestamp = getSentryTestEndTimestamp(metric);
 
       try {
         const sent = await publishPerformanceScenarioToSentry({
@@ -694,11 +778,85 @@ class PerformanceReporter {
     }
   }
 
+  private async publishApiCallsSummaryToSentry(
+    metrics: MetricsEntry[],
+  ): Promise<void> {
+    for (const metric of metrics) {
+      const summary = summarizeApiCallsByStep(metric);
+      if (!summary) continue;
+
+      if (
+        summary.status === 'captured' &&
+        (summary.stepAttribution?.status === 'skewed' ||
+          summary.stepAttribution?.status === 'no_overlap')
+      ) {
+        logger.warn(
+          `API step attribution is ${summary.stepAttribution.status} for "${metric.testName}": ${summary.stepAttribution.reason}. HAR (TestMu) and test-runner clocks may differ.`,
+        );
+      }
+
+      try {
+        const sent = await publishApiCallsSummaryToSentry({
+          summary,
+          metrics: {
+            device: metric.device,
+            team: metric.team ?? null,
+            total: metric.total ?? 0,
+          },
+          testTitle: metric.testName,
+          projectName: metric.projectName ?? 'unknown',
+          testFilePath: metric.testFilePath,
+          tags: metric.tags ?? [],
+          status: getSentryTestStatus(metric),
+          videoRecordingUrl: metric.videoURL ?? null,
+          testEndTimestamp: getSentryTestEndTimestamp(metric),
+        });
+
+        if (sent) {
+          logger.info(
+            `API calls summary for "${metric.testName}" sent to Sentry`,
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(
+          `Failed to publish API calls summary to Sentry for "${metric.testName}": ${message}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Retried tests leave one session per attempt. Prefer the session of the
+   * attempt that produced the metrics; otherwise, among the test's sessions,
+   * the one whose network log overlaps the measured steps, else the latest.
+   */
+  private findSessionForMetric(metric: MetricsEntry): SessionData | undefined {
+    const byId = metric.sessionId
+      ? this.sessions.find((session) => session.sessionId === metric.sessionId)
+      : undefined;
+    if (byId) {
+      return byId;
+    }
+    const sameTest = this.sessions.filter(
+      (session) => session.testTitle === metric.testName,
+    );
+    if (sameTest.length <= 1) {
+      return sameTest[0];
+    }
+    return (
+      sameTest.find((session) =>
+        networkLogOverlapsSteps(
+          session.networkLogsEntries,
+          getAttributionWindows(metric),
+        ),
+      ) ?? sameTest[sameTest.length - 1]
+    );
+  }
+
   private mergeSessionDataIntoMetrics(): MetricsEntry[] {
     return this.metrics.map((metric) => {
-      const matchingSession = this.sessions.find(
-        (session) => session.testTitle === metric.testName,
-      );
+      const matchingSession = this.findSessionForMetric(metric);
       const apiCalls =
         matchingSession?.networkLogsEntries != null
           ? matchingSession.networkLogsEntries
