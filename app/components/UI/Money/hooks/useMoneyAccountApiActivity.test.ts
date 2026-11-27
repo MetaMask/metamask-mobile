@@ -582,4 +582,62 @@ describe('useMoneyAccountApiActivity', () => {
       jest.useRealTimers();
     }
   });
+
+  it('keeps the old page boundary when a poll adds a row', async () => {
+    jest.useFakeTimers();
+    type Page = Awaited<ReturnType<typeof mockFetchV1AccountTransactions>>;
+    const oldPage = {
+      data: [
+        { hash: '0xold', timestamp: '2026-06-04T00:00:00.000Z' },
+        { hash: '0xboundary', timestamp: '2026-06-03T00:00:00.000Z' },
+      ],
+      pageInfo: { count: 2, hasNextPage: true, cursor: 'cursor-2' },
+    } as unknown as Page;
+    const nextPage = {
+      data: [{ hash: '0xnext', timestamp: '2026-06-02T00:00:00.000Z' }],
+      pageInfo: { count: 1, hasNextPage: false, cursor: undefined },
+    } as unknown as Page;
+    const polledPage = {
+      data: [
+        { hash: '0xnew', timestamp: '2026-06-05T00:00:00.000Z' },
+        { hash: '0xold', timestamp: '2026-06-04T00:00:00.000Z' },
+        { hash: '0xboundary', timestamp: '2026-06-03T00:00:00.000Z' },
+      ],
+      pageInfo: { count: 3, hasNextPage: true, cursor: 'cursor-3' },
+    } as unknown as Page;
+
+    mockQueryResult({
+      data: { pages: [oldPage, nextPage], pageParams: [undefined, 'cursor-2'] },
+    });
+    mockFetchV1AccountTransactions.mockResolvedValue(polledPage);
+
+    try {
+      renderHook(() =>
+        useMoneyAccountApiActivity({ refetchIntervalMs: 30_000 }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      const update = mockSetQueryData.mock.calls[0][1] as (old: {
+        pages: Page[];
+        pageParams: unknown[];
+      }) => { pages: Page[] };
+      const updated = update({
+        pages: [oldPage, nextPage],
+        pageParams: [undefined, 'cursor-2'],
+      });
+
+      expect(updated.pages[0].data?.map((row) => row.hash)).toEqual([
+        '0xnew',
+        '0xold',
+        '0xboundary',
+      ]);
+      expect(updated.pages[0].pageInfo).toBe(oldPage.pageInfo);
+      expect(updated.pages[1]).toBe(nextPage);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

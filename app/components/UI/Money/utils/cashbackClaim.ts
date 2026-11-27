@@ -38,7 +38,6 @@ export function isSettlingCashbackActivity(
   claim: CardCashbackClaim,
   activity: readonly AccountsApiActivity[],
 ): boolean {
-  const claimAmount = new BigNumber(claim.amount);
   return activity.some((item) => {
     if (item.kind !== 'cashback') {
       return false;
@@ -46,12 +45,9 @@ export function isSettlingCashbackActivity(
     if (item.hash.toLowerCase() === claim.txHash?.toLowerCase()) {
       return true;
     }
-    if (item.time < claim.submittedAt - CASHBACK_CLAIM_TIME_TOLERANCE_MS) {
-      return false;
-    }
-    return claimAmount.eq(
-      new BigNumber(item.amount).shiftedBy(-item.token.decimals),
-    );
+    // Vaulting can change both the settlement hash and the credited token
+    // amount, so a later cashback row is the only client-side settlement cue.
+    return item.time >= claim.submittedAt - CASHBACK_CLAIM_TIME_TOLERANCE_MS;
   });
 }
 

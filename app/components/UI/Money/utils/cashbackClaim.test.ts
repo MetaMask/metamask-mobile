@@ -87,27 +87,27 @@ describe('isSettlingCashbackActivity', () => {
     expect(settled).toBe(true);
   });
 
-  it('falls back to amount and time when the activity hash differs', () => {
+  it('falls back to a later cashback row when the settlement differs', () => {
     const claim = createClaim({ txHash: CLAIM_HASH });
 
     const settled = isSettlingCashbackActivity(claim, [
-      createCashbackActivity({ hash: ACTIVITY_HASH }),
+      createCashbackActivity({ hash: ACTIVITY_HASH, amount: '1' }),
     ]);
 
     expect(settled).toBe(true);
   });
 
-  it('matches by amount and time when the claim has no tx hash', () => {
+  it('matches a later cashback row when the claim has no tx hash', () => {
     const claim = createClaim({ txHash: null });
 
     const settled = isSettlingCashbackActivity(claim, [
-      createCashbackActivity(),
+      createCashbackActivity({ amount: '1' }),
     ]);
 
     expect(settled).toBe(true);
   });
 
-  it('ignores an amount match outside the time tolerance', () => {
+  it('ignores a cashback row before the time tolerance', () => {
     const claim = createClaim({ txHash: null, submittedAt: 1_000_000 });
 
     const settled = isSettlingCashbackActivity(claim, [

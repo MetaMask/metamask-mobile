@@ -219,9 +219,23 @@ export function useMoneyAccountApiActivity({
             if (!oldData || oldData.pages.length === 0) {
               return oldData;
             }
+            const oldFirstPage = oldData.pages[0];
+            const existingHashes = new Set(
+              (oldFirstPage.data ?? []).map((row) => row.hash?.toLowerCase()),
+            );
+            const newRows = (page.data ?? []).filter(
+              (row) => row.hash && !existingHashes.has(row.hash.toLowerCase()),
+            );
+            const mergedFirstPage =
+              newRows.length > 0
+                ? {
+                    ...oldFirstPage,
+                    data: [...newRows, ...(oldFirstPage.data ?? [])],
+                  }
+                : oldFirstPage;
             return {
               ...oldData,
-              pages: [page, ...oldData.pages.slice(1)],
+              pages: [mergedFirstPage, ...oldData.pages.slice(1)],
             };
           },
         );
