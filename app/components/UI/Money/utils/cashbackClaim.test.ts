@@ -1,7 +1,7 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
-import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
 import type { AccountsApiActivity } from '../types/moneyActivity';
+import { cashbackClaim } from '../__fixtures__/cashbackClaim';
 import {
   cashbackClaimDisplayInfo,
   isCashbackClaimExpired,
@@ -15,17 +15,6 @@ const ACTIVITY_HASH: Hex =
   '0x2222222222222222222222222222222222222222222222222222222222222222';
 const TOKEN_ADDRESS: Hex =
   '0x3333333333333333333333333333333333333333333333333333333333333333';
-
-const createClaim = (
-  overrides: Partial<CardCashbackClaim> = {},
-): CardCashbackClaim => ({
-  status: 'pending',
-  amount: '10.5',
-  moneyAddress: '0x4444444444444444444444444444444444444444',
-  submittedAt: 1_000_000,
-  txHash: CLAIM_HASH,
-  ...overrides,
-});
 
 type CashbackActivity = Extract<AccountsApiActivity, { kind: 'cashback' }>;
 
@@ -48,7 +37,7 @@ const createCashbackActivity = (
 
 describe('cashbackClaimDisplayInfo', () => {
   it('labels a pending claim as Receiving mUSD back', () => {
-    const display = cashbackClaimDisplayInfo(createClaim());
+    const display = cashbackClaimDisplayInfo(cashbackClaim({ amount: '10.5' }));
 
     expect(display).toMatchObject({
       label: 'Receiving',
@@ -63,7 +52,9 @@ describe('cashbackClaimDisplayInfo', () => {
   });
 
   it('labels a failed claim with the failure copy and signed zero', () => {
-    const display = cashbackClaimDisplayInfo(createClaim({ status: 'failed' }));
+    const display = cashbackClaimDisplayInfo(
+      cashbackClaim({ status: 'failed' }),
+    );
 
     expect(display).toMatchObject({
       label: 'mUSD back',
@@ -78,7 +69,7 @@ describe('cashbackClaimDisplayInfo', () => {
 
 describe('isSettlingCashbackActivity', () => {
   it('matches a cashback row by tx hash', () => {
-    const claim = createClaim({ txHash: CLAIM_HASH });
+    const claim = cashbackClaim({ txHash: CLAIM_HASH });
 
     const settled = isSettlingCashbackActivity(claim, [
       createCashbackActivity({ hash: CLAIM_HASH, time: 0, amount: '1' }),
@@ -88,7 +79,7 @@ describe('isSettlingCashbackActivity', () => {
   });
 
   it('falls back to a later cashback row when the settlement differs', () => {
-    const claim = createClaim({ txHash: CLAIM_HASH });
+    const claim = cashbackClaim({ txHash: CLAIM_HASH });
 
     const settled = isSettlingCashbackActivity(claim, [
       createCashbackActivity({ hash: ACTIVITY_HASH, amount: '1' }),
@@ -98,7 +89,7 @@ describe('isSettlingCashbackActivity', () => {
   });
 
   it('matches a later cashback row when the claim has no tx hash', () => {
-    const claim = createClaim({ txHash: null });
+    const claim = cashbackClaim({ txHash: null });
 
     const settled = isSettlingCashbackActivity(claim, [
       createCashbackActivity({ amount: '1' }),
@@ -108,7 +99,7 @@ describe('isSettlingCashbackActivity', () => {
   });
 
   it('ignores a cashback row before the time tolerance', () => {
-    const claim = createClaim({ txHash: null, submittedAt: 1_000_000 });
+    const claim = cashbackClaim({ txHash: null, submittedAt: 1_000_000 });
 
     const settled = isSettlingCashbackActivity(claim, [
       createCashbackActivity({ time: 939_999 }),
@@ -118,7 +109,7 @@ describe('isSettlingCashbackActivity', () => {
   });
 
   it('ignores non-cashback rows', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
     const refund: AccountsApiActivity = {
       kind: 'refund',
       hash: ACTIVITY_HASH,
@@ -141,7 +132,7 @@ describe('isSettlingCashbackActivity', () => {
 
 describe('isCashbackClaimExpired', () => {
   it('expires the claim at the ten minute TTL', () => {
-    const claim = createClaim({ submittedAt: 1_000_000 });
+    const claim = cashbackClaim({ submittedAt: 1_000_000 });
 
     expect(isCashbackClaimExpired(claim, 1_599_999)).toBe(false);
     expect(isCashbackClaimExpired(claim, 1_600_000)).toBe(true);
@@ -149,10 +140,10 @@ describe('isCashbackClaimExpired', () => {
 });
 
 describe('resolveCashbackClaim', () => {
-  const moneyAddress = createClaim().moneyAddress;
+  const moneyAddress = cashbackClaim().moneyAddress;
 
   it('shows a pending claim for the active Money account', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
 
     const result = resolveCashbackClaim(claim, [], moneyAddress, 1_000_000);
 
@@ -160,7 +151,7 @@ describe('resolveCashbackClaim', () => {
   });
 
   it('hides a claim for another Money account', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
 
     const result = resolveCashbackClaim(claim, [], '0xother', 1_000_000);
 
@@ -168,7 +159,7 @@ describe('resolveCashbackClaim', () => {
   });
 
   it('clears a settled claim', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
 
     const result = resolveCashbackClaim(
       claim,
@@ -181,7 +172,7 @@ describe('resolveCashbackClaim', () => {
   });
 
   it('clears an expired claim', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
 
     const result = resolveCashbackClaim(claim, [], moneyAddress, 1_600_000);
 
@@ -189,7 +180,7 @@ describe('resolveCashbackClaim', () => {
   });
 
   it('clears an expired claim for another Money account', () => {
-    const claim = createClaim();
+    const claim = cashbackClaim();
 
     const result = resolveCashbackClaim(claim, [], '0xother', 1_600_000);
 

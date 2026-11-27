@@ -19,6 +19,7 @@ import type {
   AccountsApiActivity,
   NeobankBankTransferActivity,
 } from '../types/moneyActivity';
+import { cashbackClaim } from '../__fixtures__/cashbackClaim';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
@@ -155,17 +156,6 @@ const cashbackTx = (hash: Hex, time: number): AccountsApiActivity => ({
   token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
   amount: '300000',
   receivedFrom: '0xrewarder' as Hex,
-});
-
-const createCashbackClaim = (
-  overrides: Partial<CardCashbackClaim> = {},
-): CardCashbackClaim => ({
-  status: 'pending',
-  amount: '0.3',
-  moneyAddress: '0xmoney',
-  submittedAt: 1_000,
-  txHash: null,
-  ...overrides,
 });
 
 const refundTx = (hash: Hex, time: number): AccountsApiActivity => ({
@@ -570,7 +560,7 @@ describe('buildMoneyActivityBuckets', () => {
     ).not.toContain('declined-old');
   });
   it('injects the cashback claim into All and Purchases only', () => {
-    const claim = createCashbackClaim();
+    const claim = cashbackClaim();
 
     const buckets = buildMoneyActivityBuckets(
       { all: [], deposits: [], transfers: [] },
@@ -592,7 +582,7 @@ describe('buildMoneyActivityBuckets', () => {
   });
 
   it('keeps a pending cashback claim at the watermark', () => {
-    const claim = createCashbackClaim({ submittedAt: 200 });
+    const claim = cashbackClaim({ submittedAt: 200 });
 
     const buckets = buildMoneyActivityBuckets(
       { all: [], deposits: [], transfers: [] },
@@ -610,7 +600,7 @@ describe('buildMoneyActivityBuckets', () => {
   });
 
   it('sorts a failed cashback claim with the confirmed rows', () => {
-    const claim = createCashbackClaim({ status: 'failed', submittedAt: 100 });
+    const claim = cashbackClaim({ status: 'failed', submittedAt: 100 });
     const newerHash: Hex =
       '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
@@ -1459,7 +1449,10 @@ describe('useMoneyActivityItems', () => {
   });
 
   it('shows a pending cashback claim in All and Purchases', () => {
-    const claim = createCashbackClaim({ submittedAt: Date.now() });
+    const claim = cashbackClaim({
+      submittedAt: Date.now(),
+      moneyAddress: '0xmoney',
+    });
     mockEnrichmentFlags({ claim });
 
     const { result } = renderHook(() => useMoneyActivityItems());
@@ -1479,7 +1472,7 @@ describe('useMoneyActivityItems', () => {
 
   it('hides a cashback claim for another Money account', () => {
     mockEnrichmentFlags({
-      claim: createCashbackClaim({
+      claim: cashbackClaim({
         submittedAt: Date.now(),
         moneyAddress: '0xother',
       }),
@@ -1492,7 +1485,7 @@ describe('useMoneyActivityItems', () => {
 
   it('polls activity while a cashback claim exists', () => {
     mockEnrichmentFlags({
-      claim: createCashbackClaim({ submittedAt: Date.now() }),
+      claim: cashbackClaim({ submittedAt: Date.now() }),
     });
 
     renderHook(() => useMoneyActivityItems());
@@ -1506,7 +1499,7 @@ describe('useMoneyActivityItems', () => {
     const hash: Hex =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     mockEnrichmentFlags({
-      claim: createCashbackClaim({
+      claim: cashbackClaim({
         submittedAt: Date.now(),
         txHash: hash,
       }),
@@ -1522,7 +1515,7 @@ describe('useMoneyActivityItems', () => {
 
   it('clears an expired cashback claim', () => {
     mockEnrichmentFlags({
-      claim: createCashbackClaim({
+      claim: cashbackClaim({
         submittedAt: Date.now() - 11 * 60 * 1000,
       }),
     });
