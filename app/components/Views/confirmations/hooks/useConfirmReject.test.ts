@@ -10,6 +10,7 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 import { useConfirmReject } from './useConfirmReject';
+import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -130,5 +131,25 @@ describe('useConfirmReject', () => {
     result?.current?.onReject(undefined, true);
 
     expect(goBackSpy).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the wallet tab when navigateToHome is set', async () => {
+    const navigateSpy = jest.fn();
+    useNavigationMock.mockReturnValue({
+      goBack: jest.fn(),
+      navigate: navigateSpy,
+    } as unknown as ReturnType<typeof useNavigation>);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+
+    const { result } = renderHookWithProvider(() => useConfirmReject(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    result?.current?.onReject(undefined, true, true);
+    await flushPromises();
+
+    expect(navigateSpy).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 });

@@ -42,7 +42,7 @@ export const useConfirmReject = () => {
         navigation.goBack();
       }
       if (navigateToHome) {
-        navigation.navigate(Routes.WALLET_VIEW);
+        navigation.navigate(Routes.WALLET.HOME);
       }
       if (isSignatureReq && approvalRequest?.id) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);

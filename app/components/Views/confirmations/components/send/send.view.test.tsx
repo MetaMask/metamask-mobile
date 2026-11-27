@@ -446,7 +446,7 @@ describeForPlatforms('Send', () => {
         renderScreenWithRoutes(
           Send as unknown as React.ComponentType,
           { name: Routes.SEND.DEFAULT },
-          [{ name: Routes.WALLET_VIEW }],
+          [{ name: Routes.WALLET.HOME }],
           { state },
           { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
         );
@@ -475,7 +475,7 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(SEND_NAVBAR_BACK_BUTTON_TEST_ID));
 
       expect(
-        await findByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+        await findByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
