@@ -35,7 +35,7 @@ const event = (): PredictEvent => ({
 });
 
 describe('EventCard.Root', () => {
-  it('uses the section surface, 20pt radius, muted border, and default padding', () => {
+  it('uses the elevated1 surface, 20pt radius, muted border, and default padding', () => {
     render(
       <EventCard.Root testID="card-root">
         <EventCard.Title>Election winner</EventCard.Title>
@@ -44,7 +44,7 @@ describe('EventCard.Root', () => {
 
     const card = screen.getByTestId('card-root');
     expect(card).toHaveStyle({
-      backgroundColor: lightTheme.colors.background.section,
+      backgroundColor: lightTheme.colors.background.elevated1,
       borderRadius: 20,
       borderWidth: 1,
       borderColor: lightTheme.colors.border.muted,
@@ -55,7 +55,7 @@ describe('EventCard.Root', () => {
     });
   });
 
-  it('uses dark theme section surface and muted border in dark mode', () => {
+  it('uses dark theme elevated1 surface and muted border in dark mode', () => {
     render(
       <ThemeProvider theme={Theme.Dark}>
         <EventCard.Root testID="card-root">
@@ -65,7 +65,7 @@ describe('EventCard.Root', () => {
     );
 
     expect(screen.getByTestId('card-root')).toHaveStyle({
-      backgroundColor: darkTheme.colors.background.section,
+      backgroundColor: darkTheme.colors.background.elevated1,
       borderColor: darkTheme.colors.border.muted,
     });
   });
@@ -81,7 +81,7 @@ describe('EventCard.Root', () => {
       screen.getByTestId('card-root').props.style,
     );
     expect(style).toMatchObject({
-      backgroundColor: lightTheme.colors.background.section,
+      backgroundColor: lightTheme.colors.background.elevated1,
       borderRadius: 20,
       borderWidth: 1,
       borderColor: lightTheme.colors.border.muted,
@@ -96,14 +96,14 @@ describe('EventCard.Root', () => {
     render(
       <EventCard.Root
         testID="card-root"
-        twClassName="rounded-2xl border-0 bg-elevated1 p-4"
+        twClassName="rounded-2xl border-0 bg-section p-4"
       >
         <EventCard.Title>Election winner</EventCard.Title>
       </EventCard.Root>,
     );
 
     expect(screen.getByTestId('card-root')).toHaveStyle({
-      backgroundColor: lightTheme.colors.background.elevated1,
+      backgroundColor: lightTheme.colors.background.section,
       borderRadius: 20,
       borderWidth: 1,
       borderColor: lightTheme.colors.border.muted,
@@ -116,7 +116,7 @@ describe('EventCard.Root', () => {
 });
 
 describe('EventCard primitives', () => {
-  it('composes header content', () => {
+  it('composes header content with BodySm title and BodyXs subtitle', () => {
     render(
       <EventCard.Header>
         <EventCard.Title>Election winner</EventCard.Title>
@@ -126,10 +126,18 @@ describe('EventCard primitives', () => {
       </EventCard.Header>,
     );
 
-    expect(screen.getByText('Election winner')).toBeOnTheScreen();
-    expect(screen.getByTestId('event-subtitle')).toHaveTextContent(
-      'Closes Jul 2028 · $4.2M',
-    );
+    expect(screen.getByText('Election winner')).toHaveStyle({
+      fontSize: 14,
+      lineHeight: 22,
+      color: lightTheme.colors.text.default,
+    });
+    const subtitle = screen.getByTestId('event-subtitle');
+    expect(subtitle).toHaveTextContent('Closes Jul 2028 · $4.2M');
+    expect(subtitle).toHaveStyle({
+      fontSize: 12,
+      lineHeight: 20,
+      color: lightTheme.colors.text.alternative,
+    });
   });
 
   it('composes footer metadata and its action', () => {
@@ -195,11 +203,14 @@ describe('EventCard.OutcomeRow', () => {
     return { value, valueMarket, valueOutcome };
   };
 
-  it('shows the outcome label, Ask Price, and chance without a multiplier', () => {
+  it('shows the outcome label in BodySm, percentage price, and chance without a multiplier', () => {
     renderRow({ askPrice: '0.42' });
 
-    expect(screen.getByText('Yes')).toBeOnTheScreen();
-    expect(screen.getByText('42¢')).toBeOnTheScreen();
+    expect(screen.getByText('Yes')).toHaveStyle({
+      fontSize: 14,
+      lineHeight: 22,
+    });
+    expect(screen.getByText('42%')).toBeOnTheScreen();
     expect(screen.queryByText('2.38x')).not.toBeOnTheScreen();
     expect(
       screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
@@ -214,10 +225,21 @@ describe('EventCard.OutcomeRow', () => {
     ).toHaveStyle({ backgroundColor: lightTheme.colors.icon.alternative });
   });
 
-  it('labels the price with the Event title, Outcome, and price', () => {
+  it('labels the price with the Event title, Outcome, and percentage price', () => {
     renderRow({ askPrice: '0.42' });
 
-    expect(screen.getByLabelText('Election winner, Yes 42¢')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Election winner, Yes 42%')).toBeOnTheScreen();
+  });
+
+  it('shows a dash and price unavailable label when Ask Price is missing', () => {
+    renderRow();
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes'),
+    ).toHaveTextContent('—');
+    expect(
+      screen.getByLabelText('Election winner, Yes price unavailable'),
+    ).toBeOnTheScreen();
   });
 
   it('shows the avatar image when one is given', () => {

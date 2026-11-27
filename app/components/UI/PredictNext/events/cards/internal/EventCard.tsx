@@ -28,7 +28,7 @@ import type {
   PredictOutcome,
 } from '../../../types';
 import {
-  formatAskPrice,
+  formatAskPricePercent,
   formatVolume,
   getAskPricePercent,
 } from '../../shared/formatting';
@@ -44,7 +44,7 @@ interface RootProps {
 }
 
 const CARD_OUTLINE_CLASS_NAME = 'rounded-[20px] border border-muted';
-const DEFAULT_CARD_SURFACE_CLASS_NAME = 'bg-section';
+const DEFAULT_CARD_SURFACE_CLASS_NAME = 'bg-elevated1';
 const DEFAULT_CARD_LAYOUT_CLASS_NAME = 'gap-3 p-4 pt-3';
 
 const Root = ({
@@ -53,7 +53,7 @@ const Root = ({
   twClassName = DEFAULT_CARD_LAYOUT_CLASS_NAME,
 }: RootProps) => (
   <Box
-    twClassName={`${DEFAULT_CARD_SURFACE_CLASS_NAME} ${twClassName} ${CARD_OUTLINE_CLASS_NAME}`}
+    className={`${DEFAULT_CARD_SURFACE_CLASS_NAME} ${twClassName} ${CARD_OUTLINE_CLASS_NAME}`}
     testID={testID}
   >
     {children}
@@ -82,9 +82,11 @@ const Title = ({
   twClassName?: string;
 }) => (
   <Text
-    variant={TextVariant.HeadingSm}
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Regular}
+    color={TextColor.TextDefault}
     numberOfLines={numberOfLines}
-    twClassName={twClassName}
+    className={twClassName}
   >
     {children}
   </Text>
@@ -98,8 +100,8 @@ const Subtitle = ({
   testID?: string;
 }) => (
   <Text
-    variant={TextVariant.BodySm}
-    fontWeight={FontWeight.Medium}
+    variant={TextVariant.BodyXs}
+    fontWeight={FontWeight.Regular}
     color={TextColor.TextAlternative}
     numberOfLines={1}
     testID={testID}
@@ -247,7 +249,7 @@ const HeaderRowTitle = ({
     variant={TextVariant.BodySm}
     fontWeight={FontWeight.Bold}
     numberOfLines={1}
-    twClassName="min-w-[60%] flex-1"
+    className="min-w-[60%] flex-1"
     testID={testID}
   >
     {children}
@@ -270,7 +272,7 @@ const HeaderRowMeta = ({
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
     numberOfLines={1}
-    twClassName="shrink"
+    className="shrink"
     testID={testID}
   >
     {children}
@@ -312,7 +314,7 @@ const OutcomeRow = ({
 }: OutcomeRowProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const price = formatAskPrice(outcome.askPrice);
+  const price = formatAskPricePercent(outcome.askPrice);
 
   return (
     <SharedOutcomeRow.Root>
@@ -336,6 +338,7 @@ const OutcomeRow = ({
           percent={getAskPricePercent(outcome.askPrice)}
           color={colors.icon.alternative}
           lineTestID={testID ? `${testID}-bar` : undefined}
+          variant={TextVariant.BodySm}
         />
       </Box>
       <SharedOutcomeRow.Price
