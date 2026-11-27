@@ -834,6 +834,7 @@ describeForPlatforms('Wallet Money 2-step verification prompt', () => {
           SeedlessOnboardingController: {
             vault: isSocialLogin ? 'encrypted-vault' : undefined,
           },
+          GeolocationController: { location: 'US' },
           AccountTrackerController: {
             accountsByChainId: {
               '0x1': {
