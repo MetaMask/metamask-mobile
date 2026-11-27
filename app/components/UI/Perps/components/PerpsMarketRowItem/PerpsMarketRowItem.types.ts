@@ -38,6 +38,11 @@ export interface PerpsMarketRowItemProps {
    * @default true
    */
   showBadge?: boolean;
+  /**
+   * Venue mark on the token. Set only for a single-venue row while more
+   * than one provider is selected.
+   */
+  venueProviderId?: PerpsMarketData['providerId'];
   /** Whether to show a "Perp" type tag next to the title. */
   showTypeTag?: boolean;
   /**

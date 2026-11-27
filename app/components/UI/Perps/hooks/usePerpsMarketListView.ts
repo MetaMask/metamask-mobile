@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarkets, type PerpsMarketRow } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
   MARKET_CATEGORIES,
+  resolveSavedPerpsMarkets,
+  selectIsWatchlistMarket,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -25,6 +27,8 @@ import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
+  selectPerpsDefaultProvider,
+  selectPerpsControllerState,
 } from '../selectors/perpsController';
 import {
   selectAvailableProviderIds,
@@ -202,6 +206,7 @@ export const usePerpsMarketListView = ({
   // Market activity filtering is handled at the data layer in usePerpsMarkets
   const {
     markets: allMarkets,
+    catalog = [],
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarkets({
@@ -220,6 +225,9 @@ export const usePerpsMarketListView = ({
   // Get Redux state
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
   const recentlyViewedSymbols = useSelector(selectPerpsRecentlyViewedMarkets);
+  const defaultProvider =
+    useSelector(selectPerpsDefaultProvider) ?? 'hyperliquid';
+  const perpsControllerState = useSelector(selectPerpsControllerState);
   const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
   const persistedListPreferences = useSelector(
     selectPerpsMarketListPreferences,
@@ -428,26 +436,57 @@ export const usePerpsMarketListView = ({
     [sortingHook],
   );
 
+  const isMarketWatchlisted = useCallback(
+    (market: PerpsMarketData) => {
+      if (!perpsControllerState) {
+        return false;
+      }
+      const row = market as PerpsMarketRow;
+      return selectIsWatchlistMarket(
+        perpsControllerState,
+        market.symbol,
+        market.marketKey,
+        row.venues,
+      );
+    },
+    [perpsControllerState],
+  );
+
   // Apply favorites filter if enabled
   const favoritesFilteredMarkets = useMemo(() => {
     if (!showFavoritesOnly) {
       return marketTypeFilteredMarkets;
     }
     return marketTypeFilteredMarkets.filter((market) =>
-      watchlistMarkets.includes(market.symbol),
+      isMarketWatchlisted(market),
     );
-  }, [marketTypeFilteredMarkets, showFavoritesOnly, watchlistMarkets]);
+  }, [marketTypeFilteredMarkets, showFavoritesOnly, isMarketWatchlisted]);
 
   // Full market objects for watchlisted symbols (unaffected by search/category filters)
+  // The raw venue catalog is the lookup source. Tests and any caller that
+  // only supplies grouped rows still resolve saved symbols against those rows.
+  const savedMarketCatalog = catalog.length > 0 ? catalog : allMarkets;
+
   const watchlistMarketObjects = useMemo(
-    () => allMarkets.filter((m) => watchlistMarkets.includes(m.symbol)),
-    [allMarkets, watchlistMarkets],
+    () =>
+      resolveSavedPerpsMarkets(
+        watchlistMarkets,
+        savedMarketCatalog,
+        defaultProvider,
+      ),
+    [defaultProvider, savedMarketCatalog, watchlistMarkets],
   );
 
   // Top suggested markets (excludes already-watchlisted) for the empty watchlist state
   const suggestedMarkets = useMemo(
-    () => getSuggestedWatchlistMarkets(allMarkets, watchlistMarkets),
-    [allMarkets, watchlistMarkets],
+    () =>
+      getSuggestedWatchlistMarkets(
+        allMarkets,
+        watchlistMarkets,
+        undefined,
+        isMarketWatchlisted,
+      ),
+    [allMarkets, watchlistMarkets, isMarketWatchlisted],
   );
 
   // Full market objects for recently viewed symbols, in newest-first order,
@@ -461,16 +500,10 @@ export const usePerpsMarketListView = ({
   // On the watchlist tab the rail is also intersected with the user's
   // watchlist so it only shows recently viewed markets that are favorited.
   const recentlyViewedMarketObjects = useMemo(() => {
-    const marketsBySymbol = new Map(allMarkets.map((m) => [m.symbol, m]));
-    const orderedMarkets = recentlyViewedSymbols.reduce<PerpsMarketData[]>(
-      (acc, symbol) => {
-        const market = marketsBySymbol.get(symbol);
-        if (market) {
-          acc.push(market);
-        }
-        return acc;
-      },
-      [],
+    const orderedMarkets = resolveSavedPerpsMarkets(
+      recentlyViewedSymbols,
+      savedMarketCatalog,
+      defaultProvider,
     );
     const categoryFiltered =
       marketTypeFilter === 'new'
@@ -482,16 +515,15 @@ export const usePerpsMarketListView = ({
     if (!showFavoritesOnly) {
       return categoryFiltered;
     }
-    return categoryFiltered.filter((market) =>
-      watchlistMarkets.includes(market.symbol),
-    );
+    return categoryFiltered.filter((market) => isMarketWatchlisted(market));
   }, [
-    allMarkets,
+    defaultProvider,
+    savedMarketCatalog,
     recentlyViewedSymbols,
     marketTypeFilter,
     now,
     showFavoritesOnly,
-    watchlistMarkets,
+    isMarketWatchlisted,
   ]);
 
   // Apply sorting to searched and favorites-filtered markets

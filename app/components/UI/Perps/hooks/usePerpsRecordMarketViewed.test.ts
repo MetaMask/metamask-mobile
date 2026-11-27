@@ -54,6 +54,7 @@ const createMarketsResult = (
       volumeNumber: 1,
     },
   ],
+  catalog: [],
   isLoading: false,
   isRefreshing: false,
   error: null,

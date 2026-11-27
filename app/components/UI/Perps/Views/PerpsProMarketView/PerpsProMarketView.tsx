@@ -648,9 +648,16 @@ const PerpsProMarketView = ({
     handleMarketListPress,
     handleFavoritePress,
     handlePerpsModeChange,
-  } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
+  } = usePerpsMarketHeaderActions({
+    symbol: market?.symbol,
+    marketKey: market?.marketKey,
+    venues:
+      market && 'venues' in market
+        ? (market.venues as readonly PerpsMarketData[] | undefined)
+        : undefined,
+  });
 
-  usePerpsRecordMarketViewed(market?.symbol);
+  usePerpsRecordMarketViewed(market);
 
   if (!market?.symbol) {
     return (

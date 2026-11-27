@@ -1,7 +1,14 @@
 import { useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsMarkets } from './usePerpsMarkets';
+
+interface RecordedMarket {
+  symbol?: string;
+  marketKey?: string;
+  venues?: readonly PerpsMarketData[];
+}
 
 /**
  * Records the market as recently viewed whenever this screen is focused.
@@ -11,7 +18,17 @@ import { usePerpsMarkets } from './usePerpsMarkets';
  * (e.g. from the homepage) instead of remounting it, which would otherwise skip
  * the view recording entirely.
  */
-export function usePerpsRecordMarketViewed(symbol?: string): void {
+export function usePerpsRecordMarketViewed(
+  marketOrSymbol?: string | RecordedMarket,
+): void {
+  const symbol =
+    typeof marketOrSymbol === 'string'
+      ? marketOrSymbol
+      : marketOrSymbol?.symbol;
+  const marketKey =
+    typeof marketOrSymbol === 'string' ? undefined : marketOrSymbol?.marketKey;
+  const venues =
+    typeof marketOrSymbol === 'string' ? undefined : marketOrSymbol?.venues;
   // The zero-volume/open-interest filters exist to keep inactive markets out of
   // browsing lists. Here the list is only used to tell tradable symbols from
   // delisted ones, and production defaults would drop valid but inactive
@@ -38,7 +55,15 @@ export function usePerpsRecordMarketViewed(symbol?: string): void {
       if (hasResolvedInitialData === true && !tradableSymbols.has(symbol)) {
         return;
       }
+      if (marketKey || venues) {
+        Engine.context.PerpsController.recordMarketViewed(
+          symbol,
+          marketKey,
+          venues,
+        );
+        return;
+      }
       Engine.context.PerpsController.recordMarketViewed(symbol);
-    }, [hasResolvedInitialData, symbol, tradableSymbols]),
+    }, [hasResolvedInitialData, marketKey, symbol, tradableSymbols, venues]),
   );
 }

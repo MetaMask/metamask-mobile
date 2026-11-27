@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -36,6 +37,8 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
+const titleStyle = { flexShrink: 1 };
+
 const PerpsMarketRowItem = ({
   market,
   onPress,
@@ -43,6 +46,7 @@ const PerpsMarketRowItem = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
+  venueProviderId,
   showTypeTag = false,
   compact = false,
   enableLivePrices = true,
@@ -179,92 +183,144 @@ const PerpsMarketRowItem = ({
   const ticker = getPerpsDisplaySymbol(displayMarket.symbol);
 
   const description = displayText ? `${ticker} \u00B7 ${displayText}` : ticker;
+  const hostRef = useRef<View>(null);
+  const spacerRef = useRef<View>(null);
+  const [badgeOrigin, setBadgeOrigin] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const tokenLogo = (withVenueBadge: boolean) => (
+    <PerpsTokenLogo
+      symbol={displayMarket.symbol}
+      marketKey={displayMarket.marketKey}
+      iconProviderId={displayMarket.providerId}
+      providerId={withVenueBadge ? venueProviderId : undefined}
+      size={iconSize}
+      recyclingKey={displayMarket.symbol}
+      testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
+    />
+  );
+  const spacerStyle = useMemo(
+    () => ({ width: iconSize, height: iconSize }),
+    [iconSize],
+  );
+  const badgeStyle = useMemo(
+    () =>
+      badgeOrigin
+        ? {
+            position: 'absolute' as const,
+            left: badgeOrigin.x,
+            top: badgeOrigin.y,
+            width: iconSize,
+            height: iconSize,
+          }
+        : undefined,
+    [badgeOrigin, iconSize],
+  );
+  const placeBadge = useCallback(() => {
+    spacerRef.current?.measureInWindow((spacerX, spacerY) => {
+      hostRef.current?.measureInWindow((hostX, hostY) => {
+        const x = spacerX - hostX;
+        const y = spacerY - hostY;
+        setBadgeOrigin((current) =>
+          current?.x === x && current?.y === y ? current : { x, y },
+        );
+      });
+    });
+  }, []);
 
   return (
-    <ListItem
-      isInteractive
-      onPress={handlePress}
-      onLongPress={onLongPress}
-      accessibilityActions={accessibilityActions}
-      onAccessibilityAction={onAccessibilityAction}
-      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
-      avatar={
-        <PerpsTokenLogo
-          symbol={displayMarket.symbol}
-          size={iconSize}
-          recyclingKey={displayMarket.symbol}
-          testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
-        />
-      }
-      title={assetLabel}
-      titleProps={{
-        testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
-        numberOfLines: 1,
-        // flexShrink lets the title text yield space to the leverage badge so
-        // it doesn't overflow into the price column on long asset names.
-        // eslint-disable-next-line react-native/no-inline-styles
-        style: { flexShrink: 1 },
-      }}
-      titleEndAccessory={
-        showTypeTag ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            <Tag severity={TagSeverity.Neutral} twClassName="self-center">
-              {strings('token_watchlist.perp_tag')}
-            </Tag>
+    <View ref={hostRef}>
+      <ListItem
+        isInteractive
+        onPress={handlePress}
+        onLongPress={onLongPress}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={onAccessibilityAction}
+        testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+        avatar={
+          venueProviderId ? (
+            <View ref={spacerRef} style={spacerStyle} onLayout={placeBadge} />
+          ) : (
+            tokenLogo(false)
+          )
+        }
+        title={assetLabel}
+        titleProps={{
+          testID: getPerpsMarketRowItemSelector.assetLabel(
+            displayMarket.symbol,
+          ),
+          numberOfLines: 1,
+          // flexShrink lets the title text yield space to the leverage badge so
+          // it doesn't overflow into the price column on long asset names.
+          style: titleStyle,
+        }}
+        titleEndAccessory={
+          showTypeTag ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+                {strings('token_watchlist.perp_tag')}
+              </Tag>
+              <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+            </Box>
+          ) : (
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-          </Box>
-        ) : (
-          <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-        )
-      }
-      description={description}
-      descriptionProps={{
-        numberOfLines: 1,
-        ellipsizeMode: 'tail',
-      }}
-      descriptionEndAccessory={
-        showBadge && badgeType ? (
-          <PerpsBadge
-            type={badgeType}
-            testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
-          />
-        ) : undefined
-      }
-      value={displayMarket.price}
-      subvalue={displayMarket.change24hPercent}
-      subvalueProps={{
-        color: isPositiveChange
-          ? TextColor.SuccessDefault
-          : TextColor.ErrorDefault,
-      }}
-      endAccessory={
-        onWatchlistPress || onAddPress ? (
-          <ButtonIcon
-            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
-            size={ButtonIconSize.Md}
-            onPress={() => (onWatchlistPress ?? onAddPress)?.(displayMarket)}
-            accessibilityLabel={
-              isWatchlisted
-                ? strings('token_watchlist.remove_from_watchlist')
-                : strings('perps.market_details.add_to_watchlist')
-            }
-            testID={getPerpsMarketRowItemSelector.addButton(
-              displayMarket.symbol,
-            )}
-          />
-        ) : undefined
-      }
-      accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
-      twClassName={
-        [compact ? 'py-2 min-h-0' : undefined, twClassName]
-          .filter(Boolean)
-          .join(' ') || undefined
-      }
-    />
+          )
+        }
+        description={description}
+        descriptionProps={{
+          numberOfLines: 1,
+          ellipsizeMode: 'tail',
+        }}
+        descriptionEndAccessory={
+          showBadge && badgeType ? (
+            <PerpsBadge
+              type={badgeType}
+              testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
+            />
+          ) : undefined
+        }
+        value={displayMarket.price}
+        subvalue={displayMarket.change24hPercent}
+        subvalueProps={{
+          color: isPositiveChange
+            ? TextColor.SuccessDefault
+            : TextColor.ErrorDefault,
+        }}
+        endAccessory={
+          onWatchlistPress || onAddPress ? (
+            <ButtonIcon
+              iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
+              size={ButtonIconSize.Md}
+              onPress={() => (onWatchlistPress ?? onAddPress)?.(displayMarket)}
+              accessibilityLabel={
+                isWatchlisted
+                  ? strings('token_watchlist.remove_from_watchlist')
+                  : strings('perps.market_details.add_to_watchlist')
+              }
+              testID={getPerpsMarketRowItemSelector.addButton(
+                displayMarket.symbol,
+              )}
+            />
+          ) : undefined
+        }
+        accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
+        twClassName={
+          [compact ? 'py-2 min-h-0' : undefined, twClassName]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
+      />
+      {venueProviderId && badgeOrigin ? (
+        <View pointerEvents="none" style={badgeStyle}>
+          {tokenLogo(true)}
+        </View>
+      ) : null}
+    </View>
   );
 };
 

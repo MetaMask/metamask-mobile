@@ -3505,6 +3505,21 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('falls back to the provider when the snapshot URL is missing', async () => {
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+      const streamManager = new PerpsStreamManager();
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback: jest.fn(),
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+          useTerminalApi: false,
+        });
+      });
+      unsubscribe();
+    });
+
     it('uses the Terminal snapshot for Lighter after TAT-4395/TAT-4407', () => {
       // The snapshot gate is no longer tied to `activeProvider ===
       // 'hyperliquid'`: with a snapshot URL configured, the standalone fetch

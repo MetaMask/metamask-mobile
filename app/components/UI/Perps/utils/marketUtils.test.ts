@@ -16,6 +16,9 @@ import {
   getAssetIconUrl,
   getAssetIconUrls,
   getSuggestedWatchlistMarkets,
+  marketRowVenueBadgeProvider,
+  resolvePerpsIconSymbol,
+  shouldSubscribeToMarketRowPrices,
   SUGGESTED_WATCHLIST_LIMIT,
 } from './marketUtils';
 
@@ -419,6 +422,68 @@ describe('marketUtils', () => {
       const result = getAssetIconUrl(symbol);
 
       expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
+    });
+
+    it('keeps the Hyperliquid URL when a market key is also present', () => {
+      const result = getAssetIconUrl('BTC', undefined, {
+        marketKey: 'bitcoin',
+        providerId: 'hyperliquid',
+      });
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/BTC.svg');
+    });
+
+    it('uses the market key for a non-Hyperliquid row', () => {
+      const result = getAssetIconUrl('ANT', undefined, {
+        marketKey: 'xyz:ANT',
+        providerId: 'lighter',
+      });
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:ANT.svg');
+    });
+  });
+
+  describe('resolvePerpsIconSymbol', () => {
+    it('falls back to the symbol when the market key is absent', () => {
+      expect(resolvePerpsIconSymbol('ETH', { providerId: 'lighter' })).toBe(
+        'ETH',
+      );
+    });
+  });
+
+  describe('marketRowVenueBadgeProvider', () => {
+    const lighterOnly = {
+      providerId: 'lighter' as const,
+      venues: [{ providerId: 'lighter' as const }],
+    };
+    const shared = {
+      providerId: 'hyperliquid' as const,
+      venues: [
+        { providerId: 'hyperliquid' as const },
+        { providerId: 'lighter' as const },
+      ],
+    };
+
+    it('badges a single-venue row only while both providers are selected', () => {
+      expect(marketRowVenueBadgeProvider(lighterOnly, 2)).toBe('lighter');
+      expect(marketRowVenueBadgeProvider(lighterOnly, 1)).toBeUndefined();
+      expect(marketRowVenueBadgeProvider(shared, 2)).toBeUndefined();
+    });
+  });
+
+  describe('shouldSubscribeToMarketRowPrices', () => {
+    it('skips live prices when offline, on slow cellular, or on a low-end device', () => {
+      expect(shouldSubscribeToMarketRowPrices('HIGH', 'NONE')).toBe(false);
+      expect(shouldSubscribeToMarketRowPrices('MID', 'SLOW_CELLULAR')).toBe(
+        false,
+      );
+      expect(shouldSubscribeToMarketRowPrices('LOW', 'WIFI')).toBe(false);
+    });
+
+    it('keeps live prices when the hardware or network tier is unknown', () => {
+      expect(shouldSubscribeToMarketRowPrices(null, null)).toBe(true);
+      expect(shouldSubscribeToMarketRowPrices('LOW', null)).toBe(true);
+      expect(shouldSubscribeToMarketRowPrices(null, 'WIFI')).toBe(true);
     });
   });
 

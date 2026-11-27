@@ -63,6 +63,16 @@ export interface PerpsMarketListProps {
    */
   showBadge?: boolean;
   /**
+   * Show the venue mark on rows that exist on only one provider.
+   * Leave this off when one provider is selected or Lighter is disabled.
+   */
+  showSingleVenueBadges?: boolean;
+  /**
+   * Subscribe each visible row to its display symbol's live price.
+   * @default true
+   */
+  enableLivePrices?: boolean;
+  /**
    * Optional style for the FlashList content container
    */
   contentContainerStyle?: StyleProp<ViewStyle>;

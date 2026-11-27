@@ -638,6 +638,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     handlePerpsModeChange,
   } = usePerpsMarketHeaderActions({
     symbol: market?.symbol,
+    marketKey: market?.marketKey,
+    venues: (market as Partial<PerpsMarketRow> | undefined)?.venues,
     backFallback: 'home',
   });
 
@@ -655,7 +657,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // Record the view for the Recently Viewed rail — fires for every entry
   // path into this screen (market list, watchlist, related markets,
   // homepage, deep links, trade-again), not just market-list taps.
-  usePerpsRecordMarketViewed(market?.symbol);
+  usePerpsRecordMarketViewed(market);
 
   const {
     scrollY: scrollYShared,
