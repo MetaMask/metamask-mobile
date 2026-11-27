@@ -123,7 +123,6 @@ import XProfileIdentityStep from './XProfileIdentityStep';
 import {
   SocialEvent,
   getXSignInFailureReason,
-  isSocialOnboardingTrigger,
   useSocialScreenAnalytics,
 } from '../analytics';
 import SocialTermsSheet from '../terms/SocialTermsSheet';
@@ -139,6 +138,7 @@ import {
   takePendingSocialPreviewTarget,
 } from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 import { getOnboardingExitMethod } from './utils/getOnboardingExitMethod';
+import { getPendingOnboardingTrigger } from './pendingOnboardingTrigger';
 import { isPendingActionResumable } from './utils/isPendingActionResumable';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -673,10 +673,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   // The gated action that sent the user here. Rides on the screen view, every
   // interaction in onboarding and onboarding_completed.
-  const routeTrigger = route.params?.trigger;
-  const onboardingTrigger = isSocialOnboardingTrigger(routeTrigger)
-    ? routeTrigger
-    : undefined;
+  // Read once, when the screen mounts. Every entry sets it just before it
+  // navigates here.
+  const [onboardingTrigger] = useState(getPendingOnboardingTrigger);
   const triggerProperties = useMemo(
     () =>
       onboardingTrigger ? { onboarding_trigger: onboardingTrigger } : undefined,

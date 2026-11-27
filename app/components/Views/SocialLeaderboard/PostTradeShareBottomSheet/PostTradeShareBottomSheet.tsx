@@ -47,6 +47,7 @@ import {
   SocialEvent,
   useSocialScreenAnalytics,
 } from '../analytics';
+import { setPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
@@ -217,9 +218,8 @@ const PostTradeShareBottomSheet: React.FC = () => {
     }
     if (session.variant === 'create_profile') {
       clearPostTradeShareSession();
-      NavigationService.navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
-        trigger: SocialEvent.OnboardingTrigger.POST_COMPOSER,
-      });
+      setPendingOnboardingTrigger(SocialEvent.OnboardingTrigger.POST_COMPOSER);
+      NavigationService.navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
       return;
     }
     if (!canShare) {

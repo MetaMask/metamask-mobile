@@ -7,7 +7,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
-import type { SocialOnboardingTrigger } from '../../components/Views/SocialLeaderboard/analytics/socialEvents';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -1073,11 +1072,6 @@ export type RootStackParamList = {
     | {
         /** Opens only the terms sheet for users with an existing profile. */
         termsOnly?: boolean;
-        /**
-         * The gated action that opened onboarding. Analytics only: it is sent
-         * as `onboarding_trigger` and never changes the flow.
-         */
-        trigger?: SocialOnboardingTrigger;
       }
     | undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;

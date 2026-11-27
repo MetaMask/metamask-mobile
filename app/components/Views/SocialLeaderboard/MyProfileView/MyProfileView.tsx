@@ -139,6 +139,7 @@ import {
   useSocialAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
+import { setPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 
 /** Same 12px slop the home header uses so each icon stays a comfortable tap. */
 const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -590,9 +591,10 @@ const MyProfileView: React.FC = () => {
   }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
-      trigger: SocialEvent.OnboardingTrigger.MY_PROFILE_AVATAR,
-    });
+    setPendingOnboardingTrigger(
+      SocialEvent.OnboardingTrigger.MY_PROFILE_AVATAR,
+    );
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
   const buildProfileOgImageRequest = useCallback(
