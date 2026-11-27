@@ -269,6 +269,7 @@ const PredictHomeView = ({
         eventTitle: event.title,
         eventImageUrl: event.imageUrl,
         askPrice: outcome.askPrice,
+        fractionalTradingEnabled: market.fractionalTradingEnabled,
       });
     },
     [openOrderFlow],

@@ -13,6 +13,7 @@ import {
   string,
   unknown,
 } from '@metamask/superstruct';
+import BigNumber from 'bignumber.js';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictBuyOrderPreview,
@@ -40,6 +41,18 @@ const positiveInteger = refine(
   (value) => Number.isInteger(value) && value > 0,
 );
 
+/** A positive contract count in hundredths. BigNumber reads the number's
+ * shortest decimal form, so values such as 0.29 are not misjudged by
+ * floating-point multiplication. */
+const positiveContracts = refine(
+  number(),
+  'PredictPositiveContracts',
+  (value) =>
+    Number.isFinite(value) &&
+    value > 0 &&
+    (new BigNumber(value).decimalPlaces() ?? Infinity) <= 2,
+);
+
 const feeSource = enums(['venue', 'metamask'] as const);
 
 const feeComponentSchema = object({
@@ -57,7 +70,6 @@ const previewHeader = {
   venueId,
   marketId: entityId,
   side,
-  estimatedContracts: positiveInteger,
   averagePrice: decimal,
   limitPrice: decimal,
   fee: amount,
@@ -65,8 +77,11 @@ const previewHeader = {
   expiresAt: timestamp,
 };
 
+/** A buy on a fractional Market quotes hundredths of a contract; a sell
+ * offers and quotes whole contracts only. */
 const buyPreviewSchema = object({
   ...previewHeader,
+  estimatedContracts: positiveContracts,
   action: literal('buy'),
   requestedAmount: amount,
   orderAmount: amount,
@@ -77,6 +92,7 @@ const buyPreviewSchema = object({
 
 const sellPreviewSchema = object({
   ...previewHeader,
+  estimatedContracts: positiveInteger,
   action: literal('sell'),
   requestedContracts: positiveInteger,
   estimatedProceeds: amount,
@@ -99,7 +115,9 @@ const receiptStatus = enums([
   'needs_manual_review',
 ] as const);
 
-/** Shared Receipt header reported for either action. */
+/** Shared Receipt header reported for either action. `quotedContracts`
+ * accepts hundredths for both: a receipt reports an Order already
+ * committed, so it must parse whatever count the backend reports. */
 const receiptHeader = {
   operationId: entityId,
   previewId: entityId,
@@ -107,7 +125,7 @@ const receiptHeader = {
   marketId: entityId,
   side,
   status: receiptStatus,
-  quotedContracts: positiveInteger,
+  quotedContracts: positiveContracts,
   venueOrderId: nullable(entityId),
   averageFillPrice: nullable(decimal),
   fee: nullable(amount),

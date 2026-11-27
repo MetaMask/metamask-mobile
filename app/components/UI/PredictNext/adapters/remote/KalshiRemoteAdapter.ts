@@ -338,15 +338,16 @@ export class KalshiRemoteAdapter {
         const approvalGeneration = signing?.getApprovalGeneration();
         try {
           // Version tolerance (ADR-0001): the deployed backend's strict
-          // request schema rejects unknown keys, so a buy keeps the exact
-          // PRED-1194 body without `action`; only a sell carries the
-          // discriminator.
+          // request schema rejects unknown keys, so a buy carries no
+          // `action`; only a sell carries the discriminator. Only a buy
+          // offers fractional counts (PRED-1615): a sell stays whole.
           const wireParams: FetchOrderPreviewParams =
             params.action === 'buy'
               ? {
                   marketId: params.marketId,
                   side: params.side,
                   amount: params.amount,
+                  allowFractionalContracts: true,
                   idempotencyKey: params.idempotencyKey,
                 }
               : {

@@ -1,5 +1,6 @@
 import {
   array,
+  boolean,
   coerce,
   enums,
   literal,
@@ -274,6 +275,7 @@ const marketSchema = object({
   status,
   group: marketGroupSchema,
   layout: marketLayoutSchema,
+  fractionalTradingEnabled: optional(boolean()),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),

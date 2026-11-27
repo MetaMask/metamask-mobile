@@ -17,6 +17,9 @@ import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 interface OrderBreakdownSheetProps {
   preview: PredictOrderPreview;
+  /** The signed maximum cost of a quoted buy, once the phone has checked
+   * what it would sign. */
+  maxCost?: string;
   onClose: () => void;
 }
 
@@ -24,12 +27,13 @@ interface OrderBreakdownSheetProps {
  * The price details sheet opened from the "To win" line of a buy or the
  * "Net proceeds" line of a Cash Out, stacked above the Order sheet. Matches
  * the Legacy "Price details" sheet layout with a header and close button,
- * and renders backend-owned values verbatim via OrderDetailsRows.
+ * and renders backend-owned values verbatim via OrderDetailsRows, plus the
+ * signed maximum cost of a buy.
  */
 export const OrderBreakdownSheet = forwardRef<
   React.ComponentRef<typeof BottomSheet>,
   OrderBreakdownSheetProps
->(({ preview, onClose }, ref) => {
+>(({ preview, maxCost, onClose }, ref) => {
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
 
   useImperativeHandle(
@@ -70,8 +74,8 @@ export const OrderBreakdownSheet = forwardRef<
       >
         {strings('predict.fee_summary.price_details')}
       </BottomSheetHeader>
-      <Box twClassName="px-4 pb-6">
-        <OrderDetailsRows preview={preview} />
+      <Box className="px-4 pb-6">
+        <OrderDetailsRows preview={preview} maxCost={maxCost} />
       </Box>
     </BottomSheet>
   );

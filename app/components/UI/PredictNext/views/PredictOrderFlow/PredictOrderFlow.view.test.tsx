@@ -495,7 +495,7 @@ describe('PredictOrderFlow', () => {
     expect(total).toBeLessThanOrEqual(Math.round(Number(entered) * 100));
 
     expect(
-      shownCents(screen.getByTestId(PredictOrderFlowTestIds.MAX_COST)),
+      shownCents(details.getByTestId(PredictOrderFlowTestIds.MAX_COST)),
     ).toBe(total);
     return { fee, contracts, total };
   };
@@ -775,26 +775,35 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
   });
 
-  it('shows the signed maximum cost on the buy sheet before Buy is tapped', async () => {
+  it('keeps the signed maximum cost off the buy sheet', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    await openSheet();
-    expect(
-      screen.getByText(strings('predict_next.order_preview.max_cost')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
-    ).toHaveTextContent('—');
+    await quoteOrder();
 
-    typeAmount('20');
+    expect(
+      screen.queryByText(strings('predict_next.order_preview.max_cost')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.MAX_COST),
+    ).not.toBeOnTheScreen();
+  });
 
-    // All 41 contracts at the 46.51¢ limit plus the fee ceiling.
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
-      ).toHaveTextContent('$19.89'),
+  it('shows the signed maximum cost in Price details before Buy is tapped', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+    await quoteOrder();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+
+    const details = within(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
     );
-    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled();
+    expect(
+      details.getByText(strings('predict_next.order_preview.max_cost')),
+    ).toBeOnTheScreen();
+    // All 41 contracts at the 46.51¢ limit plus the fee ceiling.
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+    ).toHaveTextContent('$19.89');
     expect(commitCalls()).toHaveLength(0);
   });
 
@@ -822,8 +831,12 @@ describe('PredictOrderFlow', () => {
     );
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    const details = within(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    );
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+      details.getByTestId(PredictOrderFlowTestIds.MAX_COST),
     ).toHaveTextContent('—');
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
 
@@ -831,6 +844,9 @@ describe('PredictOrderFlow', () => {
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+    ).toHaveTextContent('$19.89');
     expect(commitCalls()).toHaveLength(0);
   });
 
@@ -848,8 +864,11 @@ describe('PredictOrderFlow', () => {
       await screen.findByTestId(PredictOrderFlowTestIds.ERROR),
     ).toHaveTextContent('A quote is unavailable right now.');
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.MAX_COST),
+      within(screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN)).getByTestId(
+        PredictOrderFlowTestIds.MAX_COST,
+      ),
     ).toHaveTextContent('—');
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
     await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
@@ -871,6 +890,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '20',
+      allowFractionalContracts: true,
       // Phone-generated per quote; the preview stores it as `client_order_id`.
       idempotencyKey: expect.any(String),
     });
@@ -971,6 +991,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '5',
+      allowFractionalContracts: true,
       idempotencyKey: expect.any(String),
     });
   });
@@ -1043,6 +1064,7 @@ describe('PredictOrderFlow', () => {
         marketId: 'KXTEST-26-A',
         side: 'yes',
         amount: '92.34',
+        allowFractionalContracts: true,
         idempotencyKey: expect.any(String),
       });
       expect(
@@ -1066,6 +1088,7 @@ describe('PredictOrderFlow', () => {
         marketId: 'KXTEST-26-A',
         side: 'yes',
         amount: '61.56',
+        allowFractionalContracts: true,
         idempotencyKey: expect.any(String),
       });
     });
@@ -1347,6 +1370,57 @@ describe('PredictOrderFlow', () => {
       screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
     ).not.toBeOnTheScreen();
   }, 30000);
+
+  describe('a fractional quote', () => {
+    const FractionalBuyProbe = () => (
+      <Probe intent={{ ...buyIntent, fractionalTradingEnabled: true }} />
+    );
+
+    const buyFractionalQuote = async (Component: React.ComponentType) => {
+      stubFetch(() => ({ body: makePreview({ estimatedContracts: 41.5 }) }));
+      await openSheet(Component);
+      typeAmount('20');
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await screen.findByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED);
+    };
+
+    it('shows the quoted hundredths of a contract in Price details', async () => {
+      stubFetch(() => ({ body: makePreview({ estimatedContracts: 41.5 }) }));
+      await openSheet(FractionalBuyProbe);
+      typeAmount('20');
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+
+      expect(
+        within(screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN)).getByText(
+          '~41.5 contracts at 46.5¢ each. Final amount may vary based on order book availability.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('signs the hundredths the $20 covers on a fractional Market', async () => {
+      await buyFractionalQuote(FractionalBuyProbe);
+
+      // 2000 cents / (46.51 + 2) cents per contract is 41.228..., so 41.22.
+      expect(commitCalls()[0]?.body).toMatchObject({ count: '41.22' });
+    }, 30000);
+
+    it('signs whole contracts on a whole-only Market', async () => {
+      await buyFractionalQuote(BuyProbe);
+
+      expect(commitCalls()[0]?.body).toMatchObject({ count: '41.00' });
+    }, 30000);
+  });
 
   it('refuses a Buy after the reviewed preview is revoked by the service lifecycle', async () => {
     stubFetch(() => ({ body: makePreview() }));
@@ -1671,6 +1745,33 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.PAYOUT_EXPOSURE),
     ).toHaveTextContent('$12.00');
+  }, 30000);
+
+  it('renders a fractional partial Fill with an exact remainder', async () => {
+    // 12.5 - 7.29 in floating point is 5.209999999999999.
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({
+        body: makeReceipt({
+          status: 'partially_filled',
+          quotedContracts: 12.5,
+          filledContracts: '7.29',
+          actualSpend: '3.54',
+          averageFillPrice: '0.4855',
+          fee: '0.15',
+          payoutExposure: '7.29',
+        }),
+      }),
+    });
+
+    await buyOrder();
+
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.REMAINDER),
+    ).toHaveTextContent(/7\.29 of 12\.5 contracts filled/);
+    expect(screen.getByText(/remaining 5\.21 were canceled/)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.FILLED_CONTRACTS),
+    ).toHaveTextContent('7.29');
   }, 30000);
 
   it('renders a zero Fill with the Order-not-filled treatment and a re-quote', async () => {

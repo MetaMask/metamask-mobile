@@ -111,6 +111,7 @@ const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
           eventTitle: cardEvent.title,
           eventImageUrl: cardEvent.imageUrl,
           askPrice: outcome.askPrice,
+          fractionalTradingEnabled: market.fractionalTradingEnabled,
         })
       }
     />

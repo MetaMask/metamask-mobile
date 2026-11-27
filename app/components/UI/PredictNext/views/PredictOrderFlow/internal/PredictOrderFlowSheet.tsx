@@ -94,6 +94,9 @@ export type PredictOrderFlowIntent =
       eventTitle: string;
       eventImageUrl?: string;
       askPrice?: PredictDecimal;
+      /** The Market's `fractionalTradingEnabled`: the buy may sign
+       * hundredths of a contract. */
+      fractionalTradingEnabled?: boolean;
     }
   | {
       action: 'sell';
@@ -360,6 +363,8 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
+              fractionalTradingEnabled:
+                intent.fractionalTradingEnabled === true,
               idempotencyKey,
             }
           : {
@@ -1138,11 +1143,7 @@ export const PredictOrderFlowSheet = ({
               )}
               <Box twClassName="py-3">
                 {intent.action === 'sell' ? null : (
-                  <OrderSummaryRows
-                    balance={balanceLabel}
-                    maxCost={currentReview?.maxCost}
-                    isMaxCostLoading={isQuoting}
-                  />
+                  <OrderSummaryRows balance={balanceLabel} />
                 )}
               </Box>
               <Box twClassName="gap-2">
@@ -1198,6 +1199,7 @@ export const PredictOrderFlowSheet = ({
         <OrderBreakdownSheet
           ref={breakdownSheetRef}
           preview={preview}
+          maxCost={currentReview?.maxCost}
           onClose={handleBreakdownClose}
         />
       )}

@@ -88,6 +88,7 @@ export const useOrderNextTrendingOutcome = () => {
         eventTitle: event.title,
         eventImageUrl: event.imageUrl,
         askPrice: outcome.askPrice,
+        fractionalTradingEnabled: market.fractionalTradingEnabled,
       });
       return true;
     },

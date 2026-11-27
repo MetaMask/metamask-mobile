@@ -10,6 +10,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictDecimal, PredictOrderPreview } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
+import { formatContractCount } from '../../../utils/formatShares';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -68,11 +69,16 @@ const FeeRow = ({ title, description, amount, testID }: FeeRowProps) => (
  * - Prediction order: contracts, per-contract average price, and the order cost (buy) or gross Proceeds (sell).
  * - MetaMask fee / Exchange fee: from `preview.feeBreakdown` when present, falling back to a single Fees row using `preview.fee` when absent/empty.
  * - Total: bold `totalDebit` (buy) or `estimatedNetProceeds` (sell), plus the partial-fill disclaimer note.
+ * - Maximum cost (signed), buy only: the worst case the phone signs (ADR-0004). The Buy tap approves it, so a dash stands in until the phone has checked the quote.
  */
 export const OrderDetailsRows = ({
   preview,
+  maxCost,
 }: {
   preview: PredictOrderPreview;
+  /** The signed maximum cost of the quoted buy, once the phone has checked
+   * what it would sign. */
+  maxCost?: string;
 }) => {
   const orderAmount =
     preview.action === 'buy' ? preview.orderAmount : preview.estimatedProceeds;
@@ -96,7 +102,7 @@ export const OrderDetailsRows = ({
         description={strings(
           'predict_next.order_preview.prediction_order_description',
           {
-            count: String(preview.estimatedContracts),
+            count: formatContractCount(preview.estimatedContracts),
             price: formatCents(preview.averagePrice),
           },
         )}
@@ -152,6 +158,21 @@ export const OrderDetailsRows = ({
           {formatUsd(total)}
         </Text>
       </Box>
+
+      {preview.action === 'buy' ? (
+        <Box className="flex-row items-center justify-between gap-4 pt-2">
+          <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+            {strings('predict_next.order_preview.max_cost')}
+          </Text>
+          <Text
+            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            testID={PredictOrderFlowTestIds.MAX_COST}
+          >
+            {maxCost ? formatUsd(maxCost) : '—'}
+          </Text>
+        </Box>
+      ) : null}
 
       <Text
         testID={PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE}

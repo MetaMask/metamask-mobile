@@ -164,15 +164,49 @@ describe('parsePredictOrderPreview', () => {
     ).toThrow();
   });
 
-  it('rejects a non-integer or non-positive contract count', () => {
+  it('accepts a buy contract count in hundredths', () => {
+    const preview = parsePredictOrderPreview({
+      ...validPreview,
+      estimatedContracts: 12.5,
+    });
+
+    expect(preview.estimatedContracts).toBe(12.5);
+  });
+
+  it('accepts a buy contract count whose float product is inexact', () => {
+    // 0.29 * 100 is 28.999999999999996 in IEEE-754.
+    const preview = parsePredictOrderPreview({
+      ...validPreview,
+      estimatedContracts: 0.29,
+    });
+
+    expect(preview.estimatedContracts).toBe(0.29);
+  });
+
+  it('rejects a buy contract count with more than two decimals', () => {
     expect(() =>
-      parsePredictOrderPreview({ ...validPreview, estimatedContracts: 2.5 }),
+      parsePredictOrderPreview({ ...validPreview, estimatedContracts: 12.505 }),
     ).toThrow();
+  });
+
+  it('rejects a non-positive buy contract count', () => {
     expect(() =>
       parsePredictOrderPreview({ ...validPreview, estimatedContracts: 0 }),
     ).toThrow();
     expect(() =>
+      parsePredictOrderPreview({ ...validPreview, estimatedContracts: -1.5 }),
+    ).toThrow();
+  });
+
+  it('rejects a non-integer or non-positive sell contract count', () => {
+    expect(() =>
       parsePredictOrderPreview({ ...validSellPreview, requestedContracts: 0 }),
+    ).toThrow();
+    expect(() =>
+      parsePredictOrderPreview({
+        ...validSellPreview,
+        requestedContracts: 7.5,
+      }),
     ).toThrow();
     expect(() =>
       parsePredictOrderPreview({
@@ -427,15 +461,40 @@ describe('parsePredictOrderReceipt', () => {
     ).toThrow();
   });
 
-  it('rejects a non-integer or non-positive quoted contract count', () => {
+  it('accepts a quoted contract count in hundredths', () => {
+    const receipt = parsePredictOrderReceipt({
+      ...validReceipt,
+      quotedContracts: 12.5,
+    });
+
+    expect(receipt.quotedContracts).toBe(12.5);
+  });
+
+  it('accepts a quoted contract count whose float product is inexact', () => {
+    // 0.29 * 100 is 28.999999999999996 in IEEE-754.
+    const receipt = parsePredictOrderReceipt({
+      ...validReceipt,
+      quotedContracts: 0.29,
+    });
+
+    expect(receipt.quotedContracts).toBe(0.29);
+  });
+
+  it('rejects a quoted contract count with more than two decimals', () => {
     expect(() =>
-      parsePredictOrderReceipt({ ...validReceipt, quotedContracts: 2.5 }),
+      parsePredictOrderReceipt({ ...validReceipt, quotedContracts: 2.555 }),
     ).toThrow();
+  });
+
+  it('rejects a non-positive or non-finite quoted contract count', () => {
     expect(() =>
       parsePredictOrderReceipt({ ...validReceipt, quotedContracts: 0 }),
     ).toThrow();
     expect(() =>
       parsePredictOrderReceipt({ ...validSellReceipt, quotedContracts: 0 }),
+    ).toThrow();
+    expect(() =>
+      parsePredictOrderReceipt({ ...validReceipt, quotedContracts: Infinity }),
     ).toThrow();
   });
 
