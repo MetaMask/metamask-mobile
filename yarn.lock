@@ -12485,9 +12485,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^12.0.2":
-  version: 12.0.2
-  resolution: "@metamask/utils@npm:12.0.2"
+"@metamask/utils@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@metamask/utils@npm:12.1.0"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/byte-utils": "npm:^0.1.0"
@@ -12501,8 +12501,8 @@ __metadata:
     "@types/lodash": "npm:^4.17.27"
     debug: "npm:^4.4.3"
     lodash: "npm:^4.18.1"
-    semver: "npm:^7.8.5"
-  checksum: 10/6fc10d2c69f229191f87d07d9d822ba25dd1e37e6838eddce889d435a452bc15f8aa8acc88a01e24800e4fdf0457a8215305c1c1408b0afd9e546480d3339e67
+    semver: "npm:^7.8.6"
+  checksum: 10/7e9c8f89c7486d7bc121ea6c2353470543798fe7513f245abd7ee75e342dfe964e865e15c56d3ad0193e9dcd8691a5f2dad7ba71f83fd3612dad290d32b5a98f
   languageName: node
   linkType: hard
 
@@ -47411,7 +47411,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.1.3, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.7.1, semver@npm:^7.7.2, semver@npm:^7.7.3, semver@npm:^7.7.4, semver@npm:^7.8.5":
+"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.1.3, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.7.1, semver@npm:^7.7.2, semver@npm:^7.7.3, semver@npm:^7.7.4, semver@npm:^7.8.5, semver@npm:^7.8.6":
   version: 7.8.6
   resolution: "semver@npm:7.8.6"
   bin:
