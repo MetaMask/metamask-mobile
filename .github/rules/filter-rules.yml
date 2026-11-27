@@ -148,41 +148,22 @@ ios_or_ignorable:
 # the tests that `jest --findRelatedTests` links to the changed files (the
 # `all_changes` list below); files Jest cannot follow, such as assets or native
 # code, simply select no tests. Changes to anything in `jest_full_run_triggers`
-# switch the pull request back to the full sharded suite, because Jest cannot
-# see their effect through the import graph: they reach tests through config,
-# setup files, automatic `__mocks__` resolution, fixtures read at runtime or
-# the dependency set itself. Merge queue, push and scheduled runs always run
-# the full suite regardless of these filters.
+# switch the pull request back to the full sharded suite. Only the high-impact
+# paths are listed: Jest and Babel configuration, the dependency manifest, and
+# the setup files, mocks and shared test harnesses that every suite loads
+# without importing them, so the import graph cannot link them to any test.
+# Merge queue, push and scheduled runs always run the full suite regardless of
+# these filters.
 jest_full_run_triggers:
-  # Jest and Babel configuration, and the toolchain that runs them
   - 'jest.config*.js'
   - 'babel.config*.js'
-  - 'scripts/babel/**'
-  - 'tsconfig*.json'
   - 'package.json'
   - 'yarn.lock'
-  - '.yarnrc.yml'
-  - '.yarn/**'
-  - 'patches/**'
-  - '.nvmrc'
-  - 'scripts/react-compiler.js'
-  # Setup files, mocks, fixtures and shared test utilities. The setup files
-  # (app/util/test/testSetup*.js) import app/util/theme and app/util/device
-  # directly, outside any test's own import graph.
   - 'app/util/test/**'
-  - 'app/util/theme/**'
-  - 'app/util/device/**'
-  - 'app/util/testUtils/**'
-  - '**/testUtils/**'
   - '**/__mocks__/**'
-  - '**/__fixtures__/**'
-  - '**/fixtures/**'
-  - '**/*.fixture.*'
   - 'tests/component-view/**'
   - 'tests/integration/**'
   - 'tests/utils/**'
-  # CI definition, including these rules
-  - '.github/**'
 
 # JEST DOCS-ONLY DETECTION
 # Used to skip the unit, component-view and integration Jest jobs on pull
