@@ -7,6 +7,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import { PRICE_ALERT_DELIVERY } from '../priceAlerts/payload';
 import {
   extractPushNotificationData,
   extractPushNotificationDeeplink,
@@ -231,6 +232,10 @@ class FCMService {
     try {
       const remoteMessage = await getInitialNotification();
 
+      if (remoteMessage?.data?.mm_local === PRICE_ALERT_DELIVERY) {
+        return { opened: false, deeplink: null };
+      }
+
       if (remoteMessage !== null) {
         await analyticsTrackPushClickEvent(remoteMessage);
       }
@@ -249,6 +254,9 @@ class FCMService {
         remoteMessage: FirebaseMessagingTypes.RemoteMessage,
       ) => {
         try {
+          if (remoteMessage.data?.mm_local === PRICE_ALERT_DELIVERY) {
+            return;
+          }
           await analyticsTrackPushClickEvent(remoteMessage);
           tapCallback(
             toPushTapResult(remoteMessage.data, Boolean(remoteMessage)),

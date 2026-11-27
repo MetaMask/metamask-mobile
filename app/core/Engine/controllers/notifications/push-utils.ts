@@ -1,8 +1,10 @@
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { unregisterBrazePush } from '../../../Braze/unregisterPush';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
+import { isPriceAlertDelivery } from '../../../../util/notifications/priceAlerts/payload';
+import { displayPriceAlert } from '../../../../util/notifications/priceAlerts/notifications';
 import { toFcmDataStringRecord } from '../../../../util/notifications/utils/fcm-data';
 
 export const createRegToken = FCMService.createRegToken;
@@ -43,6 +45,12 @@ export function shouldDisplayForegroundPushNotification(
 
 export const createSubscribeToPushNotifications = () => async () =>
   FCMService.listenToPushNotificationsReceived(async (rawPayload) => {
+    if (Platform.OS === 'ios' && isPriceAlertDelivery(rawPayload.data)) {
+      if (!rawPayload.notification) {
+        await displayPriceAlert(rawPayload);
+      }
+      return;
+    }
     const title = rawPayload.notification?.title;
     const body = rawPayload.notification?.body;
     if (!title) {
