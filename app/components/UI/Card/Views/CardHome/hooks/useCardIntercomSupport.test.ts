@@ -1,12 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
-import {
-  selectCardActiveProviderId,
-  selectCardProviderUserId,
-} from '../../../../../../selectors/cardController';
 import { selectCardIntercomSupportEnabled } from '../../../../../../selectors/featureFlagController/card';
+import { appendCardSupportParams } from '../../../../../../util/support';
 import { getBetaSupportUrl } from '../../../../../../util/support/betaSupportUrl';
 import { useCardIntercomSupport } from './useCardIntercomSupport';
 
@@ -26,13 +22,15 @@ jest.mock('../../../../../hooks/useSupportConsent', () => ({
   }),
 }));
 
+jest.mock('../../../../../../util/support', () => ({
+  appendCardSupportParams: jest.fn((url: string) => `${url}?card=1`),
+}));
+
 jest.mock('../../../../../../util/support/betaSupportUrl', () => ({
   getBetaSupportUrl: jest.fn(() => ''),
 }));
 
 let mockIsIntercomSupportEnabled = true;
-let mockProviderUserId: string | null = 'cardholder-1';
-let mockProviderName: string | null = 'immersve';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -45,18 +43,10 @@ describe('useCardIntercomSupport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsIntercomSupportEnabled = true;
-    mockProviderUserId = 'cardholder-1';
-    mockProviderName = 'immersve';
     (getBetaSupportUrl as jest.Mock).mockReturnValue('');
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectCardIntercomSupportEnabled) {
         return mockIsIntercomSupportEnabled;
-      }
-      if (selector === selectCardProviderUserId) {
-        return mockProviderUserId;
-      }
-      if (selector === selectCardActiveProviderId) {
-        return mockProviderName;
       }
       return undefined;
     });
@@ -70,15 +60,16 @@ describe('useCardIntercomSupport', () => {
     expect(result.current).toBeUndefined();
   });
 
-  it('opens the support conversation through the consent sheet with the provider identity', () => {
+  it('opens the support conversation through the consent sheet without pre-building card params', () => {
     const { result } = renderHook(() => useCardIntercomSupport());
 
     result.current?.();
 
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
-      `${METAMASK_SUPPORT_URL}&provider_user_id=cardholder-1&provider_name=immersve`,
     );
+    expect(appendCardSupportParams).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -98,7 +89,7 @@ describe('useCardIntercomSupport', () => {
     });
   });
 
-  it('skips the consent sheet on beta builds and opens the beta Intercom space', () => {
+  it('skips the consent sheet on beta builds and opens the beta Intercom space with card params', () => {
     (getBetaSupportUrl as jest.Mock).mockReturnValue(
       'https://intercom.help/internal-beta-testing/en/',
     );
@@ -111,23 +102,9 @@ describe('useCardIntercomSupport', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: 'https://intercom.help/internal-beta-testing/en/?provider_user_id=cardholder-1&provider_name=immersve',
+        url: 'https://intercom.help/internal-beta-testing/en/?card=1',
         title: 'card.card_home.contact_support',
       },
     });
-  });
-
-  it('still opens support when the provider identity is unknown', () => {
-    mockProviderUserId = null;
-    mockProviderName = null;
-
-    const { result } = renderHook(() => useCardIntercomSupport());
-
-    result.current?.();
-
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
-      expect.any(Function),
-      METAMASK_SUPPORT_URL,
-    );
   });
 });

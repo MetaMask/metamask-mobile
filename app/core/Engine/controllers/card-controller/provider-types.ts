@@ -419,6 +419,8 @@ export interface CardHomeData {
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
   externalWalletPriority?: CardWalletExternalPriorityResponse[];
+  /** Region for support routing. Not account.countryOfResidence, which drives residency geo-blocking. */
+  supportRegion?: string | null;
 }
 
 export function emptyCardHomeData(): CardHomeData {
@@ -432,6 +434,7 @@ export function emptyCardHomeData(): CardHomeData {
     alerts: [],
     actions: [],
     delegationSettings: null,
+    supportRegion: null,
   };
 }
 

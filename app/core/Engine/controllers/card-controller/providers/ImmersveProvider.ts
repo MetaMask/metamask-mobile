@@ -178,6 +178,16 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
   };
 }
 
+function normalizeSupportRegion(
+  region: string | null | undefined,
+): string | null {
+  const normalized = region?.trim().toUpperCase();
+  if (!normalized) {
+    return null;
+  }
+  return normalized;
+}
+
 /**
  * Report non-auth API failures to Sentry, then rethrow as CardProviderError.
  * Auth-token / 401 errors are intentionally excluded to avoid Sentry noise
@@ -544,6 +554,10 @@ interface ImmersveCardListItem {
   seriesId?: string;
   network?: string;
   regionCode?: string;
+}
+
+interface ImmersveKycProfileResponse {
+  region?: string;
 }
 
 interface ImmersveCardListResponse {
@@ -1430,9 +1444,30 @@ export class ImmersveProvider implements ICardProvider {
     })[0];
   }
 
-  private provisioningHomeData(): CardHomeData {
+  private async fetchKycRegion(tokens: CardAuthTokens): Promise<string | null> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      return null;
+    }
+    try {
+      const profile = await this.service.get<ImmersveKycProfileResponse>(
+        `/api/accounts/${accountId}/kyc-profile`,
+        tokens,
+      );
+      const region = profile?.region?.trim();
+      if (!region) {
+        return null;
+      }
+      return region;
+    } catch {
+      return null;
+    }
+  }
+
+  private provisioningHomeData(supportRegion: string | null): CardHomeData {
     return {
       ...emptyCardHomeData(),
+      supportRegion,
       alerts: [{ type: 'card_provisioning', dismissable: false }],
     };
   }
@@ -1456,14 +1491,20 @@ export class ImmersveProvider implements ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
     try {
-      const card = await this.resolveCurrentCard(tokens);
+      const [card, kycRegion] = await Promise.all([
+        this.resolveCurrentCard(tokens),
+        this.fetchKycRegion(tokens),
+      ]);
+      const supportRegion = normalizeSupportRegion(
+        kycRegion ?? card?.regionCode,
+      );
 
       if (!card) {
-        return this.provisioningHomeData();
+        return this.provisioningHomeData(supportRegion);
       }
 
       if (card.status === 'created') {
-        return this.provisioningHomeData();
+        return this.provisioningHomeData(supportRegion);
       }
 
       const detail = await this.service.get<ImmersveCardDetail>(
@@ -1487,6 +1528,7 @@ export class ImmersveProvider implements ICardProvider {
       if (this.isRevokedAllowance(primaryFundingAsset)) {
         return {
           ...emptyCardHomeData(),
+          supportRegion,
           card: cardDetails,
           walletProvisioning,
           primaryFundingAsset,
@@ -1503,6 +1545,7 @@ export class ImmersveProvider implements ICardProvider {
 
       return {
         ...emptyCardHomeData(),
+        supportRegion,
         card: cardDetails,
         walletProvisioning,
         primaryFundingAsset,

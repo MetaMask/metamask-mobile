@@ -3,8 +3,19 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import ReduxService from '../../core/redux';
 import Logger from '../Logger';
-import { METAMASK_SUPPORT_URL } from '../../constants/urls';
+import {
+  buildCardSupportUrl,
+  METAMASK_SUPPORT_URL,
+} from '../../constants/urls';
 import Routes from '../../constants/navigation/Routes';
+import {
+  selectCardActiveProviderId,
+  selectCardHomeData,
+  selectCardSupportRegion,
+  selectCardProviderUserId,
+  selectIsCardAuthenticated,
+} from '../../selectors/cardController';
+import { selectCardIntercomSupportEnabled } from '../../selectors/featureFlagController/card';
 import { selectSavedSupportDataSharingPreference } from '../../selectors/security';
 
 // Query param names must match the extension implementation (see
@@ -34,6 +45,39 @@ export const buildSupportUrl = (
     );
   }
   return url.toString();
+};
+
+/**
+ * Appends the Card identity (`provider_user_id`, `provider_name`, `card_region`)
+ * to a support URL when the user is signed in to Card and the Card Intercom
+ * support flag is on. `card_region` is left off when home data has no card.
+ * Returns the URL unchanged otherwise, including when the store is not
+ * initialized yet.
+ *
+ * @param url - Support URL to enrich.
+ * @returns Support URL with Card params appended when applicable.
+ */
+export const appendCardSupportParams = (url: string): string => {
+  try {
+    const state = ReduxService.store.getState();
+    if (
+      !selectIsCardAuthenticated(state) ||
+      !selectCardIntercomSupportEnabled(state)
+    ) {
+      return url;
+    }
+    const hasCard = selectCardHomeData(state)?.card != null;
+    return buildCardSupportUrl(
+      {
+        providerUserId: selectCardProviderUserId(state),
+        providerName: selectCardActiveProviderId(state),
+        cardRegion: hasCard ? selectCardSupportRegion(state) : null,
+      },
+      url,
+    );
+  } catch {
+    return url;
+  }
 };
 
 /**
@@ -109,7 +153,9 @@ export const confirmSupportConsent = async (
   baseUrl?: string,
   onOpenSupport?: () => void,
 ): Promise<void> => {
-  const url = await getEnrichedSupportUrl(baseUrl);
+  const url = await getEnrichedSupportUrl(
+    appendCardSupportParams(baseUrl ?? METAMASK_SUPPORT_URL),
+  );
   try {
     await open(url);
     onOpenSupport?.();
@@ -137,7 +183,7 @@ export const rejectSupportConsent = async (
 ): Promise<void> => {
   // Honor the "Don't share" choice literally: open the raw base URL without
   // appending metamask_version (or any device detail), matching the consent copy.
-  const url = baseUrl ?? METAMASK_SUPPORT_URL;
+  const url = appendCardSupportParams(baseUrl ?? METAMASK_SUPPORT_URL);
   Logger.log(
     '[SupportConsent] Opening support URL without device details',
     url,

@@ -5,6 +5,15 @@ import Logger from '../Logger';
 import Routes from '../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import {
+  selectCardActiveProviderId,
+  selectCardHomeData,
+  selectCardSupportRegion,
+  selectCardProviderUserId,
+  selectIsCardAuthenticated,
+} from '../../selectors/cardController';
+import { selectCardIntercomSupportEnabled } from '../../selectors/featureFlagController/card';
+import {
+  appendCardSupportParams,
   buildSupportUrl,
   confirmSupportConsent,
   getEnrichedSupportUrl,
@@ -31,6 +40,49 @@ jest.mock('../Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock('../../selectors/cardController', () => ({
+  selectCardActiveProviderId: jest.fn(),
+  selectCardHomeData: jest.fn(),
+  selectCardSupportRegion: jest.fn(),
+  selectCardProviderUserId: jest.fn(),
+  selectIsCardAuthenticated: jest.fn(),
+}));
+
+jest.mock('../../selectors/featureFlagController/card', () => ({
+  selectCardIntercomSupportEnabled: jest.fn(),
+}));
+
+const mockSignedInToCard = (
+  overrides: {
+    flag?: boolean;
+    authenticated?: boolean;
+    region?: string | null;
+    hasCard?: boolean;
+  } = {},
+) => {
+  const {
+    flag = true,
+    authenticated = true,
+    region = 'GB',
+    hasCard = true,
+  } = overrides;
+  jest.mocked(selectIsCardAuthenticated).mockReturnValue(authenticated);
+  jest.mocked(selectCardIntercomSupportEnabled).mockReturnValue(flag);
+  jest.mocked(selectCardProviderUserId).mockReturnValue('cardholder-1');
+  jest.mocked(selectCardActiveProviderId).mockReturnValue('baanx');
+  jest.mocked(selectCardSupportRegion).mockReturnValue(region);
+  jest
+    .mocked(selectCardHomeData)
+    .mockReturnValue(hasCard ? ({ card: { id: 'card-1' } } as never) : null);
+};
+
+const CARD_PARAMS =
+  'provider_user_id=cardholder-1&provider_name=baanx&card_region=GB';
+
+afterEach(() => {
+  mockSignedInToCard({ authenticated: false });
+});
+
 const mockGetState = jest.fn();
 jest.mock('../../core/redux', () => ({
   __esModule: true,
@@ -48,6 +100,64 @@ const mockSecurityState = (
   mockGetState.mockReturnValue({
     security: { shouldShowConsentSheet, dataSharingPreference },
   });
+
+describe('appendCardSupportParams', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetState.mockReturnValue({});
+  });
+
+  it('appends provider_user_id, provider_name and card_region when signed in to Card', () => {
+    mockSignedInToCard();
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      `${METAMASK_SUPPORT_URL}&${CARD_PARAMS}`,
+    );
+  });
+
+  it('omits card_region when the user has no card', () => {
+    mockSignedInToCard({ hasCard: false });
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      `${METAMASK_SUPPORT_URL}&provider_user_id=cardholder-1&provider_name=baanx`,
+    );
+  });
+
+  it('omits card_region when the country is unknown', () => {
+    mockSignedInToCard({ region: null });
+
+    expect(appendCardSupportParams('https://support.example.com')).toBe(
+      'https://support.example.com?provider_user_id=cardholder-1&provider_name=baanx',
+    );
+  });
+
+  it('returns the URL unchanged when signed out of Card', () => {
+    mockSignedInToCard({ authenticated: false });
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      METAMASK_SUPPORT_URL,
+    );
+  });
+
+  it('returns the URL unchanged when the Card Intercom support flag is off', () => {
+    mockSignedInToCard({ flag: false });
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      METAMASK_SUPPORT_URL,
+    );
+  });
+
+  it('returns the URL unchanged when the store is not ready', () => {
+    mockGetState.mockImplementationOnce(() => {
+      throw new Error('store not ready');
+    });
+    mockSignedInToCard();
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      METAMASK_SUPPORT_URL,
+    );
+  });
+});
 
 describe('buildSupportUrl', () => {
   beforeEach(() => {
@@ -207,6 +317,36 @@ describe('confirmSupportConsent', () => {
     );
   });
 
+  it('appends the card params once when signed in to Card', async () => {
+    mockSignedInToCard();
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+
+    await confirmSupportConsent(mockOpen);
+
+    const params = new URL(mockOpen.mock.calls[0][0] as string).searchParams;
+    expect(params.getAll('provider_user_id')).toStrictEqual(['cardholder-1']);
+    expect(params.getAll('provider_name')).toStrictEqual(['baanx']);
+    expect(params.getAll('card_region')).toStrictEqual(['GB']);
+    expect(params.get(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(
+      'jwt-token',
+    );
+  });
+
+  it('adds no card params when signed out of Card', async () => {
+    mockSignedInToCard({ authenticated: false });
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+
+    await confirmSupportConsent(mockOpen);
+
+    const params = new URL(mockOpen.mock.calls[0][0] as string).searchParams;
+    expect(params.has('provider_user_id')).toBe(false);
+    expect(params.has('card_region')).toBe(false);
+  });
+
   it('logs and swallows errors thrown by the opener', async () => {
     jest
       .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
@@ -272,6 +412,26 @@ describe('rejectSupportConsent', () => {
     const params = new URL(openedUrl).searchParams;
     expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
     expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
+  });
+
+  it('appends only the card params when signed in to Card', async () => {
+    mockSignedInToCard();
+
+    await rejectSupportConsent(mockOpen);
+
+    const openedUrl = mockOpen.mock.calls[0][0] as string;
+    expect(openedUrl).toBe(`${METAMASK_SUPPORT_URL}&${CARD_PARAMS}`);
+    expect(new URL(openedUrl).searchParams.has(SUPPORT_URL_PARAM_VERSION)).toBe(
+      false,
+    );
+  });
+
+  it('adds no card params when signed out of Card', async () => {
+    mockSignedInToCard({ authenticated: false });
+
+    await rejectSupportConsent(mockOpen);
+
+    expect(mockOpen).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
   });
 
   it('logs and swallows errors thrown by the opener', async () => {

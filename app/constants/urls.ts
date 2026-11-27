@@ -70,9 +70,11 @@ export const buildCardSupportUrl = (
   {
     providerUserId,
     providerName,
+    cardRegion,
   }: {
     providerUserId?: string | null;
     providerName?: string | null;
+    cardRegion?: string | null;
   },
   baseUrl: string = METAMASK_SUPPORT_URL,
 ) => {
@@ -83,6 +85,7 @@ export const buildCardSupportUrl = (
     ...(providerName
       ? [`provider_name=${encodeURIComponent(providerName)}`]
       : []),
+    ...(cardRegion ? [`card_region=${encodeURIComponent(cardRegion)}`] : []),
   ];
 
   if (params.length === 0) {

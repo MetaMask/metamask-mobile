@@ -320,6 +320,13 @@ export const selectCardCountryOfResidence = createSelector(
   (data): string | null => data?.account?.countryOfResidence ?? null,
 );
 
+export const selectCardSupportRegion = createSelector(
+  selectCardHomeData,
+  selectCardCountryOfResidence,
+  (data, countryOfResidence): string | null =>
+    countryOfResidence ?? data?.supportRegion ?? null,
+);
+
 export const selectCardUsState = createSelector(
   selectCardHomeData,
   (data): string | null => data?.account?.usState ?? null,

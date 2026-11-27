@@ -28,6 +28,7 @@ import {
   selectCardDelegationSettings,
   selectIsMoneyAccountDelegatedForCard,
   selectCardCountryOfResidence,
+  selectCardSupportRegion,
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
   selectCardRedemptionDestinationIsMoneyAccount,
@@ -1882,6 +1883,43 @@ describe('selectCardCountryOfResidence', () => {
       } as unknown as CardControllerState['cardHomeData'],
     });
     expect(selectCardCountryOfResidence(state)).toBe('GB');
+  });
+});
+
+describe('selectCardSupportRegion', () => {
+  it('returns the account countryOfResidence when present', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        account: {
+          verificationStatus: 'VERIFIED',
+          holderName: 'Test User',
+          shippingAddress: null,
+          countryOfResidence: 'GB',
+          usState: null,
+        },
+        supportRegion: 'NZ',
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardSupportRegion(state)).toBe('GB');
+  });
+
+  it('falls back to supportRegion when account is null', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        supportRegion: 'GB',
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardSupportRegion(state)).toBe('GB');
+  });
+
+  it('returns null when neither is known', () => {
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardSupportRegion(state)).toBeNull();
   });
 });
 

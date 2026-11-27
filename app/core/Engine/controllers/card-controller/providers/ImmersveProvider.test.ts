@@ -1500,8 +1500,14 @@ describe('ImmersveProvider', () => {
       cardDetail?: unknown;
       fundingSource?: unknown;
       fundingSources?: unknown;
+      kycProfile?: unknown | Error;
     }) =>
     (path: string) => {
+      if (path.endsWith('/kyc-profile')) {
+        return responses.kycProfile instanceof Error
+          ? Promise.reject(responses.kycProfile)
+          : Promise.resolve(responses.kycProfile ?? {});
+      }
       if (path.includes('/cards?')) return Promise.resolve(responses.cards);
       if (path.includes('/funding-source/'))
         return Promise.resolve(responses.fundingSource);
@@ -1536,6 +1542,85 @@ describe('ImmersveProvider', () => {
       expect(data.alerts).toStrictEqual([
         { type: 'card_provisioning', dismissable: false },
       ]);
+    });
+
+    it('maps the KYC profile region to supportRegion without setting account', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+          kycProfile: { id: 'kyc-1', accountId: 'cardholder-1', region: 'gb' },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/kyc-profile',
+        TOKENS,
+      );
+      expect(data.supportRegion).toBe('GB');
+      expect(data.account).toBeNull();
+    });
+
+    it('returns the region for users still onboarding without a card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [] },
+          kycProfile: { region: 'NZ' },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.supportRegion).toBe('NZ');
+      expect(data.account).toBeNull();
+      expect(data.alerts).toStrictEqual([
+        { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('falls back to the card regionCode when the KYC profile call fails', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'gb' }] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+          kycProfile: new CardApiError(
+            403,
+            '/api/accounts/cardholder-1/kyc-profile',
+            'forbidden',
+          ),
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).not.toBeNull();
+      expect(data.supportRegion).toBe('GB');
+      expect(data.account).toBeNull();
+    });
+
+    it('leaves supportRegion null when neither the KYC profile nor the card has a region', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+          kycProfile: new Error('network down'),
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).not.toBeNull();
+      expect(data.supportRegion).toBeNull();
+      expect(data.account).toBeNull();
     });
 
     it('shares one card list request between concurrent callers', async () => {
