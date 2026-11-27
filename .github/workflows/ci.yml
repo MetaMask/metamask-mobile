@@ -518,8 +518,7 @@ jobs:
           echo "lint shards passed"
 
   # Runs knip:check on a plain GitHub-hosted runner so it is never pulled onto a
-  # paid Namespace profile. The job name matches the check name the scripts matrix
-  # used to register, keeping required-status-check continuity.
+  # paid Namespace profile.
   knip-check:
     name: Run `knip:check`
     permissions:
