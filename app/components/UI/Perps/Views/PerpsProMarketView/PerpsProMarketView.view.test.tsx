@@ -3647,6 +3647,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       validateOrder.mockReturnValue(pendingValidation);
       emitEthPrice(stream);
 
+      // The emitted price re-runs validation through the form's debounce;
+      // wait until the pending read is genuinely in flight on the new price
+      // before asserting the CTA state, so this case exercises the
+      // live-price path and not the already-settled first validation.
+      await waitFor(() => expect(validateOrder).toHaveBeenCalledTimes(2));
+
       await waitFor(() => {
         expect(placeOrderButton).toBeOnTheScreen();
         expect(placeOrderButton).toBeEnabled();
