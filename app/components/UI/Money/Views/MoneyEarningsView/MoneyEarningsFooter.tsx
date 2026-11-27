@@ -33,7 +33,7 @@ const MoneyEarningsFooter = (): React.ReactElement => {
           onPress={handleAdd}
           testID={MoneyEarningsViewTestIds.ADD_BUTTON}
         >
-          {strings('money.earnings.earn_more')}
+          {strings('money.earnings.add_funds')}
         </Button>
       </Box>
     </Box>

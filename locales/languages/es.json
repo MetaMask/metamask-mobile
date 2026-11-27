@@ -10627,8 +10627,7 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_deposit_header": "Añadir a MetaMask Money",
-      "money_account_send": "Enviar"
+      "money_account_deposit_header": "Añadir a MetaMask Money"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
@@ -10785,7 +10784,6 @@
     "deposit_edit_amount_done": "Agregar fondos",
     "deposit_edit_amount_convert_token": "Convertir {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Retirar",
-    "deposit_edit_amount_money_account_send": "Enviar",
     "deposit_edit_amount_musd_conversion": "Convertir a mUSD",
     "preparing_order": "Preparando orden"
   },

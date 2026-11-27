@@ -94,11 +94,27 @@ const mockInternalAccountsById = {
     metadata: { name: 'Account 2' },
   },
   'account-3': {
-    address: '0xAccount3Address',
+    address: '0x3333333333333333333333333333333333333333',
     scopes: ['eip155:0'],
     metadata: {
       name: 'Ledger Account',
       keyring: { type: 'Ledger Hardware' },
+    },
+  },
+  'account-4': {
+    address: '0x4444444444444444444444444444444444444444',
+    scopes: ['eip155:0'],
+    metadata: {
+      name: 'QR Account',
+      keyring: { type: 'QR Hardware Wallet Device' },
+    },
+  },
+  'account-5': {
+    address: '0x5555555555555555555555555555555555555555',
+    scopes: ['eip155:0'],
+    metadata: {
+      name: 'OneKey Account',
+      keyring: { type: 'OneKey Hardware' },
     },
   },
 };
@@ -430,8 +446,8 @@ describe('AccountSelector', () => {
     expect(getByText('Custom sheet title')).toBeOnTheScreen();
   });
 
-  it('filters account groups using isAccountAllowed', () => {
-    const accountGroupsWithLedger = [
+  it('lists and allows selecting Ledger, QR, and OneKey hardware accounts', () => {
+    const accountGroupsWithHardware = [
       ...mockAccountGroupsByWallet,
       {
         title: 'Ledger',
@@ -441,6 +457,28 @@ describe('AccountSelector', () => {
             id: 'group-3',
             accounts: ['account-3'],
             metadata: { name: 'Ledger Account' },
+          },
+        ],
+      },
+      {
+        title: 'QR Hardware',
+        wallet: { id: 'wallet-qr' },
+        data: [
+          {
+            id: 'group-4',
+            accounts: ['account-4'],
+            metadata: { name: 'QR Account' },
+          },
+        ],
+      },
+      {
+        title: 'OneKey',
+        wallet: { id: 'wallet-onekey' },
+        data: [
+          {
+            id: 'group-5',
+            accounts: ['account-5'],
+            metadata: { name: 'OneKey Account' },
           },
         ],
       },
@@ -464,26 +502,28 @@ describe('AccountSelector', () => {
         if (selector === selectInternalAccountsById)
           return mockInternalAccountsById;
         if (selector === selectVisibleAccountGroupsByWallet)
-          return accountGroupsWithLedger;
+          return accountGroupsWithHardware;
         if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
         if (selector === selectAvatarAccountType) return 'HD Key Tree';
         return undefined;
       },
     );
 
-    const { getByTestId, queryByTestId } = render(
-      <AccountSelector
-        onAccountSelected={mockOnAccountSelected}
-        isAccountAllowed={(account) =>
-          account.metadata.keyring?.type !== 'Ledger Hardware'
-        }
-      />,
+    const { getByTestId } = render(
+      <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
     expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
-    expect(queryByTestId('account-group-group-3')).toBeNull();
+    expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
+    expect(getByTestId('account-group-group-4')).toBeOnTheScreen();
+    expect(getByTestId('account-group-group-5')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('account-group-group-3'));
+    expect(mockOnAccountSelected).toHaveBeenCalledWith(
+      mockInternalAccountsById['account-3'],
+    );
   });
 });
 

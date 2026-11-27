@@ -22,6 +22,18 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for the real Money MPC keyring (DKLS23/CL24 via
+ * `@metamask/mpc-react-native`, needing a native rebuild) instead of the
+ * stub. Needs `isMpcMoneyKeyringBuildEnabled` too.
+ */
+export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
+  return (
+    isMpcMoneyKeyringBuildEnabled() &&
+    process.env.MM_MONEY_MPC_REAL_KEYRING === 'true'
+  );
+}
+
+/**
  * Build-time gate for the Collectibles development fallback. A valid remote
  * `collectiblesEnabled` flag always wins; this flag only decides what a
  * development build does when the remote flag is missing or invalid.
@@ -69,6 +81,7 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
+  mfaRecovery = 'mfaRecovery',
   slowNetworkBanner = 'slowNetworkBanner',
 }
 

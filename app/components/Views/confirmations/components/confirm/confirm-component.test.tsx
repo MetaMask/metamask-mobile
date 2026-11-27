@@ -14,11 +14,20 @@ import {
   getAppStateForConfirmation,
   mockTxId,
   personalSignatureConfirmationState,
+  securityAlertResponse,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
+  typedSignV4ConfirmationState,
+  typedSignV4SignatureRequest,
 } from '../../../../../util/test/confirm-data-helpers';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
+import { setSecurityAlertResponse } from '../../../../../reducers/security-alerts';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
@@ -199,6 +208,7 @@ describe('Confirm', () => {
   ];
 
   beforeEach(() => {
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     useParamsMock.mockReturnValue({});
     useConfirmRejectMock.mockReturnValue({
       onReject: mockOnReject,
@@ -966,5 +976,59 @@ describe('Confirm', () => {
       expect(traceMock).not.toHaveBeenCalled();
       expect(endTraceMock).not.toHaveBeenCalled();
     });
+  });
+
+  it('tracks SIGNATURE_REQUESTED once for a signature confirmation even after async updates', () => {
+    const mockTrackEvent = jest.fn();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        trackEvent: mockTrackEvent,
+      }),
+    );
+
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString() ?? '';
+    const { store } = renderWithProvider(<Confirm />, {
+      state: typedSignV4ConfirmationState,
+    });
+
+    act(() => {
+      store.dispatch(
+        setSecurityAlertResponse(requestId, securityAlertResponse),
+      );
+      store.dispatch(
+        updateConfirmationMetric({
+          id: typedSignV4SignatureRequest.id,
+          params: { properties: { alert_trigger_count: 1 } },
+        }),
+      );
+    });
+
+    const signatureRequestedCalls = mockTrackEvent.mock.calls.filter(
+      ([event]) =>
+        event?.name === MetaMetricsEvents.SIGNATURE_REQUESTED.category,
+    );
+    expect(signatureRequestedCalls).toHaveLength(1);
+  });
+
+  it('does not track SIGNATURE_REQUESTED for a non-signature confirmation', () => {
+    const mockTrackEvent = jest.fn();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        trackEvent: mockTrackEvent,
+      }),
+    );
+
+    renderWithProvider(<Confirm />, {
+      state: generateContractInteractionState,
+    });
+
+    const signatureRequestedCalls = mockTrackEvent.mock.calls.filter(
+      ([event]) =>
+        event?.name === MetaMetricsEvents.SIGNATURE_REQUESTED.category,
+    );
+    expect(signatureRequestedCalls).toHaveLength(0);
   });
 });

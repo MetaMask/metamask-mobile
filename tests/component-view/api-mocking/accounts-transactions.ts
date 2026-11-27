@@ -9,13 +9,24 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import type { V5TransactionRecord } from '@metamask/core-backend';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import {
   KnownCaipNamespace,
   toCaipAccountId,
   toCaipAssetType,
   toCaipChainId,
 } from '@metamask/utils';
+import {
+  CARD_BLOCK_NUMBER,
+  CARD_TX_HASH,
+  CASHBACK_TX_HASH,
+} from '../../../app/components/UI/Money/__fixtures__/vaultShareValuations';
 import { ACTIVITY_CV_ACCOUNT } from '../presets/activity';
+import {
+  MONEY_ACTIVITY_ACCOUNT,
+  MONEY_PREMIUM_VAULT,
+  MONEY_STANDARD_VAULT,
+} from '../presets/moneyActivity';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import { installDefaultApiMocks } from './defaults';
 import {
@@ -179,6 +190,53 @@ export interface MockMoneyActivityTransaction {
     contractAddress: string;
     symbol: string;
   }[];
+}
+
+const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
+const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
+
+export function cardTransaction(): MockMoneyActivityTransaction {
+  return {
+    hash: CARD_TX_HASH,
+    timestamp: '2026-09-29T07:17:22Z',
+    chainId: 143,
+    blockNumber: CARD_BLOCK_NUMBER,
+    from: MONEY_ACTIVITY_ACCOUNT,
+    to: SETTLEMENT_ADDRESS,
+    transactionType: 'METAMASK_CARD_PAYMENT',
+    valueTransfers: [
+      {
+        from: MONEY_ACTIVITY_ACCOUNT,
+        to: SETTLEMENT_ADDRESS,
+        amount: '951755696',
+        decimal: 6,
+        contractAddress: MONEY_STANDARD_VAULT.boringVault,
+        symbol: 'vmUSD',
+      },
+    ],
+  };
+}
+
+export function cashbackTransaction(): MockMoneyActivityTransaction {
+  return {
+    hash: CASHBACK_TX_HASH,
+    timestamp: '2026-09-25T13:13:36Z',
+    chainId: 143,
+    blockNumber: 107901997,
+    from: REWARDER_ADDRESS,
+    to: MONEY_ACTIVITY_ACCOUNT,
+    transactionType: 'METAMASK_CARD_CASHBACK',
+    valueTransfers: [
+      {
+        from: REWARDER_ADDRESS,
+        to: MONEY_ACTIVITY_ACCOUNT,
+        amount: '524978000',
+        decimal: 6,
+        contractAddress: MONEY_PREMIUM_VAULT.boringVault,
+        symbol: 'pvmUSD',
+      },
+    ],
+  };
 }
 
 export function setupMoneyActivityApiMock(

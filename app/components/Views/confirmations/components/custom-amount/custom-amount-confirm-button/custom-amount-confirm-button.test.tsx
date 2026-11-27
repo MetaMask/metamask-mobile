@@ -189,7 +189,7 @@ describe('CustomAmountConfirmButton', () => {
     TransactionType.perpsLighterDeposit,
     TransactionType.predictDeposit,
   ])(
-    'shows Send for %s when payWithOption is MoneyAccount even if payToken is set',
+    'shows Move for %s when payWithOption is MoneyAccount even if payToken is set',
     (type) => {
       useRouteMock.mockReturnValue({
         key: 'mock-route',
@@ -204,9 +204,19 @@ describe('CustomAmountConfirmButton', () => {
       } as never);
 
       const { getByText } = render({ stage: CustomAmountStage.ShowTotals });
-      expect(getByText('Send')).toBeOnTheScreen();
+      expect(getByText('Move')).toBeOnTheScreen();
     },
   );
+
+  it('shows Move for a Money Account withdrawal', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+    } as never);
+
+    const { getByText } = render({ stage: CustomAmountStage.ShowTotals });
+
+    expect(getByText('Move')).toBeOnTheScreen();
+  });
 
   it('falls back to Add funds when fiat payment is selected on a deposit', () => {
     useTransactionMetadataRequestMock.mockReturnValue({

@@ -28,7 +28,7 @@ const Amount = ({ amount, onPress, isBuy, disabled }: AmountProps) => {
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
       onPress={handlePress}
-      isDisabled={disabled}
+      isDisabled={Boolean(disabled) || Boolean(amount.disabled)}
       isFullWidth
       twClassName="px-0 flex-1"
       startIconName={showSparkleIcon ? IconName.Sparkle : undefined}

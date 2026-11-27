@@ -118,6 +118,7 @@ jest.mock('../../app/core/Engine', () => {
         patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
         clearRedeemWithdrawal: jest.fn(),
+        clearCashbackClaim: jest.fn(),
         withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',

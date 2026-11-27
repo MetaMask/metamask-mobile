@@ -112,7 +112,7 @@ function useButtonLabel() {
   const isMoneyAccountOverride = useIsMoneyAccountPaymentOverride();
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
+    return strings('confirm.deposit_edit_amount_money_account_move');
   }
 
   if (
@@ -123,7 +123,7 @@ function useButtonLabel() {
       TransactionType.predictDeposit,
     ])
   ) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
+    return strings('confirm.deposit_edit_amount_money_account_move');
   }
 
   if (

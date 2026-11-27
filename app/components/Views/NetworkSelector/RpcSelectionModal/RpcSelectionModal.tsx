@@ -100,12 +100,9 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       });
 
       // Set the active network
-      MultichainNetworkController.setActiveNetwork(clientId);
+      void MultichainNetworkController.setActiveNetwork(clientId);
       // Redirect to wallet page
-      navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: { screen: Routes.WALLET_VIEW },
-      });
+      navigate(Routes.WALLET.HOME);
     },
     [networkConfigurations, navigate],
   );
@@ -140,7 +137,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
 
   const handleRpcSelect = useCallback(
     (networkClientId: string, chainIdArg: `0x${string}`) => {
-      onRpcSelect(networkClientId, chainIdArg);
+      void onRpcSelect(networkClientId, chainIdArg);
       setTokenNetworkFilter(chainIdArg);
       selectNetwork(chainIdArg);
       closeRpcModal();

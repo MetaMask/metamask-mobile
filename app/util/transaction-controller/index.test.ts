@@ -24,6 +24,7 @@ jest.mock('../tempo/tempo-tx-utils', () => ({
 const {
   addTransaction,
   estimateGas,
+  estimateGasBuffered,
   getNetworkNonce,
   estimateGasFee,
   getPreviousGasFromController,
@@ -165,6 +166,7 @@ jest.mock('../../core/Engine', () => ({
       getTransactions: jest.fn(),
       addTransaction: jest.fn(),
       estimateGas: jest.fn(),
+      estimateGasBuffered: jest.fn(),
       estimateGasFee: jest.fn(),
 
       // Proxy methods
@@ -399,6 +401,24 @@ describe('Transaction Controller Util', () => {
     });
   });
 
+  describe('estimateGasBuffered', () => {
+    it('should call estimateGasBuffered with correct parameters', async () => {
+      await estimateGasBuffered(
+        EIP_1559_TRANSACTION_PARAMS_MOCK,
+        1.5,
+        NETWORK_CLIENT_ID_MOCK,
+      );
+
+      expect(
+        Engine.context.TransactionController.estimateGasBuffered,
+      ).toHaveBeenCalledWith(
+        EIP_1559_TRANSACTION_PARAMS_MOCK,
+        1.5,
+        NETWORK_CLIENT_ID_MOCK,
+      );
+    });
+  });
+
   describe('estimateGasFee', () => {
     it('should call estimateGasFee with correct parameters', async () => {
       await estimateGasFee({
@@ -411,6 +431,22 @@ describe('Transaction Controller Util', () => {
       ).toHaveBeenCalledWith({
         transactionParams: EIP_1559_TRANSACTION_PARAMS_MOCK,
         chainId: '0x1',
+      });
+    });
+
+    it('should forward the network client id', async () => {
+      await estimateGasFee({
+        transactionParams: EIP_1559_TRANSACTION_PARAMS_MOCK,
+        chainId: '0x1',
+        networkClientId: NETWORK_CLIENT_ID_MOCK,
+      });
+
+      expect(
+        Engine.context.TransactionController.estimateGasFee,
+      ).toHaveBeenCalledWith({
+        transactionParams: EIP_1559_TRANSACTION_PARAMS_MOCK,
+        chainId: '0x1',
+        networkClientId: NETWORK_CLIENT_ID_MOCK,
       });
     });
   });

@@ -8,8 +8,7 @@ import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { strings } from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
@@ -48,6 +47,7 @@ import {
   type MoneyActivityKind,
   type MoneyActivityStatus,
 } from '../utils/classifyMoneyActivity';
+import { formatMusdAmount } from '../utils/moneyAmount';
 
 export interface MoneyTransactionDisplayInfo {
   label: string;
@@ -86,19 +86,6 @@ function getMusdRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
   return tx.requiredAssets?.find((asset) =>
     isMusdTokenOnChain(asset.address, tx.chainId),
   );
-}
-
-/**
- * Formats an mUSD amount as a signed, symbol-suffixed string, e.g.
- * "+1,000.00 mUSD" / "-0.00 mUSD". The sign follows the row's direction.
- */
-function formatMusdAmount(amount: BigNumber, isIncoming: boolean): string {
-  const formatted = getIntlNumberFormatter(I18n.locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true,
-  }).format(amount.toNumber());
-  return `${isIncoming ? '+' : '-'}${formatted} ${MUSD_TOKEN.symbol}`;
 }
 
 function prettifyFiatProvider(
