@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { SocialEvent } from '../analytics/socialEvents';
-import { getPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
@@ -97,9 +96,11 @@ describe('useRequireSocialProfileOnboarding', () => {
       blocked_reason: SocialEvent.BlockedReason.PROFILE_ONBOARDING,
       trade_type: SocialEvent.Trade.SPOT,
     });
-    expect(getPendingOnboardingTrigger()).toBe(
-      SocialEvent.OnboardingTrigger.COPY_TRADE,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      },
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 });

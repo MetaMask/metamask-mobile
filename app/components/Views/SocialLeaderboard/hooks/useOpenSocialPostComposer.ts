@@ -18,7 +18,6 @@ import {
   useTrackSocialActionBlocked,
   type SocialEventSource,
 } from '../analytics';
-import { setPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
 import type {
@@ -93,8 +92,9 @@ export const useOpenSocialPostComposer =
             ? { composer_entry: options.composerEntry }
             : {}),
         });
-        setPendingOnboardingTrigger(SocialEvent.OnboardingTrigger.POST_COMPOSER);
-        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+          trigger: SocialEvent.OnboardingTrigger.POST_COMPOSER,
+        });
         return;
       }
 

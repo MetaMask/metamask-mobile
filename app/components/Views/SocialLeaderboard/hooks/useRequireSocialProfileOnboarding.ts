@@ -9,7 +9,6 @@ import {
   type SocialBlockedHandler,
   type SocialGate,
 } from '../analytics/socialEvents';
-import { setPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import { isSocialProfileOnboardingRequired } from '../navigation/resolveSocialPostComposerWallet';
 
 export interface UseRequireSocialProfileOnboardingOptions {
@@ -65,8 +64,9 @@ export const useRequireSocialProfileOnboarding = ({
         ...(gate.tradeType ? { trade_type: gate.tradeType } : {}),
       });
       const navigate = (): void => {
-        setPendingOnboardingTrigger(gate.trigger);
-        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+          trigger: gate.trigger,
+        });
       };
       if (runNavigation) {
         runNavigation(navigate);

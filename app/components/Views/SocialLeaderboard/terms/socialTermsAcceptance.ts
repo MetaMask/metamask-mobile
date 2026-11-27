@@ -4,7 +4,6 @@ import ReduxService from '../../../../core/redux/ReduxService';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import type { SocialOnboardingTrigger } from '../analytics/socialEvents';
-import { setPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 
 /**
  * Version of the Social Supplemental Terms the user must accept. Bump it when
@@ -163,15 +162,17 @@ export const ensureSocialTermsAccepted = (
   }
   pendingEntry = onAccepted;
   runNavigation(() => {
-    setPendingOnboardingTrigger(trigger);
     try {
       if (hasLoadedSocialProfile()) {
-        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+          termsOnly: true,
+          trigger,
+        });
       } else {
-        navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { trigger });
       }
     } catch {
-      navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { trigger });
     }
   });
   return false;

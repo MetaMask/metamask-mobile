@@ -3,7 +3,6 @@ import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import ReduxService from '../../../../core/redux/ReduxService';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SocialEvent } from '../analytics/socialEvents';
-import { getPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import {
   SOCIAL_TERMS_VERSION,
   acceptSocialTerms,
@@ -151,16 +150,17 @@ describe('socialTermsAcceptance', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
     });
 
-    it('records the gated trigger for the onboarding screen before it navigates', () => {
+    it('passes the gated trigger to onboarding as a route param', () => {
       mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
 
-      ensureSocialTermsAccepted(jest.fn(), {
+      ensureSocialTermsAccepted(navigate, {
         trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
       });
 
-      expect(getPendingOnboardingTrigger()).toBe(
-        SocialEvent.OnboardingTrigger.COPY_TRADE,
-      );
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      });
     });
 
     it('records the current version and skips the sheet when a profile exists and nothing is stored', () => {
