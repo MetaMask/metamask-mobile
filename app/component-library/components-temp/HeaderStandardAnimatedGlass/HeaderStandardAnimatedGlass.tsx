@@ -32,19 +32,16 @@ const HeaderStandardAnimatedGlass = ({
   isFloating,
   onLayout,
   twClassName,
-  className,
   ...props
 }: HeaderStandardAnimatedGlassProps) => {
   const headerClassName = glassHeaderTwClassName(twClassName);
-  const mergedClassName =
-    [headerClassName, className].filter(Boolean).join(' ') || undefined;
 
   if (!isGlass) {
     return (
       <HeaderStandardAnimated
         {...props}
         onLayout={onLayout}
-        className={mergedClassName}
+        twClassName={headerClassName}
       />
     );
   }
@@ -60,7 +57,7 @@ const HeaderStandardAnimatedGlass = ({
     >
       <HeaderStandardAnimated
         {...props}
-        className={mergedClassName}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />
