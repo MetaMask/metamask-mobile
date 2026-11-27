@@ -66,6 +66,22 @@ export const useOptimisticPerpsWatchlist = ({
       ? overrideState.overrides
       : EMPTY_OVERRIDES;
 
+  const updateOverrides = useCallback(
+    (
+      updater: (
+        current: Map<string, OptimisticPerpEntry>,
+      ) => Map<string, OptimisticPerpEntry>,
+    ) => {
+      setOverrideState((current) => {
+        const next = updater(current.overrides);
+        return next === current.overrides
+          ? current
+          : { accountGroupId: current.accountGroupId, overrides: next };
+      });
+    },
+    [],
+  );
+
   useEffect(() => {
     if (prevAccountGroupIdRef.current === accountGroupId) {
       return;
@@ -86,12 +102,9 @@ export const useOptimisticPerpsWatchlist = ({
   );
 
   useEffect(() => {
-    setOverrideState((current) => {
-      if (current.accountGroupId !== accountGroupId) {
-        return current;
-      }
-      let next = current.overrides;
-      current.overrides.forEach((entry, symbol) => {
+    updateOverrides((current) => {
+      let next = current;
+      current.forEach((entry, symbol) => {
         const isPersisted = persistedSymbols.has(symbol);
         if (
           (entry !== null && isPersisted) ||
@@ -100,11 +113,9 @@ export const useOptimisticPerpsWatchlist = ({
           next = deleteFromMap(next, symbol);
         }
       });
-      return next === current.overrides
-        ? current
-        : { accountGroupId: current.accountGroupId, overrides: next };
+      return next;
     });
-  }, [accountGroupId, persistedSymbols]);
+  }, [persistedSymbols, updateOverrides]);
 
   const displayOrderedItems = useMemo(() => {
     const existingPerpSymbols = new Set<string>();
@@ -146,17 +157,10 @@ export const useOptimisticPerpsWatchlist = ({
       const capturedGeneration = accountGroupGenRef.current;
       const seq = (mutationSeqRef.current.get(symbol) ?? 0) + 1;
       mutationSeqRef.current.set(symbol, seq);
-      setOverrideState((current) => {
-        const base =
-          current.accountGroupId === capturedAccountGroupId
-            ? current.overrides
-            : new Map<string, OptimisticPerpEntry>();
-        const next = new Map(base);
+      updateOverrides((current) => {
+        const next = new Map(current);
         next.set(symbol, nextEntry);
-        return {
-          accountGroupId: capturedAccountGroupId,
-          overrides: next,
-        };
+        return next;
       });
 
       const isCurrent = (): boolean =>
@@ -168,21 +172,13 @@ export const useOptimisticPerpsWatchlist = ({
         if (!isCurrent()) {
           return false;
         }
-        setOverrideState((current) => {
-          if (current.accountGroupId !== capturedAccountGroupId) {
-            return current;
-          }
-          const next = deleteFromMap(current.overrides, symbol);
-          return next === current.overrides
-            ? current
-            : { accountGroupId: current.accountGroupId, overrides: next };
-        });
+        updateOverrides((current) => deleteFromMap(current, symbol));
         return true;
       };
 
       return { isCurrent, rollbackIfCurrent };
     },
-    [],
+    [updateOverrides],
   );
 
   const addPerp = useCallback(
@@ -191,48 +187,44 @@ export const useOptimisticPerpsWatchlist = ({
         normalizePerpSymbol(market.symbol),
         market,
       );
+      const handleError = (): void => {
+        if (rollbackIfCurrent()) {
+          onMutationError?.('add', market.symbol);
+        }
+      };
       addPerpToWatchlist(market.symbol)
         .then((wasAdded) => {
-          if (!isCurrent()) {
-            return;
-          }
           if (wasAdded) {
-            onPerpAdded?.(market.symbol);
+            if (isCurrent()) {
+              onPerpAdded?.(market.symbol);
+            }
             return;
           }
-          if (rollbackIfCurrent()) {
-            onMutationError?.('add', market.symbol);
-          }
+          handleError();
         })
-        .catch(() => {
-          if (rollbackIfCurrent()) {
-            onMutationError?.('add', market.symbol);
-          }
-        });
+        .catch(handleError);
     },
     [addPerpToWatchlist, beginMutation, onMutationError, onPerpAdded],
   );
 
   const removePerp = useCallback(
     (rawSymbol: string) => {
-      const { isCurrent, rollbackIfCurrent } = beginMutation(
+      const { rollbackIfCurrent } = beginMutation(
         normalizePerpSymbol(rawSymbol),
         null,
       );
+      const handleError = (): void => {
+        if (rollbackIfCurrent()) {
+          onMutationError?.('remove', rawSymbol);
+        }
+      };
       removePerpFromWatchlist(rawSymbol)
         .then((wasRemoved) => {
-          if (!isCurrent()) {
-            return;
-          }
-          if (!wasRemoved && rollbackIfCurrent()) {
-            onMutationError?.('remove', rawSymbol);
+          if (!wasRemoved) {
+            handleError();
           }
         })
-        .catch(() => {
-          if (rollbackIfCurrent()) {
-            onMutationError?.('remove', rawSymbol);
-          }
-        });
+        .catch(handleError);
     },
     [beginMutation, onMutationError, removePerpFromWatchlist],
   );

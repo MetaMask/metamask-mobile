@@ -300,4 +300,108 @@ describe('useOptimisticPerpsWatchlist', () => {
       'perp:eth',
     ]);
   });
+
+  it('calls onPerpAdded on success and reconciles once persistedPerps catches up', async () => {
+    const addPerpToWatchlist = jest.fn().mockResolvedValueOnce(true);
+    const removePerpFromWatchlist = jest.fn().mockResolvedValue(true);
+    const onPerpAdded = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({
+        persistedPerps,
+      }: {
+        persistedPerps: ReturnType<typeof createUnifiedWatchlistPerp>[];
+      }) =>
+        useOptimisticPerpsWatchlist({
+          accountGroupId: 'group-1',
+          orderedItems: persistedPerps,
+          persistedPerps,
+          perpsMembershipSymbols: persistedPerps.map((item) => item.symbol),
+          addPerpToWatchlist,
+          removePerpFromWatchlist,
+          onPerpAdded,
+        }),
+      {
+        initialProps: {
+          persistedPerps: [createUnifiedWatchlistPerp(ETH_MARKET)],
+        },
+      },
+    );
+
+    await act(async () => {
+      result.current.addPerp(SOL_MARKET);
+    });
+
+    await waitFor(() => {
+      expect(onPerpAdded).toHaveBeenCalledWith('SOL');
+    });
+    expect(result.current.hasPendingPerpMutations).toBe(true);
+
+    // Persisted list changes without SOL yet -> optimistic override remains unchanged
+    rerender({
+      persistedPerps: [
+        createUnifiedWatchlistPerp({ ...ETH_MARKET, price: '$2,100.00' }),
+      ],
+    });
+    expect(result.current.hasPendingPerpMutations).toBe(true);
+
+    // Persisted list now includes SOL -> optimistic override reconciles away
+    rerender({
+      persistedPerps: [
+        createUnifiedWatchlistPerp(ETH_MARKET),
+        createUnifiedWatchlistPerp(SOL_MARKET),
+      ],
+    });
+    expect(result.current.hasPendingPerpMutations).toBe(false);
+  });
+
+  it('ignores stale add rejection and remove false return from superseded mutations', async () => {
+    let rejectFirstAdd: ((error: Error) => void) | undefined;
+    let resolveFirstRemove: ((value: boolean) => void) | undefined;
+    const addPerpToWatchlist = jest
+      .fn()
+      .mockImplementationOnce(
+        async () =>
+          new Promise<boolean>((_resolve, reject) => {
+            rejectFirstAdd = reject;
+          }),
+      )
+      .mockResolvedValueOnce(true);
+    const removePerpFromWatchlist = jest.fn().mockImplementationOnce(
+      async () =>
+        new Promise<boolean>((resolve) => {
+          resolveFirstRemove = resolve;
+        }),
+    );
+    const onMutationError = jest.fn();
+
+    const { result } = renderHook(() =>
+      useOptimisticPerpsWatchlist({
+        accountGroupId: 'group-1',
+        orderedItems: [createUnifiedWatchlistPerp(ETH_MARKET)],
+        persistedPerps: [createUnifiedWatchlistPerp(ETH_MARKET)],
+        perpsMembershipSymbols: ['ETH'],
+        addPerpToWatchlist,
+        removePerpFromWatchlist,
+        onMutationError,
+      }),
+    );
+
+    act(() => {
+      result.current.addPerp(SOL_MARKET);
+      result.current.removePerp('SOL');
+      result.current.addPerp(SOL_MARKET);
+    });
+
+    await act(async () => {
+      rejectFirstAdd?.(new Error('Stale add failure'));
+      resolveFirstRemove?.(false);
+    });
+
+    expect(onMutationError).not.toHaveBeenCalled();
+    expect(result.current.displayOrderedItems.map((item) => item.key)).toEqual([
+      'perp:eth',
+      'perp:sol',
+    ]);
+  });
 });
