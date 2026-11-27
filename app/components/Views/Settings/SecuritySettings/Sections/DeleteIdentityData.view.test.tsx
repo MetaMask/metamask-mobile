@@ -33,7 +33,6 @@ const OTP_SCREEN = VbaDeleteIdentityTestIds.OTP_SCREEN;
 // The email check opens through NavigationService on the next frame, and the
 // first open in a worker also loads the MFA flow screens. On a busy machine
 // that has taken over a second.
-const MFA_STEP_TIMEOUT_MS = 5000;
 
 const enrolledEmail: EnrolledCredential = {
   id: 'email_otp',
@@ -118,7 +117,7 @@ const confirmAndSubmitEmailCode = async (
   });
 
   // The email screen opens after the controller sends a code.
-  await screen.findByTestId(OTP_SCREEN, {}, { timeout: MFA_STEP_TIMEOUT_MS });
+  await screen.findByTestId(OTP_SCREEN);
   fireEvent.changeText(
     screen.getByTestId(VbaDeleteIdentityTestIds.CODE_INPUT),
     EMAIL_CODE,
@@ -171,12 +170,9 @@ describeForPlatforms('DeleteIdentityData view', () => {
 
     await confirmAndSubmitEmailCode(screen);
 
-    await waitFor(
-      () => {
-        expect(mockDeleteEncryptedStorage).toHaveBeenCalledTimes(1);
-      },
-      { timeout: MFA_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(mockDeleteEncryptedStorage).toHaveBeenCalledTimes(1);
+    });
     expect(mockDeleteEncryptedStorage).toHaveBeenCalledWith({
       aal2Token: AAL2_TOKEN,
     });
@@ -207,15 +203,12 @@ describeForPlatforms('DeleteIdentityData view', () => {
 
     await confirmAndSubmitEmailCode(screen);
 
-    await waitFor(
-      () => {
-        expect(alertSpy).toHaveBeenLastCalledWith(
-          strings('identity_verification.delete_error_title'),
-          strings('identity_verification.delete_error_message'),
-        );
-      },
-      { timeout: MFA_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenLastCalledWith(
+        strings('identity_verification.delete_error_title'),
+        strings('identity_verification.delete_error_message'),
+      );
+    });
     expect(mockDeleteEncryptedStorage).toHaveBeenCalledWith({
       aal2Token: AAL2_TOKEN,
     });
@@ -256,15 +249,12 @@ describeForPlatforms('DeleteIdentityData view', () => {
       confirm.onPress?.();
     });
 
-    await screen.findByTestId(OTP_SCREEN, {}, { timeout: MFA_STEP_TIMEOUT_MS });
+    await screen.findByTestId(OTP_SCREEN);
     fireEvent.press(screen.getByTestId(VbaDeleteIdentityTestIds.BACK_BUTTON));
 
-    await waitFor(
-      () => {
-        expect(screen.queryByTestId(OTP_SCREEN)).not.toBeOnTheScreen();
-      },
-      { timeout: MFA_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(screen.queryByTestId(OTP_SCREEN)).not.toBeOnTheScreen();
+    });
     expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledTimes(1);
     expect(

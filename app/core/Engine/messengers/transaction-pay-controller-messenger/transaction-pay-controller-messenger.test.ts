@@ -125,6 +125,21 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the PerpsController action that sends a Lighter transfer', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'PerpsController:submitLighterTransfer',
+        ]),
+      }),
+    );
+  });
+
   it('does not delegate the native Transak lookup that RampsController now owns', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');

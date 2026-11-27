@@ -405,7 +405,11 @@ describe('SocialV1View initial tab', () => {
           Component: ReturnToSocialOnLeaderboard,
         },
       ],
-      { state: initialStateSocialLeaderboard().build() },
+      {
+        state: initialStateSocialLeaderboard({
+          linkedSocialProfile: true,
+        }).build(),
+      },
     );
     const trendingPage = within(
       screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
@@ -421,6 +425,33 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
+  });
+
+  it('opens profile onboarding from the avatar without a social profile', async () => {
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [
+        { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+        { name: Routes.SOCIAL.MY_PROFILE },
+      ],
+      { state: initialStateSocialLeaderboard().build() },
+    );
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+    ).not.toBeOnTheScreen();
   });
 });
 

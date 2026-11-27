@@ -71,6 +71,13 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
       responseCode: 404,
       response: { code: 'ADDRESS_NOT_ASSOCIATED' },
     },
+    // Seven Seas performance data is requested during Money Account bootstrap.
+    // The response is not consumed by the tested Money/Card journeys.
+    {
+      urlEndpoint: /^https:\/\/api\.sevenseas\.capital\/performance\/.*$/u,
+      responseCode: 200,
+      response: {},
+    },
     // Money Account positions are polled after unlock when the feature is
     // enabled. Tests that need a funded account override this empty fallback.
     {

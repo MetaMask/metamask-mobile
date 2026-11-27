@@ -109,6 +109,15 @@ const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
 const ACTIVITY_LIST_CONTAINER = 'activity-list';
 const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
+// Activity rows hydrate through a chain of adapter and template reads that
+// starts once the transactions land, so waiting for the loading indicator to
+// clear or a specific row to appear regularly outlasts the 5s default on a
+// loaded CV shard.
+const ACTIVITY_LOAD_TIMEOUT_MS = 10000;
+// Same chain, but for the first list hydration after a full screen mount,
+// which also pays the fixture + render cost.
+const ACTIVITY_FIRST_LOAD_TIMEOUT_MS = 15000;
+
 const monToBaseBridgeState = (
   transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
   historyEntry:
@@ -266,7 +275,7 @@ describeForPlatforms('ActivityScreen', () => {
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
   };
 
@@ -279,7 +288,7 @@ describeForPlatforms('ActivityScreen', () => {
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
-      { timeout: 15000 },
+      { timeout: ACTIVITY_FIRST_LOAD_TIMEOUT_MS },
     );
     expect(
       await findByTestId(activityListRowTitleTestId(transactionHash)),
@@ -654,7 +663,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     // Empty-state copy is the stable signal after the list fetch settles.
@@ -702,7 +711,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
         expect(queryByText(fundedDescription)).toBeOnTheScreen();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     expect(
@@ -795,7 +804,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     await waitFor(
@@ -805,7 +814,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
         expect(scope.getByText(predictionsDescription)).toBeOnTheScreen();
         expect(scope.getByText(makePredictionLabel)).toBeOnTheScreen();
       },
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
   });
 
@@ -1046,7 +1055,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
 
     const sendEthTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(sendEthHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(sendEthTitle).toHaveTextContent('Sent ETH');
     expect(
@@ -1284,7 +1293,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
 
     const title = await waitFor(
       () => findByTestId(activityListRowTitleTestId(swapHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
 
     expect(getAllByTestId(activityListRowTitleTestId(swapHash))).toHaveLength(
@@ -1397,7 +1406,7 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
 
     const claimTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(claim.id)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(claimTitle).toHaveTextContent(
       strings('predict.transactions.claim_title'),
@@ -1941,7 +1950,7 @@ describeForPlatforms('ActivityScreen — perps funds', () => {
         findByTestId(
           activityListRowTitleTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
         ),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(depositTitle).toHaveTextContent(
       strings('transactions.activity_perps_account_funded'),
@@ -2023,7 +2032,7 @@ describeForPlatforms('ActivityScreen — perps trades', () => {
 
     const openLongTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestIdPattern(openLongHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(openLongTitle).toHaveTextContent(
       strings('transactions.activity_perps_open_long'),
@@ -2102,7 +2111,7 @@ describeForPlatforms('ActivityScreen — perps orders', () => {
 
     const title = await waitFor(
       () => findByTestId(activityListRowTitleTestId(orderHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(title).toHaveTextContent(
       strings('transactions.activity_trigger_order_close', {
@@ -2150,7 +2159,7 @@ describeForPlatforms('ActivityScreen — perps funding', () => {
 
     const paidTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(paidHash)),
-      { timeout: 10000 },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
     );
     expect(paidTitle).toHaveTextContent(
       strings('transactions.activity_perps_paid_funding_fees'),

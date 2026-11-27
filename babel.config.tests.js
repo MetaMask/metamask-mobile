@@ -53,6 +53,8 @@ const newOverrides = [
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
       'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.real.test.ts',
       'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',

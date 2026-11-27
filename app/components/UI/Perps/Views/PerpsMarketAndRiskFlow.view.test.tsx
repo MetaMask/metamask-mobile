@@ -424,7 +424,7 @@ describe('Market Browsing & Risk Awareness Flow', () => {
         testID: 'perps-sort-sheet',
       },
     );
-    await screen.findByText(SORT_SORT_BY, {}, { timeout: 3000 });
+    await screen.findByText(SORT_SORT_BY);
     const volumeOption = screen.getByTestId('perps-sort-sheet-option-volume');
     fireEvent.press(volumeOption);
     fireEvent.press(screen.getByTestId('perps-sort-sheet-apply'));
@@ -472,11 +472,7 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       { height: 200, candleData: null },
     );
     expect(
-      await screen.findByTestId(
-        TradingViewChartSelectorsIDs.CONTAINER,
-        {},
-        { timeout: 3000 },
-      ),
+      await screen.findByTestId(TradingViewChartSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
 
     // ── PHASE 11: Notification tooltip (no sheet when orderSuccess false) ─

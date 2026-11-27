@@ -29,6 +29,8 @@ export type UnifiedWatchlistPerp =
 
 export type UnifiedWatchlistItem = UnifiedWatchlistToken | UnifiedWatchlistPerp;
 
+export type WatchlistFilter = 'all' | 'tokens' | 'perps';
+
 export interface UnifiedWatchlistDomainState<TItem> {
   items: TItem[];
   error: string | null;
