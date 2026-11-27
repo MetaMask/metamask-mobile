@@ -126,6 +126,9 @@
       "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
+    "pay_amount_too_low": {
+      "message": "This amount is below the minimum for this route. Enter a higher amount to continue."
+    },
     "account_no_funds": {
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
@@ -4155,6 +4158,7 @@
       "odds": "Odds",
       "contracts_row": "Contracts",
       "fees": "Fees",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability.",
       "you_will_receive": "You'll receive",
       "you_will_receive_value": "{{amount}} ({{price}} avg)",
       "estimated_payout": "Est. payout",
@@ -5520,6 +5524,25 @@
     },
     "marketplace": {
       "coming_soon": "Coming soon"
+    },
+    "buy_sheet": {
+      "open_hint": "Opens the buy sheet for {{name}}",
+      "pack_count": {
+        "one": "{{count}} pack",
+        "other": "{{count}} packs"
+      },
+      "quantity": "Number of packs",
+      "max": "Max",
+      "auto_buyback": "Auto-buyback for Commons",
+      "skip_reveals": "Skip reveals",
+      "pay_with": "Pay with",
+      "pay_with_balance": "{{symbol}} ({{balance}})",
+      "total": "Total",
+      "no_fees": "No fees",
+      "open_packs": {
+        "one": "Open {{count}} pack",
+        "other": "Open {{count}} packs"
+      }
     },
     "packs": {
       "all": "All",

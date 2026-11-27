@@ -83,7 +83,7 @@ const threeMarkets = () => [
 
 describe('EventCardStandard', () => {
   describe('container', () => {
-    it('uses the section surface, 20pt radius, muted border, and default padding', () => {
+    it('uses the elevated1 surface, 20pt radius, muted border, and default padding', () => {
       render(
         <EventCardStandard
           event={event([market('market-1')])}
@@ -94,7 +94,7 @@ describe('EventCardStandard', () => {
       expect(
         screen.getByTestId('predict-next-event-kalshi-event-1'),
       ).toHaveStyle({
-        backgroundColor: lightTheme.colors.background.section,
+        backgroundColor: lightTheme.colors.background.elevated1,
         borderRadius: 20,
         borderWidth: 1,
         borderColor: lightTheme.colors.border.muted,
@@ -105,7 +105,7 @@ describe('EventCardStandard', () => {
       });
     });
 
-    it('uses dark theme section surface and muted border in dark mode', () => {
+    it('uses dark theme elevated1 surface and muted border in dark mode', () => {
       render(
         <ThemeProvider theme={Theme.Dark}>
           <EventCardStandard
@@ -118,14 +118,14 @@ describe('EventCardStandard', () => {
       expect(
         screen.getByTestId('predict-next-event-kalshi-event-1'),
       ).toHaveStyle({
-        backgroundColor: darkTheme.colors.background.section,
+        backgroundColor: darkTheme.colors.background.elevated1,
         borderColor: darkTheme.colors.border.muted,
       });
     });
   });
 
   describe('binary Event', () => {
-    it('shows the title, the close date and volume line, and Yes and No rows', () => {
+    it('shows the title, the close date and volume line, and Yes and No rows with percentage odds', () => {
       render(
         <EventCardStandard
           event={event([market('market-1')])}
@@ -133,14 +133,30 @@ describe('EventCardStandard', () => {
         />,
       );
 
-      expect(screen.getByText('Election winner')).toBeOnTheScreen();
+      expect(screen.getByText('Election winner')).toHaveStyle({
+        fontSize: 14,
+        lineHeight: 22,
+      });
       expect(
         screen.getByTestId('predict-next-event-subtitle-event-1'),
       ).toHaveTextContent('Closes Jul 2028 · $4.2M');
-      expect(screen.getByText('Yes')).toBeOnTheScreen();
-      expect(screen.getByText('42¢')).toBeOnTheScreen();
-      expect(screen.getByText('No')).toBeOnTheScreen();
-      expect(screen.getByText('58¢')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-event-subtitle-event-1'),
+      ).toHaveStyle({
+        fontSize: 12,
+        lineHeight: 20,
+        color: lightTheme.colors.text.alternative,
+      });
+      expect(screen.getByText('Yes')).toHaveStyle({
+        fontSize: 14,
+        lineHeight: 22,
+      });
+      expect(screen.getByText('42%')).toBeOnTheScreen();
+      expect(screen.getByText('No')).toHaveStyle({
+        fontSize: 14,
+        lineHeight: 22,
+      });
+      expect(screen.getByText('58%')).toBeOnTheScreen();
     });
 
     it('repeats the Event image as each row avatar', () => {
@@ -211,9 +227,9 @@ describe('EventCardStandard', () => {
       expect(screen.getByText('Candidate market-2')).toBeOnTheScreen();
       expect(screen.getByText('Candidate market-3')).toBeOnTheScreen();
       expect(screen.queryByText('Candidate market-4')).not.toBeOnTheScreen();
-      expect(screen.getByText('31¢')).toBeOnTheScreen();
-      expect(screen.getByText('24¢')).toBeOnTheScreen();
-      expect(screen.getByText('18¢')).toBeOnTheScreen();
+      expect(screen.getByText('31%')).toBeOnTheScreen();
+      expect(screen.getByText('24%')).toBeOnTheScreen();
+      expect(screen.getByText('18%')).toBeOnTheScreen();
       expect(screen.queryByText('Question market-1')).not.toBeOnTheScreen();
     });
 
@@ -469,14 +485,14 @@ describe('EventCardStandard trending', () => {
     mockIsEventLive.mockImplementation(actualIsEventLive);
   });
 
-  describe('header', () => {
-    it('uses the section surface, 20pt radius, muted border, and 16pt vertical padding with no horizontal padding', () => {
+  describe('container', () => {
+    it('uses the elevated1 surface, 20pt radius, muted border, and 16pt vertical padding with no horizontal padding', () => {
       renderCard();
 
       const card = screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`);
       const style = StyleSheet.flatten(card.props.style);
       expect(style).toMatchObject({
-        backgroundColor: lightTheme.colors.background.section,
+        backgroundColor: lightTheme.colors.background.elevated1,
         borderRadius: 20,
         borderWidth: 1,
         borderColor: lightTheme.colors.border.muted,
@@ -487,7 +503,7 @@ describe('EventCardStandard trending', () => {
       expect(style.paddingRight).toBeUndefined();
     });
 
-    it('uses dark theme section surface and muted border in dark mode', () => {
+    it('uses dark theme elevated1 surface and muted border in dark mode', () => {
       render(
         <ThemeProvider theme={Theme.Dark}>
           <EventCardStandard
@@ -501,11 +517,13 @@ describe('EventCardStandard trending', () => {
       expect(
         screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`),
       ).toHaveStyle({
-        backgroundColor: darkTheme.colors.background.section,
+        backgroundColor: darkTheme.colors.background.elevated1,
         borderColor: darkTheme.colors.border.muted,
       });
     });
+  });
 
+  describe('header', () => {
     it('shows the Category in caps', () => {
       renderCard();
 
@@ -607,22 +625,59 @@ describe('EventCardStandard trending', () => {
       expect(screen.queryByText('Sabrina Carpenter')).not.toBeOnTheScreen();
     });
 
-    it('names each row by its yes Outcome, then a placeholder rank and its price', () => {
+    it('names each row by its yes Outcome in BodySm, then a placeholder rank and its percentage price', () => {
       renderCard();
 
       const first = within(screen.getByTestId(rowTestId(SWIFT)));
-      expect(first.getByText('Taylor Swift')).toBeOnTheScreen();
-      expect(first.getByText('Leads')).toBeOnTheScreen();
-      expect(first.getByText('34¢')).toBeOnTheScreen();
+      expect(first.getByText('Taylor Swift')).toHaveStyle({
+        fontSize: 14,
+        lineHeight: 22,
+      });
+      expect(first.getByText('Leads')).toHaveStyle({
+        fontSize: 12,
+        lineHeight: 20,
+      });
+      expect(first.getByText('34%')).toBeOnTheScreen();
+      expect(
+        screen.getByLabelText('Album of the Year, Taylor Swift 34%'),
+      ).toBeOnTheScreen();
 
       const second = within(screen.getByTestId(rowTestId(EILISH)));
       expect(second.getByText('Billie Eilish')).toBeOnTheScreen();
       expect(second.getByText('Second')).toBeOnTheScreen();
-      expect(second.getByText('22¢')).toBeOnTheScreen();
+      expect(second.getByText('22%')).toBeOnTheScreen();
 
       expect(
         screen.queryByText('Will Taylor Swift win Album of the Year?'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('shows a dash and price unavailable label when Ask Price is missing', () => {
+      const album = albumOfTheYear();
+      const [swift, ...others] = album.markets;
+
+      renderCard({
+        event: {
+          ...album,
+          markets: [
+            {
+              ...swift,
+              outcomes: [
+                { ...swift.outcomes[0], askPrice: undefined },
+                swift.outcomes[1],
+              ],
+            },
+            ...others,
+          ],
+        },
+      });
+
+      expect(screen.getByTestId(priceTestId(SWIFT))).toHaveTextContent('—');
+      expect(
+        screen.getByLabelText(
+          'Album of the Year, Taylor Swift price unavailable',
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('labels rows by position, not by price', () => {

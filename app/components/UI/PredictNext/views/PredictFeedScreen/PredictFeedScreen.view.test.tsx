@@ -1031,10 +1031,10 @@ describe('PredictFeedScreen', () => {
       within(card).getByTestId(
         PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('42%');
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'no')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('58%');
     expect(
       within(card).queryByTestId(PredictHomeTestIds.category(propsEvent.id)),
     ).not.toBeOnTheScreen();
