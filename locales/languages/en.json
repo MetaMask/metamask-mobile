@@ -139,6 +139,9 @@
     "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
+    "lighter_withdraw_minimum": {
+      "message": "Minimum withdrawal is {{amount}}"
+    },
     "lighter_account_lookup_pending": {
       "message": "Verifying Lighter account..."
     },
@@ -2337,8 +2340,8 @@
       "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Switch size denomination",
       "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
-      "available_balance": "{{amount}} available",
-      "available_balance_unavailable": "-- available",
+      "available_balance": "Available to trade {{amount}}",
+      "available_balance_unavailable": "Available to trade --",
       "est_liquidation": "Est Liquidation",
       "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
@@ -3966,7 +3969,6 @@
       "unavailable": "No markets are available right now."
     },
     "home_categories": {
-      "title": "Categories",
       "politics": "Politics",
       "sports": "Sports"
     },
@@ -5513,11 +5515,30 @@
     },
     "landing": {
       "just_opened": "Just opened",
-      "epic_vs_odds": "Epic vs Odds",
+      "epic_hunt": "Epic Hunt",
       "greatest_hits": "Greatest hits"
     },
     "marketplace": {
       "coming_soon": "Coming soon"
+    },
+    "buy_sheet": {
+      "open_hint": "Opens the buy sheet for {{name}}",
+      "pack_count": {
+        "one": "{{count}} pack",
+        "other": "{{count}} packs"
+      },
+      "quantity": "Number of packs",
+      "max": "Max",
+      "auto_buyback": "Auto-buyback for Commons",
+      "skip_reveals": "Skip reveals",
+      "pay_with": "Pay with",
+      "pay_with_balance": "{{symbol}} ({{balance}})",
+      "total": "Total",
+      "no_fees": "No fees",
+      "open_packs": {
+        "one": "Open {{count}} pack",
+        "other": "Open {{count}} packs"
+      }
     },
     "packs": {
       "all": "All",
@@ -5531,6 +5552,17 @@
       "open_pack_price": "Open {{name}}, {{price}}",
       "tile_label": "{{name}}, {{opens}}",
       "empty": "No packs available right now"
+    },
+    "epic_hunt": {
+      "info": "About Epic Hunt",
+      "pulls_line": {
+        "one": "Epic {{odds}} · {{formattedCount}} pull since last Epic",
+        "other": "Epic {{odds}} · {{formattedCount}} pulls since last Epic"
+      },
+      "gauge_label": "{{value}} pulls compared with the average per Epic",
+      "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
+      "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
+      "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
     }
   },
   "collectible": {
@@ -8841,6 +8873,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
+    "tron_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again."
+    },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",
@@ -10099,7 +10134,8 @@
       "add": "Add",
       "move": "Move",
       "card": "Card",
-      "details": "Details"
+      "details": "Details",
+      "details_new_badge": "New"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -10852,7 +10888,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_deposit_header": "Add to MetaMask Money",
-      "money_account_send": "Send"
+      "money_account_move": "Move"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -11037,7 +11073,7 @@
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_convert_token": "Convert {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_money_account_send": "Send",
+    "deposit_edit_amount_money_account_move": "Move",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
@@ -12146,20 +12182,40 @@
       "kyc_failed": {
         "title": "You're not eligible for MetaMask Card right now",
         "description": "Eligibility is determined by our partner's regulatory and verification checks.",
-        "close_button": "Back to home"
+        "close_button": "Back to home",
+        "ineligible_title": "We can't offer you a MetaMask Card",
+        "ineligible_description": "This decision is based on our card partner's checks. Contact support if you have questions.",
+        "support_title": "There's a problem with your application",
+        "support_description": "Contact support for help with your application."
       },
-      "kyc_rejected": {
-        "retry_title": "We couldn't verify your identity",
-        "reasons": {
-          "id_document": "Your ID document couldn't be verified. Try again with a different document.",
-          "document_photo": "The photo of your document wasn't clear enough. Try again in better light.",
-          "personal_details": "Your name, date of birth, or address couldn't be verified.",
-          "proof_of_address": "Your proof of address couldn't be verified.",
-          "biometrics": "The face scan didn't match. Try again.",
-          "ineligible": "You're not eligible for MetaMask Card right now.",
-          "generic": "Try verification again. Contact support if it keeps failing.",
-          "generic_permanent": "We can't complete verification for this account."
-        }
+      "kyc_reasons": {
+        "contact_details_required": "Add your email and phone number to continue.",
+        "expected_spend_required": "Add how much you expect to spend to continue.",
+        "residential_address_required": "Add your home address to continue.",
+        "proof_of_address_required": "Upload a recent proof of address to continue.",
+        "idv_not_completed": "Finish verifying your ID and selfie to continue.",
+        "id_document_required": "Upload an ID document to continue.",
+        "id_not_verified": "Check that the ID details you entered match your document exactly.",
+        "name_not_verified": "Check that your name matches your ID exactly.",
+        "address_not_verified": "Check that your home address is correct.",
+        "dob_not_verified": "Check that your date of birth matches your ID.",
+        "dob_or_address_not_verified": "Check that your date of birth and home address are correct.",
+        "details_not_verified": "Check that your details match your ID.",
+        "visa_not_found": "Check your visa details. If they're correct, contact support.",
+        "id_document_not_accepted": "This type of ID isn't accepted. Use a different ID.",
+        "id_document_expired": "Your ID has expired. Use a valid ID.",
+        "id_document_missing_dob": "Use an ID that shows your full date of birth.",
+        "id_document_side_missing": "Upload both sides, or all pages, of your ID.",
+        "id_document_other": "Try again with a clear photo of a valid ID. If it fails again, contact support.",
+        "document_photo_unclear": "Take a clear, well-lit photo where every detail is readable.",
+        "document_photo_not_original": "Take a photo of the original document, not a copy or a screen.",
+        "document_photo_other": "Retake the photo of your document. If it fails again, contact support.",
+        "proof_of_address_too_old": "Use a more recent proof of address.",
+        "proof_of_address_not_accepted": "Use an accepted proof of address, like a utility bill or bank statement.",
+        "proof_of_address_incomplete": "Use a proof of address that clearly shows your full name and address.",
+        "proof_of_address_other": "Try a different proof of address. If it fails again, contact support.",
+        "biometrics_failed": "Retake your selfie in good light, or use a device with a better camera.",
+        "generic_retry": "Try verifying again with your original ID."
       },
       "personal_details": {
         "title": "Add your info",
@@ -12257,6 +12313,25 @@
     },
     "card_home": {
       "title": "Card",
+      "done": "Done",
+      "setup_pending": {
+        "reviewing": {
+          "title": "We're reviewing your identity",
+          "description": "This can take a little while. We'll update this screen when it's ready."
+        },
+        "creating": {
+          "title": "Creating your card",
+          "description": "This only takes a moment."
+        },
+        "checking": {
+          "title": "Checking your card",
+          "description": "We'll update this screen when it's ready."
+        },
+        "signed_out_pending": {
+          "title": "Setting up your card",
+          "description": "We’ll update this screen when it’s ready. You can leave and come back anytime."
+        }
+      },
       "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
@@ -12293,6 +12368,10 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
+      "more_button_label": "More options",
+      "more_sheet": {
+        "title": "More"
+      },
       "enable_card_error": "Failed to enable card. Try again later.",
       "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
@@ -12340,12 +12419,13 @@
         },
         "setup_incomplete": {
           "title": "Finish setting up your card",
+          "rejected_title": "We couldn't complete your card application",
           "descriptions": {
             "contact": "Add your contact details to continue.",
             "kyc": "Verify your identity to continue.",
             "expected_spend": "Tell us how you plan to use your card to continue.",
             "funding": "Approve funding so you can start spending.",
-            "rejected": "We couldn't verify your identity. Try again to continue."
+            "rejected": "Continue to see details or contact support."
           },
           "confirm_button_label": "Continue"
         }
@@ -12381,6 +12461,7 @@
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
@@ -13968,6 +14049,11 @@
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "token_tag": "Token",
+    "perp_tag": "Perp",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "loading_more_results": "Loading more results",
     "load_error": "Unable to load watchlist items",
     "save_error": "Unable to save watchlist order",
     "retry": "Try again",
@@ -13975,6 +14061,8 @@
     "done": "Done",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "no_tokens_found": "No tokens in watchlist",
+    "no_tokens_description": "Tap the star icon on any token to add it to your watchlist",
     "search_placeholder": "Search for any asset to add"
   },
   "asset_spendable_balance": {

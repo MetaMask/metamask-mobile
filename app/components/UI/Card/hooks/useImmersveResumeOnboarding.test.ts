@@ -538,8 +538,6 @@ describe('useImmersveResumeOnboarding', () => {
     expect(mockRoute).toHaveBeenCalledWith(
       {
         type: 'rejected',
-        canRetry: false,
-        retryUrl: undefined,
         reasons: [],
       },
       {

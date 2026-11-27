@@ -2437,11 +2437,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Card/Views/CardHome/components/CardHomeFooter.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Card/Views/CardHome/components/ManageCardOptions.test.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
@@ -3265,9 +3260,6 @@
     }
   },
   "app/components/UI/Card/hooks/useImmersveKycOutcome.tsx": {
-    "typescript/promise-function-async": {
-      "count": 2
-    },
     "typescript/unbound-method": {
       "count": 2
     }
@@ -7660,7 +7652,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/UI/Perps/hooks/usePerpsPositionForAsset.ts": {
@@ -10186,9 +10178,6 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },
@@ -10344,11 +10333,11 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelectorModal/PaymentMethodSelectorModal.tsx": {
@@ -12503,11 +12492,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/hooks/useGetVipTransactions.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 10
-    }
-  },
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
     "typescript/promise-function-async": {
       "count": 5
@@ -12590,9 +12574,6 @@
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.test.ts": {
     "typescript/await-thenable": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
     }
   },
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.ts": {
@@ -14185,11 +14166,6 @@
       "count": 13
     }
   },
-  "app/components/UI/Trending/hooks/useSearchRequest/useSearchRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Trending/hooks/useTokenListFilters/useTokenListFilters.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
@@ -14206,9 +14182,6 @@
     }
   },
   "app/components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
     }
@@ -14306,9 +14279,6 @@
     }
   },
   "app/components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -18301,13 +18271,13 @@
   },
   "app/components/Views/Wallet/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 4
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
@@ -20133,11 +20103,6 @@
   "app/components/hooks/useAnalytics/useAnalytics.ts": {
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/components/hooks/useAsyncResult.test.ts": {
@@ -22757,11 +22722,6 @@
       "count": 1
     }
   },
-  "app/core/XAuthService/XAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 4
-    }
-  },
   "app/core/XAuthService/XAuthService.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -23636,11 +23596,6 @@
   "app/store/sagas/marketingAttribution.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 2
-    }
-  },
-  "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.ts": {

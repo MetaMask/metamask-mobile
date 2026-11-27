@@ -4,6 +4,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -52,7 +53,7 @@ export function useClearPaymentOverride() {
     if (
       transactionId &&
       paymentOverride &&
-      paymentOverride !== LIGHTER_PAYMENT_OVERRIDE
+      paymentOverride !== PaymentOverride.PerpsLighter
     ) {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,

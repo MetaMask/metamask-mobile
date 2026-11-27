@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { Image } from '../../primitives/Image';
 import { View } from '../../primitives/View';
@@ -11,6 +11,7 @@ interface Props {
   className?: string;
   artClassName?: string;
   isBadgeAccessible?: boolean;
+  badge?: ReactNode;
 }
 
 export function PackArt({
@@ -20,6 +21,7 @@ export function PackArt({
   className = 'p-2',
   artClassName = 'h-56',
   isBadgeAccessible = true,
+  badge,
 }: Props) {
   const [failedImageUrl, setFailedImageUrl] = useState<string>();
   const hasArtFailed = failedImageUrl === imageUrl;
@@ -40,12 +42,16 @@ export function PackArt({
           testID={collectiblesTestIds.packsTileArtPlaceholder(code)}
         />
       )}
-      <PackOpensBadge
-        className="absolute left-2 top-2"
-        code={code}
-        openedCount={openedCount}
-        isAccessible={isBadgeAccessible}
-      />
+      {badge ? (
+        <View className="absolute left-2 top-2">{badge}</View>
+      ) : (
+        <PackOpensBadge
+          className="absolute left-2 top-2"
+          code={code}
+          openedCount={openedCount}
+          isAccessible={isBadgeAccessible}
+        />
+      )}
     </View>
   );
 }

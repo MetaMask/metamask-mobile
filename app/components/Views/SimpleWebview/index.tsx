@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
-import { WebView } from '@metamask/react-native-webview';
+import {
+  WebView,
+  type WebViewNavigation,
+} from '@metamask/react-native-webview';
 import { IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
+import {
+  attachWebviewAuthSessionClose,
+  dismissWebviewAuthSession,
+  handleWebviewAuthRedirect,
+} from '../../../util/webviewAuthSession';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
@@ -33,6 +41,7 @@ const SimpleWebView = () => {
     hideShareButton,
     isModal,
     useGlassHeader,
+    authSessionId,
   } = route.params;
   const includesTopInset = !isModal || Platform.OS === 'android';
   const [hardwareTier] = useState(getHardwareTier);
@@ -52,17 +61,74 @@ const SimpleWebView = () => {
   }, [url]);
 
   const close = useCallback(() => navigation.goBack(), [navigation]);
+  const closingAuthSessionIdRef = useRef<string | null>(null);
 
+  const closeAuthSession = useCallback(() => {
+    if (!authSessionId || closingAuthSessionIdRef.current === authSessionId) {
+      return;
+    }
+    closingAuthSessionIdRef.current = authSessionId;
+    close();
+  }, [authSessionId, close]);
+
+  useEffect(() => {
+    if (!authSessionId) {
+      return undefined;
+    }
+
+    const attached = attachWebviewAuthSessionClose(
+      authSessionId,
+      closeAuthSession,
+    );
+    if (!attached) {
+      closeAuthSession();
+    }
+
+    return () => {
+      dismissWebviewAuthSession(authSessionId);
+    };
+  }, [authSessionId, closeAuthSession]);
+
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      if (!authSessionId) {
+        return true;
+      }
+      if (closingAuthSessionIdRef.current === authSessionId) {
+        return false;
+      }
+      if (handleWebviewAuthRedirect(authSessionId, request.url)) {
+        closeAuthSession();
+        return false;
+      }
+      return true;
+    },
+    [authSessionId, closeAuthSession],
+  );
+
+  const handleNavigationStateChange = useCallback(
+    (navState: WebViewNavigation) => {
+      if (!authSessionId || closingAuthSessionIdRef.current === authSessionId) {
+        return;
+      }
+      if (handleWebviewAuthRedirect(authSessionId, navState.url)) {
+        closeAuthSession();
+      }
+    },
+    [authSessionId, closeAuthSession],
+  );
+
+  const onDismiss = authSessionId ? closeAuthSession : close;
   const headerProps = {
     title,
     includesTopInset: useGlassHeader ? false : includesTopInset,
     ...(useGlassHeader
       ? {
-          onClose: close,
+          onClose: onDismiss,
           closeButtonProps: { testID: 'simple-webview-close-button' },
         }
       : {
-          onBack: close,
+          onBack: onDismiss,
           backButtonProps: { testID: 'simple-webview-back-button' },
         }),
     endButtonIconProps: hideShareButton
@@ -106,6 +172,13 @@ const SimpleWebView = () => {
         containerStyle={tw.style('flex-1')}
         source={{ uri: url }}
         testID="simple-webview"
+        domStorageEnabled
+        onShouldStartLoadWithRequest={
+          authSessionId ? handleShouldStartLoadWithRequest : undefined
+        }
+        onNavigationStateChange={
+          authSessionId ? handleNavigationStateChange : undefined
+        }
         originWhitelist={[
           'https://*',
           'http://*',

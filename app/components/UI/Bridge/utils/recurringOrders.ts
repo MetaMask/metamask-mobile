@@ -56,6 +56,23 @@ export function getRecurringOrderTokens(order: RecurringOrder): {
   };
 }
 
+/**
+ * Converts the order's per-swap source amount out of minimal units, which is
+ * what the Recurring tab's source input holds.
+ *
+ * @param order - The recurring order.
+ * @returns The amount, or `undefined` when it isn't a positive number.
+ */
+export function getRecurringOrderDuplicateSourceAmount(
+  order: RecurringOrder,
+): string | undefined {
+  const amount = new BigNumber(order.src.amount).shiftedBy(
+    -order.src.asset.decimals,
+  );
+
+  return amount.isFinite() && amount.gt(0) ? amount.toFixed() : undefined;
+}
+
 export function isRecurringSwapEligibleForAddFunds(
   swap: RecurringSwap,
   orderedSwaps: readonly RecurringSwap[],

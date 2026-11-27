@@ -129,7 +129,8 @@ import {
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
-import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
+import { getNetworkFeeAsset } from '../../../utils/getNetworkFeeAsset';
+import { isGaslessQuote } from '../../../utils/isGaslessQuote';
 import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { BridgeTabKey } from '../BridgeView.constants';
@@ -533,8 +534,10 @@ const BridgeMarketViewContent = ({
     return 'quote';
   };
   const contentMode = getContentMode();
-  const gaslessFeeAsset = getGaslessFeeAsset(
-    activeQuote?.quote?.feeData?.txFee,
+  const networkFeeAsset = getNetworkFeeAsset(
+    isGaslessQuote(activeQuote?.quote)
+      ? activeQuote?.quote?.feeData?.txFee
+      : activeQuote?.quote?.feeData?.network,
   );
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
@@ -699,7 +702,7 @@ const BridgeMarketViewContent = ({
                 <QuoteDetailsCard
                   location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
-                  gaslessFeeAsset={gaslessFeeAsset}
+                  networkFeeAsset={networkFeeAsset}
                 />
               </Box>
             ) : null}
