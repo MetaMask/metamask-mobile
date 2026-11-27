@@ -3,17 +3,14 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
-  createRouteParamsProbe,
-  getRouteParamsProbeTestId,
-  renderScreenWithRoutes,
+  findRouteParams,
+  renderWithBrowserHomeProbe,
 } from '../../../../../../tests/component-view/render';
 import { initialStateTrending } from '../../../../../../tests/component-view/presets/trending';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import { SiteRowItem } from './SiteRowItem';
 import { getSiteRowItemTestId } from './SiteRowItem.testIds';
-
-const SITE_ROW_ROUTE = 'SiteRowItem';
 
 const METAMASK_SITE: SiteData = {
   id: '1',
@@ -28,31 +25,16 @@ const SiteRowScreen = (): React.JSX.Element => (
   <SiteRowItem site={METAMASK_SITE} />
 );
 
-const renderSiteRow = (): ReturnType<typeof renderScreenWithRoutes> =>
-  renderScreenWithRoutes(
-    SiteRowScreen,
-    { name: SITE_ROW_ROUTE },
-    [
-      {
-        name: Routes.BROWSER.HOME,
-        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
-      },
-    ],
-    { state: initialStateTrending().build() },
-  );
-
 describeForPlatforms('SiteRowItem', () => {
   it('opens the site in the browser tab', async () => {
-    const { getByTestId, findByTestId } = renderSiteRow();
+    const { getByTestId, findByTestId } = renderWithBrowserHomeProbe(
+      SiteRowScreen,
+      initialStateTrending().build(),
+    );
 
     fireEvent.press(getByTestId(getSiteRowItemTestId(METAMASK_SITE.name)));
 
-    const routeParams = await findByTestId(
-      getRouteParamsProbeTestId(Routes.BROWSER.HOME),
-    );
-
-    expect(routeParams).toBeOnTheScreen();
-    expect(JSON.parse(routeParams.props.children)).toEqual(
+    expect(await findRouteParams(findByTestId, Routes.BROWSER.HOME)).toEqual(
       expect.objectContaining({
         newTabUrl: METAMASK_SITE.url,
         fromTrending: true,
