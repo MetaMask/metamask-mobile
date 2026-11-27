@@ -12,7 +12,7 @@ export const failedSeedPhraseRequirements = (seed: string): boolean => {
  * The extension uses different cryptography for the vault.
  * @param {string} password - users password related to vault
  * @param {string} vault - exported from ios/android filesystem
- * @returns seed phrase from vault
+ * @returns the seed phrase from the vault
  */
 export const parseVaultValue = async (
   password: string,
