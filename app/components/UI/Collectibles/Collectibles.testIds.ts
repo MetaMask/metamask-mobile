@@ -46,4 +46,8 @@ export const collectiblesTestIds = {
   collectionTile: (mint: string) => `collectibles-collection-tile-${mint}`,
   collectionBuyback: (mint: string) =>
     `collectibles-collection-buyback-${mint}`,
+  collectionTileArt: (mint: string) =>
+    `collectibles-collection-tile-art-${mint}`,
+  collectionTileArtFallback: (mint: string) =>
+    `collectibles-collection-tile-art-fallback-${mint}`,
 } as const;

@@ -13,6 +13,7 @@ import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 import { Image } from '../../primitives/Image';
 import { Pressable } from '../../primitives/Pressable';
 import { View } from '../../primitives/View';
+import { ArtworkFallback } from './ArtworkFallback';
 
 interface Props {
   card: PackPartnerCard;
@@ -53,9 +54,13 @@ export function CollectionCardTile({ card, buybackLabel, onPress }: Props) {
             contentFit="contain"
             className="h-56 w-full rounded-lg"
             onError={() => setFailedImageUrl(imageUrl)}
+            testID={collectiblesTestIds.collectionTileArt(card.mint)}
           />
         ) : (
-          <View className="h-56 w-full rounded-lg bg-alternative" />
+          <ArtworkFallback
+            className="h-56 w-full rounded-lg"
+            testID={collectiblesTestIds.collectionTileArtFallback(card.mint)}
+          />
         )}
         {buybackLabel ? (
           <View
