@@ -84,10 +84,6 @@
       "message": "This site is suggesting a higher network fee than necessary. Edit the network fee to pay less.",
       "edit_action": "Edit network fee"
     },
-    "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "Wait for the last deposit to finish before making another."
-    },
     "signed_or_submitted_pay_token": {
       "title": "Pending transaction",
       "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
