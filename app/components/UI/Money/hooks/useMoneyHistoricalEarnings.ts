@@ -5,6 +5,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyInterestHistory } from '../services/moneyInterestHistory';
 import type { InterestHistoryResponse } from '../types/moneyInterestHistory';
+import { getMoneyVaultChainId } from '../utils/getMoneyVaultChainId';
 
 export interface UseMoneyHistoricalEarningsOptions {
   enabled?: boolean;
@@ -21,11 +22,9 @@ export const useMoneyHistoricalEarnings = ({
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const normalizedAddress = primaryMoneyAccount?.address?.toLowerCase();
-  const configuredChainId = vaultConfig?.chainId;
-  const chainId =
-    configuredChainId === undefined ? undefined : Number(configuredChainId);
-  const isValidChainId = chainId !== undefined && Number.isSafeInteger(chainId);
-  const isEnabled = enabled && Boolean(normalizedAddress && isValidChainId);
+  const chainId = getMoneyVaultChainId(vaultConfig);
+  const isEnabled =
+    enabled && Boolean(normalizedAddress && chainId !== undefined);
 
   return useQuery({
     queryKey: [
@@ -34,7 +33,7 @@ export const useMoneyHistoricalEarnings = ({
       chainId,
     ],
     queryFn: async () => {
-      if (!normalizedAddress || !isValidChainId || chainId === undefined) {
+      if (!normalizedAddress || chainId === undefined) {
         throw new Error(
           'Cannot fetch Money historical earnings without an account address and valid chain ID',
         );

@@ -1,6 +1,7 @@
 export const MoneyEarningsViewTestIds = {
   CONTAINER: 'money-earnings-view-container',
   EARNINGS_PANEL: 'money-earnings-view-panel-earnings',
+  ALLOCATION_PANEL: 'money-earnings-view-panel-allocation',
   BACK_BUTTON: 'money-earnings-view-back-button',
   TAB_EARNINGS: 'money-earnings-view-tab-earnings',
   TAB_APY: 'money-earnings-view-tab-apy',
@@ -23,6 +24,11 @@ export const MoneyEarningsViewTestIds = {
   CHART_GRIDLINE: (index: number): string =>
     `money-earnings-view-chart-gridline-${index}`,
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
+  ALLOCATION_ERROR: 'money-earnings-view-allocation-error',
+  ALLOCATION_EMPTY: 'money-earnings-view-allocation-empty',
+  ALLOCATION_DEGRADED: 'money-earnings-view-allocation-degraded',
+  ALLOCATION_DETAILS_DIVIDER: 'money-earnings-view-allocation-details-divider',
+  ALLOCATION_RISKS_DIVIDER: 'money-earnings-view-allocation-risks-divider',
   SUMMARY: 'money-earnings-view-summary',
   SUMMARY_ROW: (index: number): string =>
     `money-earnings-view-summary-row-${index}`,

@@ -23073,11 +23073,6 @@
       "count": 1
     }
   },
-  "app/selectors/featureFlagController/moneyAccount/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/selectors/featureFlagController/nativeTabBar/index.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
