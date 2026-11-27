@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, type TextLayoutEvent } from 'react-native';
+import React, { useCallback, useState } from "react";
+import { Pressable, type TextLayoutEvent } from "react-native";
 import {
   Box,
   BoxAlignItems,
@@ -11,9 +11,9 @@ import {
   Text,
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { PerpsSelectionOptionCardProps } from './PerpsSelectionBottomSheet.types';
+} from "@metamask/design-system-react-native";
+import { useTailwind } from "@metamask/design-system-twrnc-preset";
+import type { PerpsSelectionOptionCardProps } from "./PerpsSelectionBottomSheet.types";
 
 /**
  * Selectable card used by `PerpsSelectionBottomSheet`.
@@ -47,9 +47,9 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
   const hasMultiLineText = descriptionLineCount > 1;
   const isPressable = !isDisabled || onDisabledPress !== undefined;
   const handlePress = isDisabled ? onDisabledPress : onPress;
-  const accessibilityLabel = [title, tag, description?.replace(/\n/g, ', ')]
+  const accessibilityLabel = [title, tag, description?.replace(/\n/g, ", ")]
     .filter(Boolean)
-    .join(', ');
+    .join(", ");
 
   return (
     <Pressable
@@ -66,19 +66,16 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
       // the content.
       style={({ pressed }) =>
         tw.style(
-          'flex-row gap-4 rounded-2xl border bg-muted p-[15px]',
-          hasMultiLineText ? 'items-start' : 'items-center',
-          isSelected ? 'border-default' : 'border-transparent',
-          pressed && 'bg-pressed',
-          isDisabled && 'opacity-50',
+          "flex-row gap-4 rounded-2xl border bg-muted p-[15px]",
+          hasMultiLineText ? "items-start" : "items-center",
+          isSelected ? "border-default" : "border-transparent",
+          pressed && "bg-pressed",
+          isDisabled && "opacity-50",
         )
       }
     >
       {startAccessory ? (
-        <Box
-          accessible={false}
-          className="size-10 overflow-hidden rounded-xl"
-        >
+        <Box accessible={false} className="size-10 overflow-hidden rounded-xl">
           {startAccessory}
         </Box>
       ) : (
@@ -120,7 +117,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
           // The card is the radio. This control only draws the indicator.
           accessible: false,
           accessibilityElementsHidden: true,
-          importantForAccessibility: 'no-hide-descendants',
+          importantForAccessibility: "no-hide-descendants",
           testID: testID ? `${testID}-radio` : undefined,
         }}
       />

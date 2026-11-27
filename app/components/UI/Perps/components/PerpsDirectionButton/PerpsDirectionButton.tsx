@@ -1,15 +1,16 @@
-import React from 'react';
+import React from "react";
 import {
   ButtonBase,
   type ButtonBaseProps,
-} from '@metamask/design-system-react-native';
+} from "@metamask/design-system-react-native";
 
-export type PerpsDirection = 'long' | 'short';
+export type PerpsDirection = "long" | "short";
 
-interface PerpsDirectionButtonProps extends Omit<
-  ButtonBaseProps,
-  'iconClassName' | 'textClassName' | 'textProps' | 'twClassName'
-> {
+interface PerpsDirectionButtonProps
+  extends Omit<
+    ButtonBaseProps,
+    "iconClassName" | "textClassName" | "textProps" | "twClassName"
+  > {
   direction: PerpsDirection;
   twClassName?: string;
 }
@@ -19,12 +20,12 @@ const DIRECTION_COLOR_CLASSES: Record<
   { background: string; foreground: string }
 > = {
   long: {
-    background: 'bg-success-default',
-    foreground: 'text-success-inverse',
+    background: "bg-success-default",
+    foreground: "text-success-inverse",
   },
   short: {
-    background: 'bg-error-default',
-    foreground: 'text-error-inverse',
+    background: "bg-error-default",
+    foreground: "text-error-inverse",
   },
 };
 
@@ -33,7 +34,7 @@ const DIRECTION_COLOR_CLASSES: Record<
  */
 const PerpsDirectionButton = ({
   direction,
-  twClassName = '',
+  twClassName = "",
   ...props
 }: PerpsDirectionButtonProps) => {
   const colorClasses = DIRECTION_COLOR_CLASSES[direction];
