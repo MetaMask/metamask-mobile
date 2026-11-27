@@ -53,6 +53,12 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { POPULAR_SEARCH_ASSETS } from './popularSearchAssets';
 import { useExploreSearchFooterPress } from './useExploreSearchFooterPress';
+import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
+import {
+  orderExploreSearchSections,
+  useStocksPromotion,
+  type StocksPromotionState,
+} from './stocksPromotion';
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -76,6 +82,8 @@ interface ExploreSearchResultsProps {
    * reflect that, not 'all'.
    */
   activeTab?: SearchFeedPill;
+  /** Optional promotion state lifted from ExploreSearchScreen to share one grace timer. */
+  stocksPromotion?: StocksPromotionState;
 }
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
@@ -85,12 +93,30 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   onViewMore,
   emptyFeedTitle,
   activeTab = 'all',
+  stocksPromotion,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const floatingTabBarInset = useFloatingTabBarInset();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
+  );
+  const isStocksPromotionEnabled = useSelector(
+    selectExploreSearchPromoteStocksExactTickerEnabled,
+  );
+
+  const localStocksPromotion = useStocksPromotion({
+    searchQuery,
+    sections,
+    isEnabled: isStocksPromotionEnabled && !stocksPromotion,
+    maxItems: MAX_ITEMS_PER_SECTION,
+  });
+  const { isStocksPromoted, shouldHoldForStocks } =
+    stocksPromotion ?? localStocksPromotion;
+
+  const orderedSections = useMemo(
+    () => orderExploreSearchSections(sections, isStocksPromoted),
+    [sections, isStocksPromoted],
   );
 
   const totalResultCount = useMemo(
@@ -117,7 +143,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     analyticsSearchQuery,
-    { tab_name: activeTab, result_count: totalResultCount },
+    {
+      tab_name: activeTab,
+      result_count: totalResultCount,
+      stocks_promoted: isStocksPromoted,
+    },
   );
 
   useEffect(() => {
@@ -133,22 +163,24 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         previous_tab: activeTab,
         comes_from_view_all_tap: true,
         result_count: section.total ?? section.items.length,
+        stocks_promoted: isStocksPromoted,
       });
       onViewMore(section.feedId);
     },
-    [onViewMore, analyticsSearchQuery, activeTab],
+    [onViewMore, analyticsSearchQuery, activeTab, isStocksPromoted],
   );
 
   const renderSectionHeader = useCallback(
     (item: ListItemHeader, section: SearchFeedSection) => {
-      const viewMoreLabel = section.isLoading
-        ? null
-        : getViewMoreLabel(
-            section.feedId,
-            section.items.length,
-            searchQuery,
-            section.total,
-          );
+      const viewMoreLabel =
+        section.isLoading || shouldHoldForStocks
+          ? null
+          : getViewMoreLabel(
+              section.feedId,
+              section.items.length,
+              searchQuery,
+              section.total,
+            );
       return (
         <Box>
           {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
@@ -191,7 +223,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         </Box>
       );
     },
-    [handleViewMore, searchQuery],
+    [handleViewMore, searchQuery, shouldHoldForStocks],
   );
 
   const sectionsMap = useMemo(
@@ -201,7 +233,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const flatData = useMemo<FlatListItem[]>(() => {
     const result: FlatListItem[] = [];
-    const visibleSections = isBasicFunctionalityEnabled ? sections : [];
+    const visibleSections = isBasicFunctionalityEnabled ? orderedSections : [];
     let headerCount = 0;
 
     visibleSections.forEach((section) => {
@@ -216,7 +248,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       });
       headerCount += 1;
 
-      if (isLoading) {
+      if (isLoading || shouldHoldForStocks) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
           result.push({ type: 'skeleton', feedId, index: i });
         }
@@ -229,7 +261,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [isBasicFunctionalityEnabled, sections]);
+  }, [isBasicFunctionalityEnabled, orderedSections, shouldHoldForStocks]);
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -250,6 +282,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     searchQuery,
     tabName: activeTab,
     resultCount: totalResultCount,
+    stocksPromoted: isStocksPromoted,
   });
 
   const renderFooter =
@@ -279,6 +312,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           analyticsSearchQuery={analyticsSearchQuery}
           tabName={activeTab}
           resultCount={totalResultCount}
+          stocksPromoted={isStocksPromoted}
           onQuickTrade={
             (item.feedId === 'tokens' || item.feedId === 'stocks') &&
             quickBuyVariant.showQuickTradeButton
@@ -295,6 +329,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       analyticsSearchQuery,
       activeTab,
       totalResultCount,
+      isStocksPromoted,
       quickBuyVariant.showQuickTradeButton,
     ],
   );
@@ -381,8 +416,13 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
-        getItemType={(item) => item.type}
+        getItemType={(item) =>
+          item.type === 'header' && item.isFirstHeader
+            ? 'first-header'
+            : item.type
+        }
         keyExtractor={keyExtractor}
+        maintainVisibleContentPosition={{ disabled: true }}
         contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"

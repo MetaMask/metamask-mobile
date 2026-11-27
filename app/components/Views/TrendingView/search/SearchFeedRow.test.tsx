@@ -774,6 +774,38 @@ describe('token identity analytics', () => {
       expect(payload).not.toHaveProperty('token_symbol');
     },
   );
+
+  it.each([true, false])(
+    'tracks stocks_promoted=%s when stocksPromoted prop is provided',
+    (stocksPromoted) => {
+      const stockItem = {
+        assetId: 'eip155:1/erc20:0xtsla',
+        name: 'Tesla',
+        symbol: 'TSLAon',
+      } as TrendingAsset;
+
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId="stocks"
+          item={stockItem}
+          index={0}
+          searchQuery="TSLA"
+          tabName="all"
+          stocksPromoted={stocksPromoted}
+        />,
+      );
+
+      fireEvent.press(getByTestId('search-feed-tap'));
+
+      expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: 'result_clicked',
+          section_name: 'stocks',
+          stocks_promoted: stocksPromoted,
+        }),
+      );
+    },
+  );
 });
 
 describe('SearchFeedSkeleton', () => {

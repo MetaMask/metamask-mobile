@@ -153,6 +153,71 @@ describe('useStocksFeed', () => {
         }),
       );
     });
+
+    it.each([
+      ['$TSLA', 'TSLA'],
+      ['  $TSLA  ', 'TSLA'],
+      ['$ tsla', 'tsla'],
+    ])(
+      'strips a leading $ from %p before calling useRwaTokens',
+      (input, expected) => {
+        renderHook(() => useStocksFeed({ query: input }));
+        expect(mockUseRwaTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            searchQuery: expected,
+            chainIds: ['eip155:1', 'eip155:56', 'eip155:4663'],
+            includeTokenSecurityData: true,
+          }),
+        );
+      },
+    );
+
+    it('treats a lone $ query like no query', () => {
+      const { result } = renderHook(() => useStocksFeed({ query: '$' }));
+      const symbols = result.current.data.map((d) => d.symbol);
+      expect(symbols).toStrictEqual(['OUSG', 'BUIDL', 'AAPL']);
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          searchQuery: undefined,
+          chainIds: ['eip155:1', 'eip155:4663'],
+        }),
+      );
+    });
+
+    it('requests market_cap_desc and ranks exact ticker matches first during search', () => {
+      const kohls = {
+        assetId: 'eip155:1/erc20:0x1',
+        symbol: 'KSSon',
+        name: "Kohl's",
+        price: '12.00',
+        marketCap: 1_500_000_000,
+        rwaData: { ticker: 'KSS' },
+      } as unknown as TrendingAsset;
+      const cocaCola = {
+        assetId: 'eip155:1/erc20:0x2',
+        symbol: 'KOon',
+        name: 'Coca-Cola (Ondo Tokenized)',
+        price: '65.00',
+        marketCap: 280_000_000_000,
+        rwaData: { ticker: 'KO' },
+      } as unknown as TrendingAsset;
+      arrangeRwaTokens([kohls, cocaCola]);
+
+      const { result } = renderHook(() => useStocksFeed({ query: 'KO' }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sortTrendingTokensOptions: {
+            option: 'market_cap',
+            direction: 'descending',
+          },
+        }),
+      );
+      expect(result.current.data.map((d) => d.symbol)).toStrictEqual([
+        'KOon',
+        'KSSon',
+      ]);
+    });
   });
 
   describe('loading, refetch, and pagination passthrough', () => {

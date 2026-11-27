@@ -83,4 +83,28 @@ describe('useExploreSearchFooterPress', () => {
       expect.objectContaining({ tab_name: 'sites', result_count: 2 }),
     );
   });
+
+  it.each([true, false])(
+    'includes stocks_promoted=%s when stocksPromoted is provided',
+    (stocksPromoted) => {
+      const { result } = renderHook(() =>
+        useExploreSearchFooterPress({
+          searchQuery: 'TSLA',
+          tabName: 'all',
+          resultCount: 4,
+          stocksPromoted,
+        }),
+      );
+
+      result.current('https://search.brave.com/search?q=TSLA', 'engine_search');
+
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({
+          interaction_type: 'result_clicked',
+          section_name: 'search_footer',
+          stocks_promoted: stocksPromoted,
+        }),
+      );
+    },
+  );
 });
