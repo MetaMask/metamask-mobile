@@ -116,6 +116,11 @@ import {
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import {
+  readLiveQuotes,
+  useMarketStats,
+  useMarketStatsSubscription,
+} from '../../../../hooks/assets/market-stats';
 import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import Routes from '../../../../constants/navigation/Routes';
@@ -432,10 +437,28 @@ const TokenDetails: React.FC<{
   );
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
 
+  const quotedPrice = useTokenPrice({ token });
+  const [liveQuote] = useMarketStats((quotes) =>
+    readLiveQuotes(quotes, [caip19AssetId ?? undefined]),
+  );
+  // The price poll only opens channels for holdings. The details page also
+  // opens tokens from Explore, Trending, and Search.
+  const marketStatsAssetIds = useMemo(
+    () => (caip19AssetId ? [caip19AssetId] : []),
+    [caip19AssetId],
+  );
+  useMarketStatsSubscription(marketStatsAssetIds);
+  const currentPrice = liveQuote?.price ?? quotedPrice.currentPrice;
+  let { priceDiff, comparePrice } = quotedPrice;
+  if (
+    liveQuote?.pricePercentChange1d !== undefined &&
+    quotedPrice.timePeriod === '1d' &&
+    currentPrice > 0
+  ) {
+    comparePrice = currentPrice / (1 + liveQuote.pricePercentChange1d / 100);
+    priceDiff = currentPrice - comparePrice;
+  }
   const {
-    currentPrice,
-    priceDiff,
-    comparePrice,
     prices,
     isLoading,
     currentCurrency,
@@ -446,7 +469,7 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
     spotMarketData,
-  } = useTokenPrice({ token });
+  } = quotedPrice;
   const isOrderLookupEnabled = !(
     hardwareTier === 'LOW' &&
     networkTier === 'SLOW_CELLULAR' &&
@@ -698,6 +721,7 @@ const TokenDetails: React.FC<{
 
   const {
     balance,
+    balanceAmount,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
@@ -938,6 +962,7 @@ const TokenDetails: React.FC<{
           : undefined
       }
       mainBalance={fiatBalance ?? ''}
+      balanceAmount={balanceAmount}
       secondaryBalance={tokenFormattedBalance}
       currentPrice={currentPrice}
       priceDiff={priceDiff}

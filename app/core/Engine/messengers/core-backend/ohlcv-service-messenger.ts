@@ -30,7 +30,7 @@ export function getOHLCVServiceMessenger(
       'BackendWebSocketService:subscribe',
       'BackendWebSocketService:getConnectionInfo',
       'BackendWebSocketService:channelHasSubscription',
-      'BackendWebSocketService:getSubscriptionsByChannel',
+      'BackendWebSocketService:unsubscribeChannels',
       'BackendWebSocketService:findSubscriptionsByChannelPrefix',
       'BackendWebSocketService:addChannelCallback',
       'BackendWebSocketService:removeChannelCallback',

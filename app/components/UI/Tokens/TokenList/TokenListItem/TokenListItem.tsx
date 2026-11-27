@@ -50,6 +50,13 @@ import {
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
+import {
+  liveHoldingFiat,
+  readLiveQuotes,
+  useMarketStats,
+} from '../../../../../hooks/assets/market-stats';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
@@ -215,7 +222,9 @@ export const TokenListItem = React.memo(
       isTokenListSecurityBadgesEnabled &&
       !skipTokenListSecurityBadge;
 
-    const { data: caipAssetIdForSecurity } = useQuery({
+    // Market stats and the security badge both key on CAIP-19. A hex address
+    // (native ETH is the zero address) misses the streamed quote.
+    const { data: caipAssetId } = useQuery({
       queryKey: tokenListSecurityBadgeKeys.caipFromToken({
         chainId: asset?.chainId,
         address: asset?.address,
@@ -223,10 +232,18 @@ export const TokenListItem = React.memo(
         isETH: asset?.isETH,
       }),
       queryFn: () => getCaipAssetIdForToken(asset),
-      enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
+      enabled: Boolean(asset?.chainId),
       staleTime: Infinity,
       gcTime: Infinity,
     });
+    // This row reads only its own quote, so a tick for another asset leaves it
+    // alone. Absent until the id resolves, the first tick, or while not streaming.
+    const selectLiveQuote = useCallback(
+      (quotes: Parameters<typeof readLiveQuotes>[0]) =>
+        readLiveQuotes(quotes, [caipAssetId ?? undefined]),
+      [caipAssetId],
+    );
+    const [liveQuote] = useMarketStats(selectLiveQuote);
 
     const chainId = asset?.chainId as Hex;
 
@@ -263,12 +280,19 @@ export const TokenListItem = React.memo(
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
 
-    const pricePercentChange1d = useTokenPricePercentageChange(asset);
+    const polledPricePercentChange1d = useTokenPricePercentageChange(asset);
+    const pricePercentChange1d =
+      liveQuote?.pricePercentChange1d ?? polledPricePercentChange1d;
 
-    // Calculate token price in fiat currency
+    // Calculate token price in fiat currency. A streamed quote is already
+    // in the selected currency, so it replaces the polled native-to-fiat path.
     const tokenPriceInFiat = useMemo(() => {
       if (!asset?.address || !asset?.chainId) {
         return undefined;
+      }
+
+      if (liveQuote && !(isTestNet(asset.chainId) && !showFiatOnTestnets)) {
+        return liveQuote.price;
       }
 
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
@@ -320,6 +344,7 @@ export const TokenListItem = React.memo(
       nativeCurrency,
       showFiatOnTestnets,
       multichainAssetsRates,
+      liveQuote,
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -344,10 +369,10 @@ export const TokenListItem = React.memo(
         trace({ name: TraceName.AssetDetails });
 
         let securityData: TokenSecurityData | undefined;
-        if (shouldResolveCaipForSecurityBadge && caipAssetIdForSecurity) {
+        if (shouldResolveCaipForSecurityBadge && caipAssetId) {
           securityData =
             queryClient.getQueryData<TokenSecurityData | null>(
-              tokenListSecurityBadgeKeys.byAsset(caipAssetIdForSecurity),
+              tokenListSecurityBadgeKeys.byAsset(caipAssetId),
             ) ?? undefined;
         }
 
@@ -363,7 +388,7 @@ export const TokenListItem = React.memo(
         isFullView,
         navigation,
         shouldResolveCaipForSecurityBadge,
-        caipAssetIdForSecurity,
+        caipAssetId,
         queryClient,
       ],
     );
@@ -453,7 +478,15 @@ export const TokenListItem = React.memo(
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
-    const fiatBalance = asset.balanceFiat || '—';
+    const liveHolding = liveHoldingFiat(asset.balanceAmount, liveQuote?.price);
+    const liveFiatBalance =
+      liveHolding !== undefined && !hideFiatForTestnet && currentCurrency
+        ? formatWithThreshold(liveHolding, 0.01, getLocaleLanguageCode(), {
+            style: 'currency',
+            currency: currentCurrency,
+          })
+        : undefined;
+    const fiatBalance = liveFiatBalance ?? (asset.balanceFiat || '—');
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
     const isFiatBalanceLoading =
@@ -486,7 +519,7 @@ export const TokenListItem = React.memo(
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        twClassName="uppercase"
+        className="uppercase"
       >
         {'-'}
       </Text>
@@ -533,7 +566,7 @@ export const TokenListItem = React.memo(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="flex-1 ml-5 gap-2.5"
+            className="ml-5 flex-1 gap-2.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -543,7 +576,7 @@ export const TokenListItem = React.memo(
             >
               {asset.name || asset.symbol}
             </Text>
-            <Box twClassName="items-end">
+            <Box className="items-end">
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -591,12 +624,12 @@ export const TokenListItem = React.memo(
         {assetLogoWithNetworkBadge}
 
         {/* Column 2*/}
-        <Box twClassName="flex-1 ml-5">
+        <Box className="ml-5 flex-1">
           {/* Row: 1 - Token name, label, earn CTA, stock badge */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
+            className="gap-2.5"
           >
             {/*
              * Token name and label
@@ -614,12 +647,9 @@ export const TokenListItem = React.memo(
                 >
                   {asset.name || asset.symbol}
                 </Text>
-                {shouldResolveCaipForSecurityBadge &&
-                  caipAssetIdForSecurity && (
-                    <TokenListSecurityBadge
-                      caipAssetId={caipAssetIdForSecurity}
-                    />
-                  )}
+                {shouldResolveCaipForSecurityBadge && caipAssetId && (
+                  <TokenListSecurityBadge caipAssetId={caipAssetId} />
+                )}
                 {isAssetInactive ? <AssetInactiveBadge /> : null}
               </View>
 
@@ -668,7 +698,7 @@ export const TokenListItem = React.memo(
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
+            className="gap-2.5"
           >
             {/* Token price and percentage change */}
             <View style={styles.percentageChange}>
@@ -676,7 +706,7 @@ export const TokenListItem = React.memo(
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="uppercase"
+                className="uppercase"
               >
                 {tokenPriceInFiat && !hideFiatForScamWarning
                   ? formatPriceWithSubscriptNotation(
@@ -691,7 +721,7 @@ export const TokenListItem = React.memo(
             </View>
 
             {/* Token balance */}
-            <Box twClassName="shrink">
+            <Box className="shrink">
               <SensitiveText
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}

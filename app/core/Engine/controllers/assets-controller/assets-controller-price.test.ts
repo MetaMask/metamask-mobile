@@ -7,6 +7,7 @@ import {
   type DataRequest,
 } from '@metamask/assets-controller';
 import type { ApiPlatformClient } from '@metamask/core-backend';
+import { Messenger } from '@metamask/messenger';
 
 const ACCOUNT_ID = 'account-id';
 const MAINNET_CHAIN_ID = 'eip155:1' as ChainId;
@@ -48,6 +49,7 @@ describe('AssetsController native asset pricing', () => {
       queryApiClient,
       getSelectedCurrency: () => 'usd',
       getAssetsState: () => state,
+      messenger: new Messenger({ namespace: 'AssetsController' }),
     });
     const request: DataRequest = {
       accountsWithSupportedChains: [],
@@ -60,6 +62,7 @@ describe('AssetsController native asset pricing', () => {
     expect(fetchV3SpotPrices).toHaveBeenCalledWith([MAINNET_ETH_ASSET_ID], {
       currency: 'usd',
       includeMarketData: true,
+      includeWssSupportField: true,
     });
     expect(result.assetsPrice?.[MAINNET_ETH_ASSET_ID]).toEqual(
       expect.objectContaining({

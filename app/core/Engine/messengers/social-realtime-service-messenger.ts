@@ -23,7 +23,6 @@ export function getSocialRealtimeServiceMessenger(
     actions: [
       'BackendWebSocketService:connect',
       'BackendWebSocketService:channelHasSubscription',
-      'BackendWebSocketService:getSubscriptionsByChannel',
       'BackendWebSocketService:subscribe',
     ],
     events: ['BackendWebSocketService:connectionStateChanged'],

@@ -19,6 +19,7 @@ import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTestEnvironment } from '../../../util/test/utils';
 import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
+import { MarketStatsBridge } from '../../../hooks/assets/MarketStatsBridge';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
@@ -57,9 +58,7 @@ const Root = ({ foxCode }: RootProps) => {
 
   // We use a ref to make sure the UI messenger is only created once.
   const uiMessengerRef = useRef<UIMessenger | null>(null);
-  if (!uiMessengerRef.current) {
-    uiMessengerRef.current = createUIMessenger();
-  }
+  uiMessengerRef.current ??= createUIMessenger();
 
   const uiMessenger = uiMessengerRef.current;
 
@@ -130,6 +129,7 @@ const Root = ({ foxCode }: RootProps) => {
                                 <ReducedMotionConfig
                                   mode={ReduceMotion.Never}
                                 />
+                                <MarketStatsBridge />
                                 <App />
                                 <ScreenTtcProbeHost />
                               </HardwareWalletProvider>

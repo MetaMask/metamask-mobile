@@ -1,4 +1,9 @@
-import React, { type ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+} from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -48,6 +53,12 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
+import {
+  emptyRestingHeaderStore,
+  formatBalanceAtPrice,
+  formatSignedPercent,
+  type RestingHeaderStore,
+} from '../Price/restingHeader';
 
 interface BalanceProps {
   asset: TokenI;
@@ -59,7 +70,23 @@ interface BalanceProps {
   priceChangeOverrideColor?: TextColor;
   hideTitleHeading?: boolean;
   hidePercentageChange?: boolean;
+  /** Unformatted token amount. With a resting header price, reprices `mainBalance`. */
+  balanceAmount?: number;
+  /** Display currency for the repriced fiat amount. */
+  fiatCurrency?: string;
+  /** Chart header price while the chart is not being scrubbed. */
+  restingHeaderStore?: RestingHeaderStore;
 }
+
+const percentColor = (percent: number): TextColor => {
+  if (percent > 0) {
+    return TextColor.Success;
+  }
+  if (percent < 0) {
+    return TextColor.Error;
+  }
+  return TextColor.Alternative;
+};
 
 export const NetworkBadgeSource = (chainId: Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -97,6 +124,87 @@ export const NetworkBadgeSource = (chainId: Hex) => {
   }
 };
 
+/**
+ * The asset's 1d change. A navigation param wins (e.g. the trending view),
+ * then the EVM token rates, then the multichain rates.
+ */
+const resolvePricePercentChange1d = ({
+  asset,
+  isEvmNetworkSelected,
+  evmPricePercentChange1d,
+  multichainAssetsRates,
+}: {
+  asset: TokenI;
+  isEvmNetworkSelected: boolean;
+  evmPricePercentChange1d: number | undefined;
+  multichainAssetsRates: ReturnType<typeof selectMultichainAssetsRates>;
+}) => {
+  if (
+    asset.pricePercentChange1d !== undefined &&
+    asset.pricePercentChange1d !== null
+  ) {
+    return asset.pricePercentChange1d;
+  }
+  if (isEvmNetworkSelected) {
+    return evmPricePercentChange1d;
+  }
+  return multichainAssetsRates[asset.address as CaipAssetType]?.marketData
+    ?.pricePercentChange?.P1D;
+};
+
+/**
+ * The secondary line under the main balance. Hidden, then the chart's override,
+ * then the live resting change, then the polled change.
+ */
+const resolveSecondaryBalance = ({
+  hidePercentageChange,
+  priceChangeOverride,
+  livePercent,
+  percentageText,
+}: {
+  hidePercentageChange?: boolean;
+  priceChangeOverride?: string;
+  livePercent?: number;
+  percentageText?: string;
+}): string | undefined => {
+  if (hidePercentageChange) {
+    return undefined;
+  }
+  if (priceChangeOverride !== undefined) {
+    return priceChangeOverride;
+  }
+  if (livePercent === undefined) {
+    return percentageText;
+  }
+  return formatSignedPercent(livePercent);
+};
+
+/** Colour of the secondary line. Same precedence as `resolveSecondaryBalance`. */
+const resolveSecondaryBalanceColor = ({
+  hidePercentageChange,
+  priceChangeOverride,
+  priceChangeOverrideColor,
+  livePercent,
+  percentageColor,
+}: {
+  hidePercentageChange?: boolean;
+  priceChangeOverride?: string;
+  priceChangeOverrideColor?: TextColor;
+  livePercent?: number;
+  percentageColor: TextColor;
+}): TextColor | undefined => {
+  if (hidePercentageChange) {
+    return undefined;
+  }
+  if (priceChangeOverride) {
+    return priceChangeOverrideColor;
+  }
+  if (livePercent === undefined) {
+    return percentageColor;
+  }
+  return percentColor(livePercent);
+};
+
 const Balance = ({
   asset,
   balanceCta,
@@ -107,8 +215,28 @@ const Balance = ({
   priceChangeOverrideColor,
   hideTitleHeading,
   hidePercentageChange,
+  balanceAmount,
+  fiatCurrency,
+  restingHeaderStore,
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const headerStore = restingHeaderStore ?? emptyRestingHeaderStore;
+  const restingHeader = useSyncExternalStore(
+    headerStore.subscribe,
+    headerStore.getSnapshot,
+    headerStore.getSnapshot,
+  );
+  const liveFiat = formatBalanceAtPrice(
+    balanceAmount,
+    restingHeader?.price,
+    fiatCurrency,
+  );
+  const shownMainBalance = liveFiat ?? mainBalance;
+  const livePercent =
+    restingHeader?.percent !== undefined &&
+    Number.isFinite(restingHeader.percent)
+      ? restingHeader.percent
+      : undefined;
   const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -126,40 +254,18 @@ const Balance = ({
     ),
   );
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
-  const getPricePercentChange1d = () => {
-    // First check if asset has pricePercentChange1d from navigation params (e.g., from trending view)
-    if (
-      asset?.pricePercentChange1d !== undefined &&
-      asset?.pricePercentChange1d !== null
-    ) {
-      return asset.pricePercentChange1d;
-    }
-    if (isEvmNetworkSelected) {
-      return evmPricePercentChange1d;
-    }
-    return allMultichainAssetsRates[asset?.address as CaipAssetType]?.marketData
-      ?.pricePercentChange?.P1D;
-  };
 
-  // Calculate percentage change and color for secondary balance
-  const pricePercentChange1d = getPricePercentChange1d();
+  const pricePercentChange1d = resolvePricePercentChange1d({
+    asset,
+    isEvmNetworkSelected,
+    evmPricePercentChange1d,
+    multichainAssetsRates: allMultichainAssetsRates,
+  });
   const hasPercentageChange =
     !isTestNet(asset.chainId as Hex) &&
     pricePercentChange1d !== null &&
     pricePercentChange1d !== undefined &&
     Number.isFinite(pricePercentChange1d);
-
-  // Determine the color for percentage change
-  let percentageColor = TextColor.Alternative;
-  if (hasPercentageChange) {
-    if (pricePercentChange1d === 0) {
-      percentageColor = TextColor.Alternative;
-    } else if (pricePercentChange1d > 0) {
-      percentageColor = TextColor.Success;
-    } else {
-      percentageColor = TextColor.Error;
-    }
-  }
 
   // Create percentage text for secondary balance
   const percentageText = hasPercentageChange
@@ -167,6 +273,22 @@ const Balance = ({
         2,
       )}%`
     : undefined;
+
+  const resolvedSecondaryBalance = resolveSecondaryBalance({
+    hidePercentageChange,
+    priceChangeOverride,
+    livePercent,
+    percentageText,
+  });
+  const resolvedSecondaryBalanceColor = resolveSecondaryBalanceColor({
+    hidePercentageChange,
+    priceChangeOverride,
+    priceChangeOverrideColor,
+    livePercent,
+    percentageColor: hasPercentageChange
+      ? percentColor(pricePercentChange1d)
+      : TextColor.Alternative,
+  });
 
   const tokenChainId = asset.chainId;
 
@@ -203,17 +325,9 @@ const Balance = ({
       <AssetElement
         disabled={isDisabled}
         asset={asset}
-        balance={mainBalance}
-        secondaryBalance={
-          hidePercentageChange
-            ? undefined
-            : (priceChangeOverride ?? percentageText)
-        }
-        secondaryBalanceColor={
-          hidePercentageChange
-            ? undefined
-            : (priceChangeOverrideColor ?? percentageColor)
-        }
+        balance={shownMainBalance}
+        secondaryBalance={resolvedSecondaryBalance}
+        secondaryBalanceColor={resolvedSecondaryBalanceColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
       >

@@ -156,7 +156,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
           .slice(0, MAX_TOKENS_DISPLAYED),
       [sortedTokenKeys, shouldExcludeMusd],
     );
-
     const showTokensError = hasTokensError;
     // Soft-gate like extension: keep skeletons for unsettled loads only when
     // the list is empty or still just zero native / mUSD placeholders. Real

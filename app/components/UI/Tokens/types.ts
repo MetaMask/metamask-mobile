@@ -14,6 +14,8 @@ export interface TokenI {
   name: string;
   symbol: string;
   balance: string;
+  /** Unformatted token amount, used to reprice fiat from the live unit price. */
+  balanceAmount?: number;
   balanceFiat?: string;
   logo: string | undefined;
   isETH: boolean | undefined;

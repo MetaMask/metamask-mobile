@@ -23,6 +23,7 @@ import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
+import { createRestingHeaderStore } from '../../AssetOverview/Price/restingHeader';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
@@ -112,6 +113,8 @@ export interface AssetOverviewContentProps {
   balancePriceChangeOverride?: string;
   balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
+  /** Unformatted token amount, repriced from the chart header. */
+  balanceAmount?: number;
   secondaryBalance: string | undefined;
 
   // Price data
@@ -179,6 +182,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   balancePriceChangeOverride,
   balancePriceChangeOverrideColor,
   mainBalance,
+  balanceAmount,
   secondaryBalance,
   currentPrice,
   priceDiff,
@@ -205,6 +209,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   mostRecentOrder,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const restingHeaderStore = useRef(createRestingHeaderStore()).current;
+  const handleRestingHeader = useCallback(
+    (header: { price: number; percent?: number }) => {
+      restingHeaderStore.set(header);
+    },
+    [restingHeaderStore],
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradable } = useRWAToken();
@@ -375,6 +386,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             balanceCta={balanceCta}
             balanceDescription={balanceDescription}
             mainBalance={mainBalance}
+            balanceAmount={balanceAmount}
+            fiatCurrency={currentCurrency}
+            restingHeaderStore={restingHeaderStore}
             priceChangeOverride={balancePriceChangeOverride}
             priceChangeOverrideColor={balancePriceChangeOverrideColor}
             secondaryBalance={secondaryBalance}
@@ -392,7 +406,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       )}
       {showPerpsSection && perpsPosition && (
         <View style={styles.perpsPositionCardContainer}>
-          <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
+          <Text variant={TextVariant.HeadingMd} className="mb-2 px-4">
             {strings('asset_overview.perps_position')}
           </Text>
           <PerpsCard
@@ -429,7 +443,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   return (
-    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box className="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {headerSpacer}
       {token.hasBalanceError ? (
         renderWarning()
@@ -483,6 +497,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             hasInsufficientCoverage={hasInsufficientCoverage}
+            onRestingHeader={handleRestingHeader}
             isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (

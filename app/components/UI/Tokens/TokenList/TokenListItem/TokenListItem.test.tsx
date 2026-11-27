@@ -73,6 +73,13 @@ jest.mock('@tanstack/react-query', () => {
   };
 });
 
+// The row reads its own streamed quote. Tests set it through `mockUseMarketStats`.
+const mockUseMarketStats = jest.fn();
+jest.mock('../../../../../hooks/assets/market-stats', () => ({
+  ...jest.requireActual('../../../../../hooks/assets/market-stats'),
+  useMarketStats: (select?: unknown) => mockUseMarketStats(select),
+}));
+
 // TokenListSecurityBadge uses TanStack Query; omit from these TokenList-focused tests.
 jest.mock(
   '../../components/TokenListSecurityBadge/TokenListSecurityBadge',
@@ -266,6 +273,11 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('TokenListItem - Component Rendering Tests for Coverage', () => {
+  beforeEach(() => {
+    mockUseMarketStats.mockReturnValue([]);
+    (useQuery as jest.Mock).mockImplementation(() => ({ data: undefined }));
+  });
+
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
@@ -447,6 +459,70 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText('$123.00')).toBeOnTheScreen();
       expect(getByText('1.23 TEST')).toBeOnTheScreen();
       expect(getByText('+5.67%')).toBeOnTheScreen();
+    });
+
+    it('replaces the polled price, percent, and fiat balance with the streamed quote', () => {
+      mockUseMarketStats.mockReturnValue([
+        { price: 10, pricePercentChange1d: -1.5 },
+      ]);
+      prepareMocks({
+        asset: { ...defaultAsset, balanceAmount: 4 },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText, getByTestId, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText(/\$10\.00/)).toBeOnTheScreen();
+      expect(queryByText('$123.00')).toBeNull();
+      expect(getByText('40 FORMATTED')).toBeOnTheScreen();
+      expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe(
+        '-1.50%',
+      );
+    });
+
+    it('reads the streamed quote by CAIP-19, not the hex address', () => {
+      const caipId = 'eip155:1/erc20:0x456';
+      (useQuery as jest.Mock).mockReturnValue({ data: caipId });
+      mockUseMarketStats.mockImplementation((select) => {
+        const quotes = new Map([
+          [caipId, { price: 10, pricePercentChange1d: -1.5 }],
+          ['0x456', { price: 1, pricePercentChange1d: 99 }],
+        ]);
+        return select(quotes);
+      });
+      prepareMocks({
+        asset: { ...defaultAsset, balanceAmount: 4 },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText(/\$10\.00/)).toBeOnTheScreen();
+      expect(getByText('40 FORMATTED')).toBeOnTheScreen();
     });
   });
 
