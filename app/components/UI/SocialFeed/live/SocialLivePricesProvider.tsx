@@ -101,7 +101,6 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   // UX matrix (app/util/deviceCapability/README.md). The two tiers are read
   // separately. A `null` network tier is the MID-safe cell, never LOW.
   const hardwareTier = getHardwareTier();
-  const reduceMotion = hardwareTier === 'LOW' && networkTier !== null;
   const visibilityPollMs =
     hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
       ? LOW_HARDWARE_SLOW_NETWORK_POLL_MS
@@ -362,8 +361,8 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   }, [enqueueSpotOperation, store]);
 
   const value = useMemo<SocialLivePricesContextValue>(
-    () => ({ store, register, requestVisibilityCheck, reduceMotion }),
-    [store, register, requestVisibilityCheck, reduceMotion],
+    () => ({ store, register, requestVisibilityCheck }),
+    [store, register, requestVisibilityCheck],
   );
 
   return (

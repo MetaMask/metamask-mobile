@@ -1,5 +1,4 @@
 import type { View } from 'react-native';
-import type { PositionCardHeaderLiveState } from '../components/PositionCardHeader';
 import { formatLiveFigures } from './formatLiveFigures';
 import type { SocialLivePriceSource } from './types';
 import { useSocialLivePrice } from './useSocialLivePrice';
@@ -14,21 +13,20 @@ export interface LiveCardHeaderLabels {
 
 export interface UseLiveCardHeaderResult extends LiveCardHeaderLabels {
   trackRef: React.RefObject<View | null>;
-  /** Pass to `PositionCardHeader`; `undefined` until the first tick. */
-  live?: PositionCardHeaderLiveState;
 }
 
 /**
  * Open card header labels, following the live price once one arrives and the
  * API snapshot until then. A figure the live math cannot produce keeps its
- * snapshot label.
+ * snapshot label. Figures render as plain text: the digit reels crashed and
+ * drove the Live tab's scroll memory climb (TSA-1807).
  */
 export function useLiveCardHeader(
   id: string,
   source: SocialLivePriceSource | undefined,
   snapshot: LiveCardHeaderLabels,
 ): UseLiveCardHeaderResult {
-  const { trackRef, figures, reduceMotion } = useSocialLivePrice(id, source);
+  const { trackRef, figures } = useSocialLivePrice(id, source);
 
   if (!figures || !source) {
     return { ...snapshot, trackRef };
@@ -42,8 +40,5 @@ export function useLiveCardHeader(
     pnlLabel: labels.pnlLabel ?? snapshot.pnlLabel,
     pnlValueLabel: labels.pnlValueLabel ?? snapshot.pnlValueLabel,
     isPnlPositive: labels.isPnlPositive ?? snapshot.isPnlPositive,
-    live: {
-      reduceMotion,
-    },
   };
 }

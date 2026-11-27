@@ -1055,7 +1055,6 @@ describe('SocialFeedPositionCard', () => {
             store,
             register: () => () => undefined,
             requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
           }}
         >
           <SocialFeedPositionCard item={item} />
@@ -1098,7 +1097,6 @@ describe('SocialFeedPositionCard', () => {
             store,
             register: () => () => undefined,
             requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
           }}
         >
           <SocialFeedPositionCard item={item} />
@@ -1109,7 +1107,7 @@ describe('SocialFeedPositionCard', () => {
         store.publish(spotKey, 3_300);
       });
 
-      expect(screen.getByLabelText('$3,300')).toBeOnTheScreen();
+      expect(screen.getByText('$3,300')).toBeOnTheScreen();
     });
 
     it('moves the wash with the live P&L sign', () => {
@@ -1125,7 +1123,6 @@ describe('SocialFeedPositionCard', () => {
             store,
             register: () => () => undefined,
             requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
           }}
         >
           <PositionCardBody item={item} />
@@ -1163,45 +1160,9 @@ describe('SocialFeedPositionCard', () => {
       });
 
       // 1,000 + 2 * (101,000 - 100,000) on a 10,000 basis.
-      expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
-      expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
-      expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
-    });
-
-    it('lays out the live P&L by glyph so trailing units follow the digits', () => {
-      const store = new SocialLivePriceStore(0);
-      const item = mockOpenPerpsFeedItem({
-        markPriceLabel: '$100,000',
-        live: liveSource,
-      });
-      renderWithProvider(
-        <SocialLivePricesContext.Provider
-          value={{
-            store,
-            register: () => () => undefined,
-            requestVisibilityCheck: () => undefined,
-            reduceMotion: false,
-          }}
-        >
-          <SocialFeedPositionCard item={item} />
-        </SocialLivePricesContext.Provider>,
-      );
-
-      act(() => {
-        store.publish('perp:BTC', 101_000);
-      });
-
-      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
-      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
-        '3',
-      );
-
-      expect(pnlValue).toBeOnTheScreen();
-      expect(pnlPercent).toBeOnTheScreen();
-      // The glyph row defaults to the condensed hero face. These numbers stay
-      // on Inter so a live card matches the static one.
-      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
-      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
+      expect(screen.getByText('$101,000')).toBeOnTheScreen();
+      expect(screen.getByText('+$3K')).toBeOnTheScreen();
+      expect(screen.getByText('+30.00%')).toBeOnTheScreen();
     });
   });
 

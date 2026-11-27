@@ -24,7 +24,6 @@ export interface UseSocialLivePriceResult {
   trackRef: React.RefObject<View | null>;
   /** `null` until the first streamed price, and outside the provider. */
   figures: SocialLivePositionFigures | null;
-  reduceMotion: boolean;
 }
 
 /**
@@ -86,6 +85,5 @@ export function useSocialLivePrice(
   return {
     trackRef,
     figures,
-    reduceMotion: context?.reduceMotion ?? false,
   };
 }

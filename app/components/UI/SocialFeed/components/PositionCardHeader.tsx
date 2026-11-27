@@ -3,7 +3,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  FontFamily,
   FontWeight,
   Tag,
   TagSeverity,
@@ -13,8 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
-import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
-import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -37,11 +34,6 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
-/** Set while an open card follows a streamed price. */
-export interface PositionCardHeaderLiveState {
-  reduceMotion: boolean;
-}
-
 export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
   avatar: PositionTokenAvatarData;
@@ -56,16 +48,11 @@ export interface PositionCardHeaderProps {
   /** Current price, market cap, or the closed-card age caption. */
   subtitleLabel?: string;
   side?: SocialV1SpotSide;
-  /** Open layout only: roll the figures as live ticks arrive. */
-  live?: PositionCardHeaderLiveState;
   testID?: string;
 }
 
 const pnlClassName = (isPnlPositive: boolean) =>
   isPnlPositive ? 'text-success-default' : 'text-error-default';
-
-const pnlColor = (isPnlPositive: boolean) =>
-  isPnlPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
 /** `15x Short`, `Long`, `Buy`. Empty when the card carries neither. */
 const sideTagLabel = ({
@@ -133,7 +120,6 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     pnlValueLabel,
     isPnlPositive,
     subtitleLabel,
-    live,
   } = props;
   const tagLabel =
     props.layout === 'closed' ? closedTagLabel(props) : sideTagLabel(props);
@@ -175,17 +161,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             </Tag>
           ) : null}
         </Box>
-        {subtitleLabel && live ? (
-          <AnimatedSlotText
-            animated={!live.reduceMotion}
-            color={TextColor.TextAlternative}
-            fontWeight={FontWeight.Medium}
-            testID={props.testID && `${props.testID}-subtitle`}
-            value={subtitleLabel}
-            variant={TextVariant.BodyXs}
-          />
-        ) : null}
-        {subtitleLabel && !live ? (
+        {subtitleLabel ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
@@ -205,23 +181,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
-        {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
-            `0` but measures the real glyphs. Inter digits are proportional, so a
-            `1` leaves the reel wider than its measured box and the K or % overruns
-            the column. The glyph row's default face is condensed, so these
-            numbers stay on the default face and match the static card. */}
-        {pnlValueLabel && live ? (
-          <AnimatedNumericText
-            animated={!live.reduceMotion}
-            color={pnlColor(isPnlPositive)}
-            fontFamily={FontFamily.Default}
-            fontWeight={FontWeight.Medium}
-            testID={props.testID && `${props.testID}-pnl-value`}
-            value={pnlValueLabel}
-            variant={TextVariant.BodySm}
-          />
-        ) : null}
-        {pnlValueLabel && !live ? (
+        {pnlValueLabel ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -234,18 +194,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         {pnlValueLabel ? null : (
           <LinePlaceholder variant={TextVariant.BodySm} />
         )}
-        {pnlLabel && live ? (
-          <AnimatedNumericText
-            animated={!live.reduceMotion}
-            color={pnlColor(isPnlPositive)}
-            fontFamily={FontFamily.Default}
-            fontWeight={FontWeight.Medium}
-            testID={props.testID && `${props.testID}-pnl`}
-            value={pnlLabel}
-            variant={TextVariant.BodyXs}
-          />
-        ) : null}
-        {pnlLabel && !live ? (
+        {pnlLabel ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}

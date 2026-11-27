@@ -30,7 +30,6 @@ const renderLivePrice = (initialPageActive: boolean) => {
     store,
     register: jest.fn(() => unregister),
     requestVisibilityCheck: jest.fn(),
-    reduceMotion: false,
   };
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <SocialLivePricesContext.Provider value={context}>

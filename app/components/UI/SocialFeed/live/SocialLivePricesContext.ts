@@ -20,8 +20,6 @@ export interface SocialLivePricesContextValue {
    * first.
    */
   requestVisibilityCheck: (delayMs?: number) => void;
-  /** Low-end hardware: swap figures without the digit roll. */
-  reduceMotion: boolean;
 }
 
 export const SocialLivePricesContext =

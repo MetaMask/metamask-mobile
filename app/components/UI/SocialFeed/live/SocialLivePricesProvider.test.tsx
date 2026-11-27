@@ -333,46 +333,6 @@ describe('SocialLivePricesProvider', () => {
     expect(context?.store.get('perp:BTC')?.price).toBe(101);
   });
 
-  it('reduces motion on LOW hardware only', () => {
-    mockNetworkTier = 'WIFI';
-    mockGetHardwareTier.mockReturnValue(null);
-    const { unmount } = renderProvider([]);
-    expect(context?.reduceMotion).toBe(false);
-    unmount();
-
-    mockGetHardwareTier.mockReturnValue('LOW');
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(true);
-  });
-
-  it('keeps motion on LOW hardware while the network tier is unknown', () => {
-    mockGetHardwareTier.mockReturnValue('LOW');
-    mockNetworkTier = null;
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
-  });
-
-  it('keeps a null hardware tier off reduced motion over slow cellular', () => {
-    mockGetHardwareTier.mockReturnValue(null);
-    mockNetworkTier = 'SLOW_CELLULAR';
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
-  });
-
-  it('keeps full motion on HIGH hardware over slow cellular', () => {
-    mockGetHardwareTier.mockReturnValue('HIGH');
-    mockNetworkTier = 'SLOW_CELLULAR';
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
-  });
-
   it('polls visible cards at the rare interval on LOW hardware over slow cellular', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
     mockNetworkTier = 'SLOW_CELLULAR';
