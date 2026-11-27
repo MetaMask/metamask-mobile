@@ -42,4 +42,12 @@ describe('useKalshiPayoutDestinationMode', () => {
       retry,
     });
   });
+  it('propagates a non-error unavailable reason', () => {
+    expect(resolve({ status: 'unavailable', reason: 'unknown_venue' })).toEqual(
+      {
+        status: 'unavailable',
+        reason: 'unknown_venue',
+      },
+    );
+  });
 });
