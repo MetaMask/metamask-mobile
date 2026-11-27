@@ -18,14 +18,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
-import verifiedCheckAnimation from '../../../../../../animations/card_verified_check.riv';
 import {
   type KalshiBannerState,
   useKalshiBannerState,
 } from '../../../../KYC/Kalshi/kalshiBannerState';
+import VerifiedCheckAnimation from '../../../../KYC/components/VerifiedCheckAnimation';
 import MoneyVbaHomeCardHeroAnimation from '../../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
-import { KycIllustrationSource } from '../../../../KYC/components/Illustration';
+import { useReduceMotionState } from '../../../../Money/hooks/useReduceMotion';
 import { PredictNextRoutes } from '../../../navigation/routes';
 import type { PredictNextStackParamList } from '../../../navigation/types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
@@ -63,27 +63,35 @@ const CANT_VERIFY_ART = (
   />
 );
 
-/**
- * The tick Rive's artboard carries its own empty margin, so the view is drawn
- * larger than the 72pt slot and the slot clips the margin away.
- */
-const VERIFIED_RIVE_WIDTH = 126;
+/** The verified tick is drawn at the 140×107 size of the KYC checkmark. */
+const VERIFIED_CHECK_WIDTH = 140;
+const VERIFIED_CHECK_HEIGHT = 107;
 
-/** The green verified tick: `Intro` plays once, then holds. */
-const VERIFIED_ART = (
-  <MoneyVbaHomeCardHeroAnimation
-    animation={{
-      source: verifiedCheckAnimation,
-      artboardName: 'Check',
-      stateMachineName: 'State Machine 1',
-    }}
-    fallback={{
-      source: KycIllustrationSource.checkmark,
-      width: VERIFIED_RIVE_WIDTH,
-      height: Math.round((107 / 140) * VERIFIED_RIVE_WIDTH),
-    }}
-  />
-);
+const noop = () => undefined;
+
+/**
+ * The green verified tick, from `VerifiedCheckAnimation`. The tick and its
+ * Rive view are drawn at 140×107 and scaled as one into the 72pt slot, so the
+ * static checkmark and the Rive artboard keep their proportions and neither is
+ * cropped. Withheld until Reduce Motion resolves, so it never flashes static.
+ */
+const VerifiedArt = () => {
+  const reduceMotion = useReduceMotionState();
+  const mode =
+    reduceMotion === null ? 'pending' : reduceMotion ? 'static' : 'animate';
+
+  return (
+    <Box
+      style={{
+        width: VERIFIED_CHECK_WIDTH,
+        height: VERIFIED_CHECK_HEIGHT,
+        transform: [{ scale: ART_SIZE / VERIFIED_CHECK_WIDTH }],
+      }}
+    >
+      <VerifiedCheckAnimation mode={mode} onEntranceStart={noop} />
+    </Box>
+  );
+};
 
 /**
  * Per state: the art, the copy key (no action key means no button) and what
@@ -137,7 +145,7 @@ const BANNER_STATE_CONFIG: Record<
     isDismissible: true,
   },
   verified: {
-    art: VERIFIED_ART,
+    art: <VerifiedArt />,
     copyKey: 'verified',
     hasAction: false,
     // A confirmation: nothing to continue.
