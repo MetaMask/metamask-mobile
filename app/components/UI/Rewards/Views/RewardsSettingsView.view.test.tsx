@@ -42,14 +42,11 @@ async function waitUntilApplyEnabled(
   view: ReturnType<typeof renderRewardsSettingsView>,
 ): Promise<void> {
   // Referral code validation resolves before Apply enables.
-  await waitFor(
-    () => {
-      expect(
-        view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
-      ).not.toBeDisabled();
-    },
-    { timeout: 3000 },
-  );
+  await waitFor(() => {
+    expect(
+      view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
+    ).not.toBeDisabled();
+  });
 }
 
 describe('RewardsSettingsView', () => {
@@ -124,21 +121,16 @@ describe('RewardsSettingsView', () => {
       'AB12CD',
     );
 
-    await waitFor(
-      () => {
-        expect(
-          getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
-        ).not.toBeDisabled();
-      },
-      { timeout: 3000 },
-    );
+    await waitFor(() => {
+      expect(
+        getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
+      ).not.toBeDisabled();
+    });
     fireEvent.press(getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY));
 
     expect(
       await findByTestId(
         getRouteProbeTestId(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW),
-        {},
-        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(engine).toHaveBeenCalledWith(
@@ -162,8 +154,6 @@ describe('RewardsSettingsView', () => {
     expect(
       await view.findByText(
         strings('rewards.error_messages.invalid_referral_code'),
-        {},
-        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -215,9 +205,7 @@ describe('RewardsSettingsView', () => {
       );
 
       // registerReferee rejects before the refusal error renders.
-      expect(
-        await view.findByText(message(), {}, { timeout: 3000 }),
-      ).toBeOnTheScreen();
+      expect(await view.findByText(message())).toBeOnTheScreen();
       expect(view.queryByTestId(ACCEPTED_SPLASH)).not.toBeOnTheScreen();
       expect(view.engine).toHaveBeenCalledWith(
         'RewardsMoneyController:registerReferee',
@@ -257,8 +245,6 @@ describe('RewardsSettingsView', () => {
     expect(
       await view.findByText(
         strings('rewards.error_messages.something_went_wrong'),
-        {},
-        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(view.queryByTestId(ACCEPTED_SPLASH)).not.toBeOnTheScreen();
