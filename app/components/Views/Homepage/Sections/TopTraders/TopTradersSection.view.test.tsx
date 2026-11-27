@@ -264,10 +264,12 @@ describeForPlatforms('Homepage TopTradersSection', () => {
       presetOptions: { featureEnabled: false },
     });
 
-    // Give the visibility gate time to open (the enabled path fetches within
-    // this window); the flag must still win.
+    // The visibility gate opens on the enabled path (the test above waits for
+    // its fetch), so once the gate cycle has run, the flag must still have
+    // won. A zero-delay flush drains the gate's pending chains before the
+    // negative assertions.
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(screen.queryByTestId(SECTION_ROOT_ID)).not.toBeOnTheScreen();

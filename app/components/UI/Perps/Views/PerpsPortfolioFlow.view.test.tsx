@@ -25,8 +25,6 @@ import {
   setupPerpsOutreachApiMock,
 } from '../../../../../tests/component-view/api-mocking/perpsOutreach';
 
-const TIMEOUT_MS = 3000;
-
 describe('Portfolio & Account Flow', () => {
   let POSITIONS: string;
   let ACCOUNT_SUMMARY_TITLE: string;
@@ -110,11 +108,7 @@ describe('Portfolio & Account Flow', () => {
       cleanup();
     });
     renderPerpsPositionsView({ streamOverrides: { positions: [] } });
-    await screen.findByTestId(
-      PerpsPositionsViewSelectorsIDs.BACK_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
-    );
+    await screen.findByTestId(PerpsPositionsViewSelectorsIDs.BACK_BUTTON);
     expect(screen.getByText(ACCOUNT_SUMMARY_TITLE)).toBeOnTheScreen();
     expect(screen.getByText(EMPTY_TITLE)).toBeOnTheScreen();
     expect(
@@ -131,11 +125,7 @@ describe('Portfolio & Account Flow', () => {
     renderPerpsPositionsView({
       streamOverrides: { positions: [defaultPositionForViews] },
     });
-    await screen.findByTestId(
-      PerpsPositionsViewSelectorsIDs.BACK_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
-    );
+    await screen.findByTestId(PerpsPositionsViewSelectorsIDs.BACK_BUTTON);
     expect(screen.getByText(ACCOUNT_SUMMARY_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION),

@@ -355,27 +355,23 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     );
     fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
     fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
-    await waitFor(
-      () =>
-        expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
     );
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
       /--/,
     );
     fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
 
-    await waitFor(
-      () =>
-        expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            symbol: 'ETH',
-            orderType: 'market',
-            marginMode: 'cross',
-            isBuy: true,
-          }),
-        ),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          orderType: 'market',
+          marginMode: 'cross',
+          isBuy: true,
+        }),
+      ),
     );
   });
 
@@ -826,10 +822,8 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       resolveLock({ status: 'unlocked', providerId: 'hyperliquid' }),
     );
     await selectCrossMarginMode();
-    await waitFor(
-      () =>
-        expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
     );
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
   });
