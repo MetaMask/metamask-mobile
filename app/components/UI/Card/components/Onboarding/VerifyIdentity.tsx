@@ -163,12 +163,23 @@ const VerifyIdentity = () => {
   const renderFormFields = () => (
     <>
       {/* ListItem already pads itself; cancel OnboardingStep's horizontal padding. */}
-      <Box twClassName="-mx-4">
+      <Box className="-mx-4">
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 justify-start py-2"
+          className="min-h-0 justify-start py-2"
           avatar={
             <AvatarIcon
+              iconName={IconName.EyeSlash}
+              severity={AvatarIconSeverity.Neutral}
+              size={AvatarIconSize.Lg}
+            />
+          }
+          title={strings('card.card_onboarding.verify_identity.terms_1_title')}
+          description={strings(
+            'card.card_onboarding.verify_identity.terms_1_description',
+          )}
+          testID="verify-identity-term-privacy"
+        /><AvatarIcon
               iconName={IconName.EyeSlash}
               severity={AvatarIconSeverity.Neutral}
               size={AvatarIconSize.Lg}
@@ -182,9 +193,18 @@ const VerifyIdentity = () => {
         />
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 justify-start py-2"
+          className="min-h-0 justify-start py-2"
           avatar={
             <AvatarIcon
+              iconName={IconName.Fingerprint}
+              severity={AvatarIconSeverity.Neutral}
+              size={AvatarIconSize.Lg}
+            />
+          }
+          title={strings('card.card_onboarding.verify_identity.terms_2_title')}
+          description={terms2Description}
+          testID="verify-identity-term-id"
+        /><AvatarIcon
               iconName={IconName.Fingerprint}
               severity={AvatarIconSeverity.Neutral}
               size={AvatarIconSize.Lg}
@@ -202,7 +222,7 @@ const VerifyIdentity = () => {
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-center"
+          className="text-center"
         >
           {startVeriricationErr}
         </HelpText>
@@ -212,7 +232,7 @@ const VerifyIdentity = () => {
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-center"
+          className="text-center"
         >
           {strings(
             'card.card_onboarding.verify_identity.start_verification_error',

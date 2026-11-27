@@ -170,6 +170,34 @@ function RegionSelectorModal() {
               </Text>
             ) : undefined
           }
+        /><Text
+              variant={TextVariant.BodyMd}
+              testID="region-selector-item-emoji"
+            >
+              {region.emoji}
+            </Text>
+          }
+          title={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              testID="region-selector-item-name"
+            >
+              {region.name}
+            </Text>
+          }
+          titleEndAccessory={
+            renderAreaCode && region.areaCode ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID="region-selector-item-area-code"
+              >
+                (+{region.areaCode})
+              </Text>
+            ) : undefined
+          }
         />
       );
     },
@@ -184,7 +212,7 @@ function RegionSelectorModal() {
   const renderEmptyList = useCallback(
     () =>
       hasSearchQuery ? (
-        <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
+        <Box className="p-4 items-center" testID="region-selector-empty-list">
           <Text variant={TextVariant.BodyMd}>
             {strings('card.card_onboarding.errors.no_region_results', {
               searchString,
@@ -232,7 +260,7 @@ function RegionSelectorModal() {
       >
         {strings('card.card_onboarding.region_selector.title')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
           onPressClearButton={clearSearchText}
