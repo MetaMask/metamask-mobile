@@ -9,6 +9,7 @@ import {
   ButtonVariant,
   FilterButton,
   FilterButtonGroup,
+  Slider,
   Switch,
   Tag,
   TagSeverity,
@@ -20,12 +21,29 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { useFormatters } from '../../../hooks/useFormatters';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import { View } from '../../primitives/View';
 import { mockMaxPackQuantity, mockPayToken } from '../mocks/buySheet';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
 const quantityOptions = ['1', '5', '10'];
 const maxOption = 'max';
+const minPackQuantity = 1;
+
+const toOption = (quantity: number) =>
+  quantity === mockMaxPackQuantity ? maxOption : String(quantity);
+const toQuantity = (option: string) =>
+  option === maxOption ? mockMaxPackQuantity : Number(option);
+const toTrackPercent = (quantity: number) =>
+  ((quantity - minPackQuantity) / (mockMaxPackQuantity - minPackQuantity)) *
+  100;
+const playGrip = () => fireImpact(ImpactMoment.SliderGrip);
+const playTick = () => fireImpact(ImpactMoment.SliderTick);
+
+const sliderMarks = [...quantityOptions, maxOption].map((option) => ({
+  step: toTrackPercent(toQuantity(option)),
+  haptic: true,
+}));
 
 interface Props {
   name: string;
@@ -38,12 +56,11 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
 
   const { formatCurrency } = useFormatters();
 
-  const [selectedOption, setSelectedOption] = useState(quantityOptions[0]);
+  const [quantity, setQuantity] = useState(minPackQuantity);
   const { value: isAutoBuyback, setValue: setAutoBuyback } = useBoolean();
   const { value: isSkipReveals, setValue: setSkipReveals } = useBoolean();
 
-  const quantity =
-    selectedOption === maxOption ? mockMaxPackQuantity : Number(selectedOption);
+  const selectedOption = toOption(quantity);
   const total = formatCurrency(priceUsd * quantity, 'USD');
 
   return (
@@ -62,9 +79,23 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
           </Text>
         </View>
 
+        <Slider
+          value={quantity}
+          onValueChange={setQuantity}
+          minimumValue={minPackQuantity}
+          maximumValue={mockMaxPackQuantity}
+          step={1}
+          marks={sliderMarks}
+          showRangeDots
+          onGrip={playGrip}
+          onMark={playTick}
+          accessible
+          accessibilityLabel={strings('collectibles.buy_sheet.quantity')}
+        />
+
         <FilterButtonGroup
           value={selectedOption}
-          onChange={setSelectedOption}
+          onChange={(option) => setQuantity(toQuantity(option))}
           twClassName="gap-2"
           accessibilityLabel={strings('collectibles.buy_sheet.quantity')}
         >
