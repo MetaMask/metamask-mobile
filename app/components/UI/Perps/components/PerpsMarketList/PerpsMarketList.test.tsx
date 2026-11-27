@@ -784,7 +784,9 @@ describe('PerpsMarketList', () => {
       );
 
       const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
-      expect(lastProps.extraData).toBe('perps');
+      expect(lastProps.extraData).toEqual(
+        expect.objectContaining({ filterKey: 'perps' }),
+      );
       // `key` is consumed by React and must never be forwarded as a prop here.
       expect(lastProps.key).toBeUndefined();
     });

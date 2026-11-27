@@ -165,6 +165,11 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   const getItemType = useCallback((item: MarketListRow) => item.type, []);
 
+  const listExtraData = useMemo(
+    () => ({ filterKey, enableLivePrices }),
+    [filterKey, enableLivePrices],
+  );
+
   const emptyState = emptyComponent ?? (
     <View style={styles.emptyContainer} testID={`${testID}-empty`}>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
@@ -181,7 +186,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     <FlashList
       ref={listRef}
       data={listData}
-      extraData={filterKey}
+      extraData={listExtraData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}

@@ -93,7 +93,7 @@ const isWatchlisted = (
   },
 ): boolean => {
   const controller = Engine.context.PerpsController;
-  if (hasMarketIdentity(market)) {
+  if (market && hasMarketIdentity(market)) {
     return selectIsWatchlistMarket(
       controller.state,
       symbol,

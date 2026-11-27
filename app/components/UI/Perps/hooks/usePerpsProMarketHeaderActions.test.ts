@@ -369,7 +369,7 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleFavoritePress();
     });
 
-    expect(mockAddToWatchlist).toHaveBeenCalledWith('BTC');
+    expect(mockAddToWatchlist).toHaveBeenCalledWith('BTC', undefined);
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
@@ -383,7 +383,7 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleFavoritePress();
     });
 
-    expect(mockRemoveFromWatchlist).toHaveBeenCalledWith('ETH');
+    expect(mockRemoveFromWatchlist).toHaveBeenCalledWith('ETH', undefined);
     expect(mockAddToWatchlist).not.toHaveBeenCalled();
   });
 
