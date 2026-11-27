@@ -56,7 +56,6 @@ const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
-const { withStorybook } = require('@storybook/react-native/withStorybook');
 
 // Escapes a filesystem path for safe embedding in a RegExp so local artifact
 // blockList entries only match paths anchored at the
@@ -177,10 +176,7 @@ module.exports = function (baseConfig) {
           ? 'with-srp'
           : 'without-srp');
 
-      // Off unless STORYBOOK_ENABLED=true, which swaps index.js for
-      // .rnstorybook/index.tsx. Otherwise the config is returned unchanged.
-      return withStorybook(
-        wrapWithReanimatedMetroConfig(
+      return wrapWithReanimatedMetroConfig(
           mergeConfig(defaultConfig, {
             cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
             resolver: {
@@ -199,7 +195,6 @@ module.exports = function (baseConfig) {
               assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
               sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
               resolverMainFields: [
-                'sbmodern',
                 'react-native',
                 'browser',
                 'main',
@@ -428,8 +423,7 @@ module.exports = function (baseConfig) {
             resetCache: process.env.METRO_RESET_CACHE !== 'false',
             maxWorkers,
           }),
-        ),
-      );
+        );
     },
   });
 };

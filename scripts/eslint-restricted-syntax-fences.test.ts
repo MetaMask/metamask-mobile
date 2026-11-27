@@ -228,7 +228,6 @@ const { syntax: resolvedRules, plugin: resolvedPluginRules } = loadResolvedRules
     SPACING_FILE,
     SPACING_COMPONENT_FILE,
     'app/components/UI/ReviewModal/index.test.tsx',
-    'app/component-library/components/Texts/Text/Text.stories.tsx',
     'tests/component-view/platform.ts',
   ],
 );
@@ -629,7 +628,6 @@ describe('design-system spacing grid', () => {
 
   it.each([
     'app/components/UI/ReviewModal/index.test.tsx',
-    'app/component-library/components/Texts/Text/Text.stories.tsx',
     'tests/component-view/platform.ts',
   ])('does not apply to %s', (file) => {
     const rule = resolvedPluginRules[file]?.[SPACING_RULE] ?? null;

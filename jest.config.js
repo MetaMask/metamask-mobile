@@ -237,7 +237,6 @@ const config = {
   collectCoverageFrom: !isReassureRun
     ? [
         '<rootDir>/app/**/*.{js,ts,tsx,jsx}',
-        '!<rootDir>/app/**/*.stories.tsx',
         '!<rootDir>/app/**/*.test.{js,ts,tsx,jsx}',
         '!<rootDir>/app/**/*.spec.{js,ts,tsx,jsx}',
       ]

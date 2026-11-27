@@ -14,7 +14,6 @@
 ```.tsx
 AvatarAccount
 ├── AvatarAccount.constants.ts
-├── AvatarAccount.stories.tsx
 ├── AvatarAccount.styles.ts
 ├── AvatarAccount.test.tsx
 ├── AvatarAccount.tsx
