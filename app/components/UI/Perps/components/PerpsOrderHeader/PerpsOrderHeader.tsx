@@ -8,9 +8,11 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
@@ -23,6 +25,7 @@ import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/feature
 
 interface PerpsOrderHeaderProps {
   asset: string;
+  providerId?: PerpsProviderType;
   price: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
@@ -34,6 +37,7 @@ interface PerpsOrderHeaderProps {
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
+  providerId,
   price,
   orderType,
   direction = 'long',
@@ -44,9 +48,11 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  // Only show the venue mark in multi-provider mode, preserving flag-off UI.
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
-  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
-  // TAT-3334) — the same source PerpsOrderView already uses for its own
+  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence) —
+  // the same source PerpsOrderView already uses for its own
   // fee/margin/validation calculations. Subscribing again here (rather than
   // only reading the `price` prop) puts the resulting setState inside
   // PerpsOrderHeader's own subtree, so its render is independent of the
@@ -63,7 +69,10 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   // until this subscription delivers its first update for the current
   // symbol (including right after an asset change, until the channel
   // resolves the new symbol).
-  const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: asset,
+    providerId,
+  });
 
   const displayPrice = useMemo(() => {
     // Guard against stale PriceUpdate from a prior symbol: the focused-price
@@ -122,12 +131,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const description = useMemo(
     () => (
       <LivePriceHeader
+        providerId={providerId}
         symbol={asset}
         currentPrice={displayPrice}
         percentChange24h={percentChange24h}
       />
     ),
-    [asset, displayPrice, percentChange24h],
+    [asset, providerId, displayPrice, percentChange24h],
   );
 
   const endAccessory = useMemo(() => {
@@ -175,7 +185,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       backButtonProps={{
         testID: PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
       }}
-      avatar={<PerpsTokenLogo symbol={asset} size={40} />}
+      avatar={
+        <PerpsTokenLogo
+          symbol={asset}
+          size={40}
+          providerId={isMultiProviderEnabled ? providerId : undefined}
+        />
+      }
       title={displayTitle}
       titleProps={{ testID: PerpsOrderHeaderSelectorsIDs.ASSET_TITLE }}
       description={description}

@@ -11,7 +11,6 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { useRewardDashboardModals } from './useRewardDashboardModals';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useBulkLinkState } from './useBulkLinkState';
 
@@ -25,10 +24,6 @@ export const useOptout = (): UseOptoutResult => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const {
-    resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
-  } = useRewardDashboardModals();
-
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { cancelBulkLink } = useBulkLinkState();
@@ -67,7 +62,6 @@ export const useOptout = (): UseOptoutResult => {
 
         // Clear rewards Redux state back to initial state
         dispatch(resetRewardsState());
-        resetAllSessionTrackingForRewardsDashboardModals();
 
         // Navigate to home screen then show "Request received" banner
         navigation.navigate(Routes.WALLET_VIEW);
@@ -116,7 +110,6 @@ export const useOptout = (): UseOptoutResult => {
     showToast,
     RewardsToastOptions,
     dispatch,
-    resetAllSessionTrackingForRewardsDashboardModals,
     cancelBulkLink,
     navigation,
   ]);

@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "sa",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} sa {{price}}",
-        "size_at_market_cap": "{{size}} sa {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 araw)",
@@ -1993,22 +1991,6 @@
         "4": "Huw",
         "5": "Biy",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} sa {{price}}",
-        "bought": "Nabili",
-        "sold": "Binenta",
-        "perps_closed": "Nakasara",
-        "perps_long_opened": "Bukas na long",
-        "perps_long_added": "Idinagdag sa long",
-        "perps_long_reduced": "Binawasang long",
-        "perps_short_opened": "Binuksan ang short",
-        "perps_short_added": "Idinagdag sa short",
-        "perps_short_reduced": "Binili pabalik",
-        "spot_opened": "Nabili",
-        "spot_added": "Bumili ng higit pa",
-        "spot_reduced": "Nagbenta ng ilan",
-        "spot_closed": "Ibinenta lahat"
       }
     },
     "trader_position": {
@@ -3954,7 +3936,6 @@
       "unavailable": "Walang market na available sa ngayon."
     },
     "home_categories": {
-      "title": "Mga Kategorya",
       "politics": "Pulitika",
       "sports": "Palakasan"
     },
@@ -5480,19 +5461,6 @@
     "accounts": "mga account",
     "show_accounts": "Ipakita",
     "hide_accounts": "Itago",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "bitcoin_signet_account_name": "Bitcoin Signet Account",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account",
-      "tron_account_name": "Account sa Tron",
-      "tron_nile_account_name": "Account sa Tron Nile",
-      "tron_shasta_account_name": "Account sa Tron Shasta",
-      "stellar_account_name": "Stellar Account"
-    },
     "error_messages": {
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
     },
@@ -7179,7 +7147,6 @@
     "gas_education_3": "Ang MetaMask ay hindi kumikita mula sa mga bayad sa gas.",
     "gas_education_4": "Nagbabago-bago ang mga gas fee batay sa trapiko sa network at pagkakumplikado ng transaksyon.",
     "gas_education_learn_more": "Matuto pa tungkol sa mga bayad sa gas",
-    "confusable_title": "Tingnan ang address ng tatanggap",
     "confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na panloloko.",
     "similar_to": "ay katulad ng",
     "contains_zero_width": "naglalaman ng zero na lapad ng karakter",
@@ -7197,8 +7164,7 @@
     "hex_data_copied": "Nakopya ang hex na data sa clipboard",
     "invalid_recipient": "Di-wastong tagatanggap",
     "invalid_recipient_description": "Tingnan ang address at tiyaking wasto ito",
-    "swap_tokens": "Ipagpalit ang mga token",
-    "fromWithColon": "Mula kay/sa:"
+    "swap_tokens": "Ipagpalit ang mga token"
   },
   "custom_gas": {
     "total": "Kabuuan",
@@ -7476,8 +7442,6 @@
     "hash_copied_to_clipboard": "Nakopya ang hash ng transaksyon sa clipboard",
     "address_copied_to_clipboard": "Nakopya ang address sa clipboard",
     "transaction_error": "Error sa transaksyon",
-    "address_to_placeholder": "Maghanap, pampublikong address (0x), o ENS",
-    "address_from_balance": "Balanse:",
     "status": "Katayuan",
     "date": "Petsa",
     "nonce": "Nonce",
@@ -7558,11 +7522,8 @@
     "delete_contact": "Tanggalin ang kontak",
     "delete": "Tanggalin",
     "cancel": "Kanselahin",
-    "add_to_address_book": "Idagdag sa address book",
-    "enter_an_alias": "Maglagay ng alias",
     "add_this_address": "Idagdag ang address na ito sa iyong address book",
     "next": "Susunod",
-    "enter_an_alias_placeholder": "hal. Vitalik B.",
     "add_contact_title": "Magdagdag ng kontak",
     "add_contact": "Magdagdag ng contact",
     "edit_contact_title": "I-edit ang kontak",
@@ -8989,19 +8950,7 @@
     "contact_support": "Kontakin ang suporta"
   },
   "whats_new": {
-    "title": "Ano'ng bago",
-    "remove_gns_new_ui_update": {
-      "title": "Bagong update ng UI",
-      "introduction": "Gumawa kami ng mga update upang pagbutihin ang karanasan sa app.",
-      "descriptions": {
-        "description_1": "Inilipat ang dropdown ng network sa mga asset mo",
-        "description_2": "I-swap at i-bridge sa isang simpleng paraan",
-        "description_3": "Mas maayos na karanasan sa pagpapadala",
-        "description_4": "Isang bagong anyo ng account"
-      },
-      "more_information": "Ngayon, maaari ka nang magpokus sa iyong mga token at aktibidad, hindi sa mga network sa likod nito.",
-      "got_it": "Nakuha ko"
-    }
+    "title": "Ano'ng bago"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit\nang chain ID para sa custom network \n {{network}}.",
@@ -9312,28 +9261,13 @@
     "nickname": "palayaw"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Mga bagay na dapat tandaan",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Ang native token sa network na ito ay {{ticker}}. Ito ang token na ginagamit para sa mga bayad sa network.",
-    "second_description": "Kapag sinubukan mong ipadala ang mga asset nang direkta mula sa isang network patungo sa iba, maaari itong magresulta sa permanenteng pagkawala ng asset. Tiyaking gumamit ng tulay.",
-    "third_description": "Maaaring hindi awtomatikong lumabas ang iyong mga token sa iyong wallet.",
-    "private_network": "Hindi kilala ang network na ito at maaaring gumagamit ito ng espesyal na token para sa mga bayad sa network.",
     "unknown_network": "Hindi kilalang network",
-    "switched_network": "Lumipat ka sa",
-    "learn_more": "Matuto pa",
     "add_token": "I-click dito para mano-manong idagdag ang mga token",
-    "add_token_manually": "Idagdag ang mga ito ng manu-mano.",
     "got_it": "Kuha ko na",
     "error_title": "Mayroong nang mali",
     "error_message": "Nagkaroon ng error sa pag-load ng impormasyon ng network. Subukan muli mamaya.",
-    "private_network_third_description": "Lagyan ng pangalan ang network na ito para mas madaling tukuyin.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Paganahin ang awtomatikong pagtuklas ng token",
-    "token_detection_mainnet_title": "Pinagana ang pagtuklas ng token kaya maraming mga token ang awtomatikong lalabas sa iyong wallet.",
-    "token_detection_mainnet_link": "Maaari ka ring magdagdag ng mga token ng manu-mano.",
-    "or": "o",
-    "non_evm_first_description": "Ang native asset sa network na ito ay {{ticker}}. Ginagamit ito para sa mga bayad sa transaksyon.",
-    "non_evm_second_description": "Mawawala ang mga asset mo kapag sinubukan mong ipadala ang mga ito mula sa o papunta sa ibang network."
+    "private_network_third_description": "Lagyan ng pangalan ang network na ito para mas madaling tukuyin."
   },
   "download_files": {
     "error": "Nabigong i-download ang attachment.",
@@ -10693,8 +10627,7 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_deposit_header": "Idagdag sa MetaMask Money",
-      "money_account_send": "Ipadala"
+      "money_account_deposit_header": "Idagdag sa MetaMask Money"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -10851,7 +10784,6 @@
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_convert_token": "I-convert sa {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
-    "deposit_edit_amount_money_account_send": "Ipadala",
     "deposit_edit_amount_musd_conversion": "I-convert sa mUSD",
     "preparing_order": "Inihahanda ang order"
   },

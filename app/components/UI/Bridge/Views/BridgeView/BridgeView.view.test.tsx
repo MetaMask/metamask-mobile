@@ -38,6 +38,8 @@ import {
   QuoteStreamCompleteReason,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -73,6 +75,22 @@ import { RecurringScheduleFieldsSelectorsIDs } from '../../components/RecurringS
 
 const HOUR_MS = 60 * 60 * 1000;
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const SOLANA_RECIPIENT = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
+const SOL_SOURCE: BridgeToken = {
+  address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  chainId: SolScope.Mainnet,
+  decimals: 9,
+  symbol: 'SOL',
+  name: 'Solana',
+};
+const SOLANA_USDC_DEST: BridgeToken = {
+  address:
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  chainId: SolScope.Mainnet,
+  decimals: 6,
+  symbol: 'USDC',
+  name: 'USD Coin',
+};
 
 const createStockRwaToken = ({
   nowMs,
@@ -429,8 +447,6 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByTestId(
           BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
-          {},
-          { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
@@ -514,8 +530,6 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByTestId(
           BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
-          {},
-          { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -708,7 +722,7 @@ describeForPlatforms('BridgeView', () => {
         address: '0x55d398326f99059ff775485246999027b3197955',
         chainId: '0x38',
         decimals: 18,
-        symbol: 'USDT',
+        symbol: 'BSC-USD',
         name: 'Tether USD',
       };
       const bscNative: BridgeToken = {
@@ -777,6 +791,148 @@ describeForPlatforms('BridgeView', () => {
       );
       expect(store.getState().bridge.sourceAmount).toBeUndefined();
     });
+
+    it('requests Recurring quotes for the source wallet after leaving a Solana pair with a Solana recipient', async () => {
+      const updateQuoteSpy = jest.spyOn(
+        Engine.context.BridgeController,
+        'updateBridgeQuoteRequestParams',
+      );
+      const { getByTestId, store } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+            sourceToken: SOL_SOURCE,
+            destToken: SOLANA_USDC_DEST,
+            sourceAmount: '1',
+            destAddress: SOLANA_RECIPIENT,
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken).toEqual(
+          expect.objectContaining(ETH_SOURCE),
+        );
+      });
+      expect(store.getState().bridge.destToken).toEqual(
+        expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+      );
+
+      updateQuoteSpy.mockClear();
+      act(() => {
+        store.dispatch(setSourceAmount('1'));
+      });
+
+      await waitFor(() => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcChainId: '1',
+            destChainId: '1',
+            srcTokenAmount: '1000000000000000000',
+          }),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+      const sourceWalletAddress = selectSourceWalletAddress(store.getState());
+      expect(sourceWalletAddress).toBeDefined();
+      expect(updateQuoteSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ destWalletAddress: SOLANA_RECIPIENT }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(updateQuoteSpy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ destWalletAddress: sourceWalletAddress }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it.each([
+      {
+        tabName: 'Limit',
+        tabTestId: BridgeViewSelectorsIDs.LIMIT_TAB,
+        containerTestId: BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER,
+        unsupportedBannerTestId:
+          BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+        unavailableBannerTestId:
+          BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
+      },
+      {
+        tabName: 'Recurring',
+        tabTestId: BridgeViewSelectorsIDs.RECURRING_TAB,
+        containerTestId: BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER,
+        unsupportedBannerTestId:
+          BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER,
+        unavailableBannerTestId:
+          BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
+      },
+    ])(
+      'shows no fee token error on the pressed $tabName page while it still has the Market Solana pair',
+      async ({
+        tabTestId,
+        containerTestId,
+        unsupportedBannerTestId,
+        unavailableBannerTestId,
+      }) => {
+        netInfoMock.__setMockNetInfo({
+          type: 'wifi',
+          isInternetReachable: true,
+        });
+        const { findByTestId, getByTestId, queryByTestId, store } =
+          defaultBridgeWithTokens({
+            bridge: { sourceToken: USDT_DEST, destToken: USDC_DEST },
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: {
+                      enabled: true,
+                      enabledChainIds: ['eip155:1'],
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+        // Loads the shared fee token list, so the tab page has it on its
+        // first render when it is pressed again below.
+        fireEvent.press(getByTestId(tabTestId));
+        await settlePager(getByTestId);
+        expect(await findByTestId(unsupportedBannerTestId)).toBeOnTheScreen();
+
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+        await settlePager(getByTestId);
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+          ).toBeOnTheScreen();
+        });
+        act(() => {
+          store.dispatch(setSourceToken(SOL_SOURCE));
+          store.dispatch(setDestToken(SOLANA_USDC_DEST));
+        });
+
+        // The pressed page mounts before the pager settles, which is when
+        // the tab replaces the unsupported pair.
+        fireEvent.press(getByTestId(tabTestId));
+
+        expect(getByTestId(containerTestId)).toBeOnTheScreen();
+        expect(store.getState().bridge.sourceToken).toEqual(
+          expect.objectContaining({ symbol: 'SOL' }),
+        );
+        expect(queryByTestId(unavailableBannerTestId)).not.toBeOnTheScreen();
+        expect(queryByTestId(unsupportedBannerTestId)).not.toBeOnTheScreen();
+      },
+    );
 
     it('preserves the token pair and source amount across every tab', async () => {
       const { getByTestId, store } = defaultBridgeWithTokens();
@@ -1308,19 +1464,16 @@ describeForPlatforms('BridgeView', () => {
     await waitFor(() => {
       expect(store.getState().bridge.sourceAmount).toBe('0.025');
     });
-    await waitFor(
-      () => {
-        expect(updateQuoteSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            srcTokenAmount: '25000000000000000',
-          }),
-          expect.anything(),
-          expect.anything(),
-          expect.anything(),
-        );
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(updateQuoteSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '25000000000000000',
+        }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
@@ -1423,12 +1576,9 @@ describeForPlatforms('BridgeView', () => {
       store.dispatch(setSlippage('5'));
     });
 
-    await waitFor(
-      () => {
-        expect(store.getState().bridge.slippage).toBe('5');
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(store.getState().bridge.slippage).toBe('5');
+    });
   });
 
   it('navigates to dest token selector on press', async () => {
@@ -1823,9 +1973,8 @@ describeForPlatforms('BridgeView', () => {
 
       fireEvent.press(await findByText('Swap to'));
 
-      const searchInput = await waitFor(
-        () => getByTestId('bridge-token-search-input'),
-        { timeout: 5000 },
+      const searchInput = await waitFor(() =>
+        getByTestId('bridge-token-search-input'),
       );
       fireEvent.changeText(searchInput, 'USDT');
 
@@ -1838,6 +1987,8 @@ describeForPlatforms('BridgeView', () => {
         () => {
           expect(getByText('Tether USD (duplicate)')).toBeOnTheScreen();
         },
+        // The duplicated token appears only after the import's token-list
+        // refresh lands; the 5s default is not enough on a loaded CV shard.
         { timeout: 10000 },
       );
 
@@ -1990,18 +2141,15 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
       ).toBeOnTheScreen();
 
-      await waitFor(
-        () => {
-          expect(
-            getByTestId(
-              getTrendingTokenRowItemTestId(
-                'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-              ),
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            getTrendingTokenRowItemTestId(
+              'eip155:1/erc20:0x0000000000000000000000000000000000000000',
             ),
-          ).toBeOnTheScreen();
-        },
-        { timeout: 5000 },
-      );
+          ),
+        ).toBeOnTheScreen();
+      });
 
       fireEvent.press(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),

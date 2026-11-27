@@ -32,6 +32,7 @@ import {
   selectIsCardResidencyBlocked,
   selectCardRedemptionDestinationIsMoneyAccount,
   selectCardRedeemWithdrawal,
+  selectCardCashbackClaim,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -183,6 +184,32 @@ describe('CardController selectors', () => {
       };
       const state = createMockRootState({ redeemWithdrawal });
       expect(selectCardRedeemWithdrawal(state)).toEqual(redeemWithdrawal);
+    });
+  });
+
+  describe('selectCardCashbackClaim', () => {
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+      expect(selectCardCashbackClaim(state)).toBeNull();
+    });
+
+    it('returns null when cashbackClaim is null', () => {
+      const state = createMockRootState({ cashbackClaim: null });
+      expect(selectCardCashbackClaim(state)).toBeNull();
+    });
+
+    it('returns the cashbackClaim state', () => {
+      const cashbackClaim = {
+        status: 'pending' as const,
+        amount: '10.00',
+        moneyAddress: '0xabc',
+        submittedAt: 1,
+        txHash: '0xdef',
+      };
+      const state = createMockRootState({ cashbackClaim });
+      expect(selectCardCashbackClaim(state)).toEqual(cashbackClaim);
     });
   });
 

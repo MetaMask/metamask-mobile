@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import Engine from '../../../app/core/Engine';
 import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,6 +15,7 @@ import {
   selectPerpsProvider,
 } from '../../../app/components/UI/Perps/selectors/perpsController';
 import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
+import { PerpsCacheInvalidator } from '../../../app/components/UI/Perps/services/PerpsCacheInvalidator';
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
@@ -77,6 +79,7 @@ import {
   handlePerpsCufPositionsDelivered,
 } from '../../../app/components/UI/Perps/utils/perpsCufTrace';
 import {
+  type AccountAggregateMetadata,
   type AccountState,
   type CandleData,
   CandlePeriod,
@@ -111,6 +114,8 @@ const testConnectionValue: PerpsConnectionContextValue = {
   reconnectWithNewContext: async (): Promise<void> => undefined,
 };
 
+let restorePerpsConnectionManagerState: (() => void) | undefined;
+
 function setTestMarketContext(
   state: DeepPartial<RootState>,
   isInitialized: boolean,
@@ -120,6 +125,22 @@ function setTestMarketContext(
     initializedConnectionGeneration: number | null;
     connectionGeneration: number;
   };
+  // Snapshot the manager singleton once per test, before the first
+  // mutation, so the afterEach below can put it back exactly as it was.
+  restorePerpsConnectionManagerState ??= (() => {
+    const snapshot = {
+      initializedMarketContextKey: manager.initializedMarketContextKey,
+      initializedConnectionGeneration: manager.initializedConnectionGeneration,
+      connectionGeneration: manager.connectionGeneration,
+    };
+    return (): void => {
+      manager.initializedMarketContextKey =
+        snapshot.initializedMarketContextKey;
+      manager.initializedConnectionGeneration =
+        snapshot.initializedConnectionGeneration;
+      manager.connectionGeneration = snapshot.connectionGeneration;
+    };
+  })();
   const rootState = state as RootState;
   manager.initializedMarketContextKey = isInitialized
     ? buildPerpsMarketContextKey(
@@ -132,6 +153,28 @@ function setTestMarketContext(
     ? manager.connectionGeneration
     : null;
 }
+
+/**
+ * Restores the Perps singletons the renderer mutates: the
+ * `PerpsConnectionManager` market-context bookkeeping (snapshotted before
+ * each test's first render) and the `PerpsCacheInvalidator` stream-cache
+ * subscribers accumulated across renders.
+ *
+ * Registered automatically below, including when a test throws. Safe to
+ * call again: a second call is a no-op.
+ */
+export function restorePerpsViewTestState(): void {
+  restorePerpsConnectionManagerState?.();
+  restorePerpsConnectionManagerState = undefined;
+  PerpsCacheInvalidator._clearAllSubscribers();
+}
+
+// Jest evaluates this module once per test file. Registering here covers
+// every spec that imports the renderer, so a caller cannot forget the
+// restore (same pattern as renderers/moneyHome).
+afterEach(() => {
+  restorePerpsViewTestState();
+});
 
 const testHardwareWalletValue: HardwareWalletContextValue = {
   walletType: null,
@@ -467,7 +510,7 @@ const pricesChannel = (
   };
 };
 
-interface TestStreamManagerBundle {
+export interface TestStreamManagerBundle {
   streamManager: PerpsStreamManager;
   stream: PerpsStreamControls;
 }
@@ -529,6 +572,12 @@ export interface PerpsStreamOverrides {
   /** When set, usePerpsLiveAccount() receives this account state. */
   account?: unknown;
   /**
+   * Completeness metadata for the account stream (TAT-4407). `partial` models
+   * an aggregated total where a venue has not reported. Defaults to null
+   * (single-venue state).
+   */
+  aggregate?: AccountAggregateMetadata | null;
+  /**
    * When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details).
    * `null` leaves the channel empty until `emitPositions`, so the order view stays on its loading label.
    */
@@ -560,6 +609,12 @@ export interface PerpsStreamOverrides {
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
   /**
+   * Long and short USD strings delivered by `subscribeToAvailableToTrade`.
+   * Defaults to the account `spendableBalance` on both sides. `null` leaves
+   * the figure unknown.
+   */
+  availableToTrade?: { long: string; short: string } | null;
+  /**
    * Symbols at their open-interest cap. Delivered on subscribe and through
    * `emitOICaps`.
    */
@@ -567,7 +622,13 @@ export interface PerpsStreamOverrides {
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
-function createTestStreamManager(
+/** Fixed order timestamps, distinct per builder so any time-ordered view
+ * stays deterministic (Perps views render these opaquely; none compare
+ * order timestamps to the wall clock). */
+const FIXED_ORDER_TIMESTAMP_MS = 1_735_689_600_000;
+const FIXED_ORDER_TIMESTAMP_MS_2 = 1_735_689_600_001;
+
+export function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): TestStreamManagerBundle {
   const positions =
@@ -582,16 +643,37 @@ function createTestStreamManager(
       : createMarketDataChannel(
           streamOverrides?.marketData ?? initialMarketData,
         );
-  const account = createAccountChannel(
-    streamOverrides?.account ?? initialAccount,
-  );
+  const account = {
+    ...createAccountChannel(streamOverrides?.account ?? initialAccount),
+    // Aggregated-stream API (TAT-4407): view tests render single-venue state
+    // unless a test supplies completeness metadata. No per-venue breakdown.
+    getAggregateMetadata: (): AccountAggregateMetadata | null =>
+      streamOverrides?.aggregate ?? null,
+    getVenueAccountStates: (): unknown[] => [],
+  };
   const prices = createPricesChannel(
     streamOverrides?.prices,
     streamOverrides?.cachedPrices,
   );
-  const oiCaps = mutableChannelWithInitialValue<string[]>(
+  const oiCapsInner = mutableChannelWithInitialValue<string[]>(
     streamOverrides?.oiCaps ?? [],
   );
+  const oiCaps = {
+    ...oiCapsInner,
+    // Venue-scoped API (TAT-4407): deliver the same caps to symbol subscribers.
+    subscribeToSymbol: (params: {
+      symbol: string;
+      providerId?: string;
+      callback: (caps: string[]) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        return oiCapsInner.subscribe({
+          callback: (caps) => params.callback(caps ?? []),
+        });
+      }
+      return noopUnsubscribe;
+    },
+  };
   const cachedCandles = streamOverrides?.cachedCandles ?? null;
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
@@ -700,11 +782,40 @@ const DefaultRouteProbe =
  * usePerpsStream() (e.g. PerpsMarketListView) render without errors.
  * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
+const installAvailableToTradeMock = (
+  streamOverrides?: PerpsStreamOverrides,
+): void => {
+  const account = (streamOverrides?.account ?? initialAccount) as {
+    spendableBalance?: string;
+  };
+  const explicit = streamOverrides?.availableToTrade;
+  const subscribe = jest.spyOn(
+    Engine.context.PerpsController,
+    'subscribeToAvailableToTrade',
+  );
+  if (explicit === null) {
+    subscribe.mockImplementation(() => () => undefined);
+    return;
+  }
+  const long = explicit?.long ?? String(account.spendableBalance ?? '1');
+  const short = explicit?.short ?? long;
+  subscribe.mockImplementation((params) => {
+    params.callback({
+      providerId: 'hyperliquid',
+      symbol: params.symbol,
+      long,
+      short,
+    });
+    return () => undefined;
+  });
+};
+
 export function renderPerpsView(
   Component: React.ComponentType,
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
+  installAvailableToTradeMock(options.streamOverrides);
   const {
     overrides,
     initialParams,
@@ -889,7 +1000,7 @@ const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
-    name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     Component: () => (
       <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
     ),
@@ -1284,9 +1395,9 @@ export const defaultOrderDetailsOrder = {
   triggerDirection: undefined,
   timeInForce: 'Gtc' as const,
   status: 'open' as const,
-  timestamp: Date.now(),
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  timestamp: FIXED_ORDER_TIMESTAMP_MS,
+  createdAt: FIXED_ORDER_TIMESTAMP_MS,
+  updatedAt: FIXED_ORDER_TIMESTAMP_MS,
   fee: '0',
   averageFillPrice: undefined,
   filledSize: '0',
@@ -1520,9 +1631,9 @@ export const defaultOrderForViews: Order = {
   triggerDirection: undefined,
   timeInForce: 'Gtc' as const,
   status: 'open' as const,
-  timestamp: Date.now(),
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  timestamp: FIXED_ORDER_TIMESTAMP_MS_2,
+  createdAt: FIXED_ORDER_TIMESTAMP_MS_2,
+  updatedAt: FIXED_ORDER_TIMESTAMP_MS_2,
   fee: '0',
   averageFillPrice: undefined,
   filledSize: '0',

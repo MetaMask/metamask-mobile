@@ -6,12 +6,15 @@ import React, {
   useCallback,
 } from 'react';
 import { Keyboard, Platform } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 import {
   getFocusedRouteNameFromRoute,
+  NavigationRouteContext,
+  type NavigationProp,
   type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
@@ -130,6 +133,8 @@ import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
+import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
+import { useHomeTabFlatParamsBridge } from './homeTabFlatParamsBridge';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -176,11 +181,15 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
+import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -197,6 +206,7 @@ import {
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
 import { CollectiblesLayout } from '../../UI/Collectibles/routes/CollectiblesLayout';
+import { BuySheet as CollectiblesBuySheet } from '../../UI/Collectibles/routes/BuySheet';
 import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
@@ -238,7 +248,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
-import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -246,7 +255,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -269,6 +277,8 @@ import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDe
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
+const EMPTY_HOME_TAB_COMPAT_PARAMS = Object.freeze({});
+
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -298,6 +308,10 @@ const useDefaultStackScreenOptions = (): NativeStackNavigationOptions => {
  */
 interface ForwardedParamsHostProps {
   route: RouteProp<ParamListBase, string>;
+}
+
+interface HomeTabHostProps extends ForwardedParamsHostProps {
+  navigation: NavigationProp<ParamListBase>;
 }
 
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
@@ -360,6 +374,20 @@ const WalletTabStackFlow = () => {
         options={{ animation: 'none' }}
       />
     </NativeStack.Navigator>
+  );
+};
+
+const WalletTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.WALLET_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <WalletTabStackFlow />
+    </NavigationRouteContext.Provider>
   );
 };
 
@@ -533,6 +561,20 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
+const BrowserRootHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute, sourceRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.BROWSER_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <BrowserFlow route={sourceRoute} />
+    </NavigationRouteContext.Provider>
+  );
+};
+
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -692,12 +734,26 @@ const SettingsFlow = () => {
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 
+const BrowserTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+  const { normalizedRoute, sourceRoute } = useHomeTabFlatParamsBridge({
+    route,
+    navigation,
+    targetChild: Routes.BROWSER_VIEW,
+  });
+
+  return (
+    <NavigationRouteContext.Provider value={normalizedRoute}>
+      <BrowserFlowUnmountOnTabBlur route={sourceRoute} />
+    </NavigationRouteContext.Provider>
+  );
+};
+
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
 const HOME_TAB_COMPONENTS = {
-  home: WalletTabStackFlow,
+  home: WalletTabHomeHost,
   explore: ExploreFeed,
-  browser: BrowserFlowUnmountOnTabBlur,
+  browser: BrowserTabHomeHost,
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   // Rewards stays mounted. Leaving the tab used to throw the tree away, so
@@ -857,6 +913,10 @@ const HomeTabs = () => {
 
   const tabComponentFor = (tab: HomeTabDefinition) =>
     tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
+  const nativeTabs = tabs.filter((tab) => !tab.isHidden);
+  const nativeSocialTabIndex = nativeTabs.findIndex(
+    (tab) => tab.key === 'social',
+  );
 
   const renderJsTabScreen = (tab: HomeTabDefinition) => (
     <JsTab.Screen
@@ -868,6 +928,11 @@ const HomeTabs = () => {
         isFloatingTabBar ? { trackBottomNavPress } : undefined,
       )}
       component={tabComponentFor(tab)}
+      initialParams={
+        tab.key === 'home' || tab.key === 'browser'
+          ? EMPTY_HOME_TAB_COMPAT_PARAMS
+          : tab.initialParams
+      }
     />
   );
 
@@ -878,11 +943,13 @@ const HomeTabs = () => {
       options={
         tab.hidesTabBarFor
           ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route, colors.success.default)
-          : toNativeTabOptions(tab, undefined, colors.success.default)
+              toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
-      initialParams={tab.initialParams}
+      initialParams={
+        tab.key === 'home' ? EMPTY_HOME_TAB_COMPAT_PARAMS : tab.initialParams
+      }
       component={tabComponentFor(tab)}
     />
   );
@@ -894,29 +961,37 @@ const HomeTabs = () => {
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <NativeTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            screenOptions={{
-              headerShown: false,
-              // Mount on first visit like the JS navigator; the native
-              // default renders every tab at launch and never freezes them.
-              lazy: true,
-              // UIKit picks the inactive colour.
-              tabBarActiveTintColor: colors.icon.default,
-              // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
-              tabBarMinimizeBehavior: 'none',
-              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-              overrideScrollViewContentInsetAdjustmentBehavior: false,
-            }}
-          >
-            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-            <NativeTab.Screen
-              name={systemSlotTab.name}
-              options={systemSlotTab.options}
-              listeners={systemSlotTab.listeners}
-              component={systemSlotTab.component}
-            />
-          </NativeTab.Navigator>
+          <Box twClassName="flex-1">
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
+                tabBarMinimizeBehavior: 'none',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {nativeTabs.map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+            {showSocialTabNewBadge && nativeSocialTabIndex >= 0 ? (
+              <NativeSocialTabBadge
+                tabIndex={nativeSocialTabIndex}
+                tabCount={nativeTabs.length}
+              />
+            ) : null}
+          </Box>
         </FloatingTabBarInsetContext.Provider>
       </HomeTabSheetHosts>
     );
@@ -1041,6 +1116,9 @@ const MainNavigator = () => {
 
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1098,10 +1176,6 @@ const MainNavigator = () => {
        */}
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}
         />
@@ -1128,10 +1202,6 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
           component={AcceptInviteSheet}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
@@ -1373,6 +1443,13 @@ const MainNavigator = () => {
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
             />
+            {isEarningsHistoryEnabled && (
+              <NativeStack.Screen
+                name={Routes.MONEY.EARNINGS}
+                component={MoneyEarningsView}
+                options={{ gestureEnabled: false }}
+              />
+            )}
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
               component={MusdRescueSendScreen}
@@ -1499,6 +1576,13 @@ const MainNavigator = () => {
           name={collectiblesRoutes.root}
           component={CollectiblesLayout}
           options={slideFromRightNativeOptions}
+        />
+      )}
+      {isCollectiblesEnabled && (
+        <NativeStack.Screen
+          name={collectiblesRoutes.buySheet}
+          component={CollectiblesBuySheet}
+          options={transparentModalStackOptions}
         />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
@@ -1639,7 +1723,8 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.BROWSER.HOME}
-        component={BrowserFlow}
+        component={BrowserRootHomeHost}
+        initialParams={EMPTY_HOME_TAB_COMPAT_PARAMS}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen name="SetPasswordFlow" component={SetPasswordFlow} />

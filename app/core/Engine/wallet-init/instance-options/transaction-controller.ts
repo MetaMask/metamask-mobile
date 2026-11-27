@@ -9,13 +9,17 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
+import {
+  isPayTransactionResumable,
+  type TransactionPayControllerMessenger,
+} from '@metamask/transaction-pay-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 
 import {
   MM_PAY_TRANSACTION_TYPES,
-  REDESIGNED_TRANSACTION_TYPES,
+  CONFIRMATION_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -77,6 +81,11 @@ export function getTransactionControllerInstanceOptions({
     }),
     isFirstTimeInteractionEnabled: () =>
       isFirstTimeInteractionEnabled(initMessenger),
+    isResumable: (transactionMeta) =>
+      isPayTransactionResumable(
+        initMessenger as TransactionPayControllerMessenger,
+        transactionMeta,
+      ),
     isSimulationEnabled: (transactionMeta) =>
       isSimulationEnabled(transactionMeta, initMessenger),
     getSavedGasFees: (chainIdOrTransactionMeta) =>
@@ -385,7 +394,7 @@ function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
     return false;
   }
 
-  return REDESIGNED_TRANSACTION_TYPES.includes(
+  return CONFIRMATION_TRANSACTION_TYPES.includes(
     transaction.type as TransactionType,
   );
 }

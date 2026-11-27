@@ -12,10 +12,21 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { log: jest.fn(), error: jest.fn() },
 }));
 
+jest.mock('../../auth/venueSigningProfiles', () => ({
+  resolveVenueProfile: jest.fn().mockResolvedValue({}),
+  refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(false),
+  confirmVenueProfileVersion: jest.fn().mockResolvedValue(undefined),
+}));
+
 const HEADER = { name: 'Venue-Authorization', value: 'envelope' };
 /** What the Engine's signOperation now resolves to: the envelope header
  * plus the exact body bytes the signature covers. */
-const SIGNED = { header: HEADER, body: '', idempotencyKey: 'op-key' };
+const SIGNED = {
+  header: HEADER,
+  body: '',
+  idempotencyKey: 'op-key',
+  profile: { version: 1, sha256: 'sha-v1' },
+};
 
 interface Reply {
   status: number;
@@ -199,7 +210,7 @@ describe('sendSigned', () => {
   });
 
   it.each(['unavailable', 'refused'])(
-    'preserves the initial dispatch when renewal signing is %s',
+    'returns the initial response when renewal signing is %s',
     async (failure) => {
       const signOperation = jest.fn().mockResolvedValueOnce(SIGNED);
       if (failure === 'refused') {
@@ -207,27 +218,19 @@ describe('sendSigned', () => {
       } else {
         signOperation.mockResolvedValueOnce(undefined);
       }
-      const send = jest.fn().mockResolvedValue({
-        status: 403,
-        code: 'venue_authorization_invalid',
-      });
+      const response = { status: 403, code: 'venue_authorization_invalid' };
+      const send = jest.fn().mockResolvedValue(response);
       const invalidateSigningSession = jest.fn();
 
-      await expect(
-        sendSigned<Reply>(
-          { signOperation, invalidateSigningSession },
-          'order.place',
-          undefined,
-          send,
-          (reply) => reply,
-        ),
-      ).rejects.toMatchObject({
-        name:
-          failure === 'refused'
-            ? 'VenueSigningRefusedError'
-            : 'VenueSigningUnavailableError',
-        requestSent: true,
-      });
+      const result = await sendSigned<Reply>(
+        { signOperation, invalidateSigningSession },
+        'order.place',
+        undefined,
+        send,
+        (reply) => reply,
+      );
+
+      expect(result).toBe(response);
       expect(send).toHaveBeenCalledTimes(1);
       expect(signOperation).toHaveBeenCalledTimes(2);
       expect(invalidateSigningSession).toHaveBeenCalledTimes(1);

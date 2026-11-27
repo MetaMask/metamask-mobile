@@ -1,0 +1,335 @@
+import type {
+  HttpRfc9421Payload,
+  SigningProfile,
+  Source,
+} from './signing/profileSchema';
+import {
+  SUPPORTED_DSL,
+  VENUE_PROFILE_ID,
+  type VenueIntentName,
+} from './venueProfileContract';
+
+const VENUE_ID = 'kalshi';
+const API_PREFIX = '/trade-api/';
+const ORDER_INVARIANT = 'binary-limit-order-v1';
+const KNOWN_INTENTS: readonly VenueIntentName[] = [
+  'order.place',
+  'account.activate',
+  'funding.deposit',
+];
+
+const INTENT_PATHS: Readonly<Record<VenueIntentName, string>> = {
+  'order.place': '/trade-api/v2/portfolio/events/orders',
+  'account.activate': '/trade-api/v2/isv/wallet/register',
+  'funding.deposit': '/trade-api/v2/isv/deposit/crypto-addresses',
+};
+
+/** Exact body sources this build confirms and renders for each intent. A
+ * profile may not redirect a confirmed figure to another input or value. */
+const BODY_SOURCES: Readonly<Record<string, Readonly<Record<string, Source>>>> =
+  {
+    'order.place': {
+      ticker: {
+        input: 'marketId',
+        shape: { kind: 'opaque', maxLength: 256 },
+      },
+      client_order_id: {
+        input: 'idempotencyKey',
+        shape: { kind: 'uuid-v4' },
+      },
+      side: {
+        map: {
+          inputs: ['action', 'outcome'],
+          table: {
+            'buy:yes': 'bid',
+            'buy:no': 'ask',
+            'sell:yes': 'ask',
+            'sell:no': 'bid',
+          },
+        },
+      },
+      count: {
+        value: 'count',
+        shape: { kind: 'decimal', scale: 2, min: '1' },
+      },
+      price: {
+        value: 'price',
+        shape: { kind: 'decimal', scale: 4, min: '0.01', max: '0.99' },
+      },
+      time_in_force: { const: 'immediate_or_cancel' },
+      self_trade_prevention_type: { const: 'taker_at_cross' },
+      reduce_only: {
+        map: { inputs: ['action'], table: { buy: false, sell: true } },
+      },
+    },
+    'account.activate': {
+      wallet_address: {
+        input: 'walletAddress',
+        shape: { kind: 'opaque', maxLength: 128 },
+      },
+      network: {
+        input: 'network',
+        shape: { kind: 'opaque', maxLength: 32 },
+      },
+    },
+    'funding.deposit': {
+      amount_cents: {
+        input: 'amountCents',
+        shape: { kind: 'int', min: 100 },
+      },
+      networks: {
+        input: 'networks',
+        shape: {
+          kind: 'array',
+          of: { kind: 'oneOf', values: ['base'] },
+          maxItems: 1,
+        },
+      },
+    },
+  };
+/** Payload-level signing inputs beyond the confirmed body. Each intent pins
+ * its exact idempotency source and rendered body ceiling; a profile may not
+ * add query pairs, path parameters, or widen the body budget. */
+const INTENT_PAYLOAD_CONTRACTS: Readonly<
+  Record<VenueIntentName, { idempotencyKey: Source; maxBytes: number }>
+> = {
+  'order.place': {
+    idempotencyKey: { input: 'idempotencyKey', shape: { kind: 'uuid-v4' } },
+    maxBytes: 1024,
+  },
+  'account.activate': {
+    idempotencyKey: { input: 'idempotencyKey', shape: { kind: 'uuid-v4' } },
+    maxBytes: 512,
+  },
+  'funding.deposit': {
+    idempotencyKey: { input: 'clientOperationId', shape: { kind: 'uuid-v4' } },
+    maxBytes: 256,
+  },
+};
+const ORDER_PARAMS = {
+  pricing: 'yes-leg',
+  amountInput: 'amountCents',
+  contractsInput: 'contracts',
+  priceField: 'price',
+  countField: 'count',
+  reduceOnlyField: 'reduce_only',
+  actionInput: 'action',
+  outcomeInput: 'outcome',
+  minOutcomePriceInput: 'minOutcomePrice',
+};
+
+export type VenueProfileCeilingReason =
+  | 'wrong_id'
+  | 'wrong_venue'
+  | 'unsupported_dsl'
+  | 'unknown_intent'
+  | 'foreign_path'
+  | 'missing_order_invariant'
+  | 'invalid_payload_contract'
+  | 'invalid_body_contract'
+  | 'invalid_order_invariant_params'
+  | 'invalid_sign_limit'
+  | 'invalid_implementation_params';
+
+/** A profile is usable only if every rule of this build's ceiling passes. */
+export type VenueProfileCeilingResult =
+  | { ok: true }
+  | { ok: false; reason: VenueProfileCeilingReason };
+
+const isHttpPayload = (payload: unknown): payload is HttpRfc9421Payload =>
+  typeof payload === 'object' &&
+  payload !== null &&
+  (payload as { kind?: unknown }).kind === 'http-rfc9421';
+
+const isWithinApi = (path: string): boolean => path.startsWith(API_PREFIX);
+
+const hasOnlyApiPaths = (profile: SigningProfile): boolean => {
+  const payloadPaths = Object.values(profile.payloads)
+    .filter(isHttpPayload)
+    .map((payload) => payload.path);
+  const readPaths = profile.reads.allow.map((read) => read.path);
+  return [...payloadPaths, ...readPaths].every(isWithinApi);
+};
+
+const hasExactKeys = (value: object, keys: readonly string[]): boolean => {
+  const actual = Object.keys(value);
+  return (
+    actual.length === keys.length &&
+    keys.every((key) => Object.hasOwn(value, key))
+  );
+};
+
+const matchesRecord = (
+  value: unknown,
+  expected: Readonly<Record<string, unknown>>,
+): boolean =>
+  typeof value === 'object' &&
+  value !== null &&
+  hasExactKeys(value, Object.keys(expected)) &&
+  Object.entries(value).every(([key, entry]) => expected[key] === entry);
+
+const isSafeIntegerWithin = (
+  value: number,
+  min: number,
+  max: number,
+): boolean => Number.isSafeInteger(value) && value >= min && value <= max;
+
+const matchesValue = (actual: unknown, expected: unknown): boolean => {
+  if (Array.isArray(expected)) {
+    return (
+      Array.isArray(actual) &&
+      actual.length === expected.length &&
+      expected.every((entry, index) => matchesValue(actual[index], entry))
+    );
+  }
+  if (typeof expected === 'object' && expected !== null) {
+    return (
+      typeof actual === 'object' &&
+      actual !== null &&
+      !Array.isArray(actual) &&
+      hasExactKeys(actual, Object.keys(expected)) &&
+      Object.entries(expected).every(([key, entry]) =>
+        matchesValue((actual as Record<string, unknown>)[key], entry),
+      )
+    );
+  }
+  return actual === expected;
+};
+
+const hasCanonicalBody = (
+  payload: HttpRfc9421Payload,
+  intent: string,
+): boolean => {
+  const expected = BODY_SOURCES[intent];
+  const fields = payload.body?.json;
+  if (expected === undefined || fields === undefined) {
+    return false;
+  }
+  const keys = Object.keys(expected);
+  return (
+    fields.length === keys.length &&
+    fields.every(
+      (field) =>
+        Object.hasOwn(expected, field.key) &&
+        matchesValue(field.value, expected[field.key]),
+    ) &&
+    // With equal counts and only known keys, this rejects duplicates too.
+    keys.every((key) => fields.some((field) => field.key === key))
+  );
+};
+
+const hasCanonicalImplementation = (profile: SigningProfile): boolean => {
+  const { id, params } = profile.implementation;
+  return (
+    id === 'device-p256-rfc9421-v1' &&
+    hasExactKeys(params, [
+      'authority',
+      'label',
+      'tag',
+      'lifetimeSec',
+      'tokenScheme',
+      'headers',
+      'maxSignatures',
+    ]) &&
+    params.authority === 'demo-api.kalshi.co' &&
+    params.label === 'kalshi' &&
+    params.tag === 'kalshi-device-request-v1' &&
+    params.tokenScheme === 'Kalshi-A2T' &&
+    isSafeIntegerWithin(params.lifetimeSec, 1, 60) &&
+    isSafeIntegerWithin(params.maxSignatures, 1, 1) &&
+    matchesRecord(params.headers, {
+      requestId: 'kalshi-device-request-id',
+      key: 'kalshi-device-key',
+      salt: 'kalshi-device-key-salt',
+    })
+  );
+};
+
+/**
+ * Per-venue build ceiling. Unsigned registry profiles may only use the
+ * request contracts and signing limits this binary renders and confirms.
+ */
+export const applyVenueProfileCeiling = (
+  profile: SigningProfile,
+): VenueProfileCeilingResult => {
+  if (profile.id !== VENUE_PROFILE_ID) {
+    return { ok: false, reason: 'wrong_id' };
+  }
+  if (profile.venue !== VENUE_ID) {
+    return { ok: false, reason: 'wrong_venue' };
+  }
+  if (!(SUPPORTED_DSL as readonly string[]).includes(profile.minDsl)) {
+    return { ok: false, reason: 'unsupported_dsl' };
+  }
+  if (
+    profile.intents.some(
+      (intent) => !(KNOWN_INTENTS as readonly string[]).includes(intent.id),
+    )
+  ) {
+    return { ok: false, reason: 'unknown_intent' };
+  }
+  if (!hasOnlyApiPaths(profile)) {
+    return { ok: false, reason: 'foreign_path' };
+  }
+  for (const intent of profile.intents) {
+    const payload = profile.payloads[intent.payloads[0]];
+    if (
+      intent.payloads.length !== 1 ||
+      !isHttpPayload(payload) ||
+      payload.method !== 'POST' ||
+      payload.path !== INTENT_PATHS[intent.id as VenueIntentName]
+    ) {
+      return { ok: false, reason: 'invalid_payload_contract' };
+    }
+    const contract = INTENT_PAYLOAD_CONTRACTS[intent.id as VenueIntentName];
+    if (
+      payload.query !== undefined ||
+      payload.pathParams !== undefined ||
+      !matchesValue(payload.idempotencyKey, contract.idempotencyKey)
+    ) {
+      return { ok: false, reason: 'invalid_payload_contract' };
+    }
+    if (!isSafeIntegerWithin(intent.confirm.signLimit, 1, 3)) {
+      return { ok: false, reason: 'invalid_sign_limit' };
+    }
+    if (
+      !hasCanonicalBody(payload, intent.id) ||
+      payload.body?.maxBytes !== contract.maxBytes
+    ) {
+      return { ok: false, reason: 'invalid_body_contract' };
+    }
+    if (intent.id === 'order.place') {
+      const invariant = payload.invariants?.[0];
+      if (
+        intent.invariant !== ORDER_INVARIANT ||
+        invariant?.implementation !== ORDER_INVARIANT
+      ) {
+        return { ok: false, reason: 'missing_order_invariant' };
+      }
+      const params = invariant.params;
+      if (
+        !params ||
+        payload.invariants?.length !== 1 ||
+        !hasExactKeys(params, [
+          ...Object.keys(ORDER_PARAMS),
+          'feeCeilingCentsPerContract',
+        ]) ||
+        !Object.entries(ORDER_PARAMS).every(
+          ([key, value]) => params[key] === value,
+        ) ||
+        typeof params.feeCeilingCentsPerContract !== 'number' ||
+        !isSafeIntegerWithin(
+          params.feeCeilingCentsPerContract,
+          2,
+          Number.MAX_SAFE_INTEGER,
+        )
+      ) {
+        return { ok: false, reason: 'invalid_order_invariant_params' };
+      }
+    }
+  }
+  if (!hasCanonicalImplementation(profile)) {
+    return { ok: false, reason: 'invalid_implementation_params' };
+  }
+  return { ok: true };
+};

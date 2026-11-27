@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "pada",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} pada {{price}}",
-        "size_at_market_cap": "{{size}} pada {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 hari)",
@@ -1993,22 +1991,6 @@
         "4": "Kam",
         "5": "Jum",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Dibeli",
-        "sold": "Terjual",
-        "perps_closed": "Ditutup",
-        "perps_long_opened": "Long terbuka",
-        "perps_long_added": "Ditambahkan ke posisi long",
-        "perps_long_reduced": "Dikurangi dari posisi long",
-        "perps_short_opened": "Posisi short dibuka",
-        "perps_short_added": "Ditambahkan ke posisi short",
-        "perps_short_reduced": "Dibeli kembali",
-        "spot_opened": "Dibeli",
-        "spot_added": "Membeli lagi",
-        "spot_reduced": "Dijual sebagian",
-        "spot_closed": "Dijual semua"
       }
     },
     "trader_position": {
@@ -3954,7 +3936,6 @@
       "unavailable": "Pasar tidak tersedia untuk saat ini."
     },
     "home_categories": {
-      "title": "Kategori",
       "politics": "Politik",
       "sports": "Olahraga"
     },
@@ -5480,19 +5461,6 @@
     "accounts": "akun",
     "show_accounts": "Tampilkan",
     "hide_accounts": "Sembunyikan",
-    "labels": {
-      "bitcoin_testnet_account_name": "Akun Testnet Bitcoin",
-      "bitcoin_account_name": "Akun Bitcoin",
-      "bitcoin_signet_account_name": "Akun Signet Bitcoin",
-      "bitcoin_regtest_account_name": "Akun Regtest Bitcoin",
-      "solana_devnet_account_name": "Akun Devnet Solana",
-      "solana_testnet_account_name": "Akun Testnet Solana",
-      "solana_account_name": "Akun Solana",
-      "tron_account_name": "Akun Tron",
-      "tron_nile_account_name": "Akun Tron Nile",
-      "tron_shasta_account_name": "Akun Tron Shasta",
-      "stellar_account_name": "Akun Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Gagal membuat akun {{clientType}}"
     },
@@ -7179,7 +7147,6 @@
     "gas_education_3": "MetaMask tidak mengambil keuntungan dari biaya gas.",
     "gas_education_4": "Biaya gas berfluktuasi berdasarkan lalu lintas jaringan dan kompleksitas transaksi.",
     "gas_education_learn_more": "Pelajari selengkapnya seputar biaya gas",
-    "confusable_title": "Periksa alamat penerima",
     "confusable_msg": "Kami telah mendeteksi karakter yang membingungkan dalam nama ENS. Periksa nama ENS untuk menghindari potensi penipuan.",
     "similar_to": "serupa dengan",
     "contains_zero_width": "berisi karakter non-cetak",
@@ -7197,8 +7164,7 @@
     "hex_data_copied": "Data hex disalin ke papan klip",
     "invalid_recipient": "Penerima tidak valid",
     "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
-    "swap_tokens": "Tukar token",
-    "fromWithColon": "Dari:"
+    "swap_tokens": "Tukar token"
   },
   "custom_gas": {
     "total": "Total",
@@ -7476,8 +7442,6 @@
     "hash_copied_to_clipboard": "Hash transaksi disalin ke papan klip",
     "address_copied_to_clipboard": "Alamat disalin ke papan klip",
     "transaction_error": "Galat pada transaksi",
-    "address_to_placeholder": "Pencarian, alamat publik (0x), atau ENS",
-    "address_from_balance": "Saldo:",
     "status": "Status",
     "date": "Tanggal",
     "nonce": "Nonce",
@@ -7558,11 +7522,8 @@
     "delete_contact": "Hapus kontak",
     "delete": "Hapus",
     "cancel": "Batal",
-    "add_to_address_book": "Tambahkan ke buku alamat",
-    "enter_an_alias": "Masukkan alias",
     "add_this_address": "Tambahkan alamat ini ke buku alamat Anda",
     "next": "Selanjutnya",
-    "enter_an_alias_placeholder": "mis., Vitalik B.",
     "add_contact_title": "Tambahkan kontak",
     "add_contact": "Tambahkan kontak",
     "edit_contact_title": "Edit kontak",
@@ -8989,19 +8950,7 @@
     "contact_support": "Hubungi dukungan"
   },
   "whats_new": {
-    "title": "Yang baru",
-    "remove_gns_new_ui_update": {
-      "title": "Pembaruan UI baru",
-      "introduction": "Kami telah membuat pembaruan untuk meningkatkan pengalaman menggunakan aplikasi.",
-      "descriptions": {
-        "description_1": "Menu tarik-turun jaringan dipindahkan ke aset Anda",
-        "description_2": "Swap dan Bridge dalam satu alur sederhana",
-        "description_3": "Pengalaman pengiriman yang lebih efisien",
-        "description_4": "Tampilan akun baru"
-      },
-      "more_information": "Kini Anda dapat fokus pada token dan aktivitas, bukan jaringan di belakangnya.",
-      "got_it": "Mengerti"
-    }
+    "title": "Yang baru"
   },
   "invalid_network": {
     "title": "ID chain untuk jaringan khusus\n {{network}}\n harus dimasukkan kembali.",
@@ -9312,28 +9261,13 @@
     "nickname": "nama panggilan"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Hal-hal yang perlu diingat",
     "testnet_network": "testnet {{type}}",
-    "first_description": "Token asli di jaringan ini adalah {{ticker}}. Ini merupakan token yang digunakan untuk biaya jaringan.",
-    "second_description": "Jika Anda mencoba mengirim aset secara langsung dari satu jaringan ke jaringan lain, ini dapat mengakibatkan aset Anda hilang secara permanen. Pastikan untuk menggunakan bridge.",
-    "third_description": "Token Anda mungkin tidak secara otomatis muncul di dompet Anda.",
-    "private_network": "Jaringan ini tidak dikenal dan bisa menggunakan token khusus untuk biaya jaringan.",
     "unknown_network": "Jaringan tidak dikenal",
-    "switched_network": "Anda telah beralih ke",
-    "learn_more": "Pelajari selengkapnya",
     "add_token": "Klik di sini untuk menambahkan token secara manual",
-    "add_token_manually": "Tambahkan secara manual.",
     "got_it": "Mengerti",
     "error_title": "Terjadi kesalahan",
     "error_message": "Terjadi kesalahan saat memuat informasi jaringan. Coba lagi nanti.",
-    "private_network_third_description": "Masukkan nama untuk jaringan ini agar mudah dikenali.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Aktifkan deteksi token otomatis",
-    "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga token-token akan muncul di dompet Anda secara otomatis.",
-    "token_detection_mainnet_link": "Anda juga dapat menambahkan token secara manual.",
-    "or": "atau",
-    "non_evm_first_description": "Aset asli di jaringan ini adalah {{ticker}}. Aset ini digunakan untuk biaya transaksi.",
-    "non_evm_second_description": "Anda akan kehilangan aset milik Anda jika mencoba mengirimnya dari atau ke jaringan lain."
+    "private_network_third_description": "Masukkan nama untuk jaringan ini agar mudah dikenali."
   },
   "download_files": {
     "error": "Gagal mengunduh lampiran.",

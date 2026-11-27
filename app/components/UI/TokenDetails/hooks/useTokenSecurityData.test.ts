@@ -1,10 +1,30 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import React, { type PropsWithChildren } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
+import {
+  renderHook as renderHookBase,
+  waitFor,
+} from '@testing-library/react-native';
 import { useTokenSecurityData } from './useTokenSecurityData';
 import {
   fetchTokenAssets,
   TokenSecurityData,
 } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
+
+function renderHook<Result, Props>(
+  hook: (props: Props) => Result,
+  options?: { initialProps: Props },
+) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity } },
+  });
+  return renderHookBase(hook, {
+    ...options,
+    wrapper: ({ children }: PropsWithChildren) =>
+      React.createElement(QueryClientProvider, { client }, children),
+  });
+}
 
 jest.mock('@metamask/assets-controllers', () => ({
   fetchTokenAssets: jest.fn(),
@@ -64,6 +84,18 @@ describe('useTokenSecurityData', () => {
     expect(result.current.securityData).toBe(mockSecurityData);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
+    expect(mockFetchTokenAssets).not.toHaveBeenCalled();
+  });
+
+  it('shares prefetched security data with the read-only contract query', () => {
+    const assetId = 'eip155:1/erc20:0x1234' as CaipAssetType;
+    const { result } = renderHook(() => {
+      useTokenSecurityData({ assetId, prefetchedData: mockSecurityData });
+      return useTokenSecurityQuery(assetId, { enabled: false });
+    });
+
+    expect(result.current.data).toBe(mockSecurityData);
+    expect(result.current.dataUpdatedAt).toBeGreaterThan(0);
     expect(mockFetchTokenAssets).not.toHaveBeenCalled();
   });
 
@@ -244,7 +276,7 @@ describe('useTokenSecurityData', () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
   });
 
-  it('keeps the previous security data and clears loading when a later fetch fails', async () => {
+  it('does not reuse another asset’s cached data when the next fetch fails', async () => {
     const assetId1 = 'eip155:1/erc20:0x1111' as CaipAssetType;
     const assetId2 = 'eip155:1/erc20:0x2222' as CaipAssetType;
     const fetchError = new Error('Later fetch failed');
@@ -278,7 +310,7 @@ describe('useTokenSecurityData', () => {
     });
 
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.securityData).toBe(mockSecurityData);
+    expect(result.current.securityData).toBeNull();
     expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2);
   });
 

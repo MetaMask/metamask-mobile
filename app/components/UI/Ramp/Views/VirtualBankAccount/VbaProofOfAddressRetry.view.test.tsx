@@ -26,9 +26,6 @@ import { KycRejectedSelectorsIDs } from '../../../KYC/Views/Status/KycRejected';
 import { KycPendingSelectorsIDs } from '../../../KYC/Views/Status/KycPending';
 import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
 
-// SumSub consent, the provider launch, and the following hydrate share one wait.
-const ONBOARDING_STEP_TIMEOUT_MS = 5000;
-
 const emptySessionCatalog = {
   idOS: [],
   kycProvider: [],
@@ -130,12 +127,9 @@ describeForPlatforms('VBA proof-of-address retry', () => {
 
     await openVbaBankAccountFromMoney(findByTestId);
 
-    await waitFor(
-      () => {
-        expect(getByTestId(KycPendingSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-      },
-      { timeout: ONBOARDING_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(getByTestId(KycPendingSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    });
     expect(getByText(strings('kyc.kyc_taking_longer.title'))).toBeOnTheScreen();
     expect(launchProviderFlow).toHaveBeenCalledTimes(1);
 
@@ -143,14 +137,11 @@ describeForPlatforms('VBA proof-of-address retry', () => {
       publishKycSession(store, proofOfAddressRetrySession);
     });
 
-    await waitFor(
-      () => {
-        expect(
-          getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
-        ).toBeOnTheScreen();
-      },
-      { timeout: ONBOARDING_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(
+        getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
+      ).toBeOnTheScreen();
+    });
     expect(launchProviderFlow).toHaveBeenCalledTimes(1);
     expect(getByText(strings('kyc.kyc_rejected.title'))).toBeOnTheScreen();
     expect(
@@ -199,14 +190,11 @@ describeForPlatforms('VBA proof-of-address retry', () => {
 
     await openVbaBankAccountFromMoney(view.findByTestId);
 
-    await waitFor(
-      () => {
-        expect(
-          view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
-        ).toBeOnTheScreen();
-      },
-      { timeout: ONBOARDING_STEP_TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
+      ).toBeOnTheScreen();
+    });
     expect(launchProviderFlow).not.toHaveBeenCalled();
     expect(view.getByText(strings('kyc.kyc_rejected.title'))).toBeOnTheScreen();
     expect(

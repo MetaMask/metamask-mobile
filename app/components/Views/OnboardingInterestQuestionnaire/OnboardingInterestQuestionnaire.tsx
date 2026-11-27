@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Keyboard, ScrollView } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -24,7 +21,6 @@ import {
 import OnboardingSquareCheckbox from '../../UI/OnboardingSquareCheckbox';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -89,11 +85,6 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -231,12 +222,12 @@ const OnboardingInterestQuestionnaire = () => {
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
       />
 
-      <Box twClassName="px-4 pb-6" style={{ marginTop: headerInset }}>
+      <Box twClassName="px-4 pb-6">
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}

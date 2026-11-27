@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { fullGameMoneylineMetadata } from '../contracts/v1/fixtures/fullGameMoneyline';
 import type { PredictGameLive, PredictQuote } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type {
@@ -47,6 +48,18 @@ const makeMarket = (id: string): PredictMarket => ({
     { id: `${id}:no` as PredictEntityId, side: 'no', label: 'No' },
   ],
 });
+
+const makeMoneylineMarket = (
+  id: string,
+  gameSelection: 'away' | 'home',
+): PredictMarket => {
+  const market = makeMarket(id);
+  return {
+    ...market,
+    ...fullGameMoneylineMetadata(),
+    outcomes: [{ ...market.outcomes[0], gameSelection }, market.outcomes[1]],
+  };
+};
 
 const makeEvent = (id: string, withGame = true): PredictEvent => ({
   venueId,
@@ -113,26 +126,8 @@ describe('getPresentMarketIds', () => {
   });
 
   it('lists only card-visible Markets when the scope is card', () => {
-    const away = {
-      ...makeMarket('card-away'),
-      outcomes: [
-        {
-          ...makeMarket('card-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('card-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('card-home'),
-      outcomes: [
-        {
-          ...makeMarket('card-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('card-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('card-away', 'away');
+    const home = makeMoneylineMarket('card-home', 'home');
     const spread = makeMarket('card-spread');
     const gameEvent: PredictEvent = {
       ...eventA,
@@ -740,26 +735,8 @@ describe('useEventsWithLiveData', () => {
   });
 
   it('keeps only card-visible quotes when marketScope is card', () => {
-    const away = {
-      ...makeMarket('live-away'),
-      outcomes: [
-        {
-          ...makeMarket('live-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('live-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('live-home'),
-      outcomes: [
-        {
-          ...makeMarket('live-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('live-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('live-away', 'away');
+    const home = makeMoneylineMarket('live-home', 'home');
     const spread = makeMarket('live-spread');
     const gameEvent: PredictEvent = {
       ...eventA,

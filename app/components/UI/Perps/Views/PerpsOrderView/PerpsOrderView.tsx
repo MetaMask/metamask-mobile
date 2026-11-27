@@ -63,6 +63,8 @@ import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useComplianceGate } from '../../../Compliance';
 import {
   useIsTransactionPayQuoteLoading,
   useIsTransactionPaySubmitReady,
@@ -166,12 +168,18 @@ import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsMarginModeLock } from '../../hooks/usePerpsMarginModeLock';
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_MIN_BALANCE_THRESHOLD,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
+import { useOrderLiquidationRow } from '../../hooks/useOrderLiquidationRow';
+import {
+  getCrossLiquidationRefreshKey,
+  liquidationPriceForOrderSide,
+} from '../../utils/crossMarginSummary';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -393,6 +401,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
   const orderProvider = useSelector(selectPerpsOrderProvider);
+  // Same order as the PerpsOrderProvider venue: route, then the existing
+  // position being changed, then the routing default.
+  const orderVenueId =
+    route.params?.providerId ??
+    route.params?.existingPosition?.providerId ??
+    orderProvider ??
+    undefined;
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -594,6 +609,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handleMaxAmount,
     maxPossibleAmount,
     balanceForValidation: spendableBalance,
+    perpsAvailableToTrade,
+    isAvailableToTradeLoading,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
   // Live slider display value for immediate UI feedback while dragging. The
@@ -711,7 +728,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
-  // Check if user has an existing position for this market
+  // The venue the order will go to, so the margin lock and the cross
+  // estimate follow the position it will change. Another venue's position for
+  // this symbol must not set the cross estimate. When neither the order venue
+  // nor the market reports a provider, it stays `undefined`: the margin lock is
+  // not read and the cross estimate is unavailable, rather than guessing a
+  // venue in the client.
+  const liquidationProviderId = orderVenueId ?? marketData?.providerId;
   const {
     existingPosition: currentMarketPosition,
     isLoading: isCurrentPositionLoading,
@@ -719,12 +742,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     asset: orderForm.asset || '',
     // A route provider wins. Otherwise use the venue this order will go to,
     // so the sheet and the order logic follow the position it will change.
-    providerId: route.params?.providerId ?? orderProvider ?? undefined,
+    providerId: orderVenueId,
     loadOnMount: true,
   });
+  const { lock: marginModeLock } = usePerpsMarginModeLock({
+    symbol: orderForm.asset || '',
+    providerId: liquidationProviderId,
+    enabled:
+      isCrossMarginEnabled &&
+      Boolean(orderForm.asset) &&
+      liquidationProviderId !== undefined,
+    refreshKey: currentMarketPosition?.leverage?.type,
+  });
+  const isCrossOrder =
+    isCrossMarginEnabled &&
+    (currentMarketPosition?.leverage?.type === 'cross' ||
+      (marginModeLock?.status === 'locked' &&
+        marginModeLock.marginMode === 'cross'));
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
-  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
+  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset, orderVenueId);
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -819,12 +856,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     properties: perpsScreenViewedProps,
   });
 
-  // Ensure oracle price (markPrice) is available for margin calculation.
+  // Ensure the venue mark price (markPrice) is available for margin calculation.
   // The PriceStreamChannel subscribes without includeMarketData, so the
-  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
-  // undefined when entering from Token Details (no prior market data sub).
-  // This subscription populates the cache for the traded asset so that
-  // subsequent allMids price updates include markPrice.
+  // HyperLiquid marketDataCache has no mark or oracle price and markPrice is
+  // always undefined when entering from Token Details (no prior market data
+  // sub). This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice and oraclePrice.
   //
   // We gate on isInitialized (from usePerpsConnection) so the subscription
   // is deferred until the controller is ready. This mirrors the pattern in
@@ -838,7 +875,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       includeMarketData: true,
       callback: () => {
         // No-op callback — the side effect of populating the
-        // marketDataCache with oraclePrice is all we need.
+        // marketDataCache with the mark and oracle prices is all we need.
       },
     });
 
@@ -847,12 +884,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Fast focused price via activeAssetCtx projection (~0.5 s)
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    providerId: orderVenueId,
     symbol: isDataReady ? orderForm.asset : '',
     enabled: isDataReady,
   });
 
   // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
+    providerId: orderVenueId,
     symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
@@ -863,6 +902,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: isDataReady ? orderForm.asset : '', // Defer subscription
+    providerId: orderVenueId,
   });
 
   // Track screen load with unified hook (measure data loading, not initial render)
@@ -989,6 +1029,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: orderVenueId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps,
@@ -1064,7 +1105,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Position size, margin, and effective price are derived together. For limit
   // orders with a valid limit price, that price is used for sizing/margin;
-  // otherwise the market price (sizing) and oracle mark price (margin) are used.
+  // otherwise the market price (sizing) and venue mark price (margin) are used.
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
@@ -1597,7 +1638,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isInputFocused || isLimitPriceFocused,
+    skipValidation:
+      isInputFocused || isLimitPriceFocused || isAvailableToTradeLoading,
     originalUsdAmount: orderForm.amount,
     maxLeverage: maxLeverage ?? undefined,
   });
@@ -2358,7 +2400,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {
-            const errorMessage = translatePerpsError(tpslResult.error);
+            const errorMessage = translatePerpsError(tpslResult);
             showToast(
               PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
                 errorMessage,
@@ -2576,15 +2618,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // defaulting, so opt this flow into the shared money-account selection.
   // A funded Perps balance is this view's default funding source and the
   // shared selection only reads the EOA token balance, so hold it back until
-  // the live account proves the Perps balance cannot cover the order.
-  const perpsSpendableBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() ?? '0',
-  );
+  // the live account proves the Perps balance cannot cover the order. An
+  // unknown Perps balance is not a zero one, so it also holds the selection
+  // back, even when a pay-token balance stops `isAvailableToTradeLoading`.
+  const isPerpsBalanceUnknown = perpsAvailableToTrade === undefined;
   useMoneyAccountDepositAndOrder({
     disable:
       !isOpenComplete ||
       isLoadingAccount ||
-      perpsSpendableBalance >= PERPS_MIN_BALANCE_THRESHOLD,
+      isAvailableToTradeLoading ||
+      isPerpsBalanceUnknown ||
+      perpsAvailableToTrade >= PERPS_MIN_BALANCE_THRESHOLD,
   });
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
@@ -2598,7 +2642,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
   const isInsufficientFunds =
-    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
+    !isLoadingAccount &&
+    !isAvailableToTradeLoading &&
+    amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel =
     isInsufficientFunds && !hasInsufficientFundsError
       ? strings('perps.order.validation.insufficient_funds')
@@ -2606,19 +2652,39 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           asset: getPerpsDisplaySymbol(orderForm.asset),
         });
 
-  // An order against an open cross position liquidates with the whole
-  // account. The isolated formula does not describe it, so the price, the
-  // stop-loss check, and the explainer all stay off that formula. This is an
-  // estimate we chose not to run, not a confirmed absence of a liquidation
-  // price, so the explainer says the estimate is unavailable.
-  const withholdsCrossLiquidationPrice =
-    isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
-  const orderFormLiquidationPrice = withholdsCrossLiquidationPrice
-    ? ''
-    : liquidationPrice;
-  const liquidationInfoContentKey = withholdsCrossLiquidationPrice
-    ? 'cross_liquidation_estimate_unavailable'
-    : 'liquidation_price';
+  const existingSignedSize = Number.parseFloat(
+    currentMarketPosition?.size ?? '0',
+  );
+  // Cross orders liquidate against the account, so the controller estimates
+  // them. The hook also owns the isolated fallback; this view only renders.
+  const orderLiquidation = useOrderLiquidationRow({
+    isCrossOrder,
+    symbol: orderForm.asset,
+    direction: orderForm.direction,
+    entryPrice: effectivePrice,
+    positionSize,
+    leverage: orderForm.leverage,
+    providerId: liquidationProviderId,
+    refreshKey: getCrossLiquidationRefreshKey({
+      account,
+      positionSize: currentMarketPosition?.size,
+    }),
+    hasValidAmount,
+    isolatedPrice: liquidationPrice,
+  });
+  const { contentKey: liquidationInfoContentKey } = orderLiquidation;
+  const orderFormLiquidationPrice = orderLiquidation.rawPrice;
+  // The row can show the remaining position's price. The stop check and the
+  // nested auto-close screen follow the order side, so a reduce that does not
+  // flip must not use that price.
+  const liquidationPriceForTpSl = isCrossOrder
+    ? liquidationPriceForOrderSide({
+        liquidationPrice: orderFormLiquidationPrice,
+        existingSignedSize,
+        orderSize: Number.parseFloat(positionSize),
+        orderIsLong: orderForm.direction === 'long',
+      })
+    : orderFormLiquidationPrice;
 
   const {
     doesStopLossRiskLiquidation,
@@ -2631,7 +2697,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice: orderFormLiquidationPrice,
+    liquidationPrice: liquidationPriceForTpSl,
     marketPrice: assetData.price,
   });
 
@@ -2667,7 +2733,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : orderForm.amount;
       const currentAmount = parseFloat(effectiveAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
         commitAmount(Math.floor(newMaxAmount).toString());
       } else if (isDraggingSlider) {
         commitAmount(effectiveAmount);
@@ -2700,6 +2766,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
     [
       commitAmount,
+      isAvailableToTradeLoading,
       isDraggingSlider,
       liveDragAmount,
       orderForm.amount,
@@ -2732,6 +2799,36 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
     navigation.goBack();
   }, [fromTokenDetails, navigation]);
+
+  // Add funds closes the sheet first: iOS would present Ramp from the bottom
+  // over a modal, so Ramp opens as a normal page once the sheet is gone.
+  const { goToBuy } = useRampNavigation();
+  const { gate: complianceGate } = useComplianceGate(
+    getSelectedAccountByScope('eip155:1')?.address,
+  );
+  const isAddFundsPendingRef = useRef(false);
+  const handleAddFundsPress = useCallback(() => {
+    isAddFundsPendingRef.current = true;
+  }, []);
+  const handleTradeSheetClosed = useCallback(() => {
+    handleTradeSheetClose();
+    if (isAddFundsPendingRef.current) {
+      isAddFundsPendingRef.current = false;
+      // Same compliance check as the other Perps add-funds entry points. The
+      // click is tracked inside the gate so blocked wallets do not emit it.
+      complianceGate(async () => {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        });
+        await goToBuy();
+      }).catch(logRejection('addFunds'));
+    }
+  }, [complianceGate, goToBuy, handleTradeSheetClose, track]);
 
   const handleTradeSheetInteractive = useCallback(() => {
     completePerpsTradeSheetInteractiveTrace();
@@ -2767,14 +2864,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isMoneyAccountSelected) {
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
-    // The picker and margin checks use spendable balance. totalBalance still
-    // includes margin locked by open positions and orders.
-    const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.spendableBalance ?? '0')
-        : payTokenBalanceUsd,
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
+    // Perps balance on the order form is the venue's available to trade for
+    // this market and side. While that figure is unknown, show the
+    // placeholder instead of a zero.
+    // Withdraw surfaces keep the venue withdrawable amount.
+    const payWithBalanceUsd = isPayTokenPerpsBalance
+      ? perpsAvailableToTrade
+      : payTokenBalanceUsd;
+    const payWithBalance =
+      payWithBalanceUsd === undefined
+        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        : formatPerpsFiat(payWithBalanceUsd, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          });
     const marginDisplay =
       marginRequired !== undefined && marginRequired !== null
         ? formatPerpsFiat(marginRequired, {
@@ -2816,7 +2918,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ? cachedChart
             : null,
         focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
-        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+        cachedPrice: stream.prices.getSnapshotForSymbol(
+          orderForm.asset,
+          orderVenueId,
+        ),
       });
     }
     const tradeSheetHeaderPrice = hasLiveHeaderPrice
@@ -2828,36 +2933,52 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const isTradeSheetHeaderLoading = tradeSheetHeaderPrice <= 0;
     // Keep the selected pay token visible while its quote refreshes after form
     // changes. The token and balance are still valid during that refetch.
-    const isTradeSheetPayWithLoading = isLoadingAccount;
+    const isTradeSheetPayWithLoading =
+      isLoadingAccount || (isPayTokenPerpsBalance && isAvailableToTradeLoading);
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
-    const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
+    const parsedLiquidationPrice =
+      liquidationPrice === undefined
+        ? undefined
+        : Number.parseFloat(liquidationPrice);
     const hasLiquidationPrice =
-      !withholdsCrossLiquidationPrice &&
+      !isCrossOrder &&
       hasValidAmount &&
+      parsedLiquidationPrice !== undefined &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
-    // Keep the last valid price visible during a refetch. The liquidation hook
-    // retains it while calculating; only the initial unresolved request needs
-    // a skeleton.
-    const isTradeSheetLiquidationLoading =
-      !withholdsCrossLiquidationPrice &&
-      (isLoadingMarketData ||
+    // Keep the last valid price visible during a refetch. The liquidation
+    // hooks retain it while calculating; only the initial unresolved request
+    // needs a skeleton.
+    const isTradeSheetLiquidationLoading = isCrossOrder
+      ? orderLiquidation.isCrossEstimateLoading
+      : isLoadingMarketData ||
         (hasValidAmount &&
           isCalculatingLiquidationPrice &&
-          !hasLiquidationPrice));
-    const tradeSheetLiquidationPrice = hasLiquidationPrice
-      ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
-      : PERPS_CONSTANTS.FallbackDataDisplay;
-    const tradeSheetLiquidationDistance = hasLiquidationPrice
-      ? formatLiquidationDistance(effectivePrice, liquidationPrice)
-      : undefined;
+          !hasLiquidationPrice);
+    const tradeSheetLiquidationPrice = orderLiquidation.display;
+    const tradeSheetLiquidationDistance =
+      orderLiquidation.distancePrice === undefined
+        ? undefined
+        : formatLiquidationDistance(
+            effectivePrice,
+            orderLiquidation.distancePrice,
+          );
+    // No funds to trade with: the submit button becomes an Add funds CTA.
+    // Wait for the live available-to-trade balance so it can't flash early,
+    // and never swap the button while an order is being placed.
+    const isAddFundsMode =
+      !isLoadingAccount &&
+      !isAvailableToTradeLoading &&
+      !isPlacingOrder &&
+      (spendableBalance === 0 || hasInsufficientFundsError);
     const submitDisabled =
-      isOrderSubmissionBlocked ||
-      isLoadingAccount ||
-      isLoadingMarketData ||
-      isMarketDataUnavailable ||
-      isFeesLoading;
+      !isAddFundsMode &&
+      (isOrderSubmissionBlocked ||
+        isLoadingAccount ||
+        isLoadingMarketData ||
+        isMarketDataUnavailable ||
+        isFeesLoading);
     const bottomSheetErrors = [
       ...(isMarketDataUnavailable && !isMarketDataLoading
         ? [
@@ -2939,7 +3060,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return (
       <>
         <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
-          onClose={handleTradeSheetClose}
+          onClose={handleTradeSheetClosed}
           onOpen={handleTradeSheetOpen}
           onInteractive={handleTradeSheetInteractive}
           onCancelBeforeInteractive={handleTradeSheetCancelBeforeInteractive}
@@ -2951,6 +3072,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <PerpsTradeScreen
                 asset={getPerpsDisplaySymbol(orderForm.asset)}
                 oiCapSymbol={orderForm.asset}
+                oiCapProviderId={orderVenueId}
                 direction={orderForm.direction}
                 leverage={orderForm.leverage}
                 maxLeverage={maxLeverage}
@@ -2991,10 +3113,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasAmountError={
                   spendableBalance > 0 && filteredErrors.length > 0
                 }
-                showAmountWarning={!isLoadingAccount && spendableBalance === 0}
-                amountWarningMessage={strings(
-                  'perps.order.validation.insufficient_funds_to_cover_trade',
-                )}
+                showAmountWarning={
+                  !isLoadingAccount &&
+                  !isAvailableToTradeLoading &&
+                  spendableBalance === 0
+                }
                 isInputFocused={isInputFocused}
                 isLimitPriceFocused={isLimitPriceFocused}
                 payWithName={payWithName}
@@ -3009,7 +3132,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feeDiscountKind={rewardsState.feeDiscountKind}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
-                submitLabel={placeOrderLabel}
+                submitLabel={
+                  isAddFundsMode ? strings('perps.add_funds') : placeOrderLabel
+                }
                 errorMessages={bottomSheetErrors}
                 isAtOICap={isAtOICap}
                 showServiceInterruptionBanner={
@@ -3028,11 +3153,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onPayWithPress={handlePayWithPress}
-                onSubmit={() => handlePlaceOrder()}
+                closesSheetOnSubmit={isAddFundsMode}
+                onSubmit={
+                  isAddFundsMode
+                    ? handleAddFundsPress
+                    : () => handlePlaceOrder()
+                }
               />
             ),
             leverage: (
               <PerpsTradeLeverageScreen
+                providerId={orderVenueId}
                 onConfirm={handleLeverageConfirm}
                 leverage={orderForm.leverage}
                 minLeverage={1}
@@ -3054,9 +3185,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 initialStopLossPrice={orderForm.stopLossPrice}
                 leverage={orderForm.leverage}
                 limitPrice={orderForm.limitPrice}
-                liquidationPrice={
-                  withholdsCrossLiquidationPrice ? undefined : liquidationPrice
-                }
+                liquidationPrice={liquidationPriceForTpSl || undefined}
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
@@ -3081,6 +3210,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
+        providerId={orderVenueId}
         asset={orderForm.asset}
         price={assetData.price}
         orderType={orderForm.type}
@@ -3101,7 +3231,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
+          showWarning={
+            !isLoadingAccount &&
+            !isAvailableToTradeLoading &&
+            spendableBalance === 0
+          }
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
@@ -3300,13 +3434,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress: () => handleTooltipPress(liquidationInfoContentKey),
               testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
             }}
-            value={
-              hasValidAmount && !withholdsCrossLiquidationPrice
-                ? formatPerpsFiat(liquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
-                : PERPS_CONSTANTS.FallbackDataDisplay
-            }
+            value={orderLiquidation.display}
             valueTextProps={{
               testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
             }}
@@ -3543,6 +3671,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Leverage Selector */}
       {isLeverageVisible && (
         <PerpsLeverageBottomSheet
+          providerId={orderVenueId}
           isVisible={isLeverageVisible}
           onClose={() => setIsLeverageVisible(false)}
           onConfirm={(leverage, inputMethod) => {
@@ -3560,7 +3689,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             // Check if current amount exceeds new maximum value and adjust if needed
             const currentAmount = parseFloat(effectiveAmount || '0');
             const newMaxAmount = spendableBalance * leverage;
-            if (currentAmount > newMaxAmount) {
+            if (!isAvailableToTradeLoading && currentAmount > newMaxAmount) {
               commitAmount(Math.floor(newMaxAmount).toString());
             } else if (isDraggingSlider) {
               commitAmount(effectiveAmount);
@@ -3608,6 +3737,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Limit Price Bottom Sheet */}
       {isLimitPriceVisible && (
         <PerpsLimitPriceBottomSheet
+          providerId={orderVenueId}
           isVisible={isLimitPriceVisible}
           onClose={() => {
             setIsLimitPriceVisible(false);
@@ -3713,6 +3843,7 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
   openStartTime,
 }) => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const orderProvider = useSelector(selectPerpsOrderProvider);
   const { payToken } = useTransactionPayToken();
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
@@ -3745,6 +3876,14 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
 
   return (
     <PerpsOrderProvider
+      // Match the venue the rest of the order view uses; an existing
+      // position's venue still wins over the routing default.
+      providerId={
+        route.params?.providerId ??
+        existingPosition?.providerId ??
+        orderProvider ??
+        undefined
+      }
       initialAsset={asset}
       initialDirection={direction}
       initialAmount={paramAmount}

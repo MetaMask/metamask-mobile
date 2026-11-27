@@ -372,17 +372,6 @@ export type RewardsControllerLogoutAction = {
 };
 
 /**
- * Validate a bonus code
- * @param code - The bonus code to validate
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<boolean> - True if the code is valid, false otherwise
- */
-export type RewardsControllerValidateBonusCodeAction = {
-  type: `RewardsController:validateBonusCode`;
-  handler: RewardsController['validateBonusCode'];
-};
-
-/**
  * Get candidate subscription ID with fallback logic
  * @returns Promise<string | null> - The subscription ID or null if none found
  */
@@ -737,18 +726,6 @@ export type RewardsControllerPostBenefitImpressionAction = {
 };
 
 /**
- * Apply a bonus code to a subscription.
- * @param bonusCode - The bonus code to apply.
- * @param subscriptionId - The subscription ID to apply the bonus code to.
- * @returns Promise that resolves when the bonus code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyBonusCodeAction = {
-  type: `RewardsController:applyBonusCode`;
-  handler: RewardsController['applyBonusCode'];
-};
-
-/**
  * Fetch the minimum client version requirements from the public API.
  * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
@@ -956,7 +933,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInAction
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
-  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction
   | RewardsControllerLinkAccountsToSubscriptionCandidateAction
@@ -991,7 +967,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction

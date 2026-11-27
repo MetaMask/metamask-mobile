@@ -54,7 +54,6 @@ import {
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
-import { Theme } from '../../../../../util/theme/models';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -74,10 +73,8 @@ export const MAX_INPUT_LENGTH = 36;
 
 const createStyles = ({
   vars,
-  theme,
 }: {
   vars: { fontSize: number; hidden: boolean };
-  theme: Theme;
 }) =>
   StyleSheet.create({
     content: {
@@ -133,9 +130,6 @@ const createStyles = ({
     currencyContainer: {
       flex: 1,
     },
-    maxButton: {
-      color: theme.colors.text.default,
-    },
     hidden: {
       opacity: vars.hidden ? 0 : 1,
     },
@@ -184,6 +178,7 @@ interface TokenInputAreaProps {
   isQuoteSponsored?: boolean;
   inputPrefix?: string;
   secondaryValue?: string | null;
+  tokenFiatRate?: number;
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
@@ -237,6 +232,7 @@ export const TokenInputArea = forwardRef<
       isQuoteSponsored = false,
       inputPrefix,
       secondaryValue,
+      tokenFiatRate: tokenFiatRateOverride,
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
@@ -311,8 +307,13 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
     });
 
-    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const tokenFiatRate = useTokenFiatRate(token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(
+      tokenAmount,
+      token,
+      tokenFiatRateOverride,
+    );
+    const polledTokenFiatRate = useTokenFiatRate(token);
+    const tokenFiatRate = tokenFiatRateOverride ?? polledTokenFiatRate;
     // Without a rate the currency value is formatted as a bare "$0.00", which
     // reads as the token being worthless rather than unpriced.
     const shouldHideFiatValue =

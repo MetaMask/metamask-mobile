@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { AccessibilityInfo, Pressable, View, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -37,6 +37,14 @@ import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+import {
+  useSnapAmountValidation,
+  usesSnapAmountValidation,
+} from '../../hooks/useSnapAmountValidation';
+import { getMaxSendableAmountMultichain } from '../../../../../Views/confirmations/utils/multichain-snaps';
+import { CaipAssetType } from '@metamask/snaps-sdk';
+import { RootState } from '../../../../../../reducers';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -69,6 +77,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import {
   formatAmount,
   getCaipChainIdFromCryptoCurrency,
+  getEvmHexChainId,
   getHexChainIdFromCryptoCurrency,
 } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
@@ -93,9 +102,11 @@ import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '../../../../../../util/number/bigint';
-import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useRampSellGasFee from '../../hooks/useRampSellGasFee';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
+import { createUnfundedRecipient } from '../../utils/createUnfundedRecipient';
+import { buildRampTransferParams } from '../../utils/buildRampTransferParams';
 import useIntentAmount from '../../hooks/useIntentAmount';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
@@ -105,7 +116,7 @@ import {
 } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { GasFeeEstimateLevel } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
 import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
@@ -141,6 +152,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
+  const maxRequestTokenRef = useRef(0);
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -172,6 +184,10 @@ const BuildQuote = () => {
   const isNonEvmAsset = Boolean(
     selectedAsset?.network?.chainId &&
       isNonEvmChainId(selectedAsset.network.chainId),
+  );
+
+  const isSnapAmountChain = usesSnapAmountValidation(
+    selectedAsset?.network?.chainId,
   );
 
   useEffect(() => {
@@ -323,20 +339,11 @@ const BuildQuote = () => {
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
 
-  const gasLimitEstimation = useERC20GasLimitEstimation({
-    tokenAddress: selectedAsset?.address,
-    fromAddress: selectedAddress,
-    chainId: selectedAsset?.network?.chainId || CHAIN_IDS.MAINNET,
-    amount,
-    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
-    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
-  });
-
-  const gasPriceEstimation = useGasPriceEstimation({
-    // 0 is set when buying since there's no transaction involved
-    gasLimit: isBuy ? 0 : gasLimitEstimation,
-    estimateRange: 'high',
-  });
+  const sellChainId = getEvmHexChainId(selectedAsset?.network?.chainId);
+  const sellNetworkClientId = useRampNetworkClientId(
+    selectedAsset?.network?.chainId,
+  );
+  const [unfundedRecipient] = useState(createUnfundedRecipient);
 
   const assetForBalance = useMemo(
     () =>
@@ -386,23 +393,66 @@ const BuildQuote = () => {
   );
 
   const { balanceBN: nativeTokenBalanceBN } = useBalance(
-    isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
+    isBuy ||
+      isNonEvmAsset ||
+      !selectedAsset ||
+      selectedAsset.address === NATIVE_ADDRESS
       ? undefined
       : {
           address: NATIVE_ADDRESS,
           decimals: 18,
+          chainId: sellChainId,
         },
   );
+
+  const fromAccount = useSelector((state: RootState) =>
+    selectedAddress
+      ? getMemoizedInternalAccountByAddress(state, selectedAddress)
+      : undefined,
+  );
+
+  const sellGasEstimateTransaction = useMemo(() => {
+    if (!isSell || isNonEvmAsset || balanceBN == null || balanceBN <= 0n) {
+      return undefined;
+    }
+
+    return buildRampTransferParams({
+      from: selectedAddress ?? undefined,
+      chainId: sellChainId,
+      assetAddress: selectedAsset?.address,
+      recipient: unfundedRecipient,
+      // Magnitude barely changes gas (only calldata bytes for ERC-20), and a
+      // non-zero native value still triggers the new-account charge. A fixed
+      // amount keeps the estimate key stable as the balance changes.
+      amount: 1n,
+    });
+  }, [
+    balanceBN,
+    isNonEvmAsset,
+    isSell,
+    selectedAddress,
+    selectedAsset?.address,
+    sellChainId,
+    unfundedRecipient,
+  ]);
+
+  const sellGasFee = useRampSellGasFee({
+    networkClientId: sellNetworkClientId,
+    chainId: sellChainId,
+    transaction: sellGasEstimateTransaction,
+    level: GasFeeEstimateLevel.High,
+  });
 
   let maxSellAmount: bigint | null = null;
   if (selectedAsset && isNonEvmAsset) {
     maxSellAmount = balanceBN ?? null;
   } else if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
-    // Use nullish checks — bigint 0n is falsy, unlike BN instances.
-    maxSellAmount =
-      balanceBN != null && gasPriceEstimation
-        ? balanceBN - gasPriceEstimation.estimatedGasFee
-        : null;
+    if (balanceBN == null || sellGasFee.status !== 'ready') {
+      maxSellAmount = null;
+    } else {
+      const remainingBalance = balanceBN - sellGasFee.gasFeeWei;
+      maxSellAmount = remainingBalance > 0n ? remainingBalance : 0n;
+    }
   } else if (
     selectedAsset &&
     selectedAsset.address !== NATIVE_ADDRESS &&
@@ -458,18 +508,37 @@ const BuildQuote = () => {
 
     // 0n native balance must still be compared against gas — do not use
     // truthiness (BN objects were always truthy; 0n is not).
-    if (nativeTokenBalanceBN == null || !gasPriceEstimation) {
+    if (nativeTokenBalanceBN == null || sellGasFee.status !== 'ready') {
       return false;
     }
 
-    return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
-  }, [
-    gasPriceEstimation,
-    isBuy,
-    isNonEvmAsset,
-    nativeTokenBalanceBN,
-    selectedAsset,
-  ]);
+    return nativeTokenBalanceBN < sellGasFee.gasFeeWei;
+  }, [isBuy, isNonEvmAsset, nativeTokenBalanceBN, selectedAsset, sellGasFee]);
+
+  const {
+    isValidating: isSnapValidating,
+    validationError: snapValidationError,
+    isDebouncing: isSnapDebouncing,
+  } = useSnapAmountValidation({
+    enabled: isSell && isSnapAmountChain && isOffRampNonEvmEnabled,
+    amount,
+    assetChainId: selectedAsset?.network?.chainId,
+    assetReference: selectedAsset?.assetId,
+    assetSymbol: selectedAsset?.symbol,
+    walletAddress: selectedAddress ?? undefined,
+  });
+
+  const previousSnapValidationError = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (
+      snapValidationError &&
+      snapValidationError !== previousSnapValidationError.current
+    ) {
+      AccessibilityInfo.announceForAccessibility(snapValidationError);
+    }
+    previousSnapValidationError.current = snapValidationError;
+  }, [snapValidationError]);
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -578,6 +647,9 @@ const BuildQuote = () => {
         newValueAsNumber = Number(pressedKey);
       }
 
+      // Invalidate any in-flight Max request when user manually changes amount
+      maxRequestTokenRef.current = 0;
+
       setAmount(newValue);
       setAmountNumber(newValueAsNumber);
 
@@ -592,47 +664,117 @@ const BuildQuote = () => {
     [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
   );
 
+  const fetchSnapMaxAmount = useCallback(
+    async (requestToken: number): Promise<bigint | null> => {
+      if (
+        !fromAccount ||
+        !selectedAsset?.network?.chainId ||
+        !selectedAsset?.assetId
+      ) {
+        return null;
+      }
+
+      try {
+        const maxResult = await getMaxSendableAmountMultichain(fromAccount, {
+          accountId: fromAccount.id,
+          assetId:
+            `${selectedAsset.network.chainId}/${selectedAsset.assetId}` as CaipAssetType,
+        });
+
+        if (maxRequestTokenRef.current !== requestToken) {
+          return null;
+        }
+
+        return maxResult?.amount
+          ? toTokenMinimalUnit(maxResult.amount, selectedAsset.decimals ?? 0)
+          : null;
+      } catch {
+        return null;
+      }
+    },
+    [fromAccount, selectedAsset],
+  );
+
+  const calculatePercentageAmount = useCallback(
+    (percentage: number): bigint | undefined => {
+      if (balanceBN === null || balanceBN === undefined) {
+        return undefined;
+      }
+      return (balanceBN * BigInt(percentage)) / 100n;
+    },
+    [balanceBN],
+  );
+
+  const applyNativeAssetMaxSell = useCallback(
+    (amountPercentage: bigint): bigint => {
+      const isNativeAsset = selectedAsset?.address === NATIVE_ADDRESS;
+      const hasMaxSell =
+        maxSellAmount !== null && maxSellAmount < amountPercentage;
+      return isNativeAsset && hasMaxSell
+        ? (maxSellAmount as bigint)
+        : amountPercentage;
+    },
+    [selectedAsset?.address, maxSellAmount],
+  );
+
   const handleQuickAmountPress = useCallback(
-    ({ value }: QuickAmount) => {
+    async ({ value }: QuickAmount) => {
+      maxRequestTokenRef.current = 0;
+
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
-      } else {
-        const percentage = value * 100;
-        const amountPercentage =
-          balanceBN !== null && balanceBN !== undefined
-            ? (balanceBN * BigInt(percentage)) / 100n
-            : undefined;
+        return;
+      }
 
-        if (amountPercentage === undefined) {
+      const isNativeMax =
+        selectedAsset?.address === NATIVE_ADDRESS && value === 1;
+
+      if (isNativeMax && maxSellAmount === null) {
+        return;
+      }
+
+      const amountPercentage = calculatePercentageAmount(value * 100);
+      if (amountPercentage === undefined) {
+        return;
+      }
+
+      let amountToSet: bigint;
+
+      const isSnapMax =
+        value === 1 && isSnapAmountChain && isOffRampNonEvmEnabled;
+      if (isSnapMax) {
+        const requestToken = Date.now();
+        maxRequestTokenRef.current = requestToken;
+        const snapMax = await fetchSnapMaxAmount(requestToken);
+
+        if (maxRequestTokenRef.current !== requestToken) {
           return;
         }
 
-        let amountToSet = amountPercentage;
-
-        if (
-          selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount !== null &&
-          maxSellAmount < amountPercentage
-        ) {
-          amountToSet = maxSellAmount;
-        }
-
-        const newAmountString = fromTokenMinimalUnitString(
-          amountToSet.toString(10),
-          selectedAsset?.decimals ?? 18,
-        );
-        setAmountBNMinimalUnit(amountToSet);
-        setAmount(newAmountString);
-        setAmountNumber(Number(newAmountString));
+        amountToSet = snapMax ?? amountPercentage;
+      } else {
+        amountToSet = applyNativeAssetMaxSell(amountPercentage);
       }
+
+      const newAmountString = fromTokenMinimalUnitString(
+        amountToSet.toString(10),
+        selectedAsset?.decimals ?? 18,
+      );
+      setAmountBNMinimalUnit(amountToSet);
+      setAmount(newAmountString);
+      setAmountNumber(Number(newAmountString));
     },
     [
-      balanceBN,
       isBuy,
+      isSnapAmountChain,
+      isOffRampNonEvmEnabled,
       maxSellAmount,
       selectedAsset?.address,
       selectedAsset?.decimals,
+      calculatePercentageAmount,
+      fetchSnapMaxAmount,
+      applyNativeAssetMaxSell,
     ],
   );
 
@@ -707,6 +849,11 @@ const BuildQuote = () => {
       return;
     }
 
+    // Prevent navigation if Snap amount validation is pending or failed
+    if (isSnapValidating || isSnapDebouncing || snapValidationError) {
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigateWithDetails(
         navigation,
@@ -761,6 +908,9 @@ const BuildQuote = () => {
     selectedAsset,
     selectedPaymentMethodId,
     trackEvent,
+    isSnapValidating,
+    isSnapDebouncing,
+    snapValidationError,
   ]);
 
   const retryMethod = useCallback(() => {
@@ -773,7 +923,7 @@ const BuildQuote = () => {
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
     } else if (errorFiatCurrency) {
-      queryDefaultFiatCurrency();
+      queryDefaultFiatCurrency().catch(() => undefined);
       return queryGetFiatCurrencies();
     } else if (errorRegions) {
       return queryGetRegions();
@@ -898,12 +1048,9 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (
-    balanceBN != null &&
-    balanceBN !== 0n &&
-    maxSellAmount !== null &&
-    maxSellAmount > 0n
-  ) {
+  } else if (balanceBN != null && balanceBN > 0n) {
+    const isNative = selectedAsset?.address === NATIVE_ADDRESS;
+
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -911,7 +1058,8 @@ const BuildQuote = () => {
       {
         value: 1,
         label: strings('fiat_on_ramp_aggregator.max'),
-        isNative: selectedAsset?.address === NATIVE_ADDRESS,
+        isNative,
+        disabled: isNative && (maxSellAmount === null || maxSellAmount === 0n),
       },
     ];
   }
@@ -1083,6 +1231,22 @@ const BuildQuote = () => {
                   </Text>
                 </Row>
               )}
+            {!hasInsufficientBalance &&
+              amountNumber > 0 &&
+              isSell &&
+              !isNonEvmAsset &&
+              selectedAsset &&
+              (sellGasFee.status === 'error' ||
+                sellGasFee.status === 'idle') && (
+                <Row>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextMuted}
+                  >
+                    {strings('fiat_on_ramp_aggregator.network_fee_unavailable')}
+                  </Text>
+                </Row>
+              )}
             {hasInsufficientBalance && (
               <Row>
                 <Text
@@ -1145,6 +1309,18 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {snapValidationError && !hasInsufficientBalance && (
+              <Row>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={BuildQuoteSelectors.SNAP_VALIDATION_ERROR}
+                  accessibilityRole="alert"
+                >
+                  {snapValidationError}
+                </Text>
+              </Row>
+            )}
             <Row>
               <PaymentMethodSelector
                 loading={
@@ -1183,7 +1359,13 @@ const BuildQuote = () => {
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
               isFullWidth
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 ||
+                isFetching ||
+                isSnapValidating ||
+                isSnapDebouncing ||
+                Boolean(snapValidationError)
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </Button>
@@ -1211,7 +1393,9 @@ const BuildQuote = () => {
             ) : (
               <QuickAmounts
                 isBuy={isBuy}
-                onAmountPress={handleQuickAmountPress}
+                onAmountPress={(amount) => {
+                  void handleQuickAmountPress(amount);
+                }}
                 amounts={quickAmounts}
               />
             )}

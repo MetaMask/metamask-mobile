@@ -38,11 +38,11 @@ export const findGameTradingQuote = (
 };
 
 /**
- * Returns unique ungrouped home and away Game Selection quotes for a Game
- * winner presentation, carrying the Outcome that bears the Game Selection
- * tag: the dual-line chart plots that Outcome's history. A unique draw quote
- * is included when present. Missing or duplicate home or away selections
- * fail closed. Trading-side selection is separate (findGameTradingQuote).
+ * Returns unique home and away quotes from the full-game moneyline, plus a
+ * unique draw quote when present. The dual-line chart plots the Outcomes
+ * tagged with each Game Selection. Missing or duplicate home or away
+ * selections yield no quotes. Trading-side selection is separate
+ * (findGameTradingQuote).
  */
 export const findWinnerMarketQuotes = (
   event: PredictEvent,

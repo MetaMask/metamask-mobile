@@ -34,7 +34,10 @@ import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   getDepositPrefillAmountInputType,
   MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
@@ -46,8 +49,13 @@ import {
   MIN_FIAT_AMOUNT,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
-import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import {
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
+  NO_PAY_MAX_BALANCE_TYPES,
+} from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
+import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
+import { useKeepAmountAfterReplacement } from './useKeepAmountAfterReplacement';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -71,9 +79,11 @@ export function useTransactionCustomAmount({
     transactionMeta,
     MONEY_ACCOUNT_DEPOSIT_TYPES,
   );
-  const isAddMusdFlow =
+  const isFullBalanceDepositFlow =
     isMoneyAccountDeposit &&
-    getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+    isFullBalanceDepositIntent(
+      getMoneyAccountDepositIntent(transactionMeta?.batchId),
+    );
 
   const isMembershipSubscription = hasTransactionType(transactionMeta, [
     TransactionType.membershipSubscription,
@@ -92,7 +102,9 @@ export function useTransactionCustomAmount({
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
-  const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
+  const [isPrefillPending, setIsPrefillPending] = useState(
+    isFullBalanceDepositFlow,
+  );
   const hasPrefilled = useRef(false);
   const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
@@ -129,6 +141,10 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isPayMaxBalanceUnavailable = hasTransactionType(
+    transactionMeta,
+    NO_PAY_MAX_BALANCE_TYPES,
+  );
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   // Deposit/withdraw amounts are human mUSD and the input is already USD, so
@@ -146,14 +162,26 @@ export function useTransactionCustomAmount({
   const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
   const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
-  useEffect(() => {
-    userHasEditedRef.current = false;
-    prefetchQuoteRequestRef.current = undefined;
-    prefetchedQuoteAmountHumanRef.current = undefined;
-    prefetchedQuotePayTokenKeyRef.current = undefined;
-    setPrefetchedQuoteAmountHuman(undefined);
-    setPrefetchedQuotePayTokenKey(undefined);
-  }, [payTokenKey]);
+  const clearPrefetchForTokenChange = useCallback(
+    (keptAcrossReplacement: boolean): void => {
+      if (!keptAcrossReplacement) {
+        userHasEditedRef.current = false;
+      }
+      prefetchQuoteRequestRef.current = undefined;
+      prefetchedQuoteAmountHumanRef.current = undefined;
+      prefetchedQuotePayTokenKeyRef.current = undefined;
+      setPrefetchedQuoteAmountHuman(undefined);
+      setPrefetchedQuotePayTokenKey(undefined);
+    },
+    [],
+  );
+  const { ignoreNextAutomaticTokenChangeRef, keepAmountAfterReplacementRef } =
+    useKeepAmountAfterReplacement({
+      onGenuineTokenChange: clearPrefetchForTokenChange,
+      payTokenAddress: payTokenAsset?.address,
+      payTokenChainId: payTokenAsset?.chainId,
+      payTokenKey,
+    });
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -358,6 +386,7 @@ export function useTransactionCustomAmount({
       }
 
       userHasEditedRef.current = true;
+      keepAmountAfterReplacementRef.current = false;
       amountChangeTimeRef.current = Date.now();
 
       if (lastAmountInputTypeRef.current !== 'manual') {
@@ -377,6 +406,7 @@ export function useTransactionCustomAmount({
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
+      keepAmountAfterReplacementRef,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -432,7 +462,12 @@ export function useTransactionCustomAmount({
         },
       });
 
-      if (percentage === 100) {
+      // For types in `NO_PAY_MAX_BALANCE_TYPES` (e.g. Lighter withdraw) Pay
+      // does not resolve the source balance for Max, and fees are charged on
+      // top of the amount sent. So Max is requested as the entered balance net
+      // of the fee (see `useUpdateTransactionPayAmount`) rather than as
+      // `isMaxAmount`.
+      if (percentage === 100 && !isPayMaxBalanceUnavailable) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -443,12 +478,34 @@ export function useTransactionCustomAmount({
     },
     [
       balanceUsd,
+      isPayMaxBalanceUnavailable,
       isMaxAmount,
       isMembershipSubscription,
       setIsMax,
       setConfirmationMetric,
     ],
   );
+
+  const amountHumanFromFiat = useCallback(
+    (value: string): string =>
+      getAmountHumanFromFiat(value, tokenFiatRate, skipFiatRateConversion),
+    [skipFiatRateConversion, tokenFiatRate],
+  );
+
+  const { isClampCommitFailed, isClampCommitPending } =
+    useFirstDepositAmountClamp({
+      amountFiat,
+      amountHumanFromFiat,
+      balanceUsd,
+      ignoreNextAutomaticTokenChangeRef,
+      keepAmountAfterReplacementRef,
+      setAmountFiat,
+      skipFiatRateConversion,
+      tokenFiatRate,
+      transactionId,
+      transactionMeta,
+      updateTransactionPayAmount,
+    });
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
@@ -462,7 +519,7 @@ export function useTransactionCustomAmount({
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
-    if (userHasEditedRef.current) {
+    if (userHasEditedRef.current || keepAmountAfterReplacementRef.current) {
       prevHasPrefilled.current = isDepositPrefilled;
       return;
     }
@@ -513,7 +570,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (
-      isAddMusdFlow &&
+      isFullBalanceDepositFlow &&
       !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
@@ -532,7 +589,7 @@ export function useTransactionCustomAmount({
       setIsPrefillPending(false);
     }
   }, [
-    isAddMusdFlow,
+    isFullBalanceDepositFlow,
     isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,
@@ -587,6 +644,8 @@ export function useTransactionCustomAmount({
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
+    isClampCommitPending,
+    isClampCommitFailed,
   };
 }
 

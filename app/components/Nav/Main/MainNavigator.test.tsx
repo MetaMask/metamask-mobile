@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -21,6 +22,7 @@ import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteShe
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
+import { SOCIAL_TAB_BADGE_OVERLAY_TEST_ID } from './HomeTabs/NativeSocialTabBadge';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -88,6 +90,13 @@ jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
   useCanOpenSocialTabDirectly: () => false,
 }));
 
+const mockUseSocialTabNewBadge = jest.fn(() => ({
+  showSocialTabNewBadge: false,
+}));
+jest.mock('./HomeTabs/useSocialTabNewBadge', () => ({
+  useSocialTabNewBadge: () => mockUseSocialTabNewBadge(),
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({
@@ -131,6 +140,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabled = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -172,6 +182,12 @@ jest.mock(
       mockSelectPredictEnabledFlag(state),
   }),
 );
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Collectibles/selectors/featureFlags'),
+  selectCollectiblesEnabled: (state: unknown) =>
+    mockSelectCollectiblesEnabled(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -215,8 +231,13 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 }));
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectIsMoneyEarningsHistoryEnabledFlag = jest
+  .fn()
+  .mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
+  selectIsMoneyEarningsHistoryEnabledFlag: (state: unknown) =>
+    mockSelectIsMoneyEarningsHistoryEnabledFlag(state),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
@@ -234,7 +255,11 @@ describe('MainNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
+    mockUseSocialTabNewBadge.mockReturnValue({
+      showSocialTabNewBadge: false,
+    });
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
@@ -350,9 +375,13 @@ describe('MainNavigator', () => {
       )[0];
       const WalletTabStack = homeTabScreen?.props?.component;
 
-      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
-        state: initialRootState,
-      });
+      const { root: walletRoot } = renderWithProvider(
+        <WalletTabStack
+          route={{ params: {} }}
+          navigation={{ replaceParams: jest.fn() }}
+        />,
+        { state: initialRootState },
+      );
 
       const stackNavigator = walletRoot.findAll(
         (node: ReactTestInstance) =>
@@ -444,9 +473,9 @@ describe('MainNavigator', () => {
   });
 
   describe('Native tab bar (iOS 26)', () => {
-    const renderHomeTabs = () => {
+    const renderHomeTabs = (state = initialRootState) => {
       const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+        state,
       });
       const homeScreen = mainRoot.findAll(
         (node: ReactTestInstance) =>
@@ -456,7 +485,7 @@ describe('MainNavigator', () => {
         Record<string, unknown>
       >;
       return renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state: initialRootState,
+        state,
       });
     };
 
@@ -487,6 +516,59 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) =>
             node.type?.toString?.() === 'TabNavigator' ||
             node.type?.toString?.() === 'TabScreen',
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('renders the Social badge overlay when the native Social tab is available', () => {
+      mockUseSocialTabNewBadge.mockReturnValue({
+        showSocialTabNewBadge: true,
+      });
+      const stateWithSocialTab = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                homeTMCU1276AbtestHeaderNavBar: 'searchFocused',
+                socialAiTSA1122AbtestSocialBundleV1: 'treatment',
+              },
+            },
+          },
+        },
+      };
+
+      const { root } = renderHomeTabs(stateWithSocialTab);
+
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.props?.testID === SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
+        ),
+      ).not.toHaveLength(0);
+    });
+
+    it('omits the Social badge overlay when the native Social tab is unavailable', () => {
+      mockUseSocialTabNewBadge.mockReturnValue({
+        showSocialTabNewBadge: true,
+      });
+
+      const { root } = renderHomeTabs();
+
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.props?.testID === SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
         ),
       ).toHaveLength(0);
     });
@@ -642,6 +724,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animation?: string;
           contentStyle?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root
@@ -963,6 +1046,7 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.EARNINGS,
         Routes.MONEY.MUSD_RESCUE_SEND,
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
@@ -974,6 +1058,34 @@ describe('MainNavigator', () => {
       );
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('disables the back gesture on the Earnings chart screen', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const earningsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.MONEY.EARNINGS,
+      );
+
+      expect(earningsScreen?.options).toEqual(
+        expect.objectContaining({ gestureEnabled: false }),
+      );
+    });
+
+    it('does not register the Earnings route when history is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(false);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.EARNINGS);
     });
 
     it('registers one feature-level VBA onboarding route', () => {
@@ -1238,6 +1350,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1337,6 +1450,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Collectibles route when its feature flag is enabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeDefined();
+    });
+
+    it('excludes the Collectibles route when its feature flag is disabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {
@@ -2275,9 +2414,14 @@ describe('MainNavigator', () => {
       Component: React.ComponentType<Record<string, unknown>>,
       props: Record<string, unknown> = {},
     ) =>
-      renderWithProvider(<Component route={{ params: {} }} {...props} />, {
-        state: initialRootState,
-      });
+      renderWithProvider(
+        <Component
+          route={{ params: {} }}
+          navigation={{ replaceParams: jest.fn() }}
+          {...props}
+        />,
+        { state: initialRootState },
+      );
 
     describe('MainNavigator top-level screens', () => {
       it('renders HomeTabs with tab navigation structure', () => {
@@ -2461,7 +2605,28 @@ describe('MainNavigator', () => {
           Routes.BROWSER.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        const params = { newTabUrl: 'https://browser.example', timestamp: 1 };
+        const replaceParams = jest.fn();
+        const navigation = { replaceParams };
+        const rendered = renderInner(Component, {
+          route: { params },
+          navigation,
+        });
+        const getAssetParams = () =>
+          rendered.root.findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Screen' &&
+              node.props?.name === Routes.BROWSER.ASSET_VIEW,
+          )[0].props.initialParams;
+
+        expect(getAssetParams()).toBe(params);
+        rendered.rerender(
+          <Component
+            route={{ params: replaceParams.mock.calls[0][0] }}
+            navigation={navigation}
+          />,
+        );
+        expect(getAssetParams()).toBe(params);
       });
 
       it('renders TransactionsHome', () => {
@@ -2620,9 +2785,6 @@ describe('MainNavigator', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
         expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        );
-        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -2640,9 +2802,6 @@ describe('MainNavigator', () => {
         expect(screenNames).not.toContain(Routes.MODAL.REWARDS_SELECT_SHEET);
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-        );
-        expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
         );
       });
 
@@ -2807,7 +2966,6 @@ describe('MainNavigator', () => {
 
         expect(screenNames).toEqual(
           expect.arrayContaining([
-            Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
@@ -2815,7 +2973,6 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-            Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           ]),
         );
       });
@@ -2841,7 +2998,7 @@ describe('MainNavigator', () => {
           )
           .find((candidate) =>
             screenNamesIn(candidate).includes(
-              Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+              Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             ),
           );
 
@@ -2849,7 +3006,6 @@ describe('MainNavigator', () => {
           transparentModalStackOptions,
         );
         expect(screenNamesIn(group)).toEqual([
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
           Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
@@ -2857,7 +3013,6 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
           Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
           Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,

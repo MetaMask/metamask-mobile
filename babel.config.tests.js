@@ -40,6 +40,8 @@ const newOverrides = [
       // wipe, and later runs silently execute the wrong platform's tests no
       // matter what TEST_OS they export.
       'tests/component-view/platform.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.test.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
@@ -48,9 +50,12 @@ const newOverrides = [
       // Money MPC keyring stub: the build gate and static address are read at
       // runtime so tests can flip them per-case.
       'app/constants/featureFlags.ts',
+      'app/constants/featureFlags.test.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
       'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.real.test.ts',
       'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
@@ -142,8 +147,7 @@ const newOverrides = [
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',
-      '.yarn/plugins/plugin-usage-tracking.cjs',
-      '.yarn/plugins/plugin-usage-tracking.test.ts',
+      '.yarn/plugins/plugin-tooling-insight.test.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },

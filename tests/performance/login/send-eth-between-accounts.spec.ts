@@ -3,7 +3,7 @@ import { System } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import SendView from '../../page-objects/Send/RedesignedSendView';
+import SendView from '../../page-objects/Send/SendView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { enableHermesAppProfiling } from '../helpers/appProfiling';

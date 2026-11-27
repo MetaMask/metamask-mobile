@@ -162,9 +162,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       };
 
       const updateOptions =
-        existingNetwork != null &&
-        existingNetwork.chainId === hexChainId &&
-        indexRpc >= 0
+        existingNetwork?.chainId === hexChainId && indexRpc >= 0
           ? { replacementSelectedRpcEndpointIndex: indexRpc }
           : undefined;
 
@@ -203,7 +201,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           );
         }
       } else {
-        await NetworkController.addNetwork({
+        NetworkController.addNetwork({
           ...networkConfig,
         } as unknown as AddNetworkFields);
         identify(addItemToChainIdList(networkConfig.chainId));
@@ -213,7 +211,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         if (isCustomMainnet) {
           navigation.navigate('OptinMetrics');
         } else if (shouldNetworkSwitchPopToWallet) {
-          navigation.navigate('WalletView');
+          navigation.navigate(Routes.WALLET.HOME);
         } else {
           navigation.goBack();
         }

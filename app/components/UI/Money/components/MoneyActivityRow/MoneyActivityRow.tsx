@@ -6,6 +6,7 @@ import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import AccountsApiActivityItem from '../AccountsApiActivityItem/AccountsApiActivityItem';
 import NeobankActivityItem from '../NeobankActivityItem/NeobankActivityItem';
 import MicrodepositActivityItem from '../MicrodepositActivityItem/MicrodepositActivityItem';
+import CashbackClaimActivityItem from '../CashbackClaimActivityItem/CashbackClaimActivityItem';
 import CardTransactionRow from '../../../Card/components/CardTransactionRow/CardTransactionRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -94,6 +95,16 @@ const MoneyActivityRow = ({
   if (item.kind === 'microdeposit') {
     return (
       <MicrodepositActivityItem activity={item.tx} privacyMode={privacyMode} />
+    );
+  }
+
+  if (item.kind === 'cashbackClaim') {
+    return (
+      <CashbackClaimActivityItem
+        id={item.id}
+        claim={item.claim}
+        privacyMode={privacyMode}
+      />
     );
   }
 

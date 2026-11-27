@@ -1,22 +1,6 @@
-import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import {
-  BannerAlert,
-  BannerAlertSeverity,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
+import React from 'react';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import RewardsAmountBanner from './RewardsAmountBanner';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from './RewardsPausedBanner.testIds';
 
 /**
@@ -27,48 +11,16 @@ import { REWARDS_PAUSED_BANNER_TEST_IDS } from './RewardsPausedBanner.testIds';
 const RewardsPausedBanner: React.FC<{
   baseUnits: string;
   localizedText: ReferralLocalizedText;
-}> = ({ baseUnits, localizedText }) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const amount =
-    formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '';
-  const openRewardsPaused = useCallback(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
-      title: localizedText.rewardsPausedTitle,
-      description: localizedText.rewardsPausedDescription,
-    });
-  }, [localizedText, navigation]);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={openRewardsPaused}
-      testID={REWARDS_PAUSED_BANNER_TEST_IDS.BANNER}
-    >
-      <BannerAlert
-        severity={BannerAlertSeverity.Neutral}
-        twClassName="gap-2 items-center"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="flex-1 gap-2"
-        >
-          <Text variant={TextVariant.BodySm} twClassName="flex-1">
-            {localizedText.rewardsPausedBanner.split('{amount}').join(amount)}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
-            testID={REWARDS_PAUSED_BANNER_TEST_IDS.LEARN_MORE}
-          >
-            {localizedText.rewardsPausedLearnMore}
-          </Text>
-        </Box>
-      </BannerAlert>
-    </Pressable>
-  );
-};
+}> = ({ baseUnits, localizedText }) => (
+  <RewardsAmountBanner
+    baseUnits={baseUnits}
+    bannerText={localizedText.rewardsPausedBanner}
+    placeholder="{amount}"
+    learnMoreText={localizedText.rewardsPausedLearnMore}
+    sheetTitle={localizedText.rewardsPausedTitle}
+    sheetDescription={localizedText.rewardsPausedDescription}
+    testIds={REWARDS_PAUSED_BANNER_TEST_IDS}
+  />
+);
 
 export default RewardsPausedBanner;

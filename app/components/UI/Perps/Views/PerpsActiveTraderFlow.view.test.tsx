@@ -217,11 +217,8 @@ describe('Active Trader Flow', () => {
     // covered in PerpsCompactOrderRow.test.tsx; avoid asserting it here — unstable on CI)
     cleanup();
     renderRow(shortMarketOrder);
-    const wait5s = { timeout: 5000 };
-    expect(
-      await screen.findByText(/market short/i, {}, wait5s),
-    ).toBeOnTheScreen();
-    expect(await screen.findByText(/BTC/i, {}, wait5s)).toBeOnTheScreen();
+    expect(await screen.findByText(/market short/i)).toBeOnTheScreen();
+    expect(await screen.findByText(/BTC/i)).toBeOnTheScreen();
 
     // Trader taps an order row to see details
     cleanup();

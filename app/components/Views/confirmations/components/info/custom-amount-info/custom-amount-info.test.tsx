@@ -455,7 +455,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayPostQuoteMock = jest.mocked(
     useTransactionPayPostQuote,
   );
-  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
+  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount> & {
+    isClampCommitPending?: boolean;
+    isClampCommitFailed?: boolean;
+  };
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
   ): CustomAmountMock => ({
@@ -472,6 +475,8 @@ describe('CustomAmountInfo', () => {
     updatePendingAmount: noop,
     updatePendingAmountPercentage: () => false,
     updateTokenAmount: jest.fn(),
+    isClampCommitPending: false,
+    isClampCommitFailed: false,
     ...overrides,
   });
 
@@ -919,6 +924,82 @@ describe('CustomAmountInfo', () => {
     expect(getByText('Test Help Text')).toBeDefined();
   });
 
+  async function openEnabledReview(
+    view: ReturnType<typeof render>,
+  ): Promise<void> {
+    await act(async () => {
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+    });
+
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+    view.rerender(createCustomAmountInfo());
+  }
+
+  it('blocks Continue when clamp commit is pending', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitPending: true,
+      }),
+    );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Updating transaction amount',
+    });
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+    view.rerender(createCustomAmountInfo());
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('blocks Continue when clamp commit has failed', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitFailed: true,
+      }),
+    );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Failed to update transaction amount',
+    });
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+    view.rerender(createCustomAmountInfo());
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
     useTransactionCustomAmountMock.mockReturnValue(
       createCustomAmountMock({
@@ -1033,7 +1114,7 @@ describe('CustomAmountInfo', () => {
   );
 
   it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-    'renders "Send" confirm label for %s from Money Account',
+    'renders "Move" confirm label for %s from Money Account',
     async (transactionType) => {
       useRouteMock.mockReturnValue({
         key: 'mock-route',
@@ -1054,7 +1135,7 @@ describe('CustomAmountInfo', () => {
 
       expect(
         await findByText(
-          strings('confirm.deposit_edit_amount_money_account_send'),
+          strings('confirm.deposit_edit_amount_money_account_move'),
         ),
       ).toBeOnTheScreen();
     },

@@ -1,6 +1,12 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { usePerpsMarketListView } from './usePerpsMarketListView';
+import {
+  selectAvailableProviderIds,
+  selectEffectivePerpsVenueFilter,
+  selectPerpsMarketListPreferences,
+} from '../selectors/marketListPreferences';
+
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
@@ -11,6 +17,7 @@ import {
   type MarketTypeFilter,
   type SortField,
   type SortDirection,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { setPerpsMarketListPreferences } from '../../../../actions/settings';
@@ -19,7 +26,6 @@ import {
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
-import { selectPerpsMarketListPreferences } from '../selectors/marketListPreferences';
 
 // Mock sortMarkets utility
 jest.mock('@metamask/perps-controller', () => ({
@@ -61,6 +67,9 @@ const mockUsePerpsSorting = usePerpsSorting as jest.MockedFunction<
   typeof usePerpsSorting
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+// TAT-4407: default venue-filter selector results (all-availablevenues, single
+// venue) — most tests here are single-provider Hyperliquid fixtures.
+const DEFAULT_VENUE_FILTER: PerpsProviderType[] = ['hyperliquid'];
 
 /**
  * Configures the useSelector mock by selector identity (not call order), so
@@ -93,6 +102,12 @@ const mockSelectorState = (overrides: {
     }
     if (selector === selectPerpsMarketListPreferences) {
       return marketListPreference;
+    }
+    if (selector === selectEffectivePerpsVenueFilter) {
+      return DEFAULT_VENUE_FILTER;
+    }
+    if (selector === selectAvailableProviderIds) {
+      return DEFAULT_VENUE_FILTER;
     }
     return undefined;
   });

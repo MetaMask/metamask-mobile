@@ -17,6 +17,7 @@ import {
 } from '@testing-library/react-native';
 import {
   CandlePeriod,
+  PERPS_ERROR_CODES,
   type CandleData,
   type Position,
 } from '@metamask/perps-controller';
@@ -39,7 +40,9 @@ import {
 import {
   createPerpsControllerStateHarness,
   getModifyActionLabels,
+  withLighterBuildEnabled,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
@@ -79,6 +82,7 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
+  PerpsTradeOnSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 import {
@@ -101,7 +105,7 @@ const MORE_CANDLE_SHEET_BASE =
 
 function renderEligibleNoPositionPerpsDetails(
   params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
-) {
+): ReturnType<typeof renderPerpsMarketDetailsView> {
   return renderPerpsMarketDetailsView({
     streamOverrides: { positions: [] },
     overrides: {
@@ -122,6 +126,11 @@ beforeEach(async () => {
 afterEach(async () => {
   await resetSocialTermsAcceptance();
 });
+
+// The insights entry card (and its skeleton) resolve only after the
+// AiDigestController fetch completes; the 5s default is not enough on a
+// loaded CV shard. AssetOverviewContent's CV test uses the same budget.
+const INSIGHTS_CARD_LOAD_TIMEOUT_MS = 15000;
 
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
@@ -146,6 +155,109 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       ),
     ).toBeOnTheScreen();
+  });
+
+  describe('funding path from venue available to trade', () => {
+    const zeroWithdrawableAccount = createFundedAccountForViews('0');
+
+    it('offers long and short instead of Add funds when available to trade covers the order but withdrawable is zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '250', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not offer Add funds while available to trade is still loading', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: null,
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('offers Add funds once available to trade is confirmed zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '0', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Trade on sheet', () => {
+    withLighterBuildEnabled();
+
+    it('stays closed when a second venue returns after the selector disappears', async () => {
+      const hyperliquidMarket = createEthMarketForViews({
+        providerId: 'hyperliquid',
+      });
+      const lighterMarket = createEthMarketForViews({ providerId: 'lighter' });
+      const scenario = perpsTwoExchangeState('sameMarketOnBoth');
+      const { stream } = renderPerpsMarketDetailsView({
+        ...scenario,
+        initialParams: { market: hyperliquidMarket },
+        streamOverrides: {
+          ...scenario.streamOverrides,
+          positions: [],
+          marketData: [hyperliquidMarket, lighterMarket],
+        },
+      });
+
+      await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW);
+      fireEvent.press(screen.getByTestId(PerpsTradeOnSelectorsIDs.ROW));
+      expect(
+        screen.getByTestId(PerpsTradeOnSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket]);
+      });
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.ROW)).toBeNull();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket, lighterMarket]);
+      });
+      expect(
+        await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+    });
   });
 
   it('removes long and short when the market hits its open interest cap', async () => {
@@ -282,8 +394,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -300,8 +410,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -345,8 +453,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -392,11 +498,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     expect(
-      await screen.findByTestId(
-        PerpsPositionCardSelectorsIDs.SIZE_VALUE,
-        {},
-        { timeout: 5000 },
-      ),
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SIZE_VALUE),
     ).toHaveTextContent(/1\s+ETH/u);
 
     act(() => {
@@ -442,8 +544,6 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
 
@@ -797,7 +897,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         });
         persistPromise = new Promise<void>((resolve) => {
-          resolvePersist = () => {
+          resolvePersist = (): void => {
             watchlist = ['ETH'];
             stateHarness.stage({
               isTestnet: false,
@@ -1276,8 +1376,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       updatePositionTPSL.mockResolvedValueOnce({
         success: false,
-        error:
-          'order 0: Only post-only orders allowed immediately after network upgrade',
+        error: PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW,
       });
       const position = createLongPositionForViews();
       const { stream } = renderPerpsMarketDetailsView({
@@ -1336,11 +1435,7 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(
-        await screen.findByText(
-          strings('perps.errors.postOnlyWindow'),
-          {},
-          { timeout: 5000 },
-        ),
+        await screen.findByText(strings('perps.errors.postOnlyWindow')),
       ).toBeOnTheScreen();
       expect(updatePositionTPSL).toHaveBeenCalledWith(
         expect.objectContaining({ symbol: 'ETH', stopLossPrice: '2300' }),
@@ -1381,7 +1476,7 @@ describe('PerpsMarketDetailsView', () => {
       hasPosition: boolean;
       insightsFlagEnabled?: boolean;
       report?: typeof MOCK_PERPS_MARKET_INSIGHTS_REPORT | null;
-    }) => {
+    }): void => {
       setupPerpsMarketInsightsEngineMock(report);
       renderPerpsMarketDetailsView({
         streamOverrides: {
@@ -1417,15 +1512,15 @@ describe('PerpsMarketDetailsView', () => {
 
     // The entry card replaces a skeleton only after the AiDigestController fetch
     // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
-    // test uses for this card. The 1s default is not enough on a loaded CV shard.
-    const findInsightsEntryCard = () =>
+    // test uses for this card. The 5s default is not enough on a loaded CV shard.
+    const findInsightsEntryCard = (): ReturnType<typeof screen.findByTestId> =>
       screen.findByTestId(
         MarketInsightsSelectorsIDs.ENTRY_CARD,
         {},
-        { timeout: 15000 },
+        { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
       );
 
-    const openInsightsFromEntryCard = async () => {
+    const openInsightsFromEntryCard = async (): Promise<void> => {
       fireEvent.press(await findInsightsEntryCard());
     };
 
@@ -1489,7 +1584,7 @@ describe('PerpsMarketDetailsView', () => {
             ),
           ).toBeNull();
         },
-        { timeout: 15000 },
+        { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
       );
       expect(
         screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
@@ -1672,7 +1767,7 @@ describe('PerpsMarketDetailsView', () => {
     const ethPost = mockPerpFeedItem({ positionId: 'eth-perp-post' });
     const ethPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${ethPost.positionId}-${ethPost.timestamp}`;
     const statsSectionTestId = 'perps-home-section-stats';
-    const postTestId = (post: typeof ethPost) =>
+    const postTestId = (post: typeof ethPost): string =>
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
 
     const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
@@ -1722,7 +1817,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('fetches the feed only once Feed is opened', async () => {
       const messengerSpy = setupLeaderboardApiMock({ feedItems: [ethPost] });
-      const feedFetches = () =>
+      const feedFetches = (): typeof messengerSpy.mock.calls =>
         messengerSpy.mock.calls.filter(
           ([action]) => action === 'SocialService:fetchFeed',
         );
@@ -1827,7 +1922,7 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByTestId(
           MarketInsightsSelectorsIDs.ENTRY_CARD,
           {},
-          { timeout: 15000 },
+          { timeout: INSIGHTS_CARD_LOAD_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       const orderedIds = screen.UNSAFE_root.findAll(
@@ -1972,7 +2067,7 @@ describe('PerpsMarketDetailsView', () => {
       const disclaimerId = PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER;
       // Host and composite nodes can both carry a testID. Every copy of
       // `before` still has to precede every copy of `after`.
-      const expectBefore = (before: string, after: string) => {
+      const expectBefore = (before: string, after: string): void => {
         const ordered = screen.UNSAFE_root.findAll(
           (node) => node.props.testID === before || node.props.testID === after,
         ).map((node) => node.props.testID as string);

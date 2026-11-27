@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "saat",
-        "market_cap_suffix": "Piyasa Değeri",
-        "size_at_price": "{{price}} için {{size}}",
-        "size_at_market_cap": "{{marketCap}} {{abbreviation}} piyasa değerinde {{size}}"
+        "market_cap_suffix": "Piyasa Değeri"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} K&Z (30g)",
@@ -1993,22 +1991,6 @@
         "4": "Per",
         "5": "Cum",
         "6": "Cmt"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Satın alındı",
-        "sold": "Satıldı",
-        "perps_closed": "Kapatıldı",
-        "perps_long_opened": "Long pozisyon açıldı",
-        "perps_long_added": "Long pozisyona eklendi",
-        "perps_long_reduced": "Long pozisyon azaltıldı",
-        "perps_short_opened": "Short açıldı",
-        "perps_short_added": "Short pozisyona eklendi",
-        "perps_short_reduced": "Tekrar satın alındı",
-        "spot_opened": "Satın alındı",
-        "spot_added": "Daha fazla satın alındı",
-        "spot_reduced": "Bir kısmı satıldı",
-        "spot_closed": "Tümü satıldı"
       }
     },
     "trader_position": {
@@ -3954,7 +3936,6 @@
       "unavailable": "Şu anda kullanılabilir piyasa yok."
     },
     "home_categories": {
-      "title": "Kategoriler",
       "politics": "Siyaset",
       "sports": "Spor"
     },
@@ -5480,19 +5461,6 @@
     "accounts": "hesap",
     "show_accounts": "Göster",
     "hide_accounts": "Gizle",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Test Ağı Hesabı",
-      "bitcoin_account_name": "Bitcoin Hesabı",
-      "bitcoin_signet_account_name": "Bitcoin Signet Hesabı",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Hesabı",
-      "solana_devnet_account_name": "Solana Devnet Hesabı",
-      "solana_testnet_account_name": "Solana Test Ağı Hesabı",
-      "solana_account_name": "Solana Hesabı",
-      "tron_account_name": "Tron Hesabı",
-      "tron_nile_account_name": "Tron Nile Hesabı",
-      "tron_shasta_account_name": "Tron Shasta Hesabı",
-      "stellar_account_name": "Stellar Hesabı"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
     },
@@ -7179,7 +7147,6 @@
     "gas_education_3": "MetaMask gaz ücretlerinden kâr elde etmez.",
     "gas_education_4": "Gaz ücretleri ağ trafiğine ve işlem karmaşıklığına göre dalgalanır.",
     "gas_education_learn_more": "Gaz ücretleri hakkında daha fazla bilgi alın",
-    "confusable_title": "Alıcı adresini kontrol edin",
     "confusable_msg": "ENS adında karıştırılabilir bir karakter algıladık. Olası bir dolandırıcılığı önlemek için ENS adını kontrol edin.",
     "similar_to": "şuna benzer:",
     "contains_zero_width": "sıfır genişlikli karakter içeriyor",
@@ -7197,8 +7164,7 @@
     "hex_data_copied": "On altılı veriler panoya kopyalandı",
     "invalid_recipient": "Alıcı geçersiz",
     "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun",
-    "swap_tokens": "Token swap işlemi yapın",
-    "fromWithColon": "Gönderen:"
+    "swap_tokens": "Token swap işlemi yapın"
   },
   "custom_gas": {
     "total": "Toplam",
@@ -7476,8 +7442,6 @@
     "hash_copied_to_clipboard": "İşlem hash değeri panoya kopyalandı",
     "address_copied_to_clipboard": "Adres panoya kopyalandı",
     "transaction_error": "İşlem hatası",
-    "address_to_placeholder": "Ara, genel adres (0x) veya ENS",
-    "address_from_balance": "Bakiye:",
     "status": "Durum",
     "date": "Tarih",
     "nonce": "Nonce",
@@ -7558,11 +7522,8 @@
     "delete_contact": "Kişiyi sil",
     "delete": "Sil",
     "cancel": "İptal",
-    "add_to_address_book": "Adres defterine ekle",
-    "enter_an_alias": "Rumuz gir",
     "add_this_address": "Bu adresi adres defterine ekle",
     "next": "Sonraki",
-    "enter_an_alias_placeholder": "ör. Vitalik B.",
     "add_contact_title": "Kişiyi ekle",
     "add_contact": "Kişiyi ekle",
     "edit_contact_title": "Kişiyi düzenle",
@@ -8989,19 +8950,7 @@
     "contact_support": "Destek ile iletişime geçin"
   },
   "whats_new": {
-    "title": "Yenilikler",
-    "remove_gns_new_ui_update": {
-      "title": "Yeni kullanıcı arayüzü güncellemesi",
-      "introduction": "Uygulama deneyimini iyileştirmek için güncellemeler yaptık.",
-      "descriptions": {
-        "description_1": "Ağ açılır menüsü varlıklar sekmenize taşındı",
-        "description_2": "Takas ve Köprü tek bir basit adımda",
-        "description_3": "Gönder deneyimi kolaylaştırıldı",
-        "description_4": "Yepyeni bir hesap görünümü"
-      },
-      "more_information": "Artık arkasındaki ağlara değil, token'larınıza ve faaliyetlerinize odaklanabilirsiniz.",
-      "got_it": "Anladım"
-    }
+    "title": "Yenilikler"
   },
   "invalid_network": {
     "title": "Özel ağı için zincir kimliği \n {{network}} \n yeniden girilmelidir.",
@@ -9312,28 +9261,13 @@
     "nickname": "takma ad"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Akılda tutulması gerekenler",
     "testnet_network": "{{type}} test Ağı",
-    "first_description": "Bu ağdaki yerli tokenlar {{ticker}}. Bu, ağ ücretleri için kullanılan tokenlar.",
-    "second_description": "Varlıkları doğrudan bir ağdan diğerine göndermeye çalışırsan bu, kalıcı varlık kaybına neden olabilir. Bir köprü kullandığından emin ol.",
-    "third_description": "Tokenleriniz cüzdanınızda otomatik olarak görünmeyebilir.",
-    "private_network": "Bu ağ bilinmiyor ve ağ ücretleri için özel bir tokenlar kullanabilir.",
     "unknown_network": "Bilinmeyen ağ",
-    "switched_network": "Şuna geçiş yaptın:",
-    "learn_more": "Daha fazla bilgi",
     "add_token": "Tokenleri manuel olarak eklemek için buraya tıklayın",
-    "add_token_manually": "Manuel olarak ekleyin.",
     "got_it": "Anladım",
     "error_title": "Bir şeyler ters gitti",
     "error_message": "Ağ bilgileri yüklenirken bir hata oluştu. Daha sonra tekrar deneyin.",
-    "private_network_third_description": "Tanımlamayı kolaylaştırmak amacıyla bu ağ için bir ad girin.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Otomatik token algılamayı etkinleştir",
-    "token_detection_mainnet_title": "Token algılama etkinleştirildi böylece pek çok token otomatik olarak cüzdanınızda gösterilecek.",
-    "token_detection_mainnet_link": "Manuel olarak da ekleyebilirsiniz.",
-    "or": "veya",
-    "non_evm_first_description": "Bu ağdaki yerli varlık {{ticker}}. İşlem ücretleri için kullanılır.",
-    "non_evm_second_description": "Başka bir ağdan veya başka bir ağa göndermeye çalışırsanız varlıklarınızı kaybedersiniz."
+    "private_network_third_description": "Tanımlamayı kolaylaştırmak amacıyla bu ağ için bir ad girin."
   },
   "download_files": {
     "error": "Ek indirilemedi.",
@@ -10693,8 +10627,7 @@
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
       "predict_withdraw": "Çek",
-      "money_account_deposit_header": "MetaMask Money'ye ekle",
-      "money_account_send": "Gönder"
+      "money_account_deposit_header": "MetaMask Money'ye ekle"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -10851,7 +10784,6 @@
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_convert_token": "{{symbol}}'e dönüştür",
     "deposit_edit_amount_predict_withdraw": "Çek",
-    "deposit_edit_amount_money_account_send": "Gönder",
     "deposit_edit_amount_musd_conversion": "mUSD'ye dönüştür",
     "preparing_order": "Emir hazırlanıyor"
   },

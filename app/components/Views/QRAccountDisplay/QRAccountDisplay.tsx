@@ -34,6 +34,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
     description,
     descriptionProps,
     analyticsLocation,
+    analyticsSource,
     chainId,
   } = props;
   const tw = useTailwind();
@@ -70,6 +71,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
           .addProperties({
             location: analyticsLocation,
             ...(chainId && { chain_id_caip: chainId }),
+            ...(analyticsSource && { source: analyticsSource }),
           })
           .build(),
       );

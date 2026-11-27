@@ -9,7 +9,12 @@ import {
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import { Hex } from '@metamask/utils';
+import { createDeferredPromise, Hex } from '@metamask/utils';
+import { SolScope } from '@metamask/keyring-api';
+import { Slip44Service } from '@metamask/network-enablement-controller';
+import { SnapController } from '@metamask/snaps-controllers';
+import { captureException } from '@sentry/react-native';
+import { waitFor } from '@testing-library/react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
@@ -331,10 +336,50 @@ describe('Engine', () => {
     ).toEqual([expect.objectContaining({ knownAddress })]);
   });
 
-  it('calling Engine.init twice returns the same instance', () => {
-    const engine = Engine.init(TEST_ANALYTICS_ID, {});
-    const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
-    expect(engine).toStrictEqual(newEngine);
+  it('adds missing multichain networks to the persisted enablement map on startup', async () => {
+    jest.spyOn(Slip44Service, 'getEvmSlip44').mockResolvedValue(60);
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      NetworkEnablementController: {
+        enabledNetworkMap: {},
+        nativeAssetIdentifiers: {},
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        engine.context.NetworkEnablementController.state.enabledNetworkMap
+          .solana?.[SolScope.Mainnet],
+      ).toBe(false);
+    });
+  });
+
+  it('reuses the engine while Snap initialization is pending', () => {
+    const startup = createDeferredPromise();
+    const initSnaps = jest
+      .spyOn(SnapController.prototype, 'init')
+      .mockReturnValueOnce(startup.promise);
+
+    const engine = Engine.init(TEST_ANALYTICS_ID);
+    const sameEngine = Engine.init(TEST_ANALYTICS_ID);
+
+    expect(sameEngine).toBe(engine);
+    expect(initSnaps).toHaveBeenCalledTimes(1);
+    startup.resolve();
+  });
+
+  it('reports a Snap initialization failure', async () => {
+    const error = new Error('Snap initialization failed');
+    const startup = createDeferredPromise();
+    jest
+      .spyOn(SnapController.prototype, 'init')
+      .mockReturnValueOnce(startup.promise);
+
+    Engine.init(TEST_ANALYTICS_ID);
+    startup.reject(error);
+    await startup.promise.catch(() => undefined);
+
+    expect(captureException).toHaveBeenCalledWith(error);
   });
 
   it('should backup vault when Engine is initialized and vault exists', () => {
@@ -1331,7 +1376,8 @@ describe('Engine', () => {
             (!isEmpty(controller.state) ||
               controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'DelegationController'),
+              controllerName === 'DelegationController' ||
+              controllerName === 'CollectiblesController'),
         )
         .map(([controllerName]) => controllerName);
 

@@ -1,5 +1,9 @@
 import semver from 'semver';
-import { getBaseSemVerVersion, getEffectiveAppVersion } from './version';
+import {
+  applyOtaVersion,
+  getBaseSemVerVersion,
+  getEffectiveAppVersion,
+} from './version';
 
 jest.mock('semver', () => {
   const actual = jest.requireActual('semver');
@@ -106,5 +110,33 @@ describe('getEffectiveAppVersion', () => {
     mockOta.OTA_VERSION = 'v12.5.0';
 
     expect(getEffectiveAppVersion()).toBe('12.5.0');
+  });
+});
+
+describe('applyOtaVersion', () => {
+  beforeEach(() => {
+    mockOta.OTA_VERSION = 'vX.XX.X';
+  });
+
+  it('returns the base version when OTA_VERSION is the unset sentinel', () => {
+    expect(applyOtaVersion('8.21.0')).toBe('8.21.0');
+  });
+
+  it('returns the OTA version when it is higher than the base version', () => {
+    mockOta.OTA_VERSION = 'v8.21.2';
+
+    expect(applyOtaVersion('8.21.0')).toBe('8.21.2');
+  });
+
+  it('returns the base version when OTA_VERSION is stale (lower)', () => {
+    mockOta.OTA_VERSION = 'v8.21.2';
+
+    expect(applyOtaVersion('8.22.0')).toBe('8.22.0');
+  });
+
+  it('returns the base version unchanged when it is not valid semver', () => {
+    mockOta.OTA_VERSION = 'v8.21.2';
+
+    expect(applyOtaVersion('unknown')).toBe('unknown');
   });
 });

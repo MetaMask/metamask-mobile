@@ -42,9 +42,6 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal/PerpsQu
 import PerpsAdjustMarginView from './PerpsAdjustMarginView/PerpsAdjustMarginView';
 import PerpsSelectOrderTypeView from './PerpsSelectOrderTypeView/PerpsSelectOrderTypeView';
 
-/** Shorter timeout so tests fail fast; 3s is enough for component render. */
-const TIMEOUT_MS = 3000;
-
 describe('Order Lifecycle & Funds Flow', () => {
   const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
   const originalLighterOverride = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
@@ -85,11 +82,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     // ── PHASE 1: Close position — toggle display and interact with buttons ─
     renderPerpsClosePositionView();
     expect(
-      await screen.findByTestId(
-        PerpsOrderHeaderSelectorsIDs.HEADER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
     // Trader presses the display toggle button to switch USD/token view
     const displayToggle = screen.queryByTestId(
@@ -112,11 +105,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     });
     renderPerpsOrderBookView();
     expect(
-      await screen.findByTestId(
-        PerpsOrderBookViewSelectorsIDs.CONTAINER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
 
     // ── PHASE 3: Order details — valid order and missing order ───────────
@@ -124,9 +113,7 @@ describe('Order Lifecycle & Funds Flow', () => {
       cleanup();
     });
     renderPerpsOrderDetailsView();
-    expect(
-      await screen.findByText('ETH', {}, { timeout: TIMEOUT_MS }),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText('ETH')).toBeOnTheScreen();
 
     // Trader navigates to a missing order — error message appears
     await act(async () => {
@@ -134,11 +121,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     });
     renderPerpsOrderDetailsView({ initialParams: { order: undefined } });
     expect(
-      await screen.findByText(
-        strings('perps.errors.order_not_found'),
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByText(strings('perps.errors.order_not_found')),
     ).toBeOnTheScreen();
 
     // ── PHASE 4: PnL hero card ──────────────────────────────────────────
@@ -147,11 +130,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     });
     renderPerpsHeroCardView();
     expect(
-      await screen.findByTestId(
-        PerpsHeroCardViewSelectorsIDs.CONTAINER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsHeroCardViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
 
     // ── PHASE 5: Withdraw funds — press back button ──────────────────────
@@ -161,8 +140,6 @@ describe('Order Lifecycle & Funds Flow', () => {
     renderPerpsWithdrawView();
     const withdrawBackButton = await screen.findByTestId(
       PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
     expect(withdrawBackButton).toBeOnTheScreen();
     fireEvent.press(withdrawBackButton);
@@ -370,11 +347,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     });
     renderPerpsWithdrawView();
     expect(
-      await screen.findByTestId(
-        PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsWithdrawViewSelectorsIDs.BACK_BUTTON),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.withdrawal.title')),
@@ -386,13 +359,7 @@ describe('Order Lifecycle & Funds Flow', () => {
       cleanup();
     });
     renderPerpsTransactionsView();
-    await screen.findByText(
-      strings('perps.transactions.tabs.trades'),
-      {},
-      {
-        timeout: TIMEOUT_MS,
-      },
-    );
+    await screen.findByText(strings('perps.transactions.tabs.trades'));
     expect(
       screen.getByText(strings('perps.transactions.tabs.orders')),
     ).toBeOnTheScreen();
@@ -425,7 +392,7 @@ describe('Order Lifecycle & Funds Flow', () => {
         },
       },
     );
-    await screen.findByText(ORDER_TYPE_TITLE, {}, { timeout: TIMEOUT_MS });
+    await screen.findByText(ORDER_TYPE_TITLE);
     expect(screen.getByText(ORDER_TYPE_MARKET)).toBeOnTheScreen();
     expect(screen.getByText(ORDER_TYPE_LIMIT)).toBeOnTheScreen();
     fireEvent.press(screen.getByText(ORDER_TYPE_LIMIT));

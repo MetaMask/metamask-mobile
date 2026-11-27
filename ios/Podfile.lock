@@ -2595,7 +2595,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview-mm (14.8.0):
+  - react-native-webview-mm (14.8.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3610,7 +3610,7 @@ PODS:
   - segment-analytics-react-native (2.23.0):
     - React-Core
     - sovran-react-native
-  - sovran-react-native (1.1.3):
+  - sovran-react-native (1.1.5):
     - React-Core
   - SwiftUIIntrospect (1.3.0)
   - VeriffSDK (8.12.0)
@@ -4286,7 +4286,7 @@ SPEC CHECKSUMS:
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
-  QuickCrypto: f0d41b4933cfff875e87628e2fade6d98ccb99e1
+  QuickCrypto: cf3c568757f4a971dee8142af41c8e0b9559f401
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
@@ -4353,7 +4353,7 @@ SPEC CHECKSUMS:
   react-native-video: db3a70efc9fa0c00f5499d7798283bf0585cbd37
   react-native-view-shot: 2829bd78c1fef42db12553bf85833e05a1a73609
   react-native-wallet: 29d91d8cf99be725227242bddb7629db7f145c6d
-  react-native-webview-mm: a402404c1eca7b092a413f3c8ba0ce65c06e151c
+  react-native-webview-mm: 8475bdcbae625450bbf8a2391a121d33281d5fd7
   React-NativeModulesApple: 2b658272ca69df0694cf5d54f9510aa7c33977bc
   React-networking: 6be0b80e18e710dd30e77b04838ec46666a7bb78
   React-oscompat: cea7c66df8076bd97e95885d7f584b86afffde41
@@ -4423,7 +4423,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   segment-analytics-react-native: 5df85065a7cf2c07311ec5a4832d5d3092015c98
-  sovran-react-native: a3ad3f8ff90c2002b2aa9790001a78b0b0a38594
+  sovran-react-native: adab7580e38f67c0e8679df1cf277d1075b83ed8
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: 7187b3dac1ff3071234ead959ce311875748e14f
