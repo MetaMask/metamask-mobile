@@ -142,7 +142,10 @@ describe('IntroStep', () => {
       />,
     );
 
-    const firstLinesAlignment = { alignSelf: 'flex-start', marginTop: 3 };
+    const firstLinesAlignment = {
+      alignSelf: 'flex-start' as const,
+      marginTop: 3,
+    };
     expect(
       getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD_ICON}-passkey`),
     ).toHaveStyle(firstLinesAlignment);
