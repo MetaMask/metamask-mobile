@@ -267,6 +267,7 @@ export const useTokenDetailsV1Tabs = (
 export interface UseTokenDetailsV1ScrollStabilizationOptions {
   scrollViewRef?: React.RefObject<ScrollView | null>;
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  topInset?: number;
 }
 
 export interface UseTokenDetailsV1ScrollStabilizationResult {
@@ -296,9 +297,16 @@ export const useTokenDetailsV1ScrollStabilization = (
   const currentScrollYRef = useRef(0);
   const tabBarOffsetYRef = useRef<number | null>(null);
 
-  const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
-    tabBarOffsetYRef.current = event.nativeEvent.layout.y;
-  }, []);
+  const topInset = options?.topInset ?? 0;
+  const handleTabBarLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      tabBarOffsetYRef.current = Math.max(
+        0,
+        event.nativeEvent.layout.y - topInset,
+      );
+    },
+    [topInset],
+  );
 
   const onScroll = options?.onScroll;
   const handleScroll = useCallback(

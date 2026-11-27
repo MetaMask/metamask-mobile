@@ -57,7 +57,6 @@ const StakingClaim = ({
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
         enableMetrics={false}
-        isTransactionsRedesign
       />
       <InfoSection>
         <StakingContractInteractionDetails />
