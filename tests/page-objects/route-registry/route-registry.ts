@@ -17,6 +17,7 @@ import type AccountMenu from '../AccountMenu/AccountMenu';
 import type Browser from '../Browser/BrowserView';
 import type BuildQuoteView from '../Ramps/BuildQuoteView';
 import type CardHomeView from '../Card/CardHomeView';
+import type CardTransactionDetailsView from '../Card/CardTransactionDetailsView';
 import type ChangePasswordView from '../Settings/SecurityAndPrivacy/ChangePasswordView';
 import type DeeplinkModal from '../swaps/Deeplink';
 import type DeleteAccount from '../MultichainAccounts/DeleteAccount';
@@ -31,7 +32,9 @@ import type LoginView from '../wallet/LoginView';
 import type ManageAccounts from '../MultichainAccounts/ManageAccounts';
 import type ManualBackupStep1View from '../Onboarding/ManualBackupStep1View';
 import type MarketInsightsView from '../wallet/MarketInsightsView';
+import type MoneyActivityView from '../Money/MoneyActivityView';
 import type MoneyAddMoneySheet from '../Money/MoneyAddMoneySheet';
+import type MoneyApiActivityDetailsView from '../Money/MoneyApiActivityDetailsView';
 import type MoneyHomeView from '../Money/MoneyHomeView';
 import type MoneyTransferSheet from '../Money/MoneyTransferSheet';
 import type NetworkListModal from '../Network/NetworkListModal';
@@ -81,6 +84,7 @@ interface PageObjectModules {
   Browser: typeof Browser;
   BuildQuoteView: typeof BuildQuoteView;
   CardHomeView: typeof CardHomeView;
+  CardTransactionDetailsView: typeof CardTransactionDetailsView;
   ChangePasswordView: typeof ChangePasswordView;
   DeeplinkModal: typeof DeeplinkModal;
   DeleteAccount: typeof DeleteAccount;
@@ -95,7 +99,9 @@ interface PageObjectModules {
   ManageAccounts: typeof ManageAccounts;
   ManualBackupStep1View: typeof ManualBackupStep1View;
   MarketInsightsView: typeof MarketInsightsView;
+  MoneyActivityView: typeof MoneyActivityView;
   MoneyAddMoneySheet: typeof MoneyAddMoneySheet;
+  MoneyApiActivityDetailsView: typeof MoneyApiActivityDetailsView;
   MoneyHomeView: typeof MoneyHomeView;
   MoneyTransferSheet: typeof MoneyTransferSheet;
   NetworkListModal: typeof NetworkListModal;
@@ -155,6 +161,7 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   BrowserView: 'Browser',
   BuildQuote: 'BuildQuoteView',
   CardHome: 'CardHomeView',
+  CardTransactionDetails: 'CardTransactionDetailsView',
   DeepLinkModal: 'DeeplinkModal',
   DeleteAccount: 'DeleteAccount',
   DeleteWalletModal: 'DeleteWalletModal',
@@ -168,8 +175,11 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   ManageAccountsView: 'ManageAccounts',
   ManualBackupStep1: 'ManualBackupStep1View',
   MarketInsightsView: 'MarketInsightsView',
+  MoneyActivity: 'MoneyActivityView',
   MoneyAddMoneySheet: 'MoneyAddMoneySheet',
+  MoneyCardTransactionDetails: 'MoneyApiActivityDetailsView',
   MoneyHome: 'MoneyHomeView',
+  MoneyTransactionDetails: 'TransactionDetailsModal',
   MoneyTransferSheet: 'MoneyTransferSheet',
   NetworkListModal: 'NetworkListModal',
   NetworkManager: 'NetworkManager',
@@ -221,7 +231,7 @@ const NO_PAGE_OBJECT_ROUTES =
   CardMfaCode CardMfaMethod CardOnboardingComplete CardOnboardingConfirmEmail CardOnboardingConfirmPhoneNumber CardOnboardingFundingApproval CardOnboardingImmersveKYC CardOnboardingKYCFailed
   CardOnboardingKYCProcessing CardOnboardingPersonalDetails CardOnboardingPhysicalAddress CardOnboardingSetPhoneNumber CardOnboardingSignUp CardOnboardingVerifyIdentity CardOnboardingVerifyingVeriffKYC CardPasswordModal
   CardRecurringFeeModal CardRegionSelectionModal CardReportTransaction CardRevokeAllowanceSheet CardSetPin CardSignInHelpModal CardSpendingLimit CardSpendingLimitOptionsModal
-  CardTransactionDetails CardTransactionHistory CardUkMigrationModal CardUnlinkMoneyAccountSheet CardViewPinModal CardWaitlistFormModal CardWelcome CashTokensFullView
+  CardTransactionHistory CardUkMigrationModal CardUnlinkMoneyAccountSheet CardViewPinModal CardWaitlistFormModal CardWelcome CashTokensFullView
   ChangeInSimulationModal Checkout ChoosePassword ChooseYourCard Claim CompanySettings Confirm ConfirmationPayWithBottomSheet
   ConfirmationPayWithModal ConfirmationPayWithNetworkModal ConfirmationRequestModal Confirmations ConfirmationSwitchAccountType ConfirmTurnOnBackupAndSync ConnectHardwareWalletFlow ConnectionDetails ConnectLedgerFlow
   ConnectQRHardwareFlow ContactForm ContactsSettings ContractSecurity CreatePriceAlert DataCollection DefaultSettings DeFiFullView
@@ -235,9 +245,9 @@ const NO_PAGE_OBJECT_ROUTES =
   LimitOrderMetaMaskFeeInfoModal LinkedSocialAccount ManagePriceAlerts ManageProfile ManageProfileField ManageProfileLinkedAccountView ManageProfileTextEditorView ManageProfileTradingActivityView
   ManageProfileView ManageProfileXAccount ManualBackupStep2 ManualBackupStep3 MAPicker MarketClosedModal MaxBrowserTabsModal MaxInput
   MfaFlow MfaMethodDetails MfaPasskeys MfaSettings MissingPriceModal ModalConfirmation ModalMandatory MoneyAccountStatus
-  MoneyActivity MoneyApyInfoSheet MoneyBalanceInfoSheet MoneyCardTransactionDetails MoneyConfirmations MoneyDeeplinkModal MoneyDepositDeeplink MoneyEarnCryptoInfoSheet
+  MoneyApyInfoSheet MoneyBalanceInfoSheet MoneyConfirmations MoneyDeeplinkModal MoneyDepositDeeplink MoneyEarnCryptoInfoSheet
   MoneyEarnings MoneyEarningsInfoSheet MoneyEstimatedBalanceSheet MoneyFirstTimeDeposit MoneyGeoBlockSheet MoneyHowItWorks MoneyLinkCardSheet MoneyMoreSheet MoneyMusdRescueRecipient MoneyMusdRescueSend
-  MoneyPotentialEarnings MoneySplash MoneyTransactionDetails MoreTokenActionsMenu MultichainAccountActions MultichainAccountDetailActions MultichainAccountGroupDetails
+  MoneyPotentialEarnings MoneySplash MoreTokenActionsMenu MultichainAccountActions MultichainAccountDetailActions MultichainAccountGroupDetails
   MultichainAccountsExplorerWebview MultichainAccountsIntroModal MultichainAccountsLearnMoreBottomSheet MultichainPrivateKeyList MultichainTransactionDetails MultiRPcMigrationModal
   MyProfileView NetworkDetails NetworkSelector NetworksManagement NFTAutoDetectionModal NftDetails NftFullView NoHeaderConfirmations
   NotificationsDetails NotificationSettingsSection NotificationsSettings NotificationsView Onboarding OnboardingOAuthRehydrate OnboardingSuccess OpenLimitOrderDetailsModal
@@ -256,7 +266,7 @@ const NO_PAGE_OBJECT_ROUTES =
   RampUnsupportedRegionModal RampUnsupportedStateModal RampUnsupportedTokenModal RampVbaDetails RampVbaOnboarding RampVerifyIdentity Recipient RecipientSelectorModal
   RecurringConfirmOrderModal RecurringCustomPriceToleranceModal RecurringDefaultPriceToleranceModal RecurringDelegationFeeInfoModal RecurringIntervalModal RecurringOrderDetails RecurringPriceRangeModal RecurringRepeatInfoModal RecurringSwapDetails
   Rehydrate ResetPassword RestoreWallet ReturnToDappToast RevealPrivateCredential RevealPrivateCredentialView RevealSRPCredential ReviewOrder
-  RevokeAllAccountPermissions RewardOptInAccountGroupModal RewardsBottomSheetModal RewardsCampaignDetails RewardsCampaignMechanics RewardsCampaignsView RewardsCampaignTourStep RewardsClaimBottomSheetModal
+  RevokeAllAccountPermissions RewardOptInAccountGroupModal RewardsCampaignDetails RewardsCampaignMechanics RewardsCampaignsView RewardsCampaignTourStep RewardsClaimBottomSheetModal
   RewardsDashboard RewardsEarningsHistoryView RewardsFlow RewardsInfoSheetModal RewardsMoneyAccountSweepstakesCampaignDetails RewardsMoneyAccountSweepstakesCampaignWinning RewardsMoneyClaimsPausedModal
   RewardsMoneyInviteSheet RewardsMoneyReferralAcceptedSplashView RewardsOndoCampaignLeaderboard RewardsOndoCampaignPortfolioView RewardsOndoCampaignStats RewardsOndoCampaignWinning RewardsOndoRwaAssetSelector
   RewardsPerpsTradingCampaignDetails RewardsPerpsTradingCampaignLeaderboard RewardsPerpsTradingCampaignStats RewardsPerpsTradingCampaignWinning RewardsPredictThePitchCampaignDetails RewardsPredictThePitchCampaignLeaderboard RewardsPredictThePitchCampaignPortfolioView RewardsPredictThePitchCampaignStats

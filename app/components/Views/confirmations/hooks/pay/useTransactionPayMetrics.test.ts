@@ -40,12 +40,22 @@ import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { PaymentMethod } from '@metamask/ramps-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { getAddressAccountType } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
 import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    state: {},
+  },
+}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -54,6 +64,16 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../transactions/useTransactionAccountOverride');
+jest.mock('../transactions/useTransactionMetadataRequest', () => {
+  const actual = jest.requireActual(
+    '../transactions/useTransactionMetadataRequest',
+  );
+  return {
+    useTransactionMetadataRequest: jest.fn(() =>
+      actual.useTransactionMetadataRequest(),
+    ),
+  };
+});
 jest.mock('../transactions/useTransactionPayingAccount');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
@@ -79,6 +99,7 @@ jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
 const CHAIN_ID_MOCK = '0x1';
 const TOKEN_AMOUNT_MOCK = '1.23';
 const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
+const SECOND_PAYING_ACCOUNT_MOCK = '0x2222222222222222222222222222222222222222';
 
 const PAY_TOKEN_ASSET_MOCK = {
   address: tokenAddress1Mock,
@@ -157,6 +178,9 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
   const useTransactionPayingAccountMock = jest.mocked(
     useTransactionPayingAccount,
   );
@@ -175,6 +199,12 @@ describe('useTransactionPayMetrics', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    const actualTxMeta = jest.requireActual(
+      '../transactions/useTransactionMetadataRequest',
+    );
+    useTransactionMetadataRequestMock.mockImplementation(() =>
+      actualTxMeta.useTransactionMetadataRequest(),
+    );
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -1024,6 +1054,43 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      TransactionType.membershipSubscription,
+    ] as const)(
+      'increments switch count when payer changes between two MetaMask accounts on %s',
+      async (type) => {
+        useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+        const { rerender } = runHook({ type });
+
+        await act(async () => noop());
+
+        useTransactionAccountOverrideMock.mockReturnValue(
+          SECOND_PAYING_ACCOUNT_MOCK,
+        );
+        useTransactionPayingAccountMock.mockReturnValue(
+          SECOND_PAYING_ACCOUNT_MOCK,
+        );
+
+        rerender({});
+
+        await act(async () => noop());
+
+        expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+          id: transactionIdMock,
+          params: {
+            properties: expect.objectContaining({
+              mm_pay_account_type_source_presented: 'metamask',
+              mm_pay_account_type_source_selected: 'metamask',
+              mm_pay_source_mm_account_switch_count: 1,
+            }),
+            sensitiveProperties: {},
+          },
+        });
+      },
+    );
+
     it('money-account override takes priority over perps and predict', async () => {
       selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
       useIsPerpsBalanceSelectedMock.mockReturnValue(true);
@@ -1208,6 +1275,359 @@ describe('useTransactionPayMetrics', () => {
           sensitiveProperties: {},
         },
       });
+    });
+
+    it('increments recipient switch count when recipient changes between two MetaMask accounts on moneyAccountWithdraw', async () => {
+      useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+      const { rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      await act(async () => noop());
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_PAYING_ACCOUNT_MOCK,
+      );
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 1,
+            mm_pay_source_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('keeps recipient as money-account with zero recipient switches on membershipSubscription', async () => {
+      const { rerender } = runHook({
+        type: TransactionType.membershipSubscription,
+      });
+
+      await act(async () => noop());
+
+      selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
+            mm_pay_recipient_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    describe('recipient sub-account switch count', () => {
+      it.each([
+        [TransactionType.predictDeposit, 'predict'],
+        [TransactionType.perpsDeposit, 'perps'],
+        [TransactionType.perpsLighterDeposit, 'perps'],
+      ] as const)(
+        'counts recipient sub-account round trip as 2 for %s while keeping source switch count at 0',
+        async (type, expectedSection) => {
+          selectPaymentOverrideMock.mockReturnValue(
+            PaymentOverride.MoneyAccount,
+          );
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: transactionIdMock,
+            type,
+            txParams: { from: PAYING_ACCOUNT_MOCK },
+          } as never);
+
+          const { rerender } = runHook({ type });
+
+          await act(async () => noop());
+
+          const secondTxId =
+            type === TransactionType.predictDeposit
+              ? transactionIdMock
+              : 'tx-2';
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: secondTxId,
+            type,
+            txParams: { from: SECOND_PAYING_ACCOUNT_MOCK },
+          } as never);
+          rerender({});
+
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: secondTxId,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_account_type_recipient_presented: expectedSection,
+                mm_pay_account_type_recipient_selected: expectedSection,
+                mm_pay_recipient_mm_account_switch_count: 1,
+                mm_pay_source_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+
+          const thirdTxId =
+            type === TransactionType.predictDeposit
+              ? transactionIdMock
+              : 'tx-3';
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: thirdTxId,
+            type,
+            txParams: { from: PAYING_ACCOUNT_MOCK },
+          } as never);
+          rerender({});
+
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: thirdTxId,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_recipient_mm_account_switch_count: 2,
+                mm_pay_source_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+        },
+      );
+
+      it.each([
+        TransactionType.perpsDeposit,
+        TransactionType.perpsLighterDeposit,
+      ] as const)(
+        'carries recipient switch count onto replacement transaction via ApprovalController and TransactionController state for %s',
+        async (type) => {
+          selectPaymentOverrideMock.mockReturnValue(
+            PaymentOverride.MoneyAccount,
+          );
+
+          const state = merge(
+            {},
+            simpleSendTransactionControllerMock,
+            transactionApprovalControllerMock,
+            otherControllersMock,
+          );
+          const baseTx =
+            state.engine.backgroundState.TransactionController.transactions[0];
+          baseTx.type = type;
+          baseTx.txParams.from = PAYING_ACCOUNT_MOCK;
+
+          const baseApproval =
+            state.engine.backgroundState.ApprovalController.pendingApprovals[
+              transactionIdMock
+            ];
+
+          const { rerender, store } = renderHookWithProvider(
+            useTransactionPayMetrics,
+            { state },
+          );
+
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: transactionIdMock,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_account_type_recipient_presented: 'perps',
+                mm_pay_account_type_recipient_selected: 'perps',
+                mm_pay_recipient_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+
+          const secondTxId = 'perps-replacement-tx-2';
+          const secondTx = merge({}, baseTx, {
+            id: secondTxId,
+            txParams: { ...baseTx.txParams, from: SECOND_PAYING_ACCOUNT_MOCK },
+          });
+          const secondApproval = merge({}, baseApproval, {
+            id: secondTxId,
+            requestData: { txId: secondTxId },
+          });
+
+          // Simulate PerpsAccountPickerRow: addTransaction creates tx-2 first,
+          // then ApprovalController.rejectRequest removes tx-1.
+          await act(async () => {
+            Object.assign(Engine, {
+              state: {
+                TransactionController: {
+                  ...state.engine.backgroundState.TransactionController,
+                  transactions: [baseTx, secondTx],
+                },
+                ApprovalController: {
+                  ...state.engine.backgroundState.ApprovalController,
+                  pendingApprovals: {
+                    [transactionIdMock]: baseApproval,
+                    [secondTxId]: secondApproval,
+                  },
+                },
+              },
+            });
+            store.dispatch(updateBgState({ key: 'TransactionController' }));
+            store.dispatch(updateBgState({ key: 'ApprovalController' }));
+          });
+
+          // Reject old approval; new tx starts with no payToken yet.
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: undefined,
+            setPayToken: noop,
+          });
+          await act(async () => {
+            Object.assign(Engine, {
+              state: {
+                ...Engine.state,
+                ApprovalController: {
+                  ...state.engine.backgroundState.ApprovalController,
+                  pendingApprovals: {
+                    [secondTxId]: secondApproval,
+                  },
+                },
+              },
+            });
+            store.dispatch(updateBgState({ key: 'ApprovalController' }));
+          });
+
+          // Automatic pay token selection populates payToken on tx-2.
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: PAY_TOKEN_MOCK,
+            setPayToken: noop,
+          });
+          rerender({});
+
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: secondTxId,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_account_type_recipient_presented: 'perps',
+                mm_pay_account_type_recipient_selected: 'perps',
+                mm_pay_recipient_mm_account_switch_count: 1,
+                mm_pay_source_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+        },
+      );
+
+      it.each([
+        TransactionType.perpsDeposit,
+        TransactionType.perpsLighterDeposit,
+      ] as const)(
+        'carries recipient switch count onto replacement transaction when hook remounts for %s',
+        async (type) => {
+          selectPaymentOverrideMock.mockReturnValue(
+            PaymentOverride.MoneyAccount,
+          );
+
+          const state = merge(
+            {},
+            simpleSendTransactionControllerMock,
+            transactionApprovalControllerMock,
+            otherControllersMock,
+          );
+          const baseTx =
+            state.engine.backgroundState.TransactionController.transactions[0];
+          baseTx.type = type;
+          baseTx.txParams.from = PAYING_ACCOUNT_MOCK;
+
+          const baseApproval =
+            state.engine.backgroundState.ApprovalController.pendingApprovals[
+              transactionIdMock
+            ];
+
+          const firstRender = renderHookWithProvider(useTransactionPayMetrics, {
+            state,
+          });
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: transactionIdMock,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_recipient_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+
+          firstRender.unmount();
+
+          const secondTxId = 'perps-replacement-tx-2';
+          const secondTx = merge({}, baseTx, {
+            id: secondTxId,
+            txParams: { ...baseTx.txParams, from: SECOND_PAYING_ACCOUNT_MOCK },
+          });
+          const secondApproval = merge({}, baseApproval, {
+            id: secondTxId,
+            requestData: { txId: secondTxId },
+          });
+
+          const replacementState = merge({}, state);
+          replacementState.engine.backgroundState.TransactionController.transactions =
+            [secondTx];
+          replacementState.engine.backgroundState.ApprovalController.pendingApprovals =
+            {
+              [secondTxId]: secondApproval,
+            };
+
+          mockSelectConfirmationMetricsById.mockImplementation(
+            (_rootState: unknown, id: string) =>
+              id === secondTxId
+                ? {
+                    properties: { mm_pay_recipient_mm_account_switch_count: 1 },
+                  }
+                : undefined,
+          );
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: undefined,
+            setPayToken: noop,
+          });
+
+          const secondRender = renderHookWithProvider(
+            useTransactionPayMetrics,
+            { state: replacementState },
+          );
+          await act(async () => noop());
+
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: PAY_TOKEN_MOCK,
+            setPayToken: noop,
+          });
+          secondRender.rerender({});
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: secondTxId,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_account_type_recipient_presented: 'perps',
+                mm_pay_account_type_recipient_selected: 'perps',
+                mm_pay_recipient_mm_account_switch_count: 1,
+                mm_pay_source_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+        },
+      );
     });
 
     it('is not included when no pay token', async () => {

@@ -21,7 +21,7 @@ import PerpsOrderView from '../Views/PerpsOrderView/PerpsOrderView';
 import Engine from '../../../../core/Engine';
 
 const MID_PRICE = 50000; // BTC mid in the Shape A harness fixtures
-// Spendable balance the order form reads from the harness account stream.
+// Available to trade the order form reads from the harness active-asset stream.
 const ACCOUNT_BALANCE = 10000;
 
 describe('Perps component flows — integration', () => {

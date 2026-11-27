@@ -1023,13 +1023,16 @@ describeForPlatforms('QuickBuySheet', () => {
     );
   });
 
-  it('hides the fee token chip in quote details for regular quotes', async () => {
+  it('shows the native fee token chip in quote details for regular quotes', async () => {
     const screen = await openQuoteDetails(false);
 
-    expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
-    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        within(
+          screen.getByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
+        ).getByText('ETH'),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('shows a discounted MetaMask fee with its badge and struck-through base fee', async () => {

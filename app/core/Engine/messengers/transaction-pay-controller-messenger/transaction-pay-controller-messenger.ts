@@ -40,6 +40,10 @@ export function getTransactionPayControllerMessenger(
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
       'NetworkController:getState',
+      // TODO: temporary cast. Remove it once this app depends on a
+      // `@metamask/transaction-pay-controller` release with MetaMask/core#11730,
+      // which adds this action to the controller types.
+      'PerpsController:submitLighterTransfer' as never,
       'RampsController:getOrder',
       'RampsController:getQuoteWithFees',
       'RampsController:getState',

@@ -29,6 +29,7 @@ const CARD: CardDetails = {
 const CAPABILITIES = {
   supportsFundingLimits: true,
   supportsPinView: true,
+  supportsFreeze: true,
 } as CardProviderCapabilities;
 
 const buildInput = (
@@ -87,6 +88,16 @@ describe('getCardHomeActionVisibility', () => {
     ).toBe(false);
   });
 
+  it('hides freeze when the provider cannot freeze cards', () => {
+    expect(
+      getCardHomeActionVisibility(
+        buildInput({
+          capabilities: { ...CAPABILITIES, supportsFreeze: false },
+        }),
+      ).freeze,
+    ).toBe(false);
+  });
+
   it('hides freeze when the card is not freezable', () => {
     expect(
       getCardHomeActionVisibility(
@@ -95,12 +106,12 @@ describe('getCardHomeActionVisibility', () => {
     ).toBe(false);
   });
 
-  it('shows the teaser buttons when signed out', () => {
+  it('hides the cardholder buttons when signed out', () => {
     expect(
       getCardHomeActionVisibility(
         buildInput({ isAuthenticated: false, card: null }),
       ),
-    ).toEqual({ details: true, pin: true, freeze: true });
+    ).toEqual({ details: false, pin: false, freeze: false });
   });
 });
 

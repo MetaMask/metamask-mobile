@@ -684,7 +684,6 @@
     "gas_education_3": "MetaMask गैस शुल्क से लाभ नहीं कमाता है।",
     "gas_education_4": "नेटवर्क ट्रैफ़िक और लेनदेन की जटिलता के आधार पर गैस शुल्क में उतार-चढ़ाव होता रहता है।",
     "gas_education_learn_more": "गैस शुल्क के बारे में अधिक जानें",
-    "confusable_title": "प्राप्तकर्ता का पता जांचें",
     "confusable_msg": "हमने ENS नाम में एक भ्रमित करने योग्य वर्ण का पता लगाया है। संभावित धोखाधड़ी से बचने के लिए ENS नाम की जाँच करें।"
   },
   "custom_gas": {
@@ -831,8 +830,6 @@
     "hash_copied_to_clipboard": "लेनदेन हैश को क्लिपबोर्ड पर कॉपी किया गया",
     "address_copied_to_clipboard": "पता क्लिपबोर्ड पर कॉपी किया गया",
     "transaction_error": "लेनदेन में त्रुटि",
-    "address_to_placeholder": "खोज, सार्वजनिक पता (0x) या ENS",
-    "address_from_balance": "शेषराशि:",
     "status": "स्थिति",
     "date": "दिनांक",
     "nonce": "नॉन्स",
@@ -847,11 +844,8 @@
     "delete_contact": "संपर्क हटाएँ",
     "delete": "हटाएँ",
     "cancel": "रद्द करें",
-    "add_to_address_book": "पता पुस्तिका में जोड़ें",
-    "enter_an_alias": "एक उपनाम दर्ज करें",
     "add_this_address": "इस पते को अपनी पता पुस्तिका में जोड़ें",
     "next": "अगला",
-    "enter_an_alias_placeholder": "जैसे विटालिक बी.",
     "add_contact_title": "संपर्क जोड़ें",
     "add_contact": "संपर्क जोड़ें",
     "edit_contact_title": "संपर्क संपादित करें",

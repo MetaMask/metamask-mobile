@@ -1,12 +1,13 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from '#app/components/UI/primitives/Text';
+import { Text } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockHomePacks } from '../../../../UI/Collectibles/mocks/homePacks';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { getFormatters } from '#app/components/hooks/useFormatters';
 import { homepageSectionTitleTestId } from '#app/components/Views/Homepage/Homepage.testIds';
 import { HomeSectionNames } from '#app/components/Views/Homepage/hooks/useHomeViewedEvent';
 import { CollectiblesSection } from './CollectiblesSection';
@@ -99,8 +100,11 @@ describe('CollectiblesSection', () => {
       screen.getByTestId(collectiblesTestIds.tile(firstPack.code)),
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
-    expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
-    expect(screen.getByText(String(firstPack.priceLabel))).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        getFormatters().formatCurrency(firstPack.priceUsd, 'USD'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('opens the collectibles landing screen from the header', async () => {

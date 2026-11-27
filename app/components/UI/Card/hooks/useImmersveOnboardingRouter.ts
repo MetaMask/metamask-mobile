@@ -69,9 +69,7 @@ function destinationForAction(
         ? Routes.CARD.HOME
         : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
-      return action.canRetry
-        ? Routes.CARD.ONBOARDING.KYC_PROCESSING
-        : Routes.CARD.ONBOARDING.KYC_FAILED;
+      return Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
       return Routes.CARD.HOME;
     default:
@@ -200,28 +198,23 @@ export const useImmersveOnboardingRouter = () => {
             ...(fundingAddress ? { fundingAddress } : {}),
           });
           break;
-        case 'rejected':
-          if (action.canRetry) {
-            Engine.context.CardController.setSignInLinkStage('identity');
-            goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
-              countryKey,
-              kycUrl: action.retryUrl,
-            });
-            break;
-          }
+        case 'rejected': {
+          const params = { reasons: action.reasons };
           if (navigateFromOutsideCard) {
-            enterCardOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED);
+            enterCardOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED, params);
           } else if (navigateFromRoot) {
             navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
               screen: Routes.CARD.ONBOARDING.KYC_FAILED,
+              params,
             });
           } else {
             navigation.reset({
               index: 0,
-              routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
+              routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED, params }],
             });
           }
           break;
+        }
         case 'active':
           Engine.context.CardController.markMigrationCompleted().catch(
             () => undefined,

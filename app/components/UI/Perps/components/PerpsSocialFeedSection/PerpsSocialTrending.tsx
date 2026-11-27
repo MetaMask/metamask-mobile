@@ -74,7 +74,6 @@ const PerpsSocialTrending: React.FC = () => {
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
-        requireSocialTerms
         onAuthorPress={handleAuthorPress}
         onPositionPress={post.position ? handlePositionPress : undefined}
       />

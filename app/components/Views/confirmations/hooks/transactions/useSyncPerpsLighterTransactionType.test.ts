@@ -1,10 +1,17 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { LIGHTER_BRIDGE_CONFIG } from '@metamask/perps-controller/constants/lighterConfig';
 
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { addTransaction } from '../../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../../util/transactions';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -14,6 +21,7 @@ import {
 } from './useSyncPerpsLighterTransactionType';
 
 jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() },
   context: {
     ApprovalController: {
       rejectRequest: jest.fn(),
@@ -30,6 +38,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
+  addTransactionBatch: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -208,7 +217,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     setTransactionConfig.mock.calls[0][1](config);
     expect(config).toStrictEqual({
       isQuoteRequired: true,
-      paymentOverride: 'perpsLighter',
+      paymentOverride: PaymentOverride.PerpsLighter,
     });
     expect(mockAddTransaction.mock.invocationCallOrder[0]).toBeLessThan(
       mockRejectRequest.mock.invocationCallOrder[0],
@@ -374,8 +383,69 @@ describe('useSyncPerpsLighterTransactionType', () => {
       networkClientId: 'arbitrum',
       origin: 'metamask',
       requireApproval: true,
+      requiredAssets: [
+        {
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          amount: '0x1e8480',
+          assetId: 'lighter:mainnet/perps:usdc',
+          standard: 'erc20',
+        },
+      ],
       type: TransactionType.perpsLighterWithdraw,
     });
+  });
+
+  it('recreates a withdraw batch as a Lighter withdraw batch', async () => {
+    // Like the real controller, the batch promise stays pending until approval.
+    jest.mocked(addTransactionBatch).mockImplementation(async () => {
+      const [, handler] = jest.mocked(Engine.controllerMessenger.subscribe).mock
+        .calls[0] as unknown as [string, (meta: TransactionMeta) => void];
+      handler({ id: 'tx-2', type: TransactionType.batch } as TransactionMeta);
+      return await new Promise(() => undefined);
+    });
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...hyperliquidDeposit,
+      type: TransactionType.batch,
+      nestedTransactions: [
+        {
+          data: transferData(0),
+          to: ARBITRUM_USDC,
+          value: '0x0',
+          type: TransactionType.perpsWithdraw,
+        },
+      ],
+    } as never);
+
+    renderSync({ destination: 'hyperliquid', source: 'lighter' });
+
+    await waitFor(() => {
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-1', expect.anything());
+    });
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+    expect(
+      jest.mocked(addTransactionBatch).mock.calls[0][0].transactions,
+    ).toStrictEqual([
+      {
+        params: { to: ARBITRUM_USDC, data: transferData(0), value: '0x0' },
+        type: TransactionType.perpsLighterWithdraw,
+      },
+    ]);
+  });
+
+  it('leaves a Lighter withdraw batch unchanged while Lighter is selected', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...hyperliquidDeposit,
+      type: TransactionType.batch,
+      nestedTransactions: [
+        { to: ARBITRUM_USDC, type: TransactionType.perpsLighterWithdraw },
+      ],
+    } as never);
+
+    renderSync({ destination: 'hyperliquid', source: 'lighter' });
+
+    expect(addTransactionBatch).not.toHaveBeenCalled();
+    expect(mockRejectRequest).not.toHaveBeenCalled();
   });
 
   it('creates the deposit after the address was not an address', async () => {
