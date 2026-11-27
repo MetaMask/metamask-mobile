@@ -120,6 +120,11 @@ describe('PerpsClosePositionView', () => {
     resetLastCloseOrderType();
     // The close waits for a fee quote, so every test starts with one.
     quoteCloseFee();
+    // Tests queue failure outcomes via mockResolvedValueOnce; drop any
+    // left-over queue so later cases get the framework default again.
+    (Engine.context.PerpsController.closePosition as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ success: true, orderId: 'component-view-close' });
   });
 
   it('submits a market close for a long position with custom take profit', async () => {
