@@ -5,6 +5,9 @@ const mockIsSocialV1Enabled = jest.fn(() => true);
 jest.mock('react-native-device-info', () => ({
   getVersion: () => '7.57.0',
 }));
+jest.mock('../../../../constants/ota', () => ({
+  OTA_VERSION: 'vX.XX.X',
+}));
 jest.mock('../../../../store', () => ({
   store: { getState: () => ({}) },
 }));

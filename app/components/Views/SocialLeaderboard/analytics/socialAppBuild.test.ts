@@ -1,8 +1,18 @@
+const mockOta = { OTA_VERSION: 'vX.XX.X' };
+jest.mock('../../../../constants/ota', () => ({
+  get OTA_VERSION() {
+    return mockOta.OTA_VERSION;
+  },
+}));
+
 describe('socialAppBuild', () => {
   const load = async () => {
     jest.resetModules();
     return import('./socialAppBuild');
   };
+  afterEach(() => {
+    mockOta.OTA_VERSION = 'vX.XX.X';
+  });
   it('omits the property when the native version is not a string', async () => {
     jest.doMock('react-native-device-info', () => ({
       getVersion: () => Promise.resolve('version'),
@@ -29,14 +39,11 @@ describe('socialAppBuild', () => {
     jest.doMock('react-native-device-info', () => ({
       getVersion: () => '8.21.0',
     }));
-    jest.doMock('../../../../constants/ota', () => ({
-      OTA_VERSION: 'v8.21.2',
-    }));
+    mockOta.OTA_VERSION = 'v8.21.2';
     const { withSocialAppBuild } = await load();
     expect(withSocialAppBuild({ screen_name: 'trending' })).toEqual({
       screen_name: 'trending',
       app_build: '8.21.2-test',
     });
-    jest.dontMock('../../../../constants/ota');
   });
 });
