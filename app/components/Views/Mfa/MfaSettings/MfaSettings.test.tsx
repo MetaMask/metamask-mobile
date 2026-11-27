@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -9,6 +9,11 @@ import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindin
 import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
+import {
+  useMoneyMfa,
+  type MoneyMfaStatus,
+} from '../../../UI/Money/hooks/useMoneyMfa';
+import { createMockUseMoneyMfa } from '../../../UI/Money/__fixtures__/useMoneyMfa';
 import MfaSettings from './MfaSettings';
 
 const mockNavigate = jest.fn();
@@ -28,7 +33,25 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
   },
 }));
 
+jest.mock('../../../UI/Money/hooks/useMoneyMfa', () => ({
+  useMoneyMfa: jest.fn(),
+}));
+
+const mockIsMoneyMfaV2 = jest.fn();
+jest.mock('../../../UI/Money/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../../UI/Money/selectors/featureFlags'),
+  selectMoneyEnableMfaV2Flag: () => mockIsMoneyMfaV2(),
+}));
+
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
+const mockUseMoneyMfa = jest.mocked(useMoneyMfa);
+const mockTurnOnMoneyMfa = jest.fn();
+
+const mockMoneyMfaStatus = (status: MoneyMfaStatus) => {
+  mockUseMoneyMfa.mockReturnValue(
+    createMockUseMoneyMfa({ status, turnOn: mockTurnOnMoneyMfa }),
+  );
+};
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
 const mockShowToast = jest.fn();
 
@@ -78,6 +101,9 @@ describe('MfaSettings', () => {
     jest.clearAllMocks();
     mockAdapter.refreshEnrolledCredentials.mockResolvedValue([]);
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+    mockTurnOnMoneyMfa.mockResolvedValue(undefined);
+    mockMoneyMfaStatus('unavailable');
+    mockIsMoneyMfaV2.mockReturnValue(false);
   });
 
   it('hides email and keeps the authenticator app for social login users', () => {
@@ -297,6 +323,92 @@ describe('MfaSettings', () => {
     );
     fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.PASSKEYS);
+  });
+
+  describe('Money 2-step verification toggle', () => {
+    it('hides the toggle when isMoneyMfaEnabledV2 is false', () => {
+      mockMoneyMfaStatus('enabled');
+
+      const { queryByTestId } = renderSettings();
+
+      expect(queryByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_ROW)).toBeNull();
+    });
+
+    describe('when isMoneyMfaEnabledV2 is true', () => {
+      const getMoneyMfaSwitch = () =>
+        within(
+          screen.getByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_SWITCH),
+        ).getByRole('switch');
+
+      beforeEach(() => {
+        mockIsMoneyMfaV2.mockReturnValue(true);
+      });
+
+      it('hides the toggle when Money 2-step verification is unavailable', () => {
+        const { queryByTestId } = renderSettings();
+
+        expect(queryByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_ROW)).toBeNull();
+      });
+
+      it('shows the toggle on when Money 2-step verification is enabled', () => {
+        mockMoneyMfaStatus('enabled');
+
+        const { getByTestId } = renderSettings();
+
+        expect(
+          getByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_ROW),
+        ).toBeOnTheScreen();
+        expect(getMoneyMfaSwitch()).toHaveProp('value', true);
+      });
+
+      it.each<MoneyMfaStatus>(['not_set_up', 'off', 'failed'])(
+        'shows the toggle off when the status is %s',
+        (status) => {
+          mockMoneyMfaStatus(status);
+
+          renderSettings();
+
+          expect(getMoneyMfaSwitch()).toHaveProp('value', false);
+        },
+      );
+
+      it('disables the toggle while the Money account is being set up', () => {
+        mockMoneyMfaStatus('setting_up');
+
+        renderSettings();
+
+        expect(getMoneyMfaSwitch()).toBeDisabled();
+      });
+
+      it('turns on Money 2-step verification from the toggle', () => {
+        mockMoneyMfaStatus('not_set_up');
+        const { getByTestId } = renderSettings();
+
+        fireEvent(
+          getByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_SWITCH),
+          'onValueChange',
+          true,
+        );
+
+        expect(mockTurnOnMoneyMfa).toHaveBeenCalledTimes(1);
+      });
+
+      it('opens the turn-off sheet when Money 2-step verification is on', () => {
+        mockMoneyMfaStatus('enabled');
+        const { getByTestId } = renderSettings();
+
+        fireEvent(
+          getByTestId(MfaSettingsSelectorsIDs.MONEY_MFA_SWITCH),
+          'onValueChange',
+          false,
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
+        });
+        expect(mockTurnOnMoneyMfa).not.toHaveBeenCalled();
+      });
+    });
   });
 
   it('only offers to add the methods the flag allows', () => {
