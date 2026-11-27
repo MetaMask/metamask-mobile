@@ -1,8 +1,15 @@
 import {
   KycController,
   type KycControllerMessenger,
+  type KycTraceCallback,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
+import {
+  endTrace,
+  getPerformanceTimestamp,
+  trace,
+  TraceName,
+} from '../../../../util/trace';
 import {
   handleKycStatusChangedForMetrics,
   handleVerificationStatusChangedForMetrics,
@@ -33,8 +40,26 @@ export const kycControllerInit: MessengerClientInitFunction<
   KycController,
   KycControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  // `trackKycAnalytics` lands with the @metamask/kyc-controller release that
-  // adds it. The installed type does not include the option yet.
+  const traceProviderFlow: KycTraceCallback = (request, fn) => {
+    const traceRequest = {
+      name: TraceName.KycProviderFlow,
+      data: request.data,
+      id: request.id,
+      startTime: request.startTime,
+      tags: request.tags,
+      op: request.op,
+    };
+
+    // The launch has already finished. Record it as its own transaction and
+    // close it on the same performance clock as startTime.
+    trace({ ...traceRequest, forceTransaction: true });
+    endTrace({
+      name: TraceName.KycProviderFlow,
+      id: request.id,
+      timestamp: getPerformanceTimestamp(),
+    });
+    fn?.();
+  };
   const options = {
     messenger: controllerMessenger,
     state: persistedState.KycController,
@@ -43,6 +68,7 @@ export const kycControllerInit: MessengerClientInitFunction<
       verificationOutcome: handleVerificationStatusChangedForMetrics,
       statusChanged: handleKycStatusChangedForMetrics,
     },
+    trace: traceProviderFlow,
   };
   const controller = new KycController(options);
 
