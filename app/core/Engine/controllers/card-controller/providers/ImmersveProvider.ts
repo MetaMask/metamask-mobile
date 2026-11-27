@@ -1445,7 +1445,11 @@ export class ImmersveProvider implements ICardProvider {
         `/api/accounts/${accountId}/kyc-profile`,
         tokens,
       );
-      return profile?.region?.trim() || null;
+      const region = profile?.region?.trim();
+      if (!region) {
+        return null;
+      }
+      return region;
     } catch {
       return null;
     }
