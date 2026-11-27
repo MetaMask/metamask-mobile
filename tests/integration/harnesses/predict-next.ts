@@ -54,6 +54,7 @@ import {
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../../app/components/UI/PredictNext/auth/venueAuthProfiles';
 import {
   loadVenueProfile,
+  setVenueProfileResolverForTesting,
   VENUE_AUTHORIZATION_HEADER,
 } from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
 import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
@@ -71,6 +72,7 @@ import {
 import { fetchInitialGeolocation } from '../../../app/core/Engine/wallet-init/listeners/geolocation-controller';
 import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/messengers/predict-device-auth-service-messenger';
 import { getPredictVenueControllerMessenger } from '../../../app/core/Engine/messengers/predict-venue-controller-messenger';
+import { installVenueProfileFixture } from '../../helpers/predict/venueProfile';
 
 /**
  * PredictNext integration-test harnesses. `buildPredictDeviceAuthIntegrationHarness`
@@ -231,6 +233,7 @@ const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response =>
 export const buildPredictNextIntegrationHarness = (
   responder: PredictFetchResponder,
 ): PredictNextIntegrationHarness => {
+  installVenueProfileFixture();
   const messenger: PredictNextRootMessenger = new Messenger({
     namespace: 'Root',
   });
@@ -302,6 +305,7 @@ export const buildPredictNextIntegrationHarness = (
           header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
           body: rendered.body,
           idempotencyKey: rendered.idempotencyKey,
+          profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
         };
       },
       invalidateSigningSession: () => undefined,
@@ -316,7 +320,7 @@ export const buildPredictNextIntegrationHarness = (
         if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
           throw new Error(`Missing harness review payload for ${operation}`);
         }
-        return renderRequest(
+        const display = renderRequest(
           payloadName,
           {
             class: 'mutation',
@@ -332,6 +336,12 @@ export const buildPredictNextIntegrationHarness = (
             nowMs: Date.now(),
           },
         ).display;
+        return display
+          ? {
+              display,
+              profile: { version: profile.version, sha256: 'test-profile' },
+            }
+          : undefined;
       },
     },
   );
@@ -404,6 +414,7 @@ export const buildPredictNextIntegrationHarness = (
       liveDataService.destroy();
       marketDataService.destroy();
       portfolioService.destroy();
+      setVenueProfileResolverForTesting(undefined);
     },
   };
 };
@@ -461,6 +472,7 @@ interface PredictDeviceAuthIntegrationHarnessOptions {
 export const buildPredictDeviceAuthIntegrationHarness = (
   options: PredictDeviceAuthIntegrationHarnessOptions = {},
 ): PredictDeviceAuthIntegrationHarness => {
+  installVenueProfileFixture();
   const messenger: PredictDeviceAuthRootMessenger = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   });

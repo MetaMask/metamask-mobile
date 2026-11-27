@@ -30,6 +30,7 @@ interface RedeemModeConfig {
     withdraw: string;
     withdrawUnavailable: string;
     withdrawalSuccess: string;
+    withdrawalSuccessDescription?: string;
     withdrawalFailed: string;
     loadingError: string;
   };
@@ -54,6 +55,8 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
       withdraw: 'card.cashback_screen.withdraw',
       withdrawUnavailable: 'card.cashback_screen.withdraw_unavailable',
       withdrawalSuccess: 'card.cashback_screen.withdrawal_success',
+      withdrawalSuccessDescription:
+        'card.cashback_screen.withdrawal_success_description',
       withdrawalFailed: 'card.cashback_screen.withdrawal_failed',
       loadingError: 'card.cashback_screen.loading_error',
     },

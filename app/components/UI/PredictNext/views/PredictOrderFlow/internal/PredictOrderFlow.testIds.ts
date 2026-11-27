@@ -17,6 +17,7 @@ export const PredictOrderFlowTestIds = {
   QUICK_CONTRACT: (key: string) => `predict-order-flow-quick-contract-${key}`,
   HELD_CONTRACTS: 'predict-order-flow-held-contracts',
   NET_PROCEEDS_LINE: 'predict-order-flow-net-proceeds-line',
+  NET_PROCEEDS_INFO_ICON: 'predict-order-flow-net-proceeds-info-icon',
   CONTRACTS_INPUT_ERROR: 'predict-order-flow-contracts-input-error',
   NET_PROCEEDS: 'predict-order-flow-net-proceeds',
   PROCEEDS: 'predict-order-flow-proceeds',

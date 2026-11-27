@@ -78,16 +78,13 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       deterministicFiat: true,
     });
 
-    const editableRows = await waitFor(
-      () => {
-        const rows = getAllByTestId(
-          WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
-        );
-        expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
-        return rows;
-      },
-      { timeout: 5000 },
-    );
+    const editableRows = await waitFor(() => {
+      const rows = getAllByTestId(
+        WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
+      );
+      expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
+      return rows;
+    });
 
     editableRows.forEach((row, index) => {
       const assetId = NEWEST_FIRST_ASSET_IDS[index];
@@ -399,13 +396,10 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     );
     await userEvent.type(searchInput, SEARCH_TOKEN.symbol.toLowerCase());
 
-    await waitFor(
-      async () => {
-        const rows = getAllByTestId(WatchlistSearchRowItemTestIds.ROW);
-        expect(rows.length).toBeGreaterThan(0);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(async () => {
+      const rows = getAllByTestId(WatchlistSearchRowItemTestIds.ROW);
+      expect(rows.length).toBeGreaterThan(0);
+    });
 
     const searchRow = getAllByTestId(WatchlistSearchRowItemTestIds.ROW)[0];
     const starButton = within(searchRow).getByTestId(

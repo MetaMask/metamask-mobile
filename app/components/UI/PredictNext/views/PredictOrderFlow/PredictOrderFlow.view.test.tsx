@@ -1918,9 +1918,11 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('Buffalo Bills · 53¢');
+      const outcomeLabel = screen.getByTestId(
+        PredictOrderFlowTestIds.OUTCOME_LABEL,
+      );
+      expect(within(outcomeLabel).getByText('Buffalo Bills')).toBeOnTheScreen();
+      expect(within(outcomeLabel).getByText('· 53¢')).toBeOnTheScreen();
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
       ).toHaveTextContent('You hold 75 contracts');
@@ -1930,21 +1932,50 @@ describe('PredictOrderFlow', () => {
       expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
     });
 
-    it('keeps the Cash Out sheet as it was: Review order, generic terms, bare backspace', async () => {
+    it('prices the header from the quote once it arrives', async () => {
+      stubEchoingSellPreview();
+
+      await openSheet(SellProbe);
+      typeContracts('75');
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      expect(
+        within(
+          screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+        ).getByText('· 48¢'),
+      ).toBeOnTheScreen();
+    });
+
+    it('matches the buy sheet: buy-sized outcome label, pill chips, Cash out, venue terms, filled keys', async () => {
       stubEchoingSellPreview();
 
       await openSheet(SellProbe);
 
+      // One held Position: no outcome to switch to, so no swap icon.
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('Buffalo Bills · 53¢', { exact: true });
+        screen.queryByTestId('predict-order-flow-outcome-swap-icon'),
+      ).toBeNull();
+      expect(
+        within(
+          screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+        ).getByText('Buffalo Bills'),
+      ).toHaveStyle({ fontSize: 16 });
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
-      ).toHaveTextContent('Review order', { exact: true });
-      expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+      ).toHaveTextContent('Cash out', { exact: true });
+      expect(
+        await screen.findByText("By continuing, you accept Kalshi's terms."),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('75')),
       ).toBeNull();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('half')),
+      ).toHaveStyle({ height: 48 });
 
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
       const background = (key: string) =>
@@ -1953,7 +1984,83 @@ describe('PredictOrderFlow', () => {
             .style,
         ).backgroundColor;
       expect(background('1')).toBeDefined();
-      expect(background('delete')).toBeUndefined();
+      expect(background('delete')).toBe(background('1'));
+    });
+
+    it('renders Net proceeds with the info icon and opens Price details with the sell values', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }));
+
+      await openSheet(SellProbe);
+      const netProceeds = screen.getByTestId(
+        PredictOrderFlowTestIds.NET_PROCEEDS_LINE,
+      );
+      expect(
+        within(netProceeds).getByTestId(
+          PredictOrderFlowTestIds.NET_PROCEEDS_INFO_ICON,
+        ),
+      ).toBeOnTheScreen();
+
+      typeContracts('75');
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_LINE),
+      ).toHaveTextContent('Net proceeds $33.26');
+
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_INFO_ICON),
+      );
+
+      const details = within(
+        screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+      );
+      expect(
+        details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_HEADER),
+      ).toHaveTextContent('Price details');
+      expect(
+        details.getByText(
+          '~70 contracts at 48¢ each. Final amount may vary based on order book availability.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        details.getByTestId(PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT),
+      ).toHaveTextContent('$33.60');
+      expect(
+        details.getByTestId(PredictOrderFlowTestIds.DETAILS_METAMASK_FEE),
+      ).toHaveTextContent('$0.17');
+      expect(
+        details.getByTestId(PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE),
+      ).toHaveTextContent('$0.17');
+      expect(
+        details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
+      ).toHaveTextContent('$33.26');
+
+      fireEvent.press(
+        details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_CLOSE),
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.SHEET),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps Net proceeds inert until a quote exists', async () => {
+      stubEchoingSellPreview();
+
+      await openSheet(SellProbe);
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_LINE),
+      );
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+      ).not.toBeOnTheScreen();
     });
 
     it('enters whole contracts only: no decimal key and no leading zeros', async () => {

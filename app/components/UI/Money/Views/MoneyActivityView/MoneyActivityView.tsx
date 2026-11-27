@@ -90,6 +90,9 @@ function isPendingItem(item: MoneyActivityItem): boolean {
   if (item.kind === 'neobank') {
     return isNeobankPendingStatus(item.tx.status);
   }
+  if (item.kind === 'cashbackClaim') {
+    return item.claim.status === 'pending';
+  }
   return false;
 }
 
