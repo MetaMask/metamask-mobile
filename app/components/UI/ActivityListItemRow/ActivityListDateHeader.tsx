@@ -18,7 +18,7 @@ export const ActivityListDateHeader = ({
   const text = label ?? formatActivityListDateHeader(timestamp ?? 0);
 
   return (
-    <Box className="px-4 pt-4 pb-1">
+    <Box className="px-4 pb-1 pt-4">
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}

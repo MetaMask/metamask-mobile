@@ -161,7 +161,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             }}
             endAccessory={
               viewMoreLabel !== null ? (
-                <Box className="flex-1 justify-end items-end">
+                <Box className="flex-1 items-end justify-end">
                   <Pressable
                     onPress={() => handleViewMore(section)}
                     hitSlop={8}
@@ -315,7 +315,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     const showOtherResults = flatData.length > 0 && !isLoading;
     return (
       <Box className={showOtherResults ? 'mb-4' : ''}>
-        <Box className="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
+        {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
+        <Box className="bg-secondary mb-4 items-center rounded-xl px-4 py-6">
           <TabEmptyState
             description={
               emptyFeedTitle
@@ -344,7 +345,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                className="gap-2 mt-2"
+                className="mt-2 gap-2"
               >
                 {POPULAR_SEARCH_ASSETS.map((token, index) => (
                   <CryptoMoversPillItem

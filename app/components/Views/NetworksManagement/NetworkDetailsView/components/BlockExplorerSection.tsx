@@ -318,7 +318,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
       >
         {/* Block explorer list — always visible when items exist */}
         {blockExplorerUrls.length > 0 && (
-          <Box className="mx-4 rounded-xl overflow-hidden border border-border-muted">
+          <Box className="mx-4 overflow-hidden rounded-xl border border-border-muted">
             {blockExplorerUrls.map((url, index) => (
               <React.Fragment key={url}>
                 {index > 0 && <Box className="h-px bg-border-muted" />}
@@ -357,7 +357,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
             <View
               pointerEvents={isBlockExplorerSheetSubmitting ? 'none' : 'auto'}
             >
-              <Box className="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
+              <Box className="mx-4 mt-4 gap-4 rounded-xl bg-background-muted p-4">
                 <Box className="gap-1">
                   <Label>
                     {strings('app_settings.network_block_explorer_label')}

@@ -325,8 +325,8 @@ export const ExploreFeed: React.FC = () => {
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
       />
 
-      <Box className="gap-4 flex-1">
-        <Box className="mt-4 mb-2 flex-row items-center gap-2 px-4">
+      <Box className="flex-1 gap-4">
+        <Box className="mb-2 mt-4 flex-row items-center gap-2 px-4">
           <Box className="flex-1">
             <ExploreSearchBar
               type="button"
@@ -348,7 +348,7 @@ export const ExploreFeed: React.FC = () => {
               testID="trending-view-browser-button"
             >
               {browserTabsCount > 0 ? (
-                <Box className="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                <Box className="size-8 items-center justify-center rounded-lg border border-muted bg-section">
                   <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
                 </Box>
               ) : (

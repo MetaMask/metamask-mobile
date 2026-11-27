@@ -203,7 +203,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       {/* Token Info - matches TokenListItem balances style: flex-1, justify-center, ml-5 */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        className="flex-1 justify-center ml-5"
+        className="ml-5 flex-1 justify-center"
       >
         <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
           {token.name}

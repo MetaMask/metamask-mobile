@@ -56,7 +56,7 @@ export function ActivityFeeTokenValue({
   networkImageSource?: ImageSourcePropType;
 }) {
   return (
-    <Box className="flex-row items-center justify-end gap-2 shrink">
+    <Box className="shrink flex-row items-center justify-end gap-2">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -67,7 +67,7 @@ export function ActivityFeeTokenValue({
         {value}
       </Text>
       {symbol ? (
-        <Box className="flex-row items-center gap-1 shrink">
+        <Box className="shrink flex-row items-center gap-1">
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
             style={styles.tokenAvatarWrapper}

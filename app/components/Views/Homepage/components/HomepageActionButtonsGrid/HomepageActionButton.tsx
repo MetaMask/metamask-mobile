@@ -68,7 +68,7 @@ const HomepageActionButton = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              className={`h-14 w-14 rounded-full border border-muted ${
+              className={`size-14 rounded-full border border-muted ${
                 pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted'
               }`}
             >

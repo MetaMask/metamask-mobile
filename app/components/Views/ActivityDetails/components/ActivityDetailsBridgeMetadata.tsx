@@ -39,7 +39,7 @@ function BridgeNetworkValue({
   }
 
   return (
-    <Box className="flex-row items-center gap-2 shrink">
+    <Box className="shrink flex-row items-center gap-2">
       <ActivityDetailsNetworkValue chainId={sourceChainId} name={sourceName} />
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {'→'}

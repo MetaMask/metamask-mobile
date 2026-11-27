@@ -18,7 +18,8 @@ const PerpsMarketTileCardSkeleton: React.FC = () => (
     {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
       <Box
         key={i}
-        className={`w-[${CARD_WIDTH}px] h-[${CARD_HEIGHT}px] bg-muted rounded-xl p-4 justify-between`}
+        className="justify-between rounded-xl bg-muted p-4"
+        style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
         testID={HomepagePerpsSelectorsIDs.MARKET_TILE_CARD_SKELETON}
       >
         <Box

@@ -51,7 +51,7 @@ const DeleteNetworkModal = forwardRef<BottomSheetRef, DeleteNetworkModalProps>(
           {`${strings('app_settings.delete')} ${networkName} ${strings('app_settings.network')}`}
         </BottomSheetHeaderGlass>
         <Box alignItems={BoxAlignItems.Center} className="px-4">
-          <Text variant={TextVariant.BodyMd} className="text-center mb-4">
+          <Text variant={TextVariant.BodyMd} className="mb-4 text-center">
             {strings('app_settings.network_delete')}
           </Text>
           <BottomSheetFooter

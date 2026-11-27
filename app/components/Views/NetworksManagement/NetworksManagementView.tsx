@@ -165,7 +165,7 @@ const NetworksManagementView = () => {
         {/* Enabled Networks section */}
         {enabledNetworks.length > 0 && (
           <>
-            <Box className="flex-row items-center justify-between px-4 my-4">
+            <Box className="my-4 flex-row items-center justify-between px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -181,7 +181,7 @@ const NetworksManagementView = () => {
         {/* Additional Networks section */}
         {availableNetworks.length > 0 && (
           <>
-            <Box className="flex-row items-center justify-between px-4 my-4">
+            <Box className="my-4 flex-row items-center justify-between px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -203,7 +203,7 @@ const NetworksManagementView = () => {
         {/* Test Networks section */}
         {testNetworks.length > 0 && (
           <>
-            <Box className="flex-row items-center justify-between px-4 my-4">
+            <Box className="my-4 flex-row items-center justify-between px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -218,7 +218,7 @@ const NetworksManagementView = () => {
       </ScrollView>
 
       {/* Sticky footer — Add network button */}
-      <Box className="py-1 px-4">
+      <Box className="px-4 py-1">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}

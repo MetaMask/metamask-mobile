@@ -78,7 +78,7 @@ const HomepageBalanceBreakdownHero = ({
       }}
       onPress={togglePrivacy}
       testID={HomepageBalanceBreakdownTestIds.HERO}
-      className="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
+      className="mx-4 h-auto flex-col items-start justify-start self-stretch overflow-visible rounded-none bg-transparent p-0"
     >
       <Animated.View style={animatedBalanceStyle}>
         {privacyMode ? (

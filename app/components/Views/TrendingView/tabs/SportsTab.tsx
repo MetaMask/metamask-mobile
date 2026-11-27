@@ -205,7 +205,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
-        className="mt-3 mb-9"
+        className="mb-9 mt-3"
       >
         <TouchableOpacity
           onPress={active.fetchMore}

@@ -297,7 +297,7 @@ const SocialAINotificationPreferencesContent = ({
       )}
 
       <Box
-        className={`${horizontalPaddingClassName} pt-5 pb-2`}
+        className={`${horizontalPaddingClassName} pb-2 pt-5`}
         testID={NotificationPreferencesSelectorsIDs.TRADERS_SECTION}
       >
         <Text

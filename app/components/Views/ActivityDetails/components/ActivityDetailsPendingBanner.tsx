@@ -65,7 +65,7 @@ export function ActivityDetailsPendingBanner({
 
   return (
     <Box
-      className="rounded-2xl bg-muted p-4 mb-4 gap-3"
+      className="mb-4 gap-3 rounded-2xl bg-muted p-4"
       testID={ActivityDetailsSelectorsIDs.PENDING_BANNER}
     >
       <Box className="flex-row items-center gap-2">

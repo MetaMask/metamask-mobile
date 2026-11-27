@@ -275,7 +275,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
         value={effectiveActiveKey}
         onChange={handleSelectPill}
         variant={FilterButtonVariant.Primary}
-        className="px-4 pt-4 pb-2"
+        className="px-4 pb-2 pt-4"
         testID={`${testIdPrefix}-pills`}
       >
         {visiblePills.map(({ key, labelKey, iconName }) =>

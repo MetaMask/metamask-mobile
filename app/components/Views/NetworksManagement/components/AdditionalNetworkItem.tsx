@@ -34,7 +34,7 @@ const AdditionalNetworkItem = ({ item, onAdd }: AdditionalNetworkItemProps) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      className="pl-4 py-4 pr-2"
+      className="py-4 pl-4 pr-2"
       testID={NetworksManagementViewSelectorsIDs.NETWORK_ITEM(item.chainId)}
     >
       <Box

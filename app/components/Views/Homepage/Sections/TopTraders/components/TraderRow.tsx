@@ -103,7 +103,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             ) : null}
           </View>
 
-          <Box className="flex-1 min-w-0">
+          <Box className="min-w-0 flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

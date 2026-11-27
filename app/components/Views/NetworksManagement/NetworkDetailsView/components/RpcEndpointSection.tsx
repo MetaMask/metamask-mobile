@@ -433,7 +433,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
       >
         {/* RPC list — always visible when items exist */}
         {rpcUrls.length > 0 && (
-          <Box className="mx-4 rounded-xl overflow-hidden border border-border-muted">
+          <Box className="mx-4 overflow-hidden rounded-xl border border-border-muted">
             {rpcUrls.map((endpoint, index) => (
               <React.Fragment key={`${endpoint.url}-${endpoint.name}`}>
                 {index > 0 && <Box className="h-px bg-border-muted" />}
@@ -473,7 +473,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
             pointerEvents={showForm ? 'auto' : 'none'}
           >
             <View pointerEvents={isRpcSheetSubmitting ? 'none' : 'auto'}>
-              <Box className="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
+              <Box className="mx-4 mt-4 gap-4 rounded-xl bg-background-muted p-4">
                 <RpcFormFields
                   inputRpcURL={inputRpcURL}
                   inputNameRpcURL={inputNameRpcURL}

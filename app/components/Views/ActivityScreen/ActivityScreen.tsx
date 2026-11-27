@@ -425,7 +425,7 @@ const ActivityScreen = () => {
   );
 
   const solidPinnedFilterBar = isFilterBarPinned ? (
-    <Box className="absolute top-0 left-0 right-0 bg-default">
+    <Box className="absolute inset-x-0 top-0 bg-default">
       {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
       <Box className="pb-4">
         <TextFieldSearch

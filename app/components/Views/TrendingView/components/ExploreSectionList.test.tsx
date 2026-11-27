@@ -9,15 +9,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     Box: ({
-      twClassName,
+      className,
       children,
       testID,
     }: {
-      twClassName?: string;
+      className?: string;
       children: React.ReactNode;
       testID?: string;
     }) => (
-      <View testID={testID} accessibilityLabel={twClassName}>
+      <View testID={testID} accessibilityLabel={className}>
         {children}
       </View>
     ),

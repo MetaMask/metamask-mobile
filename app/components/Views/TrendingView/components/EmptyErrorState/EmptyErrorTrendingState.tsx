@@ -17,25 +17,25 @@ const EmptyErrorTrendingState: React.FC<EmptyErrorTrendingStateProps> = ({
 }) => (
   <Box
     testID="empty-error-trending-state"
-    className="flex-col pt-9 pb-24 justify-center items-center gap-3 flex-1"
+    className="flex-1 flex-col items-center justify-center gap-3 pb-24 pt-9"
   >
-    <Box className="flex-col w-[337px] items-stretch">
+    <Box className="w-[337px] flex-col items-stretch">
       <Text
         variant={TextVariant.HeadingSm}
-        className="text-default text-center self-stretch mb-2"
+        className="mb-2 self-stretch text-center text-default"
       >
         {strings('trending.empty_error_trending_state.title')}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
-        className="text-alternative text-center self-stretch font-medium"
+        className="self-stretch text-center font-medium text-alternative"
       >
         {strings('trending.empty_error_trending_state.description')}
       </Text>
       {onRetry && (
         <Button
           variant={ButtonVariant.Primary}
-          className="self-stretch mt-6"
+          className="mt-6 self-stretch"
           onPress={onRetry}
           testID="empty-error-trending-state--retry-button"
         >

@@ -97,7 +97,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             testID={getTopTraderAvatarTestId(trader.id)}
           />
 
-          <Box className="flex-1 min-w-0">
+          <Box className="min-w-0 flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

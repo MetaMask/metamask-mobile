@@ -34,14 +34,14 @@ export function ActivityDetailsAccountValue({
   const displayAddress = renderShortAddress(address);
 
   return (
-    <Box className="flex-row items-center justify-end gap-1 shrink">
+    <Box className="shrink flex-row items-center justify-end gap-1">
       <AvatarAccount
         address={address}
         variant={accountVariant}
         size={AvatarBaseSize.Sm}
       />
       {accountName ? (
-        <Box className="flex-row items-center shrink">
+        <Box className="shrink flex-row items-center">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
