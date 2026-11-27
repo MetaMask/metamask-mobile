@@ -132,7 +132,10 @@ import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
 import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
 import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
-import { BridgeTabKey } from '../BridgeView.constants';
+import {
+  BridgeTabKey,
+  QUOTED_TYPED_FIAT_RATE_TOLERANCE,
+} from '../BridgeView.constants';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -208,6 +211,7 @@ const BridgeMarketViewContent = ({
     isFiatToggleEnabled,
     sourceAmount,
     sourceToken,
+    typedFiatRateTolerance: QUOTED_TYPED_FIAT_RATE_TOLERANCE,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;

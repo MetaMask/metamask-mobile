@@ -72,6 +72,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { BridgeTabKey } from './BridgeView.constants';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../components/RecurringScheduleFields/RecurringScheduleFields.testIds';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 
 const HOUR_MS = 60 * 60 * 1000;
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
@@ -1481,6 +1482,68 @@ describeForPlatforms('BridgeView', () => {
       },
       { timeout: 5000 },
     );
+  });
+
+  it('keeps a typed fiat amount and moves the token amount when the source price changes', async () => {
+    const { getByTestId, getByText, findByDisplayValue, findByText, store } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '0',
+          sourceToken: ETH_SOURCE,
+          destToken: undefined,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              inputPrimaryDenomination: 'fiat_value',
+            },
+          },
+        },
+      });
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(getByText('5'));
+    fireEvent.press(getByText('0'));
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBe('0.025');
+    });
+
+    const { AssetsController } = store.getState().engine.backgroundState;
+    const engineWithState = Engine as unknown as {
+      state?: Record<string, unknown>;
+    };
+    const previousEngineState = engineWithState.state;
+    engineWithState.state = {
+      ...previousEngineState,
+      AssetsController: {
+        ...AssetsController,
+        assetsPrice: {
+          ...AssetsController.assetsPrice,
+          'eip155:1/slip44:60': {
+            ...AssetsController.assetsPrice['eip155:1/slip44:60'],
+            price: 2500,
+            usdPrice: 2500,
+          },
+        },
+      },
+    };
+    act(() => {
+      store.dispatch(updateBgState({ key: 'AssetsController' }));
+    });
+    engineWithState.state = previousEngineState;
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBe('0.02');
+    });
+    expect(await findByDisplayValue('50')).toBeOnTheScreen();
+    expect(await findByText('0.02 ETH')).toBeOnTheScreen();
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {

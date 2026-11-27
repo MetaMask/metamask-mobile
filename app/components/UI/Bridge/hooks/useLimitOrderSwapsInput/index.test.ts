@@ -180,6 +180,21 @@ describe('useLimitOrderSwapInputs', () => {
     );
   });
 
+  it('re-derives the token amount of a typed fiat amount on every rate move', () => {
+    renderLimitOrderSwapInputsHook(
+      {
+        sourceToken: createMockToken({ chainId: '0x1' }),
+        destToken: undefined,
+        sourceAmount: '0.02',
+      },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ typedFiatRateTolerance: 0 }),
+    );
+  });
+
   describe('handleSourcePresetAmountSelect', () => {
     it('sets the source amount to the preset value and keeps the fiat amount in sync', () => {
       const { result } = renderLimitOrderSwapInputsHook(

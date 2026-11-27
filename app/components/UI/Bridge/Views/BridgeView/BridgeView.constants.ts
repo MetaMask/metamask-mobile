@@ -21,6 +21,13 @@ export const TAB_TO_FEATURE_ID = {
 export const DEBOUNCE_WAIT = 300;
 
 /**
+ * Fraction a rate may move before a typed fiat amount re-derives its token
+ * amount on quoted tabs. Every token amount change there re-quotes, so small
+ * rate moves are absorbed instead of re-quoting on each rate update.
+ */
+export const QUOTED_TYPED_FIAT_RATE_TOLERANCE = 0.005;
+
+/**
  * Feature IDs that have been migrated to use the SwapQuotesProvider
  * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
  */
