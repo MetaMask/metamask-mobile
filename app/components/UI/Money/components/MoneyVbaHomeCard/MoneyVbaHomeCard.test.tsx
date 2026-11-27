@@ -729,12 +729,9 @@ describe('MoneyVbaHomeCard', () => {
     openSupportUrl(consentedUrl);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: consentedUrl,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: consentedUrl,
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
   });
 

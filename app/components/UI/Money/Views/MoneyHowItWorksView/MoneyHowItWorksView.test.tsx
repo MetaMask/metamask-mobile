@@ -206,12 +206,9 @@ describe('MoneyHowItWorksView', () => {
 
     expect(openURLSpy).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.CARD.CARD_FEES_URL,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: AppConstants.CARD.CARD_FEES_URL,
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
   });
 

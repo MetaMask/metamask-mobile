@@ -181,11 +181,8 @@ const RewardsMoneyClaimsPausedModal: React.FC<
 
   const handleTerms = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: termsUrl,
-        timestamp: Date.now(),
-      },
+      newTabUrl: termsUrl,
+      timestamp: Date.now(),
     });
   }, [navigation, termsUrl]);
 

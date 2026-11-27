@@ -64,7 +64,7 @@ export const useOptout = (): UseOptoutResult => {
         dispatch(resetRewardsState());
 
         // Navigate to home screen then show "Request received" banner
-        navigation.navigate(Routes.WALLET_VIEW);
+        navigation.navigate(Routes.WALLET.HOME);
         showToast(
           RewardsToastOptions.warning(
             strings('rewards.optout.request_received.title'),

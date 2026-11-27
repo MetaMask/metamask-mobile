@@ -214,8 +214,8 @@ describe('RewardsMoneyClaimsPausedModal', () => {
       getRouteParamsProbeTestId(Routes.BROWSER.HOME),
     );
     expect(JSON.parse(String(browserProbe.props.children))).toEqual({
-      screen: Routes.BROWSER.VIEW,
-      params: { newTabUrl: TERMS_URL, timestamp: expect.any(Number) },
+      newTabUrl: TERMS_URL,
+      timestamp: expect.any(Number),
     });
   });
 

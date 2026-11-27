@@ -43,7 +43,7 @@ export const useMusdConfirmNavigation = () => {
       return;
     }
 
-    navigation.navigate(Routes.WALLET_VIEW);
+    navigation.navigate(Routes.WALLET.HOME);
   }, [handleMoneyHubNavigation, isMoneyHubEnabled, navigation]);
 
   return {
