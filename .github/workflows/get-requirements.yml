@@ -27,7 +27,7 @@ on:
         description: 'Space-separated list of changed component view test file paths (*.view.test.tsx) only — never the full changed-file list. The component-view-flakiness-detection job uses this to re-run modified CV tests N times for flakiness detection on PRs targeting main.'
         value: ${{ jobs.detect-changes.outputs.changed_cv_test_files }}
       jest_related_only:
-        description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that change no Jest or Babel config or Babel script, dependency manifest, lockfile, patch, Jest setup file, mock, or component-view or integration test helper (see jest_full_run_triggers in filter-rules.yml) and whose changed file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
+        description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that delete or rename no file, change no Jest or Babel config or Babel script, dependency manifest, lockfile, patch, Jest setup file, mock, or component-view or integration test helper (see jest_full_run_triggers in filter-rules.yml) and whose changed file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
         value: ${{ jobs.detect-changes.outputs.jest_related_only }}
       jest_related_files:
         description: 'Newline-separated list of changed files to pass to jest --findRelatedTests. Empty unless jest_related_only is true.'
@@ -189,7 +189,8 @@ jobs:
       # filter-rules.yml), keeps the full sharded suite. The file list ends up in
       # command-line arguments of the Jest shards, so it is capped and validated
       # here; a list that is too long or has an unusual path falls back to the full
-      # suite. Jest ignores files it cannot follow, including deleted ones.
+      # suite. A pull request that deletes or renames a file also keeps the full
+      # suite, because Jest cannot follow a path that no longer exists.
       # Put [full-jest] in the head commit message to force the full suite.
       - name: Resolve Jest test scope
         id: jest-scope
@@ -197,6 +198,7 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           JEST_FULL_RUN_TRIGGERS_COUNT: ${{ steps.filter.outputs.jest_full_run_triggers_count }}
+          JEST_REMOVED_FILES_COUNT: ${{ steps.filter.outputs.jest_removed_files_count }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_LIST: ${{ steps.filter.outputs.all_changes_count <= 300 && steps.filter.outputs.all_changes_files || '' }}
         run: |
@@ -227,6 +229,8 @@ jobs:
             reason="[full-jest] tag in the head commit message"
           elif [[ "${JEST_FULL_RUN_TRIGGERS_COUNT:-0}" -gt 0 ]]; then
             reason="${JEST_FULL_RUN_TRIGGERS_COUNT} changed file(s) can affect every test (Jest or Babel config, Babel scripts, dependency manifests, lockfile, patches, Jest setup, mocks, or component-view or integration test helpers)"
+          elif [[ "${JEST_REMOVED_FILES_COUNT:-0}" -gt 0 ]]; then
+            reason="${JEST_REMOVED_FILES_COUNT} deleted or renamed file(s); related runs cannot follow a missing path"
           elif [[ "${ALL_CHANGES_COUNT:-0}" -eq 0 ]]; then
             reason="no changed files"
           elif [[ "${ALL_CHANGES_COUNT}" -gt "$MAX_FILES" ]]; then

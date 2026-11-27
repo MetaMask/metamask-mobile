@@ -153,6 +153,9 @@ ios_or_ignorable:
 # manifests, the lockfile and patches, and the setup files, mocks and shared
 # component-view and integration test helpers that suites load without
 # importing them, so the import graph cannot link them to any test.
+# A pull request that deletes or renames a file also runs the full suite
+# (`jest_removed_files`): Jest cannot follow a path that no longer exists, so
+# the tests that imported it would not be selected.
 # Merge queue, push and scheduled runs always run the full suite regardless of
 # these filters.
 jest_full_run_triggers:
@@ -166,6 +169,9 @@ jest_full_run_triggers:
   - '**/__mocks__/**'
   - 'tests/component-view/**'
   - 'tests/integration/**'
+
+jest_removed_files:
+  - deleted|renamed: '**'
 
 # JEST DOCS-ONLY DETECTION
 # Used to skip the unit, component-view and integration Jest jobs on pull
