@@ -13,6 +13,8 @@ import { AccessibilityInfo } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
@@ -65,6 +67,7 @@ import {
   expectPredictNextGameCard,
   expectPredictNextSmallGameCard,
   feedScreenTabLabels,
+  makePredictNextEvent,
   makePredictNextGameEvent,
   makePredictNextSummary,
   makePredictNextTrade,
@@ -76,6 +79,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
   publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
+  resetPredictNextCatalog,
   routePredictPortfolioServicesTo,
   waitForPredictFeedQueries,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -85,6 +89,8 @@ const {
   ncaaGames: NCAA_GAMES_FEED_ID,
   politicsTrump: POLITICS_TRUMP_FEED_ID,
 } = PREDICT_NEXT_FEED_IDS;
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 /** The pagination dots are hidden from screen readers. */
 const HIDDEN = { includeHiddenElements: true };
@@ -560,7 +566,7 @@ describe('PredictHome', () => {
       return tabs;
     };
 
-    it('reads six NFL, four NCAAF and two Politics Events', async () => {
+    it('reads six NFL, four NCAAF and seven Politics Events', async () => {
       renderPredictNext();
 
       await waitFor(() => {
@@ -580,7 +586,7 @@ describe('PredictHome', () => {
           'PredictMarketDataService:getFeed',
           'kalshi',
           POLITICS_TRUMP_FEED_ID,
-          { limit: 2 },
+          { limit: 7 },
         );
       });
     });
@@ -1770,7 +1776,7 @@ describe('PredictHome', () => {
         'PredictMarketDataService:getFeed',
         'kalshi',
         POLITICS_TRUMP_FEED_ID,
-        { limit: 2 },
+        { limit: 7 },
       );
     });
 
@@ -1858,6 +1864,139 @@ describe('PredictHome', () => {
             feedId === POLITICS_TRUMP_FEED_ID,
         ),
       ).toHaveLength(0);
+    });
+  });
+
+  describe('V1 Home (PRED-1609)', () => {
+    const LIVE_GAMES_FEED_ID = 'live-games-feed' as PredictFeedId;
+    const TRENDING_FEED_ID = 'trending-feed' as PredictFeedId;
+    const liveGames = [
+      makePredictNextGameEvent('live-1', 'Bills', 'Rams', 'NFL'),
+      makePredictNextGameEvent('live-2', 'Chiefs', 'Broncos', 'NFL'),
+    ];
+    const markets = Array.from({ length: 8 }, (_, index) => ({
+      ...makePredictNextEvent(`market-${index + 1}`, `Market ${index + 1}?`),
+      category: 'Economics',
+    }));
+    /** Trending ranks the Live now Games among its first Events. */
+    const trendingEvents = [
+      liveGames[0],
+      markets[0],
+      liveGames[1],
+      ...markets.slice(1),
+    ];
+
+    beforeEach(() => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          'live-games': LIVE_GAMES_FEED_ID,
+          trending: TRENDING_FEED_ID,
+        },
+        home: {
+          sections: [
+            {
+              kind: 'trending',
+              sources: ['live-games'],
+              title: 'Live now',
+              limit: 5,
+              screen: 'sports',
+            },
+            { kind: 'categories' },
+            {
+              kind: 'feed-preview',
+              id: 'trending',
+              title: 'Trending',
+              feed: 'trending',
+              limit: 5,
+              screen: 'trending',
+            },
+          ],
+        },
+      });
+      mockPredictNextMessenger(
+        (action: string, venueId: string, feedId: string) => {
+          if (action === 'PredictMarketDataService:getFeed') {
+            const events =
+              feedId === LIVE_GAMES_FEED_ID ? liveGames : trendingEvents;
+            return Promise.resolve({ venueId, id: feedId, title: '', events });
+          }
+          if (action === 'PredictPortfolioService:getBalance') {
+            return Promise.resolve({
+              venueId,
+              currency: 'USD',
+              available: '1',
+            });
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+    });
+
+    afterEach(() => {
+      resetPredictNextCatalog();
+      netInfoMock.__resetMockNetInfo();
+    });
+
+    it('shows Live now, the Categories, then five Trending Events Live now does not show', async () => {
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.section('trending'),
+      );
+      await waitFor(() =>
+        expect(rowEventIds(trending)).toEqual([
+          'market-1',
+          'market-2',
+          'market-3',
+          'market-4',
+          'market-5',
+        ]),
+      );
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(['live-1', 'live-2']);
+      expect(
+        within(
+          view.getByTestId(PredictHomeTestIds.sectionHeader('trending')),
+        ).getByText(strings('predict_next.home_feed.trending')),
+      ).toBeOnTheScreen();
+      const sectionIds: string[] = [
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.CATEGORIES_LIST,
+        PredictHomeTestIds.section('trending'),
+      ];
+      const sectionsInOrder = view.UNSAFE_root.findAll((node) =>
+        sectionIds.includes(node.props.testID),
+      ).map((node) => node.props.testID);
+      expect([...new Set(sectionsInOrder)]).toEqual(sectionIds);
+      expect(
+        feedCalls(TRENDING_FEED_ID).map(([, , , params]) => params),
+      ).toEqual([{ limit: 10 }]);
+    });
+
+    it('shows three Trending Events on a slow cellular link', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'cellular',
+        isInternetReachable: true,
+        details: { cellularGeneration: '3g' },
+      });
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.section('trending'),
+      );
+      await waitFor(() =>
+        expect(rowEventIds(trending)).toEqual([
+          'market-1',
+          'market-2',
+          'market-3',
+        ]),
+      );
+      expect(
+        feedCalls(TRENDING_FEED_ID).map(([, , , params]) => params),
+      ).toEqual([{ limit: 8 }]);
     });
   });
 

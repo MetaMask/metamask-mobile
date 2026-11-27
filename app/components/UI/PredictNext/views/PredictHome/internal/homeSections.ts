@@ -21,23 +21,48 @@ const TRENDING_LIMIT = 5;
 const TRENDING_PER_READ = 2;
 /** Most cards a games row shows. */
 const GAMES_ROW_LIMIT = 6;
+/** How many Events a preview shows when its section serves no `limit`. */
+const DEFAULT_PREVIEW_LIMIT = 2;
+/**
+ * How many more Events a preview reads than it shows, so that it still fills
+ * when sections above it show some of its Events: as many as the Trending
+ * carousel shows, on any device, since Live now Games are often among the
+ * Events a Trending Feed ranks first.
+ */
+const PREVIEW_READ_MARGIN = TRENDING_LIMIT;
 
-type FeedReadingKind = Exclude<PredictHomeSection['kind'], 'categories'>;
+type GamesReadingKind = Extract<
+  PredictHomeSection['kind'],
+  'trending' | 'games-row'
+>;
 
 /**
- * How many Events one read asks for, by the kind of section that reads it.
- * A games row reads more than it may show because Trending above it can take
- * some of its Games; Trending reads up to two cards per source and a few more
- * to fill the carousel; a preview shows what it reads. Constrained devices
- * get shorter lists (device-capability UX matrix).
+ * How many Events one read asks for, by the kind of games section that reads
+ * it. A games row reads more than it may show because Trending above it can
+ * take some of its Games; Trending reads up to two cards per source and a few
+ * more to fill the carousel. Constrained devices get shorter lists
+ * (device-capability UX matrix).
  */
 const READ_SIZES: Record<
-  FeedReadingKind,
+  GamesReadingKind,
   { standard: number; constrained: number }
 > = {
   trending: { standard: 4, constrained: 2 },
   'games-row': { standard: 6, constrained: 4 },
-  'feed-preview': { standard: 2, constrained: 1 },
+};
+
+/**
+ * How many Events a preview shows: its section's `limit`, or two. A
+ * constrained device shows half, rounded up (device-capability UX matrix:
+ * a short list on low-end hardware, fewer previews on a slow link), so a
+ * preview of two shows one and Trending's five shows three.
+ */
+const getPreviewLimit = (
+  section: Extract<PredictHomeSection, { kind: 'feed-preview' }>,
+  isConstrained: boolean,
+): number => {
+  const limit = section.limit ?? DEFAULT_PREVIEW_LIMIT;
+  return isConstrained ? Math.ceil(limit / 2) : limit;
 };
 
 /**
@@ -74,8 +99,13 @@ export const planHomeFeedReads = (
     if (section.kind === 'categories') {
       continue;
     }
-    const sizes = READ_SIZES[section.kind];
-    const limit = isConstrained ? sizes.constrained : sizes.standard;
+    let limit: number;
+    if (section.kind === 'feed-preview') {
+      limit = getPreviewLimit(section, isConstrained) + PREVIEW_READ_MARGIN;
+    } else {
+      const sizes = READ_SIZES[section.kind];
+      limit = isConstrained ? sizes.constrained : sizes.standard;
+    }
     for (const feedKey of getHomeSectionFeedKeys(section)) {
       const planned = plan.find((read) => read.feedKey === feedKey);
       if (planned) {
@@ -125,6 +155,8 @@ export type HomeSectionView<TRead extends HomeFeedReadEvents> =
       id: string;
       title: string;
       screen: string;
+      /** How many Events the preview shows, and skeletons while it loads. */
+      limit: number;
       events: PredictEvent[];
       /** The preview's own read. */
       read: TRead | undefined;
@@ -198,8 +230,9 @@ const sectionKey = (section: PredictHomeSection): string =>
  * Chooses each Home section's Events from the Feed reads, in catalog order.
  * Trending ranks its sources' Games (see {@link selectTrendingEvents}); a
  * games row shows its Feed's Games, up to six; a preview shows its Feed's
- * Events. No Event shows twice: each section drops the Events a section
- * above it shows.
+ * first Events, up to its limit (see {@link getPreviewLimit}). No Event shows
+ * twice: each section drops the Events a section above it shows, and a
+ * preview reads more than it shows to fill its limit after that.
  *
  * Trending and the games rows wait for their own reads and for those of every
  * games section above them, so a row never paints Games a row above it is
@@ -212,6 +245,7 @@ const sectionKey = (section: PredictHomeSection): string =>
 export const selectHomeSections = <TRead extends HomeFeedReadEvents>(
   sections: readonly PredictHomeSection[],
   reads: readonly TRead[],
+  isConstrained: boolean,
 ): HomeSections<TRead> => {
   const readOf = (feedKey: PredictFeedKey): TRead | undefined =>
     reads.find((read) => read.feedKey === feedKey);
@@ -235,8 +269,10 @@ export const selectHomeSections = <TRead extends HomeFeedReadEvents>(
     });
     if (section.kind === 'feed-preview') {
       const read = sectionReads[0];
-      const events = read?.events.filter((event) => !isShown(event)) ?? [];
-      return { ...section, key, events: show(events), read };
+      const limit = getPreviewLimit(section, isConstrained);
+      const events =
+        read?.events.filter((event) => !isShown(event)).slice(0, limit) ?? [];
+      return { ...section, key, limit, events: show(events), read };
     }
     gamesReads.push(...sectionReads);
     const isLoading =
@@ -282,6 +318,7 @@ const KNOWN_SECTION_TITLES: Readonly<
   Record<string, { key: string; english: string }>
 > = {
   sports: { key: 'predict_next.home_feed.sports', english: 'Sports' },
+  trending: { key: 'predict_next.home_feed.trending', english: 'Trending' },
   politics: {
     key: 'predict_next.home_categories.politics',
     english: 'Politics',

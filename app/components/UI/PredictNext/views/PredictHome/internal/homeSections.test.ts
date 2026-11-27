@@ -2,6 +2,7 @@ import {
   makePredictNextEvent,
   makePredictNextGameEvent,
 } from '../../../../../../../tests/component-view/fixtures/predictNext';
+import { strings } from '../../../../../../../locales/i18n';
 import type { PredictVenueCapabilities } from '../../../capabilities';
 import type {
   PredictEvent,
@@ -17,6 +18,11 @@ import {
   selectHomeSections,
   type HomeFeedReadEvents,
 } from './homeSections';
+
+jest.mock('../../../../../../../locales/i18n', () => {
+  const actual = jest.requireActual('../../../../../../../locales/i18n');
+  return { ...actual, strings: jest.fn(actual.strings) };
+});
 
 const game = (id: string, status: PredictGameStatus = 'scheduled') =>
   makePredictNextGameEvent(id, `${id} away`, `${id} home`, 'NFL', { status });
@@ -81,8 +87,9 @@ const politics = [
 const selectRows = (
   reads: HomeFeedReadEvents[],
   sections: PredictHomeSection[] = KALSHI_HOME,
+  isConstrained = false,
 ) => {
-  const home = selectHomeSections(sections, reads);
+  const home = selectHomeSections(sections, reads, isConstrained);
   const eventsOf = (kind: string) =>
     home.sections.flatMap((section) =>
       section.kind === kind && 'events' in section ? [section.events] : [],
@@ -235,6 +242,7 @@ describe('selectHomeSections', () => {
       expect(home.sections[3]).toEqual({
         ...KALSHI_HOME[3],
         key: 'feed-preview-politics',
+        limit: 2,
         events: politics,
         read: reads[2],
       });
@@ -265,8 +273,77 @@ describe('selectHomeSections', () => {
       expect(ids(rows.sections[0].events)).toEqual([
         'politics-game',
         'politics-1',
-        'politics-2',
       ]);
+    });
+  });
+
+  describe('V1 Trending preview', () => {
+    /** PRED-1609's Home: Live now, the Categories, and Trending. */
+    const V1_HOME: PredictHomeSection[] = [
+      {
+        kind: 'trending',
+        sources: ['live-games'],
+        title: 'Live now',
+        limit: 5,
+        screen: 'sports',
+      },
+      { kind: 'categories' },
+      {
+        kind: 'feed-preview',
+        id: 'trending',
+        title: 'Trending',
+        feed: 'trending',
+        limit: 5,
+        screen: 'trending',
+      },
+    ];
+    const markets = (count: number) =>
+      Array.from({ length: count }, (_, index) =>
+        makePredictNextEvent(`market-${index + 1}`, `Market ${index + 1}?`),
+      );
+    const liveGames = [
+      game('live-1', 'in_progress'),
+      game('live-2', 'in_progress'),
+    ];
+    const preview = (rows: ReturnType<typeof selectRows>) =>
+      rows.home.sections.find(({ kind }) => kind === 'feed-preview');
+
+    it("shows the preview's limit of Events", () => {
+      const rows = selectRows([read('trending', markets(10))], V1_HOME);
+
+      expect(ids(rows.sections[0].events)).toEqual(ids(markets(5)));
+      expect(preview(rows)).toMatchObject({ limit: 5 });
+    });
+
+    it('shows two Events when the section serves no limit', () => {
+      const { limit: _limit, ...unlimited } = V1_HOME[2] as Extract<
+        PredictHomeSection,
+        { kind: 'feed-preview' }
+      >;
+
+      const rows = selectRows([read('trending', markets(10))], [unlimited]);
+
+      expect(ids(rows.sections[0].events)).toEqual(['market-1', 'market-2']);
+    });
+
+    it('shows three of five on a constrained device', () => {
+      const rows = selectRows([read('trending', markets(10))], V1_HOME, true);
+
+      expect(ids(rows.sections[0].events)).toEqual(ids(markets(3)));
+      expect(preview(rows)).toMatchObject({ limit: 3 });
+    });
+
+    it('fills its limit from the rest of its read when Live now shows its first Events', () => {
+      const rows = selectRows(
+        [
+          read('live-games', liveGames),
+          read('trending', [...liveGames, ...markets(5)]),
+        ],
+        V1_HOME,
+      );
+
+      expect(ids(rows.trending)).toEqual(['live-1', 'live-2']);
+      expect(ids(rows.sections[0].events)).toEqual(ids(markets(5)));
     });
   });
 
@@ -366,7 +443,7 @@ describe('selectHomeSections', () => {
     });
 
     it('returns no sections for an empty layout', () => {
-      expect(selectHomeSections([], homeReads({})).sections).toEqual([]);
+      expect(selectHomeSections([], homeReads({}), false).sections).toEqual([]);
     });
   });
 
@@ -445,7 +522,7 @@ describe('planHomeFeedReads', () => {
     },
   } as unknown as PredictVenueCapabilities;
 
-  it('reads six NFL, four NCAAF and two Politics Events for Kalshi', () => {
+  it('reads six NFL, four NCAAF and seven Politics Events for Kalshi', () => {
     expect(planHomeFeedReads(KALSHI_HOME, capabilities, false)).toEqual([
       { feedKey: 'nfl-games', feedId: 'nfl-feed' as PredictFeedId, limit: 6 },
       {
@@ -456,7 +533,7 @@ describe('planHomeFeedReads', () => {
       {
         feedKey: 'politics-trump',
         feedId: 'trump-feed' as PredictFeedId,
-        limit: 2,
+        limit: 7,
       },
     ]);
   });
@@ -466,8 +543,35 @@ describe('planHomeFeedReads', () => {
       planHomeFeedReads(KALSHI_HOME, capabilities, true).map(
         ({ limit }) => limit,
       ),
-    ).toEqual([4, 2, 1]);
+    ).toEqual([4, 2, 6]);
   });
+
+  it.each([
+    [false, 10],
+    [true, 8],
+  ])(
+    "reads a preview's limit and five more on a constrained device: %s",
+    (isConstrained, expected) => {
+      const sections: PredictHomeSection[] = [
+        {
+          kind: 'feed-preview',
+          id: 'politics',
+          title: 'Politics',
+          feed: 'politics-trump',
+          limit: 5,
+          screen: 'politics',
+        },
+      ];
+
+      expect(planHomeFeedReads(sections, capabilities, isConstrained)).toEqual([
+        {
+          feedKey: 'politics-trump',
+          feedId: 'trump-feed',
+          limit: expected,
+        },
+      ]);
+    },
+  );
 
   it('reads a Feed two sections share once, in first-read order', () => {
     const sections: PredictHomeSection[] = [
@@ -482,7 +586,7 @@ describe('planHomeFeedReads', () => {
     ];
 
     expect(planHomeFeedReads(sections, capabilities, false)).toEqual([
-      { feedKey: 'nfl-games', feedId: 'nfl-feed', limit: 4 },
+      { feedKey: 'nfl-games', feedId: 'nfl-feed', limit: 7 },
       { feedKey: 'college-football-games', feedId: 'ncaa-feed', limit: 4 },
     ]);
   });
@@ -518,6 +622,17 @@ describe('getHomeSectionTitle', () => {
   it("uses the app's translated copy for a known section the server titles as usual", () => {
     expect(getHomeSectionTitle('sports', 'Sports')).toBe('Sports');
     expect(getHomeSectionTitle('politics', 'Politics')).toBe('Politics');
+    expect(getHomeSectionTitle('trending', 'Trending')).toBe('Trending');
+  });
+
+  it('translates Trending with the Home feed copy', () => {
+    jest.mocked(strings).mockReturnValueOnce('Tendencias');
+
+    expect(getHomeSectionTitle('trending', 'Trending')).toBe('Tendencias');
+    expect(strings).toHaveBeenLastCalledWith(
+      'predict_next.home_feed.trending',
+      { defaultValue: 'Trending' },
+    );
   });
 
   it("uses the server's title when it retitles a known section", () => {

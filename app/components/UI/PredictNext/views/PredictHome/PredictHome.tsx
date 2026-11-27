@@ -83,6 +83,8 @@ interface PredictHomeViewProps {
   sections: readonly PredictHomeSection[];
   /** One read per entry of Home's read plan. */
   reads: readonly HomeFeedRead[];
+  /** Whether Home reads and shows short lists (see `useHomeReadSize`). */
+  isConstrained: boolean;
 }
 
 const PredictHomeView = ({
@@ -90,6 +92,7 @@ const PredictHomeView = ({
   capabilities,
   sections,
   reads,
+  isConstrained,
 }: PredictHomeViewProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
@@ -105,8 +108,8 @@ const PredictHomeView = ({
   // until the next Feed read (see selectHomeSections). Rows still loading
   // show skeletons, so their partial picks are neither shown nor watched.
   const home = useMemo(
-    () => selectHomeSections(sections, reads),
-    [sections, reads],
+    () => selectHomeSections(sections, reads, isConstrained),
+    [sections, reads, isConstrained],
   );
   const sectionKeys = useMemo(
     () => home.sections.map((section) => section.key),
@@ -318,6 +321,7 @@ const PredictHomeView = ({
             sectionId={section.id}
             onLayout={onSectionLayout(section.key)}
             title={getHomeSectionTitle(section.id, section.title)}
+            limit={section.limit}
             events={section.events}
             isLoading={read.isLoading}
             isError={read.isError}
@@ -538,6 +542,7 @@ export const PredictHome = () => {
           capabilities={capabilities}
           sections={sections}
           reads={reads}
+          isConstrained={isConstrained ?? false}
         />
       )}
     </HomeFeedReads>

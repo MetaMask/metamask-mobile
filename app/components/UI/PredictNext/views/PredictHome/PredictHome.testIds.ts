@@ -62,6 +62,9 @@ export const PredictHomeTestIds = {
     `predict-next-home-section-header-${sectionId}`,
   sectionLoading: (sectionId: string) =>
     `predict-next-home-section-loading-${sectionId}`,
+  /** One card skeleton of a loading Feed preview section. */
+  sectionSkeleton: (sectionId: string) =>
+    `predict-next-home-section-skeleton-${sectionId}`,
   sectionError: (sectionId: string) =>
     `predict-next-home-section-error-${sectionId}`,
   sectionEmpty: (sectionId: string) =>
