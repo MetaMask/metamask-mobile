@@ -18,7 +18,7 @@ export interface WithTransientRetryOptions {
   delayMs?: number;
 }
 
-const delay = (ms: number): Promise<void> =>
+const delay = async (ms: number): Promise<void> =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });

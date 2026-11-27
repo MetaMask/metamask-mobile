@@ -547,7 +547,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
 
     // Retry on transient BLE errors (e.g., device switching apps).
     return withTransientRetry(
-      () => this.#doEnsureDeviceReady(deviceId, options),
+      async () => this.#doEnsureDeviceReady(deviceId, options),
       {
         isTransient: (error) => this.#isTransientBleError(error),
         onRetry: (error) => {
