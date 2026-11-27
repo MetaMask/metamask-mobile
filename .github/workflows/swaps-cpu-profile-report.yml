@@ -1,4 +1,4 @@
-# Weekly Swaps CPU profile report (shadow mode); scenarios and channel are in .github/scripts/swaps/cpu-profile-report/swaps-cpu-profile-report.config.mjs.
+# Weekly Swaps CPU profile report; scenarios and channel are in .github/scripts/swaps/cpu-profile-report/swaps-cpu-profile-report.config.mjs.
 
 name: Swaps CPU Profile Report
 
