@@ -55,13 +55,13 @@ describe('useExploreSearchFooterPress', () => {
         query_length: 11,
       });
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: expect.objectContaining({
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
           newTabUrl: url,
           fromTrending: true,
         }),
-      });
+      );
     },
   );
 

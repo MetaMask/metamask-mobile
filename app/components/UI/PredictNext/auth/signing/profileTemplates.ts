@@ -1,13 +1,13 @@
 /**
- * Venue request templates and their renderer (ADR-0004).
+ * Venue request templates and their renderer (ADR-0004, ADR-0005).
  *
- * One payload kind of the signed profile document — `http-rfc9421` — is
+ * One payload kind of the venue profile — `http-rfc9421` — is
  * rendered here into the exact bytes the phone signs and sends. The rules
  * are self-contained: a `RequestTemplate` names its method, path, query,
  * body fields and idempotency key as `Source` selectors over the user's
  * inputs and locally computed values, and `renderRequest` produces the
  * rendered request or refuses with a `TemplateError`. Nothing here talks to
- * the network; callers find the payload in the verified profile document and
+ * the network; callers find the payload in the resolved venue profile and
  * adapt it to a `RequestTemplate`.
  *
  * The phone checks invariants on the rendered body text before it signs and

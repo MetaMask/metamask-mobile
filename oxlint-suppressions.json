@@ -9388,21 +9388,8 @@
       "count": 1
     }
   },
-  "app/components/UI/PredictNext/auth/venueSigningProfileDocument.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/PredictNext/auth/venueSigningProfileV3.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/auth/venueSigningProfiles.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 2
-    },
-    "typescript/promise-function-async": {
       "count": 2
     }
   },
@@ -9579,11 +9566,6 @@
     },
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/UI/PredictNext/services/PredictDeviceAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 7
     }
   },
   "app/components/UI/PredictNext/services/PredictDeviceAuthService.ts": {
@@ -15102,9 +15084,6 @@
     }
   },
   "app/components/Views/EditAccountName/EditAccountName.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -15934,9 +15913,6 @@
     }
   },
   "app/components/Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -16013,14 +15989,8 @@
     }
   },
   "app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkOperations.ts": {
-    "typescript/await-thenable": {
-      "count": 1
-    },
     "typescript/no-floating-promises": {
       "count": 2
-    },
-    "typescript/prefer-optional-chain": {
-      "count": 1
     },
     "typescript/unbound-method": {
       "count": 3
@@ -24976,7 +24946,7 @@
       "count": 5
     },
     "typescript/promise-function-async": {
-      "count": 6
+      "count": 4
     },
     "typescript/unbound-method": {
       "count": 1

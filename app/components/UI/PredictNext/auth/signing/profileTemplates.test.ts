@@ -7,22 +7,20 @@ import {
   type Transform,
 } from './profileTemplates';
 import {
-  loadVenueProfile,
+  validateSigningProfile,
   type BodyField,
   type HttpRfc9421Payload,
   type SigningProfile,
 } from '../venueSigningProfiles';
+import { TEST_VENUE_PROFILE_RAW } from '../../../../../../tests/fixtures/predict/venueProfiles';
 
-// The bundled trading profile document; `loadVenueProfile` verifies it.
-let profile: SigningProfile;
-
-beforeAll(async () => {
-  profile = (await loadVenueProfile()) as SigningProfile;
-});
+const profile = validateSigningProfile(
+  JSON.parse(TEST_VENUE_PROFILE_RAW),
+) as SigningProfile;
 
 const NOW = 1_700_000_000_000;
 
-/** The bundled mutation payloads all carry a body; the document type allows
+/** The fixture mutation payloads all carry a body; the document type allows
  * a bodyless GET, so narrow once here instead of at every field. */
 const payloadBody = (
   payload: HttpRfc9421Payload,
