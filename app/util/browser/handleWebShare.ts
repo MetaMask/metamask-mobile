@@ -85,45 +85,19 @@ const interpretRNShareResult = (result: { action: string }): WebShareResult =>
     ? { status: 'cancelled' }
     : { status: 'success' };
 
+// Keep the page url in `message`: RN's iOS `url` field also accepts local paths.
 const shareTextOnly = async (
   param: WebShareAPIParam,
 ): Promise<WebShareResult> => {
-  const shareOptions = {
-    dialogTitle: param.title,
-    subject: param.title,
-  };
-
-  if (Platform.OS === 'ios') {
-    if (param.text) {
-      const result = await RNShare.share(
-        {
-          ...(param.title && { title: param.title }),
-          message: param.text,
-          ...(param.url && { url: param.url }),
-        },
-        shareOptions,
-      );
-      return interpretRNShareResult(result);
-    }
-    if (param.url) {
-      const result = await RNShare.share(
-        {
-          ...(param.title && { title: param.title }),
-          url: param.url,
-        },
-        shareOptions,
-      );
-      return interpretRNShareResult(result);
-    }
-    return { status: 'success' };
-  }
-
   const result = await RNShare.share(
     {
       ...(param.title && { title: param.title }),
       message: buildShareMessage(param) ?? '',
     },
-    shareOptions,
+    {
+      dialogTitle: param.title,
+      subject: param.title,
+    },
   );
   return interpretRNShareResult(result);
 };
