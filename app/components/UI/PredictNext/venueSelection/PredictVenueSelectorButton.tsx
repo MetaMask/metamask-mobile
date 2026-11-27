@@ -27,7 +27,7 @@ export interface PredictVenueSelectorButtonProps {
   variant: 'standard' | 'glass' | 'glass-group';
 }
 
-const hasVenueChoice = (venues: readonly PredictConfiguredVenue[]) =>
+const hasVenueChoice = (venues: readonly PredictConfiguredVenue[]): boolean =>
   venues.length >= 2;
 
 /**
@@ -70,7 +70,7 @@ export const PredictVenueSelectorButton = ({
     accessibilityRole: 'button',
   };
 
-  const renderButton = () => {
+  const renderButton = (): React.JSX.Element => {
     switch (variant) {
       case 'glass':
         return <ButtonIconGlass isCapsule {...buttonProps} />;

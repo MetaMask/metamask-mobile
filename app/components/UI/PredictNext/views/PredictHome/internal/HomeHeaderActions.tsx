@@ -56,7 +56,7 @@ const DebugTrigger = ({
   variant,
 }: {
   variant: 'standard' | 'grouped' | 'own-capsule';
-}) => (
+}): React.JSX.Element => (
   <KalshiDebugPanel
     renderTrigger={(open) => {
       switch (variant) {
@@ -84,7 +84,7 @@ const DebugTrigger = ({
 export const HomeHeaderActions = ({
   variant,
   onSearch,
-}: HomeHeaderActionsProps) => {
+}: HomeHeaderActionsProps): React.JSX.Element => {
   const isVenueSelectorShown = useIsVenueSelectorShown();
 
   if (variant === 'standard') {
