@@ -1,4 +1,10 @@
 import type { PredictMarket, PredictSeries } from '../types';
+import {
+  formatWindowCountdown,
+  getAlignedWindowStartMs,
+  getWindowProgressRemaining,
+  getWindowTimeRemainingMs,
+} from '../windowClock/windowClock';
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
@@ -37,16 +43,8 @@ export const getSeriesDurationMs = (recurrence?: string): number => {
     : DEFAULT_SERIES_MARKET_DURATION_MS;
 };
 
-export const getCurrentSeriesWindowMs = (
-  durationMs: number,
-  nowMs = Date.now(),
-): number => {
-  if (!Number.isFinite(nowMs) || durationMs <= 0) {
-    return 0;
-  }
-
-  return Math.floor(nowMs / durationMs) * durationMs;
-};
+/** Moved to `windowClock` as `getAlignedWindowStartMs`. Same behaviour. */
+export const getCurrentSeriesWindowMs = getAlignedWindowStartMs;
 
 export const getSeriesMarketWindow = ({
   anchorMs,
@@ -63,50 +61,17 @@ export const getSeriesMarketWindow = ({
   endDateMax: new Date(anchorMs + lookahead * durationMs).toISOString(),
 });
 
+/** Moved to `windowClock` as `getWindowTimeRemainingMs`. Same behaviour. */
 export const getSeriesMarketTimeRemainingMs = (
   endDate?: string,
   nowMs = Date.now(),
-): number | undefined => {
-  if (!endDate) {
-    return undefined;
-  }
+): number | undefined => getWindowTimeRemainingMs({ endsAt: endDate }, nowMs);
 
-  const endDateMs = new Date(endDate).getTime();
-  if (!Number.isFinite(endDateMs)) {
-    return undefined;
-  }
-
-  return Math.max(0, endDateMs - nowMs);
-};
-
+/** Moved to `windowClock` as `formatWindowCountdown`. Same behaviour. */
 export const formatSeriesMarketCountdown = (
   endDate?: string,
   nowMs = Date.now(),
-): string => {
-  const remainingMs = getSeriesMarketTimeRemainingMs(endDate, nowMs);
-  if (typeof remainingMs !== 'number') {
-    return '--:--';
-  }
-
-  if (remainingMs <= 0) {
-    return '00:00';
-  }
-
-  const totalSeconds = Math.ceil(remainingMs / 1000);
-  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const minutes = Math.floor(
-    (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
-  );
-  const seconds = totalSeconds % SECONDS_PER_MINUTE;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
-  }
-
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-};
+): string => formatWindowCountdown({ endsAt: endDate }, nowMs);
 
 const pluralize = (count: number, unit: string): string =>
   `${count} ${unit}${count === 1 ? '' : 's'}`;
@@ -146,22 +111,12 @@ export const formatSeriesDuration = (durationMs: number): string => {
   return `${minutes} min`;
 };
 
+/** Moved to `windowClock` as `getWindowProgressRemaining`. Same behaviour. */
 export const getSeriesMarketProgressRemaining = (
   endDate: string | undefined,
   durationMs: number,
   nowMs = Date.now(),
-): number => {
-  if (durationMs <= 0) {
-    return 0;
-  }
-
-  const remainingMs = getSeriesMarketTimeRemainingMs(endDate, nowMs);
-  if (typeof remainingMs !== 'number') {
-    return 0;
-  }
-
-  return Math.min(remainingMs / durationMs, 1);
-};
+): number => getWindowProgressRemaining({ endsAt: endDate }, nowMs, durationMs);
 
 /**
  * Returns the market with the smallest positive time remaining (i.e. the

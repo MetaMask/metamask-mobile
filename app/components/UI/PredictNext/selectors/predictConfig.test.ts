@@ -1,5 +1,8 @@
 import type { RootState } from '../../../../reducers';
-import { selectPredictConfig } from './predictConfig';
+import {
+  selectPredictConfig,
+  selectPredictCryptoUpDownEnabled,
+} from './predictConfig';
 
 const createState = (remote: unknown, override?: unknown): RootState =>
   ({
@@ -48,5 +51,31 @@ describe('selectPredictConfig', () => {
     const result = selectPredictConfig(state);
 
     expect(result).toEqual(override);
+  });
+});
+
+describe('selectPredictCryptoUpDownEnabled', () => {
+  it('is off for a config without the flag', () => {
+    expect(selectPredictCryptoUpDownEnabled(createState(enabledConfig))).toBe(
+      false,
+    );
+  });
+
+  it('is on when the remote flag is on', () => {
+    const state = createState({
+      ...enabledConfig,
+      venues: {
+        ...enabledConfig.venues,
+        kalshi: { enabled: true, cryptoUpDown: { enabled: true } },
+      },
+    });
+
+    expect(selectPredictCryptoUpDownEnabled(state)).toBe(true);
+  });
+
+  it('is off when no config is set', () => {
+    expect(selectPredictCryptoUpDownEnabled(createState(undefined))).toBe(
+      false,
+    );
   });
 });

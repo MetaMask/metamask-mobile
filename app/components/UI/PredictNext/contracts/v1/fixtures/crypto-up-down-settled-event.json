@@ -1,0 +1,49 @@
+{
+  "venueId": "kalshi",
+  "id": "KXBTC15M-26NOV261815",
+  "title": "Bitcoin up or down",
+  "subtitle": "Nov 26 · 6:00PM to 6:15PM EST",
+  "category": "crypto",
+  "startsAt": "2026-11-26T23:00:00.000Z",
+  "closesAt": "2026-11-26T23:15:00.000Z",
+  "markets": [
+    {
+      "id": "KXBTC15M-26NOV261815-15",
+      "question": "BTC price up in next 15 mins?",
+      "status": "finalized",
+      "result": "no",
+      "settlementValue": "0",
+      "outcomes": [
+        {
+          "id": "KXBTC15M-26NOV261815-15:yes",
+          "side": "yes",
+          "label": "Up",
+          "bidPrice": "0",
+          "askPrice": "0.01"
+        },
+        {
+          "id": "KXBTC15M-26NOV261815-15:no",
+          "side": "no",
+          "label": "Down",
+          "bidPrice": "0.99",
+          "askPrice": "1"
+        }
+      ],
+      "opensAt": "2026-11-26T23:00:00.000Z",
+      "closesAt": "2026-11-26T23:15:00.000Z"
+    }
+  ],
+  "window": {
+    "kind": "crypto_up_down",
+    "coin": "BTC",
+    "priceToBeat": "60542.28",
+    "settledPrice": "60461.27",
+    "priceDecimals": 2,
+    "indexName": "CF Benchmarks BRTI",
+    "averagingSeconds": 60,
+    "next": {
+      "eventId": "KXBTC15M-26NOV261830",
+      "opensAt": "2026-11-26T23:15:00.000Z"
+    }
+  }
+}

@@ -1,10 +1,12 @@
 import {
   boolean,
+  coerce,
   mask,
   object,
   optional,
   string,
   type Struct,
+  unknown,
 } from '@metamask/superstruct';
 import {
   resolveBundledAuthenticationProfile,
@@ -33,7 +35,17 @@ export interface PredictConfig {
      * `DEFAULT_KALSHI_AUTH_PROFILE_ID`. An id this build does not bundle
      * leaves Kalshi authentication off.
      */
-    kalshi: { enabled: boolean; authProfileId?: string };
+    kalshi: {
+      enabled: boolean;
+      authProfileId?: string;
+      /**
+       * The crypto Up/Down window cards. Default off: an absent or malformed
+       * value means off. Setting `enabled` to `false` is the Up/Down kill
+       * switch. It works alone, so the rest of Kalshi stays on. Turning the
+       * Kalshi Venue (or Predict) off also turns Up/Down off.
+       */
+      cryptoUpDown?: { enabled: boolean };
+    };
   };
   /** Whether a Venue Selection Preference is honored. */
   venueSelection: { enabled: boolean };
@@ -49,9 +61,23 @@ export const DEFAULT_PREDICT_CONFIG: PredictConfig = {
 };
 
 const enabledSchema = object({ enabled: boolean() });
+// A malformed Up/Down flag turns only Up/Down off. It must not reject the
+// whole config, which would turn Kalshi off with it.
+const cryptoUpDownSchema = coerce(
+  optional(enabledSchema),
+  unknown(),
+  (value) => {
+    try {
+      return mask(value, enabledSchema);
+    } catch {
+      return undefined;
+    }
+  },
+);
 const kalshiSchema = object({
   enabled: boolean(),
   authProfileId: optional(string()),
+  cryptoUpDown: cryptoUpDownSchema,
 });
 const predictConfigSchema = object({
   enabled: boolean(),
@@ -96,3 +122,12 @@ export const resolveVenueAuthProfile = (
   }
   return resolveSelectedAuthProfile(config);
 };
+
+/**
+ * Whether the crypto Up/Down cards may show. Needs Predict on, the Kalshi
+ * Venue on and the Up/Down flag on, so either kill switch turns it off.
+ */
+export const isCryptoUpDownEnabled = (config: PredictConfig): boolean =>
+  config.enabled &&
+  config.venues.kalshi.enabled &&
+  config.venues.kalshi.cryptoUpDown?.enabled === true;

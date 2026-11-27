@@ -187,6 +187,34 @@ export interface PredictSettlementSource {
   url: PredictHttpsUrl;
 }
 
+/**
+ * A crypto Up/Down round: will the coin's index price end above the price to
+ * beat at the window close? The window's own times stay on the Event
+ * (`startsAt` is the open time, `closesAt` the close time).
+ */
+export interface PredictCryptoUpDownWindow {
+  kind: 'crypto_up_down';
+  /** The coin's ticker, for example `BTC`. */
+  coin: string;
+  /** Absent from Kalshi just after the open; `null` means "not set yet". */
+  priceToBeat: string | null;
+  /**
+   * The settled index price. `null` (or absent) until Kalshi determines the
+   * market, a few seconds after the close. The payout stays on the Market.
+   */
+  settledPrice?: string | null;
+  /** Decimal places to show for index prices. */
+  priceDecimals: number;
+  indexName: string;
+  /** Length of the average that settles the Market. */
+  averagingSeconds: number;
+  /** The round that opens when this one closes. */
+  next?: { eventId: PredictEntityId; opensAt: PredictTimestamp };
+}
+
+/** The timed-window context of an Event. A missing value is a standard Event. */
+export type PredictEventWindow = PredictCryptoUpDownWindow;
+
 export interface PredictEvent {
   venueId: PredictVenueId;
   id: PredictEntityId;
@@ -202,6 +230,8 @@ export interface PredictEvent {
   volume24h?: string;
   imageUrl?: string;
   sports?: PredictSportsContext;
+  /** Present on a timed-window Event such as a crypto Up/Down round. */
+  window?: PredictEventWindow;
   settlementSources?: readonly PredictSettlementSource[];
   markets: readonly PredictMarket[];
 }

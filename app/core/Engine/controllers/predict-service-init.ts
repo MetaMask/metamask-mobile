@@ -77,13 +77,24 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
     venueId: KALSHI_VENUE_ID,
     resolveEvent: (venueId, eventId) =>
       initMessenger.call('PredictMarketDataService:getEvent', venueId, eventId),
-    createClient: ({ onGameUpdate, onQuoteUpdate }) =>
+    createClient: ({
+      onGameUpdate,
+      onQuoteUpdate,
+      onIndexSnapshot,
+      onIndexUpdate,
+      onIndexError,
+      onIndexReleased,
+    }) =>
       new PredictLiveDataClient({
         baseUrl: getPredictApiUrl(),
         getBearerToken: () =>
           initMessenger.call('AuthenticationController:getBearerToken'),
         onGameUpdate,
         onQuoteUpdate,
+        onIndexSnapshot,
+        onIndexUpdate,
+        onIndexError,
+        onIndexReleased,
       }),
   });
 

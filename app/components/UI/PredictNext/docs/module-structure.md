@@ -71,6 +71,8 @@ PredictNext/
       findGameSelectionQuote.ts
       findWinnerMarketQuotes.ts
       useGameTeamColors.ts     # Team colors with the theme fallback
+    window/
+      index.ts                 # Timed-window Events (Up/Down): getEventLiveWindow and useLiveIndexSeries
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition

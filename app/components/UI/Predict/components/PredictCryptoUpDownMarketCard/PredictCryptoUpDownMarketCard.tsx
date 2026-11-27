@@ -1,15 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useSyncExternalStore,
-} from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
-import { Image } from 'expo-image';
 import Svg, {
-  Circle,
   Defs,
   LinearGradient,
   Line as SvgLine,
@@ -65,11 +56,8 @@ import {
 } from '../../utils/cryptoUpDown';
 import { formatPrice } from '../../utils/format';
 import {
-  getCurrentSeriesWindowMs,
-  formatSeriesMarketCountdown,
   getSeriesDurationMs,
   formatSeriesDuration,
-  getSeriesMarketProgressRemaining,
   getSeriesMarketWindow,
   resolvePredictSeriesMarket,
   type PredictMarketWithSeries,
@@ -78,6 +66,12 @@ import { getPredictBuyPrice } from '../../utils/prices';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
+import {
+  LiveStatus,
+  __resetCardClockForTest,
+  useSharedBucketedNowMs,
+  useSharedSeriesWindowMs,
+} from '../../windowClock';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -123,8 +117,6 @@ const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
   '4h': 4 * 60 * 60 * 1000,
   daily: 24 * 60 * 60 * 1000,
 };
-const PROGRESS_RING_SIZE = 54;
-const PROGRESS_RING_STROKE_WIDTH = 4;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -132,33 +124,10 @@ const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
 };
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
-const CLOCK_UPDATE_OFFSET_MS = 50;
 
-interface CardClock {
-  listeners: Set<() => void>;
-  nowMs: number;
-  timeout: ReturnType<typeof setTimeout> | undefined;
-}
-
-const cardClock: CardClock = {
-  listeners: new Set(),
-  nowMs: Date.now(),
-  timeout: undefined,
-};
-
-/**
- * Test-only: resets the shared card clock so tests don't leak listeners or
- * timers across cases. Mirrors the reference-counter teardown used by
- * `PredictPreviewSheetContext` (PR #30219).
- */
-export const __resetCardClockForTest = () => {
-  if (cardClock.timeout) {
-    clearTimeout(cardClock.timeout);
-  }
-  cardClock.listeners.clear();
-  cardClock.timeout = undefined;
-  cardClock.nowMs = Date.now();
-};
+// The shared clock moved to `windowClock`. Keep the old export so existing
+// tests that reset the clock through this module keep working.
+export { __resetCardClockForTest };
 
 type SparklinePoint = LivelinePoint;
 
@@ -207,69 +176,6 @@ const formatCents = (price?: number) => {
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
-
-const scheduleClockTick = () => {
-  const delayMs = 1000 - (Date.now() % 1000) + CLOCK_UPDATE_OFFSET_MS;
-
-  cardClock.timeout = setTimeout(() => {
-    cardClock.timeout = undefined;
-    cardClock.nowMs = Date.now();
-    cardClock.listeners.forEach((listener) => listener());
-
-    if (cardClock.listeners.size > 0) {
-      scheduleClockTick();
-    }
-  }, delayMs);
-};
-
-const subscribeClock = (listener: () => void) => {
-  cardClock.listeners.add(listener);
-  cardClock.nowMs = Date.now();
-
-  if (!cardClock.timeout) {
-    scheduleClockTick();
-  }
-
-  return () => {
-    cardClock.listeners.delete(listener);
-
-    if (cardClock.listeners.size === 0 && cardClock.timeout) {
-      clearTimeout(cardClock.timeout);
-      cardClock.timeout = undefined;
-    }
-  };
-};
-
-const getClockSnapshot = () => cardClock.nowMs;
-
-const useSharedNowMs = () =>
-  useSyncExternalStore(subscribeClock, getClockSnapshot, getClockSnapshot);
-
-const useSharedSeriesWindowMs = (durationMs: number) => {
-  const getWindowSnapshot = useCallback(
-    () => getCurrentSeriesWindowMs(durationMs, cardClock.nowMs),
-    [durationMs],
-  );
-
-  return useSyncExternalStore(
-    subscribeClock,
-    getWindowSnapshot,
-    getWindowSnapshot,
-  );
-};
-
-const useSharedBucketedNowMs = (bucketMs: number) => {
-  const getBucketSnapshot = useCallback(
-    () => Math.floor(cardClock.nowMs / bucketMs) * bucketMs,
-    [bucketMs],
-  );
-
-  return useSyncExternalStore(
-    subscribeClock,
-    getBucketSnapshot,
-    getBucketSnapshot,
-  );
-};
 
 const getChartDisplayDurationMs = (recurrence: string, durationMs: number) =>
   CHART_DISPLAY_DURATION_BY_RECURRENCE_MS[recurrence] ?? durationMs;
@@ -806,155 +712,6 @@ const Sparkline = React.memo(
 );
 Sparkline.displayName = 'Sparkline';
 
-const ProgressLogo = React.memo(
-  ({
-    imageUrl,
-    progress,
-    color,
-    trackColor,
-  }: {
-    imageUrl?: string;
-    progress: number;
-    color: string;
-    trackColor: string;
-  }) => {
-    const tw = useTailwind();
-    const ringSize = PROGRESS_RING_SIZE;
-    const strokeWidth = PROGRESS_RING_STROKE_WIDTH;
-    const radius = (ringSize - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference * (1 - progress);
-
-    return (
-      <Box
-        twClassName="items-center justify-center"
-        style={tw.style({ width: ringSize, height: ringSize })}
-      >
-        <Box twClassName="absolute inset-0">
-          <Svg
-            width={ringSize}
-            height={ringSize}
-            viewBox={`0 0 ${ringSize} ${ringSize}`}
-          >
-            <Circle
-              cx={ringSize / 2}
-              cy={ringSize / 2}
-              r={radius}
-              stroke={trackColor}
-              strokeOpacity={0.7}
-              strokeWidth={strokeWidth}
-              fill="transparent"
-            />
-            <Circle
-              cx={ringSize / 2}
-              cy={ringSize / 2}
-              r={radius}
-              stroke={color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${circumference} ${circumference}`}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="transparent"
-              transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
-            />
-          </Svg>
-        </Box>
-        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              style={tw.style('h-full w-full')}
-              contentFit="cover"
-              recyclingKey={imageUrl}
-            />
-          ) : (
-            <Box twClassName="h-full w-full bg-muted" />
-          )}
-        </Box>
-      </Box>
-    );
-  },
-);
-ProgressLogo.displayName = 'ProgressLogo';
-
-const LiveStatus = React.memo(
-  ({
-    endDate,
-    durationMs,
-    imageUrl,
-    accentColor,
-    trackColor,
-    compact,
-  }: {
-    endDate?: string;
-    durationMs: number;
-    imageUrl?: string;
-    accentColor: string;
-    trackColor: string;
-    compact?: boolean;
-  }) => {
-    const tw = useTailwind();
-    const nowMs = useSharedNowMs();
-    const countdown = formatSeriesMarketCountdown(endDate, nowMs);
-    const progressRemaining = getSeriesMarketProgressRemaining(
-      endDate,
-      durationMs,
-      nowMs,
-    );
-
-    const logo = (
-      <ProgressLogo
-        imageUrl={imageUrl}
-        progress={progressRemaining}
-        color={accentColor}
-        trackColor={trackColor}
-      />
-    );
-
-    const badge = (
-      <Box
-        testID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
-        <Box
-          twClassName="mr-1.5 h-2 w-2 rounded-full"
-          style={tw.style({ backgroundColor: accentColor })}
-        />
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          style={tw.style({ color: accentColor })}
-        >
-          LIVE · {countdown}
-        </Text>
-      </Box>
-    );
-
-    if (compact) {
-      return (
-        <Box twClassName="items-center gap-2">
-          {logo}
-          {badge}
-        </Box>
-      );
-    }
-
-    return (
-      <>
-        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
-          {logo}
-        </Box>
-        <Box twClassName="absolute left-0 right-0 top-[171px] items-center">
-          {badge}
-        </Box>
-      </>
-    );
-  },
-);
-LiveStatus.displayName = 'LiveStatus';
-
 const OutcomeButtons = React.memo(
   ({
     upToken,
@@ -1347,11 +1104,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
           <Box twClassName="items-center">
             <LiveStatus
               compact
-              endDate={selectedMarket.endDate}
+              endsAt={selectedMarket.endDate}
               durationMs={durationMs}
               imageUrl={imageUrl}
               accentColor={accentColor}
               trackColor={colors.border.muted}
+              badgeTestID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
             />
             <Text
               variant={TextVariant.BodyMd}
@@ -1453,11 +1211,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
         ) : null}
 
         <LiveStatus
-          endDate={selectedMarket.endDate}
+          endsAt={selectedMarket.endDate}
           durationMs={durationMs}
           imageUrl={imageUrl}
           accentColor={accentColor}
           trackColor={colors.border.muted}
+          badgeTestID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
         />
 
         <Text

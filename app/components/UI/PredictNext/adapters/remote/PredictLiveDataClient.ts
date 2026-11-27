@@ -11,6 +11,9 @@ import { PREDICT_NEXT_FEATURE_NAME } from '../../constants';
 import {
   parsePredictLiveDataServerFrame,
   type PredictGameLive,
+  type PredictIndexError,
+  type PredictIndexLive,
+  type PredictIndexSnapshot,
   type PredictLiveDataServerFrame,
   type PredictLiveDataTopic,
   type PredictQuote,
@@ -31,6 +34,9 @@ export const PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION = 50;
 export const PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE = 100;
 export const PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION = 250;
 export const PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_MESSAGE = 100;
+// The gateway's welcome limits for `index`, until `welcome` says otherwise.
+export const PREDICT_LIVE_DATA_DEFAULT_INDEX_MAX_PER_CONNECTION = 8;
+export const PREDICT_LIVE_DATA_DEFAULT_INDEX_MAX_PER_MESSAGE = 4;
 
 /**
  * Per-topic wire vocabulary: the key the subscribe frame carries its ids under,
@@ -47,6 +53,11 @@ const TOPICS = {
     defaultMaxPerConnection:
       PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION,
     defaultMaxPerMessage: PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_MESSAGE,
+  },
+  index: {
+    idsKey: 'events',
+    defaultMaxPerConnection: PREDICT_LIVE_DATA_DEFAULT_INDEX_MAX_PER_CONNECTION,
+    defaultMaxPerMessage: PREDICT_LIVE_DATA_DEFAULT_INDEX_MAX_PER_MESSAGE,
   },
 } as const satisfies Record<
   PredictLiveDataTopic,
@@ -70,7 +81,34 @@ export interface PredictLiveDataClientOptions {
   AppState?: AppStateApi;
   onGameUpdate: (game: PredictGameLive) => void;
   onQuoteUpdate: (quote: PredictQuote) => void;
+  /** The window so far, sent once per `index` subscription. */
+  onIndexSnapshot?: (snapshot: PredictIndexSnapshot) => void;
+  /** A live index tick. */
+  onIndexUpdate?: (index: PredictIndexLive) => void;
+  /**
+   * An `error` frame that names a watched `index` Event. The client does not
+   * log these: a stale feed can repeat the frame, and the watcher decides
+   * when to back off and stop.
+   */
+  onIndexError?: (error: PredictIndexError) => void;
+  /**
+   * The server dropped these watched Events on its own (a window that closed
+   * more than 30 s ago). The client has already removed them from its
+   * refcount; this is not an error.
+   */
+  onIndexReleased?: (eventIds: readonly PredictEntityId[]) => void;
 }
+
+/**
+ * Error codes after which the server does not hold the Event: it refused the
+ * subscribe, or it is about to send `unsubscribed`. `upstream_stale` is not
+ * one: the Event stays subscribed.
+ */
+const INDEX_REFUSAL_CODES: ReadonlySet<string> = new Set([
+  'no_live_data',
+  'too_many_events',
+  'venue_at_capacity',
+]);
 
 const parseStreamUrl = (baseUrl?: string): string | undefined => {
   if (!baseUrl) {
@@ -179,9 +217,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   readonly #WebSocket: WebSocketConstructor;
   readonly #onGameUpdate: (game: PredictGameLive) => void;
   readonly #onQuoteUpdate: (quote: PredictQuote) => void;
+  readonly #onIndexSnapshot?: (snapshot: PredictIndexSnapshot) => void;
+  readonly #onIndexUpdate?: (index: PredictIndexLive) => void;
+  readonly #onIndexError?: (error: PredictIndexError) => void;
+  readonly #onIndexReleased?: (eventIds: readonly PredictEntityId[]) => void;
   readonly #topics: Record<PredictLiveDataTopic, TopicState> = {
     game: new TopicState('game'),
     market: new TopicState('market'),
+    index: new TopicState('index'),
   };
   #socket?: WebSocket;
   #venueId?: PredictVenueId;
@@ -210,12 +253,20 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     AppState: AppStateImpl = AppState,
     onGameUpdate,
     onQuoteUpdate,
+    onIndexSnapshot,
+    onIndexUpdate,
+    onIndexError,
+    onIndexReleased,
   }: PredictLiveDataClientOptions) {
     this.#url = parseStreamUrl(baseUrl);
     this.#getBearerToken = getBearerToken;
     this.#WebSocket = WebSocketImpl;
     this.#onGameUpdate = onGameUpdate;
     this.#onQuoteUpdate = onQuoteUpdate;
+    this.#onIndexSnapshot = onIndexSnapshot;
+    this.#onIndexUpdate = onIndexUpdate;
+    this.#onIndexError = onIndexError;
+    this.#onIndexReleased = onIndexReleased;
     this.#appStateSubscription = AppStateImpl.addEventListener(
       'change',
       this.#onAppStateChange,
@@ -533,11 +584,45 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
 
     if (frame.type === 'error') {
+      // `topic: "index"` marks an index error. An error without a topic is
+      // matched by Event id: a game Event id is never an index watch.
+      const index = this.#topics.index;
+      const indexEventIds = ((frame.events ?? []) as PredictEntityId[]).filter(
+        (eventId) => index.watchCounts.has(eventId),
+      );
+      if (frame.topic === 'index' || indexEventIds.length > 0) {
+        indexEventIds.forEach((eventId) => {
+          if (INDEX_REFUSAL_CODES.has(frame.code)) {
+            // The server does not hold this Event, so a later release must
+            // not send it an unsubscribe.
+            index.serverIds.delete(eventId);
+          }
+          this.#onIndexError?.({
+            venueId,
+            eventId,
+            code: frame.code,
+            message: frame.message,
+          });
+        });
+        return;
+      }
       Logger.log(
         'PredictLiveDataClient: server error',
         frame.code,
         frame.message,
       );
+      return;
+    }
+
+    // A plain `unsubscribed` only acknowledges our own `unsubscribe`, which
+    // already released locally. Only a frame with a `reason` is the server
+    // letting go of an Event on its own.
+    if (
+      frame.type === 'unsubscribed' &&
+      frame.topic === 'index' &&
+      frame.reason !== undefined
+    ) {
+      this.#onIndexUnsubscribed(frame.events as PredictEntityId[]);
       return;
     }
 
@@ -552,6 +637,40 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       if (this.#topics.market.watchCounts.has(frame.quote.marketId)) {
         this.#onQuoteUpdate(frame.quote);
       }
+      return;
+    }
+
+    if (frame.type === 'index_snapshot') {
+      if (this.#topics.index.watchCounts.has(frame.index.eventId)) {
+        this.#onIndexSnapshot?.(frame.index);
+      }
+      return;
+    }
+
+    if (frame.type === 'index') {
+      if (this.#topics.index.watchCounts.has(frame.index.eventId)) {
+        this.#onIndexUpdate?.(frame.index);
+      }
+    }
+  }
+
+  /**
+   * A server-initiated `unsubscribed` (it has a `reason`) for an Event a
+   * watcher still holds means the server let it go, for example a window that
+   * closed more than 30 s ago. Drop it from the refcount and the connection
+   * slot so nothing waits on it and nothing is sent for it. Not an error.
+   */
+  #onIndexUnsubscribed(eventIds: readonly PredictEntityId[]): void {
+    const index = this.#topics.index;
+    const released: PredictEntityId[] = [];
+    eventIds.forEach((eventId) => {
+      index.serverIds.delete(eventId);
+      if (index.watchCounts.delete(eventId)) {
+        released.push(eventId);
+      }
+    });
+    if (released.length > 0) {
+      this.#onIndexReleased?.(released);
     }
   }
 

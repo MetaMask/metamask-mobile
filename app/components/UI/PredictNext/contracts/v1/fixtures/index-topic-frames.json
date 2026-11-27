@@ -1,0 +1,219 @@
+{
+  "welcome": {
+    "type": "welcome",
+    "protocol": 1,
+    "heartbeatMs": 30000,
+    "topics": ["market", "game", "index"],
+    "venues": ["kalshi"],
+    "limits": {
+      "market": {
+        "maxPerConnection": 250,
+        "maxPerMessage": 100
+      },
+      "game": {
+        "maxPerConnection": 50,
+        "maxPerMessage": 100
+      },
+      "index": {
+        "maxPerConnection": 8,
+        "maxPerMessage": 4
+      }
+    }
+  },
+  "subscribed": {
+    "type": "subscribed",
+    "topic": "index",
+    "venueId": "kalshi",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "snapshot": {
+    "type": "index_snapshot",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60512.84",
+      "value": "60517.39",
+      "observedAt": "2026-11-26T23:03:41.000Z",
+      "points": [
+        {
+          "time": "2026-11-26T23:00:00.000Z",
+          "value": "60461.27"
+        },
+        {
+          "time": "2026-11-26T23:00:05.000Z",
+          "value": "60466.10"
+        }
+      ]
+    }
+  },
+  "snapshotWithoutRawValue": {
+    "type": "index_snapshot",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60512.84",
+      "observedAt": "2026-11-26T23:03:41.000Z",
+      "points": [
+        {
+          "time": "2026-11-26T23:00:00.000Z",
+          "value": "60461.27"
+        }
+      ]
+    }
+  },
+  "update": {
+    "type": "index",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60513.40",
+      "value": "60519.02",
+      "observedAt": "2026-11-26T23:03:42.000Z"
+    }
+  },
+  "settlementUpdate": {
+    "type": "index",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60463.12",
+      "value": "60464.00",
+      "observedAt": "2026-11-26T23:14:59.000Z",
+      "settlementAverage": {
+        "value": "60463.12",
+        "samples": 59,
+        "final": false
+      }
+    }
+  },
+  "finalUpdate": {
+    "type": "index",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60463.50",
+      "value": "60464.20",
+      "observedAt": "2026-11-26T23:15:00.000Z",
+      "settlementAverage": {
+        "value": "60463.50",
+        "samples": 60,
+        "final": true
+      }
+    }
+  },
+  "errorNoLiveData": {
+    "type": "error",
+    "code": "no_live_data",
+    "topic": "index",
+    "message": "No index feed for this Event.",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "errorUpstreamStale": {
+    "type": "error",
+    "code": "upstream_stale",
+    "topic": "index",
+    "message": "Index feed is behind.",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "updateWithoutRawValue": {
+    "type": "index",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60513.40",
+      "observedAt": "2026-11-26T23:03:42.000Z"
+    }
+  },
+  "snapshotAfterFinal": {
+    "type": "index_snapshot",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60512.84",
+      "value": "60517.39",
+      "observedAt": "2026-11-26T23:15:00.000Z",
+      "points": [
+        {
+          "time": "2026-11-26T23:00:00.000Z",
+          "value": "60461.27"
+        },
+        {
+          "time": "2026-11-26T23:00:05.000Z",
+          "value": "60466.10"
+        }
+      ],
+      "settlementAverage": {
+        "value": "60463.50",
+        "samples": 60,
+        "final": true
+      }
+    }
+  },
+  "errorTooManyEvents": {
+    "type": "error",
+    "code": "too_many_events",
+    "topic": "index",
+    "message": "Too many events.",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "unsubscribedByServer": {
+    "type": "unsubscribed",
+    "topic": "index",
+    "venueId": "kalshi",
+    "events": ["KXBTC15M-26NOV261815"],
+    "reason": "window_closed"
+  },
+  "finalUpdateWith59Samples": {
+    "type": "index",
+    "index": {
+      "venueId": "kalshi",
+      "eventId": "KXBTC15M-26NOV261815",
+      "coin": "BTC",
+      "average60s": "60463.50",
+      "value": "60464.20",
+      "observedAt": "2026-11-26T23:15:00.000Z",
+      "settlementAverage": {
+        "value": "60463.50",
+        "samples": 59,
+        "final": true
+      }
+    }
+  },
+  "errorWithoutTopic": {
+    "type": "error",
+    "code": "no_live_data",
+    "message": "No live data.",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "errorOtherTopic": {
+    "type": "error",
+    "code": "unknown_venue",
+    "message": "Unknown venue."
+  },
+  "unsubscribedUnavailable": {
+    "type": "unsubscribed",
+    "topic": "index",
+    "venueId": "kalshi",
+    "events": ["KXBTC15M-26NOV261815"],
+    "reason": "unavailable"
+  },
+  "unsubscribedAck": {
+    "type": "unsubscribed",
+    "topic": "index",
+    "venueId": "kalshi",
+    "events": ["KXBTC15M-26NOV261815"]
+  },
+  "unsubscribedAckEmpty": {
+    "type": "unsubscribed",
+    "topic": "index",
+    "venueId": "kalshi",
+    "events": []
+  }
+}
