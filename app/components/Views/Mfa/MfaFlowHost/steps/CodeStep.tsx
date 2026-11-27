@@ -267,7 +267,8 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             value={code}
             onChangeText={handleChange}
             cellCount={CELL_COUNT}
-            rootStyle={tw.style('w-full gap-2')}
+            // Cells space themselves: a `gap` here also spaced the hidden input.
+            rootStyle={tw.style('w-full')}
             keyboardType="number-pad"
             textContentType="oneTimeCode"
             // Lets Android offer the code from a message, as iOS does above.
@@ -279,9 +280,10 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
                 onLayout={getCellOnLayoutHandler(index)}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName={`h-14 flex-1 rounded-xl border bg-muted ${getCellBorder(
-                  isFocused,
-                )}`}
+                twClassName={`h-14 flex-1 rounded-xl border bg-muted ${
+                  index > 0 ? 'ml-2' : ''
+                } ${getCellBorder(isFocused)}`}
+                testID={`${MfaFlowSelectorsIDs.CODE_CELL}-${index}`}
               >
                 <Text variant={TextVariant.HeadingLg}>
                   {symbol ||

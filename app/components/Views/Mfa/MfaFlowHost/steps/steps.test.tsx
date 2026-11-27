@@ -128,6 +128,31 @@ describe('IntroStep', () => {
       getByText(/We’ll set up a few ways to confirm it’s you/),
     ).toBeOnTheScreen();
   });
+
+  it('aligns method icons and ticks to the title and first description line', () => {
+    const { getByTestId } = render(
+      <IntroStep
+        {...buildState({
+          name: 'intro',
+          methods: ['passkey', 'totp'],
+          missing: ['totp'],
+        })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    const firstLinesAlignment = { alignSelf: 'flex-start', marginTop: 3 };
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD_ICON}-passkey`),
+    ).toHaveStyle(firstLinesAlignment);
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD_ICON}-totp`),
+    ).toHaveStyle(firstLinesAlignment);
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD_CHECK}-passkey`),
+    ).toHaveStyle({ ...firstLinesAlignment, height: 40 });
+  });
 });
 
 describe('PickerStep', () => {
@@ -671,6 +696,22 @@ describe('CodeStep', () => {
     const { getByText } = renderCode(otp(true), { codeResent: true });
 
     expect(getByText('We sent you a new code.')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['email', otp(true)],
+    ['authenticator app', totpCode],
+  ])('spaces the %s code boxes 8 apart', (_case, step) => {
+    const { getByTestId } = renderCode(step);
+
+    const cells = Array.from({ length: 6 }, (_, index) =>
+      getByTestId(`${MfaFlowSelectorsIDs.CODE_CELL}-${index}`),
+    );
+
+    expect(cells[0]).not.toHaveStyle({ marginLeft: 8 });
+    cells.slice(1).forEach((cell) => {
+      expect(cell).toHaveStyle({ marginLeft: 8 });
+    });
   });
 
   it('asks for the code from the authenticator app, with nothing to resend', () => {
