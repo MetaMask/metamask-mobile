@@ -15102,9 +15102,6 @@
     }
   },
   "app/components/Views/EditAccountName/EditAccountName.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -15934,9 +15931,6 @@
     }
   },
   "app/components/Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -16013,14 +16007,8 @@
     }
   },
   "app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkOperations.ts": {
-    "typescript/await-thenable": {
-      "count": 1
-    },
     "typescript/no-floating-promises": {
       "count": 2
-    },
-    "typescript/prefer-optional-chain": {
-      "count": 1
     },
     "typescript/unbound-method": {
       "count": 3
