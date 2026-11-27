@@ -90,8 +90,10 @@ const PullToRefresh = ({
   const screenReaderEnabledRef = useRef(false);
   const pullRefreshCommittedRef = useRef(false);
   const outroTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousTopScrollOffsetRef = useRef(topScrollOffset);
 
   const internalScrollY = useSharedValue(topScrollOffset);
+  const topScrollOffsetShared = useSharedValue(topScrollOffset);
   const activeScrollY = externalScrollY ?? internalScrollY;
   const pullDistance = useSharedValue(0);
   const pullProgress = useSharedValue(0);
@@ -104,6 +106,24 @@ const PullToRefresh = ({
   const indicatorOutroActive = useSharedValue(false);
   const refreshCommitRequested = useSharedValue(false);
   const thresholdHapticSent = useSharedValue(false);
+
+  useEffect(() => {
+    topScrollOffsetShared.value = topScrollOffset;
+
+    if (
+      !externalScrollY &&
+      internalScrollY.value === previousTopScrollOffsetRef.current
+    ) {
+      internalScrollY.value = topScrollOffset;
+    }
+    previousTopScrollOffsetRef.current = topScrollOffset;
+  }, [
+    externalScrollY,
+    internalScrollY,
+    previousTopScrollOffsetRef,
+    topScrollOffset,
+    topScrollOffsetShared,
+  ]);
 
   const {
     canRenderRive,
@@ -326,11 +346,11 @@ const PullToRefresh = ({
     indicatorOutroActive,
     refreshCommitRequested,
     thresholdHapticSent,
+    topScrollOffset: topScrollOffsetShared,
   };
 
   const combinedGesture = usePullToRefreshGesture({
     state: gestureState,
-    topScrollOffset,
     onCancel: cancelPull,
     onCommit: commitRefresh,
     onThreshold: triggerThresholdHaptic,

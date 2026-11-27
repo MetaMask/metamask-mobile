@@ -305,6 +305,39 @@ describe('PullToRefresh', () => {
     expect(scrolledDownStateManager.fail).toHaveBeenCalled();
   });
 
+  it('updates the top scroll baseline when the inset changes after mount', () => {
+    const onRefresh = jest.fn();
+    const { rerender } = renderPullToRefreshScrollView({
+      onRefresh,
+      topScrollOffset: 0,
+    });
+
+    act(() => {
+      rerender(
+        <PullToRefreshScrollView
+          refreshing={false}
+          onRefresh={onRefresh}
+          topScrollOffset={-120}
+          scrollViewProps={{ testID: 'pull-refresh-scroll-view' }}
+        >
+          <View testID="pull-refresh-content" />
+        </PullToRefreshScrollView>,
+      );
+    });
+
+    const stateManager = createStateManager();
+    act(() => {
+      mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(PULL_REFRESH_THRESHOLD / 2),
+        stateManager,
+      );
+    });
+
+    expect(stateManager.activate).toHaveBeenCalled();
+    expect(stateManager.fail).not.toHaveBeenCalled();
+  });
+
   it('unmounts Rive and disables custom gesture when isActive is false', () => {
     const onRefresh = jest.fn();
     const { getByTestId, queryByTestId, rerender } =

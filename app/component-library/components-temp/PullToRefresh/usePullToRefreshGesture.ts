@@ -11,7 +11,6 @@ import {
 
 export interface UsePullToRefreshGestureOptions {
   state: PullToRefreshGestureState;
-  topScrollOffset?: number;
   onCancel: () => void;
   onCommit: () => void;
   onThreshold: () => void;
@@ -33,11 +32,11 @@ export interface PullToRefreshGestureState {
   indicatorOutroActive: SharedValue<boolean>;
   refreshCommitRequested: SharedValue<boolean>;
   thresholdHapticSent: SharedValue<boolean>;
+  topScrollOffset: SharedValue<number>;
 }
 
 export const usePullToRefreshGesture = ({
   state,
-  topScrollOffset = 0,
   onCancel,
   onCommit,
   onThreshold,
@@ -65,7 +64,8 @@ export const usePullToRefreshGesture = ({
       const touch = event.allTouches[0];
       if (
         !touch ||
-        gestureState.scrollY.value > topScrollOffset + SCROLL_TOP_THRESHOLD
+        gestureState.scrollY.value >
+          gestureState.topScrollOffset.value + SCROLL_TOP_THRESHOLD
       ) {
         stateManager.fail();
         return;
