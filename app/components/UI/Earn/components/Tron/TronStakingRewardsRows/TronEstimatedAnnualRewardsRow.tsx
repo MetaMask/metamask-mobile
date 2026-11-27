@@ -37,7 +37,7 @@ const TronEstimatedAnnualRewardsRow = ({
     paddingTop={3}
     paddingBottom={3}
   >
-    <Box className="h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center">
+    <Box className="mr-4 size-10 items-center justify-center rounded-full bg-muted">
       <DSIcon name={DSIconName.Calendar} size={IconSize.Md} />
     </Box>
     <Box className="flex-1">

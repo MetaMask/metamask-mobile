@@ -400,7 +400,7 @@ const EarnStrategySelectionModal = () => {
         {strategyContent}
       </ScrollView>
 
-      <Box className="px-4 pt-3 pb-3">
+      <Box className="px-4 py-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

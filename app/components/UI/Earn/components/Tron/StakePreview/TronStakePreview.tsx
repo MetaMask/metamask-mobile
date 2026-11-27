@@ -144,10 +144,7 @@ const TronStakePreview = ({
         },
       ]}
     >
-      <Box
-        className="w-full bg-default pl-6 pr-6 rounded-lg"
-        style={tw.style()}
-      >
+      <Box className="w-full rounded-lg bg-default px-6" style={tw.style()}>
         {mode === 'stake' && (
           <Row
             label={strings('stake.tron.estimated_annual_reward')}

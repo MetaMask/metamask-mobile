@@ -86,7 +86,7 @@ const AccountCard = ({
           value={
             <View style={styles.networkKeyValueRow}>
               <AvatarNetwork
-                twClassName="rounded bg-default"
+                className="rounded bg-default"
                 src={
                   images.ETHEREUM as React.ComponentProps<
                     typeof AvatarNetwork

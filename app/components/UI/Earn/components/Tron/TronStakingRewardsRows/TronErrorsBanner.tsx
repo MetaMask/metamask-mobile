@@ -24,12 +24,12 @@ const TronErrorsBanner = ({ messages }: TronErrorsBannerProps) => (
     testID={TronErrorsBannerTestIds.CONTAINER}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
-    className="mt-1 rounded-lg bg-error-muted px-3 py-2 gap-2"
+    className="mt-1 gap-2 rounded-lg bg-error-muted px-3 py-2"
   >
     <DSIcon
       name={DSIconName.Error}
       size={IconSize.Sm}
-      twClassName="mt-0.5 text-error-default"
+      className="mt-0.5 text-error-default"
     />
     <Box className="flex-1">
       {messages.map((message, index) => (

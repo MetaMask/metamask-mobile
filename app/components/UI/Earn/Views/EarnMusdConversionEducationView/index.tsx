@@ -386,7 +386,7 @@ const EarnMusdConversionEducationView = () => {
       })}
       descriptionProps={{
         testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.DESCRIPTION,
-        twClassName: 'text-center px-10',
+        className: 'text-center px-10',
       }}
       artworkWrapperProps={{
         alignItems: BoxAlignItems.Stretch,

@@ -27,14 +27,6 @@ const AccountTag = ({
       />
     }
     severity={TagSeverity.Info}
-  ><AvatarAccount
-        twClassName="rounded bg-default"
-        size={AvatarAccountSize.Xs}
-        address={accountAddress}
-        variant={getAvatarAccountVariant(avatarAccountType)}
-      />
-    }
-    severity={TagSeverity.Info}
   >
     <Text color={TextColor.InfoDefault}>{accountName ?? accountAddress}</Text>
   </Tag>

@@ -152,7 +152,7 @@ const EarnStrategyCard = ({
                     }
                     startAccessory={
                       <Box
-                        className="h-8 w-8 items-center justify-center rounded-full bg-default"
+                        className="size-8 items-center justify-center rounded-full bg-default"
                         accessible={false}
                       >
                         <Icon

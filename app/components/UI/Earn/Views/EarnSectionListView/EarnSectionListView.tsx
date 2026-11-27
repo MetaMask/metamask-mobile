@@ -90,7 +90,7 @@ const EarnSectionListSkeleton = () => (
         key={`earn-section-list-skeleton-${index}`}
         className="flex-row items-center gap-3 py-3"
       >
-        <Skeleton height={40} width={40} twClassName="rounded-full" />
+        <Skeleton height={40} width={40} className="rounded-full" />
         <Box className="flex-1 gap-2">
           <Skeleton height={16} width={112} />
           <Skeleton height={20} width={88} />
@@ -106,7 +106,7 @@ const EarnSectionListSubtitle = ({ testID }: { testID?: string }) => (
     testID={testID}
     variant={TextVariant.BodyMd}
     color={TextColor.TextAlternative}
-    className="pt-2 pb-1"
+    className="pb-1 pt-2"
   >
     {strings('earn_module.stake_or_lend_description')}
   </Text>
@@ -136,9 +136,9 @@ const MoneyProjection = ({
     return (
       <Box
         testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_SKELETON}
-        className="px-4 py-3 gap-3"
+        className="gap-3 px-4 py-3"
       >
-        <Skeleton height={40} width="100%" twClassName="rounded-lg" />
+        <Skeleton height={40} width="100%" className="rounded-lg" />
       </Box>
     );
   }
@@ -146,7 +146,7 @@ const MoneyProjection = ({
   return (
     <Box
       testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION}
-      className="px-4 py-3 gap-3"
+      className="gap-3 px-4 py-3"
     >
       {hasPositiveProjection ? (
         <Box
@@ -590,7 +590,7 @@ const EarnSectionListView = () => {
         {!isLoading && moreWaysAssets.length > 0 && (
           <>
             <SectionDivider testID={EARN_SECTION_LIST_TEST_IDS.DIVIDER} />
-            <Box className="px-4 py-3 gap-1">
+            <Box className="gap-1 px-4 py-3">
               <Text
                 variant={TextVariant.HeadingLg}
                 testID={EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE}

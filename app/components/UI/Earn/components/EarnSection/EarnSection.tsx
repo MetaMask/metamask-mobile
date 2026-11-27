@@ -80,7 +80,7 @@ export interface EarnSectionProps {
 
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
-    <Skeleton height={40} width={40} twClassName="rounded-full" />
+    <Skeleton height={40} width={40} className="rounded-full" />
     <Box className="gap-2">
       <Skeleton height={16} width={64} />
       <Skeleton height={20} width={112} />

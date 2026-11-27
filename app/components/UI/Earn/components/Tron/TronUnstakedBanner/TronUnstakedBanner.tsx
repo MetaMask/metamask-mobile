@@ -44,7 +44,7 @@ const TronUnstakedBanner = ({ amount, chainId }: TronUnstakedBannerProps) => {
         <>
           <Text
             testID={TronUnstakedBannerTestIds.BANNER_DESCRIPTION}
-            className={showClaimButton ? 'pt-1 pb-4' : 'pt-1'}
+            className={showClaimButton ? 'pb-4 pt-1' : 'pt-1'}
           >
             {strings('stake.tron.unstaked_banner.description')}
           </Text>
