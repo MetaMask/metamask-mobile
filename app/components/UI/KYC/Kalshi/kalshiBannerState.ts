@@ -59,29 +59,22 @@ export const getKalshiBannerState = (
   }
 };
 
-const selectKalshiBannerState = (state: RootState): KalshiBannerState => {
+/**
+ * The Kalshi banner state for the vendor step currently in the store.
+ * `GetStartedBanner` owns the focus refresh of that step; consumers of this
+ * selector only read the result, so they cost no extra kyc-api request.
+ *
+ * @param state - The app state.
+ * @returns The banner state.
+ */
+export const selectKalshiBannerState = (
+  state: RootState,
+): KalshiBannerState => {
   const vendor =
     state.engine.backgroundState.VendorOnboardingController?.vendors?.[
       KALSHI_KYC_VENDOR.id
     ];
   return getKalshiBannerState(vendor?.step, vendor?.status);
-};
-
-/**
- * Whether kyc-api approved the Kalshi account. Home reads the signed
- * predict-api status only after this is true, so users who have not finished
- * KYC cost no extra request. `GetStartedBanner` owns the focus refresh of this
- * vendor step; this selector only reads the result.
- *
- * @param state - The app state.
- * @returns Whether the KYC decision is approved.
- */
-export const selectIsKalshiKycApproved = (state: RootState): boolean => {
-  const vendor =
-    state.engine.backgroundState.VendorOnboardingController?.vendors?.[
-      KALSHI_KYC_VENDOR.id
-    ];
-  return vendor?.step === 'decision' && vendor?.status === 'approved';
 };
 
 /**

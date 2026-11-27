@@ -40,7 +40,8 @@ jest.mock('../config/predictConfig', () => ({
   resolveVenueAuthProfile: () => ({ profile: 'test' }),
 }));
 jest.mock('../../KYC/Kalshi/kalshiBannerState', () => ({
-  selectIsKalshiKycApproved: () => mockState.kycApproved,
+  selectKalshiBannerState: () =>
+    mockState.kycApproved ? ('verified' as const) : ('getStarted' as const),
 }));
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => 'WIFI',

@@ -1,7 +1,7 @@
 import type { RootState } from '../../../../reducers';
 import {
   getKalshiBannerState,
-  selectIsKalshiKycApproved,
+  selectKalshiBannerState,
 } from './kalshiBannerState';
 
 jest.mock('../../../../core/Engine', () => ({}));
@@ -29,7 +29,7 @@ describe('getKalshiBannerState', () => {
   });
 });
 
-describe('selectIsKalshiKycApproved', () => {
+describe('selectKalshiBannerState', () => {
   const stateWith = (vendor: unknown) =>
     ({
       engine: {
@@ -42,12 +42,12 @@ describe('selectIsKalshiKycApproved', () => {
     }) as unknown as RootState;
 
   it.each([
-    [{ step: 'decision', status: 'approved' }, true],
-    [{ step: 'decision', status: 'pending' }, false],
-    [{ step: 'decision', status: 'rejected' }, false],
-    [{ step: 'sumsub', status: 'approved' }, false],
-    [undefined, false],
-  ] as const)('reads %j as %s', (vendor, expected) => {
-    expect(selectIsKalshiKycApproved(stateWith(vendor))).toBe(expected);
+    [{ step: 'decision', status: 'approved' }, 'verified'],
+    [{ step: 'decision', status: 'pending' }, 'verifying'],
+    [{ step: 'decision', status: 'rejected' }, 'cantVerify'],
+    [{ step: 'sumsub', status: 'approved' }, 'needMoreInfo'],
+    [undefined, 'getStarted'],
+  ] as const)('maps vendor %j to %s', (vendor, expected) => {
+    expect(selectKalshiBannerState(stateWith(vendor))).toBe(expected);
   });
 });
