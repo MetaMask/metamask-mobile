@@ -1282,7 +1282,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        'This handle is unavailable. Choose another one.',
+        'This username is unavailable. Choose another one.',
       ),
     ).toBeOnTheScreen();
     expect(
@@ -1691,7 +1691,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that handle. Check your connection and try again.",
+        "Couldn't check that username. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
@@ -2589,7 +2589,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that handle. Check your connection and try again.",
+        "Couldn't check that username. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
