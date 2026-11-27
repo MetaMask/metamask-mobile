@@ -162,9 +162,9 @@ function useGroupedTokenActivity({
     const mappedLocalItems = dedupedTransactions.map((transaction) =>
       mapTransactionToActivityItem({
         transaction,
-        assetSymbol: assetSymbol || 'ETH',
-        currentChainId: chainId ?? ('0x1' as Hex),
-        tokenChainId: chainId ?? ('0x1' as Hex),
+        assetSymbol: assetSymbol ?? 'ETH',
+        currentChainId: chainId ?? '0x1',
+        tokenChainId: chainId ?? '0x1',
       }),
     );
     const apiReceiveHashes = new Set(
@@ -399,7 +399,7 @@ const ActivityRows = ({
   ]);
 
   const hasActivity = finalGroupedItems.length > 0;
-  
+
   // Simple mode: show if has activity
   // API mode: keep section up while loading, on error, or if has/may have activity
   const showActivitySection = isSimpleMode
@@ -410,7 +410,8 @@ const ActivityRows = ({
       hasActivity ||
       hasNextApiPage;
 
-  const isInitialApiLoad = !isSimpleMode && isApiLoading && !isFetchingNextApiPage;
+  const isInitialApiLoad =
+    !isSimpleMode && isApiLoading && !isFetchingNextApiPage;
   const hasMore = isSimpleMode
     ? hasHiddenLoadedRows
     : hasHiddenLoadedRows || (hasNextApiPage && !isInitialApiLoad);

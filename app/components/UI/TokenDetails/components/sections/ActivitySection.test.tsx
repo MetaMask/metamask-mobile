@@ -211,11 +211,15 @@ describe('ActivitySection', () => {
     );
     mockSelectSelectedInternalAccount.mockReturnValue({
       address: '0x123',
-      metadata: { importTime: 0 },
+      metadata: {
+        name: 'Test Account',
+        importTime: 0,
+        keyring: { type: 'HD Key Tree' },
+      },
     } as never);
     mockUseNavigation.mockReturnValue({
       navigate: jest.fn(),
-    } as never);
+    });
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
     mockUseTokenCaipAssetId.mockReturnValue('eip155:1/erc20:0xabc');
   });
@@ -399,7 +403,7 @@ describe('ActivitySection', () => {
     const mockNavigate = jest.fn();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
-    } as never);
+    });
 
     const { getByTestId } = render(<ActivitySection token={token} />);
 

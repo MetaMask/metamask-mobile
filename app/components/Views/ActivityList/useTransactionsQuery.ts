@@ -88,7 +88,7 @@ export const useTransactionsQuery = (filters?: {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const fetchNextVisiblePage = useCallback(
-    (options?: { minVisibleItems?: number }) => {
+    async (options?: { minVisibleItems?: number }) => {
       const minVisibleItems = options?.minVisibleItems ?? 1;
       if (!hasNextPage || isFetchingNextPage || minVisibleItems <= 0) {
         return Promise.resolve();
