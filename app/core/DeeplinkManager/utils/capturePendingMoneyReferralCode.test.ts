@@ -27,6 +27,16 @@ describe('capturePendingMoneyReferralCode', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setPendingReferralCode('KOL123'));
   });
 
+  it('stores a hyphenated code without its hyphens', () => {
+    const url = new URL('https://link.metamask.io/home?ref=data-nerd');
+
+    capturePendingMoneyReferralCode(url);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setPendingReferralCode('DATANERD'),
+    );
+  });
+
   it('leaves the store alone when the link has no ref parameter', () => {
     const url = new URL('https://link.metamask.io/rewards');
 

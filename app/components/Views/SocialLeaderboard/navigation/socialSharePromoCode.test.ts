@@ -40,8 +40,14 @@ describe('resolveSocialSharePromoCode', () => {
     await expect(resolveSocialSharePromoCode()).resolves.toBeUndefined();
   });
 
+  it('returns a hyphenated code without its hyphens', async () => {
+    mockCall.mockResolvedValueOnce(referralMe('DATA-NERD'));
+
+    await expect(resolveSocialSharePromoCode()).resolves.toBe('DATANERD');
+  });
+
   it('returns undefined for a malformed code', async () => {
-    mockCall.mockResolvedValueOnce(referralMe('BAD-CODE'));
+    mockCall.mockResolvedValueOnce(referralMe('BAD_CODE'));
 
     await expect(resolveSocialSharePromoCode()).resolves.toBeUndefined();
   });

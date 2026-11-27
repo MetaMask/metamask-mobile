@@ -648,6 +648,18 @@ describe('ShareCodeSheet', () => {
       },
     );
 
+    it('tracks a hyphenated code without its hyphens', () => {
+      const { getByTestId } = renderSheet({ code: 'DATA-NERD' });
+
+      fireEvent.press(getByTestId(TEST_IDS.COPY_LINK));
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'DATANERD',
+        share_method: 'copy_link',
+      });
+    });
+
     it('does not track a share when there is no resolved url', () => {
       const { queryByTestId } = renderSheet({ code: null, shareUrl: null });
 

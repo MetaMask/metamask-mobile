@@ -31,6 +31,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { resolveMoneyShareUrl } from '../../utils/moneyShareUrl';
+import { normalizeMoneyReferralCode } from '../../utils/moneyReferralCode';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -166,7 +167,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED)
           .addProperties({
-            referral_code: code,
+            referral_code: normalizeMoneyReferralCode(code),
             share_method: shareMethod,
           })
           .build(),

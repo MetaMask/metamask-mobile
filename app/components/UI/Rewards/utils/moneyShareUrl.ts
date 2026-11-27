@@ -61,7 +61,8 @@ export function resolveMoneyShareUrl(
     return trimmedShareUrl;
   }
 
-  const trimmedCode = code?.trim();
+  // Matches the server's `share_url`, which leaves hyphens out of `ref`.
+  const trimmedCode = code?.trim().replaceAll('-', '');
   if (!trimmedCode) {
     return null;
   }

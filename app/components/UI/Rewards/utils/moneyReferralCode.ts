@@ -6,12 +6,16 @@ export const MONEY_REFERRAL_CODE_MAX_LENGTH = 24;
 /** Query key that carries a Money referral code on a MetaMask deeplink. */
 export const MONEY_REFERRAL_CODE_QUERY_PARAM = 'ref';
 
-/** Money codes are alphanumeric only — the points program's hyphen is not accepted. */
+/** Normalized Money codes are alphanumeric only. */
 const MONEY_REFERRAL_CODE_PATTERN = /^[A-Z0-9]+$/;
 
-/** The form the API expects, and the only form the client reports or sends. */
+/**
+ * The form the API expects, and the only form the client reports or sends.
+ * The API ignores hyphens (`DATA-NERD` and `DATANERD` are the same code), so
+ * they are dropped here.
+ */
 export const normalizeMoneyReferralCode = (code: string) =>
-  code.trim().toUpperCase();
+  code.trim().toUpperCase().replaceAll('-', '');
 
 export const isMoneyReferralCodeFormatValid = (code: string) =>
   code.length >= MONEY_REFERRAL_CODE_MIN_LENGTH &&
