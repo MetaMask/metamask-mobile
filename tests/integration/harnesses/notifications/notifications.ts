@@ -157,15 +157,37 @@ export function buildNotificationsIntegrationHarness(
 ): NotificationsIntegrationHarness {
   const responseOverrides = new Map<string, HttpResponseStub>();
 
+  const toEndpointUrl = (input: unknown): URL | undefined => {
+    const raw = toUrlString(input);
+    try {
+      return new URL(raw);
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Endpoint equality is origin + path, so `/notifications` never matches
+  // `/notifications/query` and stubs cannot leak across Trigger endpoints.
+  const isSameEndpoint = (requestUrl: string, endpointUrl: string): boolean => {
+    const request = toEndpointUrl(requestUrl);
+    const endpoint = toEndpointUrl(endpointUrl);
+    return (
+      request !== undefined &&
+      endpoint !== undefined &&
+      request.origin === endpoint.origin &&
+      request.pathname === endpoint.pathname
+    );
+  };
+
   const fetchMock = jest.fn(async (input: unknown) => {
     const url = toUrlString(input);
     for (const [urlPart, response] of responseOverrides) {
-      if (url.includes(urlPart)) {
+      if (isSameEndpoint(url, urlPart)) {
         return httpResponse(response);
       }
     }
     return httpResponse({
-      json: url.includes(TRIGGER_API_QUERY_ENDPOINT) ? [] : {},
+      json: isSameEndpoint(url, TRIGGER_API_QUERY_ENDPOINT) ? [] : {},
     });
   });
   globalThis.fetch = fetchMock as unknown as typeof fetch;
