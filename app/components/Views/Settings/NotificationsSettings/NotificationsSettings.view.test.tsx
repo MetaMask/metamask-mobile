@@ -8,8 +8,12 @@ import {
 } from '../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import { buildNotificationsState } from '../../../../../tests/component-view/presets/notifications';
-import notifee, { AuthorizationStatus } from '@notifee/react-native';
-import { AppState, Linking, Platform, type AppStateStatus } from 'react-native';
+import { AuthorizationStatus } from '@notifee/react-native';
+import {
+  mockAppResume,
+  mockOpenSystemSettings,
+  setPushPermissionStatus,
+} from '../../../../../tests/component-view/helpers/notificationSettings';
 import NotificationsSettings from './';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Engine from '../../../../core/Engine';
@@ -83,11 +87,6 @@ function renderSettings(
     {},
   );
 }
-
-const setPushPermissionStatus = (status: AuthorizationStatus) =>
-  jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-    authorizationStatus: status,
-  } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
 
 /** iOS exposes `value`; Android exposes `on`. */
 const isSwitchOn = (switchNode: {
@@ -204,9 +203,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('shows the Settings warning when push permission is denied and the master toggle is on', async () => {
     setPushPermissionStatus(AuthorizationStatus.DENIED);
-    const openSettingsSpy = jest
-      .spyOn(Linking, 'openSettings')
-      .mockResolvedValue(undefined);
+    const expectSystemSettingsOpened = mockOpenSystemSettings();
 
     const { findByTestId, getByTestId } = renderSettings();
 
@@ -227,11 +224,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       ),
     );
 
-    if (Platform.OS === 'ios') {
-      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
-    } else {
-      expect(notifee.openNotificationSettings).toHaveBeenCalledTimes(1);
-    }
+    expectSystemSettingsOpened();
   });
 
   it('hides the Settings warning while push permission is promptable', async () => {
@@ -270,13 +263,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('hides the Settings warning after push permission is granted and the app resumes', async () => {
-    let appStateListener: ((state: AppStateStatus) => void) | undefined;
-    jest
-      .spyOn(AppState, 'addEventListener')
-      .mockImplementation((_, listener) => {
-        appStateListener = listener;
-        return { remove: jest.fn() };
-      });
+    const resumeApp = mockAppResume();
     setPushPermissionStatus(AuthorizationStatus.DENIED);
 
     const { findByTestId, getByTestId, queryByTestId } = renderSettings();
@@ -288,9 +275,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     ).toBeOnTheScreen();
 
     setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
-    await act(async () => {
-      appStateListener?.('active');
-    });
+    await resumeApp();
 
     await waitFor(() => {
       expect(
@@ -429,6 +414,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
           'enableMetamaskNotifications',
         )
         .mockResolvedValue(undefined);
+      enableSpy.mockClear();
       const engineWithState = Engine as unknown as {
         state: Record<string, unknown>;
       };

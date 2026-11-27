@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -36,6 +37,7 @@ import {
   IconName,
   IconColor,
   TextVariant,
+  TextColor,
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
@@ -85,7 +87,10 @@ const NotificationRow = ({
             {title}
           </Text>
           {status ? (
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {status}
             </Text>
           ) : null}
@@ -113,6 +118,7 @@ const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
 };
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
+  const tw = useTailwind();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
@@ -186,7 +192,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         <MainNotificationToggle />
 
         {isMetamaskNotificationsEnabled && isOsPushPermissionDenied ? (
-          <Box twClassName="mt-4">
+          <Box style={tw.style('mt-4')}>
             <BannerAlert
               severity={BannerAlertSeverity.Warning}
               description={strings('app_settings.push_permission_denied')}

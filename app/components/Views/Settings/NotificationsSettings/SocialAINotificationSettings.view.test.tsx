@@ -12,7 +12,6 @@
 
 import '../../../../../tests/component-view/mocks';
 import {
-  act,
   fireEvent,
   screen,
   waitFor,
@@ -20,13 +19,17 @@ import {
 } from '@testing-library/react-native';
 import type { FollowingResponse } from '@metamask/social-controllers';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
-import { AppState, Linking, type AppStateStatus } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   clearLeaderboardApiMock,
   getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
+import {
+  mockAppResume,
+  mockOpenSystemSettings,
+  setPushPermissionStatus,
+} from '../../../../../tests/component-view/helpers/notificationSettings';
 import { renderSocialAINotificationSettingsSection } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 // eslint-disable-next-line import-x/no-restricted-paths -- test ids live with the social preferences UI this settings section renders
@@ -83,11 +86,9 @@ const renderSection = () => {
   });
 };
 
-describeForPlatforms('Social AI notification settings', ({ os }) => {
+describeForPlatforms('Social AI notification settings', () => {
   beforeEach(() => {
-    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.AUTHORIZED,
-    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
   });
 
   afterEach(() => {
@@ -136,9 +137,7 @@ describeForPlatforms('Social AI notification settings', ({ os }) => {
   });
 
   it('does not show the Settings warning while push permission is promptable', async () => {
-    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.NOT_DETERMINED,
-    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    setPushPermissionStatus(AuthorizationStatus.NOT_DETERMINED);
 
     renderSection();
 
@@ -163,12 +162,8 @@ describeForPlatforms('Social AI notification settings', ({ os }) => {
   });
 
   it('keeps in-app notifications enabled and opens system settings from the denied-permission warning', async () => {
-    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.DENIED,
-    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
-    const openSettingsSpy = jest
-      .spyOn(Linking, 'openSettings')
-      .mockResolvedValue(undefined);
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    const expectSystemSettingsOpened = mockOpenSystemSettings();
 
     renderSection();
 
@@ -189,11 +184,7 @@ describeForPlatforms('Social AI notification settings', ({ os }) => {
       ),
     );
 
-    if (os === 'ios') {
-      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
-    } else {
-      expect(notifee.openNotificationSettings).toHaveBeenCalledTimes(1);
-    }
+    expectSystemSettingsOpened();
     expect(
       screen.getByTestId(
         NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
@@ -207,29 +198,17 @@ describeForPlatforms('Social AI notification settings', ({ os }) => {
   });
 
   it('hides the warning after push permission is granted and the app resumes', async () => {
-    let appStateListener: ((state: AppStateStatus) => void) | undefined;
-    jest
-      .spyOn(AppState, 'addEventListener')
-      .mockImplementation((_, listener) => {
-        appStateListener = listener;
-        return { remove: jest.fn() };
-      });
-    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.DENIED,
-    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    const resumeApp = mockAppResume();
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
     renderSection();
     expect(
       await screen.findByTestId(
         NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
       ),
     ).toBeOnTheScreen();
-    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.AUTHORIZED,
-    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
 
-    await act(async () => {
-      appStateListener?.('active');
-    });
+    await resumeApp();
 
     await waitFor(() => {
       expect(
@@ -238,6 +217,31 @@ describeForPlatforms('Social AI notification settings', ({ os }) => {
         ),
       ).not.toBeOnTheScreen();
     });
+  });
+
+  it('hides the warning when push is turned off for trading signals', async () => {
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    renderSection();
+    const warning =
+      NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING;
+    const pushToggle =
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
+    expect(await screen.findByTestId(warning)).toBeOnTheScreen();
+
+    fireEvent(screen.getByTestId(pushToggle), 'onValueChange', false);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(warning)).not.toBeOnTheScreen();
+    });
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+
+    fireEvent(screen.getByTestId(pushToggle), 'onValueChange', true);
+
+    expect(await screen.findByTestId(warning)).toBeOnTheScreen();
   });
 
   it('persists a lower trade threshold and selects that option', async () => {

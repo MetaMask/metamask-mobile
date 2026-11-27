@@ -106,7 +106,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="flex-1"
+          style={tw.style('flex-1')}
         >
           {username}
         </Text>
@@ -247,11 +247,13 @@ const SocialAINotificationPreferencesContent = ({
   const separatorStyle = tw.style(
     `h-px bg-muted${withHorizontalPadding ? ' mx-4' : ''}`,
   );
+  const showPushPermissionWarning =
+    isOsPushPermissionDenied && Boolean(preferences.pushNotificationsEnabled);
 
   return (
     <>
-      {isOsPushPermissionDenied ? (
-        <Box twClassName={`${horizontalPaddingClassName} pt-4`}>
+      {showPushPermissionWarning ? (
+        <Box style={tw.style(horizontalPaddingClassName, 'pt-4')}>
           <BannerAlert
             severity={BannerAlertSeverity.Warning}
             description={strings(
@@ -352,7 +354,7 @@ const SocialAINotificationPreferencesContent = ({
               ? TextColor.TextMuted
               : TextColor.TextAlternative
           }
-          twClassName="mt-0.5"
+          style={tw.style('mt-0.5')}
         >
           {strings(
             'social_leaderboard.notification_preferences.traders_you_follow_desc',
@@ -381,7 +383,7 @@ const SocialAINotificationPreferencesContent = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            style={tw.style('text-center')}
           >
             {strings(
               'social_leaderboard.notification_preferences.traders_you_follow_empty',
