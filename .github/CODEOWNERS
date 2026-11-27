@@ -36,7 +36,6 @@ patches/unicode-confusables+0.1.1.patch                     @MetaMask/mobile-pla
 .yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch            @MetaMask/mobile-platform
 .yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch  @MetaMask/mobile-platform
 
-.github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
 app/util/analytics/                                         @MetaMask/mobile-platform
@@ -89,10 +88,26 @@ scripts/upload-to-testflight.sh                             @MetaMask/mobile-adm
 # DevOps Team
 .github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
 
-# Mobile Admins overrides (more specific than DevOps Team default above)
+# Release orchestration owned by Mobile Platform.
+# Last match wins, so these override the DevOps directory rule above.
+.github/workflows/build-rc-auto.yml                         @MetaMask/mobile-platform
+.github/workflows/runway-ota-resolve-context.yml            @MetaMask/mobile-platform
+
+# Signing and deployment workflows owned by Mobile Admins.
+# These sign binaries or publish to TestFlight / EAS.
+.github/actions/configure-signing/**/*                      @MetaMask/mobile-admins
+.github/workflows/build.yml                                 @MetaMask/mobile-admins
+.github/workflows/build-rc-repack.yml                       @MetaMask/mobile-admins
+.github/workflows/auto-rc-ota-build-core.yml                @MetaMask/mobile-admins
+.github/workflows/runway-rc-builds.yml                      @MetaMask/mobile-admins
+.github/workflows/runway-production-builds.yml              @MetaMask/mobile-admins
+.github/workflows/runway-ota-rc.yml                         @MetaMask/mobile-admins
+.github/workflows/runway-ota-production.yml                 @MetaMask/mobile-admins
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
-.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
+.github/workflows/eas-update-platform.yml                   @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
+.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
+.github/workflows/post-release-cut-testflight.yml           @MetaMask/mobile-admins
 
 # Money Movement Team (formerly Ramps)
 app/components/UI/Ramp/                                @MetaMask/money-movement
