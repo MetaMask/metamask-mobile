@@ -24,6 +24,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../PerpsAccountUnsupportedModal';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
@@ -50,6 +51,11 @@ interface PerpsMarketBalanceActionsProps {
   onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
   children?: React.ReactNode;
   isGlass?: boolean;
+  /**
+   * Analytics `source` naming the presenting screen. Required so events
+   * raised here can attribute the screen that rendered the actions.
+   */
+  source: (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -78,6 +84,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   onTitleSectionLayout,
   children,
   isGlass = false,
+  source,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -122,7 +129,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
+    unsupportedContentKey,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
+    source,
     buttonLocation,
   });
 
@@ -367,6 +377,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           </Modal>
         </View>
       )}
+      <PerpsAccountUnsupportedModal
+        contentKey={unsupportedContentKey}
+        onClose={closeAccountUnsupportedModal}
+      />
     </>
   );
 };

@@ -149,6 +149,9 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       buttonLocation: ADD_MARGIN_DEPOSIT_BUTTON_LOCATION,
       openConfirmationInPlace: true,
       onBeforeOpenConfirmation: () => setIsDepositCoverVisible(true),
+      // Deposits never sign through a provider, so the mount-time prefetch
+      // would only add noise; the action-time check still guards Core.
+      skipSupportPrefetch: true,
     });
   const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
   const hasNavigatedBackRef = useRef(false);

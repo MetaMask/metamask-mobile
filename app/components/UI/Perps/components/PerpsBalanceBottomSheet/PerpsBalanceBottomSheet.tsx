@@ -34,6 +34,7 @@ import {
 } from '../../utils/formatUtils';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsInlineInfoScreen } from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
+import PerpsAccountUnsupportedModal from '../PerpsAccountUnsupportedModal';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
@@ -53,6 +54,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   isVisible,
   onClose,
   buttonLocation,
+  source,
   testID = PerpsBalanceBottomSheetSelectorsIDs.CONTAINER,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -82,7 +84,9 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions({ buttonLocation });
+    unsupportedContentKey,
+    closeAccountUnsupportedModal,
+  } = usePerpsHomeActions({ source, buttonLocation });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
   const spendableBalance = perpsAccount?.spendableBalance || '0';
@@ -287,6 +291,11 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
           </Modal>
         </View>
       )}
+
+      <PerpsAccountUnsupportedModal
+        contentKey={unsupportedContentKey}
+        onClose={closeAccountUnsupportedModal}
+      />
     </>
   );
 };

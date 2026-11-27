@@ -66,6 +66,7 @@ import { usePerpsSectionNearViewport } from '../../hooks/usePerpsSectionNearView
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -323,6 +324,8 @@ const PerpsHomeView = () => {
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
+    unsupportedContentKey,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
   });
@@ -1427,6 +1430,7 @@ const PerpsHomeView = () => {
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           isGlass={isGlass}
           onTitleSectionLayout={(event) =>
             setTitleSectionHeight(event.nativeEvent.layout.height)
@@ -1530,6 +1534,7 @@ const PerpsHomeView = () => {
           isVisible
           onClose={closeBalanceSheet}
           buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
       ) : null}
 
@@ -1586,6 +1591,11 @@ const PerpsHomeView = () => {
           </Modal>
         </View>
       )}
+
+      <PerpsAccountUnsupportedModal
+        contentKey={unsupportedContentKey}
+        onClose={closeAccountUnsupportedModal}
+      />
 
       {/* Close All / Cancel All Geo-Block Modal */}
       {isCloseAllGeoBlockVisible && (

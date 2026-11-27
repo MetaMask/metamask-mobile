@@ -80,6 +80,7 @@ const renderSheet = (
       isVisible
       onClose={jest.fn()}
       buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+      source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
       {...props}
     />,
     {
@@ -129,9 +130,15 @@ describe('PerpsBalanceBottomSheet', () => {
     PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
   ])('attributes deposit and withdraw to the %s opener', (buttonLocation) => {
-    renderSheet({ buttonLocation });
+    renderSheet({
+      buttonLocation,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    });
 
-    expect(usePerpsHomeActions).toHaveBeenCalledWith({ buttonLocation });
+    expect(usePerpsHomeActions).toHaveBeenCalledWith({
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      buttonLocation,
+    });
   });
 
   it('renders the sheet with balance, available, and PnL values', () => {

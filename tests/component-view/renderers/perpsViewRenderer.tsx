@@ -1,7 +1,8 @@
 import '../mocks';
 import React from 'react';
 import Engine from '../../../app/core/Engine';
-import { Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { fireEvent } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Pe
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import {
   createComponentViewQueryClient,
+  getRouteProbeTestId,
   renderComponentViewScreen,
   renderScreenWithRoutes,
   ToasterBoundary,
@@ -716,6 +718,16 @@ interface RenderPerpsViewOptions {
    * without extra routes still gets the single-screen mount.
    */
   mainMount?: 'perps-modal';
+  /**
+   * Mounts a probe route underneath the view and pushes the view on top, so
+   * `goBack` removes the view and the probe (`route-<name>`) becomes visible.
+   */
+  presentingRoute?: string;
+  /**
+   * Mounts the view as a tab beside a probe tab. Pressing `tab-<name>` switches
+   * away while the view stays mounted, like a real tab switch.
+   */
+  siblingTab?: string;
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
   crossMarginEnabled?: boolean;
@@ -726,7 +738,10 @@ interface RenderPerpsViewOptions {
 
 const DefaultRouteProbe =
   (routeName: string): React.ComponentType<unknown> =>
-  () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
+  () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
+
+/** Test ID of the tab button `renderPerpsView({ siblingTab })` renders per tab. */
+export const getTabProbeTestId = (routeName: string) => `tab-${routeName}`;
 
 /**
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
@@ -775,6 +790,8 @@ export function renderPerpsView(
     streamOverrides,
     extraRoutes,
     mainMount,
+    presentingRoute,
+    siblingTab,
     mode,
     connectionValue,
     includeToasts,
@@ -799,7 +816,9 @@ export function renderPerpsView(
       queryClient={queryClient}
       streamManager={testStreamManager}
       connectionValue={connectionValue}
-      includeToasts={includeToasts && !extraRoutes?.length}
+      includeToasts={
+        includeToasts && !extraRoutes?.length && !presentingRoute && !siblingTab
+      }
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -819,13 +838,48 @@ export function renderPerpsView(
     return WrappedRoute as unknown as React.ComponentType;
   };
 
-  if (extraRoutes?.length) {
+  if (siblingTab) {
+    const Tab = createBottomTabNavigator();
+    const tabTree = (
+      <Tab.Navigator
+        screenOptions={{ headerShown: false }}
+        tabBar={({ state: tabState, navigation }) => (
+          <View>
+            {tabState.routes.map(({ key, name }) => (
+              <Pressable
+                key={key}
+                testID={getTabProbeTestId(name)}
+                onPress={() => navigation.navigate(name)}
+              />
+            ))}
+          </View>
+        )}
+      >
+        <Tab.Screen
+          name={routeName}
+          component={WrappedComponent}
+          initialParams={initialParams}
+        />
+        <Tab.Screen
+          name={siblingTab}
+          component={DefaultRouteProbe(siblingTab)}
+        />
+      </Tab.Navigator>
+    );
+    return withStreamControls(
+      renderWithProvider(tabTree, { state }),
+      stream,
+      queryClient,
+    );
+  }
+
+  if (extraRoutes?.length || presentingRoute) {
     const Stack = createNativeStackNavigator();
     const InnerStack = createNativeStackNavigator();
-    const nestedPerpsRoutes = extraRoutes.filter(
+    const nestedPerpsRoutes = (extraRoutes ?? []).filter(
       ({ mount }) => mount === 'perps-root',
     );
-    const rootRoutes = extraRoutes.filter(
+    const rootRoutes = (extraRoutes ?? []).filter(
       ({ mount }) => mount !== 'perps-root',
     );
     // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
@@ -873,10 +927,32 @@ export function renderPerpsView(
         {nestedScreens}
       </InnerStack.Navigator>
     );
+    const PresentingRouteProbe = ({
+      navigation,
+    }: {
+      navigation: { navigate: (name: string, params?: object) => void };
+    }) => {
+      React.useEffect(() => {
+        navigation.navigate(routeName, initialParams);
+      }, [navigation]);
+      return (
+        <Text testID={getRouteProbeTestId(presentingRoute ?? '')}>
+          {presentingRoute}
+        </Text>
+      );
+    };
     const stackTree = (
       <Stack.Navigator
-        initialRouteName={nestMain ? Routes.PERPS.ROOT : undefined}
+        initialRouteName={
+          presentingRoute ?? (nestMain ? Routes.PERPS.ROOT : undefined)
+        }
       >
+        {presentingRoute ? (
+          <Stack.Screen
+            name={presentingRoute}
+            component={PresentingRouteProbe}
+          />
+        ) : null}
         {!nestMain && (
           <Stack.Screen
             name={routeName}

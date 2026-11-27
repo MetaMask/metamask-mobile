@@ -146,6 +146,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -511,6 +512,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       });
     },
     [market?.symbol, selectVenue, track],
+  );
+
+  const {
+    unsupportedContentKey,
+    showPrefetchedUnsupported,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport(
+    PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    market?.providerId,
   );
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
@@ -1346,6 +1356,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
+        if (
+          useBottomSheet &&
+          (!navigation.isFocused() || showPrefetchedUnsupported())
+        )
+          return;
+
         // While cross margin is off, an existing cross position cannot be traded.
         if (
           !isCrossMarginEnabled &&
@@ -1407,6 +1423,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       marketData,
       chartLibrary,
       useBottomSheet,
+      showPrefetchedUnsupported,
     ],
   );
 
@@ -2615,6 +2632,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           testID={
             PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
           }
+        />
+      )}
+      {unsupportedContentKey && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={closeAccountUnsupportedModal}
+          contentKey={unsupportedContentKey}
         />
       )}
 

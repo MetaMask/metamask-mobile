@@ -1017,7 +1017,9 @@ const PerpsMarketListView = ({
       />
 
       {showBalanceActions && variant === 'full' && (
-        <PerpsMarketBalanceActions />
+        <PerpsMarketBalanceActions
+          source={PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS}
+        />
       )}
 
       {!isLoadingMarkets && !error && (

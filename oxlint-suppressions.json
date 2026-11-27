@@ -6215,13 +6215,10 @@
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx": {
     "typescript/no-misused-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
-    },
-    "typescript/promise-function-async": {
-      "count": 2
+      "count": 11
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx": {

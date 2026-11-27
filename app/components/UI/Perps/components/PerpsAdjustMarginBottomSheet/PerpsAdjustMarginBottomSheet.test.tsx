@@ -287,6 +287,7 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       buttonLocation: 'add_margin',
       openConfirmationInPlace: true,
       onBeforeOpenConfirmation: expect.any(Function),
+      skipSupportPrefetch: true,
     });
   });
 

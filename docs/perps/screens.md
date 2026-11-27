@@ -108,6 +108,7 @@ Lite landing screen with positions, open orders, watchlist and recent activity.
 - Enters from the Lite entry points above.
 - Leaves to `MARKET_DETAILS` (tap a market) and `MARKET_LIST`.
 - Close all and cancel all open as embedded sheets, not routes.
+- Withdraw entry (`usePerpsHomeActions.handleWithdraw`) resolves the venue through Core `resolveWithdrawalRoute()` (the same resolution and refusal `withdraw()` applies), then checks `usePerpsAccountSupport` for the resolved provider before either withdrawal flow opens.
 - The Lite pill switches to Pro through `getProSwitchTarget`.
 - Tracks a screen view with `screen_type` `perps_home` and the route `source`.
 
@@ -177,16 +178,18 @@ Code: `app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrder
 
 Lite order form. It has no Perps-stack route. It renders as the confirmation body for `TransactionType.perpsDepositAndOrder`.
 
-| Components                                                                                                | Hooks                                                                                                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PerpsOrderHeader`, `PerpsAmountDisplay`, `PerpsSlider`, `PerpsFeesDisplay`, `PerpsLimitPriceBottomSheet` | `usePerpsOrderForm` (through `PerpsOrderContext`), `usePerpsOrderFees`, `usePerpsRewards`, `usePerpsOrderValidation`, `usePerpsLivePrices`, `usePerpsOrderExecution`, `usePerpsMeasurement`, `usePerpsEventTracking` |
+| Components                                                                                                                                | Hooks                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PerpsOrderHeader`, `PerpsAmountDisplay`, `PerpsSlider`, `PerpsFeesDisplay`, `PerpsLimitPriceBottomSheet`, `PerpsAccountUnsupportedModal` | `usePerpsOrderForm` (through `PerpsOrderContext`), `usePerpsOrderFees`, `usePerpsRewards`, `usePerpsOrderValidation`, `usePerpsLivePrices`, `usePerpsOrderExecution`, `usePerpsAccountSupport`, `usePerpsLiteOrderSubmitGate`, `usePerpsOrderSubmit`, `usePerpsMeasurement`, `usePerpsEventTracking` |
 
 - Params are `PerpsOrderRouteParams`, including `direction`, `asset`, `providerId`, `leverage`, `amount`, `price`, `orderType`, `existingPosition`, `hideTPSL`, `source` and `useBottomSheet`.
 - Form state holds amount (USD), leverage, order type, limit price and direction. `usePerpsOrderFees` computes the fee, discount and rewards.
 - `navigateToOrder` creates the deposit-and-order transaction, then opens `CONFIRMATIONS`. When the order provider is Lighter it opens `BALANCE_ORDER` instead.
+- Submit runs through a support gate: `usePerpsLiteOrderSubmitGate` retires attempts on context changes and `usePerpsAccountSupport` (backed by Core `getAccountSupport`) blocks unsupported accounts, explaining through `PerpsAccountUnsupportedModal` or the Trade sheet's `accountUnsupported` screen.
+- Submit orchestration — validation settle, the pay-with-token deposit branch, direct placement and the post-deposit re-entry — lives in `usePerpsOrderSubmit`.
 - TP/SL opens from the form before submit (`TPSL`). See [tpsl.md](./tpsl.md).
 
-Code: `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx` `PerpsOrderView`; `app/components/UI/Perps/contexts/PerpsOrderContext.tsx` `PerpsOrderProvider`; `app/components/UI/Perps/hooks/usePerpsNavigation.ts` `navigateToOrder`; `app/components/UI/Perps/types/navigation.ts` `PerpsOrderRouteParams`
+Code: `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx` `PerpsOrderView`; `app/components/UI/Perps/contexts/PerpsOrderContext.tsx` `PerpsOrderProvider`; `app/components/UI/Perps/hooks/usePerpsNavigation.ts` `navigateToOrder`; `app/components/UI/Perps/hooks/usePerpsAccountSupport.ts`, `usePerpsOrderSubmitGate.ts`, `usePerpsOrderSubmit.ts`; `app/components/UI/Perps/components/PerpsAccountUnsupportedModal/PerpsAccountUnsupportedModal.tsx`; `app/components/UI/Perps/types/navigation.ts` `PerpsOrderRouteParams`
 
 ## PerpsBalanceOrderView
 
@@ -289,9 +292,9 @@ Legacy withdrawal of USDC to Arbitrum. Home opens it only when `perpsWithdrawCon
 
 - Amount by keypad or 10/25/50/Max. Percentage buttons hide once an amount is entered.
 - The minimum is the route's `minAmount` constraint, else Core `WITHDRAWAL_CONSTANTS.DefaultMinAmount`.
-- Confirm shows a toast, goes back at once, then calls `controller.withdraw()`.
+- Venue resolution and the account-support check happened in Home's `handleWithdraw` before this view opened; Confirm shows a toast, goes back at once, then calls `controller.withdraw()`.
 
-Code: `app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx` `handleContinue`; `app/components/UI/Perps/hooks/useWithdrawValidation.ts`; `app/components/UI/Perps/hooks/useWithdrawTokens.ts`; `app/components/UI/Perps/hooks/usePerpsHomeActions.ts`
+Code: `app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx` `handleContinue`; `app/components/UI/Perps/hooks/useWithdrawValidation.ts`; `app/components/UI/Perps/hooks/useWithdrawTokens.ts`
 
 ## PerpsHeroCardView
 

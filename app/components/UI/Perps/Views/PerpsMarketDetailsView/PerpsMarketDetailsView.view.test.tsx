@@ -30,6 +30,7 @@ import {
   createEthMarketForViews,
   createFundedAccountForViews,
   createLongPositionForViews,
+  createScreenVsBottomSheetAssignmentForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -97,6 +98,7 @@ import {
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from '../PerpsSharePositionView/PerpsSharePositionView.constants';
+import { ScreenVsBottomSheetVariant } from '../../abTestConfig';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -308,6 +310,111 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
       ),
     ).toBeOnTheScreen();
+  });
+
+  describe('Lite order sheet account support', () => {
+    // A Lighter market opens the Lite order sheet through BALANCE_ORDER after
+    // switching the venue from aggregated mode.
+    const market = createEthMarketForViews({ providerId: 'lighter' });
+    const renderLiteMarketDetails = () => {
+      const assignment = createScreenVsBottomSheetAssignmentForViews(
+        ScreenVsBottomSheetVariant.Treatment,
+      );
+      renderPerpsMarketDetailsView({
+        initialParams: { market },
+        streamOverrides: { positions: [], marketData: [market] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...assignment.engine.backgroundState,
+              PerpsController: {
+                activeProvider: 'aggregated',
+                isEligible: true,
+              },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.BALANCE_ORDER }],
+      });
+    };
+
+    beforeEach(() => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+      jest
+        .mocked(Engine.context.PerpsController.switchProvider)
+        .mockReset()
+        .mockResolvedValue({ success: true, providerId: 'lighter' });
+    });
+
+    afterEach(() => {
+      // Restore the shared default so later suites (which do not reset this
+      // mock) are not left on an unsupported account.
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+    });
+
+    it('opens the Lite order sheet without waiting for a pending venue read', async () => {
+      const getAccountSupport = jest.mocked(
+        Engine.context.PerpsController.getAccountSupport,
+      );
+      getAccountSupport.mockReturnValue(new Promise(() => undefined));
+      renderLiteMarketDetails();
+      const longButton = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      expect(getAccountSupport).toHaveBeenCalledWith({ providerId: 'lighter' });
+      getAccountSupport.mockClear();
+
+      fireEvent.press(longButton);
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.BALANCE_ORDER),
+        ),
+      ).toBeOnTheScreen();
+      expect(getAccountSupport).not.toHaveBeenCalled();
+    });
+
+    it('shows the unsupported-account explanation instead of opening the Lite order sheet', async () => {
+      const getAccountSupport = jest.mocked(
+        Engine.context.PerpsController.getAccountSupport,
+      );
+      getAccountSupport.mockResolvedValue({
+        isSupported: false,
+        reason: 'multi_sig_account',
+      });
+      renderLiteMarketDetails();
+      const longButton = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      expect(getAccountSupport).toHaveBeenCalledWith({ providerId: 'lighter' });
+      getAccountSupport.mockClear();
+
+      fireEvent.press(longButton);
+
+      expect(
+        await screen.findByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.tooltips.account_not_supported.content'),
+        ),
+      ).toBeOnTheScreen();
+      expect(getAccountSupport).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.switchProvider,
+      ).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.BALANCE_ORDER)),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('opens market-hours tooltip when info button is pressed for stock markets', async () => {

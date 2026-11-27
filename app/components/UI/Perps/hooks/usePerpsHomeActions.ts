@@ -3,11 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
+import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 import type {
   ConfirmationLaunchSource,
@@ -34,10 +36,16 @@ import {
   type DepositConfirmationNavigation,
   type DepositPrepSession,
 } from '../utils/depositConfirmationGuard';
+import {
+  usePerpsAccountSupport,
+  type UsePerpsAccountSupportReturn,
+} from './usePerpsAccountSupport';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
 export interface UsePerpsHomeActionsOptions {
+  /** Screen presenting an unsupported-account explanation. */
+  source?: string;
   /** Callback invoked when add funds succeeds */
   onAddFundsSuccess?: () => void;
   /** Callback invoked when withdraw succeeds */
@@ -46,6 +54,11 @@ export interface UsePerpsHomeActionsOptions {
   onError?: (error: Error, action: PerpsHomeActionType) => void;
   /** Button location for tracking deposit entry point */
   buttonLocation?: string;
+  /**
+   * Skip the account-support prefetch. For callers whose actions never sign
+   * (deposit-only sheets), where only the action-time check matters.
+   */
+  skipSupportPrefetch?: boolean;
   /**
    * Push the deposit confirmation on the current navigator instead of
    * re-targeting the Perps root. The adjust-margin sheet uses this so the
@@ -64,6 +77,8 @@ export interface UsePerpsHomeActionsReturn {
   isEligible: boolean;
   /** Whether eligibility modal is visible */
   isEligibilityModalVisible: boolean;
+  /** Content for the visible unsupported-account explanation, or null. */
+  unsupportedContentKey: UsePerpsAccountSupportReturn['unsupportedContentKey'];
   /** Whether an action is currently processing */
   isProcessing: boolean;
   /** Last error that occurred */
@@ -79,6 +94,10 @@ export interface UsePerpsHomeActionsReturn {
   showEligibilityModal: (source: string) => void;
   /** Close eligibility modal */
   closeEligibilityModal: () => void;
+  /** Close unsupported-account modal */
+  closeAccountUnsupportedModal: () => void;
+  /** Check whether the active account can submit provider actions */
+  checkAccountSupport: UsePerpsAccountSupportReturn['checkAccountSupport'];
 }
 
 /**
@@ -108,6 +127,16 @@ export const usePerpsHomeActions = (
   );
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
+  const {
+    unsupportedContentKey,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport(
+    options?.source ?? PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    undefined,
+    { skipPrefetch: options?.skipSupportPrefetch },
+  );
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -128,6 +157,7 @@ export const usePerpsHomeActions = (
   // StackActions.push always adds a route, and dismissing the deposit only
   // goes back once.
   const inPlaceConfirmationOpenRef = useRef(false);
+  const isWithdrawInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!openConfirmationInPlace) {
@@ -282,7 +312,15 @@ export const usePerpsHomeActions = (
     showEligibilityModal,
   ]);
 
+  /** Bind support to Core's withdrawal route and reject a live venue switch before signing. */
   const handleWithdraw = useCallback(async () => {
+    // The support check is async, so a second tap would otherwise start a
+    // second withdrawal while the first is still waiting on it.
+    if (isWithdrawInFlightRef.current) {
+      return;
+    }
+    isWithdrawInFlightRef.current = true;
+
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -306,6 +344,26 @@ export const usePerpsHomeActions = (
     });
 
     try {
+      const route =
+        await Engine.context.PerpsController.resolveWithdrawalRoute();
+      if (route.status !== 'resolved') {
+        const routeError = new Error(route.error);
+        setError(routeError);
+        onError?.(routeError, 'withdraw');
+        showToast(
+          PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed(
+            route.error,
+          ),
+        );
+        return;
+      }
+      const support = await checkAccountSupport(route.providerId, {
+        bindActiveProvider: true,
+      });
+      if (support !== 'supported' || !navigation.isFocused()) {
+        return;
+      }
+
       if (perpsWithdrawConfig.enabled) {
         await withdrawWithConfirmation();
         DevLogger.log(
@@ -343,6 +401,7 @@ export const usePerpsHomeActions = (
         onError(errorObj, 'withdraw');
       }
     } finally {
+      isWithdrawInFlightRef.current = false;
       setIsProcessing(false);
     }
   }, [
@@ -350,10 +409,13 @@ export const usePerpsHomeActions = (
     navigation,
     perpsWithdrawConfig.enabled,
     withdrawWithConfirmation,
+    PerpsToastOptions,
+    showToast,
     onWithdrawSuccess,
     onError,
     track,
     buttonLocation,
+    checkAccountSupport,
   ]);
 
   const closeEligibilityModal = useCallback(() => {
@@ -364,11 +426,14 @@ export const usePerpsHomeActions = (
   return {
     isEligible,
     isEligibilityModalVisible,
+    unsupportedContentKey,
     isProcessing,
     error,
     handleAddFunds,
     handleWithdraw,
     showEligibilityModal,
     closeEligibilityModal,
+    closeAccountUnsupportedModal,
+    checkAccountSupport,
   };
 };

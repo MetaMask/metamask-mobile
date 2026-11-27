@@ -261,6 +261,7 @@ const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+const mockIsFocused = jest.fn(() => true);
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -325,6 +326,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
+      isFocused: mockIsFocused,
       setOptions: jest.fn(),
       getState: mockGetState,
       addListener: mockAddListener,
@@ -763,6 +765,21 @@ jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
+jest.mock('../../hooks/usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    unsupportedContentKey: null,
+    showPrefetchedUnsupported: () => false,
+  }),
+}));
+
+// Mock useABTest to return default (control/white) variant
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variantName: 'control',
+    isActive: false,
+  }),
+}));
+
 // Mock usePerpsOICap to return not at cap by default
 const mockUsePerpsOICap = jest.fn();
 jest.mock('../../hooks/usePerpsOICap', () => ({
@@ -923,7 +940,7 @@ jest.mock(
       }: {
         isVisible: boolean;
         onClose?: () => void;
-        testID: string;
+        testID?: string;
       }) {
         return isVisible ? (
           <TouchableOpacity testID={testID} onPress={onClose}>
@@ -1097,6 +1114,7 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+    mockIsFocused.mockReturnValue(true);
     mockComplianceState.isBlocked = false;
     mockRouteParams.transactionActiveAbTests = undefined;
     mockRouteParams.source = undefined;

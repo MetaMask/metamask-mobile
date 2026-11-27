@@ -99,6 +99,8 @@ import {
 import { usePerpsCrossLiquidationEstimate } from '../../../../hooks/usePerpsCrossLiquidationEstimate';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsOrderSubmitGate } from '../../../../hooks/usePerpsOrderSubmitGate';
+import type { UnsupportedContentKey } from '../../../../hooks/usePerpsAccountSupport';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
 import { usePerpsMaxSlippage } from '../../../../hooks/usePerpsMaxSlippage';
 import {
@@ -635,6 +637,8 @@ export interface UsePerpsProOrderFormResult {
   // Eligibility (geo-block) modal
   isEligibilityModalVisible: boolean;
   closeEligibilityModal: () => void;
+  unsupportedContentKey: UnsupportedContentKey | null;
+  closeAccountUnsupportedModal: () => void;
   // Fees tooltip
   selectedTooltip: PerpsTooltipContentKey | null;
   closeTooltip: () => void;
@@ -917,7 +921,11 @@ export const usePerpsProOrderForm = ({
     isEligibilityModalVisible,
     closeEligibilityModal,
     showEligibilityModal,
+    unsupportedContentKey,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
+    source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
   });
 
@@ -2069,6 +2077,59 @@ export const usePerpsProOrderForm = ({
               marginModeContextKey,
               isCrossMarginUnsupported,
             });
+  const currentExecutionState = JSON.stringify({
+    orderForm,
+    reduceOnly,
+    triggerPrice: normalizedTriggerPrice,
+    selectedAddress: normalizedSelectedAddress,
+    orderProviderId,
+    marketProviderId: market.providerId,
+    network,
+    marginMode,
+    marginModeContextKey,
+    maxSlippageBps: resolvedMaxSlippageBps,
+    ...(isTriggerOrderType(orderForm.type)
+      ? {
+          isTriggeredOrdersEnabled,
+          isTriggerAvailabilityPending,
+          supportedTriggerOrderTypes,
+          resolvedTriggerProviderId,
+        }
+      : {}),
+    ...(isTwapOrder
+      ? {
+          isTwapEnabled,
+          isTwapAvailabilityPending,
+          resolvedTwapProviderId,
+          twapDuration,
+          twapRandomize,
+        }
+      : {}),
+    ...(isScaleOrder
+      ? {
+          scaleStartPrice,
+          scaleEndPrice,
+          scaleTotalOrders,
+          scaleSizeSkew,
+          scaleProviderId,
+          isScaleOrdersEnabled,
+          isScaleOrderSupportPending,
+        }
+      : {}),
+    ...(isChaseOrder
+      ? {
+          chaseMaxDistance,
+          chaseMaxDistanceUnit,
+          isChaseEnabled,
+          isChaseAvailabilityPending,
+          chaseProviderId,
+        }
+      : {}),
+  });
+  const { checkBeforeSubmit } = usePerpsOrderSubmitGate(
+    checkAccountSupport,
+    currentExecutionState,
+  );
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -2755,6 +2816,7 @@ export const usePerpsProOrderForm = ({
     expectedNetwork: typeof network,
     expectedLifecycleGeneration: number,
     expectedComplianceState: string,
+    isDraftRetired: () => boolean,
   ) => {
     if (isSubmittingRef.current || isMarginModeLockPendingRef.current) {
       return;
@@ -2802,33 +2864,32 @@ export const usePerpsProOrderForm = ({
       !isMarginModeLockPendingRef.current &&
       submissionStateRef.current === expectedState &&
       (!isVenueSizedScale || scalePreview.isCurrent());
-    if (!isCurrentSubmission()) {
-      if (isCurrentLifecycle() && isChaseSubmission) {
-        reportChaseSubmissionChanged();
+    const canContinue = () => {
+      if (isCurrentSubmission()) return true;
+      if (isCurrentLifecycle() && !scalePreflightRef.current?.notified) {
+        if (isChaseSubmission) reportChaseSubmissionChanged();
+        else reportValidationFailure(strings('perps.order.validation.error'));
       }
-      return;
-    }
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
-      [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
-        sizeInput.denomination.unit,
-      ),
-      ...(isChaseSubmission
-        ? {
-            [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
-              PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
-            [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
-          }
-        : {}),
-    });
+      return false;
+    };
+    const canDispatch = () => {
+      if (!canContinue()) return false;
+      if (
+        isDraftRetired() ||
+        selectedAddressRef.current !== expectedSelectedAddress ||
+        networkRef.current !== expectedNetwork
+      ) {
+        reportValidationFailure(strings('perps.order.validation.error'));
+        return false;
+      }
+      return true;
+    };
+    if (!canContinue()) return;
 
     if (isTriggerOrderType(orderForm.type) && isTriggerAvailabilityPending) {
+      reportValidationFailure(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
       return;
     }
 
@@ -2872,6 +2933,13 @@ export const usePerpsProOrderForm = ({
     // Defensive guard for stale or programmatic invocations. The rendered CTA
     // is already disabled for both expected blocking states.
     if (isMarketDataBlocking || isAtCap) {
+      reportValidationFailure(
+        strings(
+          isAtCap
+            ? 'perps.order.validation.oi_cap_reached'
+            : 'perps.order.validation.error',
+        ),
+      );
       return;
     }
 
@@ -2941,10 +3009,14 @@ export const usePerpsProOrderForm = ({
     }
 
     if (hasTpslBlocker) {
+      reportValidationFailure(strings('perps.order.validation.error'));
       return;
     }
 
     if (twapDurationMissing || twapDurationError || twapMinimumSizeError) {
+      reportValidationFailure(
+        twapDurationErrorMessage ?? strings('perps.order.validation.error'),
+      );
       return;
     }
 
@@ -2952,6 +3024,7 @@ export const usePerpsProOrderForm = ({
       isReduceOnlyPositionLoading ||
       (reduceOnly && !reduceOnlyValidation.isValid)
     ) {
+      reportValidationFailure(strings('perps.order.validation.error'));
       return;
     }
 
@@ -3038,7 +3111,7 @@ export const usePerpsProOrderForm = ({
       const initialScaleValidation = isScaleOrder
         ? await validateLatestScalePlacement(isCurrentSubmission)
         : undefined;
-      if (isScaleOrder ? !isCurrentSubmission() : !isCurrentLifecycle()) return;
+      if (isScaleOrder ? !canContinue() : !isCurrentLifecycle()) return;
       if (isScaleOrder && !initialScaleValidation) {
         reportValidationFailure(strings('perps.order.validation.error'));
         return;
@@ -3059,10 +3132,7 @@ export const usePerpsProOrderForm = ({
           ? latestChaseValidation.validationResult
           : await validateNow();
       if (!isCurrentLifecycle()) return;
-      if (!isCurrentSubmission()) {
-        if (isChaseSubmission) reportChaseSubmissionChanged();
-        return;
-      }
+      if (!canContinue()) return;
       if (!validationResult.isValid) {
         const firstFieldIssue = validationResult.fieldIssues.find(
           (issue) => !isAdvisoryOrderFormFieldIssue(issue),
@@ -3094,7 +3164,7 @@ export const usePerpsProOrderForm = ({
         const currentTwapSupport = expectedProviderId
           ? await checkCurrentTwapSupport()
           : false;
-        if (!isCurrentSubmission()) return;
+        if (!canContinue()) return;
         if (
           !expectedProviderId ||
           !currentTwapSupport ||
@@ -3105,9 +3175,6 @@ export const usePerpsProOrderForm = ({
           reportValidationFailure(
             strings('perps.order.validation.twap_unavailable'),
           );
-          return;
-        }
-        if (!isCurrentSubmission()) {
           return;
         }
       }
@@ -3145,6 +3212,7 @@ export const usePerpsProOrderForm = ({
           validatedIsReduceOnlyPositionLoading ||
           (validatedReduceOnly && !validatedReduceOnlyValidation.isValid)
         ) {
+          reportValidationFailure(strings('perps.order.validation.error'));
           return;
         }
         if (rejectCrossMarginPosition(validatedCurrentMarketPosition)) {
@@ -3163,7 +3231,7 @@ export const usePerpsProOrderForm = ({
           scaleProviderIdRef.current === expectedProviderId
             ? await checkCurrentScaleSupport()
             : false;
-        if (!isCurrentSubmission()) return;
+        if (!canContinue()) return;
         if (
           !expectedProviderId ||
           !currentScaleSupport ||
@@ -3187,7 +3255,7 @@ export const usePerpsProOrderForm = ({
           const displayedLadder =
             scalePlacementSnapshotRef.current.scaleLadderResult;
           const previewResult = await scalePreview.refresh();
-          if (!isCurrentSubmission()) return;
+          if (!canContinue()) return;
           const freshLadder =
             previewRequest &&
             getVenueScalePreview(previewRequest, previewResult);
@@ -3204,7 +3272,7 @@ export const usePerpsProOrderForm = ({
         }
         const latestScaleValidation =
           await validateLatestScalePlacement(isCurrentSubmission);
-        if (!isCurrentSubmission()) return;
+        if (!canContinue()) return;
         if (!latestScaleValidation) {
           reportValidationFailure(strings('perps.order.validation.error'));
           return;
@@ -3240,13 +3308,17 @@ export const usePerpsProOrderForm = ({
           latestScale.isReduceOnlyPositionLoading ||
           (latestScale.reduceOnly && !latestScale.reduceOnlyValidation.isValid)
         ) {
+          reportValidationFailure(strings('perps.order.validation.error'));
           return;
         }
         if (rejectCrossMarginPosition(latestScale.currentMarketPosition)) {
           return;
         }
         if (!latestScale.scaleLadderResult.success) {
-          if ('pending' in latestScale.scaleLadderResult) return;
+          if ('pending' in latestScale.scaleLadderResult) {
+            reportValidationFailure(strings('perps.order.validation.error'));
+            return;
+          }
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               getScaleValidationMessage(
@@ -3294,6 +3366,7 @@ export const usePerpsProOrderForm = ({
           expectedScaleLadder,
         });
 
+        if (!canDispatch()) return;
         // Haptics are non-critical feedback; a device haptics failure must not
         // prevent the already-validated controller request from being placed.
         playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
@@ -3450,10 +3523,7 @@ export const usePerpsProOrderForm = ({
           return;
         }
       }
-      if (!isCurrentSubmission()) {
-        if (isChaseSubmission) reportChaseSubmissionChanged();
-        return;
-      }
+      if (!canContinue()) return;
       const finalizedLimitPrice = orderForm.limitPrice
         ? canonicalizeOrderPrice(
             finalizeNumericTextInput(orderForm.limitPrice),
@@ -3596,6 +3666,7 @@ export const usePerpsProOrderForm = ({
         }
       }
 
+      if (!canDispatch()) return;
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
       isChaseExecutionRef.current = isChaseSubmission;
       const submittedToast = isTwapOrder
@@ -4806,6 +4877,57 @@ export const usePerpsProOrderForm = ({
           showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
           return;
         }
+        if (isSubmittingRef.current) return;
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
+          [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
+            sizeInput.denomination.unit,
+          ),
+          ...(isChaseSubmission
+            ? {
+                [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+                  PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+                [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
+              }
+            : {}),
+        });
+        isSubmittingRef.current = true;
+        const decision = await checkBeforeSubmit(orderProviderId, {
+          origin: 'userTap',
+        }).finally(() => {
+          isSubmittingRef.current = false;
+        });
+        if (
+          lifecycleGenerationRef.current !== expectedLifecycleGeneration ||
+          decision.status === 'accountUnsupported' ||
+          scalePreflightRef.current?.notified
+        )
+          return;
+        if (
+          decision.status === 'abort' ||
+          selectedAddressRef.current !== expectedSelectedAddress ||
+          networkRef.current !== expectedNetwork ||
+          isMarginModeLockPendingRef.current ||
+          submissionStateRef.current !== expectedSubmissionState
+        ) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings(
+                orderForm.type === 'twap' && !isTwapEnabledRef.current
+                  ? 'perps.order.validation.twap_unavailable'
+                  : 'perps.order.validation.error',
+              ),
+            ),
+          );
+          return;
+        }
+        // Re-read pricing, blockers and validateNow from the same committed
+        // render. A quote tick is not an edit to the user's order intent.
         await handlePlaceOrderRef.current(
           expectedSubmissionState,
           expectedSelectedAddress,
@@ -4814,6 +4936,7 @@ export const usePerpsProOrderForm = ({
           expectedNetwork,
           expectedLifecycleGeneration,
           expectedComplianceState,
+          decision.isRetired,
         );
       });
     } finally {
@@ -4830,6 +4953,13 @@ export const usePerpsProOrderForm = ({
       }
     }
   }, [
+    directionTrackingValue,
+    orderForm.asset,
+    reduceOnly,
+    sizeInput.denomination.unit,
+    track,
+    checkBeforeSubmit,
+    orderProviderId,
     commitPendingSliderPreview,
     gate,
     isChaseLimitBannerVisible,
@@ -5052,6 +5182,8 @@ export const usePerpsProOrderForm = ({
     // Eligibility (geo-block) modal
     isEligibilityModalVisible,
     closeEligibilityModal,
+    unsupportedContentKey,
+    closeAccountUnsupportedModal,
     // Fees tooltip
     selectedTooltip,
     closeTooltip: () => setSelectedTooltip(null),

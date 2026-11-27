@@ -13,7 +13,10 @@ import type {
   PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import type { ComponentType } from 'react';
-import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import {
+  renderPerpsCrossMarginOrderFormPanel,
+  renderPerpsProMarketView,
+} from '../../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import {
   createEthMarketForViews,
@@ -39,6 +42,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import PerpsTPSLView from '../../PerpsTPSLView/PerpsTPSLView';
 import {
   PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
+  PerpsBottomSheetTooltipSelectorsIDs as tooltipIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsOrderTypeBottomSheetSelectorsIDs as orderTypeIds,
   PerpsProOrderFormSelectorsIDs as formIds,
@@ -859,5 +863,128 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         strings('perps.margin_mode.cross_title'),
       ),
     );
+  });
+});
+
+describeForPlatforms('PerpsProOrderFormPanel account support', () => {
+  beforeEach(() => {
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockReset()
+      .mockResolvedValue({ isSupported: true });
+    // The Cross orders suite places orders; start this suite's
+    // not-called assertions from a clean history.
+    jest.mocked(Engine.context.PerpsController.placeOrder).mockClear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    // Restore the shared default so later suites (which do not reset this
+    // mock) are not left on an unsupported account.
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockReset()
+      .mockResolvedValue({ isSupported: true });
+  });
+
+  it('places the revalidated order when the price ticks during the account check', async () => {
+    const { stream } = renderPerpsProMarketView({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    const support = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    let allowSupport!: () => void;
+    support.mockClear().mockReturnValueOnce(
+      new Promise((resolve) => {
+        allowSupport = () => resolve({ isSupported: true });
+      }),
+    );
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+    await waitFor(() =>
+      expect(support).toHaveBeenCalledWith({ providerId: 'hyperliquid' }),
+    );
+
+    // Keep the quote-triggered debounce validation in flight when support
+    // resolves. It must not be mistaken for a new user-entered draft.
+    const validate = jest.mocked(Engine.context.PerpsController.validateOrder);
+    let finishPriceValidation!: () => void;
+    validate.mockClear().mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishPriceValidation = () => resolve({ isValid: true });
+      }),
+    );
+    act(() =>
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2501',
+          markPrice: '2501',
+          percentChange24h: '2',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      }),
+    );
+    await waitFor(() => expect(validate).toHaveBeenCalled());
+    await act(async () => {
+      allowSupport();
+    });
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledTimes(
+        1,
+      ),
+    );
+    await act(async () => {
+      finishPriceValidation();
+    });
+  });
+
+  it('explains an unsupported account instead of placing the order and dismisses the explanation', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockResolvedValue({ isSupported: false, reason: 'multi_sig_account' });
+    renderPerpsProMarketView({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    // Blurring the size field starts async order validation; the CTA stays
+    // disabled until it resolves.
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.account_not_supported.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.tooltips.account_not_supported.content')),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.PerpsController.getAccountSupport,
+    ).toHaveBeenCalledWith({ providerId: 'hyperliquid' });
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId(tooltipIds.GOT_IT_BUTTON));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
   });
 });

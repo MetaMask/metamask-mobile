@@ -12,6 +12,7 @@ import PerpsTradeBottomSheet, {
   type PerpsTradeSheetScreen,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { PerpsTradeAccountUnsupportedScreen } from './PerpsTradeNestedScreens';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockIsFocused = jest.fn(() => true);
@@ -38,6 +39,7 @@ const tradeSheetConfig = {
     payWith: 1,
     marginInfo: 1,
     liquidationInfo: 1,
+    accountUnsupported: 1,
   },
 };
 const emptyNestedScreens = {
@@ -46,6 +48,7 @@ const emptyNestedScreens = {
   payWith: null,
   marginInfo: null,
   liquidationInfo: null,
+  accountUnsupported: null,
 };
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -109,6 +112,18 @@ const LeverageTestScreen = () => {
   return (
     <Pressable testID="back-to-trade" onPress={goBack}>
       <Text>Leverage</Text>
+    </Pressable>
+  );
+};
+
+const OpenUnsupportedScreen = () => {
+  const { navigateTo } = usePerpsTradeSheet();
+  return (
+    <Pressable
+      testID="open-account-unsupported"
+      onPress={() => navigateTo('accountUnsupported')}
+    >
+      <Text>Open unsupported</Text>
     </Pressable>
   );
 };
@@ -225,6 +240,39 @@ describe('PerpsTradeBottomSheet', () => {
     });
 
     expect(screen.getByText('Leverage')).toBeOnTheScreen();
+  });
+
+  it('clears the unsupported-account explanation when Android back returns to Trade', () => {
+    const onDismiss = jest.fn();
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <OpenUnsupportedScreen />,
+          ...emptyNestedScreens,
+          accountUnsupported: (
+            <PerpsTradeAccountUnsupportedScreen
+              contentKey="account_not_supported"
+              onDismiss={onDismiss}
+            />
+          ),
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent.press(screen.getByTestId('open-account-unsupported'));
+    expect(screen.getByText('Account not supported')).toBeOnTheScreen();
+
+    act(() => {
+      expect(hardwareBackHandler?.({} as HardwareBackPressEvent)).toBe(true);
+    });
+
+    expect(screen.getByText('Open unsupported')).toBeOnTheScreen();
+    // The explanation is cleared so a later presentation in the same context
+    // re-emits the unsupported-account screen view.
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('locks nested screens to the measured Trade screen height', () => {

@@ -49,6 +49,7 @@ import {
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -84,6 +85,7 @@ import {
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
+  getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
@@ -2901,6 +2903,116 @@ describe('PerpsHomeView', () => {
         ),
       ).toBeNull();
       expect(headerExposureEvents()).toEqual([]);
+    });
+  });
+
+  describe('withdrawal account support', () => {
+    const withdrawalRoutes = [
+      { name: Routes.PERPS.WITHDRAW, mount: 'perps-root' as const },
+      {
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
+        mount: 'perps-root' as const,
+      },
+    ];
+    const renderFundedHome = () =>
+      renderPerpsHomeView({
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+        extraRoutes: withdrawalRoutes,
+      });
+    const expectNoWithdrawalStarted = () => {
+      for (const { name } of withdrawalRoutes) {
+        expect(
+          screen.queryByTestId(getRouteProbeTestId(name)),
+        ).not.toBeOnTheScreen();
+      }
+    };
+
+    beforeEach(() => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+      jest
+        .mocked(Engine.context.PerpsController.resolveWithdrawalRoute)
+        .mockReset()
+        .mockResolvedValue({ status: 'resolved', providerId: 'hyperliquid' });
+    });
+
+    afterEach(() => {
+      // Restore the shared default so later suites (which do not reset this
+      // mock) are not left on an unsupported account.
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+    });
+
+    it('checks support on the resolved withdrawal venue and starts the withdrawal', async () => {
+      const getAccountSupport = jest.mocked(
+        Engine.context.PerpsController.getAccountSupport,
+      );
+      renderFundedHome();
+      const withdrawButton = await screen.findByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      // Mount prefetches support with no provider; count only the tap's read.
+      getAccountSupport.mockClear();
+
+      fireEvent.press(withdrawButton);
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.PERPS.WITHDRAW)),
+      ).toBeOnTheScreen();
+      expect(getAccountSupport).toHaveBeenCalledWith({
+        providerId: 'hyperliquid',
+      });
+    });
+
+    it('explains an unsupported account instead of starting a withdrawal and dismisses the explanation', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockResolvedValue({ isSupported: false, reason: 'multi_sig_account' });
+      renderFundedHome();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.tooltips.account_not_supported.content'),
+        ),
+      ).toBeOnTheScreen();
+      expectNoWithdrawalStarted();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText(
+            strings('perps.tooltips.account_not_supported.title'),
+          ),
+        ).not.toBeOnTheScreen(),
+      );
+      expectNoWithdrawalStarted();
     });
   });
 });

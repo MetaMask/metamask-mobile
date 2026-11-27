@@ -32,6 +32,8 @@ interface MockComponentProps {
     | ((state: { pressed: boolean }) => StyleProp<ViewStyle>);
 }
 
+const SOURCE = 'perps_home';
+
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
@@ -112,6 +114,23 @@ jest.mock('../../hooks', () => ({
     handleWithdraw: jest.fn(),
     isEligibilityModalVisible: false,
     closeEligibilityModal: jest.fn(),
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
+}));
+
+// The component imports the hook directly, not through the `../../hooks`
+// barrel, so the real module (and its Toast/Avatar import chain) must not load.
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: jest.fn(),
+    handleWithdraw: jest.fn(),
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: jest.fn(),
+    closeAccountUnsupportedModal: jest.fn(),
+    unsupportedContentKey: null,
+    checkAccountSupport: jest.fn(),
     isEligible: true,
     isProcessing: false,
     error: null,
@@ -434,7 +453,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('renders component with balance display', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -453,7 +472,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('displays formatted balance amount', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -468,7 +487,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('shows both Add Funds and Withdraw buttons', () => {
       // Arrange & Act
       const { getByTestId, getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -487,7 +506,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('renders available balance text with funded state', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -511,7 +530,7 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Act
       const { queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -533,7 +552,7 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -557,7 +576,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection />,
+        <PerpsMarketBalanceActions hideBalanceSection source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -578,7 +597,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection>
+        <PerpsMarketBalanceActions hideBalanceSection source={SOURCE}>
           <View testID="title-hub-slot" />
         </PerpsMarketBalanceActions>,
         { state: createMockState() },
@@ -611,7 +630,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { getByTestId, getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection />,
+        <PerpsMarketBalanceActions hideBalanceSection source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -628,7 +647,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { getByTestId, getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection showActionButtons>
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          showActionButtons
+          source={SOURCE}
+        >
           <View testID="title-hub-slot" />
         </PerpsMarketBalanceActions>,
         { state: createMockState() },
@@ -662,7 +685,7 @@ describe('PerpsMarketBalanceActions', () => {
       );
 
       const { getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -685,7 +708,7 @@ describe('PerpsMarketBalanceActions', () => {
       ]);
 
       const { getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -708,7 +731,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection />,
+        <PerpsMarketBalanceActions hideBalanceSection source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -720,7 +743,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('shows action buttons without balance display when balance is hidden', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          showActionButtons
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );
@@ -744,6 +771,7 @@ describe('PerpsMarketBalanceActions', () => {
 
       const { getByTestId, getByText } = renderWithProvider(
         <PerpsMarketBalanceActions
+          source={SOURCE}
           hideBalanceSection
           onTitleSectionLayout={onTitleSectionLayout}
         >
@@ -779,6 +807,7 @@ describe('PerpsMarketBalanceActions', () => {
       const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
         renderWithProvider(
           <PerpsMarketBalanceActions
+            source={SOURCE}
             hideBalanceSection
             showActionButtons
             isGlass
@@ -808,7 +837,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection isGlass />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          isGlass
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );
@@ -818,7 +851,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('keeps the original buttons by default', () => {
       const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          showActionButtons
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );
@@ -831,7 +868,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('triggers animation when balance changes', () => {
       // Arrange
       const { rerender } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -848,7 +885,7 @@ describe('PerpsMarketBalanceActions', () => {
         isLoading: false,
         error: null,
       });
-      rerender(<PerpsMarketBalanceActions />);
+      rerender(<PerpsMarketBalanceActions source={SOURCE} />);
 
       // Assert
       expect(mockCompareAndUpdateBalance).toHaveBeenCalled();
@@ -863,7 +900,7 @@ describe('PerpsMarketBalanceActions', () => {
       // Act & Assert - Should not throw
       expect(() =>
         renderWithProvider(
-          <PerpsMarketBalanceActions />,
+          <PerpsMarketBalanceActions source={SOURCE} />,
           { state: createMockState() },
           false, // Disable NavigationContainer
         ),
@@ -875,7 +912,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('renders Add Funds button when user is eligible', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -891,7 +928,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('renders Withdraw button when balance is not empty', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -917,7 +954,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -933,7 +970,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('renders add funds button regardless of eligibility status', () => {
       // Arrange - Test with ineligible user
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState({ isEligible: false }) },
         false, // Disable NavigationContainer
       );
@@ -967,7 +1004,7 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Act
       const { getByTestId, getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -1001,7 +1038,7 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Act
       const { getByText, getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -1022,7 +1059,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('stops animation on unmount', () => {
       // Arrange
       const { unmount } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
@@ -1042,7 +1079,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('hides total balance value when privacy mode is enabled', () => {
       // Arrange & Act
       const { queryByText, getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState({}, true) },
         false,
       );
@@ -1055,7 +1092,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('shows total balance value when privacy mode is disabled', () => {
       // Arrange & Act
       const { getByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -1070,7 +1107,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('hides available balance amount when privacy mode is enabled', () => {
       // Arrange & Act
       const { getAllByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState({}, true) },
         false,
       );
@@ -1083,7 +1120,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('keeps "available" label visible when privacy mode is enabled', () => {
       // Arrange & Act
       const { getByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState({}, true) },
         false,
       );
@@ -1095,7 +1132,7 @@ describe('PerpsMarketBalanceActions', () => {
     it('shows available balance amount when privacy mode is disabled', () => {
       // Arrange & Act
       const { queryByText } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState() },
         false,
       );
@@ -1135,7 +1172,7 @@ describe('PerpsMarketBalanceActions', () => {
       );
 
       return renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         {
           state: {
             engine: {
@@ -1169,7 +1206,7 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('hides exchange logos when the Lighter flag is off', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions />,
+        <PerpsMarketBalanceActions source={SOURCE} />,
         { state: createMockState({ activeProvider: 'hyperliquid' }) },
         false,
       );

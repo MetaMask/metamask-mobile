@@ -1,3 +1,4 @@
+import type { UnsupportedContentKey } from '../../hooks/usePerpsAccountSupport';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import {
   type PerpsProviderType,
@@ -78,6 +79,33 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = (
   const { goBack } = usePerpsTradeSheet();
 
   return <PerpsInlineInfoScreen {...props} onBack={goBack} />;
+};
+
+export const PerpsTradeAccountUnsupportedScreen: React.FC<{
+  onDismiss: () => void;
+  contentKey: UnsupportedContentKey | null;
+}> = ({ onDismiss, contentKey }) => {
+  const { goBack } = usePerpsTradeSheet();
+  const handleBack = useCallback(() => {
+    onDismiss();
+    goBack();
+  }, [goBack, onDismiss]);
+
+  useEffect(() => {
+    if (!contentKey) goBack();
+  }, [contentKey, goBack]);
+  useEffect(
+    () => () => {
+      // Android hardware back pops this screen through the sheet's
+      // BackHandler without running handleBack. Clear the explanation so the
+      // next presentation in the same context re-emits the screen view.
+      onDismiss();
+    },
+    [onDismiss],
+  );
+  return contentKey ? (
+    <PerpsInlineInfoScreen contentKey={contentKey} onBack={handleBack} />
+  ) : null;
 };
 
 /**
