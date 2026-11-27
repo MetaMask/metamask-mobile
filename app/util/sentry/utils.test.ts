@@ -33,7 +33,7 @@ import { TraceName } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import { resetOutgoingRequestAnnotationForTesting } from './outgoingRequestContext';
 import { store } from '../../store';
-import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
+import extractEthJsErrorMessage from '../extractEthJsRpcErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { Platform } from 'react-native';
@@ -52,7 +52,7 @@ jest.mock('../../store', () => ({
   },
 }));
 
-jest.mock('../extractEthJsErrorMessage', () => ({
+jest.mock('../extractEthJsRpcErrorMessage', () => ({
   __esModule: true,
   default: jest.fn((message) => message),
 }));

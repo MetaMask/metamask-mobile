@@ -8,7 +8,7 @@ import {
   isEmbeddedLaunch,
   runtimeVersion,
 } from 'expo-updates';
-import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
+import extractEthJsErrorMessage from '../extractEthJsRpcErrorMessage';
 import { isFiatOrderDeclineError } from '../errorHandling/isFiatOrderDeclineError';
 import { regex } from '../regex';
 import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
