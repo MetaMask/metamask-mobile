@@ -10,6 +10,11 @@ import {
   AccountType,
   getSocialAccountType,
 } from '../../../constants/onboarding';
+import { selectProfileControllerLinkedEvmAddress } from '../../../selectors/profileController';
+import {
+  getSocialProfileCreatedAt,
+  hasSocialProfileFromLinkedAddress,
+} from '../../social/socialProfileAnalytics';
 
 // Resolves the user's account_type trait. Prefers the deterministic value
 // stored in onboarding redux. For users created before that field existed,
@@ -119,7 +124,21 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
     reduxState?.engine?.backgroundState?.AccountsController?.internalAccounts
       ?.accounts ?? {};
 
+  const hasSocialProfile = hasSocialProfileFromLinkedAddress(
+    selectProfileControllerLinkedEvmAddress(reduxState),
+  );
+  const socialProfileCreatedAt = hasSocialProfile
+    ? getSocialProfileCreatedAt()
+    : undefined;
+
   const traits: AnalyticsUserTraits = {
+    [UserProfileProperty.HAS_SOCIAL_PROFILE]: hasSocialProfile,
+    ...(socialProfileCreatedAt
+      ? {
+          [UserProfileProperty.SOCIAL_PROFILE_CREATED_AT]:
+            socialProfileCreatedAt,
+        }
+      : {}),
     [UserProfileProperty.ENABLE_OPENSEA_API]:
       preferencesController?.displayNftMedia
         ? UserProfileProperty.ON

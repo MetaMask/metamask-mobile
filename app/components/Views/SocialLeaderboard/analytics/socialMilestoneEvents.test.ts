@@ -215,7 +215,11 @@ describe('getSocialInteractionMilestones', () => {
     ).toEqual([
       {
         event: MetaMetricsEvents.SOCIAL_PROFILE_CREATED,
-        properties: { path: Path.X, uses_x_username: true },
+        properties: {
+          path: Path.X,
+          uses_x_username: true,
+          has_social_profile: true,
+        },
       },
     ]);
   });
@@ -229,7 +233,10 @@ describe('getSocialInteractionMilestones', () => {
       }),
     );
 
-    expect(emission.properties).toEqual({ path: Path.MANUAL });
+    expect(emission.properties).toEqual({
+      path: Path.MANUAL,
+      has_social_profile: true,
+    });
     expect(emission.properties).not.toHaveProperty('uses_x_username');
   });
 
@@ -290,6 +297,60 @@ describe('getSocialInteractionMilestones', () => {
           composer_entry: 'social_feed',
           trade_type: Trade.PERPS,
           has_gif: false,
+        },
+      },
+    ]);
+  });
+
+  it('reports the source and post of a submitted post', () => {
+    expect(
+      getSocialInteractionMilestones({
+        interaction_type: Interaction.POST_SUBMITTED,
+        screen_name: Screen.POST_COMPOSER,
+        outcome: Outcome.SUCCESS,
+        source: SocialEvent.Source.SOCIAL_TRENDING,
+        post_id: 'comment-1',
+      }),
+    ).toEqual([
+      {
+        event: MetaMetricsEvents.SOCIAL_POST_SUBMITTED,
+        properties: {
+          source: SocialEvent.Source.SOCIAL_TRENDING,
+          post_id: 'comment-1',
+        },
+      },
+    ]);
+  });
+
+  it('reports a submitted perps copy trade as one unified copy-trade event', () => {
+    expect(
+      getSocialInteractionMilestones({
+        interaction_type: Interaction.COPY_TRADE_SUBMITTED,
+        screen_name: Screen.TRADER_PROFILE,
+        trade_type: Trade.PERPS,
+        source: SocialEvent.Source.TRADER_PROFILE,
+        asset: 'ETH',
+        direction: SocialEvent.Direction.LONG,
+        amount_usd: 50,
+        metamask_fee: 0.5,
+        order_id: 'order-1',
+        post_id: 'comment-1',
+        author_trader_id: 'trader-1',
+      }),
+    ).toEqual([
+      {
+        event: MetaMetricsEvents.SOCIAL_COPY_TRADE_SUBMITTED,
+        properties: {
+          trade_type: Trade.PERPS,
+          screen_name: Screen.TRADER_PROFILE,
+          source: SocialEvent.Source.TRADER_PROFILE,
+          asset: 'ETH',
+          direction: SocialEvent.Direction.LONG,
+          amount_usd: 50,
+          metamask_fee: 0.5,
+          order_id: 'order-1',
+          post_id: 'comment-1',
+          author_trader_id: 'trader-1',
         },
       },
     ]);

@@ -78,6 +78,12 @@ import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {
+  getSocialProfileCreatedAt,
+  recordSocialProfileCreatedAt,
+} from '../../../../util/social/socialProfileAnalytics';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   applyXOnboardingProfile,
@@ -688,6 +694,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   const fetchAndUpdateProfileRef = useRef(fetchAndUpdateProfile);
   const existingProfileLookupResultRef = useRef(existingProfileLookupResult);
   const trackInteractionRef = useRef(trackInteraction);
+  const { identify } = useAnalytics();
+  const identifyRef = useRef(identify);
+  identifyRef.current = identify;
   draftRef.current = draft;
   accountsRef.current = accounts;
   stepRef.current = step;
@@ -1342,6 +1351,18 @@ const SocialProfileOnboardingView: React.FC = () => {
     setProfileCreated(true);
     setIsSubmitting(false);
     if (isFirstPublish) {
+      // The profile trait is set now, because the linked account the trait
+      // reads from may not have synced to redux yet.
+      const createdAt = new Date();
+      recordSocialProfileCreatedAt(createdAt)
+        .then(() =>
+          identifyRef.current({
+            [UserProfileProperty.HAS_SOCIAL_PROFILE]: true,
+            [UserProfileProperty.SOCIAL_PROFILE_CREATED_AT]:
+              getSocialProfileCreatedAt() ?? createdAt.toISOString(),
+          }),
+        )
+        .catch(() => undefined);
       trackInteractionRef.current(Interaction.ONBOARDING_COMPLETED, {
         outcome: Outcome.SUCCESS,
         traders_followed_count: 0,

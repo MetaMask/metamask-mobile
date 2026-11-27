@@ -14,6 +14,7 @@ import {
 import Engine from '../../../../core/Engine';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
+import { buildSpotCopyTradeSubmittedProperties } from '../../../Views/SocialLeaderboard/analytics/buildSpotCopyTradeSubmittedProperties';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -283,10 +284,24 @@ export function useQuickBuyAnalytics(
 
   const trackTradeSubmitted = useCallback(
     (props: Record<string, unknown>) => {
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED, {
+      const submittedProperties = {
         ...sharedAnalyticsProps,
         ...props,
-      });
+      };
+      track(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
+        submittedProperties,
+      );
+      // The unified copy-trade event (TSA-1868). Spot copies are emitted here
+      // because Quick Buy is the only spot path that knows the copy origin.
+      const copyTradeProperties =
+        buildSpotCopyTradeSubmittedProperties(submittedProperties);
+      if (copyTradeProperties) {
+        track(
+          MetaMetricsEvents.SOCIAL_COPY_TRADE_SUBMITTED,
+          copyTradeProperties,
+        );
+      }
     },
     [track, sharedAnalyticsProps],
   );
