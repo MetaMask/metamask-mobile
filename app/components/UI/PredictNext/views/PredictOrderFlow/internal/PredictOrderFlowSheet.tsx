@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable } from 'react-native';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Image,
+  Linking,
+  Pressable,
+} from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
@@ -117,8 +123,16 @@ interface PredictOrderFlowSheetProps {
 }
 
 /** The explicit Order Flow phases: enter the amount, approve the exact
- * quoted values, commit, and read the receipt-driven outcome. */
+ * quoted values, commit, and read the receipt-driven outcome. A buy has no
+ * separate approval step: the Buy tap on the amount entry is the approval,
+ * so a buy never enters 'approval'. */
 type SubmitPhase = 'input' | 'approval' | 'submitting' | 'receipt';
+
+/** The venue refused the Preview itself, not the order: the sheet offers
+ * the same re-quote as for a locally expired quote, never a failure. */
+const isPreviewRefusal = (code: PredictErrorCode): boolean =>
+  code === PredictErrorCode.PREVIEW_EXPIRED ||
+  code === PredictErrorCode.ORDER_PREVIEW_MISMATCH;
 
 /** An amount as keypad input: whole cents, no trailing '.00'. */
 const toAmountInput = (value: BigNumber): string =>
@@ -158,6 +172,26 @@ export const PredictOrderFlowSheet = ({
   // the completion notification.
   const releasePresentationRef = useRef<(() => void) | null>(null);
   const [hasCommitted, setHasCommitted] = useState(false);
+  // Where a Commit is approved from, and where it returns when it does not
+  // settle: the approval step for a sell, the amount entry for a buy.
+  const approvalPhase: SubmitPhase =
+    intent.action === 'buy' ? 'input' : 'approval';
+
+  // VoiceOver ignores RN live regions on iOS, so announce commit errors
+  // explicitly whenever they become visible (including retries, since
+  // handleCommit clears commitError before each attempt).
+  const visibleCommitErrorMessage =
+    commitError !== null &&
+    ((phase === 'input' && intent.action === 'buy') ||
+      (phase === 'approval' && preview !== null))
+      ? commitError.message
+      : null;
+
+  useEffect(() => {
+    if (visibleCommitErrorMessage) {
+      AccessibilityInfo.announceForAccessibility(visibleCommitErrorMessage);
+    }
+  }, [visibleCommitErrorMessage]);
 
   // The sheet's Venue must still be the Active Venue. When it is not, the
   // service has already cancelled every uncommitted Preview, so the sheet
@@ -195,15 +229,15 @@ export const PredictOrderFlowSheet = ({
         setPhase('receipt');
         return;
       }
-      setPhase('approval');
-      if (outcome.code === PredictErrorCode.PREVIEW_EXPIRED) {
+      setPhase(approvalPhase);
+      if (isPreviewRefusal(outcome.code)) {
         setCommitError(null);
         setVenueExpired(true);
       } else {
         setCommitError(PredictError.from(outcome.code));
       }
     },
-    [],
+    [approvalPhase],
   );
 
   const balanceQuery = useBalance(intent.venueId);
@@ -295,10 +329,15 @@ export const PredictOrderFlowSheet = ({
 
   useEffect(() => {
     requestIdRef.current += 1;
-    if (phase !== 'input' || isStale) {
+    // While the sheet presents a Commit it never re-quotes: a buy that did
+    // not settle keeps the Preview it committed until the user edits the
+    // amount or refreshes.
+    if (phase !== 'input' || isStale || hasCommitted) {
       setIsQuoting(false);
       return;
     }
+    // The venue's expiry applied to the Preview being replaced.
+    setVenueExpired(false);
     if (!isQuotable) {
       setIsQuoting(false);
       setPreview(null);
@@ -337,7 +376,6 @@ export const PredictOrderFlowSheet = ({
             return;
           }
           setPreview(quote);
-          setVenueExpired(false);
           setNow(Date.now());
         })
         .catch((error: PredictError) => {
@@ -365,6 +403,7 @@ export const PredictOrderFlowSheet = ({
   }, [
     amount,
     contracts,
+    hasCommitted,
     intent,
     isQuotable,
     isStale,
@@ -384,45 +423,6 @@ export const PredictOrderFlowSheet = ({
     const timeout = setTimeout(() => setNow(Date.now()), remaining);
     return () => clearTimeout(timeout);
   }, [preview, now]);
-
-  const isExpired =
-    venueExpired || (preview !== null && isPreviewExpired(preview, now));
-  const isObserving =
-    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
-  const approvalExpired = !isObserving && isExpired;
-  const canReview =
-    phase === 'input' &&
-    preview !== null &&
-    !isQuoting &&
-    !isExpired &&
-    !isStale;
-  const canRefresh = !isStale && (isExpired || Boolean(quoteError));
-
-  const handleRefresh = useCallback(() => {
-    if (isStale) {
-      return;
-    }
-    setQuoteNonce((nonce) => nonce + 1);
-  }, [isStale]);
-
-  /** Back to the amount entry from the approval step. A committed
-   * operation this sheet showed goes on to the completion notification. */
-  const handleBack = useCallback(() => {
-    releasePresentation();
-    setPhase('input');
-  }, [releasePresentation]);
-
-  /** A re-quote from the approval step or a receipt outcome: fresh quote
-   * for the entered amount, discarding the receipt. */
-  const handleRequote = useCallback(() => {
-    if (isStale) {
-      return;
-    }
-    releasePresentation();
-    setReceipt(null);
-    setPhase('input');
-    setQuoteNonce((nonce) => nonce + 1);
-  }, [isStale, releasePresentation]);
 
   /** The worst case the phone would sign, from the profile's invariant: the
    * figures the approval shows. Undefined while it is computed or when the
@@ -454,6 +454,75 @@ export const PredictOrderFlowSheet = ({
     };
   }, [intent.venueId, preview, service]);
 
+  // The signed figures for the Preview on screen, never a previous quote's.
+  const currentReview =
+    preview !== null && signedDisplay?.previewId === preview.previewId
+      ? signedDisplay
+      : undefined;
+
+  const isExpired =
+    venueExpired || (preview !== null && isPreviewExpired(preview, now));
+  const isObserving =
+    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
+  const isSigningRefusal =
+    intent.action === 'buy' &&
+    commitError?.code === PredictErrorCode.QUOTE_UNAVAILABLE &&
+    currentReview === undefined;
+  const approvalExpired = !isObserving && isExpired;
+  const canReview =
+    phase === 'input' &&
+    preview !== null &&
+    !isQuoting &&
+    !isExpired &&
+    !isStale;
+  // A dispatched order is observed, never re-quoted.
+  const canRefresh =
+    !isStale &&
+    !isObserving &&
+    (isExpired || Boolean(quoteError) || isSigningRefusal);
+
+  /** Leaves the Commit the amount entry shows after a buy that did not
+   * settle: the sheet stops presenting it, so the amount quotes again. */
+  const leaveCommit = useCallback(() => {
+    releasePresentation();
+    setCommitError(null);
+  }, [releasePresentation]);
+
+  const handleRefresh = useCallback(() => {
+    if (isStale) {
+      return;
+    }
+    leaveCommit();
+    setQuoteNonce((nonce) => nonce + 1);
+  }, [isStale, leaveCommit]);
+
+  /** Back to the amount entry from the approval step. A committed
+   * operation this sheet showed goes on to the completion notification. */
+  const handleBack = useCallback(() => {
+    releasePresentation();
+    setPhase('input');
+  }, [releasePresentation]);
+
+  /** A re-quote from the approval step or a receipt outcome: fresh quote
+   * for the entered amount, discarding the receipt. */
+  const handleRequote = useCallback(() => {
+    if (isStale) {
+      return;
+    }
+    releasePresentation();
+    setReceipt(null);
+    setPhase('input');
+    setQuoteNonce((nonce) => nonce + 1);
+  }, [isStale, releasePresentation]);
+
+  /** A buy commits straight from the amount entry, and only once the phone
+   * has checked what it would sign. A dispatched order is only observed. */
+  const canBuy =
+    intent.action === 'buy' &&
+    canReview &&
+    currentReview !== undefined &&
+    !isObserving;
+
   const handleReview = useCallback(() => {
     if (!canReview) {
       return;
@@ -462,22 +531,25 @@ export const PredictOrderFlowSheet = ({
     setPhase('approval');
   }, [canReview]);
 
-  /** Commits the approved Preview. The Commit sends nothing but the Preview
+  /** Commits the approved Preview: from the approval step for a sell, from
+   * the Buy tap for a buy. The Commit sends nothing but the Preview
    * reference; the service coalesces repeated commits and observes
    * in-progress operations, so this never places a second Order. */
   const handleCommit = useCallback(async () => {
     // A stale sheet never commits, not even a re-approval of an ambiguous
     // Commit: the service keeps observing that one in the background.
-    if (phase !== 'approval' || !preview || isStale) {
+    const canCommit =
+      intent.action === 'buy' ? canBuy : phase === 'approval' && !isStale;
+    if (!canCommit || !preview) {
       return;
     }
     if (!signedDisplay) {
       // Nothing the phone checked can be signed: Confirm stays disabled,
       // and this is the same refusal if it is reached anyway.
       setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
-      setPhase('approval');
       return;
     }
+    setIsKeypadOpen(false);
     setCommitError(null);
     setPhase('submitting');
     if (!releasePresentationRef.current) {
@@ -500,14 +572,9 @@ export const PredictOrderFlowSheet = ({
     } catch (error) {
       // The service distinguishes an unsent first attempt from an unknown
       // outcome. Unknown attempts retain this preview for observation only.
-      setPhase('approval');
-      if (
-        error instanceof PredictError &&
-        (error.code === PredictErrorCode.PREVIEW_EXPIRED ||
-          error.code === PredictErrorCode.ORDER_PREVIEW_MISMATCH)
-      ) {
-        // The venue revalidated the Preview as expired: degrade to the same
-        // re-quote affordance as a locally expired quote — never a failure.
+      setPhase(approvalPhase);
+      if (error instanceof PredictError && isPreviewRefusal(error.code)) {
+        setCommitError(null);
         setVenueExpired(true);
       } else {
         setCommitError(
@@ -518,7 +585,10 @@ export const PredictOrderFlowSheet = ({
       }
     }
   }, [
+    approvalPhase,
+    canBuy,
     handleResolution,
+    intent.action,
     intent.venueId,
     isStale,
     phase,
@@ -527,27 +597,32 @@ export const PredictOrderFlowSheet = ({
     signedDisplay,
   ]);
 
-  /** Observes an unresolved receipt by reading it again; observing never
-   * submits and never signs a Commit. */
+  /** Observes a committed operation whose outcome is still open: an
+   * unresolved receipt, or a buy Commit whose response was lost. Observing
+   * never submits and never signs a Commit. */
   const handleKeepChecking = useCallback(async () => {
-    if (!receipt || isStale) {
+    const previewId =
+      receipt?.previewId ?? (isObserving ? preview?.previewId : undefined);
+    if (!previewId || isStale) {
       return;
     }
     setIsRechecking(true);
     try {
       // The operation is already committed: this reads its receipt.
-      setReceipt(
-        await service.commitPreview(intent.venueId, receipt.previewId),
-      );
+      const observed = await service.commitPreview(intent.venueId, previewId);
+      setCommitError(null);
+      setReceipt(observed);
+      setPhase('receipt');
     } catch {
       // Still unresolved: stay on the honest in-progress state. The outcome
       // also surfaces through History and Positions.
     } finally {
       setIsRechecking(false);
     }
-  }, [intent.venueId, isStale, receipt, service]);
+  }, [intent.venueId, isObserving, isStale, preview, receipt, service]);
 
-  const isAmountEditable = phase === 'input' && !isStale;
+  // A dispatched order's amount is fixed: it can only be observed.
+  const isAmountEditable = phase === 'input' && !isStale && !isObserving;
 
   const handleKeypadOpen = useCallback(() => {
     if (!isAmountEditable) {
@@ -575,13 +650,20 @@ export const PredictOrderFlowSheet = ({
         setContracts((current) => sanitizeContracts(`${current}${key}`));
         return;
       }
+      leaveCommit();
       setAmount((current) => {
         const next = sanitizeAmount(`${current}${key}`);
         const digitCount = next.match(/\d/gu)?.length ?? 0;
         return digitCount > 9 ? current : next;
       });
     },
-    [intent.action, isAmountEditable, sanitizeAmount, sanitizeContracts],
+    [
+      intent.action,
+      isAmountEditable,
+      leaveCommit,
+      sanitizeAmount,
+      sanitizeContracts,
+    ],
   );
   const handleDelete = useCallback(() => {
     if (!isAmountEditable) {
@@ -591,17 +673,19 @@ export const PredictOrderFlowSheet = ({
       setContracts((current) => current.slice(0, -1));
       return;
     }
+    leaveCommit();
     setAmount((current) => sanitizeAmount(current.slice(0, -1)));
-  }, [intent.action, isAmountEditable, sanitizeAmount]);
+  }, [intent.action, isAmountEditable, leaveCommit, sanitizeAmount]);
   /** Sets a quick-amount chip's fraction of the balance, in whole cents. */
   const handleSetAmount = useCallback(
     (next: BigNumber) => {
       if (!isAmountEditable) {
         return;
       }
+      leaveCommit();
       setAmount(sanitizeAmount(toAmountInput(next)));
     },
-    [isAmountEditable, sanitizeAmount],
+    [isAmountEditable, leaveCommit, sanitizeAmount],
   );
   /** Sets the whole available balance, floored to cents. The amount is the
    * maximum spend fees included, so the backend quotes a debit within it.
@@ -614,8 +698,9 @@ export const PredictOrderFlowSheet = ({
       2,
       BigNumber.ROUND_DOWN,
     );
+    leaveCommit();
     setAmount(sanitizeAmount(toAmountInput(balance)));
-  }, [availableBalance, isAmountEditable, sanitizeAmount]);
+  }, [availableBalance, isAmountEditable, leaveCommit, sanitizeAmount]);
   /** Sets a quick-contract chip's whole-contract count. */
   const handleSetContracts = useCallback(
     (next: number) => {
@@ -749,7 +834,8 @@ export const PredictOrderFlowSheet = ({
         message
       );
     }
-    if (preview && isExpired) {
+    // A dispatched order outlives its quote: the expiry no longer applies.
+    if (preview && isExpired && !isObserving) {
       return (
         <Text
           variant={TextVariant.BodySm}
@@ -768,6 +854,7 @@ export const PredictOrderFlowSheet = ({
     isBelowMinimum,
     isEnteredContracts,
     isExpired,
+    isObserving,
     isOverSell,
     isQuotable,
     isQuoting,
@@ -792,6 +879,23 @@ export const PredictOrderFlowSheet = ({
         </Box>
       );
     }
+    if (isObserving) {
+      return (
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={isRechecking}
+          onPress={() => {
+            handleKeepChecking().catch(() => undefined);
+          }}
+          isDisabled={isStale}
+          testID={PredictOrderFlowTestIds.KEEP_CHECKING}
+        >
+          {strings('predict_next.order_receipt.keep_checking')}
+        </Button>
+      );
+    }
     if (canRefresh) {
       return (
         <Button
@@ -805,7 +909,20 @@ export const PredictOrderFlowSheet = ({
         </Button>
       );
     }
-    return (
+    return intent.action === 'buy' ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={() => {
+          handleCommit().catch(() => undefined);
+        }}
+        isDisabled={!canBuy}
+        testID={PredictOrderFlowTestIds.REVIEW}
+      >
+        {strings('predict_next.order_preview.buy')}
+      </Button>
+    ) : (
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -814,9 +931,7 @@ export const PredictOrderFlowSheet = ({
         isDisabled={!canReview}
         testID={PredictOrderFlowTestIds.REVIEW}
       >
-        {intent.action === 'buy'
-          ? strings('predict_next.order_preview.buy')
-          : strings('predict_next.order_preview.cash_out')}
+        {strings('predict_next.order_preview.cash_out')}
       </Button>
     );
   };
@@ -921,6 +1036,7 @@ export const PredictOrderFlowSheet = ({
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
                   className="text-center"
+                  accessibilityRole="alert"
                   testID={PredictOrderFlowTestIds.ERROR}
                 >
                   {commitError.message}
@@ -1029,10 +1145,25 @@ export const PredictOrderFlowSheet = ({
               )}
               <Box twClassName="py-3">
                 {intent.action === 'sell' ? null : (
-                  <OrderSummaryRows balance={balanceLabel} />
+                  <OrderSummaryRows
+                    balance={balanceLabel}
+                    maxCost={currentReview?.maxCost}
+                    isMaxCostLoading={isQuoting}
+                  />
                 )}
               </Box>
               <Box twClassName="gap-2">
+                {intent.action === 'buy' && commitError ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                    className="text-center"
+                    accessibilityRole="alert"
+                    testID={PredictOrderFlowTestIds.ERROR}
+                  >
+                    {commitError.message}
+                  </Text>
+                ) : null}
                 {statusMessage}
                 {renderCta()}
                 <Box twClassName="flex-row flex-wrap justify-center gap-1">
