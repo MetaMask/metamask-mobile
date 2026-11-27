@@ -793,6 +793,9 @@ describe('PredictHomeSection', () => {
         unrealizedPnlPercent: '9.09',
       });
       await act(async () => {
+        // Real elapsed time between the pre-trade read and the receipt, so
+        // the refreshed snapshot's dataUpdatedAt is strictly newer — the
+        // property the UI cache's hydration applies.
         await new Promise((resolve) => setTimeout(resolve, 10));
         const preview = await trading.orderService.requestQuote(
           'kalshi' as PredictVenueId,

@@ -177,6 +177,7 @@ export interface UseTokenDetailsV1TabsOptions {
   initialTab?: TokenDetailsV1TabKey;
   /** Tabs currently shown. Swipes stay inside this list. */
   tabs?: readonly TokenDetailsV1TabKey[];
+  onSwipeTab?: () => void;
   onTabChange?: (
     targetTab: TokenDetailsV1TabKey,
     currentTab: TokenDetailsV1TabKey,
@@ -199,6 +200,7 @@ export const useTokenDetailsV1Tabs = (
       ? initialTabOrOptions
       : (options?.initialTab ?? TOKEN_DETAILS_V1_TABS[0]);
   const onTabChange = options?.onTabChange ?? options?.onTabWillChange;
+  const onSwipeTab = options?.onSwipeTab;
   const tabs = options?.tabs ?? TOKEN_DETAILS_V1_TABS;
 
   const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>(initialTab);
@@ -234,10 +236,11 @@ export const useTokenDetailsV1Tabs = (
         tabs,
       );
       if (targetTab) {
+        onSwipeTab?.();
         activateTab(targetTab);
       }
     },
-    [activeTab, activateTab, tabs],
+    [activeTab, activateTab, onSwipeTab, tabs],
   );
 
   const swipeGesture = useMemo(

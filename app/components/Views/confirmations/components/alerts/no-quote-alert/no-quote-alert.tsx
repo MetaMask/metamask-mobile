@@ -16,10 +16,7 @@ export function NoQuoteAlert({ error }: Props) {
   const isExpanded = Math.floor(tapCount / TAPS_TO_TOGGLE) % 2 === 1;
   const handlePress = useCallback(() => setTapCount((c) => c + 1), []);
 
-  const collapsedMessage =
-    error.reason === 'insufficient-source-balance'
-      ? strings('alert_system.insufficient_pay_method_balance.message')
-      : strings('alert_system.no_pay_token_quotes.message');
+  const collapsedMessage = strings(getCollapsedMessageKey(error.reason));
 
   const allMessages = useMemo(() => {
     const messages = [collapsedMessage];
@@ -44,4 +41,25 @@ export function NoQuoteAlert({ error }: Props) {
       </Box>
     </Pressable>
   );
+}
+
+/**
+ * Maps a quote error reason to its collapsed message key.
+ *
+ * TODO: The `amount-too-low` reason is not in the published
+ * `@metamask/transaction-pay-controller` until MetaMask/core#11779 is released.
+ * Type `reason` as `QuoteErrorInfo['reason']` once it is.
+ *
+ * @param reason - Machine-readable reason of the quote error, if any.
+ * @returns The i18n key of the collapsed message.
+ */
+function getCollapsedMessageKey(reason: string | undefined): string {
+  switch (reason) {
+    case 'insufficient-source-balance':
+      return 'alert_system.insufficient_pay_method_balance.message';
+    case 'amount-too-low':
+      return 'alert_system.pay_amount_too_low.message';
+    default:
+      return 'alert_system.no_pay_token_quotes.message';
+  }
 }

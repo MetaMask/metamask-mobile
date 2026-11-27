@@ -485,6 +485,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'clearWithdrawTransaction',
   'confirmClaim',
   'depositWithConfirmation',
+  'enterPayWithAnyToken',
   'getAccountState',
   'getActivity',
   'getBalance',
@@ -3463,6 +3464,56 @@ export class PredictController extends BaseController<
       if (isBalanceToken) {
         return;
       }
+      this.update((state) => {
+        if (state.activeBuyOrders[address]) {
+          state.activeBuyOrders[address].state =
+            ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        }
+      });
+    }
+  }
+
+  /**
+   * Moves an active buy order from `PREVIEW` to `PAY_WITH_ANY_TOKEN` without
+   * setting an ERC-20 `selectedPaymentToken` (used when funding from Money
+   * Account, whose pay token lives on `TransactionPayController`).
+   *
+   * Also clears any stale ERC-20 `selectedPaymentToken` so subsequent order
+   * analytics and failure banners do not attribute the buy to a previous token.
+   */
+  public enterPayWithAnyToken({
+    clearError = true,
+  }: { clearError?: boolean } = {}): void {
+    const address = this.getEvmAccountAddress();
+    const activeOrder = address
+      ? this.state.activeBuyOrders[address]
+      : undefined;
+    const shouldClearToken = this.state.selectedPaymentToken !== null;
+    const shouldTransition = activeOrder?.state === ActiveOrderState.PREVIEW;
+
+    if (!shouldClearToken && !shouldTransition) {
+      return;
+    }
+
+    if (clearError) {
+      this.cancelRetryablePredictBuyAttempt(
+        'User changed payment method after a retryable order failure',
+      );
+    }
+
+    if (shouldClearToken) {
+      this.setSelectedPaymentToken(null);
+    }
+
+    if (!address || !activeOrder) {
+      return;
+    }
+
+    if (clearError) {
+      this.clearOrderError();
+    }
+
+    if (shouldTransition) {
       this.update((state) => {
         if (state.activeBuyOrders[address]) {
           state.activeBuyOrders[address].state =

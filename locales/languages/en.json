@@ -126,6 +126,9 @@
       "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
+    "pay_amount_too_low": {
+      "message": "This amount is below the minimum for this route. Enter a higher amount to continue."
+    },
     "account_no_funds": {
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
