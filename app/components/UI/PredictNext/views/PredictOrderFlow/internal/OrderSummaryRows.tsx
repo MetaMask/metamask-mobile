@@ -17,7 +17,8 @@ interface OrderSummaryRowsProps {
 
 /**
  * The Pay with row beneath the amount: a static Predictions-balance display.
- * There is one funding source today, so the row does not respond to presses.
+ * There is one funding source today, so the row has no chevron and does not
+ * respond to presses. Add both when a second funding source exists.
  */
 export const OrderSummaryRows = ({ balance }: OrderSummaryRowsProps) => (
   <Box className="flex-row items-center justify-between gap-4 py-2">
@@ -32,7 +33,7 @@ export const OrderSummaryRows = ({ balance }: OrderSummaryRowsProps) => (
     {/* TODO(PRED): Take the balance label from the backend balance payload
      * (pUSD for Polymarket, base USDC for Kalshi) once it carries one. */}
     <Box
-      className="min-w-0 shrink items-end"
+      className="min-w-0 shrink flex-row items-center justify-end"
       testID={PredictOrderFlowTestIds.PAY_WITH}
     >
       <Text
@@ -40,18 +41,22 @@ export const OrderSummaryRows = ({ balance }: OrderSummaryRowsProps) => (
         fontWeight={FontWeight.Regular}
         color={TextColor.TextDefault}
         numberOfLines={1}
+        ellipsizeMode="tail"
+        className="min-w-0 shrink"
       >
         {strings('predict_next.order_preview.predictions_balance')}
-        {balance ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
-          >
-            {` ($${balance})`}
-          </Text>
-        ) : null}
       </Text>
+      {balance ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+          className="shrink-0"
+        >
+          {` ($${balance})`}
+        </Text>
+      ) : null}
     </Box>
   </Box>
 );
