@@ -79,7 +79,7 @@ const PredictBuyErrorBanner = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={`-mt-1 mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
+      className={`-mt-1 mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
       testID={testID}
     >
       <Icon
@@ -88,11 +88,11 @@ const PredictBuyErrorBanner = ({
         size={IconSize.Md}
         testID={`${testID ?? 'predict-buy-error-banner'}-icon`}
       />
-      <Box twClassName="flex-1 min-w-0 gap-2">
+      <Box className="flex-1 min-w-0 gap-2">
         <Text
           variant={TextVariant.BodyMd}
           color={styles.titleColor}
-          twClassName="font-medium"
+          className="font-medium"
           testID={`${testID ?? 'predict-buy-error-banner'}-title`}
         >
           {title}
@@ -109,7 +109,7 @@ const PredictBuyErrorBanner = ({
             variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Sm}
             onPress={onActionPress}
-            twClassName="self-start"
+            className="self-start"
             testID={
               actionTestID ?? `${testID ?? 'predict-buy-error-banner'}-action`
             }

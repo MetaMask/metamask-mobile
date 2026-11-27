@@ -86,7 +86,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
         containerStyle,
       )}
     >
-      <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
+      <Box className="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
         {item.icon ? (
           <Image
             source={{ uri: item.icon }}
@@ -98,7 +98,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
         )}
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
@@ -106,17 +106,17 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
         >
           {activityTitleByType[item.type]}
         </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text variant={TextVariant.BodySm} className="text-alternative">
           {item.marketTitle}
         </Text>
       </Box>
 
-      <Box twClassName="items-end ml-3">
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+      <Box className="items-end ml-3">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {signedAmount}
         </Text>
         {item.percentChange !== undefined ? (
-          <Text variant={TextVariant.BodySm} twClassName={percentColor}>
+          <Text variant={TextVariant.BodySm} className={percentColor}>
             {formatPercentage(item.percentChange)}
           </Text>
         ) : null}

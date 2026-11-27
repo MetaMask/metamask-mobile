@@ -146,11 +146,11 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     );
 
   return (
-    <Box twClassName={compact ? 'gap-1' : 'gap-2'} testID={testID}>
+    <Box className={compact ? 'gap-1' : 'gap-2'} testID={testID}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full"
+        className="w-full"
       >
         {renderTeamLogo(leftTeam, leftLogoTestID)}
 
@@ -159,7 +159,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={`${compact ? 'pl-2' : 'pl-3'}`}
+            className={`${compact ? 'pl-2' : 'pl-3'}`}
             numberOfLines={1}
             testID={leftScoreTestID}
           >
@@ -170,7 +170,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1"
+          className="flex-1"
         >
           {isScheduled ? (
             <>
@@ -178,7 +178,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
-                twClassName="text-center"
+                className="text-center"
                 testID={getTestID(
                   PREDICT_SPORT_SCOREBOARD_TEST_IDS.SCHEDULED_DATE,
                 )}
@@ -189,7 +189,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
                 testID={getTestID(
                   PREDICT_SPORT_SCOREBOARD_TEST_IDS.SCHEDULED_TIME,
                 )}
@@ -206,7 +206,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName="gap-1"
+                className="gap-1"
               >
                 <PulsingLiveDot
                   testID={getTestID(PREDICT_SPORT_SCOREBOARD_TEST_IDS.LIVE_DOT)}
@@ -221,13 +221,13 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 >
                   LIVE
                 </Text>
-                <Box twClassName="w-3" />
+                <Box className="w-3" />
               </Box>
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
                 testID={statusTestID}
               >
                 {statusText}
@@ -238,7 +238,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
               testID={statusTestID}
             >
               {statusText}
@@ -251,7 +251,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={`${compact ? 'pr-2' : 'pr-3'} text-right`}
+            className={`${compact ? 'pr-2' : 'pr-3'} text-right`}
             numberOfLines={1}
             testID={rightScoreTestID}
           >
@@ -267,14 +267,14 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full"
+        className="w-full"
       >
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="flex-1"
+          className="flex-1"
         >
           {leftTeam.name}
         </Text>
@@ -283,7 +283,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          twClassName="flex-1 text-right"
+          className="flex-1 text-right"
         >
           {rightTeam.name}
         </Text>

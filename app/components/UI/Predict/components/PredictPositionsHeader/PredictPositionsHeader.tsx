@@ -200,7 +200,7 @@ const PredictPositionsHeader = forwardRef<
   }
 
   return (
-    <Box twClassName="gap-4 pb-4 pt-2">
+    <Box className="gap-4 pb-4 pt-2">
       {hasClaimableAmount && (
         <PredictClaimButton
           amount={totalClaimableAmount}
@@ -242,7 +242,7 @@ const PredictPositionsHeader = forwardRef<
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                     testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_COUNT}
                   >
                     {strings('predict.available_balance')}
@@ -251,7 +251,7 @@ const PredictPositionsHeader = forwardRef<
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="flex-row items-center gap-1"
+                  className="flex-row items-center gap-1"
                 >
                   {isBalanceLoading ? (
                     <Skeleton
@@ -285,16 +285,16 @@ const PredictPositionsHeader = forwardRef<
           )}
           {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
             <>
-              <Box twClassName="h-px bg-default" />
+              <Box className="h-px bg-default" />
               <Box
-                twClassName="px-4 pb-3 mt-3"
+                className="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="text-alternative"
+                  className="text-alternative"
                 >
                   {strings('predict.unrealized_pnl_label')}
                 </Text>

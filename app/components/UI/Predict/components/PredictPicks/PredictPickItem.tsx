@@ -29,10 +29,10 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-row justify-between items-center py-3"
+      className="flex-row justify-between items-center py-3"
     >
       <Box>
-        <Text variant={TextVariant.BodyMd} twClassName="font-medium">
+        <Text variant={TextVariant.BodyMd} className="font-medium">
           {strings('predict.position_pick_info', {
             initialValue: formatPrice(position.initialValue, {
               maximumDecimals: 2,
@@ -50,7 +50,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
                 ? TextColor.ErrorDefault
                 : TextColor.SuccessDefault
             }
-            twClassName="font-medium"
+            className="font-medium"
             testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_PNL}-${position.id}`}
           >
             {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
@@ -60,12 +60,12 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
       {!position.claimable && (
         <Button
           variant={ButtonVariant.Secondary}
-          twClassName="light:bg-muted/5"
+          className="light:bg-muted/5"
           onPress={() => onCashOut(position)}
           isDisabled={isOptimistic}
           testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${position.id}`}
         >
-          <Text variant={TextVariant.BodyMd} twClassName="font-medium">
+          <Text variant={TextVariant.BodyMd} className="font-medium">
             {strings('predict.cash_out')}
           </Text>
         </Button>

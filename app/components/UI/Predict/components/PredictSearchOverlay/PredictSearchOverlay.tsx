@@ -171,7 +171,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         backgroundColor: colors.background.default,
       })}
     >
-      <Box twClassName="w-full py-2">
+      <Box className="w-full py-2">
         {isBrandRefresh ? (
           <HeaderSearchGlass
             isFloating={false}
@@ -212,9 +212,9 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         )}
       </Box>
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         {isSearchLoading ? (
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <PredictMarketSkeleton
               testID={getPredictFeedSelector.searchSkeleton(1)}
             />
@@ -229,7 +229,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
           <PredictOffline onRetry={refetch} />
         ) : !marketData || marketData.length === 0 ? (
           hasSearchQuery ? (
-            <Box twClassName="flex-1 justify-center items-center p-8">
+            <Box className="flex-1 justify-center items-center p-8">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.PrimaryAlternative}

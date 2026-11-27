@@ -32,8 +32,8 @@ interface FeeRowProps {
 
 const FeeRow = ({ title, description, amount }: FeeRowProps) => (
   <>
-    <Box twClassName="flex-row items-start py-4">
-      <Box twClassName="flex-1 pr-4 gap-1">
+    <Box className="flex-row items-start py-4">
+      <Box className="flex-1 pr-4 gap-1">
         <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
           {title}
         </Text>
@@ -45,7 +45,7 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
         {amount}
       </Text>
     </Box>
-    <Box twClassName="border-t border-muted" />
+    <Box className="border-t border-muted" />
   </>
 );
 
@@ -132,12 +132,12 @@ const PredictFeeBreakdownSheet = forwardRef<
                   textProps={{ testID: 'predict-fee-breakdown-header' }}
                   // The built-in header height clips the title against the sheet's
                   // top radius. Release it and keep a taller minimum instead.
-                  twClassName="h-auto min-h-16"
+                  className="h-auto min-h-16"
                   testID="predict-fee-breakdown-header-bar"
                 >
                   {strings('predict.fee_summary.price_details')}
                 </BottomSheetHeader>
-                <Box twClassName="px-4 pb-6 flex-col">
+                <Box className="px-4 pb-6 flex-col">
                   <FeeRow
                     title={strings('predict.fee_summary.prediction_order')}
                     description={strings(
@@ -171,8 +171,8 @@ const PredictFeeBreakdownSheet = forwardRef<
 
                   {depositFee && (
                     <>
-                      <Box twClassName="flex-row items-start py-4">
-                        <Box twClassName="flex-1 pr-4 gap-1">
+                      <Box className="flex-row items-start py-4">
+                        <Box className="flex-1 pr-4 gap-1">
                           <Text
                             color={TextColor.TextDefault}
                             variant={TextVariant.BodyMd}
@@ -196,11 +196,112 @@ const PredictFeeBreakdownSheet = forwardRef<
                         </Text>
                       </Box>
 
-                      <Box twClassName="border-t border-muted" />
+                      <Box className="border-t border-muted" />
                     </>
                   )}
 
-                  <Box twClassName="flex-row justify-between items-center pt-4">
+                  <Box className="flex-row justify-between items-center pt-4">
+                    <Text
+                      color={TextColor.TextDefault}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Bold}
+                    >
+                      {strings('predict.fee_summary.total')}
+                    </Text>
+                    <PredictFeeTotal
+                      total={total}
+                      originalTotal={originalTotal}
+                      feePolicy={feePolicy}
+                      fontWeight={FontWeight.Bold}
+                    />
+                  </Box>
+
+                  {fakOrdersEnabled && (
+                    <Text
+                      testID="predict-fak-partial-fill-note"
+                      color={TextColor.TextAlternative}
+                      variant={TextVariant.BodySm}
+                    >
+                      {strings('predict.fee_summary.fak_partial_fill_note')}
+                    </Text>
+                  )}
+                </Box>
+              </BottomSheet>
+            </GestureHandlerRootView>
+          </ModalSafeAreaProvider>
+        </Modal>
+      </View>
+    );
+  },
+);
+
+PredictFeeBreakdownSheet.displayName = 'PredictFeeBreakdownSheet';
+
+export default PredictFeeBreakdownSheet;
+<Box className="px-4 pb-6 flex-col">
+                  <FeeRow
+                    title={strings('predict.fee_summary.prediction_order')}
+                    description={strings(
+                      'predict.fee_summary.prediction_order_description',
+                      {
+                        count: contractCount.toFixed(2),
+                        price: formatPrice(sharePrice, { maximumDecimals: 2 }),
+                        slippage: Math.round(slippage * 100),
+                      },
+                    )}
+                    amount={formatPrice(betAmount, { maximumDecimals: 2 })}
+                  />
+
+                  <FeeRow
+                    title={strings('predict.fee_summary.metamask_fee')}
+                    description={strings(
+                      'predict.fee_summary.metamask_fee_description',
+                    )}
+                    amount={formatPrice(metamaskFee, { maximumDecimals: 2 })}
+                  />
+
+                  <FeeRow
+                    title={strings('predict.fee_summary.exchange_fee')}
+                    description={strings(
+                      'predict.fee_summary.exchange_fee_description',
+                    )}
+                    amount={formatPrice(providerFee, {
+                      maximumDecimals: 2,
+                    })}
+                  />
+
+                  {depositFee && (
+                    <>
+                      <Box className="flex-row items-start py-4">
+                        <Box className="flex-1 pr-4 gap-1">
+                          <Text
+                            color={TextColor.TextDefault}
+                            variant={TextVariant.BodyMd}
+                          >
+                            {strings('predict.fee_summary.deposit_fee')}
+                          </Text>
+                          <Text
+                            color={TextColor.TextAlternative}
+                            variant={TextVariant.BodySm}
+                          >
+                            {strings(
+                              'predict.fee_summary.deposit_fee_description',
+                            )}
+                          </Text>
+                        </Box>
+                        <Text
+                          color={TextColor.TextDefault}
+                          variant={TextVariant.BodyMd}
+                        >
+                          {formatPrice(depositFee, { maximumDecimals: 2 })}
+                        </Text>
+                      </Box>
+
+                      <Box className="border-t border-muted" />
+                    </>
+                  )}
+
+                  <Box className="flex-row justify-between items-center pt-4">
                     <Text
                       color={TextColor.TextDefault}
                       variant={TextVariant.BodyMd}

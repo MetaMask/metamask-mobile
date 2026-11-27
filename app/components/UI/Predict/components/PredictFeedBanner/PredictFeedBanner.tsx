@@ -54,7 +54,7 @@ const PredictFeedBanner: React.FC<PredictFeedBannerProps> = ({
     : undefined;
 
   return (
-    <Box twClassName={containerClassName}>
+    <Box className={containerClassName}>
       <BannerAlert
         severity={BANNER_ALERT_SEVERITY[config.severity]}
         title={config.title}

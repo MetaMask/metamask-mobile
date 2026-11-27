@@ -198,14 +198,14 @@ const PredictCryptoUpDownPosition: React.FC<
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full py-3 gap-3"
+      className="w-full py-3 gap-3"
       testID={getPredictCryptoUpDownPositionSelector.row(position.id)}
     >
-      <Box twClassName="flex-1 gap-1">
+      <Box className="flex-1 gap-1">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <Text
             variant={TextVariant.BodyMd}

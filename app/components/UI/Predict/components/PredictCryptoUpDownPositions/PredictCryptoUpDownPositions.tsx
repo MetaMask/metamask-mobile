@@ -34,7 +34,7 @@ const PredictCryptoUpDownPositions: React.FC<
 
   return (
     <Box
-      twClassName="px-4 gap-2"
+      className="px-4 gap-2"
       testID={PredictCryptoUpDownPositionsSelectorsIDs.SECTION}
     >
       <Text
@@ -46,7 +46,7 @@ const PredictCryptoUpDownPositions: React.FC<
         {strings('predict.your_positions')}
       </Text>
       <Box
-        twClassName="w-full"
+        className="w-full"
         testID={PredictCryptoUpDownPositionsSelectorsIDs.LIST}
       >
         {rows.map(({ position, market, marketStatus }) => (

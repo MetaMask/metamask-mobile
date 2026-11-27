@@ -80,27 +80,27 @@ export function PredictBuyPreviewHeaderTitle({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 min-w-0 gap-3"
+      className="flex-1 min-w-0 gap-3"
     >
       <Image
         source={{ uri: outcome.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
+      <Box flexDirection={BoxFlexDirection.Column} className="flex-1 min-w-0">
         <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">
+        <Box flexDirection={BoxFlexDirection.Row} className="gap-1 flex-wrap">
           {!!outcome.groupItemTitle && (
             <>
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="font-medium"
+                className="font-medium"
                 color={TextColor.TextAlternative}
               >
                 {outcome.groupItemTitle}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="font-medium"
+                className="font-medium"
                 color={TextColor.TextAlternative}
               >
                 {separator}
@@ -109,7 +109,7 @@ export function PredictBuyPreviewHeaderTitle({
           )}
           <Text
             variant={TextVariant.BodySm}
-            twClassName="font-medium"
+            className="font-medium"
             color={
               outcomeTokenTitle === 'Yes'
                 ? TextColor.SuccessDefault
@@ -148,7 +148,7 @@ const PredictBuyPreviewHeader = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="w-full gap-4 p-4"
+    className="w-full gap-4 p-4"
   >
     <PredictBuyPreviewHeaderBack onBack={onBack} />
     <PredictBuyPreviewHeaderTitle

@@ -106,7 +106,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   };
 
   return (
-    <Box testID={testID} twClassName={containerTwClassName}>
+    <Box testID={testID} className={containerTwClassName}>
       {useGestureHandlerScrollView ? (
         <GestureHandlerScrollView
           ref={scrollViewRef}

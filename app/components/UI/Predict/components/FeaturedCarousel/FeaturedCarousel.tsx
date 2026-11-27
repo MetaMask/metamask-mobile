@@ -27,7 +27,7 @@ const FeaturedCarouselSkeleton: React.FC = () => {
   const tw = useTailwind();
   const { cardWidth } = useCarouselLayout();
   return (
-    <Box testID={FEATURED_CAROUSEL_TEST_IDS.SKELETON} twClassName="mx-4">
+    <Box testID={FEATURED_CAROUSEL_TEST_IDS.SKELETON} className="mx-4">
       <Skeleton
         width={cardWidth}
         height={CARD_HEIGHT}

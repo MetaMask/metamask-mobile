@@ -17,8 +17,8 @@ const PredictDetailsContentSkeleton: React.FC<
   const tw = useTailwind();
 
   return (
-    <Box twClassName="gap-6 my-8">
-      <Box twClassName="gap-3">
+    <Box className="gap-6 my-8">
+      <Box className="gap-3">
         <Skeleton
           width="40%"
           height={16}
@@ -33,7 +33,7 @@ const PredictDetailsContentSkeleton: React.FC<
         />
       </Box>
 
-      <Box twClassName="gap-3">
+      <Box className="gap-3">
         <Skeleton
           width="30%"
           height={16}

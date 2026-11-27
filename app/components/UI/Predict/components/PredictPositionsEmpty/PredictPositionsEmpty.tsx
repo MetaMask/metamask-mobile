@@ -67,7 +67,7 @@ const PredictPositionsEmpty = ({
         variant={ButtonVariant.Secondary}
         onPress={handleBrowseMarketsPress}
         testID={PredictPositionsEmptySelectorsIDs.BROWSE_MARKETS_CTA}
-        twClassName="self-center"
+        className="self-center"
       >
         {strings('predict.positions_empty.browse_markets')}
       </Button>

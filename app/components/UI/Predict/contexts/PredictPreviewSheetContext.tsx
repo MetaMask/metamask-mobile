@@ -137,7 +137,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3 flex-1 min-w-0"
+      className="gap-3 flex-1 min-w-0"
     >
       {position?.icon && (
         <Image
@@ -145,7 +145,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
           style={tw.style('w-10 h-10 rounded')}
         />
       )}
-      <Box twClassName="flex-1 min-w-0">
+      <Box className="flex-1 min-w-0">
         <Text
           variant={TextVariant.HeadingSm}
           numberOfLines={1}
@@ -158,7 +158,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
           numberOfLines={1}
           ellipsizeMode="tail"
           variant={TextVariant.BodySm}
-          twClassName="font-medium"
+          className="font-medium"
           color={TextColor.TextAlternative}
         >
           {getCashoutInfoText({
