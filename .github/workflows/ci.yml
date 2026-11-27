@@ -380,12 +380,6 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
             profile: namespace-profile-metamask-ci-linux-small
-          # Dead-code check against the committed baseline
-          # (scripts/knip-baseline.ts + knip.config.ts). Analysis only: no
-          # browser installs and no app build; knip itself takes well under a
-          # minute after `yarn install`.
-          - scripts: knip:check
-            profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:app-profiling
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
@@ -522,6 +516,45 @@ jobs:
             exit 1
           fi
           echo "lint shards passed"
+
+  # Runs knip:check on a plain GitHub-hosted runner so it is never pulled onto a
+  # paid Namespace profile. The job name matches the check name the scripts matrix
+  # used to register, keeping required-status-check continuity.
+  knip-check:
+    name: Run `knip:check`
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - run: yarn knip:check
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
 
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
@@ -2259,6 +2292,7 @@ jobs:
       - scripts
       - lint-shards
       - lint
+      - knip-check
       - unit-tests
       - component-view-tests
       - component-view-flakiness-detection
