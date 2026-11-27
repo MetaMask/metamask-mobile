@@ -235,6 +235,7 @@ jobs:
           echo "✅ expo export exit code: $?"
 
       - name: Build & Push EAS Update via build.sh
+        id: build-and-push
         env:
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
@@ -291,7 +292,13 @@ jobs:
           EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
           # Publishes OTA updates; only this workflow gets it.
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SECRETS_ENVIRONMENT: ${{ inputs.github_environment }}
         run: |
+          # The checked-out commit can predate this check.
+          if [ -f scripts/validate-step-secrets.js ]; then
+            node scripts/validate-step-secrets.js .github/workflows/eas-update-platform.yml build-and-push || exit 1
+          fi
+
           # --- Resource monitor ---------------------------------------------------
           # GitHub-hosted runners expose no live machine metrics, so log memory,
           # CPU load and disk every 15s. This makes CPU/Memory starvation visible

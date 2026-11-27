@@ -85,6 +85,8 @@ certs/                                                      @MetaMask/mobile-adm
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
+scripts/validate-step-secrets.js                            @MetaMask/mobile-admins
+.github/optional-secrets.yml                                @MetaMask/mobile-admins
 
 # DevOps Team
 .github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform

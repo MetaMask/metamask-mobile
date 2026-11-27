@@ -786,6 +786,7 @@ jobs:
           path: artifacts/without-srp
 
       - name: Repack reused APKs with current JS (E2E-style)
+        id: repack-apks
         if: >-
           needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
           inputs.main_branch_only != true
@@ -851,8 +852,11 @@ jobs:
           IN_BUILD_SRP: ${{ secrets.IN_BUILD_SRP }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           BYOA_AUTH_SECRET: ${{ secrets.E2E_BYOA_AUTH_SECRET }}
+          SECRETS_ENVIRONMENT: ${{ needs.check-builds-needed.outputs.github-environment }}
         run: |
           set -euo pipefail
+
+          node scripts/validate-step-secrets.js .github/workflows/build-android-upload-to-testmu.yml repack-apks
 
           # Apply builds.yml env into THIS shell so metro (child of yarn build:repack)
           # inherits it.

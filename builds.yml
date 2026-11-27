@@ -12,7 +12,8 @@
 #
 # Secrets are not listed here. Each workflow step that bundles the app maps the GitHub
 # Secrets it needs in its own `env:` (build.yml, eas-update-platform.yml,
-# build-rc-repack.yml, build-android-upload-to-testmu.yml).
+# build-rc-repack.yml, build-android-upload-to-testmu.yml). Those steps fail when a secret
+# is not set in their GitHub environment, unless .github/optional-secrets.yml allows it.
 # Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
 
 # =============================================================================
