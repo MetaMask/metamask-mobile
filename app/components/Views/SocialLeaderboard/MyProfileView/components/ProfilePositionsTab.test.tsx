@@ -1,8 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfilePositionsTab from './ProfilePositionsTab';
 
@@ -396,5 +397,27 @@ describe('ProfilePositionsTab', () => {
     );
 
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('announces the error title to screen readers once when the error appears', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    announce.mockClear();
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[]}
+        isLoading={false}
+        error="offline"
+        isClosed={false}
+        filter="all"
+        onPositionPress={jest.fn()}
+        onRetry={jest.fn()}
+      />,
+    );
+
+    expect(announce).toHaveBeenCalledTimes(1);
+    expect(announce).toHaveBeenCalledWith(
+      strings('social_leaderboard.feed.error.title'),
+    );
   });
 });

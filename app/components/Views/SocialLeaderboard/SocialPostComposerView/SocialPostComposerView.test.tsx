@@ -1,6 +1,12 @@
 import { Icon, IconSize } from '@metamask/design-system-react-native';
 import React from 'react';
-import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
+import {
+  AccessibilityInfo,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import {
   act,
   fireEvent,
@@ -919,6 +925,7 @@ describe('SocialPostComposerView', () => {
   });
 
   it('stays on the composer and shows a toast when createSwapComment fails', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     mockCreateSwapComment.mockRejectedValue(new Error('409'));
 
     renderWithProvider(
@@ -943,6 +950,9 @@ describe('SocialPostComposerView', () => {
       expect(mockShowToast).toHaveBeenCalled();
     });
 
+    expect(announce).toHaveBeenCalledWith(
+      'social_leaderboard.composer.post_failed_announcement',
+    );
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
@@ -962,6 +972,7 @@ describe('SocialPostComposerView', () => {
   });
 
   it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     mockCreateSwapComment.mockImplementation(
       () => new Promise(() => undefined),
     );
@@ -997,6 +1008,9 @@ describe('SocialPostComposerView', () => {
       expect.objectContaining({
         labelOptions: [{ label: 'social_leaderboard.composer.post_failed' }],
       }),
+    );
+    expect(announce).toHaveBeenCalledWith(
+      'social_leaderboard.composer.post_failed_announcement',
     );
     expect(mockReportSocialServiceFailure).toHaveBeenCalledTimes(1);
     expect(mockReportSocialServiceFailure).toHaveBeenCalledWith(
