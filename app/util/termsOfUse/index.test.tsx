@@ -7,7 +7,7 @@ import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from './TermsOfUseModal.testIds';
 import StorageWrapper from '../../store/storage-wrapper';
 import navigateTermsOfUse from './termsOfUse';
-import termsOfUse from './socialTermsOfUseContent';
+import termsOfUse from './termsOfUseContent';
 
 jest.mock('../analytics/analytics');
 jest.mock('../../store/storage-wrapper');
