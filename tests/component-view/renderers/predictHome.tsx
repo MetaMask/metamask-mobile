@@ -15,7 +15,10 @@ import PredictMarketListRoute from '../../../app/components/UI/Predict/routes/Pr
 import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
 import PredictPositionsView from '../../../app/components/UI/Predict/views/PredictPositionsView';
 import { initialStatePredict } from '../presets/predict';
-import { renderScreenWithRoutes } from '../render';
+import {
+  createRouteNameAndParamsProbe,
+  renderScreenWithRoutes,
+} from '../render';
 import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
 
 interface RenderPredictHomeOptions {
@@ -23,6 +26,16 @@ interface RenderPredictHomeOptions {
   initialParams?: PredictMarketListRouteParams;
   setParams?: (params: PredictMarketListRouteParams) => void;
 }
+
+interface RenderPredictHomeWithRoutesOptions
+  extends Omit<RenderPredictHomeOptions, 'setParams'> {
+  extraRoutes?: {
+    name: string;
+    Component?: React.ComponentType<object>;
+  }[];
+}
+
+const WalletHomeProbe = createRouteNameAndParamsProbe(Routes.WALLET.HOME);
 
 function createNavigationContextValue(
   setParams: (params: PredictMarketListRouteParams) => void = () => undefined,
@@ -115,6 +128,32 @@ export function renderPredictHomeView(
   return renderWrappedAtMarketList(
     PredictHome as React.ComponentType<Record<string, unknown>>,
     options,
+  );
+}
+
+/**
+ * Renders PredictHome inside a real stack so navigation assertions resolve to
+ * route probes. Wallet home is available by default for the root-back journey.
+ */
+export function renderPredictHomeViewWithRoutes(
+  options: RenderPredictHomeWithRoutesOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, initialParams, extraRoutes = [] } = options;
+
+  const builder = initialStatePredict();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    createWrappedPredictComponent(
+      PredictHome as React.ComponentType<Record<string, unknown>>,
+    ),
+    { name: Routes.PREDICT.MARKET_LIST },
+    [{ name: Routes.WALLET.HOME, Component: WalletHomeProbe }, ...extraRoutes],
+    { state },
+    initialParams as Record<string, unknown> | undefined,
   );
 }
 

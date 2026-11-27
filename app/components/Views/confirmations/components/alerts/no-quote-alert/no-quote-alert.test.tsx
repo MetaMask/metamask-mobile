@@ -15,6 +15,21 @@ function createError(overrides?: Partial<QuoteErrorInfo>): QuoteErrorInfo {
   } as QuoteErrorInfo;
 }
 
+/**
+ * Builds an `amount-too-low` error.
+ *
+ * TODO: The reason is not in the published `@metamask/transaction-pay-controller`
+ * until MetaMask/core#11779 is released. Use `createError({ reason })` then.
+ *
+ * @returns A quote error with the `amount-too-low` reason.
+ */
+function createAmountTooLowError(): QuoteErrorInfo {
+  return {
+    ...createError(),
+    reason: 'amount-too-low',
+  } as unknown as QuoteErrorInfo;
+}
+
 function tap(target: Parameters<typeof fireEvent.press>[0], times: number) {
   for (let i = 0; i < times; i++) {
     fireEvent.press(target);
@@ -45,6 +60,19 @@ describe('NoQuoteAlert', () => {
     );
 
     expect(getByText(insufficientMessage)).toBeDefined();
+    expect(queryByText(COLLAPSED_MESSAGE)).toBeNull();
+  });
+
+  it('renders the amount too low collapsed message for that reason', () => {
+    const amountTooLowMessage = strings(
+      'alert_system.pay_amount_too_low.message',
+    );
+
+    const { getByText, queryByText } = render(
+      <NoQuoteAlert error={createAmountTooLowError()} />,
+    );
+
+    expect(getByText(amountTooLowMessage)).toBeDefined();
     expect(queryByText(COLLAPSED_MESSAGE)).toBeNull();
   });
 

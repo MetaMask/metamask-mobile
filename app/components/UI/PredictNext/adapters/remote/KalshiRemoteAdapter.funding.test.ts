@@ -22,6 +22,7 @@ const DEPOSIT = {
 const TX_HASH = transferReported.txHash as PredictHex;
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
+  getSigningProfile: jest.fn(),
   fetchVenueStatus: jest.fn(),
   fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),

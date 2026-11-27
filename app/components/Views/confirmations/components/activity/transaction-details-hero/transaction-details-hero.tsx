@@ -9,6 +9,7 @@ import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAcco
 import {
   CHAIN_IDS,
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
@@ -36,7 +37,11 @@ import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
-import { isSingleRowMusdMoneyWithdraw } from '../../../../../UI/Money/utils/moneyTransactionGuards';
+import {
+  isFiatMoneyDeposit,
+  isSingleRowMusdMoneyWithdraw,
+} from '../../../../../UI/Money/utils/moneyTransactionGuards';
+import { getFiatDepositAttemptedAmount } from '../../../../../UI/Money/utils/fiatDepositAmount';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   isMusdToken,
@@ -231,12 +236,17 @@ export function TransactionDetailsHero() {
       !isMoneyContext);
 
   if (showTokenIcon) {
+    const isFailedFiatDeposit =
+      transactionMeta.status === TransactionStatus.failed &&
+      isFiatMoneyDeposit(transactionMeta);
+
     const showDepositPrefix =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]) &&
-      isSingleRowMoneyDeposit(transactionMeta);
+      isSingleRowMoneyDeposit(transactionMeta) &&
+      !isFailedFiatDeposit;
 
     const isMusdWithdrawSingleRow =
       isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
@@ -244,8 +254,14 @@ export function TransactionDetailsHero() {
     // Same-token flows produce no MM Pay quotes, so the controller writes a
     // literal '0' targetFiat — fall back to the decoded token amount.
     const payTargetFiat = transactionMeta.metamaskPay?.targetFiat;
+    const failedFiatAmount = isFailedFiatDeposit
+      ? getFiatDepositAttemptedAmount(transactionMeta)
+      : undefined;
     const heroAmount =
-      payTargetFiat && payTargetFiat !== '0' ? payTargetFiat : tokenMeta.amount;
+      failedFiatAmount ??
+      (payTargetFiat && payTargetFiat !== '0'
+        ? payTargetFiat
+        : tokenMeta.amount);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
@@ -352,8 +368,10 @@ function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
     return false;
   }
 
-  const { fiat, tokenAddress } = transactionMeta.metamaskPay ?? {};
-  return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
+  return (
+    isFiatMoneyDeposit(transactionMeta) ||
+    isMusdToken(transactionMeta.metamaskPay?.tokenAddress)
+  );
 }
 
 /**

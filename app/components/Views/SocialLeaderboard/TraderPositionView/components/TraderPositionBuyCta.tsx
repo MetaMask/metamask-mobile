@@ -33,6 +33,8 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from '../../../../UI/QuickBuy/analytics';
+import { useSocialTermsGate } from '../../terms/useSocialTermsGate';
+import { useRequireSocialProfileOnboarding } from '../../hooks/useRequireSocialProfileOnboarding';
 
 /**
  * `sourcePage` reported to the swaps view for attribution. Snake_case matches
@@ -59,6 +61,11 @@ export interface TraderPositionBuyCtaProps {
    * so the parent's "dismissed" event is suppressed. Called for both variants.
    */
   onBuyCtaClicked: () => void;
+  /**
+   * Sends users without a linked social wallet to profile onboarding instead
+   * of the buy flow. Social V1 passes this.
+   */
+  requireSocialProfile?: boolean;
   buyButtonTestID: string;
 }
 
@@ -83,8 +90,11 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   isTraderPositionClosed,
   postTradeShare,
   onBuyCtaClicked,
+  requireSocialProfile = false,
   buyButtonTestID,
 }) => {
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { variant } = useABTest(
     TOP_TRADERS_BUY_ACTION_AB_KEY,
     TOP_TRADERS_BUY_ACTION_VARIANTS,
@@ -117,40 +127,53 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
-  const handleBuyPress = useCallback(() => {
-    if (!position) return;
-    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
-    playImpact(ImpactMoment.PrimaryCTA);
-    onBuyCtaClicked();
+  const handleBuyPress = useCallback(
+    function buyPress(): void {
+      if (!position) return;
+      if (
+        requireSocialProfile &&
+        (!ensureSocialTermsAccepted(buyPress) ||
+          !ensureSocialProfileOnboarding())
+      ) {
+        return;
+      }
+      // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+      playImpact(ImpactMoment.PrimaryCTA);
+      onBuyCtaClicked();
 
-    // Treatment: go straight to swaps with the trader's token as destination.
-    if (variant.openSwaps) {
-      if (destToken) {
-        // Clear any pending intent so the resolver effect can't also navigate.
+      // Treatment: go straight to swaps with the trader's token as destination.
+      if (variant.openSwaps) {
+        if (destToken) {
+          // Clear any pending intent so the resolver effect can't also navigate.
+          setIsSwapPending(false);
+          goToSwaps(undefined, destToken, undefined, true);
+          return;
+        }
+        // Metadata still resolving — wait for it instead of falling back so a
+        // fast tap doesn't send treatment users to QuickBuy.
+        if (isLoading) {
+          setIsSwapPending(true);
+          return;
+        }
+        // Settled with no usable token (e.g. unsupported chain) — fall through to
+        // QuickBuy so Buy is never a no-op.
         setIsSwapPending(false);
-        goToSwaps(undefined, destToken, undefined, true);
-        return;
       }
-      // Metadata still resolving — wait for it instead of falling back so a
-      // fast tap doesn't send treatment users to QuickBuy.
-      if (isLoading) {
-        setIsSwapPending(true);
-        return;
-      }
-      // Settled with no usable token (e.g. unsupported chain) — fall through to
-      // QuickBuy so Buy is never a no-op.
-      setIsSwapPending(false);
-    }
 
-    setIsQuickBuyVisible(true);
-  }, [
-    position,
-    onBuyCtaClicked,
-    variant.openSwaps,
-    destToken,
-    isLoading,
-    goToSwaps,
-  ]);
+      setIsQuickBuyVisible(true);
+    },
+    [
+      position,
+      requireSocialProfile,
+      ensureSocialTermsAccepted,
+      ensureSocialProfileOnboarding,
+      onBuyCtaClicked,
+      variant.openSwaps,
+      destToken,
+      isLoading,
+      goToSwaps,
+    ],
+  );
 
   // Resolve a pending treatment intent once the destination metadata settles.
   useEffect(() => {

@@ -1,14 +1,14 @@
 import '../mocks';
 import React, { useEffect } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import {
   createComponentViewQueryClient,
+  createRouteNameAndParamsProbe,
   createRouteParamsProbe,
-  getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -149,6 +149,10 @@ export function renderTrendingViewWithRoutes(
 export const BROWSER_HOME_PROBE_BACK_BUTTON = 'route-browser-home-back';
 
 // Route probe that can go back, so tests can return to search after leaving it.
+const BrowserHomeNameAndParams = createRouteNameAndParamsProbe(
+  Routes.BROWSER.HOME,
+);
+
 const BrowserHomeProbe = () => {
   const navigation = useNavigation();
 
@@ -158,11 +162,7 @@ const BrowserHomeProbe = () => {
       testID: BROWSER_HOME_PROBE_BACK_BUTTON,
       onPress: () => navigation.goBack(),
     },
-    React.createElement(
-      Text,
-      { testID: getRouteProbeTestId(Routes.BROWSER.HOME) },
-      Routes.BROWSER.HOME,
-    ),
+    React.createElement(BrowserHomeNameAndParams),
   );
 };
 

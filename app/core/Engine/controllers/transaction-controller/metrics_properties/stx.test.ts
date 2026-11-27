@@ -1,5 +1,5 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { OriginalTransactionStatus } from '@metamask/smart-transactions-controller';
+import { SentinelOriginalTransactionStatus } from '@metamask/smart-transactions-controller';
 
 import {
   selectShouldUseSmartTransaction,
@@ -101,7 +101,8 @@ describe('getStxMetricsProperties', () => {
         is_smart_transactions_user_opt_in: true,
         is_smart_transactions_available: true,
         is_smart_transaction: true,
-        stx_original_transaction_status: OriginalTransactionStatus.VALIDATED,
+        stx_original_transaction_status:
+          SentinelOriginalTransactionStatus.Validated,
       });
 
       const request = createMockRequest('0x1');
@@ -113,7 +114,8 @@ describe('getStxMetricsProperties', () => {
           is_smart_transactions_user_opt_in: true,
           is_smart_transactions_available: true,
           is_smart_transaction: true,
-          stx_original_transaction_status: OriginalTransactionStatus.VALIDATED,
+          stx_original_transaction_status:
+            SentinelOriginalTransactionStatus.Validated,
         },
         sensitiveProperties: {},
       });
