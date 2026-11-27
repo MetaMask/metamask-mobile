@@ -77,7 +77,7 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
       justifyContent={BoxJustifyContent.Center}
       gap={3}
       padding={4}
-      twClassName="flex-1"
+      className="flex-1"
       testID={TraderPositionViewSelectorsIDs.FALLBACK}
     >
       <Image
@@ -88,14 +88,14 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
       <Text
         variant={TextVariant.HeadingSm}
         color={TextColor.TextDefault}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('social_leaderboard.trader_position.fallback_title')}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('social_leaderboard.trader_position.fallback_subtitle')}
       </Text>
@@ -104,7 +104,7 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
         size={ButtonSize.Lg}
         onPress={handlePrimaryAction}
         testID={TraderPositionViewSelectorsIDs.FALLBACK_PRIMARY_ACTION}
-        twClassName="self-center"
+        className="self-center"
       >
         {actionLabel}
       </Button>

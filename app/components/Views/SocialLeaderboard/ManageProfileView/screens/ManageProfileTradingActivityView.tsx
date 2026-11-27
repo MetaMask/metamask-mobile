@@ -89,8 +89,8 @@ const ManageProfileTradingActivityView: React.FC = () => {
       headerTestID={ManageProfileTradingActivitySelectorsIDs.HEADER}
       backTestID={ManageProfileTradingActivitySelectorsIDs.BACK_BUTTON}
     >
-      <Box twClassName="px-4 pt-2" gap={4}>
-        <Box twClassName="bg-muted rounded-2xl px-4 py-3" style={styles.hug}>
+      <Box className="px-4 pt-2" gap={4}>
+        <Box className="bg-muted rounded-2xl px-4 py-3" style={styles.hug}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -100,7 +100,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="flex-1 mr-3"
+              className="flex-1 mr-3"
             >
               {strings(
                 'social_leaderboard.manage_profile.show_trading_activity',
@@ -126,7 +126,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
-              twClassName="mt-2"
+              className="mt-2"
             >
               {errorMessage}
             </Text>

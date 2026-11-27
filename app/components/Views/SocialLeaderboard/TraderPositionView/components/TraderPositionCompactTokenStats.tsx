@@ -57,9 +57,9 @@ const TraderPositionCompactTokenStats: React.FC<
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="max-w-full"
+        className="max-w-full"
       >
-        <Box twClassName="min-w-0 flex-shrink">
+        <Box className="min-w-0 flex-shrink">
           <TraderHeaderIdentity
             traderName={traderName}
             traderImageUrl={traderImageUrl}
@@ -83,7 +83,7 @@ const TraderPositionCompactTokenStats: React.FC<
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={1}
-        twClassName="max-w-full px-1"
+        className="max-w-full px-1"
         testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE}
       >
         <Text
@@ -91,7 +91,7 @@ const TraderPositionCompactTokenStats: React.FC<
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="shrink"
+          className="shrink"
           testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
         >
           {symbol}
@@ -100,7 +100,7 @@ const TraderPositionCompactTokenStats: React.FC<
           <>
             <Text
               variant={TextVariant.BodySm}
-              twClassName={
+              className={
                 pricePercentChange >= 0
                   ? 'text-success-default'
                   : 'text-error-default'

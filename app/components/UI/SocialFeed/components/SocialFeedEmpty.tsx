@@ -15,13 +15,13 @@ const SocialFeedEmpty: React.FC = () => (
   <Box
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    twClassName="w-full px-4 py-8"
+    className="w-full px-4 py-8"
     testID={SOCIAL_FEED_EMPTY_TEST_ID}
   >
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
     >
       {strings('social_leaderboard.feed.empty_filtered.title')}
     </Text>

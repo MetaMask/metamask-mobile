@@ -981,9 +981,9 @@ const TraderPositionView = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="pr-4"
+              className="pr-4"
             >
-              <Box twClassName="min-w-0 flex-1">
+              <Box className="min-w-0 flex-1">
                 {isPerp ? (
                   <CandlePeriodSelector
                     selectedPeriod={selectedCandlePeriod}
@@ -1015,10 +1015,10 @@ const TraderPositionView = () => {
           {stickyTopDayLabel ? (
             <View pointerEvents="none">
               <Box
-                twClassName="bg-default px-4 pt-3"
+                className="bg-default px-4 pt-3"
                 testID={TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER}
               >
-                <Box twClassName="self-start pb-2">
+                <Box className="self-start pb-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Bold}
@@ -1027,7 +1027,7 @@ const TraderPositionView = () => {
                     {stickyTopDayLabel}
                   </Text>
                 </Box>
-                <Box twClassName="h-px bg-muted" />
+                <Box className="h-px bg-muted" />
               </Box>
             </View>
           ) : null}

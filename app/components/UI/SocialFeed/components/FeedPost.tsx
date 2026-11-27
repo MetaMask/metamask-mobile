@@ -74,7 +74,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
 
     {/* `min-w-0` lets the username truncate instead of pushing the post age
       off the right edge. */}
-    <Box twClassName="flex-1 min-w-0 gap-2">
+    <Box className="flex-1 min-w-0 gap-2">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -84,14 +84,14 @@ const FeedPost: React.FC<FeedPostProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={2}
-          twClassName="flex-1 min-w-0"
+          className="flex-1 min-w-0"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            className="shrink"
             testID={getSocialFeedPostAuthorTestId(id)}
           >
             {author.username}

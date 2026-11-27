@@ -112,7 +112,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName={`${sizeClassName} rounded-full overflow-hidden`}
+      className={`${sizeClassName} rounded-full overflow-hidden`}
       style={tw.style(sizeStyle, { backgroundColor: background?.color })}
       testID={testID}
       accessibilityLabel={accessibilityLabel}

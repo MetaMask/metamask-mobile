@@ -109,7 +109,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
   const overlay = (
     <SafeAreaProvider>
       <GestureHandlerRootView style={tw.style('flex-1')}>
-        <Box twClassName="absolute inset-0">
+        <Box className="absolute inset-0">
           <Pressable
             style={tw.style('absolute inset-0', {
               backgroundColor: colors.overlay.default,
@@ -155,7 +155,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                 onSubmit={handleSubmitReport}
               />
             ) : (
-              <Box twClassName="pb-4">
+              <Box className="pb-4">
                 {canReport ? (
                   <ActionListItem
                     iconName={IconName.Flag}

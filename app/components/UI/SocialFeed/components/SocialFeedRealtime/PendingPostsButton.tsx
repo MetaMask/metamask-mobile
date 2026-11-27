@@ -132,7 +132,7 @@ const PendingPostsCount = ({ count }: { count: string }) => {
         {...LABEL_TEXT_PROPS}
         accessible={false}
         testID={PENDING_POSTS_COUNT_TEST_ID}
-        twClassName="tabular-nums"
+        className="tabular-nums"
       >
         {count}
       </Text>
@@ -184,7 +184,7 @@ const PendingPostsPill = ({
         accessibilityLabel={getPendingPostsAccessibilityLabel(pendingNewCount)}
         size={ButtonBaseSize.Md}
         onPress={handlePress}
-        twClassName={(pressed) => {
+        className={(pressed) => {
           if (isMaterialSurface) {
             return pressed ? 'opacity-70' : 'bg-transparent';
           }
@@ -199,7 +199,7 @@ const PendingPostsPill = ({
             <Text
               {...LABEL_TEXT_PROPS}
               accessible={false}
-              twClassName={/\s$/u.test(leading) ? 'mr-1' : undefined}
+              className={/\s$/u.test(leading) ? 'mr-1' : undefined}
             >
               {leadingText}
             </Text>
@@ -209,7 +209,7 @@ const PendingPostsPill = ({
             <Text
               {...LABEL_TEXT_PROPS}
               accessible={false}
-              twClassName={/^\s/u.test(trailing) ? 'ml-1' : undefined}
+              className={/^\s/u.test(trailing) ? 'ml-1' : undefined}
             >
               {trailingText}
             </Text>

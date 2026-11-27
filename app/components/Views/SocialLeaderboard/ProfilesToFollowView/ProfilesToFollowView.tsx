@@ -119,7 +119,7 @@ const ProfilesToFollowView: React.FC = () => {
     if (showLoading) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           testID={ProfilesToFollowViewSelectorsIDs.LOADING}
@@ -131,7 +131,7 @@ const ProfilesToFollowView: React.FC = () => {
     if (showError) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingHorizontal={4}
           paddingTop={12}
@@ -156,7 +156,7 @@ const ProfilesToFollowView: React.FC = () => {
     if (traders.length === 0) {
       return (
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           paddingTop={12}
           paddingHorizontal={4}
@@ -195,7 +195,7 @@ const ProfilesToFollowView: React.FC = () => {
         }}
         testID={ProfilesToFollowViewSelectorsIDs.HEADER}
       />
-      <Box twClassName="flex-1">{listContent}</Box>
+      <Box className="flex-1">{listContent}</Box>
     </SafeAreaView>
   );
 };

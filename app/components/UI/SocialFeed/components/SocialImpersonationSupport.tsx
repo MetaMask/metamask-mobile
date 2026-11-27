@@ -34,7 +34,7 @@ const SocialImpersonationSupport: React.FC<SocialImpersonationSupportProps> = ({
   }, [onDismiss, openSocialSupport]);
 
   return (
-    <Box twClassName="px-4 pb-10" gap={4}>
+    <Box className="px-4 pb-10" gap={4}>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}

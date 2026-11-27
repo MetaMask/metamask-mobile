@@ -70,7 +70,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3"
+      className="px-4 py-3"
     >
       <Pressable
         onPress={onRowPress ? handleRowPress : undefined}
@@ -90,7 +90,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
             size={AVATAR_SIZE}
             recyclingKey={id}
           />
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -100,7 +100,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {username}
               </Text>

@@ -46,7 +46,7 @@ const HiddenPositionInfo: React.FC<HiddenPositionInfoProps> = ({
       >
         {strings('social_leaderboard.composer.hidden_position_title')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 pt-2 pb-4">
+      <Box className="px-4 pt-2 pb-4">
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}

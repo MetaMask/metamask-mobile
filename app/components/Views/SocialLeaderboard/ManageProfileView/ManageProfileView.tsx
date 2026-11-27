@@ -167,7 +167,7 @@ const ManageProfileView: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
       >
-        <Box twClassName="items-center py-4">
+        <Box className="items-center py-4">
           <EditableProfileAvatar
             imageUrl={profile?.imageUrl}
             avatarPresetId={profile?.avatarPresetId}
@@ -184,12 +184,12 @@ const ManageProfileView: React.FC = () => {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          className="mb-2"
         >
           {strings('social_leaderboard.manage_profile.about')}
         </Text>
         <Box
-          twClassName="bg-muted rounded-2xl overflow-hidden mb-6"
+          className="bg-muted rounded-2xl overflow-hidden mb-6"
           testID={ManageProfileViewSelectorsIDs.ABOUT_SECTION}
         >
           <ManageProfileNavRow
@@ -231,12 +231,12 @@ const ManageProfileView: React.FC = () => {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          className="mb-2"
         >
           {strings('social_leaderboard.manage_profile.privacy')}
         </Text>
         <Box
-          twClassName="bg-muted rounded-2xl overflow-hidden"
+          className="bg-muted rounded-2xl overflow-hidden"
           testID={ManageProfileViewSelectorsIDs.PRIVACY_SECTION}
         >
           <ManageProfileNavRow
@@ -282,7 +282,7 @@ const ManageProfileView: React.FC = () => {
             color={TextColor.ErrorDefault}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
-            twClassName="mt-3"
+            className="mt-3"
             testID={ManageProfileViewSelectorsIDs.X_CONNECT_ERROR}
           >
             {errorMessage}
