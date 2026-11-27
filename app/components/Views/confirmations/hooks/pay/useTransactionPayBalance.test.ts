@@ -13,10 +13,12 @@ import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalanc
 import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { useTransactionPayBalance } from './useTransactionPayBalance';
+import { useTransactionPayToken } from './useTransactionPayToken';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 jest.mock('./usePayTokenAccountBalance');
+jest.mock('./useTransactionPayToken');
 jest.mock('../../temp-lighter/useLighterWithdrawableBalance');
 
 const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
@@ -72,6 +74,14 @@ describe('useTransactionPayBalance', () => {
   );
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const usePayTokenAccountBalanceMock = jest.mocked(usePayTokenAccountBalance);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+
+  function mockPayTokenAssetId(assetId: string | undefined) {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: assetId ? { assetId } : undefined,
+      setPayToken: jest.fn(),
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+  }
 
   function mockTransaction(overrides: Partial<TransactionMeta> = {}) {
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -85,6 +95,7 @@ describe('useTransactionPayBalance', () => {
     jest.resetAllMocks();
 
     mockTransaction();
+    mockPayTokenAssetId(undefined);
 
     usePredictBalanceMock.mockReturnValue({
       data: 0,
@@ -202,6 +213,45 @@ describe('useTransactionPayBalance', () => {
         balanceRaw: '0',
         balanceUsd: 0,
       });
+    });
+  });
+
+  describe('perps deposit paid from a Perps balance', () => {
+    it('returns the Hyperliquid withdrawable balance', () => {
+      mockTransaction({ type: TransactionType.perpsLighterDeposit });
+      mockPayTokenAssetId('hyperliq:mainnet/perps:usdc');
+
+      const { result } = runHook({
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              accountState: { withdrawableBalance: '2.05' },
+            },
+          },
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        balanceRaw: '205000000',
+        balanceUsd: 2.05,
+      });
+    });
+
+    it('returns the Lighter withdrawable balance', () => {
+      mockTransaction({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0xabc' },
+      });
+      mockPayTokenAssetId('lighter:mainnet/perps:usdc');
+      jest.mocked(useLighterWithdrawableBalance).mockReturnValue('6.87305');
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual({
+        balanceRaw: '6873050',
+        balanceUsd: 6.87305,
+      });
+      expect(useLighterWithdrawableBalance).toHaveBeenCalledWith('0xabc', true);
     });
   });
 

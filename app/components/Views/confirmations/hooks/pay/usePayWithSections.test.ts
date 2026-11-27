@@ -3,6 +3,7 @@ import { PayWithSectionConfig } from '../../components/modals/pay-with-bottom-sh
 import { usePayWithCryptoSection } from './sections/usePayWithCryptoSection';
 import { usePayWithFiatSection } from './sections/usePayWithFiatSection';
 import { usePayWithMoneyAccountSection } from './sections/usePayWithMoneyAccountSection';
+import { usePayWithPerpsAccountSection } from './sections/usePayWithPerpsAccountSection';
 import { usePayWithPerpsSection } from './sections/usePayWithPerpsSection';
 import { usePayWithPredictSection } from './sections/usePayWithPredictSection';
 import { usePayWithSections } from './usePayWithSections';
@@ -10,6 +11,7 @@ import { usePayWithSections } from './usePayWithSections';
 jest.mock('./sections/usePayWithCryptoSection');
 jest.mock('./sections/usePayWithFiatSection');
 jest.mock('./sections/usePayWithMoneyAccountSection');
+jest.mock('./sections/usePayWithPerpsAccountSection');
 jest.mock('./sections/usePayWithPerpsSection');
 jest.mock('./sections/usePayWithPredictSection');
 
@@ -33,6 +35,18 @@ const PERPS_SECTION_MOCK: PayWithSectionConfig = {
       id: 'perps-balance',
       icon: 'Perps',
       title: 'Perps balance',
+    },
+  ],
+};
+
+const PERPS_ACCOUNT_SECTION_MOCK: PayWithSectionConfig = {
+  id: 'perps-account',
+  title: 'Perps',
+  rows: [
+    {
+      id: 'perps-account-lighter',
+      icon: 'Lighter',
+      title: 'Lighter balance',
     },
   ],
 };
@@ -79,6 +93,9 @@ describe('usePayWithSections', () => {
   const usePayWithMoneyAccountSectionMock = jest.mocked(
     usePayWithMoneyAccountSection,
   );
+  const usePayWithPerpsAccountSectionMock = jest.mocked(
+    usePayWithPerpsAccountSection,
+  );
   const usePayWithPerpsSectionMock = jest.mocked(usePayWithPerpsSection);
   const usePayWithPredictSectionMock = jest.mocked(usePayWithPredictSection);
 
@@ -88,6 +105,7 @@ describe('usePayWithSections', () => {
     usePayWithCryptoSectionMock.mockReturnValue(null);
     usePayWithFiatSectionMock.mockReturnValue(null);
     usePayWithMoneyAccountSectionMock.mockReturnValue(null);
+    usePayWithPerpsAccountSectionMock.mockReturnValue(null);
     usePayWithPerpsSectionMock.mockReturnValue(null);
     usePayWithPredictSectionMock.mockReturnValue(null);
   });
@@ -112,6 +130,24 @@ describe('usePayWithSections', () => {
     const { result } = renderHook(() => usePayWithSections());
 
     expect(result.current.sections).toEqual([PERPS_SECTION_MOCK]);
+  });
+
+  it('returns the perps account section between money-account and crypto', () => {
+    usePayWithMoneyAccountSectionMock.mockReturnValue(
+      MONEY_ACCOUNT_SECTION_MOCK,
+    );
+    usePayWithPerpsAccountSectionMock.mockReturnValue(
+      PERPS_ACCOUNT_SECTION_MOCK,
+    );
+    usePayWithCryptoSectionMock.mockReturnValue(CRYPTO_SECTION_MOCK);
+
+    const { result } = renderHook(() => usePayWithSections());
+
+    expect(result.current.sections).toEqual([
+      MONEY_ACCOUNT_SECTION_MOCK,
+      PERPS_ACCOUNT_SECTION_MOCK,
+      CRYPTO_SECTION_MOCK,
+    ]);
   });
 
   it('returns the visible predict section', () => {

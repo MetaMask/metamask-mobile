@@ -20,6 +20,7 @@ import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
 import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
+import { useLighterReceiveMinimumAlert } from './useLighterReceiveMinimumAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -51,6 +52,7 @@ jest.mock('./useFiatBuyLimitAlert');
 jest.mock('./useTransactionDepositLimitAlert');
 jest.mock('./useLighterDepositMinimumAlert');
 jest.mock('./useLighterWithdrawMinimumAlert');
+jest.mock('./useLighterReceiveMinimumAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -227,6 +229,7 @@ describe('useConfirmationAlerts', () => {
     (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue([]);
     (useLighterDepositMinimumAlert as jest.Mock).mockReturnValue([]);
     (useLighterWithdrawMinimumAlert as jest.Mock).mockReturnValue([]);
+    (useLighterReceiveMinimumAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -418,5 +421,25 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockLighterWithdrawMinimumAlert);
+  });
+
+  it('returns the Lighter receive minimum alert', () => {
+    const mockLighterReceiveMinimumAlert: Alert[] = [
+      {
+        key: AlertKeys.FiatBuyAmountLimit,
+        title: 'Amount out of range',
+        message:
+          'This amount is below the minimum for this route. Enter a higher amount to continue.',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useLighterReceiveMinimumAlert as jest.Mock).mockReturnValue(
+      mockLighterReceiveMinimumAlert,
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockLighterReceiveMinimumAlert);
   });
 });

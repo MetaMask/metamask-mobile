@@ -11,19 +11,24 @@ import Engine from '../../../../../core/Engine';
 import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { LIGHTER_WITHDRAW_FEE } from '../../constants/perps';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
+import { getPerpsBalanceProvider } from '../../utils/perps-balance-asset';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { useTransactionPayToken } from './useTransactionPayToken';
 
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountOverride = useTransactionAccountOverride();
+  const { payToken } = useTransactionPayToken();
   const latestAmountRef = useRef<string | undefined>(undefined);
 
   const decimals = requiredTokens?.[0]?.decimals;
+  const isPaidFromLighterBalance =
+    getPerpsBalanceProvider(payToken?.assetId) === 'lighter';
 
   const updateTransactionPayAmount = useCallback(
     async (enteredAmountHuman: string): Promise<boolean> => {
@@ -31,13 +36,19 @@ export function useUpdateTransactionPayAmount() {
         return false;
       }
 
-      // Lighter charges a flat fee on withdraw, which Pay adds on top of the
-      // transaction amount. Commit the amount net of that fee so the total
+      // Lighter charges a flat fee when funds leave it, on a withdraw or a
+      // Perps deposit paid from the Lighter balance, which Pay adds on top of
+      // the transaction amount. Commit the amount net of that fee so the total
       // matches what the user entered. Only the committed amount is reduced,
       // the amount shown to the user is not.
-      const amountHuman = hasTransactionType(transactionMeta, [
-        TransactionType.perpsLighterWithdraw,
-      ])
+      const isLighterOutflow =
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsLighterWithdraw,
+        ]) ||
+        (isPaidFromLighterBalance &&
+          hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]));
+
+      const amountHuman = isLighterOutflow
         ? subtractLighterWithdrawFee(enteredAmountHuman)
         : enteredAmountHuman;
 
@@ -80,7 +91,13 @@ export function useUpdateTransactionPayAmount() {
 
       return true;
     },
-    [accountOverride, decimals, transactionMeta, updateTokenAmount],
+    [
+      accountOverride,
+      decimals,
+      isPaidFromLighterBalance,
+      transactionMeta,
+      updateTokenAmount,
+    ],
   );
 
   return {

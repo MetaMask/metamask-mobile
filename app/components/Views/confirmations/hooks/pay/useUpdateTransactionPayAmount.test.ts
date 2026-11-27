@@ -18,6 +18,9 @@ import { getTransactionPayAmountCalls } from '../../external/types/transaction-p
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { useTransactionPayToken } from './useTransactionPayToken';
+import { LIGHTER_USDC_ASSET_ID } from '../../temp-lighter/perps-lighter-transactions';
+import { HYPERLIQUID_USDC_ASSET_ID } from '../../utils/perps-balance-asset';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('@metamask/transaction-controller', () => ({
@@ -29,7 +32,10 @@ jest.mock('@metamask/transaction-controller', () => ({
     dropped: 'dropped',
     failed: 'failed',
   },
-  TransactionType: { perpsLighterWithdraw: 'perpsLighterWithdraw' },
+  TransactionType: {
+    perpsDeposit: 'perpsDeposit',
+    perpsLighterWithdraw: 'perpsLighterWithdraw',
+  },
   hasTransactionType: (
     meta: { type?: string; nestedTransactions?: { type?: string }[] },
     types: string[],
@@ -53,6 +59,14 @@ jest.mock('../../external/types/transaction-pay-amount');
 jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('./useTransactionPayData');
+jest.mock('./useTransactionPayToken');
+
+function mockPayTokenAssetId(assetId: string | undefined) {
+  jest.mocked(useTransactionPayToken).mockReturnValue({
+    payToken: assetId ? { assetId } : undefined,
+    setPayToken: jest.fn(),
+  } as unknown as ReturnType<typeof useTransactionPayToken>);
+}
 
 const AMOUNT_MOCK = '1.23';
 const TOKEN_ADDRESS_MOCK = '0xToken' as Hex;
@@ -137,6 +151,7 @@ describe('useUpdateTransactionPayAmount', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue([
       { decimals: 6 } as TransactionPayRequiredToken,
     ]);
+    mockPayTokenAssetId(undefined);
   });
 
   describe('updateTransactionPayAmount', () => {
@@ -201,6 +216,39 @@ describe('useUpdateTransactionPayAmount', () => {
           });
 
           expect(updateTokenAmountMock).toHaveBeenCalledWith('0');
+        },
+      );
+    });
+
+    describe('for a Perps deposit', () => {
+      const perpsDepositMeta = {
+        type: 'perpsDeposit',
+      } as unknown as Partial<TransactionMeta>;
+
+      it('subtracts the Lighter fee when paid from the Lighter balance', async () => {
+        getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
+        mockPayTokenAssetId(LIGHTER_USDC_ASSET_ID);
+
+        const { result } = runHook({ transactionMeta: perpsDepositMeta });
+        await act(async () => {
+          await result.current.updateTransactionPayAmount('10.5');
+        });
+
+        expect(updateTokenAmountMock).toHaveBeenCalledWith('9.5');
+      });
+
+      it.each([HYPERLIQUID_USDC_ASSET_ID, 'eip155:1/erc20:0xabc', undefined])(
+        'does not subtract a fee when paid from %s',
+        async (assetId) => {
+          getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
+          mockPayTokenAssetId(assetId);
+
+          const { result } = runHook({ transactionMeta: perpsDepositMeta });
+          await act(async () => {
+            await result.current.updateTransactionPayAmount('10.5');
+          });
+
+          expect(updateTokenAmountMock).toHaveBeenCalledWith('10.5');
         },
       );
     });

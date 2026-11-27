@@ -17,6 +17,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { decodeEvmAssetId } from '../../../../../util/transactions/payment-token';
 import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { getPerpsBalanceProvider } from '../../utils/perps-balance-asset';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
 
@@ -53,7 +54,22 @@ export function useTransactionPayToken(): {
 
   const setPayToken = useCallback(
     ({ assetId }: PayTokenSelection) => {
-      // Mobile only offers EVM payment tokens.
+      // A Perps balance has no gas or EVM token to sync.
+      if (getPerpsBalanceProvider(assetId)) {
+        try {
+          Engine.context.TransactionPayController.updatePaymentToken({
+            transactionId,
+            assetId,
+          });
+        } catch (error) {
+          Logger.error(error as Error, 'Error updating payment token');
+        }
+
+        EngineService.flushState();
+        return;
+      }
+
+      // Every other payment token is an EVM token.
       const newPayToken = decodeEvmAssetId(assetId);
 
       if (!newPayToken) {

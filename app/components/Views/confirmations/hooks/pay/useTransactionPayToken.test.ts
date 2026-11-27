@@ -158,6 +158,27 @@ describe('useTransactionPayToken', () => {
     expect(updatePaymentTokenMock).not.toHaveBeenCalled();
   });
 
+  it.each([
+    'lighter:mainnet/perps:usdc',
+    'hyperliq:mainnet/perps:usdc',
+  ] as const)(
+    'sets the %s Perps balance without gas or transfer syncing',
+    async (assetId) => {
+      const { result } = runHook();
+
+      result.current.setPayToken({ assetId });
+
+      await flushPromises();
+
+      expect(updatePaymentTokenMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        assetId,
+      });
+      expect(fetchGasFeeEstimatesMock).not.toHaveBeenCalled();
+      expect(syncMoneyAccountWithdrawTransferMock).not.toHaveBeenCalled();
+    },
+  );
+
   it('fetches gas fee estimates on the chain of the new token', async () => {
     const { result } = runHook();
 

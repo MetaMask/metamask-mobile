@@ -6,6 +6,7 @@ import {
 } from './pay-with-bottom-sheet';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
+import { usePerpsTransferTarget } from '../../../hooks/pay/usePerpsTransferTarget';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { PayWithSectionConfig } from './pay-with-bottom-sheet.types';
@@ -20,6 +21,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../hooks/pay/usePayWithSections');
 jest.mock('../../../hooks/pay/useDismissOnPaymentChange');
+jest.mock('../../../hooks/pay/usePerpsTransferTarget');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(() => undefined),
 }));
@@ -84,6 +86,15 @@ describe('PayWithBottomSheet', () => {
     expect(
       getByText('confirm.pay_with_bottom_sheet.receive_title'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the "To" title on a Perps account transfer', () => {
+    isTransactionPayWithdrawMock.mockReturnValue(true);
+    jest.mocked(usePerpsTransferTarget).mockReturnValue('lighter');
+
+    const { getByText } = render(<PayWithBottomSheet />);
+
+    expect(getByText('confirm.label.to')).toBeOnTheScreen();
   });
 
   it('renders one section per config returned by usePayWithSections', () => {

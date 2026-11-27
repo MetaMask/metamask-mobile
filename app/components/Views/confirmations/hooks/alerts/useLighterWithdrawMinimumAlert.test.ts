@@ -9,10 +9,21 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { LIGHTER_USDC_ASSET_ID } from '../../temp-lighter/perps-lighter-transactions';
+import { HYPERLIQUID_USDC_ASSET_ID } from '../../utils/perps-balance-asset';
 import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../pay/useTransactionPayToken');
 jest.mock('../../context/confirmation-context');
+
+function mockPayTokenAssetId(assetId: string | undefined) {
+  jest.mocked(useTransactionPayToken).mockReturnValue({
+    payToken: assetId ? { assetId } : undefined,
+    setPayToken: jest.fn(),
+  } as unknown as ReturnType<typeof useTransactionPayToken>);
+}
 
 function runHook({
   pendingAmount,
@@ -39,6 +50,7 @@ describe('useLighterWithdrawMinimumAlert', () => {
       txParams: { from: '0x0' },
       type: TransactionType.perpsLighterWithdraw,
     } as unknown as TransactionMeta);
+    mockPayTokenAssetId(undefined);
   });
 
   it('returns the fiat buy amount limit alert when the amount is below 2 USD', () => {
@@ -115,5 +127,50 @@ describe('useLighterWithdrawMinimumAlert', () => {
     const { result } = runHook({ pendingAmount: '0.5' });
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  describe('for a Perps deposit', () => {
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        txParams: { from: '0x0' },
+        type: TransactionType.perpsDeposit,
+      } as unknown as TransactionMeta);
+    });
+
+    it('returns the minimum deposit alert below 2 USD when paid from the Lighter balance', () => {
+      mockPayTokenAssetId(LIGHTER_USDC_ASSET_ID);
+
+      const { result } = runHook({ pendingAmount: '1.99' });
+
+      expect(result.current).toEqual([
+        {
+          key: AlertKeys.FiatBuyAmountLimit,
+          field: RowAlertKey.Amount,
+          title: strings('alert_system.fiat_buy_amount_limit.title'),
+          message: 'Minimum deposit is $2.00',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+    });
+
+    it('returns no alert at the minimum when paid from the Lighter balance', () => {
+      mockPayTokenAssetId(LIGHTER_USDC_ASSET_ID);
+
+      const { result } = runHook({ pendingAmount: '2' });
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it.each([HYPERLIQUID_USDC_ASSET_ID, 'eip155:1/erc20:0xabc', undefined])(
+      'returns no alert when paid from %s',
+      (assetId) => {
+        mockPayTokenAssetId(assetId);
+
+        const { result } = runHook({ pendingAmount: '1.5' });
+
+        expect(result.current).toStrictEqual([]);
+      },
+    );
   });
 });
