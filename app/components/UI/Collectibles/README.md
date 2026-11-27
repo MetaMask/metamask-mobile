@@ -4,11 +4,7 @@ This branch adds Pack Partner to the existing Collectibles module. Tapping the h
 
 ## Review stack
 
-The Pack Partner integration is extracted in four dependent steps, each with its
-own tests: **2.1 client and contracts**, **2.2 data service and Engine registration**,
-**2.3 provider and controller journal**, **2.4 hooks and selectors**. The original
-`collectibles-2-pack-partner-provider` branch is retained for comparison. No product
-screen, Social service or Collectibles API service belongs to these steps.
+Engine registers the Pack Partner data service. The existing Pack Partner client is also injected into the controller-owned provider. Their registration does not start requests. The remaining provider, query and hook implementations are staged in `collectibles-rest`.
 
 ## Naming convention
 
@@ -54,24 +50,11 @@ at the client boundary before being returned to a caller.
 Submission responses also require a non-blank signature, even when `success`
 is omitted; `success: false` still rejects the submission.
 
-The controller remains the empty initialization shell. Transaction orchestration
-and its journal arrive in step 2.3; React hooks and balance reads arrive in 2.4.
-The homepage entry and placeholder screen are unchanged.
-
 ## Controller registration and persistence
 
-`CollectiblesController` extends `BaseController` with an empty state. Engine
-creates its messenger and controller, passes `persistedState.CollectiblesController`
-(or the default state), and exposes it through `Engine.context` and `Engine.state`.
-The standard `getState` action and `stateChanged` event connect it to Redux and
-the existing controller storage discovery. Wallet reset calls `clearState`.
-Controller state is excluded from exported state logs.
+Engine injects the workflow client into the controller-owned provider. The controller uses standard Engine hydration. Transaction-journal persistence and migration are staged in the POC.
 
-This preserves the standard persistence and restoration wiring. There are no
-persisted fields yet: `metadata` is empty, so `EngineService` has nothing to write
-to disk. Future state fields must declare their persistence metadata and default
-values. Do not introduce a custom storage implementation, immediate disk flush,
-or migration from the unreleased Gacha prototype.
+The Pack Partner service owns the collection snapshot in its StorageService namespace. Wallet reset clears registered Collectibles query caches. Feature tests reuse the [Pack Partner harness](../../../../tests/integration/harnesses/pack-partner/STRATEGY.md).
 
 Implementation references:
 
@@ -124,9 +107,7 @@ These rules follow from it:
 
 ## Scope for contributors and agents
 
-Keep this branch limited to the Pack Partner integration and its Engine/storage
-wiring. Do not introduce the POC's artwork, routes, UI, Social or Collectibles API
-services. Preserve the initialization branch's public entry points.
+Keep service registration and wallet cleanup separate from product queries, transaction workflows and UI changes. Preserve the initialization branch's public entry points.
 
 ## Test layer placement
 

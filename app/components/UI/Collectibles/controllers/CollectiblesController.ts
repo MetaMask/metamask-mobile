@@ -3,6 +3,11 @@ import {
   type ControllerGetStateAction,
   type ControllerStateChangedEvent,
 } from '@metamask/base-controller';
+import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-service';
+import type { KeyringControllerUnlockEvent } from '@metamask/keyring-controller';
+import type { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
+import { PackPartnerProvider } from '../providers/pack-partner/PackPartnerProvider';
+import type { PackPartnerApi } from '../services/clients/PackPartnerApiClient';
 import type { Messenger } from '@metamask/messenger';
 
 export const COLLECTIBLES_CONTROLLER_NAME = 'CollectiblesController';
@@ -29,8 +34,10 @@ export type CollectiblesControllerEvents = ControllerStateChangedEvent<
 
 export type CollectiblesControllerMessenger = Messenger<
   typeof COLLECTIBLES_CONTROLLER_NAME,
-  CollectiblesControllerActions,
-  CollectiblesControllerEvents
+  | CollectiblesControllerActions
+  | SnapControllerHandleRequestAction
+  | DataServiceInvalidateQueriesAction<'PackPartnerDataService'>,
+  CollectiblesControllerEvents | KeyringControllerUnlockEvent
 >;
 
 /** Collectibles state and Engine lifecycle scaffold. */
@@ -39,11 +46,15 @@ export class CollectiblesController extends BaseController<
   CollectiblesControllerState,
   CollectiblesControllerMessenger
 > {
+  protected readonly packPartner: PackPartnerProvider;
+
   constructor({
+    packPartner,
     messenger,
     state = getDefaultCollectiblesControllerState(),
   }: {
     messenger: CollectiblesControllerMessenger;
+    packPartner: { api: PackPartnerApi };
     state?: Partial<CollectiblesControllerState>;
   }) {
     super({
@@ -55,6 +66,7 @@ export class CollectiblesController extends BaseController<
       // Replace this assertion with a default-state merge when fields are added.
       state: state as CollectiblesControllerState,
     });
+    this.packPartner = new PackPartnerProvider(packPartner.api);
   }
 
   /** Resets the module when Engine resets the wallet. */

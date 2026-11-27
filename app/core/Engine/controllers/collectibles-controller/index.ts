@@ -1,3 +1,4 @@
+import { createPackPartnerApi } from '../../../../components/UI/Collectibles/services/clients/PackPartnerApiClient';
 import {
   CollectiblesController,
   getDefaultCollectiblesControllerState,
@@ -12,6 +13,7 @@ export const collectiblesControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, persistedState }) => ({
   controller: new CollectiblesController({
     messenger: controllerMessenger,
+    packPartner: { api: createPackPartnerApi() },
     state:
       persistedState.CollectiblesController ??
       getDefaultCollectiblesControllerState(),
