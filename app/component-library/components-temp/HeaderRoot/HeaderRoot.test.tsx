@@ -281,12 +281,12 @@ describe('HeaderRoot', () => {
       expect(container.props.style).toContainEqual(customStyle);
     });
 
-    it('merges twClassName with base styles', () => {
+    it('merges className with base styles', () => {
       const { getByTestId } = render(
         <HeaderRoot
           title="Title"
           testID={CONTAINER_TEST_ID}
-          twClassName="custom-class"
+          className="custom-class"
         />,
       );
 
