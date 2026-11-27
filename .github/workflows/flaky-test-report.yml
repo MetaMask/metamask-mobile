@@ -2,10 +2,10 @@ name: Flaky test report
 
 on:
   schedule:
-    # 10:00 UTC (Europe morning), Monday–Friday — Playwright test health report
-    - cron: '0 10 * * 1-5'
-    # 15:00 UTC (US morning), Monday–Friday — Playwright test health report
-    - cron: '0 15 * * 1-5'
+    # 05:00 UTC, Monday–Friday — Playwright test health report
+    - cron: '0 5 * * 1-5'
+    # 17:00 UTC, Monday–Friday — Playwright test health report
+    - cron: '0 17 * * 1-5'
   workflow_dispatch:
     inputs:
       lookback_days:
