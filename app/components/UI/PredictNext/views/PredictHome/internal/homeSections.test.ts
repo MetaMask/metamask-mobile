@@ -111,6 +111,49 @@ describe('selectHomeSections', () => {
       ]);
     });
 
+    it("fills to the section's limit, keeping two per read first", () => {
+      const sections: PredictHomeSection[] = [
+        {
+          kind: 'trending',
+          sources: ['nfl-games', 'college-football-games'],
+          limit: 3,
+        },
+        KALSHI_HOME[1],
+      ];
+
+      const rows = selectRows(
+        homeReads({ nfl: games('nfl', 6), ncaa: games('ncaa', 4) }),
+        sections,
+      );
+
+      expect(ids(rows.trending)).toEqual(['nfl-1', 'nfl-2', 'ncaa-1']);
+    });
+
+    it('shows one source in its read order up to the limit', () => {
+      const sections: PredictHomeSection[] = [
+        {
+          kind: 'trending',
+          sources: ['nfl-games'],
+          title: 'Live now',
+          limit: 4,
+        },
+      ];
+      const nfl = [
+        game('nfl-1', 'in_progress'),
+        game('nfl-2', 'in_progress'),
+        game('nfl-3', 'in_progress'),
+        game('nfl-4', 'in_progress'),
+        game('nfl-5', 'in_progress'),
+      ];
+
+      const rows = selectRows(homeReads({ nfl }), sections);
+
+      expect(rows.home.sections).toEqual([
+        expect.objectContaining({ kind: 'trending', title: 'Live now' }),
+      ]);
+      expect(ids(rows.trending)).toEqual(['nfl-1', 'nfl-2', 'nfl-3', 'nfl-4']);
+    });
+
     it('shows live Games first, then read order', () => {
       const nfl = [game('nfl-1'), game('nfl-2'), game('nfl-3', 'in_progress')];
       const ncaa = [game('ncaa-1'), game('ncaa-2', 'in_progress')];
@@ -445,13 +488,13 @@ describe('planHomeFeedReads', () => {
     },
   } as unknown as PredictVenueCapabilities;
 
-  it('reads six NFL, four NCAAF and two Politics Events for Kalshi', () => {
+  it('reads six NFL, five NCAAF and two Politics Events for Kalshi', () => {
     expect(planHomeFeedReads(KALSHI_HOME, capabilities, false)).toEqual([
       { feedKey: 'nfl-games', feedId: 'nfl-feed' as PredictFeedId, limit: 6 },
       {
         feedKey: 'college-football-games',
         feedId: 'ncaa-feed' as PredictFeedId,
-        limit: 4,
+        limit: 5,
       },
       {
         feedKey: 'politics-trump',
@@ -482,9 +525,24 @@ describe('planHomeFeedReads', () => {
     ];
 
     expect(planHomeFeedReads(sections, capabilities, false)).toEqual([
-      { feedKey: 'nfl-games', feedId: 'nfl-feed', limit: 4 },
-      { feedKey: 'college-football-games', feedId: 'ncaa-feed', limit: 4 },
+      { feedKey: 'nfl-games', feedId: 'nfl-feed', limit: 5 },
+      { feedKey: 'college-football-games', feedId: 'ncaa-feed', limit: 5 },
     ]);
+  });
+
+  it("reads Trending's whole carousel from each source, two on a constrained device", () => {
+    const sections: PredictHomeSection[] = [
+      { kind: 'trending', sources: ['nfl-games'], limit: 8 },
+    ];
+
+    expect(
+      planHomeFeedReads(sections, capabilities, false).map(
+        ({ limit }) => limit,
+      ),
+    ).toEqual([8]);
+    expect(
+      planHomeFeedReads(sections, capabilities, true).map(({ limit }) => limit),
+    ).toEqual([2]);
   });
 
   it('reads nothing for Categories or while capabilities are not ready', () => {

@@ -560,7 +560,7 @@ describe('PredictHome', () => {
       return tabs;
     };
 
-    it('reads six NFL, four NCAAF and two Politics Events', async () => {
+    it('reads six NFL, five NCAAF and two Politics Events', async () => {
       renderPredictNext();
 
       await waitFor(() => {
@@ -574,7 +574,7 @@ describe('PredictHome', () => {
           'PredictMarketDataService:getFeed',
           'kalshi',
           NCAA_GAMES_FEED_ID,
-          { limit: 4 },
+          { limit: 5 },
         );
         expect(messengerCall).toHaveBeenCalledWith(
           'PredictMarketDataService:getFeed',
@@ -2201,7 +2201,7 @@ describe('PredictHome', () => {
         callsTo('PredictMarketDataService:getFeed').map(
           ([, venueId, feedId, params]) => [venueId, feedId, params],
         ),
-      ).toEqual([['kalshi', testFeedId, { limit: 4 }]]);
+      ).toEqual([['kalshi', testFeedId, { limit: 5 }]]);
     });
 
     describe('for a Venue other than Kalshi', () => {

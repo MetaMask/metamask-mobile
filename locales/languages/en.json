@@ -4008,6 +4008,7 @@
     },
     "home_feed": {
       "trending": "Trending",
+      "live_now": "Live now",
       "sports": "Sports",
       "games_error": "Games couldn’t be loaded.",
       "retry": "Retry",

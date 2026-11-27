@@ -22,7 +22,25 @@ const CARD_WIDTH = 340;
 const SKELETON_HEIGHT = 268;
 const CARD_GAP = 12;
 
+/** The English title the server serves for Live now. */
+const LIVE_NOW_TITLE = 'Live now';
+
+/**
+ * The carousel's header: "Trending" without a server title, the app's Live
+ * now copy for the English "Live now", and any other title as served.
+ */
+const getCarouselTitle = (title: string | undefined): string => {
+  if (title === undefined) {
+    return strings('predict_next.home_feed.trending');
+  }
+  return title === LIVE_NOW_TITLE
+    ? strings('predict_next.home_feed.live_now')
+    : title;
+};
+
 interface HomeTrendingSectionProps {
+  /** The section's title from the Venue catalog. */
+  title?: string;
   events: readonly PredictEvent[];
   isLoading: boolean;
   /** Opens the Trending screen. Without it the header is a plain title. */
@@ -47,14 +65,16 @@ const TrendingCardSkeleton = () => (
 );
 
 /**
- * Home's Trending row: a "Trending" header that opens the Trending screen
- * when there is one, then a snap carousel of featured Event cards with
- * pagination dots under it. The row spans the screen edge to edge, so the
- * first card starts 16pt in and the next one peeks; the header keeps its own
- * 16pt padding. Skeleton cards stand in while loading, and nothing renders
- * once loaded without an Event.
+ * Home's carousel under the Portfolio actions (Live now in Kalshi's layout):
+ * a header with the section's title that opens its screen when there is one,
+ * then a snap carousel of featured Event cards with pagination dots under
+ * it. The row spans the screen edge to edge, so the first card starts 16pt in
+ * and the next one peeks; the header keeps its own 16pt padding. Skeleton
+ * cards stand in while loading, and nothing renders once loaded without an
+ * Event.
  */
 export const HomeTrendingSection = ({
+  title,
   events,
   isLoading,
   onOpen,
@@ -103,7 +123,7 @@ export const HomeTrendingSection = ({
     >
       <SectionHeader
         testID={PredictHomeTestIds.HOME_TRENDING_HEADER}
-        title={strings('predict_next.home_feed.trending')}
+        title={getCarouselTitle(title)}
         twClassName="py-0"
         {...(onOpen
           ? {

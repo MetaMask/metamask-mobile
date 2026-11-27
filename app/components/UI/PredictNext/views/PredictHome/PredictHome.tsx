@@ -63,8 +63,13 @@ import {
   type HomeFeedReadPlan,
   type HomeSectionView,
 } from './internal/homeSections';
-import { HomeFeedReads, type HomeFeedRead } from './internal/HomeFeedReads';
+import {
+  HomeFeedReads,
+  type HomeFeedPoll,
+  type HomeFeedRead,
+} from './internal/HomeFeedReads';
 import { useHomeReadSize } from './internal/useHomeReadSize';
+import { useLiveNowPollInterval } from './internal/useLiveNowPollInterval';
 import { HomeGamesError } from './internal/HomeGamesError';
 import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { HomeSportsSection } from './internal/HomeSportsSection';
@@ -280,6 +285,7 @@ const PredictHomeView = ({
         return (
           <HomeTrendingSection
             key={section.key}
+            title={section.title}
             events={section.events}
             isLoading={section.isLoading}
             onOpen={openableScreen(section.screen)}
@@ -525,12 +531,23 @@ export const PredictHome = () => {
     () => planHomeFeedReads(sections, capabilities, isConstrained ?? false),
     [sections, capabilities, isConstrained],
   );
+  // Trending reads its sources again while Home is focused, so finished
+  // Games leave Live now and new ones join.
+  const isFocused = useIsFocused();
+  const pollIntervalMs = useLiveNowPollInterval(isFocused);
+  const poll = useMemo<HomeFeedPoll | undefined>(() => {
+    const trending = sections.find((section) => section.kind === 'trending');
+    return trending?.kind === 'trending' && pollIntervalMs !== undefined
+      ? { feedKeys: trending.sources, intervalMs: pollIntervalMs }
+      : undefined;
+  }, [sections, pollIntervalMs]);
 
   return (
     <HomeFeedReads
       venueId={venueId}
       plan={plan}
       isHeld={isConstrained === undefined}
+      poll={poll}
     >
       {(reads) => (
         <PredictHomeView

@@ -31,12 +31,20 @@ export interface HomeFeedRead {
   refetch: () => void;
 }
 
+/** The Feeds Home reads again on a period, and the period. */
+export interface HomeFeedPoll {
+  feedKeys: readonly PredictFeedKey[];
+  intervalMs: number;
+}
+
 interface HomeFeedReadsProps {
   venueId: PredictVenueId;
   /** The Feeds to read, in order; at most {@link HOME_FEED_READ_DEPTH}. */
   plan: readonly HomeFeedReadPlan[];
   /** Holds every read, shown as loading, until the plan's sizes are final. */
   isHeld?: boolean;
+  /** Reads these Feeds again every `intervalMs`; without it nothing polls. */
+  poll?: HomeFeedPoll;
   /** Receives one read per plan entry, in slot order (see
    * {@link assignHomeReadSlots}); consumers find a read by its Feed key. */
   children: (reads: readonly HomeFeedRead[]) => ReactElement;
@@ -62,6 +70,7 @@ const HomeFeedReadStep = ({
   venueId,
   slots,
   isHeld = false,
+  poll,
   index,
   reads,
   render,
@@ -72,8 +81,13 @@ const HomeFeedReadStep = ({
     () => (limit === undefined ? NO_PARAMS : { limit }),
     [limit],
   );
+  const refetchInterval =
+    planned && poll?.feedKeys.includes(planned.feedKey)
+      ? poll.intervalMs
+      : false;
   const query = useFeed(venueId, planned?.feedId, params, {
     enabled: !isHeld,
+    refetchInterval,
   });
   const { data, isError, refetch } = query;
   // A held read sends nothing; it shows as loading only while it has a Feed
@@ -112,6 +126,7 @@ const HomeFeedReadStep = ({
       venueId={venueId}
       slots={slots}
       isHeld={isHeld}
+      poll={poll}
       index={index + 1}
       reads={nextReads}
       render={render}
@@ -131,6 +146,7 @@ export const HomeFeedReads = ({
   venueId,
   plan,
   isHeld,
+  poll,
   children,
 }: HomeFeedReadsProps) => {
   // Each Feed keeps its step while the plan changes, so a layout the server
@@ -149,6 +165,7 @@ export const HomeFeedReads = ({
       venueId={venueId}
       slots={nextSlots}
       isHeld={isHeld}
+      poll={poll}
       index={0}
       reads={NO_READS}
       render={children}
