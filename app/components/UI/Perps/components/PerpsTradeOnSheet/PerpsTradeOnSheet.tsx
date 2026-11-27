@@ -97,16 +97,16 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
       >
         {strings('perps.trade_on.title')}
       </BottomSheetHeaderGlass>
-      <Box accessible={false} twClassName="px-4 pb-3">
+      <Box accessible={false} className="px-4 pb-3">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('perps.trade_on.subtitle')}
         </Text>
         <Box
-          twClassName="mt-4 gap-2"
+          className="mt-4 gap-2"
           accessibilityRole="radiogroup"
           accessibilityLabel={strings('perps.trade_on.title')}
         >
@@ -153,8 +153,8 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
                   isDecorative
                   testID={`${rowTestID}-logo`}
                 />
-                <Box twClassName="flex-1">
-                  <Box twClassName="flex-row items-center gap-2">
+                <Box className="flex-1">
+                  <Box className="flex-row items-center gap-2">
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
@@ -192,7 +192,7 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
         </Box>
       </Box>
       <BottomSheetFooter
-        twClassName="pt-2"
+        className="pt-2"
         primaryButtonProps={{
           children: strings('perps.selection_sheet.save'),
           onPress: handleSave,
