@@ -26,6 +26,15 @@ on:
       changed_cv_test_files:
         description: 'Space-separated list of changed component view test file paths (*.view.test.tsx) only — never the full changed-file list. The component-view-flakiness-detection job uses this to re-run modified CV tests N times for flakiness detection on PRs targeting main.'
         value: ${{ jobs.detect-changes.outputs.changed_cv_test_files }}
+      jest_related_only:
+        description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that delete or rename no file, change no Jest or Babel config or Babel script, dependency manifest, lockfile, patch, Jest setup file, mock, or component-view or integration test helper (see jest_full_run_triggers in filter-rules.yml) and whose changed file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
+        value: ${{ jobs.detect-changes.outputs.jest_related_only }}
+      jest_related_args:
+        description: 'Ready-made Jest arguments for related-tests runs: --passWithNoTests --findRelatedTests followed by the space-separated changed files, which are validated to be safe for a command line. Empty unless jest_related_only is true.'
+        value: ${{ jobs.detect-changes.outputs.jest_related_args }}
+      jest_coverage_args:
+        description: 'Space-separated --collectCoverageFrom arguments that scope Jest coverage to the changed app source files. Only set on pull requests. Empty means collect coverage from the whole app (the default jest config). When a pull request changes no app source files the arguments point at a path that does not exist, so shards report empty coverage. Falls back to empty when the changed file list is too large or has paths that are unsafe to pass on a command line.'
+        value: ${{ jobs.detect-changes.outputs.jest_coverage_args }}
       block_merge_for_e2e_readiness:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
@@ -61,6 +70,9 @@ jobs:
       ios_e2e_needed: ${{ steps.set-e2e-outputs.outputs.ios_final }}
       changed_spec_files: ${{ steps.set-e2e-outputs.outputs.changed_spec_files }}
       changed_cv_test_files: ${{ steps.cv-test-files.outputs.changed_cv_test_files }}
+      jest_related_only: ${{ steps.jest-scope.outputs.jest_related_only || 'false' }}
+      jest_related_args: ${{ steps.jest-scope.outputs.jest_related_args }}
+      jest_coverage_args: ${{ steps.coverage-scope.outputs.jest_coverage_args }}
       block_merge_for_e2e_readiness: ${{ steps.set-e2e-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-e2e-outputs.outputs.run_smart_e2e_selection }}
       run_smart_e2e_contracts: ${{ steps.filter.outputs.smart_e2e_contracts }}
@@ -171,6 +183,76 @@ jobs:
           filters: .github/rules/filter-rules.yml
           list-files: shell
 
+      # Related-tests mode is only for plain pull requests (see filter-rules.yml
+      # for what forces the full suite). The file list goes into the command line
+      # of every Jest shard, so it is capped and validated here.
+      # Put [full-jest] in the head commit message to force the full suite.
+      - name: Resolve Jest test scope
+        id: jest-scope
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          JEST_FULL_RUN_TRIGGERS_COUNT: ${{ steps.filter.outputs.jest_full_run_triggers_count }}
+          JEST_REMOVED_FILES_COUNT: ${{ steps.filter.outputs.jest_removed_files_count }}
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          ALL_CHANGES_LIST: ${{ steps.filter.outputs.all_changes_count <= 300 && steps.filter.outputs.all_changes_files || '' }}
+        run: |
+          set -f
+          # Past 300 changed files the related set is close to the whole suite
+          # anyway, so the full suite is the simpler fallback.
+          MAX_FILES=300
+          related=false
+          reason=""
+          files=()
+
+          head_message=""
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            # A missing commit must fail the step, not read as "no [full-jest] tag".
+            if ! git rev-parse --verify --quiet "${HEAD_COMMIT_HASH}^{commit}" > /dev/null; then
+              echo "::error::Head commit ${HEAD_COMMIT_HASH} is not available in the checkout"
+              exit 1
+            fi
+            head_message="$(git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}")"
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
+            reason="${GITHUB_EVENT_NAME} runs always use the full suite"
+          elif [[ "$head_message" == *'[full-jest]'* ]]; then
+            reason="[full-jest] tag in the head commit message"
+          elif [[ "${JEST_FULL_RUN_TRIGGERS_COUNT:-0}" -gt 0 ]]; then
+            reason="${JEST_FULL_RUN_TRIGGERS_COUNT} changed file(s) can affect every test (Jest or Babel config, Babel scripts, dependency manifests, lockfile, patches, Jest setup, mocks, or component-view or integration test helpers)"
+          elif [[ "${JEST_REMOVED_FILES_COUNT:-0}" -gt 0 ]]; then
+            reason="${JEST_REMOVED_FILES_COUNT} deleted or renamed file(s); related runs cannot follow a missing path"
+          elif [[ "${ALL_CHANGES_COUNT:-0}" -eq 0 ]]; then
+            reason="no changed files"
+          elif [[ "${ALL_CHANGES_COUNT}" -gt "$MAX_FILES" ]]; then
+            reason="${ALL_CHANGES_COUNT} changed files (cap ${MAX_FILES})"
+          else
+            for file in $ALL_CHANGES_LIST; do
+              if [[ ! "$file" =~ ^[A-Za-z0-9_./@+-]+$ ]]; then
+                files=()
+                reason="unsafe path '${file}'"
+                break
+              fi
+              files+=("$file")
+            done
+            if [[ -z "$reason" ]]; then
+              related=true
+              reason="${#files[@]} changed file(s)"
+            fi
+          fi
+
+          echo "-> jest_related_only=${related} (${reason})"
+          echo "jest_related_only=${related}" >> "$GITHUB_OUTPUT"
+          if [[ "$related" == "true" ]]; then
+            echo "jest_related_args=--passWithNoTests --findRelatedTests ${files[*]}" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "### Jest test scope"
+            echo "- Mode: $([[ "$related" == "true" ]] && echo 'related tests only (jest --findRelatedTests)' || echo 'full sharded suite')"
+            echo "- Reason: ${reason}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Compute Jest skip flag
         id: set-jest-outputs
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
@@ -210,6 +292,50 @@ jobs:
             echo "$CV_TEST_FILES_LIST"
             echo "CV_TEST_FILES_EOF"
           } >> "$GITHUB_OUTPUT"
+
+      # Scope Jest coverage to the app files a PR changes. Too many files or an
+      # unsafe path falls back to whole-app coverage. Changed files without tests
+      # still show up (at 0%) because they are listed explicitly.
+      - name: Resolve Jest coverage scope
+        id: coverage-scope
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request'
+        env:
+          APP_SOURCE_FILES_COUNT: ${{ steps.filter.outputs.app_source_files_count }}
+          APP_SOURCE_FILES_LIST: ${{ steps.filter.outputs.app_source_files_count <= 400 && steps.filter.outputs.app_source_files_files || '' }}
+        run: |
+          set -f
+          # Command-line length guard only (one argument per file), so looser than
+          # the 300-file test cap.
+          MAX_FILES=400
+          if [ "${APP_SOURCE_FILES_COUNT:-0}" -gt "$MAX_FILES" ]; then
+            echo "-> ${APP_SOURCE_FILES_COUNT} app source files changed (cap ${MAX_FILES}); collecting whole-app coverage"
+            exit 0
+          fi
+
+          args=""
+          files=0
+          for file in $APP_SOURCE_FILES_LIST; do
+            case "$file" in
+              *.test.*|*.spec.*|*.stories.*) continue ;;
+              */__tests__/*|*/__mocks__/*|*/_mocks_/*|*/mocks/*|*.mock.*|*.mocks.*) continue ;;
+              */__fixtures__/*|*.fixture.*|*/testUtils/*|*.testUtils.*|*/util/test/*) continue ;;
+            esac
+            if [[ ! "$file" =~ ^app/[A-Za-z0-9_./@+-]+$ ]]; then
+              echo "-> Unsafe path '${file}'; collecting whole-app coverage"
+              exit 0
+            fi
+            [ -f "$file" ] || continue
+            args="${args} --collectCoverageFrom=${file}"
+            files=$((files + 1))
+          done
+
+          if [ "$files" -eq 0 ]; then
+            echo "-> No changed app source files; coverage is scoped to nothing"
+            args=" --collectCoverageFrom=app/__no-changed-app-source-files__.ts"
+          else
+            echo "-> Scoping coverage to ${files} changed app source files"
+          fi
+          echo "jest_coverage_args=${args# }" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js for E2E requirement computation
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'

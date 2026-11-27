@@ -92,6 +92,11 @@ e2e_spec_files:
 cv_test_files:
   - '**/*.view.test.{ts,tsx}'
 
+# App source files, used to scope Jest coverage to the files a PR touches.
+# Test and test-support files are dropped in get-requirements.yml.
+app_source_files:
+  - 'app/**/*.{js,ts,tsx,jsx}'
+
 # Smart E2E contract tests only run when the mode/action changes. The analyzer
 # pin lives in the action, so analyzer version bumps are included here too.
 smart_e2e_contracts:
@@ -136,6 +141,28 @@ android_or_ignorable:
 ios_or_ignorable:
   - 'ios/**'
   - *e2e_ignorable
+
+# JEST RELATED-TESTS TIER
+# A change to any of these runs the full suite instead of only the related
+# tests: config, manifests and lockfile affect every test, and setup files,
+# mocks and shared view or integration helpers are loaded without being
+# imported, so the import graph cannot link them to any test.
+jest_full_run_triggers:
+  - 'jest.config*.js'
+  - 'babel.config*.js'
+  - 'scripts/babel/**'
+  - 'package.json'
+  - 'yarn.lock'
+  - 'patches/**'
+  - 'app/util/test/**'
+  - '**/__mocks__/**'
+  - 'tests/component-view/**'
+  - 'tests/integration/**'
+
+# Jest cannot follow a deleted or renamed path, so the tests that imported it
+# would not be selected.
+jest_removed_files:
+  - deleted|renamed: '**'
 
 # JEST DOCS-ONLY DETECTION
 # Used to skip the unit, component-view and integration Jest jobs on pull

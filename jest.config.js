@@ -249,6 +249,7 @@ const config = {
       ]
     : undefined,
   coveragePathIgnorePatterns: [
+    '/node_modules/',
     '__mocks__/',
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
