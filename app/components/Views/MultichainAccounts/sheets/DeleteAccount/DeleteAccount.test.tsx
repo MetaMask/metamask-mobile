@@ -133,7 +133,7 @@ describe('DeleteAccount', () => {
       expect(mockRemoveAccount).toHaveBeenCalledWith(
         mockRoute.params.account.address,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
