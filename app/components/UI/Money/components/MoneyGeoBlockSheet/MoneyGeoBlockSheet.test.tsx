@@ -1,6 +1,7 @@
 import React from 'react';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyGeoBlockSheet from './MoneyGeoBlockSheet';
 import { MoneyGeoBlockSheetTestIds } from './MoneyGeoBlockSheet.testIds';
@@ -13,6 +14,24 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockNavigate = jest.fn();
 const mockParentGoBack = jest.fn();
 const mockGetParent = jest.fn(() => ({ goBack: mockParentGoBack }));
+
+const mockRefreshGeolocation = jest.fn();
+let mockEngineGeolocationState: { location: string; status: string } = {
+  location: UNKNOWN_LOCATION,
+  status: 'error',
+};
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    GeolocationController: {
+      refreshGeolocation: (...args: unknown[]) =>
+        mockRefreshGeolocation(...args),
+    },
+  },
+  get state() {
+    return { GeolocationController: mockEngineGeolocationState };
+  },
+}));
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -173,6 +192,223 @@ describe('MoneyGeoBlockSheet', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockParentGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  describe('geolocation lookup error retry', () => {
+    const lookupErrorState = {
+      engine: {
+        backgroundState: {
+          GeolocationController: {
+            location: UNKNOWN_LOCATION,
+            status: 'error' as const,
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      mockEngineGeolocationState = {
+        location: UNKNOWN_LOCATION,
+        status: 'error',
+      };
+      mockRefreshGeolocation.mockResolvedValue(UNKNOWN_LOCATION);
+    });
+
+    it('renders a try again button and a dismiss button in the lookup error state', () => {
+      const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: lookupErrorState,
+      });
+
+      expect(
+        getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON),
+      ).toHaveTextContent(strings('money.geo_block.retry_button'));
+      expect(
+        getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON),
+      ).toHaveTextContent(strings('money.geo_block.button'));
+    });
+
+    it('does not render a try again button for a resolved blocked region', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
+
+      expect(
+        queryByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('refreshes geolocation when try again is pressed', async () => {
+      const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: lookupErrorState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON));
+      });
+
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the Money modal flow when the retry resolves an eligible location', async () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        {
+          state: lookupErrorState,
+        },
+      );
+      mockRefreshGeolocation.mockImplementation(async () => {
+        mockEngineGeolocationState = { location: 'ES', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+        return 'ES';
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('stays open with geo-block copy when the retry resolves a blocked region', async () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        {
+          state: {
+            ...lookupErrorState,
+            engine: {
+              backgroundState: {
+                ...lookupErrorState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    moneyAccountGeoBlockedCountries: { blockedRegions: ['GB'] },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+      mockRefreshGeolocation.mockImplementation(async () => {
+        mockEngineGeolocationState = { location: 'GB', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+        return 'GB';
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON));
+      });
+
+      expect(mockParentGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+        strings('money.geo_block.title'),
+      );
+    });
+
+    it('stays open with the lookup error copy when the retry fails', async () => {
+      mockRefreshGeolocation.mockRejectedValue(new Error('network'));
+      const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: lookupErrorState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON));
+      });
+
+      expect(mockParentGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+        strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title'),
+      );
+      expect(
+        getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('background geolocation refresh', () => {
+    const lookupErrorState = {
+      engine: {
+        backgroundState: {
+          GeolocationController: {
+            location: UNKNOWN_LOCATION,
+            status: 'error' as const,
+          },
+        },
+      },
+    };
+
+    it('keeps the lookup error copy and try again button while a background lookup is loading', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        { state: lookupErrorState },
+      );
+
+      act(() => {
+        mockEngineGeolocationState = {
+          location: UNKNOWN_LOCATION,
+          status: 'loading',
+        };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+        strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title'),
+      );
+      expect(
+        getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the Money modal flow when a background lookup resolves an eligible location', async () => {
+      const { store } = renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: lookupErrorState,
+      });
+
+      act(() => {
+        mockEngineGeolocationState = { location: 'ES', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      await waitFor(() => {
+        expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(mockRefreshGeolocation).not.toHaveBeenCalled();
+    });
+
+    it('dismisses only once when the user closes the sheet and a lookup then resolves an eligible location', async () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        { state: lookupErrorState },
+      );
+
+      fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON));
+      act(() => {
+        mockEngineGeolocationState = { location: 'ES', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      await waitFor(() => {
+        expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-close when the sheet opened with an already eligible location', () => {
+      renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: {
+          engine: {
+            backgroundState: {
+              GeolocationController: {
+                location: 'US',
+                status: 'complete' as const,
+              },
+            },
+          },
+        },
+      });
+
+      expect(mockParentGoBack).not.toHaveBeenCalled();
+    });
   });
 
   describe('analytics', () => {

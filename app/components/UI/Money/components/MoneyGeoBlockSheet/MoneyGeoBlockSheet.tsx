@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import {
   BottomSheet,
@@ -25,16 +31,32 @@ import {
 } from '../../../../../selectors/geolocationController';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import Engine from '../../../../../core/Engine';
 
 const MoneyGeoBlockSheet = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
+  const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
+  const [isRetrying, setIsRetrying] = useState(false);
+  // Only auto-close on a transition from ineligible to eligible while open.
+  const wasGeoEligibleOnMountRef = useRef(isGeoEligible);
 
+  const isLocationUnresolved =
+    !geolocationLocation || geolocationLocation === UNKNOWN_LOCATION;
+
+  // A lookup can be started from this sheet or in the background (the
+  // connectivity-restore retry in the GeolocationController listener), so the
+  // in-flight state is derived from controller status as well as local state.
+  const isLookupInFlight = isRetrying || geolocationStatus === 'loading';
+
+  // Keep the lookup-error UI while any lookup is in flight with no location
+  // yet: otherwise the 'loading' status would flash the regional-restriction
+  // copy before the result is known.
   const isGeolocationLookupError =
-    geolocationStatus === 'error' &&
-    (!geolocationLocation || geolocationLocation === UNKNOWN_LOCATION);
+    isLocationUnresolved && (geolocationStatus === 'error' || isLookupInFlight);
 
   const title = isGeolocationLookupError
     ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')
@@ -52,7 +74,16 @@ const MoneyGeoBlockSheet = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
+  // Several paths can close the sheet (Got it, header close, swipe, and the
+  // auto-close when a lookup resolves an eligible location). Only the first
+  // one may run, otherwise `goBack()` would pop an extra screen.
+  const isClosingRef = useRef(false);
+
   const handleClose = useCallback(() => {
+    if (isClosingRef.current) {
+      return;
+    }
+    isClosingRef.current = true;
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       const parentNavigation = navigation.getParent();
       if (!parentNavigation) {
@@ -69,14 +100,62 @@ const MoneyGeoBlockSheet = () => {
     });
   }, [navigation]);
 
+  /**
+   * The lookup error state is shown when geolocation could not be resolved
+   * (e.g. the app started offline). Retrying lets the user recover without
+   * restarting the app; a resolved location still goes through the normal
+   * geo-eligibility check, so blocked regions stay blocked.
+   */
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await Engine.context.GeolocationController.refreshGeolocation();
+    } catch {
+      // Errors are surfaced via controller state; the sheet stays open.
+    } finally {
+      setIsRetrying(false);
+    }
+  }, []);
+
+  // Once any lookup (from this sheet or in the background) resolves an
+  // eligible location, let the user continue.
+  useEffect(() => {
+    if (!wasGeoEligibleOnMountRef.current && isGeoEligible) {
+      handleClose();
+    }
+  }, [isGeoEligible, handleClose]);
+
   const primaryButtonProps = useMemo(
-    () => ({
-      children: strings('money.geo_block.button'),
-      onPress: handleClose,
-      testID: MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON,
-      size: ButtonSize.Lg,
-    }),
-    [handleClose],
+    () =>
+      isGeolocationLookupError
+        ? {
+            children: strings('money.geo_block.retry_button'),
+            onPress: handleRetry,
+            isLoading: isLookupInFlight,
+            isDisabled: isLookupInFlight,
+            testID: MoneyGeoBlockSheetTestIds.RETRY_BUTTON,
+            size: ButtonSize.Lg,
+          }
+        : {
+            children: strings('money.geo_block.button'),
+            onPress: handleClose,
+            testID: MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON,
+            size: ButtonSize.Lg,
+          },
+    [isGeolocationLookupError, handleRetry, handleClose, isLookupInFlight],
+  );
+
+  const secondaryButtonProps = useMemo(
+    () =>
+      isGeolocationLookupError
+        ? {
+            children: strings('money.geo_block.button'),
+            onPress: handleClose,
+            testID: MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON,
+            size: ButtonSize.Lg,
+          }
+        : undefined,
+    [isGeolocationLookupError, handleClose],
   );
 
   return (
@@ -108,6 +187,7 @@ const MoneyGeoBlockSheet = () => {
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
+        secondaryButtonProps={secondaryButtonProps}
         twClassName="pt-6"
       />
     </BottomSheet>

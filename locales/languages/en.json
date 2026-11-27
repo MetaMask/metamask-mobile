@@ -10504,7 +10504,8 @@
     "geo_block": {
       "title": "Money account unavailable",
       "description": "Money account isn't available in your location due to local restrictions or sanctions.",
-      "button": "Got it"
+      "button": "Got it",
+      "retry_button": "Try again"
     },
     "deeplink_modal": {
       "button": "Got it",
