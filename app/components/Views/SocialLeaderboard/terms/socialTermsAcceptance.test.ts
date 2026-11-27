@@ -134,7 +134,9 @@ describe('socialTermsAcceptance', () => {
       const navigate = jest.fn();
 
       expect(ensureSocialTermsAccepted(navigate, GATE)).toBe(false);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: GATE.trigger,
+      });
     });
 
     it('opens profile onboarding through runNavigation when one is given', () => {
@@ -147,7 +149,9 @@ describe('socialTermsAcceptance', () => {
       ).toBe(false);
       expect(navigate).not.toHaveBeenCalled();
       runNavigation.mock.calls[0][0]();
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        trigger: GATE.trigger,
+      });
     });
 
     it('passes the gated trigger to onboarding as a route param', () => {
@@ -203,6 +207,7 @@ describe('socialTermsAcceptance', () => {
 
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
         termsOnly: true,
+        trigger: GATE.trigger,
       });
       expect(mockSetItem).not.toHaveBeenCalled();
     });

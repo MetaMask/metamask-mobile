@@ -1243,7 +1243,12 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.CREATE_PROFILE_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: 'my_profile_avatar',
+      },
+    );
   });
 
   it('omits the Insights header action', () => {

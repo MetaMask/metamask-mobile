@@ -42,7 +42,12 @@ describe('useRequireSocialProfileOnboarding', () => {
     const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(false);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: GATE.trigger,
+      },
+    );
   });
 
   it('returns false and navigates to onboarding when the linked wallet is blank', () => {
@@ -52,7 +57,12 @@ describe('useRequireSocialProfileOnboarding', () => {
     const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(false);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: GATE.trigger,
+      },
+    );
   });
 
   it('hands the onboarding navigation to runNavigation when one is given', () => {
@@ -67,7 +77,12 @@ describe('useRequireSocialProfileOnboarding', () => {
     expect(canContinue).toBe(false);
     expect(mockNavigate).not.toHaveBeenCalled();
     runNavigation.mock.calls[0][0]();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE_ONBOARDING,
+      {
+        trigger: GATE.trigger,
+      },
+    );
   });
 
   it('returns true without navigation when a linked wallet exists', () => {
