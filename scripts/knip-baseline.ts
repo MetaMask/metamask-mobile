@@ -184,6 +184,47 @@ export function diffFindings(actual: string[], baseline: string[]): ReportDiff {
 }
 
 /**
+ * The action `check()` takes after diffing the current report against the
+ * baseline: `pass` logs success, `fail` prints the findings and exits
+ * non-zero.
+ */
+export type CheckDecision = 'pass' | 'fail';
+
+/**
+ * The action `update()` takes after diffing the current report against the
+ * baseline: `write` rewrites knip-baseline.json, `refuse` exits non-zero
+ * without writing.
+ */
+export type UpdateDecision = 'write' | 'refuse';
+
+/**
+ * Decides the outcome of `knip:check`. The check passes only when the current
+ * report matches the baseline in both directions: new findings fail it, and
+ * so do baselined findings that are no longer reported, because the baseline
+ * must be shrunk to stay meaningful.
+ *
+ * @param diff - The diff between the current report and the baseline.
+ * @returns `pass` when there is nothing new and nothing stale, `fail` otherwise.
+ */
+export function decideCheck({ added, removed }: ReportDiff): CheckDecision {
+  return added.length === 0 && removed.length === 0 ? 'pass' : 'fail';
+}
+
+/**
+ * Decides the outcome of `knip:update`. The baseline is rewritten on shrink
+ * and on an unchanged report, but growth is refused unless explicitly allowed
+ * with `--allow-grow`, so a routine update cannot silently whitelist new dead
+ * code.
+ *
+ * @param diff - The diff between the current report and the baseline.
+ * @param allowGrow - Whether growing the baseline is allowed.
+ * @returns `write` when the baseline may be rewritten, `refuse` otherwise.
+ */
+export function decideUpdate({ added }: ReportDiff, allowGrow: boolean): UpdateDecision {
+  return added.length > 0 && !allowGrow ? 'refuse' : 'write';
+}
+
+/**
  * Formats one normalized entry for terminal output, e.g.
  * `files|app/foo.ts` → `app/foo.ts` and
  * `unlisted|app/foo.ts|pkg` → `pkg (in app/foo.ts)`. The `package.json` file
@@ -316,7 +357,7 @@ function check(repoRoot: string): void {
   const baseline = readBaseline(path.join(repoRoot, BASELINE_FILE));
   const { added, removed } = diffFindings(actual, baseline);
 
-  if (added.length === 0 && removed.length === 0) {
+  if (decideCheck({ added, removed }) === 'pass') {
     console.log(
       `knip:check passed — ${actual.length} known finding${actual.length === 1 ? '' : 's'} match the baseline.`,
     );
@@ -362,7 +403,7 @@ function update(repoRoot: string, allowGrow: boolean): void {
   const baseline = readBaseline(baselinePath);
   const { added, removed } = diffFindings(actual, baseline);
 
-  if (added.length > 0 && !allowGrow) {
+  if (decideUpdate({ added, removed }, allowGrow) === 'refuse') {
     console.error(
       `\nRefusing to grow ${BASELINE_FILE} with ${added.length} new finding${added.length === 1 ? '' : 's'}:`,
     );
