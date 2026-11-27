@@ -38,6 +38,7 @@ import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
   getPackPartnerDataServiceMessenger,
   getCollectiblesApiDataServiceMessenger,
+  getCollectiblesSocialApiDataServiceMessenger,
 } from './collectibles-data-services-messenger';
 import { getCollectiblesControllerMessenger } from './collectibles-controller-messenger';
 import {
@@ -313,6 +314,10 @@ export const MESSENGER_FACTORIES = {
   },
   CollectiblesApiDataService: {
     getMessenger: getCollectiblesApiDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesSocialApiDataService: {
+    getMessenger: getCollectiblesSocialApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   CollectiblesController: {

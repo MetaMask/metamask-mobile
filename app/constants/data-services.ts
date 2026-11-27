@@ -3,6 +3,7 @@ export const DATA_SERVICES: string[] = [
   'SocialService',
   'PackPartnerDataService',
   'CollectiblesApiDataService',
+  'CollectiblesSocialApiDataService',
   'SubscriptionService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',
