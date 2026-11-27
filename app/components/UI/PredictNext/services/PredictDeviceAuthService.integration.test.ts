@@ -3,7 +3,10 @@ import { sha256 } from '@noble/hashes/sha2';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
 import { buildPredictDeviceAuthIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import { loadVenueProfile } from '../auth/venueSigningProfiles';
+import {
+  loadVenueProfile,
+  setVenueProfileResolverForTesting,
+} from '../auth/venueSigningProfiles';
 import { deviceSigningBase } from '../auth/signing/deviceRequestSigner';
 import { createP256DeviceKey } from '../auth/p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
@@ -85,6 +88,7 @@ describe('PredictDeviceAuthService integration', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     process.env.MM_PREDICT_A2T_URL = originalIssuerUrl;
+    setVenueProfileResolverForTesting(undefined);
     jest.restoreAllMocks();
   });
 
@@ -176,7 +180,7 @@ describe('PredictDeviceAuthService integration', () => {
     };
     const profile = await loadVenueProfile();
     if (!profile) {
-      throw new Error('bundled signing profile unavailable');
+      throw new Error('Signing profile fixture unavailable');
     }
 
     const signed = await harness.messenger.call(

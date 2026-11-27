@@ -5,6 +5,8 @@ import { RootState } from '../../../../reducers';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
 import { selectPerpsBalances } from '../selectors/perpsController';
 import { usePerpsLiveAccount } from './stream';
+import { getBaselineVenueIds } from '../utils/getBaselineVenueIds';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Hook for getting aggregated Perps balance using hybrid approach:
@@ -18,13 +20,13 @@ export function usePerpsPortfolioBalance() {
   );
 
   // Get live account data via WebSocket (for current balances)
-  const { account } = usePerpsLiveAccount();
+  const { account, aggregate } = usePerpsLiveAccount();
 
   // Get Redux balances (for historical data)
   const perpsBalances = useSelector(selectPerpsBalances);
 
   // Calculate current balances from live account data and historical from Redux
-  const { totalBalance, totalUnrealizedPnl, totalBalance1dAgo } =
+  const { totalBalance, totalUnrealizedPnl, totalBalance1dAgo, isPartial } =
     useMemo(() => {
       const conversionRate = usdConversionRate || 1;
 
@@ -44,17 +46,19 @@ export function usePerpsPortfolioBalance() {
           .toNumber();
       }
 
-      // Historical balance from Redux (for 24h percentage calculations),
-      // aggregated across all providers. A provider without a 1d-ago
-      // observation makes the total unavailable: a partial sum or a zero
-      // would misstate the baseline.
-      let historical1dAgoBalance: number | undefined = 0;
+      // Match the historical baseline to the venues represented in the live
+      // total. Missing or non-finite observations make the baseline unavailable,
+      // rather than counting an incomplete history as zero.
+      const venueIds = getBaselineVenueIds(
+        account,
+        PROVIDER_CONFIG.DefaultProvider,
+      );
+      let historical1dAgoBalance: number | undefined =
+        venueIds.length > 0 ? 0 : undefined;
 
-      for (const providerBalance of Object.values(perpsBalances)) {
-        if (!providerBalance || typeof providerBalance !== 'object') {
-          continue;
-        }
-        const { accountValue1dAgo } = providerBalance;
+      for (const providerId of venueIds) {
+        const providerBalance = perpsBalances[providerId];
+        const accountValue1dAgo = providerBalance?.accountValue1dAgo;
         const balance1dAgoUsd =
           accountValue1dAgo === undefined
             ? undefined
@@ -63,17 +67,19 @@ export function usePerpsPortfolioBalance() {
           historical1dAgoBalance = undefined;
           break;
         }
-        historical1dAgoBalance += balance1dAgoUsd
-          .multipliedBy(conversionRate)
-          .toNumber();
+        historical1dAgoBalance =
+          (historical1dAgoBalance ?? 0) +
+          balance1dAgoUsd.multipliedBy(conversionRate).toNumber();
       }
 
       return {
         totalBalance: currentTotalBalance,
         totalUnrealizedPnl: currentUnrealizedPnl,
         totalBalance1dAgo: historical1dAgoBalance,
+        /** True when the combined total is a subtotal over available venues. */
+        isPartial: aggregate?.status === 'partial',
       };
-    }, [account, perpsBalances, usdConversionRate]);
+    }, [account, aggregate, perpsBalances, usdConversionRate]);
 
   return {
     // Current total account value in display currency (cash + positions)
@@ -85,6 +91,9 @@ export function usePerpsPortfolioBalance() {
     unrealizedPnl: totalUnrealizedPnl,
     // Whether we have any perps data
     hasPerpsData: !!account,
+    // True when one or more enabled venues failed to report, so the total is
+    // a subtotal rather than the user's complete portfolio value
+    isPartial,
     // Raw balances per provider
     perpsBalances,
   };

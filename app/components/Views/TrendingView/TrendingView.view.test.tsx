@@ -45,28 +45,25 @@ const assertTrendingTokenRowsVisibility = async (opts: {
   queryByTestId: RenderAPI['queryByTestId'];
 }) => {
   const { visible, missing, queryByTestId } = opts;
-  await waitFor(
-    async () => {
-      visible.forEach((result) => {
-        const item = queryByTestId(result.id);
-        expect(item).toBeOnTheScreen();
-        if (result.name) {
-          expect(item).toHaveTextContent(result.name, {
-            exact: false,
-          });
-        }
-        if (result.pricePercentageChange) {
-          expect(item).toHaveTextContent(result.pricePercentageChange, {
-            exact: false,
-          });
-        }
-      });
-      missing?.forEach((result) => {
-        expect(queryByTestId(result.id)).not.toBeOnTheScreen();
-      });
-    },
-    { timeout: 5000 },
-  );
+  await waitFor(async () => {
+    visible.forEach((result) => {
+      const item = queryByTestId(result.id);
+      expect(item).toBeOnTheScreen();
+      if (result.name) {
+        expect(item).toHaveTextContent(result.name, {
+          exact: false,
+        });
+      }
+      if (result.pricePercentageChange) {
+        expect(item).toHaveTextContent(result.pricePercentageChange, {
+          exact: false,
+        });
+      }
+    });
+    missing?.forEach((result) => {
+      expect(queryByTestId(result.id)).not.toBeOnTheScreen();
+    });
+  });
 };
 
 /**
@@ -157,9 +154,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     // Trending tokens are in the Crypto tab
     await navigateToCryptoTab(getByTestId);
 
-    await waitFor(async () => {
-      expect(await findByText('Ethereum')).toBeOnTheScreen();
-    });
+    expect(await findByText('Ethereum')).toBeOnTheScreen();
 
     await assertTrendingTokenRowsVisibility({
       queryByTestId,
@@ -245,7 +240,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
       ).toBeOnTheScreen();
-      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
+      expect(getByTestId('section-header-view-all-tokens')).toBeOnTheScreen();
       expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
     });
 

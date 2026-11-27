@@ -29,12 +29,17 @@ import type { PredictErrorPhase } from '../../errors/commitOutcome';
 import type {
   FetchOrderPreviewParams,
   PredictDepositOperation,
+  PredictOrderPreview,
+  PredictOrderPreviewParams,
   PredictOrderReview,
   PredictVenueId,
   PredictWithdrawReceipt,
 } from '../../types';
-import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
-import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
+import type {
+  SignOperationInput,
+  VenueOperationPreview,
+  VenueProfilePin,
+} from '../../auth/signing/signOperationTypes';
 import {
   kalshiOrderSigningInput,
   loadFeeCeilingCentsPerContract,
@@ -55,6 +60,7 @@ import {
   type PredictApiReadTransport,
   PredictHttpError,
 } from './PredictApiReadClient';
+import { VenueProfilePreviewExpiredError } from './signedVenueCall';
 
 /** Canonical codes win over HTTP status, including authorization 403s. */
 const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
@@ -205,6 +211,11 @@ const mapError = (
   if (isAbortError(error) || error instanceof PredictError) {
     throw error;
   }
+  if (error instanceof VenueProfilePreviewExpiredError) {
+    throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
+      metadata: { phase, requestSent: true, outcome: 'not_placed' },
+    });
+  }
 
   if (error instanceof TypeError) {
     throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
@@ -255,7 +266,7 @@ export interface KalshiOrderSigningDependencies {
   previewOperation?: (
     intent: 'order.place',
     input: SignOperationInput,
-  ) => Promise<InvariantDisplay | undefined>;
+  ) => Promise<VenueOperationPreview | undefined>;
 }
 
 const UUID =
@@ -279,7 +290,14 @@ interface PinnedOrderPreview {
   approvalGeneration: number | undefined;
   signing: KalshiOrderSigningInput | undefined;
   snapshot: string;
+  /** Retained only while a missing profile prevents local buy sizing. */
+  pendingSigning?: {
+    params: PredictOrderPreviewParams;
+    preview: PredictOrderPreview;
+  };
   review?: PredictOrderReview;
+  /** The profile snapshot the review's figures came from. */
+  profile?: VenueProfilePin;
 }
 
 const MAX_PINNED_PREVIEWS = 32;
@@ -309,9 +327,6 @@ export class KalshiRemoteAdapter {
       ) {
         this.#previews.delete(previewId);
         throw unsentCommitError(PredictErrorCode.UNAUTHENTICATED);
-      }
-      if (!pinned.signing) {
-        throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
       }
       return pinned;
     };
@@ -389,6 +404,11 @@ export class KalshiRemoteAdapter {
               this.#previews.delete(id);
             }
           }
+          const signingInput = kalshiOrderSigningInput(
+            params,
+            result,
+            feeCeilingCentsPerContract,
+          );
           const snapshot = JSON.stringify({ params, preview: result });
           const existing = this.#previews.get(result.previewId);
           if (
@@ -407,11 +427,10 @@ export class KalshiRemoteAdapter {
             this.#previews.set(result.previewId, {
               expiresAt: Date.parse(result.expiresAt),
               approvalGeneration,
-              signing: kalshiOrderSigningInput(
-                params,
-                result,
-                feeCeilingCentsPerContract,
-              ),
+              signing: signingInput,
+              ...(!signingInput
+                ? { pendingSigning: { params, preview: { ...result } } }
+                : {}),
               snapshot,
             });
           }
@@ -426,19 +445,37 @@ export class KalshiRemoteAdapter {
       },
       reviewOrder: async (previewId) => {
         const pinned = currentPreview(previewId);
-        const display = await signing?.previewOperation?.('order.place', {
+        if (!pinned.signing && pinned.pendingSigning) {
+          const { params, preview: quote } = pinned.pendingSigning;
+          const feeCeiling =
+            params.action === 'buy'
+              ? await loadFeeCeilingCentsPerContract()
+              : undefined;
+          if (currentPreview(previewId) !== pinned) {
+            throw unsentCommitError(PredictErrorCode.PREVIEW_EXPIRED);
+          }
+          pinned.signing = kalshiOrderSigningInput(params, quote, feeCeiling);
+          if (pinned.signing) {
+            delete pinned.pendingSigning;
+          }
+        }
+        if (!pinned.signing) {
+          throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
+        }
+        const preview = await signing?.previewOperation?.('order.place', {
           ...pinned.signing,
           approvalGeneration: pinned.approvalGeneration,
         });
-        if (currentPreview(previewId) !== pinned || !display) {
+        if (currentPreview(previewId) !== pinned || !preview) {
           throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED);
         }
+        pinned.profile = preview.profile;
         pinned.review = {
           previewId,
-          maxCost: display.maxCost,
-          contracts: display.contracts,
-          payout: display.payout,
-          proceedsIfFullyFilled: display.minProceeds,
+          maxCost: preview.display.maxCost,
+          contracts: preview.display.contracts,
+          payout: preview.display.payout,
+          proceedsIfFullyFilled: preview.display.minProceeds,
         };
         return { ...pinned.review };
       },
@@ -446,6 +483,9 @@ export class KalshiRemoteAdapter {
       commitOrder: async (previewId, approval, options) => {
         try {
           const pinned = currentPreview(previewId);
+          if (!pinned.signing) {
+            throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
+          }
           if (approval.kind !== 'user-approved' || !pinned.review) {
             throw unsentCommitError(PredictErrorCode.VENUE_SIGNING_REFUSED);
           }
@@ -456,6 +496,7 @@ export class KalshiRemoteAdapter {
             {
               ...pinned.signing,
               approvalGeneration: pinned.approvalGeneration,
+              ...(pinned.profile ? { profile: pinned.profile } : {}),
               confirmed: true,
             },
           );

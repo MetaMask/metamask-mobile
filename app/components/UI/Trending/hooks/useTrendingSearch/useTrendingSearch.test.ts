@@ -1,6 +1,6 @@
 import { useTrendingSearch } from './useTrendingSearch';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
@@ -112,6 +112,45 @@ describe('useTrendingSearch', () => {
       undefined,
     );
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('refreshes trending data when the query is empty', async () => {
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ enableDebounce: false }),
+    );
+
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes search data when a query is active', async () => {
+    const search = jest.fn().mockResolvedValue(undefined);
+    mockUseSearchRequest.mockReturnValue({
+      results: mockSearchResults,
+      isLoading: false,
+      error: null,
+      search,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: 1,
+    });
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({
+        searchQuery: 'USDC',
+        enableDebounce: false,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    expect(search).toHaveBeenCalledTimes(1);
+    expect(mockFetchTrendingTokens).not.toHaveBeenCalled();
   });
 
   it('passes custom sortTrendingTokensOptions to sortTrendingTokens', async () => {

@@ -168,6 +168,19 @@ describe('useCardTransactions', () => {
     expect(mockListTransactions).toHaveBeenCalledTimes(1);
   });
 
+  it('does not fetch when enabled is false', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => useCardTransactions({ enabled: false }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.items).toEqual([]);
+    expect(mockListTransactions).not.toHaveBeenCalled();
+  });
+
   it('passes fromDate and toDate through to the controller', async () => {
     const { Wrapper } = createWrapper();
 

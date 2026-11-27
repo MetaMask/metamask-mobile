@@ -6,6 +6,8 @@ import Logger from '../../util/Logger';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
+import { selectIsSocialV1Enabled } from '../../selectors/featureFlagController/socialV1';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   resetFollowingSyncForTests,
   syncFollowingState,
@@ -79,12 +81,16 @@ const selectorState = {
   followingProfileIds: [] as string[],
   isUnlocked: true,
   selectedAddress: DEFAULT_SELECTED_ADDRESS as string | undefined,
+  isSocialV1Enabled: false,
 };
 
 const mockFollowToggleSelectors = (): void => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectFollowingProfileIds) {
       return selectorState.followingProfileIds;
+    }
+    if (selector === selectIsSocialV1Enabled) {
+      return selectorState.isSocialV1Enabled;
     }
     if (selector === selectIsUnlocked) {
       return selectorState.isUnlocked;
@@ -104,6 +110,7 @@ describe('useFollowToggle', () => {
     selectorState.followingProfileIds = [];
     selectorState.isUnlocked = true;
     selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    selectorState.isSocialV1Enabled = false;
     mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
@@ -327,6 +334,40 @@ describe('useFollowToggle', () => {
       );
     });
 
+    it('fires Social Trader Followed on the Social V1 treatment only', async () => {
+      selectorState.isSocialV1Enabled = true;
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_FOLLOWED,
+        { source: 'trader_profile' },
+      );
+    });
+
+    it('does not fire the Social milestone outside the Social V1 treatment', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_FOLLOWED,
+        expect.anything(),
+      );
+    });
+
     it('sets trader_has_profile_picture_set to false when avatar is a known placeholder', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -436,6 +477,7 @@ describe('useFollowToggleMany', () => {
     selectorState.followingProfileIds = [];
     selectorState.isUnlocked = true;
     selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    selectorState.isSocialV1Enabled = false;
     mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],

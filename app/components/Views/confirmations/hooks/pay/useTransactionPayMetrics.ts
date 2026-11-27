@@ -90,7 +90,16 @@ export function useTransactionPayMetrics() {
   const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
     ? CRYPTO_PAY_SECTION_ID
     : source.selected;
-  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
+  const storedRecipientSwitchCount =
+    typeof storedMetrics?.properties
+      ?.mm_pay_recipient_mm_account_switch_count === 'number'
+      ? storedMetrics.properties.mm_pay_recipient_mm_account_switch_count
+      : 0;
+  const recipient = usePaySectionRecipientMetrics(
+    recipientSource,
+    hasPayToken,
+    storedRecipientSwitchCount,
+  );
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;

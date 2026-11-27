@@ -24,7 +24,7 @@ interface MembershipBannerProps {
   testID?: string;
   model: MembershipBannerModel;
   onAction: (action: MembershipAlertAction) => void;
-  /** True while a pending cancellation is being uncancelled. */
+  /** True while a membership alert action is in progress. */
   isActionBusy?: boolean;
   /** Shown under the alert when resume fails. */
   actionErrorMessage?: string | null;
@@ -91,8 +91,8 @@ const MembershipBanner = ({
           actionButtonOnPress={() => onAction(membershipAlert.action)}
           actionButtonProps={{
             testID: ProHubTestIds.MEMBERSHIP_ALERT_ACTION(model.statusKind),
-            isDisabled: isResumeBusy,
-            isLoading: isResumeBusy,
+            isDisabled: isActionBusy,
+            isLoading: isActionBusy,
             loadingText: isResumeBusy
               ? strings('pro_hub.membership.resume_in_progress')
               : undefined,

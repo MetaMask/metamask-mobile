@@ -42,7 +42,6 @@ import { useTheme } from '../../../../util/theme';
 import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
-import { SOCIAL_LIVE_FEED_MAX_PAGES } from '../data/socialFeedQueries';
 import { SOCIAL_FEED_REVEAL_BATCH_SIZE } from '../data/socialFeedRealtime';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
@@ -93,13 +92,6 @@ const LIST_DRAW_DISTANCE = {
 } as const;
 
 const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
-
-/**
- * A bounded feed drops and refetches rows above the reader, so it keeps the
- * reader's row in place once off the top. At the top, new posts still push
- * the list down with their slide-in.
- */
-const KEEP_VISIBLE_CONTENT_POSITION = {} as const;
 
 const FeedCellSlideDurationContext = createContext(FEED_ITEM_ENTRY_DURATION_MS);
 
@@ -271,7 +263,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  requireSocialProfile,
   testID,
   scrollTestID,
 }) => {
@@ -327,24 +318,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [isPerformanceEnabled, performanceTab],
   );
 
-  // Only the global Live feed is bounded: other scopes stay short enough.
-  const maxPages =
-    scope === 'all' && profileId === undefined
-      ? SOCIAL_LIVE_FEED_MAX_PAGES
-      : undefined;
   const {
     posts,
     isLoading,
     isFetchingNextPage,
     loadMore,
-    hasPreviousPage = false,
-    loadPrevious,
     error,
     refresh,
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
-    maxPages,
     enabled: isFocused && !isOffline && enabled,
     realtime,
     paused,
@@ -541,8 +524,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           return (
             <SocialFeedRow
               post={item.post}
-              requireSocialTerms
-              requireSocialProfile={requireSocialProfile}
               dividerTestID={dividerTestID}
               entrances={entrances}
               scheduleEntryDelay={scheduleEntryDelay}
@@ -578,7 +559,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       onAuthorPress,
       onCopyTrade,
       handlePositionPress,
-      requireSocialProfile,
       scheduleEntryDelay,
       state,
       viewerProfileId,
@@ -653,11 +633,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               contentContainerStyle={listContentStyle}
               showsVerticalScrollIndicator={false}
               drawDistance={drawDistance}
-              maintainVisibleContentPosition={
-                maxPages !== undefined && (hasPreviousPage || !nearTop)
-                  ? KEEP_VISIBLE_CONTENT_POSITION
-                  : MAINTAIN_VISIBLE_CONTENT_POSITION
-              }
+              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
               onScroll={scrollHandler}
               scrollEventThrottle={16}
               onMomentumScrollEnd={handleScrollSettled}
@@ -667,10 +643,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               extraData={gifVisibleIds}
               onViewableItemsChanged={onGifViewableItemsChanged}
               viewabilityConfig={GIF_VIEWABILITY_CONFIG}
-              onStartReached={
-                enabled && hasPreviousPage ? loadPrevious : undefined
-              }
-              onStartReachedThreshold={0.5}
               refreshControl={
                 <RefreshControl
                   colors={[colors.primary.default]}

@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PROFILE_ONBOARDING_RIVE_ASSETS } from '../../../../Views/SocialLeaderboard/ProfileOnboarding/profileOnboardingRive';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import Logger from '../../../../../util/Logger';
+import { TokenDetailsIds } from '../../testIds';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import { toComposerPosition } from '../../TraderPositionPnl/composerPosition';
 import { useOpenPositionHeader } from '../../TraderPositionPnl/useOpenPositionHeader';
@@ -32,7 +33,6 @@ import { useOpenPositionHeader } from '../../TraderPositionPnl/useOpenPositionHe
 const MEGAPHONE_ARTBOARD = 'Megaphone / Pixel waves';
 const ILLUSTRATION_SIZE = 96;
 
-const FEED_EMPTY_TEST_ID = 'token-details-feed-empty';
 const CREATE_POST_TEST_ID = 'token-details-feed-empty-create-post';
 const MEGAPHONE_TEST_ID = 'token-details-feed-empty-megaphone';
 const MEGAPHONE_FALLBACK_TEST_ID =
@@ -43,21 +43,22 @@ export interface TokenDetailsFeedEmptyStateProps {
   hasBalance: boolean;
   /** Token on screen. Used to attach that holding when the post composer opens. */
   token?: TokenDetailsRouteParams;
+  animate?: boolean;
 }
 
 /**
  * Megaphone from the Social onboarding Rive file. The static PNG is the
  * Reduce Motion and error fallback, and what shows until the file loads.
  */
-const FeedEmptyMegaphone: React.FC = () => {
+const FeedEmptyMegaphone: React.FC<{ animate: boolean }> = ({ animate }) => {
   const prefersReducedMotion = useReducedMotion();
+  const motionEnabled = animate && !prefersReducedMotion;
   const [hasRiveError, setHasRiveError] = useState(false);
   const { riveFile, error: riveFileError } = useRiveFile(
-    prefersReducedMotion ? undefined : SocialOnboardingAnimation,
+    motionEnabled ? SocialOnboardingAnimation : undefined,
     { referencedAssets: PROFILE_ONBOARDING_RIVE_ASSETS },
   );
-  const showFallback =
-    Boolean(prefersReducedMotion) || hasRiveError || Boolean(riveFileError);
+  const showFallback = !motionEnabled || hasRiveError || Boolean(riveFileError);
 
   const handleError = useCallback((riveError: RiveError) => {
     Logger.error(
@@ -161,13 +162,14 @@ const CreatePostButton: React.FC = () => {
 const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
   hasBalance,
   token,
+  animate = true,
 }) => (
   <Box
     alignItems={BoxAlignItems.Center}
     twClassName="w-full px-8 py-12"
-    testID={FEED_EMPTY_TEST_ID}
+    testID={TokenDetailsIds.feed.empty}
   >
-    <FeedEmptyMegaphone />
+    <FeedEmptyMegaphone animate={animate} />
     <Text
       variant={TextVariant.HeadingLg}
       color={TextColor.TextDefault}

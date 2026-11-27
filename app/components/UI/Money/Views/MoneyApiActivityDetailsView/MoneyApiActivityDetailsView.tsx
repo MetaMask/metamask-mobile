@@ -80,6 +80,7 @@ import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
+import { MoneyApiActivityDetailsViewTestIds } from './MoneyApiActivityDetailsView.testIds';
 
 /** Hero asset for Money Activity card details — always the Money Account token. */
 const MONEY_ACCOUNT_HERO_TOKEN = {
@@ -107,7 +108,7 @@ type ActivityDetailsRoute = RouteProp<
   'params'
 >;
 
-export function MoneyApiActivityDetailsView() {
+export function MoneyApiActivityDetailsView(): React.JSX.Element | null {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useRoute<ActivityDetailsRoute>().params;
   const routeActivity = params?.activity;
@@ -242,7 +243,7 @@ function BankTransferActivitySteps({
   readonly convertedSeverity?: BankTransferStepSeverity;
   readonly moneyDepositSeverity?: BankTransferStepSeverity;
   readonly failed?: boolean;
-}) {
+}): React.JSX.Element {
   const subtitle = formatStepSubtitle(timestamp);
   const severities = failed
     ? [bankTransferSeverity]
@@ -292,7 +293,7 @@ function BankTransferActivitySteps({
   );
 }
 
-function PaidByMetaMaskValue() {
+function PaidByMetaMaskValue(): React.JSX.Element {
   return (
     <Text color={TextColor.SuccessDefault}>
       {strings('money.api_activity_details.paid_by_metamask')}
@@ -384,7 +385,7 @@ function MoneyCardDetailsContent({
   amountColor,
   explorerChainId,
   explorerTxHash,
-}: MoneyCardDetailsContentProps) {
+}: MoneyCardDetailsContentProps): React.JSX.Element {
   const handleBack = useGoBack();
   const onViewOnExplorer = useOpenTxOnExplorer(explorerChainId, explorerTxHash);
 
@@ -414,7 +415,7 @@ function MoneyCardDetailsContent({
       transactionId={transactionId}
       networkFeeLabel={networkFeeLabel}
       heroToken={MONEY_ACCOUNT_HERO_TOKEN}
-      heroIconTestID="money-account-hero-icon"
+      heroIconTestID={MoneyApiActivityDetailsViewTestIds.ASSET_ICON}
       onBack={handleBack}
       onViewOnExplorer={onViewOnExplorer}
     />
@@ -427,7 +428,7 @@ interface MoneyDeclinedCardDetailsContentProps {
 
 function MoneyDeclinedCardDetailsContent({
   transaction,
-}: MoneyDeclinedCardDetailsContentProps) {
+}: MoneyDeclinedCardDetailsContentProps): React.JSX.Element {
   const display = useMemo(
     () => cardTransactionDisplayInfo(transaction),
     [transaction],
@@ -464,7 +465,7 @@ interface MoneySettledCardDetailsContentProps {
 function MoneySettledCardDetailsContent({
   activity,
   enrichment,
-}: MoneySettledCardDetailsContentProps) {
+}: MoneySettledCardDetailsContentProps): React.JSX.Element {
   const display = useMemo(
     () => accountsApiActivityDisplayInfo(activity, enrichment),
     [activity, enrichment],
@@ -519,7 +520,7 @@ interface MoneyApiActivityDetailsContentProps {
 
 function MoneyApiActivityDetailsContent({
   activity,
-}: MoneyApiActivityDetailsContentProps) {
+}: MoneyApiActivityDetailsContentProps): React.JSX.Element {
   const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const { networkName, networkImage } = useNetworkInfo(activity.chainId);
@@ -547,13 +548,18 @@ function MoneyApiActivityDetailsContent({
   const formattedUsdAmount = moneyFormatUsd(usdAmount);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box
+      twClassName="flex-1 bg-background-default"
+      testID={MoneyApiActivityDetailsViewTestIds.CONTAINER}
+    >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         title={display.label}
         onBack={handleBack}
-        backButtonProps={{ testID: 'card-transaction-details-back-button' }}
+        backButtonProps={{
+          testID: MoneyApiActivityDetailsViewTestIds.BACK_BUTTON,
+        }}
         includesTopInset
       />
       <ScrollView>
@@ -568,7 +574,7 @@ function MoneyApiActivityDetailsContent({
               <Image
                 source={MoneyIcon}
                 style={tw.style('w-8 h-8 rounded-full')}
-                testID="money-account-hero-icon"
+                testID={MoneyApiActivityDetailsViewTestIds.ASSET_ICON}
               />
               <Text
                 variant={TextVariant.DisplayMd}
@@ -665,7 +671,7 @@ function MoneyApiActivityDetailsContent({
               isFullWidth
               onPress={handleViewOnExplorer}
               startIconName={IconName.ArrowSquareOut}
-              testID="card-transaction-details-explorer-button"
+              testID={MoneyApiActivityDetailsViewTestIds.EXPLORER_BUTTON}
             >
               {strings('transaction_details.view_on_block_explorer')}
             </Button>
@@ -682,7 +688,7 @@ interface NeobankBankTransferDetailsContentProps {
 
 function NeobankBankTransferDetailsContent({
   activity,
-}: NeobankBankTransferDetailsContentProps) {
+}: NeobankBankTransferDetailsContentProps): React.JSX.Element {
   const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const handleBack = useGoBack();
@@ -733,13 +739,18 @@ function NeobankBankTransferDetailsContent({
   }, [activity.destinationAmount, failed]);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box
+      twClassName="flex-1 bg-background-default"
+      testID={MoneyApiActivityDetailsViewTestIds.CONTAINER}
+    >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         title={display.label}
         onBack={handleBack}
-        backButtonProps={{ testID: 'card-transaction-details-back-button' }}
+        backButtonProps={{
+          testID: MoneyApiActivityDetailsViewTestIds.BACK_BUTTON,
+        }}
         includesTopInset
       />
       <ScrollView>
@@ -754,7 +765,7 @@ function NeobankBankTransferDetailsContent({
               <Image
                 source={MoneyIcon}
                 style={tw.style('w-8 h-8 rounded-full')}
-                testID="money-account-hero-icon"
+                testID={MoneyApiActivityDetailsViewTestIds.ASSET_ICON}
               />
               {failed ? (
                 <Text

@@ -10,21 +10,30 @@ export interface SectionTrackingResult {
 export function useSectionTracking(
   currentSection: PayWithSectionId,
   isActive: boolean,
+  switchKey: string = currentSection,
+  initialSwitchCount = 0,
 ): SectionTrackingResult {
   const presentedRef = useRef<PayWithSectionId | undefined>(undefined);
   if (!presentedRef.current && isActive) {
     presentedRef.current = currentSection;
   }
 
-  const previousRef = useRef<PayWithSectionId | undefined>(undefined);
-  const switchCountRef = useRef(0);
+  const previousRef = useRef<string | undefined>(undefined);
+  const switchCountRef = useRef(initialSwitchCount);
+
+  if (
+    previousRef.current === undefined &&
+    initialSwitchCount > switchCountRef.current
+  ) {
+    switchCountRef.current = initialSwitchCount;
+  }
 
   if (isActive) {
     if (previousRef.current === undefined) {
-      previousRef.current = currentSection;
-    } else if (previousRef.current !== currentSection) {
+      previousRef.current = switchKey;
+    } else if (previousRef.current !== switchKey) {
       switchCountRef.current += 1;
-      previousRef.current = currentSection;
+      previousRef.current = switchKey;
     }
   }
 

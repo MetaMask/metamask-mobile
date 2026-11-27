@@ -3,6 +3,7 @@ import type {
   BlockedProfilesResponse,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
+import { FEED_CAIP2_CHAINS } from '../../../../app/components/UI/SocialFeed/data/feed-constants';
 import { MockEventsObject } from '../../../framework';
 
 /**
@@ -55,6 +56,20 @@ const EMPTY_TRADER_PROFILE: TraderProfileResponse = {
 /** PositionsResponse shape (`positions` array). */
 const EMPTY_POSITIONS = { positions: [] };
 
+/** Empty response for the wallet/asset open-position PnL endpoint. */
+const EMPTY_OPEN_POSITION_PNL = {
+  positionAmount: 0,
+  isOpen: false,
+  boughtUsd: 0,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 0,
+  currentValueUSD: null,
+  pnlValueUsd: null,
+  pnlPercent: null,
+  pnlStatus: 'in-progress',
+};
+
 /**
  * The viewer has blocked nothing. Fetched on unlock by every leaderboard and
  * social feed, which hide what the viewer blocked.
@@ -65,8 +80,25 @@ const NO_BLOCKED_PROFILES: BlockedProfilesResponse = {
 };
 const NO_BLOCKED_CONTENT: BlockedContentResponse = { items: [], cursor: null };
 
+/**
+ * Chains social-api serves (`GET /v1/supportedNetworks`, CAIP-2). Mirrors the
+ * built-in `FEED_CAIP2_CHAINS` fallback so the open-position gate behaves the
+ * same as when the request fails.
+ */
+const SUPPORTED_NETWORKS = {
+  fullSupport: [...FEED_CAIP2_CHAINS],
+  partialSupport: [],
+};
+
 export const SOCIAL_API_MOCKS: MockEventsObject = {
   GET: [
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v1\\/supportedNetworks(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: SUPPORTED_NETWORKS,
+    },
     {
       urlEndpoint: new RegExp(
         `^${SOCIAL_HOST}\\/api\\/v1\\/leaderboard(?:\\?.*)?$`,
@@ -104,6 +136,13 @@ export const SOCIAL_API_MOCKS: MockEventsObject = {
       ),
       responseCode: 200,
       response: EMPTY_POSITIONS,
+    },
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v2\\/traders\\/[^/]+\\/(?!positions(?:\\/|$))[^/]+\\/open(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: EMPTY_OPEN_POSITION_PNL,
     },
     {
       urlEndpoint: new RegExp(

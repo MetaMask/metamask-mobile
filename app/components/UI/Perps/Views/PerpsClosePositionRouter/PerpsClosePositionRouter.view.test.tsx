@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../../../../../core/Engine';
@@ -30,8 +31,6 @@ import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
 } from '../../Perps.testIds';
-
-const TIMEOUT_MS = 5000;
 
 const GRANT_FEE_QUOTE = {
   feeRate: 0.0007,
@@ -127,8 +126,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -142,8 +139,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -157,8 +152,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
 
@@ -171,30 +164,43 @@ describe('PerpsClosePositionRouter', () => {
     });
   });
 
-  it('shows cross margin without its P&L in the close bottom sheet', async () => {
-    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
-    renderWithVariant(ScreenVsBottomSheetVariant.Treatment, {
-      position: createLongPositionForViews({
-        unrealizedPnl: '150',
-        leverage: { value: 3, type: 'cross' },
-      }),
-      price: '2650',
-      crossMarginFlag: true,
-    });
+  it.each<{ mode: 'isolated' | 'cross'; pnlLabel: string }>([
+    {
+      mode: 'isolated',
+      pnlLabel: strings('perps.close_position.included_pnl'),
+    },
+    // Cross margin never holds the P&L, so the row does not say it is included.
+    { mode: 'cross', pnlLabel: strings('perps.close_position.pnl') },
+  ])(
+    'shows $mode margin without a Margin row in the close bottom sheet',
+    async ({ mode, pnlLabel }) => {
+      calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+      renderWithVariant(ScreenVsBottomSheetVariant.Treatment, {
+        position: createLongPositionForViews({
+          unrealizedPnl: '150',
+          leverage: { value: 3, type: mode },
+        }),
+        price: '2650',
+        crossMarginFlag: true,
+      });
 
-    expect(
-      await screen.findByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
-    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
-    expect(
-      screen.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
-      ),
-    ).toHaveTextContent('$833.33');
-  });
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW,
+        ),
+      ).toHaveTextContent(new RegExp(`^${escapeRegExp(pnlLabel)}`));
+    },
+  );
 
   it('hides the margin row in the close bottom sheet without the cross margin flag', async () => {
     renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
@@ -202,8 +208,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -267,11 +271,7 @@ describe('PerpsClosePositionRouter', () => {
       });
 
     const findPnlRow = () =>
-      screen.findByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      screen.findByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL);
 
     /** Switches the sheet to limit mode and applies the mid (live) preset. */
     const selectLimitAtMidPrice = async () => {
@@ -496,8 +496,6 @@ describe('PerpsClosePositionRouter', () => {
       renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
       const confirmButton = await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       fireEvent.press(confirmButton);
@@ -518,8 +516,6 @@ describe('PerpsClosePositionRouter', () => {
       renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
       const confirmButton = await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       await waitFor(() => {
         expect(confirmButton).not.toBeDisabled();

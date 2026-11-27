@@ -61,12 +61,16 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
-import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import {
-  SnapAmountValidationResult,
-  validateTronTransferAmount,
-} from '../../../../../../core/Multichain/tron';
+  sendMultichainTransactionForReview,
+  validateAmountMultichain,
+  type SnapAmountValidationResult,
+} from '../../../../../Views/confirmations/utils/multichain-snaps';
 
+import {
+  getFeeShortfallMessageKey,
+  usesSnapAmountValidation,
+} from '../../hooks/useSnapAmountValidation';
 import { RAMPS_SEND } from '../../constants';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
@@ -77,8 +81,9 @@ interface SendTransactionParams {
 
 // A missing result means the Snap threw or returned nothing. We fail closed
 // with a retryable message instead of opening the Snap confirmation.
-function getTronValidationErrorMessage(
+function getSnapValidationErrorMessage(
   result: SnapAmountValidationResult | undefined,
+  assetChainId: string,
 ): string {
   if (!result) {
     return strings(
@@ -90,9 +95,7 @@ function getTronValidationErrorMessage(
     return strings('send.insufficient_funds');
   }
   if (errorCode === 'InsufficientBalanceToCoverFee') {
-    return strings(
-      'fiat_on_ramp_aggregator.send_transaction.insufficient_tron_resources',
-    );
+    return strings(getFeeShortfallMessageKey(assetChainId));
   }
   return strings('send.invalid_value');
 }
@@ -130,7 +133,7 @@ function SendTransaction() {
     [assetChainId],
   );
   const isStellar = assetChainId?.startsWith('stellar:') ?? false;
-  const isTron = assetChainId?.startsWith('tron:') ?? false;
+  const usesSnapValidation = usesSnapAmountValidation(assetChainId);
 
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
@@ -185,10 +188,11 @@ function SendTransaction() {
     );
   }, [trackEvent, transactionAnalyticsPayload]);
 
-  // Tron resource and fee requirements depend on the destination and the
-  // transaction being built, so validate against the provider deposit address.
+  // Tron resource and fee requirements (and Stellar reserves) depend on the
+  // destination and the transaction being built, so validate against the
+  // provider deposit address.
   // Returns true only when the Snap explicitly reports the transfer as valid.
-  const validateTronTransfer = useCallback(async (): Promise<boolean> => {
+  const validateSnapTransfer = useCallback(async (): Promise<boolean> => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
     const assetReference = orderData?.cryptoCurrency?.assetId;
     if (!orderData || !fromAccount || !chainId || !assetReference) {
@@ -197,12 +201,12 @@ function SendTransaction() {
 
     let result: SnapAmountValidationResult | undefined;
     try {
-      result = await validateTronTransferAmount(fromAccount, {
+      result = (await validateAmountMultichain(fromAccount, {
         accountId: fromAccount.id,
         assetId: `${chainId}/${assetReference}` as CaipAssetType,
         value: String(orderData.cryptoAmount ?? '0'),
         toAddress: orderData.depositWallet,
-      });
+      })) as SnapAmountValidationResult | undefined;
     } catch {
       result = undefined;
     }
@@ -211,7 +215,7 @@ function SendTransaction() {
       setValidationError(undefined);
       return true;
     }
-    const errorMessage = getTronValidationErrorMessage(result);
+    const errorMessage = getSnapValidationErrorMessage(result, chainId);
     setValidationError(errorMessage);
     // Announce on every failed attempt, including a retry that returns the
     // same message, so screen reader users know the check ran again.
@@ -224,11 +228,11 @@ function SendTransaction() {
   const handleRetryValidation = useCallback(async () => {
     setIsValidating(true);
     try {
-      await validateTronTransfer();
+      await validateSnapTransfer();
     } finally {
       setIsValidating(false);
     }
-  }, [validateTronTransfer]);
+  }, [validateSnapTransfer]);
 
   const handleSend = useCallback(async () => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
@@ -259,7 +263,7 @@ function SendTransaction() {
         const assetId = `${chainId}/${assetReference}` as CaipAssetType;
         const amount = String(orderData.cryptoAmount ?? '0');
 
-        if (isTron && !(await validateTronTransfer())) {
+        if (usesSnapValidation && !(await validateSnapTransfer())) {
           trackEvent(
             'OFFRAMP_SEND_TRANSACTION_REJECTED',
             //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
@@ -418,9 +422,9 @@ function SendTransaction() {
     transactionAnalyticsPayload,
     networkClientId,
     isNonEvm,
-    isTron,
+    usesSnapValidation,
     fromAccount,
-    validateTronTransfer,
+    validateSnapTransfer,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
@@ -594,7 +598,7 @@ function SendTransaction() {
               </Text>
             </Row>
           ) : null}
-          {validationError && isTron ? (
+          {validationError && usesSnapValidation ? (
             <Row>
               <Button
                 variant={ButtonVariants.Secondary}

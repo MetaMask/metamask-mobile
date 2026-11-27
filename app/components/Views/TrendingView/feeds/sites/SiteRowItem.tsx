@@ -11,12 +11,9 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 const openSiteInBrowser = (navigation: AppNavigationProp, site: SiteData) => {
   navigation.navigate(Routes.BROWSER.HOME, {
-    screen: Routes.BROWSER.VIEW,
-    params: {
-      newTabUrl: site.url,
-      timestamp: Date.now(),
-      fromTrending: true,
-    },
+    newTabUrl: site.url,
+    timestamp: Date.now(),
+    fromTrending: true,
   });
 };
 

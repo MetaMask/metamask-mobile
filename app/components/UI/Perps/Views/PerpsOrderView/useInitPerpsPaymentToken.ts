@@ -16,7 +16,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
   const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const selectedPaymentToken = usePerpsPayWithToken();
   const defaultPayTokenWhenNoPerpsBalance =
-    useDefaultPayWithTokenWhenNoPerpsBalance();
+    useDefaultPayWithTokenWhenNoPerpsBalance(initialAsset);
   // Paying from the Money Account owns the pay token (mUSD on Monad). Letting
   // the allowlist default run would overwrite it and silently switch the
   // funding source back to the EOA.

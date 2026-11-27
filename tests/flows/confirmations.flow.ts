@@ -12,7 +12,7 @@ import TestDApp from '../page-objects/Browser/TestDApp';
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 import SmartAccount from '../page-objects/MultichainAccounts/SmartAccount';
-import SendView from '../page-objects/Send/RedesignedSendView';
+import SendView from '../page-objects/Send/SendView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import NetworkManager from '../page-objects/wallet/NetworkManager';
 import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
@@ -334,9 +334,9 @@ export const selectCustomNetworkFromNetworkManager = async (
 };
 
 /**
- * Starts a redesigned Send of native ETH amount "5" through the review screen.
+ * Starts a Send of native ETH amount "5" through the review screen.
  */
-export const startRedesignedNativeSendFiveEthToReview = async (
+export const startNativeSendFiveEthToReview = async (
   recipientAddress: string,
 ): Promise<void> => {
   await WalletView.tapWalletSendButton();

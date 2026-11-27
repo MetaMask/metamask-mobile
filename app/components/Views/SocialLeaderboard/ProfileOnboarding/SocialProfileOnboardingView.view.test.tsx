@@ -369,8 +369,7 @@ const renderOnboarding = async (
     },
     // The intro actions stay disabled until the existing-profile lookup query
     // (session read, then ProfileController fetch) settles and the screen
-    // re-renders, which can exceed the 1s default on a loaded CV shard.
-    { timeout: 5000 },
+    // re-renders; the framework's 5s default covers that wait.
   );
   return result;
 };
@@ -387,6 +386,49 @@ const openManualUsernameStep = async () => {
       SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
     ),
   ).toBeOnTheScreen();
+};
+
+/**
+ * Triggers an edit that schedules the 400ms debounced availability check and
+ * awaits the resulting `ProfileController.checkUsernameAvailability` call
+ * inside `act`, avoiding RNTL `waitFor` wall-clock timeout races on slow shards.
+ */
+const awaitDebouncedUsernameCheck = async (
+  trigger: () => void,
+): Promise<void> => {
+  const availabilitySpy = jest.mocked(
+    Engine.context.ProfileController.checkUsernameAvailability,
+  );
+  const previousImpl = availabilitySpy.getMockImplementation();
+  let markSettled!: () => void;
+  const settled = new Promise<void>((resolve) => {
+    markSettled = resolve;
+  });
+
+  availabilitySpy.mockClear();
+  availabilitySpy.mockImplementationOnce(async (...args) => {
+    try {
+      return previousImpl
+        ? await previousImpl(...args)
+        : {
+            username: args[0],
+            available: true,
+            valid: true,
+            normalized: args[0],
+            errors: [],
+          };
+    } finally {
+      // Yield two microtasks after resolving so fetchUsernameAvailability and
+      // checkHandle both commit their state update before act flushes.
+      queueMicrotask(() => queueMicrotask(markSettled));
+    }
+  });
+
+  trigger();
+
+  await act(async () => {
+    await settled;
+  });
 };
 
 const submitDisplayName = (name: string) => {
@@ -1544,38 +1586,29 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('checks availability for a handle with a trailing underscore', async () => {
-    await renderOnboarding();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
+    await openManualUsernameStep();
     const usernameInput = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
-    fireEvent.changeText(usernameInput, 'hello_');
+
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+      expect(
+        screen.queryByText(
+          strings('social_leaderboard.profile_onboarding.username_invalid'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
 
     expect(
-      screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.profile_onboarding.username_available'),
+        { exact: true },
       ),
-    ).not.toBeOnTheScreen();
-    // Availability is debounced 400ms. Wait for the available status — the
-    // assertion subject — with a budget above that debounce.
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.ProfileController.checkUsernameAvailability,
-        ).toHaveBeenCalledWith('hello_');
-        expect(
-          screen.getByText(
-            strings('social_leaderboard.profile_onboarding.username_available'),
-            { exact: true },
-          ),
-        ).toBeOnTheScreen();
-      },
-      { timeout: 3000 },
-    );
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
@@ -1604,23 +1637,14 @@ describe('SocialProfileOnboardingView', () => {
       { min: 3 },
     );
 
-    // Clear call history so the wait below proves this edit scheduled a check.
-    jest
-      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
-      .mockClear();
-    fireEvent.changeText(usernameInput, 'hello_');
-    // Availability is debounced 400ms. Wait for the taken status — the
-    // assertion subject — via the Engine call and the unavailable copy.
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.ProfileController.checkUsernameAvailability,
-        ).toHaveBeenCalledWith('hello_');
-        expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
-      },
-      // Username availability is debounced 400ms before the taken result renders.
-      { timeout: 3000 },
-    );
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+    });
+
+    expect(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
 
     fireEvent.changeText(usernameInput, 'h');
     expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
@@ -1639,20 +1663,14 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.changeText(usernameInput, 'ab');
     expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
 
-    jest
-      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
-      .mockClear();
-    fireEvent.changeText(usernameInput, 'hello_');
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.ProfileController.checkUsernameAvailability,
-        ).toHaveBeenCalledWith('hello_');
-        expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
-      },
-      // Username availability is debounced 400ms before the taken result renders.
-      { timeout: 3000 },
-    );
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+    });
+
+    expect(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
     expect(screen.queryByText(tooShortCopy)).not.toBeOnTheScreen();
   });
 
