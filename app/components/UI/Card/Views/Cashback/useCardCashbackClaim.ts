@@ -9,6 +9,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/feat
 import { isMonadMainnetChainId } from '../../../../../util/networks';
 import { isHardwareAccount } from '../../../../../util/address';
 import {
+  claimFailureReason,
   evmAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
@@ -16,11 +17,14 @@ import {
 } from '../../../Rewards/utils/claimEarnings';
 import type { ClaimVoucherDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 
+/**
+ * `failed` carries the refusal category from `claimFailureReason`
+ * (`not_claimable`, `paused`, `below_minimum`, `nothing_to_claim`, `wait`,
+ * `retry`, `other`…), so the screen can say why.
+ */
 export type CardCashbackClaimResult =
-  | 'submitted'
-  | 'submitted_stale'
-  | 'failed'
-  | 'skipped';
+  | { status: 'submitted' | 'submitted_stale' | 'skipped' }
+  | { status: 'failed'; category: string };
 
 /**
  * Card cashback claim. Reuses the Rewards claim stack and only the
@@ -54,7 +58,7 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
       !submittable ||
       isClaimingRef.current
     ) {
-      return 'skipped';
+      return { status: 'skipped' };
     }
     isClaimingRef.current = true;
     setIsClaiming(true);
@@ -98,11 +102,17 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
         try {
           await onSubmitted?.();
         } catch {
-          return 'submitted_stale';
+          return { status: 'submitted_stale' };
         }
-        return 'submitted';
+        return { status: 'submitted' };
       }
-      return 'failed';
+      const reason = outcomes.find((outcome) => outcome.reason)?.reason;
+      return {
+        status: 'failed',
+        category: reason ? claimFailureReason(reason) : 'other',
+      };
+    } catch {
+      return { status: 'failed', category: 'retry' };
     } finally {
       isClaimingRef.current = false;
       setIsClaiming(false);

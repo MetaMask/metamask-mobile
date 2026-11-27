@@ -17,6 +17,8 @@ import {
   IconName,
   KeyValueRow,
   KeyValueRowVariant,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -33,7 +35,9 @@ import {
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import useRedeemableWallet, {
   type RedeemableWalletMode,
+  type RedeemableWalletState,
 } from '../../hooks/useRedeemableWallet';
+import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
@@ -67,7 +71,16 @@ interface RedeemWalletProps {
   mode: RedeemableWalletMode;
 }
 
-const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
+interface RedeemWalletViewProps extends RedeemWalletProps {
+  /** The balance and withdraw, from the provider's wallet or another source. */
+  source: RedeemableWalletState;
+}
+
+/** The redeem screen for any source of balance and withdraw. */
+export const RedeemWalletView: React.FC<RedeemWalletViewProps> = ({
+  mode,
+  source,
+}) => {
   const config = REDEEM_CONFIG[mode];
   const { testIds } = config;
   const navigation = useNavigation<AppNavigationProp>();
@@ -97,7 +110,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     monitoringStatus,
     monitoringError,
     resetWithdraw,
-  } = useRedeemableWallet(mode);
+    breakdown,
+    notice,
+    labels,
+    destination: sourceDestination,
+  } = source;
 
   const balance = capRedeemAmount(wallet?.balance ?? '0');
   const currency = formatCurrency(wallet?.currency ?? '');
@@ -107,10 +124,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const { roundedFeeNum, expectedToReceiveNumber, hasInsufficientBalance } =
     getRedeemWithdrawalAmounts(balance, feePrice);
 
-  const destination = useRedeemDestination({
+  const resolvedDestination = useRedeemDestination({
     currency: wallet?.currency,
     network: estimation?.network,
   });
+  const destination = sourceDestination ?? resolvedDestination;
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const receivingAddress = destination.receivingAddress;
@@ -248,7 +266,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     if (isSuccess) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalSuccess) }],
+        labelOptions: [
+          {
+            label: labels?.success ?? strings(config.strings.withdrawalSuccess),
+          },
+        ],
         iconName: ToastIconName.Confirmation,
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
@@ -261,7 +283,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     if (isFailed || submitFailed) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
+        labelOptions: [
+          {
+            label: labels?.failure ?? strings(config.strings.withdrawalFailed),
+          },
+        ],
         iconName: ToastIconName.Danger,
         iconColor: theme.colors.error.default,
         hasNoTimeout: false,
@@ -279,6 +305,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     theme,
     navigation,
     config,
+    labels,
     resetWithdraw,
   ]);
 
@@ -360,7 +387,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       isFundingStatusUnavailable ||
       !destination.isResolved
     ) {
-      return strings(config.strings.withdrawUnavailable);
+      return (
+        labels?.actionUnavailable ?? strings(config.strings.withdrawUnavailable)
+      );
+    }
+    if (labels?.action) {
+      return labels.action;
     }
     if (
       destination.isMoneyAccountDestination &&
@@ -377,6 +409,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     destination.isResolved,
     destination.isMoneyAccountDestination,
     config,
+    labels,
   ]);
 
   const fundingWarningMessageType = useMoneyAccountFlow
@@ -417,6 +450,19 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
             <CardMessageBox
               messageType={fundingWarningMessageType}
               onConfirm={handleSetupPress}
+            />
+          </Box>
+        ) : null}
+        {notice ? (
+          <Box twClassName="pt-4" testID={testIds.NOTICE}>
+            <BannerAlert
+              severity={
+                notice.severity === 'warning'
+                  ? BannerAlertSeverity.Warning
+                  : BannerAlertSeverity.Info
+              }
+              description={notice.description}
+              style={FLAT_BANNER_ALERT_STYLE}
             />
           </Box>
         ) : null}
@@ -462,6 +508,25 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
             testID={testIds.DETAILS_CARD}
           >
             <Box twClassName="gap-3">
+              {breakdown?.map((row) => (
+                <KeyValueRow
+                  key={row.key}
+                  variant={KeyValueRowVariant.Summary}
+                  twClassName="px-0 h-auto"
+                  keyLabel={row.label}
+                  value={
+                    isLoading ? (
+                      <Skeleton
+                        height={20}
+                        width={80}
+                        style={tw.style('rounded-md')}
+                      />
+                    ) : (
+                      row.value
+                    )
+                  }
+                />
+              ))}
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 twClassName="px-0 h-auto"
@@ -534,6 +599,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       </Box>
     </SafeAreaView>
   );
+};
+
+/** The provider's own wallet (Baanx credit refunds and mUSD back). */
+const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
+  const source = useRedeemableWallet(mode);
+  return <RedeemWalletView mode={mode} source={source} />;
 };
 
 export default RedeemWallet;

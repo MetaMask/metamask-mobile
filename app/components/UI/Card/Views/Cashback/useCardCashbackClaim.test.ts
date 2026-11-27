@@ -13,7 +13,10 @@ import {
   runEarningsClaim,
   submitClaimVoucher,
 } from '../../../Rewards/utils/claimEarnings';
-import { useCardCashbackClaim } from './useCardCashbackClaim';
+import {
+  useCardCashbackClaim,
+  type CardCashbackClaimResult,
+} from './useCardCashbackClaim';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -137,8 +140,12 @@ describe('useCardCashbackClaim', () => {
         }),
     );
     const { result } = renderHook(() => useCardCashbackClaim());
-    let first: Promise<string> = Promise.resolve('skipped');
-    let second: Promise<string> = Promise.resolve('skipped');
+    let first: Promise<CardCashbackClaimResult> = Promise.resolve({
+      status: 'skipped',
+    });
+    let second: Promise<CardCashbackClaimResult> = Promise.resolve({
+      status: 'skipped',
+    });
 
     act(() => {
       first = result.current.claim();
@@ -150,11 +157,11 @@ describe('useCardCashbackClaim', () => {
       resolveClaim([{ submitted: true }]);
       await Promise.all([first, second]);
     });
-    await expect(first).resolves.toBe('submitted');
-    await expect(second).resolves.toBe('skipped');
+    await expect(first).resolves.toEqual({ status: 'submitted' });
+    await expect(second).resolves.toEqual({ status: 'skipped' });
   });
 
-  it('reports a claim whose routes were not submitted', async () => {
+  it('reports why a claim whose routes were not submitted failed', async () => {
     givenAccount();
     jest.mocked(runEarningsClaim).mockResolvedValue([
       {
@@ -165,13 +172,13 @@ describe('useCardCashbackClaim', () => {
       },
     ]);
     const { result } = renderHook(() => useCardCashbackClaim());
-    let outcome = '';
+    let outcome: CardCashbackClaimResult | undefined;
 
     await act(async () => {
       outcome = await result.current.claim();
     });
 
-    expect(outcome).toBe('failed');
+    expect(outcome).toEqual({ status: 'failed', category: 'retry' });
   });
 
   it('holds the result when the refresh after a claim fails', async () => {
@@ -188,14 +195,14 @@ describe('useCardCashbackClaim', () => {
         throw new Error('reload failed');
       }),
     );
-    let outcome = '';
+    let outcome: CardCashbackClaimResult | undefined;
 
     await act(async () => {
       outcome = await result.current.claim();
     });
 
     expect(runEarningsClaim).toHaveBeenCalledTimes(1);
-    expect(outcome).toBe('submitted_stale');
+    expect(outcome).toEqual({ status: 'submitted_stale' });
   });
 
   it('does not offer a claim for an account that cannot sign', async () => {
@@ -208,7 +215,7 @@ describe('useCardCashbackClaim', () => {
     jest.mocked(getGasFeesSponsoredNetworkEnabled).mockReturnValue(() => true);
 
     const { result } = renderHook(() => useCardCashbackClaim());
-    let outcome = '';
+    let outcome: CardCashbackClaimResult | undefined;
 
     await act(async () => {
       outcome = await result.current.claim();
@@ -216,7 +223,7 @@ describe('useCardCashbackClaim', () => {
 
     expect(result.current.canClaim).toBe(false);
     expect(result.current.mpcAccount).toBe(true);
-    expect(outcome).toBe('skipped');
+    expect(outcome).toEqual({ status: 'skipped' });
     expect(runEarningsClaim).not.toHaveBeenCalled();
   });
 

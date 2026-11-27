@@ -57,7 +57,8 @@ export type ClaimBlockingReason =
   | 'EARNING_ADDRESS_MISSING'
   | 'MECHANISM_NOT_CLAIMABLE'
   | 'VOIDED'
-  | 'UNDER_REVIEW';
+  | 'UNDER_REVIEW'
+  | 'EARNING_ADDRESS_UNSCREENABLE';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
@@ -728,7 +729,8 @@ export interface CardSummaryResponse {
   pending: string;
   claimed: string;
   minimum_musd_base_units: string;
-  blocking_reason: string | null;
+  /** A value this build does not know is shown as a generic sentence. */
+  blocking_reason: ClaimBlockingReason | null;
   pairing_pending: boolean;
 }
 

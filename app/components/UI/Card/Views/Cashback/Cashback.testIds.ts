@@ -5,4 +5,5 @@ export const CashbackSelectors = {
   FUNDING_WARNING: 'cashback-funding-warning',
   TO_ROW: 'cashback-to-row',
   WITHDRAW_BUTTON: 'cashback-withdraw-button',
+  NOTICE: 'cashback-notice',
 };
