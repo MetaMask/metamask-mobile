@@ -5,10 +5,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import type {
   PredictAmount,
   PredictBuyOrderPreview,
+  PredictDecimal,
   PredictSellOrderPreview,
 } from '../../../types';
-import { OrderDetailsRows } from './OrderDetailsRows';
+import { formatOdds, OrderDetailsRows } from './OrderDetailsRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
+
+const price = (value: string) => value as PredictDecimal;
 
 const basePreview = {
   action: 'buy',
@@ -33,6 +36,33 @@ const textOf = (
   const node = view.queryByTestId(testID);
   return node ? [node.props.children].flat().join('') : undefined;
 };
+
+describe('formatOdds', () => {
+  it('formats whole-number odds without decimals', () => {
+    expect(formatOdds(price('0.53'))).toBe('53%');
+    expect(formatOdds(price('0.5'))).toBe('50%');
+    expect(formatOdds(price('1'))).toBe('100%');
+  });
+
+  it('keeps one decimal place for fractional odds', () => {
+    expect(formatOdds(price('0.4651'))).toBe('46.5%');
+    expect(formatOdds(price('0.525'))).toBe('52.5%');
+  });
+
+  it('rounds fractional odds to one decimal place', () => {
+    expect(formatOdds(price('0.5299'))).toBe('53%');
+  });
+
+  it('formats zero as 0%', () => {
+    expect(formatOdds(price('0'))).toBe('0%');
+  });
+
+  it('returns undefined when price is absent or non-numeric', () => {
+    expect(formatOdds(undefined)).toBeUndefined();
+    expect(formatOdds('' as PredictDecimal)).toBeUndefined();
+    expect(formatOdds('not-a-price' as PredictDecimal)).toBeUndefined();
+  });
+});
 
 describe('OrderDetailsRows', () => {
   it('renders Prediction order, MetaMask fee, Exchange fee, Total, and the partial-fill note', () => {

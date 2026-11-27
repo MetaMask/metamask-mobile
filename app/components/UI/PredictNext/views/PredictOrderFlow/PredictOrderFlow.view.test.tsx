@@ -560,27 +560,82 @@ describe('PredictOrderFlow', () => {
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
   };
 
-  it('renders the event snapshot with the outcome label, the swap icon and no price', async () => {
+  it('renders the buy header outcome with askPrice odds and omits the swap icon', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
+
     expect(
       screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
     ).toBeOnTheScreen();
     const outcomeLabel = screen.getByTestId(
       PredictOrderFlowTestIds.OUTCOME_LABEL,
     );
-    expect(outcomeLabel).toHaveTextContent('Buffalo Bills', { exact: true });
+    expect(outcomeLabel).toHaveTextContent('Buffalo Bills at 53%', {
+      exact: true,
+    });
     expect(
-      within(outcomeLabel).getByTestId(
-        PredictOrderFlowTestIds.OUTCOME_SWAP_ICON,
-      ),
-    ).toBeOnTheScreen();
+      screen.queryByTestId('predict-order-flow-outcome-swap-icon'),
+    ).not.toBeOnTheScreen();
+    expect(StyleSheet.flatten(outcomeLabel.props.style)).toMatchObject({
+      fontSize: 14,
+      lineHeight: 22,
+      fontFamily: 'Inter-SemiBold',
+    });
+  });
 
+  it('updates the buy header odds from preview averagePrice to match Price details', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
     typeAmount('20');
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills at 46.5%', { exact: true });
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+
+    const details = within(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    );
+    expect(
+      details.getByText(
+        '~41 contracts at 46.5¢ each. Final amount may vary based on order book availability.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('falls back to askPrice odds while re-quoting a changed amount', async () => {
+    stubEchoingPreview();
+
+    await openSheet();
+    typeAmount('20');
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills at 46.5%', { exact: true });
+
+    replaceAmount('20', '50');
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills at 53%', { exact: true });
+  });
+
+  it('renders only the outcome label when askPrice and preview are absent', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+    const BuyWithoutAskProbe = () => (
+      <Probe intent={{ ...buyIntent, askPrice: undefined }} />
+    );
+
+    await openSheet(BuyWithoutAskProbe);
+
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
     ).toHaveTextContent('Buffalo Bills', { exact: true });
@@ -1902,7 +1957,7 @@ describe('PredictOrderFlow', () => {
 
       // One held Position: no outcome to switch to, so no swap icon.
       expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.OUTCOME_SWAP_ICON),
+        screen.queryByTestId('predict-order-flow-outcome-swap-icon'),
       ).toBeNull();
       expect(
         within(

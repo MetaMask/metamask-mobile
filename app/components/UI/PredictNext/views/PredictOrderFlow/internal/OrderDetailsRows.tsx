@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import React from 'react';
 import {
   Box,
@@ -7,11 +8,25 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictOrderPreview } from '../../../types';
+import type { PredictDecimal, PredictOrderPreview } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
+
+/** A price in [0, 1] as odds, with formatCents' rounding: '0.53' → '53%',
+ * '0.4651' → '46.5%'. Returns undefined when no finite price is present. */
+export const formatOdds = (price?: PredictDecimal): string | undefined => {
+  if (price === undefined) {
+    return undefined;
+  }
+  const percent = new BigNumber(price).times(100);
+  if (!percent.isFinite()) {
+    return undefined;
+  }
+  const rounded = percent.decimalPlaces(1);
+  return `${rounded.toFixed(rounded.isInteger() ? 0 : 1)}%`;
+};
 
 interface FeeRowProps {
   title: string;
