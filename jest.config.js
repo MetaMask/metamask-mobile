@@ -1,6 +1,6 @@
 process.env.TZ = 'America/Toronto';
 
-// Unit tests need a test-like environment before Babel transforms app modules.
+// Unit tests need a test-like environment before Babel transforms the app modules.
 process.env.METAMASK_ENVIRONMENT ??= 'test';
 
 process.env.MM_INFURA_PROJECT_ID = 'fake-infura-project-id';
