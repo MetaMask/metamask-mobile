@@ -408,11 +408,17 @@ export function useMoneyActivityItems({
   // budget is spent. `loadMore` already guards against concurrent fetches and
   // errored queries.
   const fillCount = buckets[fill?.bucket ?? MoneyActivityFilter.All].length;
+  // A caller's page cap applies once a row shows: a first page that is all
+  // filtered out would otherwise leave the list empty for good.
+  const pageBudget =
+    fillCount === 0
+      ? AUTO_FILL_MAX_PAGES
+      : (fill?.maxPages ?? AUTO_FILL_MAX_PAGES);
   const wantsMorePages =
     fill !== undefined &&
     hasMore &&
     fillCount < fill.count &&
-    pageCount < (fill.maxPages ?? AUTO_FILL_MAX_PAGES);
+    pageCount < pageBudget;
   useEffect(() => {
     if (wantsMorePages && !isLoadingMore) {
       loadMore();
