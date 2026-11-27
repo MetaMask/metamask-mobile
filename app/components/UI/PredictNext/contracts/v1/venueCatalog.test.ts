@@ -353,15 +353,35 @@ describe('parsePredictVenueCatalog', () => {
       );
     });
 
-    it('drops a subtitle that is not a non-empty string and keeps the screen', () => {
-      const result = parsePredictVenueCatalog(
-        createCatalog({ screens: [{ ...nflScreen, subtitle: 7 }] }),
-        venueId,
-      );
+    it.each([
+      ['an empty string', ''],
+      ['a number', 7],
+      ['null', null],
+    ])(
+      'drops and logs a subtitle that is %s, and keeps the screen',
+      (_name, subtitle) => {
+        const result = parsePredictVenueCatalog(
+          createCatalog({ screens: [{ ...nflScreen, subtitle }] }),
+          venueId,
+        );
 
-      const { subtitle: _subtitle, ...withoutSubtitle } = nflScreen;
-      expect(result.screens).toEqual([withoutSubtitle]);
-    });
+        const { subtitle: _subtitle, ...withoutSubtitle } = nflScreen;
+        expect(result.screens).toEqual([withoutSubtitle]);
+        expect(Logger.log).toHaveBeenCalledTimes(1);
+        expect(Logger.log).toHaveBeenCalledWith(
+          '[PredictNext] Dropped 1 Venue catalog Feed Screen field for kalshi',
+          {
+            dropped: [
+              {
+                screen: 'sports-football-nfl',
+                field: 'subtitle',
+                value: subtitle,
+              },
+            ],
+          },
+        );
+      },
+    );
 
     describe('icon', () => {
       it('keeps an icon as served, without checking it against the app', () => {

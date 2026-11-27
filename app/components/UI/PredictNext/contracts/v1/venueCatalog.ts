@@ -248,10 +248,10 @@ const parseFeedScreenTabs = (
 /**
  * The Feed Screens, in catalog order (PRED-1525). A malformed or repeated
  * screen, a malformed tab, a tab on a Feed key missing from `feeds`, and a
- * screen left without tabs are dropped and logged, never thrown. An `icon`
- * that is not a non-empty string is dropped and logged, and its screen kept
- * (PRED-1606). A missing field is a catalog from before PRED-1525 and means
- * no screens.
+ * screen left without tabs are dropped and logged, never thrown. A
+ * `subtitle` or `icon` that is not a non-empty string is dropped and logged,
+ * and its screen kept. A missing field is a catalog from before PRED-1525 and
+ * means no screens.
  */
 const parseFeedScreens = (
   value: unknown,
@@ -282,9 +282,13 @@ const parseFeedScreens = (
     screens.push({
       id: entry.id,
       title: entry.title,
-      ...(is(entry.subtitle, nonEmptyString)
-        ? { subtitle: entry.subtitle }
-        : {}),
+      ...parseOptionalField(
+        { screen: entry.id },
+        'subtitle',
+        entry.subtitle,
+        parseNonEmptyString,
+        droppedFields,
+      ),
       ...parseOptionalField(
         { screen: entry.id },
         'icon',

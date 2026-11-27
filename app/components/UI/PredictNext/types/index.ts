@@ -285,8 +285,9 @@ export interface PredictVenueFeedScreen {
   id: string;
   title: string;
   subtitle?: string;
-  /** A design-system icon name, for example `TrendUp`, unchecked against
-   * the app's icons. A Category's pill uses the icon of the screen it opens. */
+  /** The server's design-system icon name, for example `TrendUp`, unchecked
+   * against the app's icons. PRED-1611 maps it to an `IconName` for the
+   * Category pill. */
   icon?: string;
   /** In display order; never empty. */
   tabs: readonly PredictVenueFeedScreenTab[];
