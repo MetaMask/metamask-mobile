@@ -9780,9 +9780,6 @@
     "typescript/no-misused-promises": {
       "count": 3
     },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 3
-    },
     "typescript/promise-function-async": {
       "count": 3
     }
@@ -20846,9 +20843,6 @@
     "typescript/await-thenable": {
       "count": 1
     },
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -20856,7 +20850,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 3
+      "count": 2
     },
     "typescript/prefer-readonly": {
       "count": 2
@@ -23075,11 +23069,6 @@
     }
   },
   "app/selectors/featureFlagController/haptics/index.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/selectors/featureFlagController/moneyAccount/index.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
