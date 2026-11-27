@@ -27,6 +27,7 @@ const getFractionDigitOptions = (
 };
 
 /**
+ * @deprecated Use `formatCurrency` from `useFormatters()` in components or `getFormatters()` in utils (`app/components/hooks/useFormatters`). Unlike this helper it always shows 2 decimals (`$1.00`, not `$1`), so pass `minimumFractionDigits` if a screen relies on that. See TMCU-386.
  * Formats a fiat amount as a localized string.
  *
  * Example usage:
