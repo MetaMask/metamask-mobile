@@ -77,7 +77,7 @@ jest.mock('@tanstack/react-query', () => {
 const mockUseMarketStats = jest.fn();
 jest.mock('../../../../../hooks/assets/market-stats', () => ({
   ...jest.requireActual('../../../../../hooks/assets/market-stats'),
-  useMarketStats: () => mockUseMarketStats(),
+  useMarketStats: (select?: unknown) => mockUseMarketStats(select),
 }));
 
 // TokenListSecurityBadge uses TanStack Query; omit from these TokenList-focused tests.
@@ -275,6 +275,7 @@ jest.mock('react-redux', () => ({
 describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   beforeEach(() => {
     mockUseMarketStats.mockReturnValue([]);
+    (useQuery as jest.Mock).mockImplementation(() => ({ data: undefined }));
   });
 
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -489,6 +490,64 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe(
         '-1.50%',
       );
+    });
+
+    it('keeps the polled price and fiat balance when the streamed price is zero', () => {
+      mockUseMarketStats.mockReturnValue([{ price: 0 }]);
+      prepareMocks({
+        asset: { ...defaultAsset, balanceAmount: 4 },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('$123.00')).toBeOnTheScreen();
+      expect(queryByText(/\$0\.00/)).not.toBeOnTheScreen();
+    });
+
+    it('reads the streamed quote by CAIP-19, not the hex address', () => {
+      const caipId = 'eip155:1/erc20:0x456';
+      (useQuery as jest.Mock).mockReturnValue({ data: caipId });
+      mockUseMarketStats.mockImplementation((select) => {
+        const quotes = new Map([
+          [caipId, { price: 10, pricePercentChange1d: -1.5 }],
+          ['0x456', { price: 1, pricePercentChange1d: 99 }],
+        ]);
+        return select(quotes);
+      });
+      prepareMocks({
+        asset: { ...defaultAsset, balanceAmount: 4 },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText(/\$10\.00/)).toBeOnTheScreen();
+      expect(getByText('40 FORMATTED')).toBeOnTheScreen();
     });
   });
 

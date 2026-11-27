@@ -183,15 +183,6 @@ export const TokenListItem = React.memo(
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
-    // This row reads only its own quote, so a tick for another asset leaves it
-    // alone. Absent until the first tick, and while the app is not streaming.
-    const selectLiveQuote = useCallback(
-      (quotes: Parameters<typeof readLiveQuotes>[0]) =>
-        readLiveQuotes(quotes, [assetKey.address]),
-      [assetKey.address],
-    );
-    const [liveQuote] = useMarketStats(selectLiveQuote);
-
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
 
@@ -231,7 +222,9 @@ export const TokenListItem = React.memo(
       isTokenListSecurityBadgesEnabled &&
       !skipTokenListSecurityBadge;
 
-    const { data: caipAssetIdForSecurity } = useQuery({
+    // Market stats and the security badge both key on CAIP-19. A hex address
+    // (native ETH is the zero address) misses the streamed quote.
+    const { data: caipAssetId } = useQuery({
       queryKey: tokenListSecurityBadgeKeys.caipFromToken({
         chainId: asset?.chainId,
         address: asset?.address,
@@ -239,10 +232,21 @@ export const TokenListItem = React.memo(
         isETH: asset?.isETH,
       }),
       queryFn: () => getCaipAssetIdForToken(asset),
-      enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
+      enabled: Boolean(asset?.chainId),
       staleTime: Infinity,
       gcTime: Infinity,
     });
+    // This row reads only its own quote, so a tick for another asset leaves it
+    // alone. Absent until the id resolves, the first tick, or while not streaming.
+    const selectLiveQuote = useCallback(
+      (quotes: Parameters<typeof readLiveQuotes>[0]) =>
+        readLiveQuotes(quotes, [caipAssetId ?? undefined]),
+      [caipAssetId],
+    );
+    const [liveQuote] = useMarketStats(selectLiveQuote);
+    // A zero or negative tick is bad data. Keep the polled price and fiat.
+    const livePrice =
+      liveQuote && liveQuote.price > 0 ? liveQuote.price : undefined;
 
     const chainId = asset?.chainId as Hex;
 
@@ -290,8 +294,11 @@ export const TokenListItem = React.memo(
         return undefined;
       }
 
-      if (liveQuote && !(isTestNet(asset.chainId) && !showFiatOnTestnets)) {
-        return liveQuote.price;
+      if (
+        livePrice !== undefined &&
+        !(isTestNet(asset.chainId) && !showFiatOnTestnets)
+      ) {
+        return livePrice;
       }
 
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
@@ -343,7 +350,7 @@ export const TokenListItem = React.memo(
       nativeCurrency,
       showFiatOnTestnets,
       multichainAssetsRates,
-      liveQuote,
+      livePrice,
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -368,10 +375,10 @@ export const TokenListItem = React.memo(
         trace({ name: TraceName.AssetDetails });
 
         let securityData: TokenSecurityData | undefined;
-        if (shouldResolveCaipForSecurityBadge && caipAssetIdForSecurity) {
+        if (shouldResolveCaipForSecurityBadge && caipAssetId) {
           securityData =
             queryClient.getQueryData<TokenSecurityData | null>(
-              tokenListSecurityBadgeKeys.byAsset(caipAssetIdForSecurity),
+              tokenListSecurityBadgeKeys.byAsset(caipAssetId),
             ) ?? undefined;
         }
 
@@ -387,7 +394,7 @@ export const TokenListItem = React.memo(
         isFullView,
         navigation,
         shouldResolveCaipForSecurityBadge,
-        caipAssetIdForSecurity,
+        caipAssetId,
         queryClient,
       ],
     );
@@ -477,7 +484,7 @@ export const TokenListItem = React.memo(
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
-    const liveHolding = liveHoldingFiat(asset.balanceAmount, liveQuote?.price);
+    const liveHolding = liveHoldingFiat(asset.balanceAmount, livePrice);
     const liveFiatBalance =
       liveHolding !== undefined && !hideFiatForTestnet && currentCurrency
         ? formatWithThreshold(liveHolding, 0.01, getLocaleLanguageCode(), {
@@ -646,12 +653,9 @@ export const TokenListItem = React.memo(
                 >
                   {asset.name || asset.symbol}
                 </Text>
-                {shouldResolveCaipForSecurityBadge &&
-                  caipAssetIdForSecurity && (
-                    <TokenListSecurityBadge
-                      caipAssetId={caipAssetIdForSecurity}
-                    />
-                  )}
+                {shouldResolveCaipForSecurityBadge && caipAssetId && (
+                  <TokenListSecurityBadge caipAssetId={caipAssetId} />
+                )}
                 {isAssetInactive ? <AssetInactiveBadge /> : null}
               </View>
 

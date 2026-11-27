@@ -2,6 +2,7 @@ import { createElement, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { marketStatsQueryKey, quotesFor } from '@metamask/core-backend';
 import Engine from '../../core/Engine';
 import {
   liveHoldingFiat,
@@ -196,6 +197,22 @@ describe('useMarketStatsListener', () => {
         pricesHandler,
       );
     });
+  });
+
+  it('drops the cached quotes when streaming stops', () => {
+    AppState.currentState = 'background';
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(
+      marketStatsQueryKey('usd'),
+      new Map([['eip155:1/slip44:60', { price: 10 }]]),
+    );
+
+    renderHook(() => useMarketStatsListener(), {
+      wrapper: ({ children }: { children: ReactNode }) =>
+        createElement(QueryClientProvider, { client: queryClient }, children),
+    });
+
+    expect(quotesFor(queryClient, 'usd').size).toBe(0);
   });
 });
 

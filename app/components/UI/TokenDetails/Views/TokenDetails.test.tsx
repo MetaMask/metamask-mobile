@@ -44,6 +44,7 @@ import {
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
+import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
 
 jest.mock('../hooks/useTokenSecurityData', () => ({
   useTokenSecurityData: () => ({
@@ -175,6 +176,7 @@ const defaultUseTokenPriceReturn = {
   comparePrice: 95,
   prices: [],
   isLoading: false,
+  timePeriod: '1d' as TimePeriod,
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m'],
   currentCurrency: 'USD',
@@ -185,6 +187,17 @@ const defaultUseTokenPriceReturn = {
 const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
   useTokenPrice: (...args: unknown[]) => mockUseTokenPrice(...(args as [])),
+}));
+
+const mockUseMarketStats = jest.fn(
+  (): { price: number; pricePercentChange1d?: number }[] => [],
+);
+const mockUseMarketStatsSubscription = jest.fn();
+jest.mock('../../../../hooks/assets/market-stats', () => ({
+  useMarketStats: () => mockUseMarketStats(),
+  useMarketStatsSubscription: (...args: unknown[]) =>
+    mockUseMarketStatsSubscription(...args),
+  readLiveQuotes: () => [],
 }));
 
 const mockUseTokenBalance = jest.fn();
@@ -343,6 +356,8 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend,
     onMarketInsightsDisclaimerPress,
     token,
+    currentPrice,
+    priceDiff,
   }: {
     headerSpacer?: React.ReactNode;
     renderTabs?: (overview: React.ReactNode) => React.ReactNode;
@@ -358,6 +373,8 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend?: () => Promise<void> | void;
     onMarketInsightsDisclaimerPress?: () => void;
     token?: { address?: string; chainId?: string; symbol?: string };
+    currentPrice?: number;
+    priceDiff?: number;
   }) => {
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     // Capture the latest handlers in a deps-less effect (runs every render, no
@@ -390,6 +407,10 @@ jest.mock('../components/AssetOverviewContent', () => {
 
     return (
       <View>
+        <View
+          testID="token-details-quoted-price"
+          accessibilityLabel={`${currentPrice ?? ''}:${priceDiff ?? ''}`}
+        />
         {headerSpacer}
         {renderTabs?.(null)}
       </View>
@@ -550,6 +571,7 @@ describe('TokenDetails', () => {
     mockLatestOnSend = undefined;
     mockLatestOnMarketInsightsDisclaimerPress = undefined;
     mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
+    mockUseMarketStats.mockReturnValue([]);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -741,6 +763,36 @@ describe('TokenDetails', () => {
     // Content (and its own skeletons) mounts immediately instead of being
     // blocked behind a full-page spinner while transactions load.
     expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
+  });
+
+  it('shows the streamed price instead of the polled price', () => {
+    mockUseTokenPrice.mockReturnValue({
+      ...defaultUseTokenPriceReturn,
+      timePeriod: '1d',
+    });
+    mockUseMarketStats.mockReturnValue([
+      { price: 250, pricePercentChange1d: 25 },
+    ]);
+
+    const { getByTestId } = render(<TokenDetails />);
+
+    // 250 replaces the polled 100. A 25% 1d move sets the diff to 50.
+    expect(getByTestId('token-details-quoted-price')).toHaveProp(
+      'accessibilityLabel',
+      '250:50',
+    );
+  });
+
+  it('subscribes to market stats for the opened asset', () => {
+    const caipAssetId = 'eip155:8453/slip44:60';
+    mockRouteParams.mockReturnValue({
+      ...defaultRouteParams,
+      caipAssetId,
+    });
+
+    render(<TokenDetails />);
+
+    expect(mockUseMarketStatsSubscription).toHaveBeenCalledWith([caipAssetId]);
   });
 
   it('requests the auto-add of the network for the token chain', () => {

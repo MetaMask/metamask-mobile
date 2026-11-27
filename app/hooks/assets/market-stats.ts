@@ -155,6 +155,12 @@ export function useMarketStatsListener(): void {
 
   useEffect(() => {
     if (!listen) {
+      // Streaming stopped (backgrounded, offline), so the cached quotes are
+      // stale. Drop them and every reader falls back to the polled price.
+      const queryKey = marketStatsQueryKey(currency);
+      if (queryClient.getQueryData(queryKey) !== undefined) {
+        queryClient.setQueryData(queryKey, new Map());
+      }
       return undefined;
     }
     return subscribeLiveQuotes({

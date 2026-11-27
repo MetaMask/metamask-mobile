@@ -526,9 +526,9 @@ describe('Balance', () => {
         </Provider>,
       );
 
-      expect(getByText('$20.00')).toBeTruthy();
-      expect(queryByText('$100')).toBeNull();
-      expect(getByText('-2.34%')).toBeTruthy();
+      expect(getByText('$20.00')).toBeOnTheScreen();
+      expect(queryByText('$100')).not.toBeOnTheScreen();
+      expect(getByText('-2.34%')).toBeOnTheScreen();
     });
   });
 
