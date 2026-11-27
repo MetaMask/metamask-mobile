@@ -52,8 +52,8 @@ export const DiffHighlightedAddress = ({
 
   return (
     <Box className="rounded-lg bg-background-alternative p-3">
-      <Box className="flex-row items-center mb-2">
-        <Box className={`w-2 h-2 rounded-full mr-1.5 mt-0.5 ${dotTwColor}`} />
+      <Box className="mb-2 flex-row items-center">
+        <Box className={`mr-1.5 mt-0.5 size-2 rounded-full ${dotTwColor}`} />
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}

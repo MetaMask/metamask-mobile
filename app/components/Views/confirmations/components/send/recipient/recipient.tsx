@@ -246,7 +246,7 @@ export const Recipient = () => {
             )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
-            <Box className="px-4 py-4">
+            <Box className="p-4">
               {poisoningMatch && recipientCandidateAddress && (
                 <BannerAlert
                   testID="address-poisoning-warning-banner"

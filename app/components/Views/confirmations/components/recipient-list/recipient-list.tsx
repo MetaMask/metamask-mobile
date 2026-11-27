@@ -33,7 +33,7 @@ export function RecipientList({
 
   if (data.length === 0 && emptyMessage) {
     return (
-      <Box className="flex-1 justify-center items-center p-4">
+      <Box className="flex-1 items-center justify-center p-4">
         <Text>{emptyMessage}</Text>
       </Box>
     );

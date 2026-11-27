@@ -340,7 +340,7 @@ function ConfirmInternal({
       isInteractable={Boolean(approvalRequest)}
       onClose={() => onReject()}
       testID={ConfirmationUIType.MODAL}
-      className={
+      twClassName={
         sheetMinHeight === undefined ? undefined : `min-h-[${sheetMinHeight}px]`
       }
     >

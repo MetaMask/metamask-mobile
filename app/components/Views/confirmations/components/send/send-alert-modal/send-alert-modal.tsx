@@ -132,7 +132,7 @@ export const SendAlertModal = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          className="px-4 pt-2 pb-2"
+          className="px-4 py-2"
         >
           <Icon
             name={IconName.Danger}
@@ -144,7 +144,7 @@ export const SendAlertModal = ({
             {typeof currentAlert.message === 'string' ? (
               <Text
                 variant={TextVariant.BodyMd}
-                className="text-center break-words"
+                className="break-words text-center"
               >
                 {currentAlert.message}
               </Text>

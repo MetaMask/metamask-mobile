@@ -63,13 +63,13 @@ export const MoneyDepositApySheet = ({
         onClose={onClose}
         testID={MoneyDepositApySheetTestIds.CONTAINER}
         keyboardAvoidingViewEnabled={false}
-        className="bg-section rounded-t-3xl"
+        twClassName="rounded-t-3xl bg-section"
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           testID={MoneyDepositApySheetTestIds.SCROLL_VIEW}
         >
-          <Box className="px-4 pt-4 pb-4 gap-5">
+          <Box className="gap-5 p-4">
             <Box className="gap-1">
               {hasApy ? (
                 <Text

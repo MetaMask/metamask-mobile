@@ -155,7 +155,7 @@ const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
               <BottomSheetHeader onClose={closeSheet}>
                 {rowLabel}
               </BottomSheetHeader>
-              <Box className="px-4 pt-3 pb-2">
+              <Box className="px-4 pb-2 pt-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}

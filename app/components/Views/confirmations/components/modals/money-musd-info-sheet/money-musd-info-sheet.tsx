@@ -89,13 +89,13 @@ export const MoneyMusdInfoSheet = ({
         onClose={onClose}
         testID={MoneyMusdInfoSheetTestIds.CONTAINER}
         keyboardAvoidingViewEnabled={false}
-        className="bg-section rounded-t-3xl"
+        twClassName="rounded-t-3xl bg-section"
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           testID={MoneyMusdInfoSheetTestIds.SCROLL_VIEW}
         >
-          <Box className="px-4 pt-4 pb-4 gap-6">
+          <Box className="gap-6 p-4">
             <Box className="gap-2">
               <Text
                 variant={TextVariant.HeadingLg}

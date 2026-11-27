@@ -46,9 +46,9 @@ export function HighlightedItem({ item }: HighlightedItemProps) {
       }
       onPress={handlePress}
     >
-      <Box className="flex-row items-center flex-1 min-w-0">
+      <Box className="min-w-0 flex-1 flex-row items-center">
         <HighlightedItemIcon item={item} />
-        <Box className="ml-4 flex-1 min-w-0">
+        <Box className="ml-4 min-w-0 flex-1">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -156,7 +156,7 @@ function HighlightedItemActions({ item }: { item: HighlightedItemType }) {
   }
 
   return (
-    <Box className="h-12 justify-center items-end shrink-0">
+    <Box className="h-12 shrink-0 items-end justify-center">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}

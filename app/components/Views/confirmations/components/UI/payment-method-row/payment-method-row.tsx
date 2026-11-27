@@ -90,16 +90,16 @@ const PaymentMethodRow = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        className={`w-10 h-10 rounded-full ${iconBackgroundClass}`}
+        className={`size-10 rounded-full ${iconBackgroundClass}`}
         testID={iconSlotTestID}
       >
         {icon}
       </Box>
-      <Box className="ml-3 flex-1 min-w-0">
+      <Box className="ml-3 min-w-0 flex-1">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          className="gap-2 flex-wrap"
+          className="flex-wrap gap-2"
         >
           <Text
             variant={TextVariant.BodyMd}

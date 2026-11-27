@@ -148,7 +148,7 @@ export function getNavbar({
             className="items-center p-1"
             testID={NAVBAR_SHEET_HANDLE_TEST_ID}
           >
-            <Box className="w-10 h-1 rounded-full bg-border-muted" />
+            <Box className="h-1 w-10 rounded-full bg-border-muted" />
           </Box>
           {header}
         </Box>

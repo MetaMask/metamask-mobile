@@ -83,7 +83,7 @@ export function useFirstTimeInteractionSendAlert(): {
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        className="text-center break-words max-w-full"
+        className="max-w-full break-words text-center"
       >
         {to}
       </Text>

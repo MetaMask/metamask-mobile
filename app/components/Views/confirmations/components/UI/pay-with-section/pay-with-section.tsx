@@ -24,7 +24,8 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           testID={`${testID}-title`}
-          className="px-4 pb-2 tracking-wider"
+          // eslint-disable-next-line tailwindcss/no-custom-classname
+          className="tracking-wider px-4 pb-2"
         >
           {config.title}
         </Text>

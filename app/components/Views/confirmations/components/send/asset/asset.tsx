@@ -253,7 +253,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           ))}
         </Box>
       )}
-      <Box className="w-full px-4 pt-1 pb-2">
+      <Box className="w-full px-4 pb-2 pt-1">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -283,8 +283,8 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         {hasNoResults && isLoadingTokens ? (
           <TokenListSkeleton />
         ) : hasNoResults && hasActiveFilters ? (
-          <Box className="items-center py-8 px-4">
-            <Text variant={TextVariant.BodyMd} className="text-center mb-4">
+          <Box className="items-center px-4 py-8">
+            <Text variant={TextVariant.BodyMd} className="mb-4 text-center">
               {strings('send.no_tokens_match_filters')}
             </Text>
             <Button
@@ -295,7 +295,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
             </Button>
           </Box>
         ) : hasNoResults && !hasActiveFilters ? (
-          <Box className="items-center py-8 px-4">
+          <Box className="items-center px-4 py-8">
             <Text variant={TextVariant.BodyMd} className="text-center">
               {strings('send.no_assets_available')}
             </Text>
