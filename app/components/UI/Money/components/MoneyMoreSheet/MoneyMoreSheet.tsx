@@ -38,6 +38,7 @@ import {
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectMoneyEnableMfaV2Flag } from '../../selectors/featureFlags';
 
 interface MenuOption {
   label: string;
@@ -48,6 +49,7 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isMfaV2 = useSelector(selectMoneyEnableMfaV2Flag);
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -170,7 +172,7 @@ const MoneyMoreSheet = () => {
         </Text>
       </BottomSheetHeaderGlass>
       <View style={styles.list}>
-        {mfaStatus === 'unavailable' ? null : (
+        {isMfaV2 || mfaStatus === 'unavailable' ? null : (
           <ListItem
             accessoryGap={4}
             startAccessory={

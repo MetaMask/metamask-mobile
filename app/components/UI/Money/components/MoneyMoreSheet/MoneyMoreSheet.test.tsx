@@ -51,6 +51,12 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
   useMoneyMfa: jest.fn(),
 }));
 
+const mockIsMfaV2 = jest.fn();
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableMfaV2Flag: () => mockIsMfaV2(),
+}));
+
 const mockTurnOnMfa = jest.fn();
 
 const mockMfaStatus = (status: MoneyMfaStatus) =>
@@ -123,6 +129,7 @@ describe('MoneyMoreSheet', () => {
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
     mockMfaStatus('unavailable');
+    mockIsMfaV2.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -292,6 +299,20 @@ describe('MoneyMoreSheet', () => {
       expect(
         queryByTestId(MoneyMoreSheetTestIds.MFA_OPTION),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides the row when isMoneyMfaEnabledV2 is true', () => {
+      mockIsMfaV2.mockReturnValue(true);
+      mockMfaStatus('enabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+      expect(
+        queryByTestId(MoneyMoreSheetTestIds.MFA_OPTION),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION),
+      ).toBeOnTheScreen();
     });
 
     it('renders the row title and description when 2-step verification is available', () => {
