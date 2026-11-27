@@ -1314,7 +1314,7 @@ describe('EarnInputView', () => {
       });
     });
 
-    it('redesigned stake deposit confirmation view', async () => {
+    it('stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       // Override the mock value for this specific test
 
@@ -1538,11 +1538,9 @@ describe('EarnInputView', () => {
       });
     });
 
-    it.skip('navigates to redesigned lending deposit confirmation', async () => {
+    it.skip('navigates to batch lending deposit confirmation', async () => {
       // Enable stablecoin lending feature flag
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
-
-      // Enable redesigned staking confirmations flag
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -1641,7 +1639,7 @@ describe('EarnInputView', () => {
             requireApproval: true,
           });
 
-          // Should navigate to redesigned confirmations instead of legacy lending deposit confirmation
+          // Should navigate to confirmations instead of the lending deposit confirmation view
           expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           });
