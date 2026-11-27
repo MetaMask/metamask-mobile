@@ -152,71 +152,73 @@ const EventScreenLayout = ({
   );
 };
 
-const EventLoadedHeader = ({
-  event,
-  winnerQuotes,
-  historyMarket,
-  topChartMarkets,
-}: {
-  event: PredictEvent;
-  winnerQuotes?: WinnerQuotes;
-  historyMarket?: PredictMarket;
-  topChartMarkets: readonly PredictMarket[];
-}): React.ReactElement => {
-  const game = getEventGame(event);
+const EventLoadedHeader = React.memo(
+  ({
+    event,
+    winnerQuotes,
+    historyMarket,
+    topChartMarkets,
+  }: {
+    event: PredictEvent;
+    winnerQuotes?: WinnerQuotes;
+    historyMarket?: PredictMarket;
+    topChartMarkets: readonly PredictMarket[];
+  }): React.ReactElement => {
+    const game = getEventGame(event);
 
-  const renderMarketHistory = (): React.ReactNode => {
-    if (game && winnerQuotes) {
-      return (
-        <PredictGameMarketHistory
-          venueId={event.venueId}
-          home={{
-            market: winnerQuotes.home.market,
-            outcome: winnerQuotes.home.outcome,
-            team: game.homeTeam,
-          }}
-          away={{
-            market: winnerQuotes.away.market,
-            outcome: winnerQuotes.away.outcome,
-            team: game.awayTeam,
-          }}
-        />
-      );
-    }
+    const renderMarketHistory = (): React.ReactNode => {
+      if (game && winnerQuotes) {
+        return (
+          <PredictGameMarketHistory
+            venueId={event.venueId}
+            home={{
+              market: winnerQuotes.home.market,
+              outcome: winnerQuotes.home.outcome,
+              team: game.homeTeam,
+            }}
+            away={{
+              market: winnerQuotes.away.market,
+              outcome: winnerQuotes.away.outcome,
+              team: game.awayTeam,
+            }}
+          />
+        );
+      }
 
-    if (!game && event.markets.length > 1) {
-      return topChartMarkets.length > 0 ? (
-        <PredictTopMarketsHistory
-          venueId={event.venueId}
-          markets={topChartMarkets}
-        />
-      ) : null;
-    }
+      if (!game && event.markets.length > 1) {
+        return topChartMarkets.length > 0 ? (
+          <PredictTopMarketsHistory
+            venueId={event.venueId}
+            markets={topChartMarkets}
+          />
+        ) : null;
+      }
 
-    if (historyMarket) {
-      return (
-        <PredictMarketHistory
-          venueId={event.venueId}
-          market={historyMarket}
-          isStandardEvent={!game}
-        />
-      );
-    }
+      if (historyMarket) {
+        return (
+          <PredictMarketHistory
+            venueId={event.venueId}
+            market={historyMarket}
+            isStandardEvent={!game}
+          />
+        );
+      }
 
-    return null;
-  };
+      return null;
+    };
 
-  const marketHistory = renderMarketHistory();
+    const marketHistory = renderMarketHistory();
 
-  return (
-    <Box>
-      {game ? <GameEventHeader event={event} /> : null}
-      {marketHistory ? (
-        <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
-      ) : null}
-    </Box>
-  );
-};
+    return (
+      <Box>
+        {game ? <GameEventHeader event={event} /> : null}
+        {marketHistory ? (
+          <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
+        ) : null}
+      </Box>
+    );
+  },
+);
 
 /**
  * The Outcome as the Order sheet names it. A threshold line's Outcome is just

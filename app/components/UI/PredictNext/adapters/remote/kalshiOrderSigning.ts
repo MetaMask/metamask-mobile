@@ -6,7 +6,10 @@ import type {
   TemplateInputs,
   TemplateValues,
 } from '../../auth/signing/profileTemplates';
-import { loadVenueProfile } from '../../auth/venueSigningProfiles';
+import {
+  ensureVenueProfile,
+  type SigningProfile,
+} from '../../auth/venueSigningProfiles';
 
 /** Kalshi rendering values only. A user approval is supplied separately. */
 export interface KalshiOrderSigningInput {
@@ -41,15 +44,15 @@ const yesLegPrice = (side: 'yes' | 'no', outcomePrice: number): string => {
   return `${Math.floor(price / 10_000)}.${String(price % 10_000).padStart(4, '0')}`;
 };
 
-/** The fee ceiling the verified `order.place` profile signs under, in cents
- * per contract. Undefined when the profile is unavailable or does not carry a
- * usable ceiling, so no buy is sized against a guess. */
+/** Loads the profile before sizing a buy, including bounded first-use acquisition.
+ * Returns undefined when no validated profile or usable fee ceiling is available,
+ * so a buy is never sized against a guess. */
 export const loadFeeCeilingCentsPerContract = async (): Promise<
   number | undefined
 > => {
-  let profile: Awaited<ReturnType<typeof loadVenueProfile>>;
+  let profile: SigningProfile | undefined;
   try {
-    profile = await loadVenueProfile();
+    profile = (await ensureVenueProfile())?.profile;
   } catch {
     return undefined;
   }

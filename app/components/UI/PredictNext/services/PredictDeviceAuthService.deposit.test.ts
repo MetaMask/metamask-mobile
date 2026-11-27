@@ -7,17 +7,30 @@ import {
   type PredictDeviceAuthServiceMessenger,
 } from './PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
-import { resetVenueProfile } from '../auth/venueSigningProfiles';
+import {
+  setVenueProfileResolverForTesting,
+  VenueProfileResolver,
+  venueProfileSha256,
+} from '../auth/venueSigningProfiles';
+import { VENUE_PROFILE_ID } from '../auth/venueProfileContract';
+import { RemoteVenueProfileClient } from '../auth/RemoteVenueProfileClient';
+import { VenueProfileStore } from '../auth/venueProfileStore';
+import { VENUE_PROFILE_REGISTRY_URL } from '../auth/venueProfileRegistryUrl';
+import {
+  TEST_VENUE_REVOKED_RAW,
+  TEST_VENUE_PROFILE_RAW,
+} from '../../../../../tests/fixtures/predict/venueProfiles';
+import { installVenueProfileFixture } from '../../../../../tests/helpers/predict/venueProfile';
 import { kalshiDepositSigningInputs } from '../adapters/remote/kalshiDepositSigning';
 import type { PredictAmount } from '../types';
 import envelope from '../contracts/v1/fixtures/funding-contract/deposit-envelope.json';
 
 /**
  * `funding.deposit` signed by the real Engine signer under the bundled
- * profile, compared with `deposit-envelope.json`. predict-api's own test
- * helper (`signedTradingHeaders`) produced that fixture from the same key,
- * request ID and clock, and predict-api's verifier accepted it. ECDSA here is
- * RFC 6979, so equal inputs give equal bytes.
+ * profile, compared with `deposit-envelope.json`. The fixture uses the key,
+ * request ID and clock from predict-api's `signedTradingHeaders` fixture,
+ * with the current bundled profile reference. ECDSA here is RFC 6979, so
+ * equal inputs give equal bytes.
  */
 
 jest.mock('../../../../util/Logger', () => ({
@@ -119,13 +132,15 @@ const depositInputs = (
 
 interface DecodedEnvelope {
   v: number;
-  profile: { id: string; version: number };
+  profile: { id: string; version: number; sha256: string };
   signatures: {
     requestId: string;
     signatureInput: string;
     signature: string;
   }[];
 }
+
+const PROFILE_SHA256 = 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A';
 
 const decodeEnvelope = (value: string): DecodedEnvelope =>
   JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
@@ -147,7 +162,7 @@ beforeEach(() => {
     ledger = null;
     return true;
   });
-  resetVenueProfile();
+  installVenueProfileFixture();
   jest.requireMock('uuid').v4.mockReturnValue(envelope.requestId);
   mockEnsureA2t.mockResolvedValue(envelope.a2t);
   mockDeviceKey.ensure.mockResolvedValue(DEVICE);
@@ -161,6 +176,8 @@ beforeEach(() => {
     );
 });
 
+afterEach(() => setVenueProfileResolverForTesting(undefined));
+
 describe('funding.deposit signing', () => {
   it('produces the backend envelope byte for byte', async () => {
     const signed = await createService().signOperation('funding.deposit', {
@@ -170,21 +187,65 @@ describe('funding.deposit signing', () => {
 
     expect(signed?.body).toBe(envelope.signedBody);
     expect(signed?.idempotencyKey).toBe(envelope.clientOperationId);
-    expect(signed?.header).toStrictEqual({
-      name: 'Venue-Authorization',
-      value: envelope.venueAuthorization,
-    });
+    expect(signed?.header.name).toBe('Venue-Authorization');
+    expect(signed?.header.value).toBe(envelope.venueAuthorization);
   });
 
-  it('signs under profile version 3', async () => {
+  it('signs under profile version 1', async () => {
     const signed = await createService().signOperation('funding.deposit', {
       inputs: depositInputs('25.50', 2550),
       confirmed: true,
     });
 
-    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual(
-      envelope.profile,
+    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual({
+      ...envelope.profile,
+      sha256: PROFILE_SHA256,
+    });
+  });
+
+  it('signs under a profile adopted from the registry', async () => {
+    const remote = TEST_VENUE_PROFILE_RAW;
+    const respond = (body: string): Response =>
+      ({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        arrayBuffer: async () => new TextEncoder().encode(body).buffer,
+      }) as unknown as Response;
+    const fetchMock = jest.fn(async (url: string) =>
+      respond(url.endsWith('/revoked') ? TEST_VENUE_REVOKED_RAW : remote),
     );
+    const resolver = new VenueProfileResolver({
+      getSigningProfile: async () => ({ id: VENUE_PROFILE_ID, version: 1 }),
+      client: new RemoteVenueProfileClient({
+        baseUrl: VENUE_PROFILE_REGISTRY_URL,
+        clientVersion: '7.60.0',
+        fetch: fetchMock as unknown as typeof fetch,
+      }),
+      store: new VenueProfileStore({
+        environment: 'dev',
+        profileId: VENUE_PROFILE_ID,
+        storage: {
+          getItem: async () => null,
+          setItem: async () => undefined,
+          removeItem: async () => undefined,
+        },
+      }),
+    });
+    setVenueProfileResolverForTesting(resolver);
+    await resolver.refresh();
+
+    const signed = await createService().signOperation('funding.deposit', {
+      inputs: depositInputs('25.50', 2550),
+      confirmed: true,
+    });
+
+    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual({
+      id: VENUE_PROFILE_ID,
+      version: 1,
+      sha256: venueProfileSha256(remote),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('produces a different signature for a changed amount', async () => {
@@ -235,7 +296,9 @@ describe('funding.deposit signing', () => {
       confirmed: false,
     });
 
-    expect(renewed?.header.value).toBe(envelope.venueAuthorization);
+    expect(
+      decodeEnvelope(renewed?.header.value ?? '').signatures,
+    ).toStrictEqual(decodeEnvelope(envelope.venueAuthorization).signatures);
   });
 
   it('still signs order.place under the same profile', async () => {
@@ -255,6 +318,6 @@ describe('funding.deposit signing', () => {
       ticker: 'MKT-1',
       client_order_id: 'a1b2c3d4-1111-4222-8333-444455556666',
     });
-    expect(decodeEnvelope(signed?.header.value ?? '').profile.version).toBe(3);
+    expect(decodeEnvelope(signed?.header.value ?? '').profile.version).toBe(1);
   });
 });

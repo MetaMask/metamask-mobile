@@ -154,6 +154,7 @@
           "providerData": {},
           "providerUserId": null,
           "redeemWithdrawal": null,
+          "cashbackClaim": null,
           "selectedCountry": null,
           "signInLink": null
         },

@@ -74,11 +74,6 @@
       "count": 1
     }
   },
-  "app/components/UI/AccountOverview/index.js": {
-    "design-system/spacing-grid": {
-      "count": 11
-    }
-  },
   "app/components/UI/AccountRightButton/index.tsx": {
     "design-system/spacing-grid": {
       "count": 2
@@ -92,16 +87,6 @@
   "app/components/UI/ActivityListItemRow/ActivityListItemRow.styles.ts": {
     "design-system/spacing-grid": {
       "count": 3
-    }
-  },
-  "app/components/UI/AddToAddressBookWrapper/styles.ts": {
-    "design-system/spacing-grid": {
-      "count": 1
-    }
-  },
-  "app/components/UI/AddressInputs/index.js": {
-    "design-system/spacing-grid": {
-      "count": 5
     }
   },
   "app/components/UI/AssetOverview/Price/Price.styles.tsx": {
@@ -121,6 +106,11 @@
   },
   "app/components/UI/BlockingActionModal/index.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/components/CancelLimitOrderModal/CancelLimitOrderModal.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
       "count": 1
     }
   },
@@ -184,6 +174,11 @@
       "count": 1
     }
   },
+  "app/components/UI/Card/Views/ContactDetails/ContactDetails.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/CollectibleDetectionModal/index.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -201,6 +196,11 @@
   },
   "app/components/UI/DeFiPositions/DeFiPositionsListItem.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/DeleteWalletModal/DeleteWalletModal.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -284,16 +284,6 @@
       "count": 1
     }
   },
-  "app/components/UI/NetworkInfo/InfoDescription/infoDescription.tsx": {
-    "design-system/spacing-grid": {
-      "count": 2
-    }
-  },
-  "app/components/UI/NetworkInfo/index.tsx": {
-    "design-system/spacing-grid": {
-      "count": 9
-    }
-  },
   "app/components/UI/NetworkManager/index.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
@@ -307,6 +297,11 @@
   "app/components/UI/NetworkModal/index.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
+    }
+  },
+  "app/components/UI/NetworkMultiSelector/NetworkMultiSelector.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/UI/NetworkVerificationInfo/NetworkVerificationInfo.styles.ts": {
@@ -349,6 +344,11 @@
       "count": 2
     }
   },
+  "app/components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 1
@@ -369,14 +369,99 @@
       "count": 2
     }
   },
+  "app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderLifecycleFlow.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderRedirect.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 5
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsPositionFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProMarketFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProMarketView/PerpsProLighterScale.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProOrderTicketFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsRedirect.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectOrderTypeView/PerpsSelectOrderTypeView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/UI/Perps/components/LivePriceDisplay/LivePriceHeader.tsx": {
@@ -439,6 +524,14 @@
       "count": 1
     }
   },
+  "app/components/UI/Perps/components/PerpsTutorialCarousel/PerpsTutorialCarousel.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/components/PerpsWebSocketHealthToast/PerpsWebSocketHealthToast.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
@@ -449,8 +542,18 @@
       "count": 2
     }
   },
+  "app/components/UI/PhishingModal/PhishingModal.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictPayWithRow/PredictPayWithRow.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Predict/views/PredictPositionsView/PredictPositionsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -464,13 +567,48 @@
       "count": 1
     }
   },
+  "app/components/UI/PredictNext/homeSection/PredictHomeSection.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/PredictEntryActions.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/PredictLinks.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/searchResults/PredictSearchResultRow.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
     }
   },
+  "app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/views/PredictHome/internal/PortfolioActions.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictOrderFlow/PredictOrderFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictPortfolio/internal/PortfolioRecoveryPanel.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -482,6 +620,11 @@
   "app/components/UI/QRHardware/QRSigningDetails.tsx": {
     "design-system/spacing-grid": {
       "count": 3
+    }
+  },
+  "app/components/UI/QuickBuy/QuickBuySheet.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/components/Account.tsx": {
@@ -532,6 +675,11 @@
   "app/components/UI/Ramp/Aggregator/components/modals/Modal.styles.ts": {
     "design-system/spacing-grid": {
       "count": 4
+    }
+  },
+  "app/components/UI/Ramp/Views/BuildQuote/BuildQuote.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Views/HeadlessPlayground/HeadlessPlayground.styles.ts": {
@@ -684,6 +832,11 @@
       "count": 1
     }
   },
+  "app/components/UI/Tokens/Tokens.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 2
+    }
+  },
   "app/components/UI/TransactionElement/TransactionDetails/index.js": {
     "design-system/spacing-grid": {
       "count": 3
@@ -734,9 +887,22 @@
       "count": 1
     }
   },
-  "app/components/UI/WhatsNewModal/WhatsNewModal.styles.ts": {
-    "design-system/spacing-grid": {
+  "app/components/Views/AccountStatus/AccountStatus.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/Views/ActivityList/ActivityList.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
       "count": 2
+    }
+  },
+  "app/components/Views/ActivityScreen/ActivityScreen.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 7
     }
   },
   "app/components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx": {
@@ -789,6 +955,14 @@
       "count": 1
     }
   },
+  "app/components/Views/ImportNewSecretRecoveryPhrase/ImportNewSecretRecoveryPhrase.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/Views/ImportPrivateKeySuccess/index.js": {
     "design-system/spacing-grid": {
       "count": 5
@@ -829,6 +1003,11 @@
       "count": 1
     }
   },
+  "app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -862,6 +1041,11 @@
   "app/components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
+    }
+  },
+  "app/components/Views/NetworksManagement/NetworksManagementView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/Views/NftDetails/NftDetails.styles.ts": {
@@ -931,6 +1115,11 @@
   },
   "app/components/Views/Settings/NotificationsSettings/NotificationsSettings.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Settings/SecuritySettings/Sections/TopTradersSection.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -1111,6 +1300,21 @@
   },
   "app/dev-tools/AgenticService/AgentStepHud.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/priceAlerts.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/ramp.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/trending.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   }

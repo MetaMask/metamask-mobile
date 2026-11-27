@@ -1,4 +1,5 @@
 export { formatAskPrice } from './formatAskPrice';
+export { formatAskPricePercent } from './formatAskPricePercent';
 export { formatMarketGroupOption } from './formatMarketGroupOption';
 export {
   formatThresholdLine,

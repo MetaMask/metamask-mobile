@@ -157,6 +157,11 @@ function createLintFixture(): string {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-shard-'));
   fs.writeFileSync(path.join(cwd, 'eslint.config.mjs'), FIXTURE_CONFIG);
   fs.writeFileSync(path.join(cwd, 'kept.js'), 'debugger;\n');
+  // LINT_PATTERNS includes this glob with errorOnUnmatchedPattern, so the
+  // fixture has to contain a match or file discovery throws.
+  const pluginTestDir = path.join(cwd, '.yarn', 'plugins');
+  fs.mkdirSync(pluginTestDir, { recursive: true });
+  fs.writeFileSync(path.join(pluginTestDir, 'fixture.test.ts'), '// fixture\n');
   fs.writeFileSync(
     path.join(cwd, 'eslint-suppressions.json'),
     `${JSON.stringify(
@@ -219,7 +224,10 @@ describe('listLintFiles and lintPaths', () => {
   it('lists the fixture file and returns zero errors when eslint-suppressions.json covers the violation', () => {
     const result = lintFixture(cwd);
 
-    expect(result.files).toEqual([path.join(cwd, 'kept.js')]);
+    expect(result.files).toEqual([
+      path.join(cwd, '.yarn', 'plugins', 'fixture.test.ts'),
+      path.join(cwd, 'kept.js'),
+    ]);
     expect(result.errorCount).toBe(0);
   });
 });

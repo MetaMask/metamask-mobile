@@ -126,6 +126,9 @@
       "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
+    "pay_amount_too_low": {
+      "message": "This amount is below the minimum for this route. Enter a higher amount to continue."
+    },
     "account_no_funds": {
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
@@ -4150,11 +4153,13 @@
       "proceeds_if_fully_filled": "Proceeds if fully filled (signed)",
       "partial_fill_proceeds_description": "This amount assumes all contracts fill. A partial fill can result in lower proceeds. If no contracts fill, you receive no proceeds and nothing is sold.",
       "to_win": "To win {{amount}}",
+      "outcome_at_odds": "{{outcome}} at {{odds}}",
       "pay_with": "Pay with",
       "predictions_balance": "Predictions balance",
       "odds": "Odds",
       "contracts_row": "Contracts",
       "fees": "Fees",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability.",
       "you_will_receive": "You'll receive",
       "you_will_receive_value": "{{amount}} ({{price}} avg)",
       "estimated_payout": "Est. payout",
@@ -4167,7 +4172,7 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order",
+      "cash_out": "Cash out",
       "buy": "Buy",
       "venue_changed": "Your prediction market changed. Close this order to continue."
     },
@@ -8762,6 +8767,7 @@
     "maximum": "Maximum deposit is",
     "insufficient_balance": "This amount is higher than your balance",
     "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
+    "network_fee_unavailable": "We couldn't estimate the network fee. You'll review it before you send.",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
@@ -8873,8 +8879,9 @@
       "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
       "retry_validation": "Try again"
     },
-    "tron_validation": {
-      "validation_unavailable": "Unable to verify this amount. Please try again."
+    "snap_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again.",
+      "insufficient_funds_max": "Insufficient funds. You can send up to {{amount}} {{symbol}}."
     },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
@@ -10171,7 +10178,41 @@
       "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
       "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
       "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
-      "earn_more": "Earn more",
+      "add_funds": "Add funds",
+      "chart_allocation_accessibility_label": "{{label}}, {{percentage}}",
+      "cash_reserve": "Cash reserve",
+      "markets": "Markets",
+      "allocation": "Allocation",
+      "apy": "APY",
+      "unavailable": "Unavailable",
+      "monad": "Monad",
+      "chart_empty": "No allocation data is available yet.",
+      "chart_invalid": "We couldn't display allocation data. Try again later.",
+      "allocation_loading": "Loading allocation data",
+      "allocation_error": "We couldn't load allocation data. Try again.",
+      "allocation_retry": "Try again",
+      "allocation_empty": "No allocation data is available yet.",
+      "allocation_degraded": "Allocation data may be out of date.",
+      "allocation_details": {
+        "title": "Details",
+        "vault": "Vault",
+        "vault_value": "MetaMask Money",
+        "base_asset": "Base asset",
+        "base_asset_value": "MetaMask USD (mUSD)",
+        "average_apy": "30-day average APY",
+        "average_apy_value": "{{value}}% APY",
+        "average_apy_zero": "—",
+        "lockup_period": "Lockup period",
+        "lockup_period_value": "None",
+        "managed_by": "Managed by",
+        "managed_by_value": "Veda",
+        "monitored_by": "Monitored by",
+        "monitored_by_value": "Steakhouse Financial"
+      },
+      "risks_and_disclosures": {
+        "title": "Risks and Disclosures",
+        "description": "MetaMask Money is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. MetaMask Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
+      },
       "error": "We couldn't load earnings. Try again.",
       "retry": "Retry",
       "empty": "No earnings history yet.",
@@ -12623,7 +12664,8 @@
       "to": "To",
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
-      "withdrawal_success": "Withdrawal completed successfully",
+      "withdrawal_success": "Withdrawal completed",
+      "withdrawal_success_description": "It may take up to a few minutes for these funds to appear in your account.",
       "withdrawal_failed": "Withdrawal failed. Try again.",
       "no_cashback": "No mUSD back available",
       "loading_error": "Failed to load mUSD back. Try again.",

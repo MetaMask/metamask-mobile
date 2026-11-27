@@ -138,6 +138,25 @@ export const createRouteParamsProbe =
   };
 
 /**
+ * Route screen that shows both the route name and its params. The testIDs and
+ * text match the hand-written wallet and browser probes.
+ */
+export const createRouteNameAndParamsProbe =
+  (routeName: string): React.FC =>
+  () => {
+    const route = useRoute();
+
+    return (
+      <>
+        <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>
+        <Text testID={getRouteParamsProbeTestId(routeName)}>
+          {JSON.stringify(route.params)}
+        </Text>
+      </>
+    );
+  };
+
+/**
  * Render a screen with additional registered routes to assert navigation without mocking.
  * Each extra route can provide a simple component; if omitted, a default probe will render the route name.
  */

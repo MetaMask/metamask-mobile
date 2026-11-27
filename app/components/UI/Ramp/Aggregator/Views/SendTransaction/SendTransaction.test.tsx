@@ -1,8 +1,12 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { merge } from 'lodash';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import { FiatOrder } from '../../../../../../reducers/fiatOrders';
+import {
+  FiatOrder,
+  updateFiatOrder,
+} from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   renderScreen,
@@ -11,12 +15,24 @@ import {
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { addTransaction } from '../../../../../../util/transaction-controller';
-import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
-import { validateTronTransferAmount } from '../../../../../../core/Multichain/tron';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
+import {
+  bigIntToHex,
+  toTokenMinimalUnit,
+} from '../../../../../../util/number/bigint';
+import { safeToChecksumAddress } from '../../../../../../util/address';
+import { generateTransferData } from '../../../../../../util/transactions';
+import {
+  sendMultichainTransactionForReview,
+  validateAmountMultichain,
+} from '../../../../../Views/confirmations/utils/multichain-snaps';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../../core/AppConstants';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
+
+const ORDER_WALLET_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+const DEPOSIT_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
 
 const mockOrder = {
   id: 'test-id-1',
@@ -113,10 +129,10 @@ const mockOrder = {
     network: '1',
     status: 'CREATED',
     orderType: 'SELL',
-    walletAddress: '0x1234',
+    walletAddress: ORDER_WALLET_ADDRESS,
     txHash: undefined,
     excludeFromPurchases: false,
-    depositWallet: '0x34256',
+    depositWallet: DEPOSIT_WALLET_ADDRESS,
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
@@ -215,10 +231,10 @@ const mockOrder2 = {
     network: '1',
     status: 'CREATED',
     orderType: 'SELL',
-    walletAddress: '0x1234',
+    walletAddress: ORDER_WALLET_ADDRESS,
     txHash: undefined,
     excludeFromPurchases: false,
-    depositWallet: '0x34256',
+    depositWallet: DEPOSIT_WALLET_ADDRESS,
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
@@ -426,7 +442,11 @@ const mockedOrders = [
   mockStellarOrder,
 ];
 
-function render(Component: React.ComponentType, orders = mockedOrders) {
+function render(
+  Component: React.ComponentType,
+  orders = mockedOrders,
+  engineOverrides: Record<string, unknown> = {},
+) {
   return renderScreen(
     Component,
     {
@@ -435,7 +455,7 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
     {
       state: {
         engine: {
-          backgroundState,
+          backgroundState: merge({}, backgroundState, engineOverrides),
         },
         fiatOrders: {
           orders,
@@ -451,6 +471,7 @@ const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockAddTransaction = addTransaction as jest.Mock;
+const mockOrderWallet = safeToChecksumAddress(ORDER_WALLET_ADDRESS) as string;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -484,12 +505,11 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
 }));
 
+jest.mock('../../hooks/useRampNetworkClientId', () => jest.fn(() => 'mainnet'));
+
 jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
   sendMultichainTransactionForReview: jest.fn(),
-}));
-
-jest.mock('../../../../../../core/Multichain/tron', () => ({
-  validateTronTransferAmount: jest.fn(),
+  validateAmountMultichain: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/accountsController', () => ({
@@ -500,7 +520,7 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
 
 const mockSendMultichainTransactionForReview =
   sendMultichainTransactionForReview as jest.Mock;
-const mockValidateTronTransferAmount = validateTronTransferAmount as jest.Mock;
+const mockValidateSnapTransferAmount = validateAmountMultichain as jest.Mock;
 const mockGetInternalAccountByAddress =
   getMemoizedInternalAccountByAddress as unknown as jest.Mock;
 
@@ -523,7 +543,7 @@ describe('SendTransaction View', () => {
     mockTrackEvent.mockClear();
     mockAddTransaction.mockClear();
     mockSendMultichainTransactionForReview.mockClear();
-    mockValidateTronTransferAmount.mockReset();
+    mockValidateSnapTransferAmount.mockReset();
     mockGetInternalAccountByAddress.mockReset();
   });
 
@@ -531,12 +551,13 @@ describe('SendTransaction View', () => {
     mockUseParamsValues = {
       orderId: 'test-id-1',
     };
-    mockValidateTronTransferAmount.mockResolvedValue({
+    mockValidateSnapTransferAmount.mockResolvedValue({
       valid: true,
       errors: [],
     });
     // Default: no resolvable non-EVM account (EVM tests don't read it).
     mockGetInternalAccountByAddress.mockReturnValue(undefined);
+    jest.mocked(useRampNetworkClientId).mockReturnValue('mainnet');
   });
 
   it('shows header with back navigation when order data has no cryptoCurrency', async () => {
@@ -618,8 +639,8 @@ describe('SendTransaction View', () => {
         [
           {
             "chainId": "0x1",
-            "from": "0x1234",
-            "to": "0x34256",
+            "from": "0x2990079bcdEe240329a520d2444386FC119da21a",
+            "to": "0x1111111111111111111111111111111111111111",
             "value": "0x2bea80d2171600",
           },
           {
@@ -664,8 +685,9 @@ describe('SendTransaction View', () => {
       [
         [
           {
-            "data": "0xa9059cbb0000000000000000000000000000000000000000000000000000000000034256000000000000000000000000000000000000000000000000002bea80d2171600",
-            "from": "0x1234",
+            "chainId": "0x1",
+            "data": "0xa9059cbb0000000000000000000000001111111111111111111111111111111111111111000000000000000000000000000000000000000000000000002bea80d2171600",
+            "from": "0x2990079bcdEe240329a520d2444386FC119da21a",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
           },
@@ -812,6 +834,216 @@ describe('SendTransaction View', () => {
     });
   });
 
+  describe('order transaction', () => {
+    const nativeOrderAmount = toTokenMinimalUnit('0.012361263', 18);
+    const insufficientFeeCopy =
+      "You don't have enough ETH to send this amount and pay the network fee.";
+    const feeUnavailableCopy =
+      "We couldn't estimate the network fee. You'll review it before you send.";
+
+    it('submits the order transaction on the order network client', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
+      render(SendTransaction);
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).toHaveBeenCalledWith(
+        {
+          from: mockOrderWallet,
+          to: safeToChecksumAddress(DEPOSIT_WALLET_ADDRESS),
+          value: bigIntToHex(nativeOrderAmount),
+          chainId: '0x1',
+        },
+        expect.objectContaining({ networkClientId: 'mainnet' }),
+      );
+    });
+
+    it('submits the refreshed depositWallet', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
+      const { store } = render(SendTransaction);
+
+      act(() => {
+        store.dispatch(
+          updateFiatOrder({
+            ...mockOrder,
+            data: {
+              ...mockOrder.data,
+              depositWallet: '0x5555555555555555555555555555555555555555',
+            },
+          } as unknown as FiatOrder),
+        );
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: safeToChecksumAddress(
+            '0x5555555555555555555555555555555555555555',
+          ),
+        }),
+        expect.objectContaining({ networkClientId: 'mainnet' }),
+      );
+    });
+
+    it('passes no EVM params for non-EVM orders', async () => {
+      mockUseParamsValues = { orderId: 'test-id-solana' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockSolanaAccount);
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        transactionId: '0x-solana-tx',
+      });
+
+      render(SendTransaction);
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockSolanaAccount,
+        expect.objectContaining({
+          toAddress: SOLANA_DEPOSIT_ADDRESS,
+          amount: '1.5',
+        }),
+      );
+    });
+
+    it('tracks a rejection when the order transaction cannot be built', async () => {
+      const brokenOrder = {
+        ...mockOrder,
+        id: 'test-id-broken',
+        data: {
+          ...mockOrder.data,
+          id: 'test-id-broken',
+          providerOrderId: 'test-id-broken',
+          depositWallet: undefined,
+        },
+      } as unknown as FiatOrder;
+      mockUseParamsValues = { orderId: 'test-id-broken' };
+      render(SendTransaction, [brokenOrder]);
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        expect.anything(),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        expect.anything(),
+      );
+    });
+
+    it('does not crash on a malformed deposit wallet and tracks the rejection', async () => {
+      const malformedOrder = {
+        ...mockOrder,
+        id: 'test-id-malformed',
+        data: {
+          ...mockOrder.data,
+          id: 'test-id-malformed',
+          providerOrderId: 'test-id-malformed',
+          depositWallet: 'not-an-address',
+        },
+      } as unknown as FiatOrder;
+      mockUseParamsValues = { orderId: 'test-id-malformed' };
+      render(SendTransaction, [malformedOrder]);
+
+      expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        expect.anything(),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        expect.anything(),
+      );
+    });
+
+    it('does not gate Next on network fee or balance', () => {
+      render(SendTransaction, mockedOrders, {
+        AccountTrackerController: {
+          accountsByChainId: {
+            '0x1': {
+              [mockOrderWallet]: { balance: '0x0' },
+            },
+          },
+        },
+      });
+
+      expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+      expect(screen.queryByText(insufficientFeeCopy)).not.toBeOnTheScreen();
+      expect(screen.queryByText(feeUnavailableCopy)).not.toBeOnTheScreen();
+    });
+
+    it('submits exact transfer calldata for a 6-decimal token', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
+      const depositWallet = DEPOSIT_WALLET_ADDRESS;
+      const tokenAddress = safeToChecksumAddress(
+        '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      ) as string;
+      const usdtOrder = {
+        ...mockOrder2,
+        id: 'test-id-usdt',
+        cryptoAmount: '12.345678',
+        data: {
+          ...mockOrder2.data,
+          id: 'test-id-usdt',
+          providerOrderId: 'test-id-usdt',
+          cryptoAmount: '12.345678',
+          cryptoCurrency: {
+            ...(mockOrder2.data as SellOrder).cryptoCurrency,
+            address: tokenAddress,
+            decimals: 6,
+            symbol: 'USDT',
+            name: 'Tether USD',
+          },
+          depositWallet,
+        } as DeepPartial<SellOrder>,
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-id-usdt' };
+      render(SendTransaction, [usdtOrder]);
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).toHaveBeenCalledWith(
+        {
+          from: mockOrderWallet,
+          to: tokenAddress,
+          value: '0x0',
+          data: generateTransferData('transfer', {
+            toAddress: safeToChecksumAddress(depositWallet),
+            amount: bigIntToHex(12_345_678n),
+          }),
+          chainId: '0x1',
+        },
+        expect.objectContaining({ networkClientId: 'mainnet' }),
+      );
+    });
+  });
+
   describe('Non-EVM (Solana) send', () => {
     beforeEach(() => {
       mockUseParamsValues = { orderId: 'test-id-solana' };
@@ -901,7 +1133,7 @@ describe('SendTransaction View', () => {
       await act(async () => fireEvent.press(nextButton));
 
       expect(mockAddTransaction).not.toHaveBeenCalled();
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -937,7 +1169,7 @@ describe('SendTransaction View', () => {
     it('blocks a Tron transfer when the account lacks TRX or network resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -946,7 +1178,7 @@ describe('SendTransaction View', () => {
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await act(async () => fireEvent.press(nextButton));
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -980,7 +1212,7 @@ describe('SendTransaction View', () => {
       await act(async () => fireEvent.press(nextButton));
 
       const assetId = `tron:728126428/${TRON_USDT_ASSET_REFERENCE}`;
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -1011,7 +1243,7 @@ describe('SendTransaction View', () => {
     it('blocks Tron USDT when the account lacks TRX or network resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron-usdt' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -1020,7 +1252,7 @@ describe('SendTransaction View', () => {
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await act(async () => fireEvent.press(nextButton));
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledWith(
         mockTronAccount,
         {
           accountId: mockTronAccount.id,
@@ -1041,7 +1273,7 @@ describe('SendTransaction View', () => {
     it('shows insufficient funds when the Tron Snap reports InsufficientBalance', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce({
+      mockValidateSnapTransferAmount.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'InsufficientBalance' }],
       });
@@ -1061,7 +1293,7 @@ describe('SendTransaction View', () => {
     it('fails closed with a retryable error when Tron validation throws', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockRejectedValueOnce(
+      mockValidateSnapTransferAmount.mockRejectedValueOnce(
         new Error('Snap unavailable'),
       );
 
@@ -1088,7 +1320,7 @@ describe('SendTransaction View', () => {
     it('fails closed when the Tron Snap returns no validation result', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValueOnce(undefined);
+      mockValidateSnapTransferAmount.mockResolvedValueOnce(undefined);
 
       render(SendTransaction);
       await act(async () =>
@@ -1107,7 +1339,7 @@ describe('SendTransaction View', () => {
     it('keeps Next disabled when a Tron retry still lacks resources', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount.mockResolvedValue({
+      mockValidateSnapTransferAmount.mockResolvedValue({
         valid: false,
         errors: [{ code: 'InsufficientBalanceToCoverFee' }],
       });
@@ -1122,7 +1354,7 @@ describe('SendTransaction View', () => {
         ),
       );
 
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(2);
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledTimes(2);
       expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
       expect(
         screen.getByTestId('send-transaction-validation-error'),
@@ -1133,7 +1365,7 @@ describe('SendTransaction View', () => {
     it('re-enables Next after a successful Tron retry without sending, then sends on Next', async () => {
       mockUseParamsValues = { orderId: 'test-id-tron' };
       mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-      mockValidateTronTransferAmount
+      mockValidateSnapTransferAmount
         .mockResolvedValueOnce({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
@@ -1170,7 +1402,7 @@ describe('SendTransaction View', () => {
       );
 
       // Next validates again right before sending.
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(3);
+      expect(mockValidateSnapTransferAmount).toHaveBeenCalledTimes(3);
       expect(mockSendMultichainTransactionForReview).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -1196,7 +1428,7 @@ describe('SendTransaction View', () => {
       it('announces the validation error and exposes it as an alert', async () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-        mockValidateTronTransferAmount.mockResolvedValueOnce({
+        mockValidateSnapTransferAmount.mockResolvedValueOnce({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
         });
@@ -1216,7 +1448,7 @@ describe('SendTransaction View', () => {
       it('announces again when a retry fails with the same error', async () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
-        mockValidateTronTransferAmount.mockResolvedValue({
+        mockValidateSnapTransferAmount.mockResolvedValue({
           valid: false,
           errors: [{ code: 'InsufficientBalanceToCoverFee' }],
         });
@@ -1239,7 +1471,7 @@ describe('SendTransaction View', () => {
         mockUseParamsValues = { orderId: 'test-id-tron' };
         mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
         let resolveRetry: (value: unknown) => void = () => undefined;
-        mockValidateTronTransferAmount
+        mockValidateSnapTransferAmount
           .mockResolvedValueOnce({
             valid: false,
             errors: [{ code: 'InsufficientBalanceToCoverFee' }],

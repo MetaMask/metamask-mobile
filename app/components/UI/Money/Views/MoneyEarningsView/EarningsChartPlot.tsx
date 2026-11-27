@@ -19,7 +19,7 @@ import {
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
-const CHART_CONTAINER_HEIGHT = 200;
+export const EARNINGS_CHART_HEIGHT = 200;
 const CHART_LEVEL_IDS = ['maximum', 'midpoint'] as const;
 
 interface EarningsChartPlotProps {
@@ -56,7 +56,7 @@ const EarningsChartPlot = ({
   return (
     <Box
       twClassName="relative"
-      style={{ height: CHART_CONTAINER_HEIGHT }}
+      style={{ height: EARNINGS_CHART_HEIGHT }}
       testID={MoneyEarningsViewTestIds.CHART}
     >
       <Box
@@ -146,7 +146,7 @@ const EarningsChartPlot = ({
             testID={MoneyEarningsViewTestIds.CHART_X_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="min-w-0 flex-1 text-center"
+            className="min-w-0 flex-1 text-center"
             numberOfLines={2}
           >
             {xAxisLabels[index]}
@@ -161,7 +161,7 @@ const EarningsChartPlot = ({
             testID={MoneyEarningsViewTestIds.CHART_Y_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName={`absolute right-0 text-right ${
+            className={`absolute right-0 text-right ${
               index === 0 ? '-top-3' : 'top-1/2 -mt-3'
             }`}
             numberOfLines={1}

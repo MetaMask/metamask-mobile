@@ -1,7 +1,4 @@
 import { strings } from '../../../locales/i18n';
-import TransactionTypes from '../../core/TransactionTypes';
-import { estimateGas } from '../transaction-controller';
-import { hexToBN } from '@metamask/controller-utils';
 
 export const ETH = 'ETH';
 export const GWEI = 'GWEI';
@@ -39,26 +36,4 @@ export function parseWaitTime(min) {
     }
   }
   return parsed.trim();
-}
-
-export async function getGasLimit(
-  transaction,
-  resetGas = false,
-  networkClientId,
-) {
-  let estimation;
-  try {
-    const newTransactionObj = resetGas
-      ? { ...transaction, gas: undefined, gasPrice: undefined }
-      : transaction;
-
-    estimation = await estimateGas(newTransactionObj, networkClientId);
-  } catch (error) {
-    estimation = {
-      gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-    };
-  }
-
-  const gas = hexToBN(estimation.gas);
-  return { gas };
 }

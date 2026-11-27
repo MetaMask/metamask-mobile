@@ -41,6 +41,11 @@ const createMarket = (id: string, title: string): PredictMarket => ({
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 
+// Feed cards mount only after the markets read resolves and each card's
+// series/price child reads settle, so awaiting a specific card or the empty
+// state regularly outlasts the 5s default on a loaded CV shard.
+const FEED_LOAD_TIMEOUT_MS = 10000;
+
 describe('PredictFeedView (component view)', () => {
   afterEach(() => {
     cleanup();
@@ -100,7 +105,7 @@ describe('PredictFeedView (component view)', () => {
     const firstCard = await findByTestId(
       getPredictFeedViewSelector.marketCard(1),
       {},
-      { timeout: 10000 },
+      { timeout: FEED_LOAD_TIMEOUT_MS },
     );
     expect(
       within(firstCard).getByText('Lakers to win the title'),
@@ -116,7 +121,7 @@ describe('PredictFeedView (component view)', () => {
       await findByTestId(
         PredictFeedViewSelectorsIDs.EMPTY_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
   });
@@ -129,7 +134,7 @@ describe('PredictFeedView (component view)', () => {
     await findByTestId(
       PredictFeedViewSelectorsIDs.EMPTY_STATE,
       {},
-      { timeout: 10000 },
+      { timeout: FEED_LOAD_TIMEOUT_MS },
     );
 
     expect(
@@ -170,7 +175,7 @@ describe('PredictFeedView (component view)', () => {
       await findByTestId(
         PredictFeedViewSelectorsIDs.ERROR_STATE,
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -194,7 +199,7 @@ describe('PredictFeedView (component view)', () => {
       await findByTestId(
         getPredictFeedViewSelector.marketCard(1),
         {},
-        { timeout: 10000 },
+        { timeout: FEED_LOAD_TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(

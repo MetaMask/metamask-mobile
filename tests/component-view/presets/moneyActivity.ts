@@ -1,5 +1,7 @@
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import type { CardCashbackClaim } from '../../../app/core/Engine/controllers/card-controller/types';
+import type { Json } from '@metamask/utils';
 import { createStateFixture } from '../stateFixture';
 import {
   MONAD_MAINNET_CHAIN_ID,
@@ -25,10 +27,31 @@ export const MONEY_PREMIUM_VAULT = {
 
 export function moneyActivityViewState({
   historicalValuationsEnabled,
+  cashbackClaim = null,
 }: {
   historicalValuationsEnabled: boolean;
+  cashbackClaim?: CardCashbackClaim | null;
 }): DeepPartial<RootState> {
   const account = moneyAccount();
+  const moneyOverrides = withMoneyAccountOverrides(account, {
+    includeGeolocation: true,
+  });
+  const overrides: DeepPartial<RootState> = { ...moneyOverrides };
+
+  if (cashbackClaim) {
+    overrides.engine = {
+      ...moneyOverrides.engine,
+      backgroundState: {
+        ...moneyOverrides.engine.backgroundState,
+        CardController: {
+          cashbackClaim: cashbackClaim as unknown as Record<
+            string,
+            Json
+          > | null,
+        },
+      },
+    };
+  }
 
   return createStateFixture()
     .withMinimalAccounts()
@@ -53,8 +76,6 @@ export function moneyActivityViewState({
       moneyAccountVaultConfig: MONEY_STANDARD_VAULT,
       moneyAccountPremiumVaultConfig: MONEY_PREMIUM_VAULT,
     })
-    .withOverrides(
-      withMoneyAccountOverrides(account, { includeGeolocation: true }),
-    )
+    .withOverrides(overrides)
     .build();
 }
