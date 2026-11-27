@@ -11,7 +11,7 @@ async function removeAll(instance: SDKConnect): Promise<boolean> {
     connections: Record<string, unknown>,
   ): Promise<boolean> => {
     try {
-      await Promise.all(
+      const results = await Promise.all(
         Object.keys(connections).map((id) =>
           instance.removeChannel({
             channelId: id,
@@ -19,7 +19,7 @@ async function removeAll(instance: SDKConnect): Promise<boolean> {
           }),
         ),
       );
-      return true;
+      return results.every((revoked) => revoked === true);
     } catch (error) {
       console.error('Error removing channels:', error);
       return false;

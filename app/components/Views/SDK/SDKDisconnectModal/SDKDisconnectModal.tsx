@@ -1,5 +1,5 @@
 // Third party dependencies
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { removePermittedAccounts } from '../../../../core/Permissions';
@@ -63,6 +64,7 @@ const SDKDisconnectModal = () => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const { navigate } = useNavigation<AppNavigationProp>();
+  const [disconnectFailed, setDisconnectFailed] = useState(false);
 
   const { title, description } = useMemo(() => {
     let _title, _description;
@@ -82,28 +84,32 @@ const SDKDisconnectModal = () => {
   }, [channelId, account]);
 
   const onConfirm = async () => {
-    try {
-      const isGlobalDisconnect = !account && !channelId; // Disconnect all sessions.
-      const isSessionDisconnect = !account && channelId; // Disconnect a specific session.
-      const isAccountDisconnect = account && channelId; // Disconnect a specific account under a session.
+    const isGlobalDisconnect = !account && !channelId; // Disconnect all sessions.
+    const isSessionDisconnect = !account && channelId; // Disconnect a specific session.
+    const isAccountDisconnect = account && channelId; // Disconnect a specific account under a session.
+    let v1Revoked = true;
+    let v1Finished = false;
 
+    try {
       if (isGlobalDisconnect) {
-        // Disconnect all V1 sessions.
-        SDKConnect.getInstance().removeAll();
-        // Disconnect all V2 sessions.
-        const v2ConnectionIds = Object.keys(v2Connections || {});
-        const promises = v2ConnectionIds.map((connId) =>
-          SDKConnectV2.disconnect(connId),
-        );
-        await Promise.all(promises);
+        // Disconnect all V1 sessions before wiping the list.
+        v1Revoked = (await SDKConnect.getInstance().removeAll()) === true;
+        v1Finished = true;
+        if (v1Revoked) {
+          const v2ConnectionIds = Object.keys(v2Connections || {});
+          await Promise.all(
+            v2ConnectionIds.map((connId) => SDKConnectV2.disconnect(connId)),
+          );
+        }
       } else if (isSessionDisconnect) {
         if (isV2) {
           await SDKConnectV2.disconnect(channelId as string);
         } else {
-          SDKConnect.getInstance().removeChannel({
-            channelId: channelId as string,
-            sendTerminate: true,
-          });
+          v1Revoked =
+            (await SDKConnect.getInstance().removeChannel({
+              channelId: channelId as string,
+              sendTerminate: true,
+            })) === true;
         }
       } else if (isAccountDisconnect) {
         // This is a pure permission management action.
@@ -113,18 +119,29 @@ const SDKDisconnectModal = () => {
           if (isV2) {
             await SDKConnectV2.disconnect(channelId as string);
           } else {
-            SDKConnect.getInstance().removeChannel({
-              channelId: channelId as string,
-              sendTerminate: true,
-            });
+            v1Revoked =
+              (await SDKConnect.getInstance().removeChannel({
+                channelId: channelId as string,
+                sendTerminate: true,
+              })) === true;
           }
         }
       }
     } catch (error) {
       DevLogger.log('Failed to perform disconnect action', error);
-    } finally {
-      navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
+      // V2 disconnect throws still return to the sessions list. A V1 throw
+      // means the revoke did not finish, so keep the user here.
+      if (!isV2 && !v1Finished) {
+        v1Revoked = false;
+      }
     }
+
+    if (!v1Revoked) {
+      setDisconnectFailed(true);
+      return;
+    }
+
+    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
   };
 
   const onCancel = () => {
@@ -140,6 +157,11 @@ const SDKDisconnectModal = () => {
         <Text variant={TextVariant.BodyMD}>
           {strings(description, { account: accountName, dapp })}
         </Text>
+        {disconnectFailed ? (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+            {strings('sdk_disconnect_modal.disconnect_failed')}
+          </Text>
+        ) : null}
         <Button
           style={styles.btn}
           variant={ButtonVariant.Primary}
