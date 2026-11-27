@@ -5027,6 +5027,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  isMoneyMfaEnabledV2: {
+    name: 'isMoneyMfaEnabledV2',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyHeadlessAllProviders: {
     name: 'moneyHeadlessAllProviders',
     type: FeatureFlagType.Remote,
