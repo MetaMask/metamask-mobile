@@ -59,7 +59,7 @@ export function ActivityDetailsStatus({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-1"
+      className="flex-row items-center gap-1"
       testID={ActivityDetailsSelectorsIDs.STATUS_PILL}
     >
       <Text

@@ -27,7 +27,7 @@ export function ActivityDetailRow({
 
   return (
     <Box
-      twClassName="min-h-8 flex-row items-center justify-between gap-4"
+      className="min-h-8 flex-row items-center justify-between gap-4"
       testID={testID}
     >
       <Text
@@ -41,7 +41,7 @@ export function ActivityDetailRow({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="shrink text-right"
+          className="shrink text-right"
         >
           {value}
         </Text>
@@ -61,7 +61,7 @@ export function ActivityDetailSection({
   testID?: string;
 }) {
   return (
-    <Box twClassName="gap-2" testID={testID}>
+    <Box className="gap-2" testID={testID}>
       {children}
     </Box>
   );
@@ -76,7 +76,7 @@ export function ActivityDetailFooter({
   testID?: string;
 }) {
   return (
-    <Box twClassName="gap-3" testID={testID}>
+    <Box className="gap-3" testID={testID}>
       {children}
     </Box>
   );
