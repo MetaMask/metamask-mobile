@@ -119,7 +119,7 @@ export const waitForWalletHomePlaywright = async (
 ): Promise<void> =>
   interruptingScreenGuard.retryAfterInterruption(
     () => pollWalletHome(timeout),
-    { intent: WALLET_HOME_INTENT, trigger: 'wait-failure' },
+    { intent: WALLET_HOME_INTENT, trigger: 'wait-failure', timeoutMs: timeout },
   );
 
 const isUnlockedWalletHomeReady = async (): Promise<boolean> => {

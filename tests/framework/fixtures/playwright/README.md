@@ -11,6 +11,7 @@ tests/framework/fixtures/playwright/
 ├── currentDeviceDetails.fixture.ts
 ├── deviceProvider.fixture.ts
 ├── driver.fixture.ts
+├── aiFlakyRecovery.fixture.ts       # Auto: AI flaky-failure recovery for smoke (opt-in)
 └── performanceTracker.fixture.ts
 ```
 

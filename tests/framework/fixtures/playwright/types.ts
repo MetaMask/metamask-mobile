@@ -44,6 +44,13 @@ export interface WorkerLevelFixtures {
 
 export interface TestLevelFixtures {
   /**
+   * AI flaky-failure recovery for E2E smoke (auto fixture). A no-op unless
+   * `AI_FLAKY_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` are set, and
+   * never active for `@Performance` tests.
+   */
+  aiFlakyRecovery: void;
+
+  /**
    * Android device log capture. Auto fixture: clears the logcat buffer before
    * each test and attaches a filtered dump on failure (Android local devices
    * only; iOS and cloud devices are a no-op).

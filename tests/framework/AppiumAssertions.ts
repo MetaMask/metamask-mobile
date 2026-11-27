@@ -16,6 +16,7 @@ import {
 } from './AppiumUtilities.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
 import { interruptingScreenGuard } from './interrupting-screens/InterruptingScreenGuard.ts';
+import { getElementForLocator } from './ai-locator/SelfHealingLocator.ts';
 
 const logger = createAppiumLogger('AppiumAssertions');
 
@@ -221,6 +222,9 @@ export default class AppiumAssertions {
       {
         intent: options.description ?? 'wait for element to be visible',
         trigger: 'wait-failure',
+        timeoutMs: timeout,
+        retryWithLocator: async (locator) =>
+          this.pollUntilVisible(await getElementForLocator(locator), timeout),
       },
     );
   }

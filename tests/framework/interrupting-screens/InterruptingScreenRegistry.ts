@@ -3,6 +3,7 @@ import { ExistingUserSheetSelectorsIDs } from '../../../app/components/Views/Not
 import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import { PerpsGTMModalSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
+import { WalletHomeOnboardingStepsSelectors } from '../../../app/components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { ProtectWalletModalSelectorsIDs } from '../../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
 
 /** Locator used by the registry. Only stable identifiers or exact visible text. */
@@ -94,6 +95,17 @@ export const INTERRUPTING_SCREEN_REGISTRY: readonly InterruptingScreenDefinition
       name: 'protect-your-wallet-modal',
       detect: [testID(ProtectWalletModalSelectorsIDs.CONTAINER)],
       dismiss: [testID(ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON)],
+    },
+    {
+      // "Get started on MetaMask" checklist card on wallet home. Unlike the
+      // sheets above it does not cover the app, but its steps push the content
+      // the test wants out of view; Skip moves past a step without acting on it.
+      name: 'wallet-home-onboarding-steps',
+      detect: [
+        testID(WalletHomeOnboardingStepsSelectors.CONTAINER),
+        testID(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      ],
+      dismiss: [testID(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON)],
     },
   ];
 

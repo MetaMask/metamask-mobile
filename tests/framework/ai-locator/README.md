@@ -70,6 +70,15 @@ retries the action once. `isSafeDismissControl` rejects any accept / confirm /
 sign / buy-type control. See the "Interrupting Screens" section of
 `tests/performance/README.md`.
 
+### Flaky-failure recovery (E2E smoke)
+
+E2E smoke has its own opt-in, `AI_FLAKY_RECOVERY_ENABLED=true` plus
+`ANTHROPIC_API_KEY`, that reuses the guard's registry fast path and the
+`isSafeDismissControl` refusals but adds a broader diagnosis and marks the test
+`flaky-ai-recovered`. It is never active for performance tests. See
+`tests/framework/flaky-recovery/` and the "AI flaky-failure recovery" section of
+`tests/docs/appium-smoke-testing.md`.
+
 ### Secret screens
 
 Recovery must never upload SRP words, private keys, or reveal-seed UI to the
