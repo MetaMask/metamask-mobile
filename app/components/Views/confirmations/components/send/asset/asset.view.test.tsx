@@ -143,16 +143,8 @@ describeForPlatforms('Send asset picker — testnet fiat preference', () => {
   it('hides Sepolia fiat but keeps mainnet fiat when the setting is disabled', async () => {
     const { findByTestId } = renderAssetPicker(false);
 
-    const sepoliaRow = await findByTestId(
-      getAssetTestId('SepoliaETH'),
-      {},
-      { timeout: 5000 },
-    );
-    const mainnetRow = await findByTestId(
-      getAssetTestId('ETH'),
-      {},
-      { timeout: 5000 },
-    );
+    const sepoliaRow = await findByTestId(getAssetTestId('SepoliaETH'));
+    const mainnetRow = await findByTestId(getAssetTestId('ETH'));
 
     expect(within(sepoliaRow).queryByText('$1,000')).toBeNull();
     expect(within(mainnetRow).getByText('$2,000')).toBeOnTheScreen();
@@ -161,11 +153,7 @@ describeForPlatforms('Send asset picker — testnet fiat preference', () => {
   it('shows Sepolia fiat when the setting is enabled', async () => {
     const { findByTestId } = renderAssetPicker(true);
 
-    const sepoliaRow = await findByTestId(
-      getAssetTestId('SepoliaETH'),
-      {},
-      { timeout: 5000 },
-    );
+    const sepoliaRow = await findByTestId(getAssetTestId('SepoliaETH'));
 
     expect(within(sepoliaRow).getByText('$1,000')).toBeOnTheScreen();
   });

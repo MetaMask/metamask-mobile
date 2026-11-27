@@ -100,6 +100,9 @@ describeForPlatforms('EIP-7702 sponsored send — review (network fee)', () => {
           getByTestId(ConfirmationRowComponentIDs.PAID_BY_METAMASK),
         ).toBeOnTheScreen();
       },
+      // The sponsored-gas row renders after the gas-fee poll picks up the
+      // relay eligibility answer; that poll cycle can outlast the 5s default
+      // on a loaded CV shard.
       { timeout: 8000 },
     );
     expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
