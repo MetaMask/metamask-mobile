@@ -3,7 +3,7 @@ import { bytesToHex } from '@metamask/utils';
 import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { CardController, defaultCardControllerState } from './CardController';
 import type { CardService } from './services/CardService';
-import { CardApiError } from './services/BaanxService';
+import { CardApiError } from './services/cardHttpObservability';
 import type {
   CardControllerMessenger,
   CardControllerState,

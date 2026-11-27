@@ -31,7 +31,11 @@ import {
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
 import { networkToCaipChainId } from '../../../../../components/UI/Card/util/redeemDestination';
-import { CardApiError, type BaanxService } from '../services/BaanxService';
+import type { BaanxService } from '../services/BaanxService';
+import {
+  CardApiError,
+  toCardProviderError,
+} from '../services/cardHttpObservability';
 import {
   CardAccountStatus,
   CardAction,
@@ -72,6 +76,7 @@ import {
   type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
+  logUnreportedCardError,
   CardProviderIds,
   CardTransactionStatus,
   CardTransactionType,
@@ -290,74 +295,6 @@ function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
   );
 }
 
-function mapApiError(error: unknown, operation: string): CardProviderError {
-  if (error instanceof CardProviderError) return error;
-  if (error instanceof CardApiError) {
-    if (error.statusCode === 401) {
-      return new CardProviderError(
-        CardProviderErrorCode.InvalidCredentials,
-        `Authentication failed on ${operation}`,
-        error.statusCode,
-      );
-    }
-
-    if (error.statusCode === 403) {
-      return new CardProviderError(
-        CardProviderErrorCode.Forbidden,
-        `Forbidden on ${operation}`,
-        403,
-        error.errorCode,
-      );
-    }
-    if (error.statusCode === 404) {
-      return new CardProviderError(
-        CardProviderErrorCode.NotFound,
-        `Not found: ${operation}`,
-        404,
-      );
-    }
-    if (error.statusCode === 409) {
-      return new CardProviderError(
-        CardProviderErrorCode.Conflict,
-        `Conflict on ${operation}`,
-        409,
-      );
-    }
-    if (error.statusCode >= 500) {
-      return new CardProviderError(
-        CardProviderErrorCode.ServerError,
-        `Server error on ${operation}`,
-        error.statusCode,
-      );
-    }
-    if (error.statusCode === 408) {
-      return new CardProviderError(
-        CardProviderErrorCode.Timeout,
-        `Request timeout on ${operation}`,
-        408,
-      );
-    }
-    if (error.statusCode === 429) {
-      return new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        `Rate limited on ${operation}`,
-        429,
-      );
-    }
-    if (error.statusCode === 0) {
-      return new CardProviderError(
-        CardProviderErrorCode.Network,
-        `Network error on ${operation}`,
-        0,
-      );
-    }
-  }
-  return new CardProviderError(
-    CardProviderErrorCode.Unknown,
-    (error as Error).message ?? `Unknown error on ${operation}`,
-  );
-}
-
 function mapAllowanceToFundingStatus(
   allowanceFloat: number,
 ): FundingAssetStatus {
@@ -489,7 +426,7 @@ export class BaanxProvider implements ICardProvider {
     try {
       await this.service.post('/v1/auth/login/email-code/request', { email });
     } catch (error) {
-      throw mapApiError(error, 'requestEmailLoginCode');
+      throw toCardProviderError(error, 'requestEmailLoginCode');
     }
   }
 
@@ -527,6 +464,7 @@ export class BaanxProvider implements ICardProvider {
             refresh_token: tokens.refreshToken,
           },
           headers: { 'x-secret-key': this.service.apiKey },
+          unreportedStatuses: [400, 403],
         },
       );
     } catch (error) {
@@ -538,9 +476,11 @@ export class BaanxProvider implements ICardProvider {
           CardProviderErrorCode.InvalidCredentials,
           'Refresh token rejected',
           error.statusCode,
+          undefined,
+          { requestId: error.requestId, reported: error.reported },
         );
       }
-      throw mapApiError(error, 'refreshTokens');
+      throw toCardProviderError(error, 'refreshTokens');
     }
 
     return {
@@ -586,7 +526,7 @@ export class BaanxProvider implements ICardProvider {
     try {
       return await this.service.get<UserResponse>('/v1/user', tokens);
     } catch (error) {
-      throw mapApiError(error, 'getUserDetails');
+      throw toCardProviderError(error, 'getUserDetails');
     }
   }
 
@@ -599,12 +539,17 @@ export class BaanxProvider implements ICardProvider {
     try {
       const userId =
         tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
-      await this.service.post('/v1/user/closure', { userId }, tokens);
+      await this.service.request('/v1/user/closure', {
+        method: 'POST',
+        body: { userId },
+        tokenSet: tokens,
+        unreportedStatuses: [400],
+      });
     } catch (error) {
       if (error instanceof CardApiError && error.statusCode === 400) {
         return;
       }
-      throw mapApiError(error, 'requestAccountClosure');
+      throw toCardProviderError(error, 'requestAccountClosure');
     }
   }
 
@@ -618,7 +563,7 @@ export class BaanxProvider implements ICardProvider {
       (logContext: string) =>
       (err: unknown): null => {
         if (isCardAuthTokenError(err)) {
-          throw mapApiError(err, logContext);
+          throw toCardProviderError(err, logContext);
         }
         // getUserDetails maps CardApiError → CardProviderError before this
         // catch runs, so check statusCode on both shapes.
@@ -626,9 +571,9 @@ export class BaanxProvider implements ICardProvider {
           (err instanceof CardApiError || err instanceof CardProviderError) &&
           err.statusCode === 429
         ) {
-          throw mapApiError(err, logContext);
+          throw toCardProviderError(err, logContext);
         }
-        Logger.error(err as Error, getErrorContext(logContext));
+        logUnreportedCardError(err, getErrorContext(logContext));
         return null;
       };
 
@@ -736,10 +681,10 @@ export class BaanxProvider implements ICardProvider {
         error.statusCode === 429
       ) {
         throw error instanceof CardApiError
-          ? mapApiError(error, 'getCardHomeData')
+          ? toCardProviderError(error, 'getCardHomeData')
           : error;
       }
-      Logger.error(error as Error, getErrorContext('getCardHomeData'));
+      logUnreportedCardError(error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
   }
@@ -748,9 +693,9 @@ export class BaanxProvider implements ICardProvider {
 
   async getCardDetails(tokens: CardAuthTokens): Promise<CardDetails> {
     try {
-      const response = await this.service.get<CardDetailsResponse>(
+      const response = await this.service.request<CardDetailsResponse>(
         '/v1/card/status',
-        tokens,
+        { tokenSet: tokens, unreportedStatuses: [404] },
       );
       return this.mapCardDetails(response, tokens.location as CardLocation);
     } catch (error) {
@@ -761,7 +706,7 @@ export class BaanxProvider implements ICardProvider {
           404,
         );
       }
-      throw mapApiError(error, 'getCardDetails');
+      throw toCardProviderError(error, 'getCardDetails');
     }
   }
 
@@ -837,7 +782,7 @@ export class BaanxProvider implements ICardProvider {
 
       return { items: mapped, nextCursor };
     } catch (error) {
-      throw mapApiError(error, 'listTransactions');
+      throw toCardProviderError(error, 'listTransactions');
     }
   }
 
@@ -1115,7 +1060,7 @@ export class BaanxProvider implements ICardProvider {
       );
       return { success: true, data: response };
     } catch (error) {
-      Logger.error(error as Error, getErrorContext('submitOnboardingStep'));
+      logUnreportedCardError(error, getErrorContext('submitOnboardingStep'));
       return { success: false, error: (error as Error).message };
     }
   }
@@ -1193,10 +1138,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
-      }
-      throw mapApiError(error, 'getCashbackWallet');
+      throw toCardProviderError(error, 'getCashbackWallet');
     }
   }
 
@@ -1209,13 +1151,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('getCashbackWithdrawEstimation'),
-        );
-      }
-      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+      throw toCardProviderError(error, 'getCashbackWithdrawEstimation');
     }
   }
 
@@ -1230,10 +1166,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('withdrawCashback'));
-      }
-      throw mapApiError(error, 'withdrawCashback');
+      throw toCardProviderError(error, 'withdrawCashback');
     }
   }
 
@@ -1246,10 +1179,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('getCreditWallet'));
-      }
-      throw mapApiError(error, 'getCreditWallet');
+      throw toCardProviderError(error, 'getCreditWallet');
     }
   }
 
@@ -1262,13 +1192,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('getCreditWithdrawEstimation'),
-        );
-      }
-      throw mapApiError(error, 'getCreditWithdrawEstimation');
+      throw toCardProviderError(error, 'getCreditWithdrawEstimation');
     }
   }
 
@@ -1283,10 +1207,7 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('withdrawCredit'));
-      }
-      throw mapApiError(error, 'withdrawCredit');
+      throw toCardProviderError(error, 'withdrawCredit');
     }
   }
 
@@ -1426,6 +1347,13 @@ export class BaanxProvider implements ICardProvider {
           password: credentials.password,
           ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
         },
+        {
+          // 403/404 are invalid credentials. 400 is an invalid OTP only when
+          // a code was submitted; other 400s stay reportable.
+          unreportedStatuses: credentials.otpCode
+            ? [400, 403, 404]
+            : [403, 404],
+        },
       );
     } catch (error) {
       throw mapLoginError(error, !!credentials.otpCode);
@@ -1456,7 +1384,7 @@ export class BaanxProvider implements ICardProvider {
     try {
       return await this.completeAuth(session, loginResponse);
     } catch (error) {
-      throw mapApiError(error, 'completeAuth');
+      throw toCardProviderError(error, 'completeAuth');
     }
   }
 
@@ -1511,7 +1439,7 @@ export class BaanxProvider implements ICardProvider {
     try {
       return await this.completeAuth(session, loginResponse);
     } catch (error) {
-      throw mapApiError(error, 'completeAuth');
+      throw toCardProviderError(error, 'completeAuth');
     }
   }
 
@@ -1664,9 +1592,9 @@ export class BaanxProvider implements ICardProvider {
       };
     } catch (error) {
       if (isCardAuthTokenError(error)) {
-        throw mapApiError(error, 'fetchWalletDetails');
+        throw toCardProviderError(error, 'fetchWalletDetails');
       }
-      Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
+      logUnreportedCardError(error, getErrorContext('fetchWalletDetails'));
       return { details: [], priorities: [] };
     }
   }

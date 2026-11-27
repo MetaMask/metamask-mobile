@@ -82,6 +82,9 @@ describe('useCreditBalance', () => {
       expect(result.current.hasCredit).toBe(true);
     });
 
+    expect(typeof result.current.refetch).toBe('function');
+    expect(result.current.isRefetching).toBe(false);
+
     expect(result.current.creditBalanceNumber).toBe(12.5);
     expect(result.current.creditFiatNumber).toBe(12.5);
     expect(result.current.error).toBeNull();
@@ -108,5 +111,36 @@ describe('useCreditBalance', () => {
 
     expect(result.current.hasCredit).toBe(false);
     expect(result.current.creditBalanceNumber).toBe(0);
+  });
+
+  it('clears a cached error when the query is disabled', async () => {
+    const { CardProviderError, CardProviderErrorCode } = jest.requireActual(
+      '../../../../core/Engine/controllers/card-controller/provider-types',
+    );
+    mockGetCreditWallet.mockRejectedValue(
+      new CardProviderError(CardProviderErrorCode.ServerError, 'server', 500),
+    );
+
+    const { result, rerender } = renderHook(() => useCreditBalance(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(
+      () => {
+        expect(result.current.error).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectIsCardAuthenticated) return false;
+      if (selector === selectCardFiatCreditFeatureEnabled) return true;
+      if (selector === selectCurrencyRates) return {};
+      return undefined;
+    });
+
+    rerender(undefined);
+
+    expect(result.current.error).toBeNull();
   });
 });

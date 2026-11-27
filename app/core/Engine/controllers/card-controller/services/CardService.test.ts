@@ -1,6 +1,6 @@
 import { create, isAxiosError } from 'axios';
 import { CardService, getCardApiErrorBodyCode } from './CardService';
-import { CardApiError } from './BaanxService';
+import { CardApiError } from './cardHttpObservability';
 import { CardProviderIds } from '../provider-types';
 
 jest.mock('axios');

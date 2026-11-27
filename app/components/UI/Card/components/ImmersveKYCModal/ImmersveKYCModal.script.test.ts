@@ -6,6 +6,8 @@ import {
   IMMERSVE_KYC_UI_STYLE_ID,
 } from './ImmersveKYCModal';
 
+jest.mock('../Onboarding/ImmersveKycIdentityLayout', () => () => null);
+
 const runUiScript = () => {
   // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
   const run = new Function(IMMERSVE_KYC_UI_JS) as () => void;

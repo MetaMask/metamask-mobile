@@ -338,6 +338,7 @@ export enum TraceName {
   MoneyActivityVaultShareValuationsFetch = 'Money Activity Vault Share Valuations Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
   CardRedeemWithdraw = 'Card Redeem Withdraw',
+  CardApiRequest = 'Card API Request',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
