@@ -263,7 +263,7 @@ function useGroupedTokenActivity({
  * ACTIVITY_EXPAND_STEP_ROWS transaction rows regardless of how many
  * pending/date headers sit in between.
  */
-function countActivityRows(groupedItems: GroupedActivityListItem[]) {
+function countActivityRows(groupedItems: GroupedActivityListItem[]): number {
   return groupedItems.filter((item) => item.type === 'item').length;
 }
 
@@ -361,9 +361,10 @@ const ActivityRows = ({
   });
 
   // Use provided items for simple mode, or computed items for API mode
-  const finalGroupedItems = isSimpleMode
-    ? providedGroupedItems!
-    : activityGroupedItems;
+  const finalGroupedItems =
+    isSimpleMode && providedGroupedItems
+      ? providedGroupedItems
+      : activityGroupedItems;
 
   const {
     visibleItems,
@@ -404,11 +405,13 @@ const ActivityRows = ({
   // API mode: keep section up while loading, on error, or if has/may have activity
   const showActivitySection = isSimpleMode
     ? hasActivity
-    : isActivityLoading ||
-      isApiLoading ||
-      isApiError ||
-      hasActivity ||
-      hasNextApiPage;
+    : [
+        isActivityLoading,
+        isApiLoading,
+        isApiError,
+        hasActivity,
+        hasNextApiPage,
+      ].some(Boolean);
 
   const isInitialApiLoad =
     !isSimpleMode && isApiLoading && !isFetchingNextApiPage;
