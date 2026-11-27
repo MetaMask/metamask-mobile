@@ -15,30 +15,39 @@ import type {
 import type { HardwareTier } from '../../../../../../util/deviceCapability/types';
 import type { NetworkTier } from '../../../../../../hooks/useNetworkTier';
 
-/** Most cards the Trending carousel shows. */
+/** Most cards the Trending carousel shows when its section sets no `limit`. */
 const TRENDING_LIMIT = 5;
 /** Most Trending cards one read fills before the rest fill the carousel. */
 const TRENDING_PER_READ = 2;
 /** Most cards a games row shows. */
 const GAMES_ROW_LIMIT = 6;
 
-type FeedReadingKind = Exclude<PredictHomeSection['kind'], 'categories'>;
+type FeedReadingKind = Exclude<
+  PredictHomeSection['kind'],
+  'categories' | 'trending'
+>;
 
 /**
  * How many Events one read asks for, by the kind of section that reads it.
  * A games row reads more than it may show because Trending above it can take
- * some of its Games; Trending reads up to two cards per source and a few more
- * to fill the carousel; a preview shows what it reads. Constrained devices
- * get shorter lists (device-capability UX matrix).
+ * some of its Games; a preview shows what it reads. Constrained devices get
+ * shorter lists (device-capability UX matrix).
  */
 const READ_SIZES: Record<
   FeedReadingKind,
   { standard: number; constrained: number }
 > = {
-  trending: { standard: 4, constrained: 2 },
   'games-row': { standard: 6, constrained: 4 },
   'feed-preview': { standard: 2, constrained: 1 },
 };
+
+/**
+ * How many Events Trending reads from each source for a carousel of
+ * `limit` cards: the whole carousel, since one source can fill it. On a
+ * constrained device each source reads two.
+ */
+const getTrendingReadSize = (limit: number, isConstrained: boolean): number =>
+  isConstrained ? Math.min(limit, TRENDING_PER_READ) : limit;
 
 /**
  * Whether Home reads short lists on this device: low-end hardware or a slow
@@ -74,8 +83,10 @@ export const planHomeFeedReads = (
     if (section.kind === 'categories') {
       continue;
     }
-    const sizes = READ_SIZES[section.kind];
-    const limit = isConstrained ? sizes.constrained : sizes.standard;
+    const limit =
+      section.kind === 'trending'
+        ? getTrendingReadSize(section.limit ?? TRENDING_LIMIT, isConstrained)
+        : READ_SIZES[section.kind][isConstrained ? 'constrained' : 'standard'];
     for (const feedKey of getHomeSectionFeedKeys(section)) {
       const planned = plan.find((read) => read.feedKey === feedKey);
       if (planned) {
@@ -105,6 +116,8 @@ export type HomeSectionView<TRead extends HomeFeedReadEvents> =
   | {
       kind: 'trending';
       key: string;
+      /** The server's title; without it the carousel reads "Trending". */
+      title?: string;
       screen?: string;
       events: PredictEvent[];
       isLoading: boolean;
@@ -145,17 +158,19 @@ const isLiveGame = (event: PredictEvent): boolean =>
  * Trending takes game Events only, from its source reads. Live Games rank
  * first, then read order: read by read, each in backend order. Each read
  * fills at most two cards, then the best of the rest fill the carousel to
- * five, so one league cannot take every card while another has Games. The
+ * `limit`, so one league cannot take every card while another has Games. The
  * carousel shows its Events in rank order.
  *
  * The ranking is a snapshot of the reads: it uses each Game's status as the
- * Feed returned it. A Game that goes live through streamed data keeps its
- * place, and shows its live status, until the next Feed read ranks it again.
- * Home neither re-ranks on live updates nor refetches to pick them up.
+ * Feed returned it. A Game that goes live or ends through streamed data keeps
+ * its place, and shows its live status, until the next Feed read ranks it
+ * again. Home does not re-rank on live updates; it reads Trending's sources
+ * again on a period while it is focused (see `useLiveNowPollInterval`).
  */
 const selectTrendingEvents = (
   reads: readonly (readonly PredictEvent[])[],
   isShown: (event: PredictEvent) => boolean,
+  limit: number,
 ): PredictEvent[] => {
   const seen = new Set<PredictEntityId>();
   const games: { event: PredictEvent; readIndex: number }[] = [];
@@ -177,13 +192,13 @@ const selectTrendingEvents = (
   const pickedPerRead = new Map<number, number>();
   for (const { event, readIndex } of ranked) {
     const count = pickedPerRead.get(readIndex) ?? 0;
-    if (picked.size < TRENDING_LIMIT && count < TRENDING_PER_READ) {
+    if (picked.size < limit && count < TRENDING_PER_READ) {
       picked.add(event);
       pickedPerRead.set(readIndex, count + 1);
     }
   }
   for (const { event } of ranked) {
-    if (picked.size < TRENDING_LIMIT) {
+    if (picked.size < limit) {
       picked.add(event);
     }
   }
@@ -248,10 +263,12 @@ export const selectHomeSections = <TRead extends HomeFeedReadEvents>(
         : selectTrendingEvents(
             sectionReads.map((read) => read.events),
             isShown,
+            section.limit ?? TRENDING_LIMIT,
           );
       return {
         kind: 'trending',
         key,
+        ...(section.title ? { title: section.title } : {}),
         ...(section.screen ? { screen: section.screen } : {}),
         events: show(events),
         isLoading,

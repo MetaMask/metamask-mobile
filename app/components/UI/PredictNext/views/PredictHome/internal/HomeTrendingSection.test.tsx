@@ -14,6 +14,8 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-namespace -- spy on the named `strings` export
+import * as i18n from '../../../../../../../locales/i18n';
 import { makePredictNextGameEvent } from '../../../../../../../tests/component-view/fixtures/predictNext';
 import type { PredictEntityId, PredictEvent } from '../../../types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
@@ -75,6 +77,10 @@ const carousel = () =>
   within(screen.getByTestId(PredictHomeTestIds.HOME_TRENDING_CAROUSEL));
 
 describe('HomeTrendingSection', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('opens the Trending screen from the header and its chevron', () => {
     const onOpen = jest.fn();
     renderSection({ onOpen });
@@ -102,6 +108,29 @@ describe('HomeTrendingSection', () => {
     expect(
       screen.queryByRole('button', { name: 'Trending' }),
     ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    [undefined, 'predict_next.home_feed.trending'],
+    ['Live now', 'predict_next.home_feed.live_now'],
+  ])('titles the header with %s in the app locale', (title, key) => {
+    jest
+      .spyOn(i18n, 'strings')
+      .mockImplementation((name: string) => `translated:${name}`);
+
+    renderSection({ title });
+
+    expect(
+      screen.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+    ).toHaveTextContent(`translated:${key}`);
+  });
+
+  it('shows any other server title as served', () => {
+    renderSection({ title: 'Games on now' });
+
+    expect(
+      screen.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+    ).toHaveTextContent('Games on now');
   });
 
   it('shows a featured card per Event, in order, in a 340pt carousel', () => {

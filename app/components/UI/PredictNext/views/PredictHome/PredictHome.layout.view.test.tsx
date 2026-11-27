@@ -136,8 +136,8 @@ describe('PredictHome layout from the Venue catalog', () => {
       PredictHomeTestIds.CATEGORIES,
     ]);
     expect(feedCalls()).toEqual([
-      [NCAA_GAMES_FEED_ID, { limit: 4 }],
-      [NFL_GAMES_FEED_ID, { limit: 4 }],
+      [NCAA_GAMES_FEED_ID, { limit: 5 }],
+      [NFL_GAMES_FEED_ID, { limit: 5 }],
     ]);
   });
 
@@ -287,7 +287,7 @@ describe('PredictHome layout from the Venue catalog', () => {
 
     expect(feedCalls()).toEqual([
       [POLITICS_TRUMP_FEED_ID, { limit: 2 }],
-      [NCAA_GAMES_FEED_ID, { limit: 4 }],
+      [NCAA_GAMES_FEED_ID, { limit: 5 }],
       [NFL_GAMES_FEED_ID, { limit: 6 }],
     ]);
   });
