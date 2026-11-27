@@ -143,6 +143,11 @@ describe('PredictPortfolioScreen', () => {
       ),
     ).toHaveTextContent('+$0.64 (+2.32%)');
     expect(
+      within(summaryCard).queryByTestId(
+        PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
       within(summaryCard).queryByText(
         strings('predict_next.portfolio.total_value'),
       ),
@@ -181,7 +186,7 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('renders an incomplete Summary without hiding or zeroing its values', async () => {
+  it('flags an incomplete Summary instead of hiding or zeroing it', async () => {
     configurePredictNextFeeds({
       summary: makePredictNextSummary({
         availableBalance: '50.00',
@@ -195,7 +200,12 @@ describe('PredictPortfolioScreen', () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE),
+    ).toHaveTextContent(
+      "Partial P&L: some positions couldn't be valued right now.",
+    );
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toHaveTextContent('$50.00');
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),

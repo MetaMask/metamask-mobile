@@ -6,6 +6,7 @@ export const PredictPortfolioScreenTestIds = {
   SUMMARY_LOADING: 'predict-next-portfolio-summary-loading',
   SUMMARY_ERROR: 'predict-next-portfolio-summary-error',
   SUMMARY_RETRY: 'predict-next-portfolio-summary-retry',
+  SUMMARY_INCOMPLETE: 'predict-next-portfolio-summary-incomplete',
   DEPOSIT_STATUS: 'predict-next-portfolio-deposit-status',
   BALANCE_VALUE: 'predict-next-portfolio-balance-value',
   UNREALIZED_PNL: 'predict-next-portfolio-unrealized-pnl',

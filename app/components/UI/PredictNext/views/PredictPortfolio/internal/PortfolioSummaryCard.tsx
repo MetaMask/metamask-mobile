@@ -5,6 +5,10 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Skeleton,
@@ -149,12 +153,33 @@ const SummaryRows = ({
         testID={PredictPortfolioScreenTestIds.UNREALIZED_PNL}
       />
     </SummaryRow>
+    {summary.complete ? null : (
+      <Box
+        className="flex-row items-start gap-1.5 px-4 pb-3"
+        testID={PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE}
+      >
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.WarningDefault}
+          twClassName="mt-0.5 shrink-0"
+        />
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.WarningDefault}
+          className="min-w-0 flex-1"
+        >
+          {strings('predict_next.portfolio.summary_incomplete')}
+        </Text>
+      </Box>
+    )}
   </>
 );
 
 /**
  * Renders the backend-computed Portfolio Summary. Every figure is formatted
- * from the Summary as served; nothing is summed from loaded rows.
+ * from the Summary as served; nothing is summed from loaded rows. An
+ * incomplete Summary keeps its values and says that it is partial.
  */
 export const PortfolioSummaryCard = ({
   summary,
