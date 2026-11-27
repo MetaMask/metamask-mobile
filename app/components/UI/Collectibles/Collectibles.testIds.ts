@@ -15,6 +15,7 @@ export const collectiblesTestIds = {
   packsView: 'collectibles-packs-view',
   collectionView: 'collectibles-collection-view',
   marketplaceView: 'collectibles-marketplace-view',
+  buySheetClose: 'collectibles-buy-sheet-close',
   packsSkeleton: 'collectibles-packs-skeleton',
   packsEmpty: 'collectibles-packs-empty',
   packsCategoryChip: (id: string) => `collectibles-packs-chip-${id}`,

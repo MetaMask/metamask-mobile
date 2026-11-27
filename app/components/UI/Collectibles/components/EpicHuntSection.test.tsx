@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import render from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import type { EpicHuntPack } from '#app/components/UI/Collectibles/types/packs';
@@ -21,7 +17,7 @@ const pack: EpicHuntPack = {
   name: 'Lorem ipsum',
   subtitle: 'Epic 1% · 32 pulls since last Epic',
   openedCount: 48210,
-  priceLabel: '$25.00',
+  priceUsd: 25,
   pullsOverAverage: -68,
 };
 

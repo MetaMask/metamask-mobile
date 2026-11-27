@@ -6,7 +6,7 @@ import type { EpicHuntPack } from '../types/packs';
 import { getPullsOverAverage, rankEpicOddsPacks } from '../utils/epicOdds';
 
 export function useEpicHuntPacks() {
-  const { formatCurrency, formatNumber } = useFormatters();
+  const { formatNumber } = useFormatters();
   const { data: machines, isPending } = useQuery(collectiblesEpicOddsOptions);
 
   const data: EpicHuntPack[] = rankEpicOddsPacks(machines ?? []).map(
@@ -14,7 +14,7 @@ export function useEpicHuntPacks() {
       code: pack.code,
       name: pack.name,
       openedCount: pack.openedCount,
-      priceLabel: formatCurrency(pack.priceUsd, 'USD'),
+      priceUsd: pack.priceUsd,
       subtitle: strings('collectibles.epic_hunt.pulls_line', {
         count: pack.pullsSinceEpic,
         formattedCount: formatNumber(pack.pullsSinceEpic),

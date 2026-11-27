@@ -10,6 +10,4 @@ export const collectiblesHomePacksOptions = queryOptions({
   queryKey: collectiblesPackKeys.home(),
   // TODO: replace the mock with the real packs API.
   queryFn: fetchMockHomePacks,
-  // A pack without a price can't be bought, so its tile isn't shown.
-  select: (packs) => packs.filter((pack) => pack.priceLabel),
 });
