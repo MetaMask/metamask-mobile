@@ -108,8 +108,10 @@ import {
   SocialLeaderboardEventValues,
   useSocialAnalytics,
   useSocialLeaderboardAnalytics,
+  useTrackSocialActionBlocked,
   type FollowTradingTokenSource,
 } from '../analytics';
+import type { SocialGate } from '../analytics/socialEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
@@ -137,6 +139,12 @@ import {
   getEarliestTradeMs,
 } from '../navigation/socialOgImageCards';
 import { logSocialOgShare } from '../navigation/socialOgShareLog';
+
+/** The Trade CTA opens a perps market order. */
+const PERP_TRADE_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.POSITION_TRADE,
+  tradeType: SocialEvent.Trade.PERPS,
+};
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -167,8 +175,13 @@ const TraderPositionView = () => {
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const hasSocialV1Access = useSelector(selectHasSocialV1Access);
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const onBlocked = useTrackSocialActionBlocked(
+    SocialEvent.Screen.TRADER_POSITION,
+  );
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({ onBlocked });
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
@@ -570,8 +583,10 @@ const TraderPositionView = () => {
     function perpTrade(targetSymbol: string): void {
       if (
         hasSocialV1Access &&
-        (!ensureSocialTermsAccepted(() => perpTrade(targetSymbol)) ||
-          !ensureSocialProfileOnboarding())
+        (!ensureSocialTermsAccepted(PERP_TRADE_GATE, () =>
+          perpTrade(targetSymbol),
+        ) ||
+          !ensureSocialProfileOnboarding(PERP_TRADE_GATE))
       ) {
         return;
       }

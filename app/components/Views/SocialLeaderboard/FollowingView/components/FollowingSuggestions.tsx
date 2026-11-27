@@ -15,6 +15,7 @@ import React, { useCallback } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { formatFollowerCountLabel } from '../../../../UI/SocialFeed/utils/formatters';
+import { SocialEvent } from '../../analytics';
 import ConnectionRow from '../../FollowConnectionsView/components/ConnectionRow';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
 import { navigateToSocialV1Profile } from '../../navigation/navigateToSocialV1Profile';
@@ -33,6 +34,7 @@ export const FOLLOWING_SUGGESTIONS_TEST_ID = 'social-v1-following-suggestions';
 const FollowingSuggestions: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.FOLLOWING,
     requireSocialTerms: true,
     requireSocialProfile: true,
   });

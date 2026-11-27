@@ -66,6 +66,10 @@ import {
   useSocialAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
+import type {
+  SocialBlockedHandler,
+  SocialGate,
+} from '../analytics/socialEvents';
 import { resolveQuickBuyOriginalEntryPointFromPositionSource } from '../../../UI/QuickBuy/analytics/resolveQuickBuyOriginalEntryPoint';
 import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
@@ -289,12 +293,37 @@ const PositionDetailsSheet = () => {
 
   // Onboarding pushed from this transparent modal would open inside the sheet,
   // so the gates close it first and onboarding opens full screen.
+  // Through the sheet's own tracker, so it carries the same position context
+  // as every other interaction on this screen.
+  const handleActionBlocked = useCallback<SocialBlockedHandler>(
+    (blocked) => trackInteraction(Interaction.ACTION_BLOCKED, blocked),
+    [trackInteraction],
+  );
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
     runNavigation: closeThen,
+    onBlocked: handleActionBlocked,
   });
   const { ensureSocialTermsAccepted } = useSocialTermsGate({
     runNavigation: closeThen,
+    onBlocked: handleActionBlocked,
   });
+  const tradeType = data.isPerp
+    ? SocialEvent.Trade.PERPS
+    : SocialEvent.Trade.SPOT;
+  const positionTradeGate = useMemo<SocialGate>(
+    () => ({
+      trigger: SocialEvent.OnboardingTrigger.POSITION_TRADE,
+      tradeType,
+    }),
+    [tradeType],
+  );
+  const copyTradeGate = useMemo<SocialGate>(
+    () => ({
+      trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      tradeType,
+    }),
+    [tradeType],
+  );
 
   const handleOpenAsset = useCallback(() => {
     if (data.isPerp) {
@@ -513,8 +542,10 @@ const PositionDetailsSheet = () => {
   const handlePerpsOrder = useCallback(
     function perpsOrder(direction: PerpDirection, leverage?: number): void {
       if (
-        !ensureSocialTermsAccepted(() => perpsOrder(direction, leverage)) ||
-        !ensureSocialProfileOnboarding()
+        !ensureSocialTermsAccepted(positionTradeGate, () =>
+          perpsOrder(direction, leverage),
+        ) ||
+        !ensureSocialProfileOnboarding(positionTradeGate)
       ) {
         return;
       }
@@ -530,6 +561,7 @@ const PositionDetailsSheet = () => {
       ensureSocialProfileOnboarding,
       ensureSocialTermsAccepted,
       openPerpsMarketOrder,
+      positionTradeGate,
       trackInteraction,
     ],
   );
@@ -537,8 +569,8 @@ const PositionDetailsSheet = () => {
   const handleSpotTrade = useCallback(
     function spotTrade(mode: QuickBuyTradeMode): void {
       if (
-        !ensureSocialTermsAccepted(() => spotTrade(mode)) ||
-        !ensureSocialProfileOnboarding()
+        !ensureSocialTermsAccepted(positionTradeGate, () => spotTrade(mode)) ||
+        !ensureSocialProfileOnboarding(positionTradeGate)
       ) {
         return;
       }
@@ -549,19 +581,20 @@ const PositionDetailsSheet = () => {
       ensureSocialProfileOnboarding,
       ensureSocialTermsAccepted,
       openQuickBuy,
+      positionTradeGate,
       trackInteraction,
     ],
   );
 
   const handleCopyTrade = useCallback(
     function copyTrade(): void {
-      if (!ensureSocialTermsAccepted(copyTrade)) {
+      if (!ensureSocialTermsAccepted(copyTradeGate, copyTrade)) {
         trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
           blocked_reason: BlockedReason.TERMS,
         });
         return;
       }
-      if (!ensureSocialProfileOnboarding()) {
+      if (!ensureSocialProfileOnboarding(copyTradeGate)) {
         trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
           blocked_reason: BlockedReason.PROFILE_ONBOARDING,
         });
@@ -575,6 +608,7 @@ const PositionDetailsSheet = () => {
       openQuickBuy('buy', true);
     },
     [
+      copyTradeGate,
       data.isPerp,
       data.perpDirection,
       data.leverage,

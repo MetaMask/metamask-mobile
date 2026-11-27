@@ -220,6 +220,7 @@ const TraderProfileView = () => {
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.TRADER_PROFILE,
     requireSocialTerms: hasSocialV1Access,
     requireSocialProfile: hasSocialV1Access,
   });

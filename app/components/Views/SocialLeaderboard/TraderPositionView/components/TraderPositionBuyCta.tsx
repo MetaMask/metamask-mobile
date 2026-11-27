@@ -35,6 +35,14 @@ import type {
 } from '../../../../UI/QuickBuy/analytics';
 import { useSocialTermsGate } from '../../terms/useSocialTermsGate';
 import { useRequireSocialProfileOnboarding } from '../../hooks/useRequireSocialProfileOnboarding';
+import { SocialEvent, useTrackSocialActionBlocked } from '../../analytics';
+import type { SocialGate } from '../../analytics/socialEvents';
+
+/** The Buy CTA opens a spot buy of the trader's token. */
+const BUY_GATE: SocialGate = {
+  trigger: SocialEvent.OnboardingTrigger.POSITION_TRADE,
+  tradeType: SocialEvent.Trade.SPOT,
+};
 
 /**
  * `sourcePage` reported to the swaps view for attribution. Snake_case matches
@@ -93,8 +101,13 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   requireSocialProfile = false,
   buyButtonTestID,
 }) => {
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const onBlocked = useTrackSocialActionBlocked(
+    SocialEvent.Screen.TRADER_POSITION,
+  );
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({ onBlocked });
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    onBlocked,
+  });
   const { variant } = useABTest(
     TOP_TRADERS_BUY_ACTION_AB_KEY,
     TOP_TRADERS_BUY_ACTION_VARIANTS,
@@ -132,8 +145,8 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       if (!position) return;
       if (
         requireSocialProfile &&
-        (!ensureSocialTermsAccepted(buyPress) ||
-          !ensureSocialProfileOnboarding())
+        (!ensureSocialTermsAccepted(BUY_GATE, buyPress) ||
+          !ensureSocialProfileOnboarding(BUY_GATE))
       ) {
         return;
       }

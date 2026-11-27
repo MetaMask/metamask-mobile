@@ -40,6 +40,7 @@ const ProfilesToFollowView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.PROFILES_TO_FOLLOW,
     requireSocialTerms: true,
     requireSocialProfile: true,
   });

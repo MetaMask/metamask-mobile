@@ -7,6 +7,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { navigateToSocialV1Profile } from '../../../navigation/navigateToSocialV1Profile';
+import { SocialEvent } from '../../../analytics';
 import { useFollowWithNotificationSetup } from '../../../hooks/useFollowWithNotificationSetup';
 import {
   POPULAR_TRADERS_DISPLAY_COUNT,
@@ -31,6 +32,7 @@ const PopularTradersCarousel: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.TRENDING,
     requireSocialTerms: true,
     requireSocialProfile: true,
   });

@@ -3,6 +3,7 @@ import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import ReduxService from '../../../../core/redux/ReduxService';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import type { SocialOnboardingTrigger } from '../analytics/socialEvents';
 
 /**
  * Version of the Social Supplemental Terms the user must accept. Bump it when
@@ -117,22 +118,43 @@ export const takePendingSocialEntry = (): (() => void) | undefined => {
 };
 
 /**
+ * Whether a gate call is holding back an entry for the terms-only screen to
+ * run. Does not take it. Analytics uses this to report whether the tapped
+ * action will be resumed.
+ */
+export const hasPendingSocialEntry = (): boolean => pendingEntry !== undefined;
+
+export interface EnsureSocialTermsAcceptedOptions {
+  /** The gated action. Sent to onboarding so analytics knows what opened it. */
+  trigger: SocialOnboardingTrigger;
+  /**
+   * Reopens the caller's destination once the terms-only screen is accepted.
+   */
+  onAccepted?: () => void;
+  /**
+   * Runs the onboarding navigation. A bottom sheet passes one that closes the
+   * sheet first, so onboarding opens full screen. Defaults to navigating
+   * immediately.
+   */
+  runNavigation?: (navigateToOnboarding: () => void) => void;
+}
+
+/**
  * Gate for every Social entry point and interaction. When the terms are not
  * accepted it opens profile onboarding, where they are accepted, and returns
  * `false` so the caller skips the original action.
  *
  * @param navigate - The caller's navigate function (React or deeplink).
- * @param onAccepted - Reopens the caller's destination once the terms-only
- * screen is accepted.
- * @param runNavigation - Runs the onboarding navigation. A bottom sheet passes
- * one that closes the sheet first, so onboarding opens full screen. Defaults to
- * navigating immediately.
+ * @param options - The gated action, and how to resume or open it.
  * @returns `true` when the caller may continue.
  */
 export const ensureSocialTermsAccepted = (
   navigate: SocialTermsNavigate,
-  onAccepted?: () => void,
-  runNavigation: (navigateToOnboarding: () => void) => void = navigateNow,
+  {
+    trigger,
+    onAccepted,
+    runNavigation = navigateNow,
+  }: EnsureSocialTermsAcceptedOptions,
 ): boolean => {
   recordSocialTermsAcceptanceForExistingProfile();
   if (hasAcceptedSocialTerms()) {
@@ -142,12 +164,15 @@ export const ensureSocialTermsAccepted = (
   runNavigation(() => {
     try {
       if (hasLoadedSocialProfile()) {
-        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+          termsOnly: true,
+          trigger,
+        });
       } else {
-        navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { trigger });
       }
     } catch {
-      navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { trigger });
     }
   });
   return false;

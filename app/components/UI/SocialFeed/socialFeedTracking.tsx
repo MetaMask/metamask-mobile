@@ -6,6 +6,7 @@ import {
   useSocialScreenAnalytics,
 } from '../../Views/SocialLeaderboard/analytics';
 import type {
+  SocialBlockedHandler,
   SocialBlockedReason,
   SocialCopyTradeAnalyticsProperties,
   SocialEventSource,
@@ -52,6 +53,7 @@ interface SocialFeedTracking {
     position: SocialPositionAnalyticsProperties,
     reason: SocialBlockedReason,
   ) => void;
+  onActionBlocked?: SocialBlockedHandler;
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,

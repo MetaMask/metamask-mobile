@@ -13,7 +13,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useTheme } from '../../../../util/theme';
-import type { SocialEventSource } from '../analytics';
+import {
+  SocialEvent,
+  useTrackSocialActionBlocked,
+  type SocialEventSource,
+} from '../analytics';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
 import type {
@@ -51,6 +55,9 @@ export interface UseOpenSocialPostComposerResult {
 export const useOpenSocialPostComposer =
   (): UseOpenSocialPostComposerResult => {
     const navigation = useNavigation<AppNavigationProp>();
+    const onBlocked = useTrackSocialActionBlocked(
+      SocialEvent.Screen.POST_COMPOSER,
+    );
     const { profile } = useMyProfile();
     const { toastRef } = useContext(ToastContext);
     const { colors } = useTheme();
@@ -78,7 +85,16 @@ export const useOpenSocialPostComposer =
       });
 
       if (result.action === 'onboarding') {
-        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        onBlocked?.({
+          blocked_action: SocialEvent.OnboardingTrigger.POST_COMPOSER,
+          blocked_reason: SocialEvent.BlockedReason.PROFILE_ONBOARDING,
+          ...(options && 'composerEntry' in options
+            ? { composer_entry: options.composerEntry }
+            : {}),
+        });
+        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING, {
+          trigger: SocialEvent.OnboardingTrigger.POST_COMPOSER,
+        });
         return;
       }
 
@@ -126,6 +142,7 @@ export const useOpenSocialPostComposer =
       colors.primary.default,
       internalAccounts,
       navigation,
+      onBlocked,
       profile?.linkedAccountAddress,
       profile?.linkedAccountId,
       selectedGroupAccounts,

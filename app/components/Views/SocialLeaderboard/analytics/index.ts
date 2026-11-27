@@ -4,6 +4,7 @@ export {
   useSocialInteraction,
   useSocialScreenAnalytics,
   useSocialAnalytics,
+  useTrackSocialActionBlocked,
 } from './useSocialV1Analytics';
 export {
   getSocialTraderFollowMilestone,
@@ -22,9 +23,18 @@ export {
 export {
   getSocialEventSource,
   getSocialReactionType,
+  isSocialOnboardingTrigger,
   SocialEvent,
 } from './socialEvents';
-export type { SocialComposerEntry, SocialEventSource } from './socialEvents';
+export type {
+  SocialBlockedAction,
+  SocialBlockedHandler,
+  SocialComposerEntry,
+  SocialDismissMethod,
+  SocialEventSource,
+  SocialGate,
+  SocialOnboardingTrigger,
+} from './socialEvents';
 export type {
   FollowTradingTokenSource,
   SocialLeaderboardSource,

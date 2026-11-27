@@ -23,6 +23,7 @@ import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVe
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
+import { SocialEvent } from '../../analytics';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
 import ShareButtonSpinner from '../../components/ShareButtonSpinner';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -57,6 +58,7 @@ const PositionSheetHeader = ({
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
   const { followWithSetup } = useFollowWithNotificationSetup({
+    screenName: SocialEvent.Screen.POSITION_DETAILS_SHEET,
     requireSocialTerms: true,
     requireSocialProfile: true,
     runNavigation,

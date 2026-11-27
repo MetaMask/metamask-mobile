@@ -30,6 +30,8 @@ import type { TraderFollowInteractionSource } from './socialLeaderboardEvents';
  * `Social Screen Viewed`) once dashboards and funnels read the milestones.
  */
 
+type SocialOnboardingExitMethod = 'close' | 'back' | 'swipe';
+
 /** One milestone event and the properties it carries. */
 export type SocialMilestoneEmission =
   | {
@@ -44,7 +46,7 @@ export type SocialMilestoneEmission =
       event: (typeof MetaMetricsEvents)['SOCIAL_ONBOARDING_DISMISSED'];
       properties: {
         step?: SocialOnboardingStep;
-        exit_method: 'close' | 'back' | 'swipe';
+        exit_method: SocialOnboardingExitMethod;
       };
     }
   | {
@@ -140,7 +142,21 @@ export const getXSignInFailureReason = (
 ): SocialXSignInFailureReason =>
   error instanceof XAuthError ? X_AUTH_ERROR_REASONS[error.type] : 'unknown';
 
-const { Interaction, Outcome, Path, Screen, Step } = SocialEvent;
+const { DismissMethod, Interaction, Outcome, Path, Screen, Step } = SocialEvent;
+
+const getExitMethod = (
+  dismissMethod: SocialUIInteractionProperties['dismiss_method'],
+): SocialOnboardingExitMethod => {
+  switch (dismissMethod) {
+    case DismissMethod.SWIPE:
+      return 'swipe';
+    case DismissMethod.BACK:
+    case DismissMethod.SYSTEM_BACK:
+      return 'back';
+    default:
+      return 'close';
+  }
+};
 
 const getInteractionMilestones = (
   properties: SocialUIInteractionProperties,
@@ -152,14 +168,16 @@ const getInteractionMilestones = (
       if (!isOnboarding) {
         return [];
       }
-      // The onboarding close (X) button is the only sender of this outcome.
+      // Every way out of onboarding without finishing sends this outcome. An
+      // emit without `dismiss_method` predates the swipe and back exits and
+      // came from the close (X) button.
       if (properties.outcome === Outcome.DISMISSED) {
         return [
           {
             event: MetaMetricsEvents.SOCIAL_ONBOARDING_DISMISSED,
             properties: {
               ...definedOnly({ step: properties.step }),
-              exit_method: 'close',
+              exit_method: getExitMethod(properties.dismiss_method),
             },
           },
         ];

@@ -13,6 +13,12 @@ export const SocialEvent = {
     COPY_TRADE_TAPPED: 'copy_trade_tapped',
     /** Copy trade tap sent to the terms or profile onboarding gate instead. */
     COPY_TRADE_BLOCKED: 'copy_trade_blocked',
+    /**
+     * Any gated tap (copy trade, follow, react, post, ...) that the terms or
+     * profile onboarding gate redirected. `copy_trade_blocked` is kept for
+     * existing dashboards and still fires for copy trades.
+     */
+    ACTION_BLOCKED: 'action_blocked',
     COPY_TRADE_SUBMITTED: 'copy_trade_submitted',
     POST_SUBMITTED: 'post_submitted',
     POST_FAILED: 'post_failed',
@@ -54,6 +60,14 @@ export const SocialEvent = {
     MANAGE_PROFILE: 'manage_profile',
     PROFILE_ONBOARDING: 'profile_onboarding',
     POST_COMPOSER: 'post_composer',
+    /**
+     * Surfaces with no Social screen view that can still send a gated tap to
+     * onboarding. Used as `screen_name` of `action_blocked` only.
+     */
+    HOME_TOP_TRADERS: 'home_top_traders',
+    TRADER_PREVIEW_SHEET: 'trader_preview_sheet',
+    POST_OPTIONS_SHEET: 'post_options_sheet',
+    TRADER_POSITION: 'trader_position',
     SHARE_POSITION_SHEET: 'share_position_sheet',
     POST_TRADE_SHARE_SHEET: 'post_trade_share_sheet',
     POST_TO_FEED_TOAST: 'post_to_feed_toast',
@@ -120,6 +134,47 @@ export const SocialEvent = {
     FAILED: 'failed',
     DISMISSED: 'dismissed',
     CANCELLED: 'cancelled',
+    /** The terms sheet was closed without agreeing. */
+    DECLINED: 'declined',
+  },
+  /**
+   * The gated action the user tapped. Sent as `onboarding_trigger` on the
+   * profile onboarding view and its interactions, and as `blocked_action` on
+   * `action_blocked`. Additive only: never rename a shipped value.
+   */
+  OnboardingTrigger: {
+    COPY_TRADE: 'copy_trade',
+    FOLLOW: 'follow',
+    REACT: 'react',
+    POST_COMPOSER: 'post_composer',
+    POSITION_TRADE: 'position_trade',
+    /** The Social header avatar or the Create profile button on My Profile. */
+    MY_PROFILE_AVATAR: 'my_profile_avatar',
+    TRADER_PREVIEW_JOIN: 'trader_preview_join',
+    MODERATION: 'moderation',
+    /**
+     * Reserved. No deeplink opens profile onboarding directly today: shared
+     * links open the trader preview, which sends `trader_preview_join`.
+     */
+    DEEPLINK: 'deeplink',
+    /**
+     * Reserved. The Social tab gate was removed in #40539, so tab entry no
+     * longer opens profile onboarding.
+     */
+    TAB_ENTRY: 'tab_entry',
+  },
+  /** How the user left profile onboarding without finishing it. */
+  DismissMethod: {
+    CLOSE_BUTTON: 'close_button',
+    /**
+     * Reserved. The header back arrow only steps between onboarding steps and
+     * never leaves the screen, so it is not a dismissal.
+     */
+    BACK: 'back',
+    /** iOS edge swipe. */
+    SWIPE: 'swipe',
+    /** Android back button or back gesture. */
+    SYSTEM_BACK: 'system_back',
   },
   Trade: { PERPS: 'perps', SPOT: 'spot' },
   Direction: { LONG: 'long', SHORT: 'short' },
@@ -194,6 +249,44 @@ export type SocialDirection = EventValue<'Direction'>;
 export type SocialPositionStatus = EventValue<'PositionStatus'>;
 export type SocialBlockedReason = EventValue<'BlockedReason'>;
 export type SocialComposerEntry = EventValue<'ComposerEntry'>;
+export type SocialOnboardingTrigger = EventValue<'OnboardingTrigger'>;
+export type SocialDismissMethod = EventValue<'DismissMethod'>;
+
+const ONBOARDING_TRIGGERS: readonly string[] = Object.values(
+  SocialEvent.OnboardingTrigger,
+);
+
+/**
+ * Route params and deeplinks are untyped at runtime, so the onboarding view
+ * checks the trigger before sending it. An unknown value is dropped, never
+ * forwarded to analytics.
+ */
+export const isSocialOnboardingTrigger = (
+  value: unknown,
+): value is SocialOnboardingTrigger =>
+  typeof value === 'string' && ONBOARDING_TRIGGERS.includes(value);
+
+/**
+ * A gated tap that the terms or profile onboarding gate may redirect.
+ */
+export interface SocialGate {
+  /** The gated action the user tapped. */
+  trigger: SocialOnboardingTrigger;
+  /** Perps or spot, when the action is a trade. */
+  tradeType?: SocialTradeType;
+}
+
+/** What `action_blocked` reports for one redirected tap. */
+export interface SocialBlockedAction {
+  blocked_action: SocialOnboardingTrigger;
+  blocked_reason: SocialBlockedReason;
+  trade_type?: SocialTradeType;
+  /** Composer taps only: the post button that was tapped. */
+  composer_entry?: SocialComposerEntry;
+}
+
+/** Reports one gated tap that the terms or profile gate redirected. */
+export type SocialBlockedHandler = (blocked: SocialBlockedAction) => void;
 /**
  * Trader and position a Social event is about. The trader is the author of
  * the post or the owner of the profile, never the viewer.
@@ -226,6 +319,11 @@ export interface SocialScreenViewedProperties
   step?: SocialOnboardingStep;
   /** Composer views only. */
   composer_entry?: SocialComposerEntry;
+  /**
+   * `profile_onboarding` views only. The gated action that opened onboarding.
+   * Omitted when onboarding was not opened by a gated action.
+   */
+  onboarding_trigger?: SocialOnboardingTrigger;
   share_id?: string;
   order_id?: string;
   transaction_hash?: string;
@@ -280,7 +378,7 @@ export interface SocialUIInteractionProperties
   source?: SocialEventSource;
   outcome?: Extract<
     EventValue<'Outcome'>,
-    'success' | 'failed' | 'dismissed' | 'cancelled'
+    'success' | 'failed' | 'dismissed' | 'cancelled' | 'declined'
   >;
   filter_name?: EventValue<'Filter'>;
   filter_value?: SocialFilterValue;
@@ -292,8 +390,27 @@ export interface SocialUIInteractionProperties
   share_destination?: SocialShareDestination;
   /** Only sent on the terms step. */
   terms_version?: string;
-  /** Only sent with `copy_trade_blocked`. */
+  /** Only sent with `copy_trade_blocked` and `action_blocked`. */
   blocked_reason?: SocialBlockedReason;
+  /** Only sent with `action_blocked`. The gated action that was redirected. */
+  blocked_action?: SocialOnboardingTrigger;
+  /**
+   * Every interaction inside profile onboarding. The gated action that opened
+   * onboarding. Omitted when onboarding was not opened by a gated action.
+   */
+  onboarding_trigger?: SocialOnboardingTrigger;
+  /**
+   * Only sent with `onboarding_completed`. True when the tapped action is
+   * queued to run once onboarding finishes. Decided when the profile is
+   * created, so a user who closes the Ready step instead of tapping Let's go
+   * still reports true.
+   */
+  is_action_resumed?: boolean;
+  /**
+   * Only sent with `button_clicked` and `outcome: dismissed` in profile
+   * onboarding.
+   */
+  dismiss_method?: SocialDismissMethod;
   /**
    * Profile onboarding path. Sent on intro/continue/ready `button_clicked`,
    * terms sheet events, `x_sign_in`, `username_claimed`, and

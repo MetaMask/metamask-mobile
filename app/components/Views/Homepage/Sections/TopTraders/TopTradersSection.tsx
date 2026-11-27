@@ -189,6 +189,9 @@ const TopTradersSection = forwardRef<
   const sectionViewRef = useRef<View>(null);
   const isSocialV1 = useSelector(selectHasSocialV1Access);
   const { followWithSetup } = useFollowWithNotificationSetup({
+    // A literal, not `SocialEvent.Screen.HOME_TOP_TRADERS`: importing the
+    // Social analytics here would add another route-isolation exception.
+    screenName: 'home_top_traders',
     requireSocialTerms: isSocialV1,
     requireSocialProfile: isSocialV1,
   });
