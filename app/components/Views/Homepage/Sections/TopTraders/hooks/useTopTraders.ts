@@ -20,6 +20,7 @@ import {
 import Engine from '../../../../../../core/Engine';
 import { useSocialBlockLists } from '../../../../../UI/SocialFeed/hooks/useSocialBlockLists';
 import { readXHandle } from '../../../../../UI/SocialFeed/utils/xHandle';
+import { isProfileVerified } from '../../../../../UI/SocialFeed/utils/profileVerified';
 import {
   measureSocialDataFetch,
   type SocialDataFetchTab,
@@ -193,6 +194,7 @@ export const useTopTraders = (
         followerCount: entry.followerCount ?? 0,
         isFollowing: isFollowing(entry.profileId),
         xHandle: readXHandle(entry.socialHandles),
+        verified: isProfileVerified(entry),
       }));
   }, [blockedProfileIds, data, isFollowing, timeframe]);
 

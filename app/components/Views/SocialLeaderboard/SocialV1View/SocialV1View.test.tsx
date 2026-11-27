@@ -24,6 +24,8 @@ import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/component
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
+import { backdropFadeOpacity } from '../../../../component-library/components-temp/HeaderGlass/test-utils';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
@@ -36,6 +38,7 @@ const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
 const mockFeedScrollToOffset = jest.fn();
+const mockFeedWindowOffsetY = jest.fn();
 const mockBottomTabPressListeners = new Set<() => void>();
 let mockIsFocused = true;
 const pressSocialBottomTab = () =>
@@ -51,6 +54,7 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
 let mockRouteParams: {
   showNotificationsBanner?: boolean;
   initialTab?: SocialShellTab;
+  source?: string;
 } = {};
 
 jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
@@ -119,6 +123,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { SocialFeedRealtimeContext } = jest.requireActual(
     '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
   );
+  const { SocialFeedWindowOffsetContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedWindowOffsetContext',
+  );
 
   interface MockSocialFeedProps {
     location?: string;
@@ -136,6 +143,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
+    mockFeedWindowOffsetY(
+      props.location,
+      ReactActual.useContext(SocialFeedWindowOffsetContext),
+    );
     ReactActual.useImperativeHandle(props.pageRef, () => ({
       scrollToOffset: (offset: number, animated?: boolean) =>
         mockFeedScrollToOffset(props.location, offset, animated),
@@ -347,9 +358,23 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    interpolate: (
+      value: number,
+      input: readonly number[],
+      output: readonly number[],
+    ) => {
+      const [inMin, inMax] = input;
+      const [outMin, outMax] = output;
+      if (inMax === inMin) {
+        return outMin;
+      }
+      const clamped = Math.max(inMin, Math.min(inMax, value));
+      const ratio = (clamped - inMin) / (inMax - inMin);
+      return outMin + ratio * (outMax - outMin);
+    },
     // The stock mock resets shared values every render, freezes derived
     // values, and ignores scroll handlers, so a scrolled tab could never
-    // reach the divider's visible branch.
+    // reach the scroll-driven header backdrop and tabs bar states.
     useSharedValue: (init: unknown) => {
       const ReactActual = jest.requireActual('react') as typeof import('react');
       const ref = ReactActual.useRef<{ value: unknown } | null>(null);
@@ -410,9 +435,17 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockRouteParams = {};
     mockIsFocused = true;
     act(() => {
@@ -455,23 +488,139 @@ describe('SocialV1View', () => {
     expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
   });
 
-  it('shows the tab divider only after the feed is scrolled', () => {
+  it('floats the header with a glass backdrop that fades in as the feed scrolls', () => {
     const { rerender } = renderWithProvider(<SocialV1View />);
-    const divider = screen.getByTestId(
-      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
-    );
 
-    expect(divider).toHaveStyle({ opacity: 0 });
+    expect(
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(0);
 
     fireEvent.scroll(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+      { nativeEvent: { contentOffset: { y: 128, x: 0 } } },
     );
     rerender(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
-    ).toHaveStyle({ opacity: 1 });
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(1);
+  });
+
+  it('scrolls the tabs bar away as the active feed scrolls', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 36, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(getTranslateY()).toBe(-36);
+  });
+
+  it('pins the tabs bar at rest when the feed overscrolls negatively', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: -25, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    const translateY = StyleSheet.flatten(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+    )?.transform?.[0]?.translateY;
+    expect(Math.abs(translateY ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by tapping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by swiping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
+    });
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
   });
 
   it('scrolls the active page to the top when its tab is tapped again', () => {
@@ -639,12 +788,56 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
-        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
+        contentTopInset: expect.any(Number),
+        pendingPostsTopOffset: expect.objectContaining({
+          value: expect.any(Number),
+        }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
       }),
     );
+  });
+
+  describe('feed window offset', () => {
+    const safeArea = jest.requireMock('react-native-safe-area-context') as {
+      useSafeAreaInsets: () => {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+      };
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(safeArea, 'useSafeAreaInsets')
+        .mockReturnValue({ top: 62, right: 0, bottom: 0, left: 0 });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('gives iOS pager pages the top safe area as their window offset', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        62,
+      );
+    });
+
+    it('drops the window offset while the notifications banner is shown', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        0,
+      );
+    });
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
@@ -663,11 +856,11 @@ describe('SocialV1View', () => {
     expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the account mask icon when no profile exists', () => {
+  it('shows the anonymous profile placeholder when no profile exists', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeOnTheScreen();
   });
 
@@ -678,6 +871,16 @@ describe('SocialV1View', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens profile onboarding instead of My Profile without a linked social wallet', () => {
+    mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
   });
 
   it('opens the post composer from the plus button', () => {
@@ -699,6 +902,29 @@ describe('SocialV1View', () => {
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the composer with the source the Social screen was opened from', () => {
+    mockRouteParams = { source: 'home_banner' };
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: 'home_banner',
+    });
+  });
+
+  it('opens the composer without a source when the screen has none', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: undefined,
+    });
   });
 
   it('opens Rewards from the gift button', () => {
@@ -1118,7 +1344,6 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
-        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'following' }),
       }),
     );
@@ -1154,7 +1379,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeNull();
   });
 

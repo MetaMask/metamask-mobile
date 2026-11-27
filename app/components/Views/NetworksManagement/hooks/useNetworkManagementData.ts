@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../selectors/featureFlagController/networkBlacklist';
+import { getRegistryNetworkImagesByChainId } from '../../../../selectors/configRegistry';
 import { isTestNet, getNetworkImageSource } from '../../../../util/networks';
 import {
   getFilteredPopularNetworks,
@@ -30,6 +31,7 @@ const buildAddedNetworkItem = (
   chainId: Hex,
   config: NetworkConfiguration,
   popularChainIds: Set<string>,
+  networkImageUrls: Record<string, { uri: string }>,
 ): NetworkManagementItem => {
   const rpcEndpoints = config.rpcEndpoints ?? [];
   const defaultRpcEndpoint = rpcEndpoints[config.defaultRpcEndpointIndex];
@@ -38,7 +40,7 @@ const buildAddedNetworkItem = (
     chainId,
     name: config.name,
     isTestNet: isTestNet(chainId),
-    imageSource: getNetworkImageSource({ chainId }),
+    imageSource: getNetworkImageSource({ chainId }, networkImageUrls),
     rpcUrl: defaultRpcEndpoint?.url,
     hasMultipleRpcs: rpcEndpoints.length > 1,
     isPopular: popularChainIds.has(chainId),
@@ -51,13 +53,14 @@ const buildAddedNetworkItem = (
  */
 const buildAvailableNetworkItem = (
   popular: ReturnType<typeof getFilteredPopularNetworks>[number],
+  networkImageUrls: Record<string, { uri: string }>,
 ): NetworkManagementItem => ({
   chainId: popular.chainId as Hex,
   name: popular.nickname,
   isTestNet: false,
   imageSource:
-    popular.rpcPrefs?.imageSource ??
-    getNetworkImageSource({ chainId: popular.chainId }),
+    getNetworkImageSource({ chainId: popular.chainId }, networkImageUrls) ??
+    popular.rpcPrefs?.imageSource,
   rpcUrl: popular.rpcUrl,
   hasMultipleRpcs: false,
   isPopular: true,
@@ -93,6 +96,7 @@ export const useNetworkManagementData = ({
   const blacklistedChainIds = useSelector(
     selectAdditionalNetworksBlacklistFeatureFlag,
   );
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
 
   const popularChainIds = useMemo(
     () => new Set(PopularList.map((p) => p.chainId)),
@@ -108,9 +112,14 @@ export const useNetworkManagementData = ({
     if (!networkConfigurationsByChainId) return [];
     return Object.entries(networkConfigurationsByChainId).map(
       ([chainId, config]) =>
-        buildAddedNetworkItem(chainId as Hex, config, popularChainIds),
+        buildAddedNetworkItem(
+          chainId as Hex,
+          config,
+          popularChainIds,
+          networkImageUrls,
+        ),
     );
-  }, [networkConfigurationsByChainId, popularChainIds]);
+  }, [networkConfigurationsByChainId, popularChainIds, networkImageUrls]);
 
   const availableNetworks = useMemo(
     () =>
@@ -119,8 +128,8 @@ export const useNetworkManagementData = ({
           (popular) =>
             !networkConfigurationsByChainId?.[popular.chainId as Hex],
         )
-        .map(buildAvailableNetworkItem),
-    [filteredPopularNetworks, networkConfigurationsByChainId],
+        .map((popular) => buildAvailableNetworkItem(popular, networkImageUrls)),
+    [filteredPopularNetworks, networkConfigurationsByChainId, networkImageUrls],
   );
 
   const sections = useMemo(() => {

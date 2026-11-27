@@ -37,6 +37,14 @@ const AnimatedText = Animated.createAnimatedComponent(DesignSystemText);
 export interface AnimatedNumericTextProps {
   accessible?: boolean;
   animated?: boolean;
+  /**
+   * Set `false` to keep the row from gliding when its own frame changes.
+   * Glyphs still animate. On Reanimated 4.5.x the container's layout
+   * transition can stop one frame short of its target
+   * (software-mansion/react-native-reanimated#10395, fixed in 4.6.0), which
+   * shows up in views that move around a lot, like list cells.
+   */
+  animateContainerLayout?: boolean;
   color?: TextColor;
   /** Layout styles for the row that contains the glyphs. */
   containerStyle?: StyleProp<ViewStyle>;
@@ -94,6 +102,7 @@ export const getNumericGlyphs = (value: string): NumericGlyph[] => {
 const AnimatedNumericText = ({
   accessible = true,
   animated = true,
+  animateContainerLayout = true,
   value,
   variant = TextVariant.BodyMd,
   color = TextColor.TextDefault,
@@ -137,7 +146,11 @@ const AnimatedNumericText = ({
       accessible={accessible}
       accessibilityRole={accessible ? 'text' : undefined}
       accessibilityLabel={accessible ? value : undefined}
-      layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}
+      layout={
+        animateGlyphs && animateContainerLayout
+          ? GLYPH_LAYOUT_TRANSITION
+          : undefined
+      }
       style={[styles.container, containerStyle]}
     >
       {!motionEnabled || !numeric ? (

@@ -23,6 +23,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { PAYMENT_TYPES } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -30,9 +31,11 @@ import {
   selectMoneyAccountPlusPricing,
   selectMoneyAccountPlusSubscription,
 } from '../../../../../selectors/subscriptionController';
+import { useOpenMembershipInvoices } from '../../hooks/useOpenMembershipInvoices';
 import { useResumeMembership } from '../../hooks/useResumeMembership';
 import {
   getMembershipManageAction,
+  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
@@ -79,7 +82,9 @@ const InfoRow = ({ label, value, testID }: InfoRowProps) => (
 
 interface ManageRowProps {
   label: string;
-  onPress: () => void;
+  description?: string;
+  descriptionTestID?: string;
+  onPress?: () => void;
   testID?: string;
   isDisabled?: boolean;
   isBusy?: boolean;
@@ -87,42 +92,62 @@ interface ManageRowProps {
 
 const ManageRow = ({
   label,
+  description,
+  descriptionTestID,
   onPress,
   testID,
   isDisabled,
   isBusy,
-}: ManageRowProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="button"
-    accessibilityState={{
-      disabled: Boolean(isDisabled),
-      busy: Boolean(isBusy),
-    }}
-    disabled={isDisabled}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="py-4"
+}: ManageRowProps): React.JSX.Element => {
+  const isInactive = Boolean(isDisabled) || !onPress;
+  // A busy row is temporarily disabled. Only a row that cannot be pressed
+  // shows the lock.
+  const showsLock = isInactive && !isBusy;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityState={{
+        disabled: isInactive,
+        busy: Boolean(isBusy),
+      }}
+      disabled={isInactive}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        fontWeight={FontWeight.Medium}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="gap-3 py-4"
       >
-        {label}
-      </Text>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </TouchableOpacity>
-);
+        <Box twClassName="flex-1 gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={isInactive ? TextColor.TextMuted : TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {label}
+          </Text>
+          {description ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextMuted}
+              testID={descriptionTestID}
+            >
+              {description}
+            </Text>
+          ) : null}
+        </Box>
+        <Icon
+          name={showsLock ? IconName.Lock : IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={isInactive ? IconColor.IconMuted : IconColor.IconAlternative}
+        />
+      </Box>
+    </TouchableOpacity>
+  );
+};
 
 interface MembershipActionRowProps {
   action: MembershipManageAction;
@@ -149,12 +174,26 @@ const MembershipActionRow = ({
     );
   }
 
-  if (action === MembershipManageAction.Cancel) {
+  if (
+    action === MembershipManageAction.Cancel ||
+    action === MembershipManageAction.CancelBlocked
+  ) {
+    const isBlocked = action === MembershipManageAction.CancelBlocked;
+
     return (
       <ManageRow
         label={strings('pro_hub.membership.cancel_membership')}
-        onPress={onCancel}
+        description={
+          isBlocked
+            ? strings('pro_hub.membership.cancel_not_allowed')
+            : undefined
+        }
+        descriptionTestID={
+          isBlocked ? MembershipTestIds.CANCEL_NOT_ALLOWED : undefined
+        }
+        onPress={isBlocked ? undefined : onCancel}
         testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+        isDisabled={isBlocked}
       />
     );
   }
@@ -180,19 +219,25 @@ const Membership = () => {
     isResuming,
     errorMessage: resumeErrorMessage,
   } = useResumeMembership();
+  const {
+    openInvoices,
+    isOpening: isOpeningInvoices,
+    errorMessage: invoicesErrorMessage,
+  } = useOpenMembershipInvoices();
   const manageAction = getMembershipManageAction(subscription);
+  const showMoneyAccountIcon =
+    subscription !== undefined &&
+    subscription.paymentMethod.type !== PAYMENT_TYPES.byCard;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleInvoices = useCallback(() => {
-    // TODO: navigate to invoices
-  }, []);
-
-  const handleContactSupport = useCallback(() => {
-    // TODO: navigate to support
-  }, []);
+    // openInvoices reports its own failures, so the promise is intentionally not awaited.
+    // eslint-disable-next-line no-void -- openInvoices handles its own errors.
+    void openInvoices();
+  }, [openInvoices]);
 
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
@@ -216,6 +261,22 @@ const Membership = () => {
     }
     AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
   }, [resumeErrorMessage]);
+
+  useEffect(() => {
+    if (!isOpeningInvoices) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.invoices_in_progress'),
+    );
+  }, [isOpeningInvoices]);
+
+  useEffect(() => {
+    if (!invoicesErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(invoicesErrorMessage);
+  }, [invoicesErrorMessage]);
 
   return (
     <View
@@ -344,13 +405,18 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-2"
               >
-                <Box twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center">
-                  <Icon
-                    name={IconName.AttachMoney}
-                    size={IconSize.Sm}
-                    twClassName="text-accent04-dark font-bold"
-                  />
-                </Box>
+                {showMoneyAccountIcon ? (
+                  <Box
+                    testID={MembershipTestIds.PAYING_WITH_MONEY_ICON}
+                    twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
+                  >
+                    <Icon
+                      name={IconName.AttachMoney}
+                      size={IconSize.Sm}
+                      twClassName="text-accent04-dark font-bold"
+                    />
+                  </Box>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -361,9 +427,12 @@ const Membership = () => {
               </Box>
             </Box>
 
-            {/* Renews on */}
             <InfoRow
-              label={strings('pro_hub.membership.renews_on')}
+              label={
+                isPeriodEndCancellationPending(subscription)
+                  ? strings('pro_hub.membership.ends_on')
+                  : strings('pro_hub.membership.renews_on')
+              }
               value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
@@ -389,12 +458,20 @@ const Membership = () => {
             label={strings('pro_hub.membership.invoices')}
             onPress={handleInvoices}
             testID={MembershipTestIds.INVOICES_ROW}
+            isDisabled={isOpeningInvoices}
+            isBusy={isOpeningInvoices}
           />
-          <ManageRow
-            label={strings('pro_hub.membership.contact_support')}
-            onPress={handleContactSupport}
-            testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
-          />
+          {invoicesErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.INVOICES_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
+              {invoicesErrorMessage}
+            </Text>
+          ) : null}
           <MembershipActionRow
             action={manageAction}
             isResuming={isResuming}

@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -13,14 +14,18 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { selectMoneyAccountAccessBlockReason } from '../../UI/Money/selectors/visibility';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
+  useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { ensureError } from '../../../util/errorUtils';
+import { strings } from '../../../../locales/i18n';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
@@ -58,8 +63,10 @@ const ProSubscription = () => {
       >
     >();
 
-  const proAccess = useMoneyAccountPlusAccess();
+  const { access: proAccess, isSubscriptionsSettled } =
+    useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
+  const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -70,12 +77,42 @@ const ProSubscription = () => {
     SelectedPlusPlan | undefined
   >();
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
+  const [continueError, setContinueError] = useState<string | undefined>();
+  const isContinuingRef = useRef(false);
+  const isMountedRef = useRef(true);
   const { showProcessingToast } = useProSubscriptionPaymentToasts();
 
-  // Dismiss when the Pro flag is off. A Plus status the hub can show already
-  // owns a membership, so send them to the hub instead of Benefits.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Disabled) {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Same settled flag as the Orange row and Pro Hub. Access can already be
+  // Subscriber from a leftover entitlement while the refetch is in flight.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled,
+  });
+
+  // Dismiss when the Pro flag is off, or when Money Account is blocked and
+  // the user has no membership. Unknown access waits so a restored member's
+  // fetch can finish before a blocked country closes checkout. A member still
+  // goes to Pro Hub, including while geolocation is loading, so they can cancel.
+  useEffect(() => {
+    if (entry === MoneyAccountPlusEntry.Disabled) {
+      navigation.goBack();
+      return;
+    }
+
+    if (
+      proAccess !== MoneyAccountPlusAccess.Unknown &&
+      accessBlockReason !== undefined &&
+      !hasMembership
+    ) {
       navigation.goBack();
       return;
     }
@@ -84,15 +121,17 @@ const ProSubscription = () => {
     // become a member while Benefits is still mounted. Keep this screen up
     // until Success is showing.
     if (
-      hasMembership &&
+      entry === MoneyAccountPlusEntry.Hub &&
       currentScreen !== ProSubscriptionScreen.Success &&
       !isCheckoutInProgress
     ) {
       navigation.dispatch(openProHubFromSubscriptionModal);
     }
   }, [
+    entry,
     proAccess,
     hasMembership,
+    accessBlockReason,
     currentScreen,
     isCheckoutInProgress,
     navigation,
@@ -132,6 +171,12 @@ const ProSubscription = () => {
     // Card checkout completes outside the controller, so wait for canonical
     // state before opening the hub. Stay on success if the refresh fails:
     // Pro Hub would otherwise treat empty state as non-subscriber and bounce.
+    if (isContinuingRef.current) {
+      return;
+    }
+    isContinuingRef.current = true;
+    setIsContinuing(true);
+    setContinueError(undefined);
     try {
       await Engine.context.SubscriptionController.getSubscriptions();
     } catch (error) {
@@ -141,6 +186,15 @@ const ProSubscription = () => {
           operation: 'refresh_subscriptions_after_checkout',
         },
       });
+      if (!isMountedRef.current) {
+        return;
+      }
+      setContinueError(strings('pro_subscription.success.continue_error'));
+      isContinuingRef.current = false;
+      setIsContinuing(false);
+      return;
+    }
+    if (!isMountedRef.current) {
       return;
     }
     navigation.dispatch(openProHubFromSubscriptionModal);
@@ -159,7 +213,13 @@ const ProSubscription = () => {
       />
     );
   } else if (checkoutPlan) {
-    screenContent = <Success onSuccess={handleSubscriptionOnSuccess} />;
+    screenContent = (
+      <Success
+        onSuccess={handleSubscriptionOnSuccess}
+        isContinuing={isContinuing}
+        continueError={continueError}
+      />
+    );
   }
 
   return (
@@ -181,7 +241,8 @@ const ProSubscription = () => {
           still-loading fetch, sees Benefits instead of a blank page. */}
       {(currentScreen === ProSubscriptionScreen.Success ||
         isCheckoutInProgress ||
-        (!hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)) &&
+        (entry !== MoneyAccountPlusEntry.Hub &&
+          entry !== MoneyAccountPlusEntry.Disabled)) &&
         screenContent}
     </SafeAreaView>
   );

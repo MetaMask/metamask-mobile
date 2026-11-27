@@ -125,7 +125,6 @@ export function useCardHomeActions({
 
   const handleToggleFreeze = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
 
@@ -233,7 +232,6 @@ export function useCardHomeActions({
 
   const viewPinAction = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
     if (isPinLoading) return;
@@ -257,7 +255,6 @@ export function useCardHomeActions({
 
   const setPinAction = useCallback(async () => {
     if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
     const cardId = data?.card?.id;
@@ -366,14 +363,13 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigateWithDetails(
-        navigation,
-        createAssetSelectionModalNavigationDetails({}),
-      );
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({}),
+    );
   }, [
     isAuthenticated,
     navigation,
@@ -407,13 +403,12 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'manage',
-      });
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'manage',
+    });
   }, [
     isAuthenticated,
     navigation,
@@ -432,14 +427,10 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, {
-        showAuthPrompt: true,
-        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
-      });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.CONTACT_DETAILS);
   }, [
     activeProviderId,
     createEventBuilder,
@@ -541,11 +532,10 @@ export function useCardHomeActions({
         )
         .build(),
     );
-    if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.CASHBACK);
-    } else {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+    if (!isAuthenticated) {
+      return;
     }
+    navigation.navigate(Routes.CARD.CASHBACK);
   }, [
     isAuthenticated,
     navigation,
@@ -578,14 +568,10 @@ export function useCardHomeActions({
         return;
       }
 
-      if (isAuthenticated) {
-        navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
-      } else {
-        navigation.navigate(Routes.CARD.AUTHENTICATION, {
-          showAuthPrompt: true,
-          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
-        });
+      if (!isAuthenticated) {
+        return;
       }
+      navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
     },
     [isAuthenticated, navigation],
   );

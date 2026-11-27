@@ -23,7 +23,6 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
-  referral?: string;
   ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
@@ -150,6 +149,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.PERPS_ASSET,
   ACTIONS.PERPS_OUTREACH,
   ACTIONS.REWARDS,
+  ACTIONS.EARN_MUSD,
   ACTIONS.WC,
   ACTIONS.ONBOARDING,
   ACTIONS.PREDICT,
@@ -161,6 +161,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,
+  ACTIONS.CARD_KYC_NOTIFICATION,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
   ACTIONS.AGENTIC_CLI,

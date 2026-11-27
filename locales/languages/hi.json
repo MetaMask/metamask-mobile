@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} कॉपी करें",
       "copied_label": "{{field}} कॉपी किया गया",
-      "copy_all_button": "सभी डिटेल्स कॉपी करें",
-      "copied_all_label": "कॉपी की गई बैंक डिटेल्स",
       "button": "हो गया",
       "waiting_for_details": "आपके अकाउंट की डिटेल्स जल्द ही यहां दिखाई देंगी।",
       "loading_details": "अकाउंट की डिटेल्स लोड हो रही हैं",
@@ -2477,9 +2475,7 @@
         "funding": "फंडिंग",
         "close": "बंद करें",
         "reverse": "रिवर्स करें",
-        "share": "साझा करें",
-        "isolated": "आइसोलेटेड",
-        "cross": "क्रॉस"
+        "share": "साझा करें"
       },
       "order_card": {
         "size": "आकार",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "क्रॉस",
       "no_liquidation_price": "लागू नहीं",
-      "liquidation_info": "क्रॉस लिक्विडेशन प्राइस के बारे में",
-      "margin_used": "पोज़िशन मार्जिन इस्तेमाल किया गया"
+      "liquidation_info": "क्रॉस लिक्विडेशन प्राइस के बारे में"
     },
     "crossMargin": {
       "title": "क्रॉस मार्जिन सपोर्टेड नहीं है",
@@ -4116,8 +4111,7 @@
       "retry": "फिर से प्रयास करें",
       "review": "ऑर्डर की समीक्षा करें",
       "buy": "खरीदें",
-      "venue_changed": "आपका प्रेडिक्शन मार्केट बदल गया है। जारी रखने के लिए यह ऑर्डर बंद करें।",
-      "delete": "हटाएँ"
+      "venue_changed": "आपका प्रेडिक्शन मार्केट बदल गया है। जारी रखने के लिए यह ऑर्डर बंद करें।"
     },
     "order_approval": {
       "title": "अपना ऑर्डर समीक्षा करें",
@@ -4898,9 +4892,7 @@
     "bullet3": "अन्य प्रासंगिक प्रमोशनल सामग्री",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "मैं सहमत हूं",
-    "cancel": "जी नहीं, धन्यवाद",
-    "paragraph1a": "के अलावा ",
-    "link": "MetaMetrics"
+    "cancel": "जी नहीं, धन्यवाद"
   },
   "multi_rpc_migration_modal": {
     "description": "अब हम एक ही नेटवर्क के लिए कई RPC को सपोर्ट करते हैं। विरोधाभासी जानकारी को हल करने के लिए आपके सबसे हाल के RPC को डिफ़ॉल्ट के रूप में चुना गया है",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "जोड़ें",
-      "transfer": "भेजें",
       "card": "कार्ड",
       "details": "विवरण"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
-      "title": "इनको फंड भेजें",
-      "between_accounts": "दूसरा अकाउंट",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
       "send_external": "बाहरी पता",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} ऑर्डर",
-      "spend_summary": "आप हर {{everyValue}} {{unit}} से ज़्यादा {{repeatCount}} बार {{amount}} {{symbol}} खर्च करते हैं",
+      "spend_summary": {
+        "swapping": "स्वैप किया जा रहा है",
+        "for": "के लिए",
+        "every": "हरेक",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "एक बार",
         "other": "{{count}} times"

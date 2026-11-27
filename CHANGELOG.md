@@ -7,6 +7,151 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.22.0]
+
+### Added
+
+- Added the verified badge next to trader names across Social, token details and Perps (#40169)
+- Added a success toast when copying bank transfer details, moved Share into the header, and fixed the US bank details loading skeleton (#39920)
+- Added a "Powered by HyperTracker" attribution line to the Perps trading campaign leaderboard (#40106)
+- Added a hint to Quick Buy showing the $10 minimum needed to post a trade to Social (#39624)
+- Enabled opening a trader's position by tapping a trade in the Perps home Live trades tab (#40101)
+- Added haptic feedback to virtual bank account copy, verification, first deposit, and main action buttons (#40054)
+- Added a confirmation sheet after canceling a MetaMask Pro membership that explains when benefits end (#39487)
+- Added social usernames to campaign opt-in and leaderboards, and showed qualified traders past the prize cutoff how much P&L they needed to reach it (#39981)
+- Added live updates for new posts while a token's Feed tab is open (#39939)
+- Added a selection haptic when tapping an existing reaction chip (#39782)
+- Added cross margin account risk, ratio warnings, and safer margin-mode switching (#39414)
+- Added the Fox animation and haptic feedback to Wallet Home pull-to-refresh (#39814)
+- Added a subtle haptic cue when long-pressing a token or NFT to hide it (#39843)
+- Added a new feature indicator to the Recurring tab (#39607)
+- Added a Live trades tab to the Perps home Social section showing the latest perp trades from top traders; the list loads once and does not yet update live (#38649)
+- Added exchange logos beside the available balance on Perps home, showing the active provider (Hyperliquid, Lighter, or both in aggregated mode) (#39800)
+- Added a From selector on Perps withdraw for Hyperliquid or Lighter; the selection does not yet change the withdrawal request (#39794)
+- Randomized the starting avatar during social onboarding (#39773)
+- Added an outline around position chart fill markers (#39771)
+- Added a divider above the homepage balance allocations and changed the Money APY tag background from green to gray (#39864)
+- Added minimum order amounts for recurring orders (#39637)
+
+### Changed
+
+- Updated the campaign winner contact email to rewardswinners@metamask.com (#40181)
+- Relabeled the Money home Send action to Move and the first destination to Withdraw to accounts (#39609)
+- Required a Card login before showing a card balance (#39980)
+- Adjusted spacing on the Perps and Predict home screens and removed the fixed Pro-mode header height (#40128)
+- Updated campaign links to open the current campaign, or the most recently ended one when none is running (#40100)
+- Made the close icon smaller on attached GIFs and positions in the post composer and moved its background ring outside the button (#39781)
+- Replaced orange with standard red for negative price trends on token details and removed regional theming differences (#39679)
+- Made marketing data collection independent of MetaMetrics (#37649)
+- Connected recurring orders to the live development API for creating, viewing, and canceling orders (#39905)
+- Simplified the no-funds message shown when sending from an empty Money account (#38878)
+- Updated the reaction tray with a liquid glass design that grows from the emoji button (#39775)
+- Updated dependencies for asset balances, bridges, and transactions (#40150)
+- Changed profile tabs so a profile opens on Open positions (#39772)
+- Updated the Perps market cards on the wallet home and Explore to the new design with a live market price (#39896)
+- Updated recurring swap summaries with clearer schedule wording (#40051)
+- Updated network, browser, wallet privacy, and SDK return-to-app toasts to the MetaMask design system (#35308)
+- Updated the copy on the identity verification screen to align with the content guidelines (#39968)
+- Updated confirmation and transaction-update toasts to the MetaMask design system (#35306)
+- Updated the Money account bank account card to show only the user's local currency, skip the currency picker when there is nothing to choose, and support SEPA deposit details for EUR accounts, including a payment reference when provided (#39383)
+- Updated the linked account step to use one compact card (#39766)
+- Updated the identity verification partner terms wording to align with the content guidelines (#39966)
+- Updated the social filter sheet to Asset and Positions on Trending, Following, and Live (#39774)
+- Changed open and closed perp cards to label the cost row Margin (#39769)
+- Updated the copy on the Add funds from your bank screen to align with the content guidelines (#39964)
+- Updated the social feed so its sticky header blurs scrolled content on iOS and its tabs scroll away with the page (#39947)
+- Updated the MetaMask Money FAQ wording to align with the content guidelines (#39840)
+- Updated marketing consent copy in onboarding, settings, and the home consent modal (#39704)
+- Updated Money activity rows to show only the dollar amount (#39784)
+- Improved Swaps bridge navigation with native swipe between Market, Limit, and Recurring tabs (#39362)
+- Improved the Explore screen's tab loading performance (#39644)
+
+### Removed
+
+- Removed the leverage tag from the position sheet header (#39770)
+
+### Fixed
+
+- Fixed a bug that sent users back to the MetaMask Card sign-in screen after they signed in (#40536)
+- Fixed a bug that could create two MetaMask Cards for one card request (#40495)
+- Fixed networks added from the config registry showing a letter fallback instead of their network logo in the network selector, tokens page, and networks management screens (#39669)
+- Fixed the cross margin confirmation appearing every time Cross is selected (#39999)
+- Fixed a bug where the Close all positions preview could lose its You'll receive and PnL values, and matched its totals to the position close bottom sheet (#40179)
+- Fixed oversized or squeezed layout of custom HTML in-app messages on Android devices with 3-button navigation (#40209)
+- Fixed bottom tabs staying on Money after leaving virtual bank account setup twice (#40060)
+- Restored gas sponsorship when swapping or bridging from Monad's native token, MON (#40046)
+- Fixed Money home to show the APY of the vault holding the funds, including Premium and in-progress vault moves (#37973)
+- Disabled membership cancellation when the server refuses it and removed the plus sign from Pro Hub lifetime earnings (#39667)
+- Moved the missing enrolled accounts banner to the accounts section in Rewards settings (#39604)
+- Fixed the wallet’s 24-hour change formatting to match the wallet total, including punctuation and currency symbols (#38071)
+- Fixed zero-value asset rows and funding prompts flashing while wallet balances loaded (#40020)
+- Fixed the Perps margin mode resetting to Isolated after closing a cross position (#40044)
+- Fixed missing error messages when recurring order actions failed (#40161)
+- Fixed closed recurring orders so they can be duplicated (#40162)
+- Fixed a bug that left the recurring swap schedule cursor active after dismissing the keypad (#40083)
+- Fixed the Buy screen pre-selecting a different provider than the one the user bought with before (#40135)
+- Fixed the Perps lite trade sheet showing Isolated margin for a Cross position on the venue the order will use (#40062)
+- Fixed Predict search rows showing a team's chance from the No side when the Game Selection tag is not on Yes (#39997)
+- Fixed wallet icon alignment in the Perps market header (#40133)
+- Fixed the Perps outreach banner staying hidden for up to five minutes after a failed network request or server error (#39946)
+- Fixed MetaMask Pay amount entry so that typing the full displayed balance is treated as Max where available, instead of failing to quote (#40023)
+- Fixed Following so suggested traders stay on screen after a follow (#39768)
+- Fixed the tab bar collapsing when scrolling the Rewards tab on iOS 26, so it now matches the other tabs (#40108)
+- Fixed recurring swap warning banner positions by moving them below the schedule fields (#40073)
+- Fixed the recurring swap Price range row tap target and pressed state (#40081)
+- Fixed purchase toasts that kept reappearing for old Ramps orders (#39639)
+- Fixed an issue where `wallet_requestExecutionPermissions` would fail with `unauthorized` (#39998)
+- Fixed Pro Hub and the Orange menu so a scheduled cancellation, a payment problem, and card or crypto checkout each show the right status and next step, and the menu label no longer flickers while membership loads (#38738)
+- Fixed the Send amount screen showing the currency code instead of the symbol, the available balance not matching the token list, and a doubled space in screen-reader amounts for postfix currencies (#39096)
+- Fixed a crash when adding funds while holding tokens on a network that was removed from the wallet, and stopped showing those tokens in the Send and Pay with token lists (#39906)
+- Fixed the Invoices row in Membership so it opens the billing portal (#39680)
+- Fixed a full-screen Perps message that blocked the wallet after turning off Basic functionality before Perps onboarding (#39886)
+- Fixed Join MetaMask Orange staying visible in geo-blocked countries (#39465)
+- Fixed social feeds so the last rows clear the floating tab bar (#39767)
+- Fixed the display name checkmark to use the success color (#39765)
+- Fixed onboarding intro titles so each line crossfades instead of overlapping (#39764)
+- Fixed the Pay with row staying in a loading state after choosing a different From account in Money account deposits (#39937)
+- Fixed recurring orders and execution progress not appearing promptly (#39976)
+- Fixed the Quick Buy token search query being cleared when changing network from the More menu (#39954)
+- Fixed network deletion when the network was selected in the Tokens filter (#39929)
+- Fixed a bug where tapping Join Orange, Confirm and pay, or Cancel membership twice could start duplicate actions or skip the success screen (#39555)
+- Fixed a bug that was hiding the Swap, Buy and Quick Buy buttons on Robinhood real-world asset (RWA) token detail pages (#39882)
+- Fixed plan selection changing while joining MetaMask Orange (#39805)
+- Fixed member pricing rows showing amounts past the allowance or without cents (#39561)
+- Fixed Renews on and Resets on showing different dates for the same membership period (#39471)
+- Fixed an issue where tapping Continue after joining MetaMask Orange gave no feedback when the membership refresh failed (#39825)
+- Fixed the Join MetaMask Orange benefits screen so the list, plan cards, and join button stay reachable on small screens and large text (#39832)
+- Fixed the MetaMask Orange top-up amount and annual membership confirmation wording (#39662)
+- Fixed leftover "Pro" wording on the MetaMask Orange join screens (#39486)
+- Fixed the money icon showing next to card payments on the Membership screen (#39481)
+- Fixed Recurring Orders allowing source and destination tokens from different chains (#39405)
+- Fixed spacing around the Activity screen's filter pills, with less space above the first date label and clearance below the back button when pinned (#39845)
+- Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's private key (#39833)
+- Fixed identity verification repeatedly reopening across app restarts when stuck in a loop (#39682)
+- Fixed spacing in selected horizontal carousels so swipeable cards sit 12px apart (#39735)
+- Fixed spacing between share-token stat tiles and profile avatar tiles (#39736)
+- Fixed uneven background colors in the token details footer in dark mode (#39823)
+- Fixed Predict withdrawals from Safe accounts failing after confirmation by blocking them before signing when pUSD couldn't be confirmed to pay network fees (#39746)
+- Fixed a gray placeholder shown while token details load by showing price, chart, and action skeletons in the same layout as the loaded page (#39501)
+- Fixed Android skipping the biometric prompt for a few seconds after the phone was unlocked (#39163)
+
+### Security
+
+- Hid Warning, Spam, and Malicious tokens from the Swap screen Trending list and post-trade token suggestions (#40439)
+
+## [8.21.3]
+
+### Fixed
+
+- Fixed X account connection failing on Android devices without a Custom Tabs browser by adding an in-app WebView fallback (#40553)
+
+## [8.21.2]
+
+### Changed
+
+- Allowed browsing Social V1 without creating a profile, and required Social terms and profile onboarding for follow, copy trade, reactions, and trade actions (#40539)
+- Refined random username generation word list (#40533)
+
 ## [8.21.1]
 
 ### Changed
@@ -15428,7 +15573,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.22.0...HEAD
+[8.22.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.3...v8.22.0
+[8.21.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.2...v8.21.3
+[8.21.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...v8.21.2
 [8.21.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.21.1
 [8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
 [8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2

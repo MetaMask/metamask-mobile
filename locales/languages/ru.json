@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Копировать {{field}}",
       "copied_label": "Скопировано: {{field}}",
-      "copy_all_button": "Скопировать все реквизиты",
-      "copied_all_label": "Банковские реквизиты скопированы",
       "button": "Выполнено",
       "waiting_for_details": "Реквизиты вашего счета скоро появятся здесь.",
       "loading_details": "Загрузка реквизитов счета",
@@ -2477,9 +2475,7 @@
         "funding": "Финансирование",
         "close": "Закрыть",
         "reverse": "Развернуть",
-        "share": "Поделиться",
-        "isolated": "Изолированная",
-        "cross": "Кросс"
+        "share": "Поделиться"
       },
       "order_card": {
         "size": "Размер",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "Кросс",
       "no_liquidation_price": "Н.Д.",
-      "liquidation_info": "О цене кросс-ликвидации",
-      "margin_used": "Использованная маржа позиции"
+      "liquidation_info": "О цене кросс-ликвидации"
     },
     "crossMargin": {
       "title": "Кросс-маржа не поддерживается",
@@ -4116,8 +4111,7 @@
       "retry": "Повторить попытку",
       "review": "Проверить ордер",
       "buy": "Купить",
-      "venue_changed": "Рынок прогнозов изменился. Закройте этот ордер, чтобы продолжить.",
-      "delete": "Удалить"
+      "venue_changed": "Рынок прогнозов изменился. Закройте этот ордер, чтобы продолжить."
     },
     "order_approval": {
       "title": "Проверьте свой заказ",
@@ -4898,9 +4892,7 @@
     "bullet3": "Другие соответствующие промоматериалы",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Я согласен(-на)",
-    "cancel": "Нет, спасибо",
-    "paragraph1a": "В дополнение к ",
-    "link": "MetaMetrics,"
+    "cancel": "Нет, спасибо"
   },
   "multi_rpc_migration_modal": {
     "description": "Теперь мы поддерживаем несколько RPC для одной сети. Ваш последний RPC был выбран в качестве RPC по умолчанию для разрешения проблемы с противоречивой информацией",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "Добавить",
-      "transfer": "Отправить",
       "card": "Карта",
       "details": "Подробности"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "Связаться с поддержкой"
     },
     "transfer_sheet": {
-      "title": "Отправить средства на",
-      "between_accounts": "Другой счет",
       "perps_account": "Счет перпов",
       "predictions_account": "Счет прогнозов",
       "send_external": "Внешний адрес",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} ордера(-ов)",
-      "spend_summary": "Вы тратите {{amount}} {{symbol}} каждые {{everyValue}} {{unit}} {{repeatCount}} раз(а)",
+      "spend_summary": {
+        "swapping": "Обменивается",
+        "for": "за",
+        "every": "каждые",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "один раз",
         "other": "{{count}} times"

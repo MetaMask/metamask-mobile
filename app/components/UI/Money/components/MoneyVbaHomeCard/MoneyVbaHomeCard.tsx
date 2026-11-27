@@ -17,6 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
@@ -25,6 +26,7 @@ import {
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import {
   endVbaCufJourney,
   startVbaCufJourney,
@@ -85,9 +87,12 @@ const HERO_GRADIENT_ANGLE = 224;
  */
 const MoneyVbaHomeCard = ({
   variant,
+  sourceCurrency,
   onDismiss,
 }: {
   variant: MoneyVbaHomeCardVariant;
+  /** Market currency serving the user, when one resolved. */
+  sourceCurrency?: VbaSourceCurrency;
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
 }) => {
@@ -126,6 +131,7 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
+    fireImpact(ImpactMoment.SecondaryCTA);
     const trackCtaClicked = (
       redirectTarget:
         | typeof SCREEN_NAMES.VBA_ONBOARDING
@@ -210,7 +216,7 @@ const MoneyVbaHomeCard = ({
         variant === 'identity_verified' &&
         resolved.destinationId === 'identityVerified'
       ) {
-        openVbaAccountSetup(navigation, chooseCurrency);
+        openVbaAccountSetup(navigation, chooseCurrency, sourceCurrency);
         return;
       }
       navigateToVbaOnboardingDestination(
@@ -241,6 +247,7 @@ const MoneyVbaHomeCard = ({
     config,
     navigation,
     openSupportWithConsent,
+    sourceCurrency,
     trackButtonClicked,
     variant,
   ]);
@@ -261,6 +268,12 @@ const MoneyVbaHomeCard = ({
 
   const { cta } = config;
   const ctaLabel = strings(`${config.i18nPrefix}.cta`);
+  const description =
+    config.currencyDescriptionI18nKey && sourceCurrency
+      ? strings(config.currencyDescriptionI18nKey, {
+          currency: sourceCurrency,
+        })
+      : strings(`${config.i18nPrefix}.description`);
   const ctaButton = cta.isDisabled ? (
     <ButtonBase
       size={ButtonBaseSize.Lg}
@@ -327,7 +340,7 @@ const MoneyVbaHomeCard = ({
           color={TextColor.TextAlternative}
           testID={testIds.DESCRIPTION}
         >
-          {strings(`${config.i18nPrefix}.description`)}
+          {description}
         </Text>
       </Box>
       {config.isDismissible ? (

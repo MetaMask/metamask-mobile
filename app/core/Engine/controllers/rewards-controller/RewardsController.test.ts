@@ -11536,157 +11536,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('getGeoRewardsMetadata', () => {
-    it('returns default metadata when rewards feature is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act
-      const result = await disabledController.getGeoRewardsMetadata();
-
-      // Assert
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      });
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('returns cached geo location when available', async () => {
-      // Arrange
-      const mockCachedGeoData = {
-        geoLocation: 'US-NY',
-        optinAllowedForGeo: true,
-      };
-
-      // First call to populate cache
-      mockMessenger.call.mockResolvedValueOnce('US-NY');
-      const firstResult = await controller.getGeoRewardsMetadata();
-
-      // Clear messenger call mock to verify no additional calls are made
-      jest.clearAllMocks();
-
-      // Act - Second call should use cache
-      const secondResult = await controller.getGeoRewardsMetadata();
-
-      // Assert - Verify cached data is returned
-      expect(secondResult).toEqual(mockCachedGeoData);
-      expect(secondResult).toEqual(firstResult); // Should be the same as first call
-
-      // Assert - Verify no additional API calls were made
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Assert - Verify fetching log message was not called on cached access
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('successfully fetch geo location for allowed region', async () => {
-      // Arrange
-      const mockGeoLocation = 'US-CA';
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Geo rewards metadata retrieved',
-        {
-          geoLocation: mockGeoLocation,
-          optinAllowedForGeo: true,
-        },
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles blocked regions correctly', async () => {
-      // Arrange
-      const mockGeoLocation = 'UK-ENG'; // UK is in DEFAULT_BLOCKED_REGIONS
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: false,
-      });
-    });
-
-    it('handles geo location service errors with fallback', async () => {
-      // Arrange
-      const geoServiceError = new Error('Geo service unavailable');
-      mockMessenger.call.mockRejectedValueOnce(geoServiceError);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        geoServiceError.message,
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles non-Error objects in catch block', async () => {
-      // Arrange
-      const nonErrorObject = 'String error';
-      mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        String(nonErrorObject),
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
-    });
-  });
-
   describe('optIn (based on active account group)', () => {
     const mockEvmInternalAccount = {
       address: '0x123456789',
@@ -21232,6 +21081,24 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockStatus);
     });
 
+    it('forwards a profile username to the data service', async () => {
+      const ctrl = new RewardsController({
+        messenger: optInToCampaignMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId, 'ada');
+
+      expect(optInToCampaignMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        mockCampaignId,
+        'ada',
+      );
+    });
+
     it('logs when opting in', async () => {
       const ctrl = new RewardsController({
         messenger: optInToCampaignMessenger,
@@ -21406,6 +21273,35 @@ describe('RewardsController', () => {
         campaignId: campaignA,
         subscriptionId: mockSubscriptionId,
       });
+    });
+
+    it('forwards one profile username to every campaign opt-in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+        'ada',
+      );
+
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+        'ada',
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+        'ada',
+      );
     });
 
     it('re-seeds participant status cache so post-batch refetches hit cache', async () => {

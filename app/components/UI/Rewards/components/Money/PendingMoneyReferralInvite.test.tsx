@@ -14,7 +14,6 @@ import type { ReferralMeDto } from '../../../../../core/Engine/controllers/rewar
 import * as SettingsSelectors from '../../../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as RewardsMoneyFlagSelectors from '../../../../../selectors/featureFlagController/rewardsMoneyController';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { setPendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 import PendingMoneyReferralInvite, {
   MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
@@ -44,10 +43,6 @@ jest.mock('../../../../../core/NavigationService', () => ({
     },
     getCurrentRoute: () => mockGetCurrentRoute(),
   },
-}));
-
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 jest.mock('../../hooks/useReferralMe', () => ({
@@ -106,16 +101,24 @@ const arrangeGates = ({
 const renderInvite = ({
   pendingReferralCode = 'KOL1',
   referralMe = buildReferralMe(),
+  referralMeError = false,
   geoLocation = null,
   isReferralLinkPending = false,
 }: {
   pendingReferralCode?: string | null;
   referralMe?: ReferralMeDto | null;
+  referralMeError?: boolean;
   geoLocation?: string | null;
   isReferralLinkPending?: boolean;
 } = {}) => {
   const referralMeEntries: Record<string, ReferralMeEntry> = referralMe
-    ? { [PROFILE_ID]: { loading: false, error: false, data: referralMe } }
+    ? {
+        [PROFILE_ID]: {
+          loading: false,
+          error: referralMeError,
+          data: referralMe,
+        },
+      }
     : {};
   const store = configureStore({
     rewardsMoney: {
@@ -123,7 +126,18 @@ const renderInvite = ({
       pendingReferralCode,
       isReferralLinkPending,
     },
-    rewards: { geoLocation },
+    ...(geoLocation
+      ? {
+          engine: {
+            backgroundState: {
+              GeolocationController: {
+                location: geoLocation,
+                status: 'complete' as const,
+              },
+            },
+          },
+        }
+      : {}),
   });
   const view = render(
     <Provider store={store}>
@@ -152,7 +166,6 @@ describe('PendingMoneyReferralInvite', () => {
   it('does nothing when no deeplink left a code', () => {
     renderInvite({ pendingReferralCode: null });
 
-    expect(useGeoRewardsMetadata).not.toHaveBeenCalled();
     expect(mockFetchReferralMe).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -166,7 +179,6 @@ describe('PendingMoneyReferralInvite', () => {
         { referralCode: 'KOL1', entryType: 'deeplink' },
       );
     });
-    expect(useGeoRewardsMetadata).toHaveBeenCalledWith({ enabled: true });
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
@@ -231,16 +243,19 @@ describe('PendingMoneyReferralInvite', () => {
       jest.useRealTimers();
     });
 
-    it('drops the code when the read outlasts the load budget', () => {
+    it('opens the invite when the read outlasts the load budget', async () => {
       mockFetchReferralMe.mockReturnValue(new Promise(() => undefined));
       const { store } = renderInvite();
 
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
       });
 
-      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
     });
 
     it('does not let a hung app-installation check consume the load budget', async () => {
@@ -265,7 +280,7 @@ describe('PendingMoneyReferralInvite', () => {
       expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
     });
 
-    it('ignores a read that settles after the load budget', async () => {
+    it('keeps the invite open when eligibility settles after the load budget', async () => {
       let settleRead: (value: unknown) => void = () => undefined;
       mockFetchReferralMe.mockReturnValue(
         new Promise((resolve) => {
@@ -281,7 +296,10 @@ describe('PendingMoneyReferralInvite', () => {
         settleRead({ status: 'settled', profileId: PROFILE_ID });
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
     });
 
     it('keeps the code when the read settles within the load budget', async () => {
@@ -330,6 +348,18 @@ describe('PendingMoneyReferralInvite', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('drops the code and does not navigate when a settled entry has error true and stale REFEREE data', async () => {
+    const { store } = renderInvite({
+      referralMe: buildReferralMe({ roles: ['REFEREE'] }),
+      referralMeError: true,
+    });
+
+    await waitFor(() => {
+      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('drops the code when the device is in an excluded region', async () => {
     const { store } = renderInvite({
       referralMe: buildReferralMe({ excluded_regions: ['GB'] }),
@@ -342,7 +372,7 @@ describe('PendingMoneyReferralInvite', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('drops the code when the read was discarded', async () => {
+  it('opens the invite when the read was discarded', async () => {
     mockFetchReferralMe.mockResolvedValue({
       status: 'discarded',
       profileId: PROFILE_ID,
@@ -351,29 +381,38 @@ describe('PendingMoneyReferralInvite', () => {
     const { store } = renderInvite();
 
     await waitFor(() => {
-      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
-  it('drops the code when the read failed', async () => {
+  it('opens the invite when the read failed', async () => {
     mockFetchReferralMe.mockRejectedValue(new Error('network'));
 
     const { store } = renderInvite();
 
     await waitFor(() => {
-      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
-  it('drops the code when the read settled without data', async () => {
+  it('opens the invite when the read settled without data', async () => {
     const { store } = renderInvite({ referralMe: null });
 
     await waitFor(() => {
-      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
   it('does not open a second sheet when the invite is already showing', async () => {
