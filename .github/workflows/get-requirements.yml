@@ -29,9 +29,9 @@ on:
       jest_related_only:
         description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that delete or rename no file, change no Jest or Babel config or Babel script, dependency manifest, lockfile, patch, Jest setup file, mock, or component-view or integration test helper (see jest_full_run_triggers in filter-rules.yml) and whose changed file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
         value: ${{ jobs.detect-changes.outputs.jest_related_only }}
-      jest_related_files:
-        description: 'Newline-separated list of changed files to pass to jest --findRelatedTests. Empty unless jest_related_only is true.'
-        value: ${{ jobs.detect-changes.outputs.jest_related_files }}
+      jest_related_args:
+        description: 'Ready-made Jest arguments for related-tests runs: --passWithNoTests --findRelatedTests followed by the space-separated changed files, which are validated to be safe for a command line. Empty unless jest_related_only is true.'
+        value: ${{ jobs.detect-changes.outputs.jest_related_args }}
       jest_coverage_args:
         description: 'Space-separated --collectCoverageFrom arguments that scope Jest coverage to the changed app source files. Only set on pull requests. Empty means collect coverage from the whole app (the default jest config). When a pull request changes no app source files the arguments point at a path that does not exist, so shards report empty coverage. Falls back to empty when the changed file list is too large or has paths that are unsafe to pass on a command line.'
         value: ${{ jobs.detect-changes.outputs.jest_coverage_args }}
@@ -71,7 +71,7 @@ jobs:
       changed_spec_files: ${{ steps.set-e2e-outputs.outputs.changed_spec_files }}
       changed_cv_test_files: ${{ steps.cv-test-files.outputs.changed_cv_test_files }}
       jest_related_only: ${{ steps.jest-scope.outputs.jest_related_only || 'false' }}
-      jest_related_files: ${{ steps.jest-scope.outputs.jest_related_files }}
+      jest_related_args: ${{ steps.jest-scope.outputs.jest_related_args }}
       jest_coverage_args: ${{ steps.coverage-scope.outputs.jest_coverage_args }}
       block_merge_for_e2e_readiness: ${{ steps.set-e2e-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-e2e-outputs.outputs.run_smart_e2e_selection }}
@@ -245,11 +245,7 @@ jobs:
           echo "-> jest_related_only=${related} (${reason})"
           echo "jest_related_only=${related}" >> "$GITHUB_OUTPUT"
           if [[ "$related" == "true" ]]; then
-            {
-              echo "jest_related_files<<JEST_RELATED_FILES_EOF"
-              printf '%s\n' "${files[@]}"
-              echo "JEST_RELATED_FILES_EOF"
-            } >> "$GITHUB_OUTPUT"
+            echo "jest_related_args=--passWithNoTests --findRelatedTests ${files[*]}" >> "$GITHUB_OUTPUT"
           fi
           {
             echo "### Jest test scope"

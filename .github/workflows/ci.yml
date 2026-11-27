@@ -1199,40 +1199,26 @@ jobs:
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
-          related_args=()
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+          related_ignore=''
+          if [[ -n "$JEST_RELATED_ARGS" ]]; then
             # --findRelatedTests ignores the script's path roots, so without this
             # it would also load files outside the unit suite (Playwright specs,
             # .ai-pr-analyzer, .yarn). Keep only ./app/, ./locales/ and *.test.ts
             # under tests, scripts, .github.
-            # Both file lists are validated in get-requirements, so word-splitting
-            # them is intended.
-            # shellcheck disable=SC2206
-            related_args=(
-              '--testPathIgnorePatterns=^(?!<rootDir>/(app|locales)/)(?!<rootDir>/(tests|scripts|\.github)/.*\.test\.ts$)'
-              --passWithNoTests
-              --findRelatedTests $JEST_RELATED_FILES
-            )
+            related_ignore='--testPathIgnorePatterns=^(?!<rootDir>/(app|locales)/)(?!<rootDir>/(tests|scripts|\.github)/.*\.test\.ts$)'
           fi
+          # JEST_COVERAGE_ARGS and JEST_RELATED_ARGS are validated in
+          # get-requirements, so word-splitting them is intended.
           # shellcheck disable=SC2086
-          yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json "${related_args[@]}"
+          yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json ${related_ignore:+"$related_ignore"} $JEST_RELATED_ARGS
         env:
           NODE_OPTIONS: --max_old_space_size=12288
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
-          JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
+          JEST_RELATED_ARGS: ${{ needs.get_requirements.outputs.jest_related_args }}
       - name: Rename coverage report and extract test count for this shard
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
-        env:
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          # The merge job needs one coverage file per shard, so a related shard that
-          # selects no suite gets an empty one. Full runs still fail on a missing file.
-          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
-            mkdir -p ./tests/coverage
-            echo '{}' > ./tests/coverage/coverage-final.json
-          fi
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
@@ -1542,33 +1528,21 @@ jobs:
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
-          related_args=()
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            # shellcheck disable=SC2206
-            related_args=(--passWithNoTests --findRelatedTests $JEST_RELATED_FILES)
-          fi
           # shellcheck disable=SC2086
           yarn test:view:ci \
             --shard=${{ matrix.shard }}/6 \
             $JEST_COVERAGE_ARGS \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json \
-            "${related_args[@]}"
+            $JEST_RELATED_ARGS
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
-          JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
+          JEST_RELATED_ARGS: ${{ needs.get_requirements.outputs.jest_related_args }}
       - name: Rename coverage report and extract test count for this shard
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
-        env:
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
-            mkdir -p ./tests/coverage
-            echo '{}' > ./tests/coverage/coverage-final.json
-          fi
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
@@ -1739,33 +1713,21 @@ jobs:
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
-          related_args=()
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            # shellcheck disable=SC2206
-            related_args=(--passWithNoTests --findRelatedTests $JEST_RELATED_FILES)
-          fi
           # shellcheck disable=SC2086
           yarn test:integration:ci \
             --shard=${{ matrix.shard }}/2 \
             $JEST_COVERAGE_ARGS \
             --json \
             --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json \
-            "${related_args[@]}"
+            $JEST_RELATED_ARGS
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
-          JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
+          JEST_RELATED_ARGS: ${{ needs.get_requirements.outputs.jest_related_args }}
       - name: Rename coverage report and extract test count for this shard
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
-        env:
-          JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
-            mkdir -p ./tests/coverage
-            echo '{}' > ./tests/coverage/coverage-final.json
-          fi
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-integration-${{ matrix.shard }}.json
           cp tests/results/integration-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
