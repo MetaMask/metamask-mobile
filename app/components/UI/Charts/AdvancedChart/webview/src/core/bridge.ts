@@ -6,6 +6,7 @@
 // any change to its consumers.
 
 import type {
+  ErrorPayload,
   InboundMessage,
   OutboundMessageType,
   OutboundPayloads,
@@ -46,7 +47,10 @@ export function postToRN<T extends OutboundMessageType>(
  * legacy `sendToReactNative('ERROR', { message })` pattern used throughout
  * chartLogic.js.
  */
-export function reportErrorToRN(error: unknown): void {
+export function reportErrorToRN(
+  error: unknown,
+  diagnostics: Omit<ErrorPayload, 'message'> = {},
+): void {
   let message: string;
   if (error instanceof Error) {
     message = error.message;
@@ -55,7 +59,7 @@ export function reportErrorToRN(error: unknown): void {
   } else {
     message = safeStringify(error);
   }
-  postToRN('ERROR', { message });
+  postToRN('ERROR', { message, ...diagnostics });
 }
 
 export type InboundMessageHandler = (message: InboundMessage) => void;

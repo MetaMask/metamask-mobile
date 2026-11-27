@@ -18,6 +18,7 @@ import {
   type PositionLines,
   type PositionLineColors,
   type ChartRangeSettlePayload,
+  type ErrorPayload,
 } from '../../../Charts/AdvancedChart/AdvancedChart.types';
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
@@ -50,7 +51,7 @@ export interface PerpsAdvancedChartProps {
   szDecimals?: number | null;
   onCrosshairDataChange?: (data: OhlcData | null) => void;
   onLatestPriceChange?: (price: number | undefined) => void;
-  onError?: (error: string) => void;
+  onError?: (error: string, details?: ErrorPayload) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
   /** Fires when the user pinch-zooms; used to persist visible candle count. */
   onVisibleCandleCountChange?: (count: number) => void;
@@ -540,7 +541,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   // ---- Error fallback ----
 
   const handleError = useCallback(
-    (error: string) => {
+    (error: string, details?: ErrorPayload) => {
       setHasFailed(true);
       const open = activeVisibilityTraceRef.current;
       if (open) {
@@ -558,7 +559,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         });
         activeVisibilityTraceRef.current = null;
       }
-      onError?.(error);
+      if (details) {
+        onError?.(error, details);
+      } else {
+        onError?.(error);
+      }
     },
     [symbol, interval, surface, onError],
   );

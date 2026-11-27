@@ -91,7 +91,20 @@ describe('usePerpsChartInteractions', () => {
 
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'WebView failed' }),
-      { tags: { feature: PERPS_CONSTANTS.FeatureName } },
+      {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsChartInteractions',
+          operation: 'chart_error',
+        },
+        context: {
+          name: 'chart_error',
+          data: {
+            asset: 'BTC',
+            chartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          },
+        },
+      },
     );
   });
 
@@ -109,6 +122,72 @@ describe('usePerpsChartInteractions', () => {
         [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
       }),
     );
+  });
+
+  describe('library load failure', () => {
+    const message =
+      'Failed to load TradingView library. URL: https://cdn.example.com/charting_library.js';
+    const details = {
+      message,
+      code: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+      url: 'https://cdn.example.com/charting_library.js',
+      attempt: 2,
+      maxAttempts: 2,
+      online: false,
+      visibilityState: 'hidden',
+    };
+
+    it('logs searchable diagnostics to Sentry', () => {
+      const { result } = renderInteractions();
+
+      act(() => {
+        result.current.handleChartError(message, details);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({ message }),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsChartInteractions',
+            operation: 'chart_library_load',
+          },
+          context: {
+            name: 'chart_library_load',
+            data: {
+              asset: 'BTC',
+              chartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+              errorCode: 'TRADINGVIEW_LIBRARY_LOAD_FAILED',
+              fallbackUsed: true,
+              url: 'https://cdn.example.com/charting_library.js',
+              attempt: 2,
+              maxAttempts: 2,
+              online: false,
+              visibilityState: 'hidden',
+            },
+          },
+        },
+      );
+    });
+
+    it('does not add diagnostic properties to the Mixpanel event', () => {
+      const { result } = renderInteractions();
+
+      act(() => {
+        result.current.handleChartError(message, details);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: message,
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+        [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        ...chartAnalyticsProperties,
+      });
+    });
   });
 
   it('falls back after an Advanced Chart error', () => {

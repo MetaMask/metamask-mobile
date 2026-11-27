@@ -8,8 +8,46 @@ import {
 import { setPerpsChartPreferredCandlePeriod } from '../../../../actions/settings';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
+import type { ErrorPayload } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import type { PerpsChartAnalyticsProperties } from '../utils/chartAnalytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+
+const COMPONENT_NAME = 'usePerpsChartInteractions';
+const OPERATION_CHART_ERROR = 'chart_error';
+const OPERATION_LIBRARY_LOAD = 'chart_library_load';
+const TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE = 'TRADINGVIEW_LIBRARY_LOAD_FAILED';
+
+/**
+ * Sentry-only structured context for a TradingView library-load failure.
+ * Returns `undefined` for any other chart error.
+ *
+ * Mixpanel properties for these diagnostics are intentionally not sent: they
+ * belong in `@metamask/perps-controller` event constants (shared across
+ * clients) and will be added once Core defines them.
+ */
+const getLibraryLoadContext = (
+  details: unknown,
+  fallbackUsed: boolean,
+): Record<string, unknown> | undefined => {
+  if (typeof details !== 'object' || details === null) {
+    return undefined;
+  }
+
+  const payload = details as Partial<ErrorPayload>;
+  if (payload.code !== TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE) {
+    return undefined;
+  }
+
+  return {
+    errorCode: payload.code,
+    fallbackUsed,
+    url: payload.url,
+    attempt: payload.attempt,
+    maxAttempts: payload.maxAttempts,
+    online: payload.online,
+    visibilityState: payload.visibilityState,
+  };
+};
 
 interface UsePerpsChartInteractionsOptions {
   asset?: string;
@@ -44,14 +82,35 @@ export const usePerpsChartInteractions = ({
   );
 
   const handleChartError = useCallback(
-    (error?: Error | string) => {
+    (error?: Error | string, details?: unknown) => {
       const errorMessage =
         typeof error === 'string'
           ? error
           : (error?.message ?? chartErrorMessage);
 
+      const libraryLoadContext = getLibraryLoadContext(
+        details,
+        isAdvancedChartEnabled,
+      );
+      const operation = libraryLoadContext
+        ? OPERATION_LIBRARY_LOAD
+        : OPERATION_CHART_ERROR;
+
       Logger.error(new Error(errorMessage), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: COMPONENT_NAME,
+          operation,
+        },
+        context: {
+          name: operation,
+          data: {
+            asset: asset ?? '',
+            chartLibrary:
+              chartAnalyticsProperties[PERPS_EVENT_PROPERTY.CHART_LIBRARY],
+            ...libraryLoadContext,
+          },
+        },
       });
       track(MetaMetricsEvents.PERPS_ERROR, {
         [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,

@@ -271,6 +271,12 @@ export interface ChartTradingViewClickedPayload {
 
 export interface ErrorPayload {
   message: string;
+  code?: string;
+  url?: string;
+  attempt?: number;
+  maxAttempts?: number;
+  online?: boolean;
+  visibilityState?: string;
 }
 
 export interface DebugPayload {
