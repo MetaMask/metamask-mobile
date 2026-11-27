@@ -61,7 +61,7 @@ describe('FilterButton', () => {
 
   it('applies twClassName for layout overrides', () => {
     const { getByTestId } = renderWithProvider(
-      <FilterButton {...defaultProps} twClassName="px-2" />,
+      <FilterButton {...defaultProps} className="px-2" />,
     );
     expect(getByTestId('filter-btn')).toBeOnTheScreen();
   });

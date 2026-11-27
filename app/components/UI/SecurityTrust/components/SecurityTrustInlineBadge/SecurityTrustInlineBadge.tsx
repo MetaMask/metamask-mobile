@@ -68,6 +68,10 @@ const SecurityTrustInlineBadge = ({
           <IconAlert severity={badge.iconAlertSeverity} size={IconSize.Xs} />
         ) : undefined
       }
+      className="shrink-0"
+    ><IconAlert severity={badge.iconAlertSeverity} size={IconSize.Xs} />
+        ) : undefined
+      }
       twClassName="shrink-0"
     >
       {badge.label}

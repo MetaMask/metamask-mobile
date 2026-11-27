@@ -48,7 +48,7 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const SectionDivider = () => (
-  <Box twClassName="border-b border-border-muted my-5" />
+  <Box className="border-b border-border-muted my-5" />
 );
 
 interface InfoRowProps {
@@ -63,7 +63,7 @@ const InfoRow = ({ label, value, testID }: InfoRowProps) => (
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName="py-4"
+    className="py-4"
   >
     <Text
       variant={TextVariant.BodyMd}
@@ -121,9 +121,9 @@ const ManageRow = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 py-4"
+        className="gap-3 py-4"
       >
-        <Box twClassName="flex-1 gap-1">
+        <Box className="flex-1 gap-1">
           <Text
             variant={TextVariant.BodyMd}
             color={isInactive ? TextColor.TextMuted : TextColor.TextAlternative}
@@ -307,7 +307,7 @@ const Membership = () => {
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
           testID={MembershipTestIds.TITLE}
-          twClassName="mb-2"
+          className="mb-2"
         >
           {strings('pro_hub.membership.title')}
         </Text>
@@ -334,7 +334,7 @@ const Membership = () => {
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="mb-2"
+            className="mb-2"
           >
             {strings('pro_hub.membership.payment_details')}
           </Text>
@@ -346,7 +346,7 @@ const Membership = () => {
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.TOTAL_ROW}
-              twClassName="py-4"
+              className="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -358,13 +358,13 @@ const Membership = () => {
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-1 flex-wrap"
+                className="gap-x-1 flex-wrap"
               >
                 {membershipDetails.totalOriginal ? (
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
-                    twClassName="line-through"
+                    className="line-through"
                   >
                     {membershipDetails.totalOriginal}
                   </Text>
@@ -393,7 +393,7 @@ const Membership = () => {
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.PAYING_WITH_ROW}
-              twClassName="py-4"
+              className="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -405,12 +405,12 @@ const Membership = () => {
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-2"
+                className="gap-x-2"
               >
                 {showMoneyAccountIcon ? (
                   <Box
                     testID={MembershipTestIds.PAYING_WITH_MONEY_ICON}
-                    twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
+                    className="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
                   >
                     <Icon
                       name={IconName.AttachMoney}
@@ -442,13 +442,13 @@ const Membership = () => {
         {/* ── Manage ───────────────────────────────────────────────────────── */}
         <Box
           testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col"
+          className="flex flex-col"
         >
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="mb-2"
+            className="mb-2"
           >
             {strings('pro_hub.membership.manage')}
           </Text>

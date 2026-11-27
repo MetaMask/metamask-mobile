@@ -131,7 +131,7 @@ const CashTokensFullView = () => {
 
   const balanceHeading = useMemo(
     () => (
-      <Box twClassName="px-4 pt-2 pb-3">
+      <Box className="px-4 pt-2 pb-3">
         <Text
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
@@ -203,8 +203,8 @@ const CashTokensFullView = () => {
         </ScrollView>
       )}
       {isMoneyHubEnabled && (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4 gap-2">
-          <Box twClassName="flex-1">
+        <Box flexDirection={BoxFlexDirection.Row} className="px-4 pt-4 gap-2">
+          <Box className="flex-1">
             <Button
               testID={CashTokensFullViewTestIds.SWAP_BUTTON}
               variant={ButtonVariant.Primary}
@@ -215,7 +215,7 @@ const CashTokensFullView = () => {
               {strings('money.convert_stablecoins.swap')}
             </Button>
           </Box>
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Button
               testID={CashTokensFullViewTestIds.BUY_BUTTON}
               variant={ButtonVariant.Primary}

@@ -220,7 +220,7 @@ const TokenDetailsMarketInsightsSection = ({
     return card;
   }
 
-  return <Box twClassName="mt-6 border-t border-muted pt-6">{card}</Box>;
+  return <Box className="mt-6 border-t border-muted pt-6">{card}</Box>;
 };
 
 TokenDetailsMarketInsightsSection.displayName =

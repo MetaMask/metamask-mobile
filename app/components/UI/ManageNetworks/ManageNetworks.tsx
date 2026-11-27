@@ -94,7 +94,7 @@ export default function ManageNetworksComponent() {
           numberOfLines: 1,
         }}
         onPress={switchNetwork}
-        twClassName="self-start my-4"
+        className="self-start my-4"
       />
     </View>
   );

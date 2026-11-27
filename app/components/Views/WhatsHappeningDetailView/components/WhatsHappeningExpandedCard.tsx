@@ -107,25 +107,25 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
       {/* Card surface */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="rounded-2xl bg-section overflow-hidden flex-1 mt-4"
+        className="rounded-2xl bg-section overflow-hidden flex-1 mt-4"
       >
         {/* Scroll region with a persistent bottom fade hinting at more content */}
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="relative flex-1 min-h-0 bg-section"
+          className="relative flex-1 min-h-0 bg-section"
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             style={tw.style('flex-1 bg-section')}
             contentContainerStyle={tw.style('pt-6 pb-5')}
           >
-            <Box gap={3} twClassName="px-4">
+            <Box gap={3} className="px-4">
               {(item.impact || item.isOutdated) && (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={2}
-                  twClassName="flex-wrap"
+                  className="flex-wrap"
                 >
                   {item.impact ? (
                     <Tag severity={impactSeverity}>{impactLabel}</Tag>
@@ -157,7 +157,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             </Box>
 
             {tradableRelatedAssets.length > 0 && (
-              <Box twClassName="mt-4">
+              <Box className="mt-4">
                 <SectionHeader
                   title={strings('homepage.sections.related_assets')}
                 />
@@ -195,7 +195,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
                 gap={2}
-                twClassName={`px-4 py-3 bg-section border-t border-muted${
+                className={`px-4 py-3 bg-section border-t border-muted${
                   pressed ? ' opacity-60' : ''
                 }`}
               >
@@ -203,7 +203,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={2}
-                  twClassName="flex-shrink"
+                  className="flex-shrink"
                 >
                   <SourceLogoGroup sources={uniqueSources} />
                   {sourceLabel ? (
@@ -222,7 +222,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     numberOfLines={1}
-                    twClassName="shrink-0"
+                    className="shrink-0"
                   >
                     {formattedDate}
                   </Text>

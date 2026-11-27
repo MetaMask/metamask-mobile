@@ -45,7 +45,7 @@ const KycPending = ({ onLeave }: { onLeave: () => void }) => {
       >
         <Box alignItems={BoxAlignItems.Center}>
           <Box
-            twClassName="mb-[24px]"
+            className="mb-[24px]"
             testID={KycPendingSelectorsIDs.ILLUSTRATION}
           >
             <KycIllustration
@@ -53,19 +53,19 @@ const KycPending = ({ onLeave }: { onLeave: () => void }) => {
               twClassName="h-[104px] w-[149px]"
             />
           </Box>
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+          <Text variant={TextVariant.HeadingLg} className="text-center">
             {strings('kyc.kyc_taking_longer.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-[4px] text-center"
+            className="mt-[4px] text-center"
           >
             {strings('kyc.kyc_taking_longer.description_few_minutes')}
           </Text>
         </Box>
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

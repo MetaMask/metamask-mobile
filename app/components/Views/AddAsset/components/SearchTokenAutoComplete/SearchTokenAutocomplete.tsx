@@ -432,10 +432,10 @@ const SearchTokenAutocomplete = ({
   ]);
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       {renderTokenDetectionBanner()}
 
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <SearchTokenResults
           searchResults={allTokens}
           searchQuery={searchQuery}

@@ -98,7 +98,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
         title=""
         {...headerCloseProps}
       />
-      <Box twClassName="px-4 pb-6 gap-4">
+      <Box className="px-4 pb-6 gap-4">
         <TitleAlert
           severity={
             type === 'success'
@@ -114,7 +114,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-left"
+            className="text-left"
             testID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
           >
             {description}
@@ -146,7 +146,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                 }
               : undefined
           }
-          twClassName={reverseButtonOrder ? 'flex-row-reverse' : undefined}
+          className={reverseButtonOrder ? 'flex-row-reverse' : undefined}
         />
       ) : (
         customButton

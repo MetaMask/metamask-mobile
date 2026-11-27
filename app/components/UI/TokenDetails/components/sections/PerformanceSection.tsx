@@ -50,7 +50,7 @@ const PerformanceCell = ({
 
   return (
     <Box
-      twClassName={`flex-1 items-center px-0.5 py-2 ${
+      className={`flex-1 items-center px-0.5 py-2 ${
         isFirstCell ? '' : 'border-l border-muted'
       }`}
     >
@@ -115,13 +115,13 @@ const PerformanceSection = memo(({ performance }: PerformanceSectionProps) => {
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}
         color={TextColor.TextDefault}
-        twClassName="mb-3"
+        className="mb-3"
       >
         {strings('token_details_v1.performance.title')}
       </Text>
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="rounded-2xl border border-muted"
+        className="rounded-2xl border border-muted"
       >
         {cells.map((cell) => (
           <PerformanceCell key={cell.label} {...cell} />

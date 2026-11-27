@@ -178,7 +178,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
         />
 
         {/* Text content layer on top */}
-        <Box twClassName="w-full h-full flex justify-center items-center relative z-10">
+        <Box className="w-full h-full flex justify-center items-center relative z-10">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}

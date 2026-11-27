@@ -219,7 +219,7 @@ const SelectHardwareWallet = () => {
         title={strings('connect_hardware.title_select_hardware')}
         twClassName="px-4 pt-3 pb-6"
       />
-      <Box twClassName="gap-3 px-4">
+      <Box className="gap-3 px-4">
         {hardwareOptions.map(renderHardwareButton)}
       </Box>
     </SafeAreaView>

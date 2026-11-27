@@ -157,13 +157,13 @@ const TokenDetailsV1TabPlaceholder = ({
   <Box
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Center}
-    twClassName="py-8"
+    className="py-8"
     testID={`${TokenDetailsIds.tabPanelPrefix}-${tab}`}
   >
     <Text
       variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
-      twClassName="text-center"
+      className="text-center"
     >
       {strings('token_details_v1.tab_placeholder')}
     </Text>
@@ -900,7 +900,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   >
                     <Price.Header showPeriodLabel={false} />
 
-                    <Box twClassName="px-4">
+                    <Box className="px-4">
                       <SecuritySocialSection
                         securityVerdict={securityFacts.verdict}
                         securityRiskCount={securityFacts.risks.length}
@@ -915,7 +915,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     </Box>
                     {/* The interval bar above the chart adds 8px of its own top padding. */}
                     <Box
-                      twClassName={
+                      className={
                         isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
                       }
                     >

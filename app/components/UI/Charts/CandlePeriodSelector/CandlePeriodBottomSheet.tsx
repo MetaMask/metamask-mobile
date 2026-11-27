@@ -132,13 +132,13 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
       const period = periods[index];
 
       if (!period) {
-        return <Box key={`period-spacer-${index}`} twClassName="flex-1" />;
+        return <Box key={`period-spacer-${index}`} className="flex-1" />;
       }
 
       const isSelected = selectedPeriod === period.value;
 
       return (
-        <Box key={period.value} twClassName="flex-1">
+        <Box key={period.value} className="flex-1">
           <FilterButton
             isSelected={isSelected}
             variant={FilterButtonVariant.Primary}
@@ -148,7 +148,7 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
             // Default button padding clips `15m` and `30m` to `15` and `30`
             // in a five-column row. Tighten the padding and scale the label
             // so the unit stays visible.
-            twClassName="px-1"
+            className="px-1"
             textProps={{
               adjustsFontSizeToFit: true,
               minimumFontScale: 0.7,
@@ -182,28 +182,28 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
       >
         {strings('perps.chart.candle_intervals')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         {showAllPeriods && periodSections ? (
           periodSections.map((section, sectionIndex) => (
             <Box
               key={section.title}
-              twClassName={sectionIndex > 0 ? 'mt-4' : undefined}
+              className={sectionIndex > 0 ? 'mt-4' : undefined}
             >
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="pb-2"
+                className="pb-2"
               >
                 {section.title}
               </Text>
-              <Box twClassName="flex-row gap-2">
+              <Box className="flex-row gap-2">
                 {renderPeriodRow(section.periods)}
               </Box>
             </Box>
           ))
         ) : (
-          <Box twClassName="flex-row gap-2">
+          <Box className="flex-row gap-2">
             {renderPeriodRow(availablePeriods)}
           </Box>
         )}

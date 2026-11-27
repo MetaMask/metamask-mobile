@@ -106,13 +106,13 @@ const Pna25BottomSheet = () => {
         style={tw.style('pt-0 pb-0')}
       />
       <ScrollView>
-        <Box twClassName="flex flex-col items-center gap-4 mb-6">
+        <Box className="flex flex-col items-center gap-4 mb-6">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('privacy_policy.pna25_title')}
           </Text>
         </Box>
-        <Box twClassName="px-6 pb-8 gap-6">
+        <Box className="px-6 pb-8 gap-6">
           <Text variant={TextVariant.BodyMd}>
             {strings('privacy_policy.pna25_description')}
           </Text>
@@ -123,7 +123,7 @@ const Pna25BottomSheet = () => {
             {strings('privacy_policy.pna25_description_3') + ' '}
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="underline"
+              className="underline"
               onPress={handleLearnMore}
             >
               {strings('privacy_policy.pna25_blog_post_link')}

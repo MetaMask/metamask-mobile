@@ -212,7 +212,7 @@ export const TokenSortBottomSheet = () => {
           onPress: handleReset,
           testID: WalletViewSelectorsIDs.SORT_RESET,
         }}
-        twClassName="pt-4"
+        className="pt-4"
       />
     </BottomSheet>
   );

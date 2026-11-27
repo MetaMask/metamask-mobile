@@ -62,36 +62,36 @@ const NotifCard = ({
   return (
     <Box style={styles.container}>
       {/* Content — always fully opaque */}
-      <Box twClassName="rounded-[24px] bg-default p-5">
+      <Box className="rounded-[24px] bg-default p-5">
         <Box
-          twClassName={`flex-row items-start gap-2 rounded-2xl ${cardBackgroundClass} px-3 py-3`}
+          className={`flex-row items-start gap-2 rounded-2xl ${cardBackgroundClass} px-3 py-3`}
         >
-          <Box twClassName="h-9 w-9 shrink-0 self-start items-center justify-center rounded-xl bg-muted">
+          <Box className="h-9 w-9 shrink-0 self-start items-center justify-center rounded-xl bg-muted">
             <Image
               source={FoxImage}
               style={tw.style('h-6 w-6')}
               resizeMode="contain"
             />
           </Box>
-          <Box twClassName="min-w-0 flex-1">
-            <Box twClassName="mb-0.5 flex-row items-center justify-between">
+          <Box className="min-w-0 flex-1">
+            <Box className="mb-0.5 flex-row items-center justify-between">
               <Text
                 variant={TextVariant.BodyXs}
                 fontWeight={FontWeight.Medium}
-                twClassName="leading-[20px]"
+                className="leading-[20px]"
               >
                 {title}
               </Text>
               <Text
                 variant={TextVariant.BodyXs}
-                twClassName="ml-2 shrink-0 text-alternative"
+                className="ml-2 shrink-0 text-alternative"
               >
                 {timestamp}
               </Text>
             </Box>
             <Text
               variant={TextVariant.BodyXs}
-              twClassName="text-alternative leading-[15.6px]"
+              className="text-alternative leading-[15.6px]"
             >
               {message}
             </Text>

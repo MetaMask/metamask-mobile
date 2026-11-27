@@ -513,10 +513,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     <Box
       alignItems={BoxAlignItems.Center}
       paddingHorizontal={10}
-      twClassName="flex-1 pb-[30px]"
+      className="flex-1 pb-[30px]"
     >
       <Box
-        twClassName={`mt-[30px] mb-[30px] ${
+        className={`mt-[30px] mb-[30px] ${
           Device.isIos() ? 'w-[90px] h-[90px]' : 'w-20 h-20'
         }`}
       >
@@ -558,7 +558,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     <Box
       alignItems={BoxAlignItems.Center}
       paddingHorizontal={10}
-      twClassName="flex-1 pb-[30px]"
+      className="flex-1 pb-[30px]"
     >
       <ActivityIndicator size="small" />
     </Box>
@@ -577,9 +577,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           flexDirection={BoxFlexDirection.Column}
           justifyContent={BoxJustifyContent.Between}
           padding={4}
-          twClassName="flex-1 gap-y-4 h-full"
+          className="flex-1 gap-y-4 h-full"
         >
-          <Box alignItems={BoxAlignItems.Start} twClassName="flex-1 h-full">
+          <Box alignItems={BoxAlignItems.Start} className="flex-1 h-full">
             <Label
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
@@ -603,7 +603,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
-          <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
+          <Box justifyContent={BoxJustifyContent.End} className="flex-1">
             <Button
               {...getCommonButtonProps()}
               onPress={reauthenticateWithPassword}
@@ -630,7 +630,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     return (
       <Box
         backgroundColor={BoxBackgroundColor.BackgroundDefault}
-        twClassName="flex-1"
+        className="flex-1"
       >
         {loading ? (
           renderLoadingState()
@@ -640,12 +640,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
             contentContainerStyle={tw.style('flex-grow')}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <Box twClassName="flex-1 flex-col">
+            <Box className="flex-1 flex-col">
               <Box
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 flexDirection={BoxFlexDirection.Column}
                 gap={4}
-                twClassName="grow pt-4"
+                className="grow pt-4"
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -657,7 +657,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 </Text>
 
                 {/* New password field */}
-                <Box twClassName="relative flex-col gap-2">
+                <Box className="relative flex-col gap-2">
                   <Label
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
@@ -706,7 +706,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 </Box>
 
                 {/* Confirm password field */}
-                <Box twClassName="relative flex-col gap-2">
+                <Box className="relative flex-col gap-2">
                   <Label
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
@@ -775,7 +775,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     color={TextColor.TextDefault}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     onPress={toggleSelection}
-                    twClassName="flex-row items-center w-[90%]"
+                    className="flex-row items-center w-[90%]"
                   >
                     {isSrp
                       ? strings('reset_password.i_understand')
@@ -793,7 +793,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
                 <Box
                   flexDirection={BoxFlexDirection.Column}
-                  twClassName={`w-full gap-[18px] mt-auto ${
+                  className={`w-full gap-[18px] mt-auto ${
                     Platform.OS === 'android' ? 'mb-6' : 'mb-4'
                   }`}
                 >
@@ -850,7 +850,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         backButtonProps={{ isDisabled: loading }}
         includesTopInset
       />
-      <Box twClassName="flex-1" testID={'account-backup-step-4-screen'}>
+      <Box className="flex-1" testID={'account-backup-step-4-screen'}>
         {view === ViewState.ResetForm
           ? renderResetPassword()
           : renderConfirmPassword()}

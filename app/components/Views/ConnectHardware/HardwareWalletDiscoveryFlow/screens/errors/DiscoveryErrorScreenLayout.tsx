@@ -61,10 +61,10 @@ const DiscoveryErrorScreenLayout = ({
       edges={['top', 'bottom']}
       style={tw.style('flex-1 bg-default')}
     >
-      <Box twClassName="flex-1 bg-default" alignItems={BoxAlignItems.Center}>
+      <Box className="flex-1 bg-default" alignItems={BoxAlignItems.Center}>
         <Box
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 justify-center"
+          className="flex-1 justify-center"
         >
           <View style={styles.container}>
             {useStaticImage ? (
@@ -92,15 +92,15 @@ const DiscoveryErrorScreenLayout = ({
           </View>
         </Box>
 
-        <Box twClassName="w-full gap-4 px-4 pb-6">
-          <Box twClassName="gap-2 px-2">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+        <Box className="w-full gap-4 px-4 pb-6">
+          <Box className="gap-2 px-2">
+            <Text variant={TextVariant.HeadingLg} className="text-center">
               {title}
             </Text>
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="text-center"
+              className="text-center"
             >
               {subtitle}
             </Text>

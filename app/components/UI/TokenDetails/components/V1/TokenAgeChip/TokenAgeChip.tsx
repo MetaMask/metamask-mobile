@@ -33,7 +33,7 @@ const TokenAgeChip = ({ launchedAtSeconds, onPress }: TokenAgeChipProps) => {
       })}
       testID={TokenDetailsIds.ageChip}
     >
-      <Tag severity={TagSeverity.Neutral} twClassName="self-center shrink-0">
+      <Tag severity={TagSeverity.Neutral} className="self-center shrink-0">
         {label}
       </Tag>
     </Pressable>

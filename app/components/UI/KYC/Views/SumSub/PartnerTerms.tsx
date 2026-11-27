@@ -108,7 +108,7 @@ const GroupTitle = ({ title }: { title: string }) => (
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Bold}
-    twClassName="px-4 pb-1 pt-3"
+    className="px-4 pb-1 pt-3"
   >
     {title}
   </Text>
@@ -265,7 +265,7 @@ const KycPartnerTerms = ({
   );
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <SafeAreaView
         edges={['right', 'bottom', 'left']}
         style={tw.style('flex-1')}
@@ -286,7 +286,7 @@ const KycPartnerTerms = ({
           onLayout={handleViewportLayout}
           testID={KycPartnerTermsSelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
+          <Box className="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.partner_terms.title')}
             bottomLabel={strings('kyc.partner_terms.description')}
@@ -296,23 +296,23 @@ const KycPartnerTerms = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-2 pt-2"
+            className="px-4 pb-2 pt-2"
           >
             {strings('kyc.partner_terms.section_title')}
           </Text>
 
-          <Box twClassName="mx-4 overflow-hidden rounded-xl bg-muted">
+          <Box className="mx-4 overflow-hidden rounded-xl bg-muted">
             <GroupTitle title={strings('kyc.partner_terms.idos_group_title')} />
             {listedIdosDocuments.map((disclaimer) => (
               <DisclaimerRow key={disclaimer.id} disclaimer={disclaimer} />
             ))}
 
-            <Box twClassName="h-px bg-muted" />
+            <Box className="h-px bg-muted" />
 
             <GroupTitle
               title={strings('kyc.partner_terms.sumsub_group_title')}
             />
-            <Box twClassName="px-4 pb-4">
+            <Box className="px-4 pb-4">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
@@ -362,7 +362,7 @@ const KycPartnerTerms = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Start}
-            twClassName="mx-4 mt-4 gap-3"
+            className="mx-4 mt-4 gap-3"
             onLayout={handleConsentRowLayout}
             testID={KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW}
           >
@@ -372,7 +372,7 @@ const KycPartnerTerms = ({
               onChange={setHasBiometricConsent}
               testID={KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
             />
-            <Box twClassName="flex-1">
+            <Box className="flex-1">
               <SentenceWithLinks
                 i18nKey="kyc.partner_terms.biometric_consent"
                 variant={TextVariant.BodyMd}
@@ -394,7 +394,7 @@ const KycPartnerTerms = ({
           </Box>
         </ScrollView>
 
-        <Box twClassName="gap-4 border-t border-muted px-4 pb-2 pt-4">
+        <Box className="gap-4 border-t border-muted px-4 pb-2 pt-4">
           <SentenceWithLinks
             i18nKey="kyc.partner_terms.agreement"
             twClassName="text-center"

@@ -118,7 +118,7 @@ const ConfirmAddAsset = () => {
         includesTopInset
       />
 
-      <Box twClassName="flex-1 pt-2">
+      <Box className="flex-1 pt-2">
         <Text variant={TextVariant.BodyMd} style={tw.style('text-center px-4')}>
           {selectedAsset.length > 1
             ? strings('wallet.import_tokens')

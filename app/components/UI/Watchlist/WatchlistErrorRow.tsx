@@ -38,7 +38,7 @@ const WatchlistErrorRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={['justify-between py-3', twClassName]
+      className={['justify-between py-3', twClassName]
         .filter(Boolean)
         .join(' ')}
       testID={testID}

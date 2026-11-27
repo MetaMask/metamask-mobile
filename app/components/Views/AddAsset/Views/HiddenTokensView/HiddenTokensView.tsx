@@ -154,9 +154,9 @@ const HiddenTokensView = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={3}
-        twClassName="px-4"
+        className="px-4"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <AddAssetTokenRow asset={item.asset} />
         </Box>
         <TextButton
@@ -184,7 +184,7 @@ const HiddenTokensView = () => {
       />
       {rows.length === 0 ? (
         <Box
-          twClassName="flex-1 items-center justify-center px-8"
+          className="flex-1 items-center justify-center px-8"
           testID={ImportTokenViewSelectorsIDs.HIDDEN_EMPTY_STATE}
         >
           <Image
@@ -195,7 +195,7 @@ const HiddenTokensView = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
+            className="mt-4 text-center"
           >
             {strings('add_asset.no_hidden_tokens')}
           </Text>

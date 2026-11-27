@@ -143,7 +143,7 @@ const PriceLegacy = ({
       {/* Skeleton bar when feature flag ON and loading */}
       {isTechnicalIndicatorsEnabled && isLoading && (
         <View style={styles.intervalBarContainer}>
-          <Box twClassName="w-full px-4">
+          <Box className="w-full px-4">
             <SkeletonPlaceholder
               backgroundColor={theme.colors.background.section}
               highlightColor={theme.colors.background.subsection}
@@ -163,7 +163,7 @@ const PriceLegacy = ({
         chartNavigationButtons.length > 0 &&
         onTimePeriodChange && (
           <View style={styles.intervalBarContainer}>
-            <Box twClassName="w-full px-4">
+            <Box className="w-full px-4">
               <View style={styles.chartNavigationWrapper}>
                 {chartNavigationButtons.map((label) => (
                   <ChartNavigationButton
@@ -181,7 +181,7 @@ const PriceLegacy = ({
           </View>
         )}
       <Box
-        twClassName={
+        className={
           isTechnicalIndicatorsEnabled
             ? 'w-full overflow-hidden mb-4'
             : 'mt-3 w-full overflow-hidden'
@@ -202,7 +202,7 @@ const PriceLegacy = ({
         chartNavigationButtons.length > 0 &&
         onTimePeriodChange && (
           <View style={styles.timeRangeContainer}>
-            <Box twClassName="w-full px-4">
+            <Box className="w-full px-4">
               <View style={styles.chartNavigationWrapper}>
                 {chartNavigationButtons.map((label) => (
                   <ChartNavigationButton

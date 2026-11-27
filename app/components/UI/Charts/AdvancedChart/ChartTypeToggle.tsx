@@ -34,7 +34,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={containerTwClassName}
+      className={containerTwClassName}
     >
       <Pressable
         style={({ pressed }) =>

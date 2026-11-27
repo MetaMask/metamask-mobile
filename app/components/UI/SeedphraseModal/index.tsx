@@ -46,7 +46,7 @@ const SeedphraseModal = () => {
       <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         {strings('account_backup_step_1.what_is_seedphrase_title')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 pb-2">
+      <Box className="px-4 pb-2">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('account_backup_step_1.what_is_seedphrase_description')}
         </Text>
@@ -54,7 +54,7 @@ const SeedphraseModal = () => {
       <Box gap={4}>
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 pb-0"
+          className="min-h-0 pb-0"
           avatar={
             <AvatarIcon
               iconName={IconName.Danger}
@@ -70,7 +70,7 @@ const SeedphraseModal = () => {
         />
         <ListItem
           variant={ListItemVariant.MultiLine}
-          twClassName="min-h-0 pt-0"
+          className="min-h-0 pt-0"
           avatar={
             <AvatarIcon
               iconName={IconName.Lock}
@@ -86,7 +86,7 @@ const SeedphraseModal = () => {
         />
       </Box>
       <BottomSheetFooter
-        twClassName="pt-4"
+        className="pt-4"
         primaryButtonProps={{
           children: strings('account_backup_step_1.what_is_seedphrase_confirm'),
           onPress: handleClose,

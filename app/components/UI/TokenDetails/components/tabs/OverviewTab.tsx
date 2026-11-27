@@ -43,7 +43,7 @@ const OverviewSection = ({
   twClassName?: string;
 }) => {
   const content = (
-    <Box testID={testID} twClassName={twClassName}>
+    <Box testID={testID} className={twClassName}>
       {children}
     </Box>
   );
@@ -55,7 +55,7 @@ const OverviewSection = ({
   return (
     <Box
       testID={TokenDetailsIds.overview.sectionRule}
-      twClassName={SECTION_RULE}
+      className={SECTION_RULE}
     >
       {content}
     </Box>
@@ -106,7 +106,7 @@ const OverviewTab = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="pt-5 pb-6"
+      className="pt-5 pb-6"
       testID={TokenDetailsIds.overview.container}
     >
       {description ? (

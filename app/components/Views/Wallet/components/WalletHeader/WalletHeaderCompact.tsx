@@ -189,7 +189,7 @@ const WalletHeaderCompact = ({
           ) : null}
         </Box>
       }
-      twClassName="pl-4 pr-3"
+      className="pl-4 pr-3"
     />
   );
 };

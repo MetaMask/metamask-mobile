@@ -682,10 +682,10 @@ const MarketInsightsView: React.FC = () => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <Box twClassName={`pt-[${insets.top}px]`}>
+      <Box className={`pt-[${insets.top}px]`}>
         <MarketInsightsViewHeader onBackPress={handleBackPress} />
       </Box>
 
@@ -695,7 +695,7 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
         testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+        <Box className="w-full" style={{ aspectRatio: 786 / 340 }}>
           {showLastFrame && (
             <Image
               source={lastFrameImage}
@@ -720,11 +720,11 @@ const MarketInsightsView: React.FC = () => {
           )}
         </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
-          <Box twClassName="px-4 pt-4 pb-3">
+          <Box className="px-4 pt-4 pb-3">
             <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
           </Box>
 
-          <Box twClassName="px-4 pb-3">
+          <Box className="px-4 pb-3">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -736,7 +736,7 @@ const MarketInsightsView: React.FC = () => {
 
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
           {/* "A closer look" section */}
-          <Box twClassName="pb-6">
+          <Box className="pb-6">
             {report.trends.map((trend, index) => (
               <MarketInsightsTrendItem
                 key={`trend-${index}`}
@@ -749,7 +749,7 @@ const MarketInsightsView: React.FC = () => {
         </AnimatedSection>
 
         {!isPerps && Boolean(stickyFooterToken) && (
-          <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+          <Box alignItems={BoxAlignItems.Center} className="px-4 pb-6">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -762,9 +762,9 @@ const MarketInsightsView: React.FC = () => {
         {/* "What's being said" section */}
         {allTweets.length > 0 && (
           <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
-            <Box twClassName="h-4 border-t border-muted" />
-            <Box twClassName="pb-6">
-              <Box twClassName="px-4 py-4">
+            <Box className="h-4 border-t border-muted" />
+            <Box className="pb-6">
+              <Box className="px-4 py-4">
                 <Text
                   variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
@@ -773,7 +773,7 @@ const MarketInsightsView: React.FC = () => {
                 </Text>
               </Box>
 
-              <Box twClassName="px-4" gap={3}>
+              <Box className="px-4" gap={3}>
                 {allTweets.map((tweet, index) => (
                   <MarketInsightsTweetCard
                     key={`tweet-${index}`}
@@ -789,7 +789,7 @@ const MarketInsightsView: React.FC = () => {
 
         <Box
           alignItems={BoxAlignItems.Center}
-          twClassName="border-t border-muted px-4 pt-4"
+          className="border-t border-muted px-4 pt-4"
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         >
           <Box
@@ -848,7 +848,7 @@ const MarketInsightsView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="pt-1"
+            className="pt-1"
           >
             {strings('market_insights.helpful_prompt')}
           </Text>
@@ -856,7 +856,7 @@ const MarketInsightsView: React.FC = () => {
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="pt-3"
+              className="pt-3"
             >
               {strings('market_insights.footer_disclaimer')}
             </Text>
@@ -870,7 +870,7 @@ const MarketInsightsView: React.FC = () => {
           // when the market is at its open interest cap.
           isAtOICap ? null : (
             <Box
-              twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+              className={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
             >
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
                 <PerpsDirectionButton
@@ -892,7 +892,7 @@ const MarketInsightsView: React.FC = () => {
                   {strings('perps.market.short')}
                 </PerpsDirectionButton>
               </Box>
-              <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+              <Box className="pt-3" alignItems={BoxAlignItems.Center}>
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
@@ -904,7 +904,7 @@ const MarketInsightsView: React.FC = () => {
           )
         ) : stickyFooterToken ? (
           <Box
-            twClassName="bg-default"
+            className="bg-default"
             style={{ paddingBottom: insets.bottom }}
           >
             <TokenDetailsStickyFooter

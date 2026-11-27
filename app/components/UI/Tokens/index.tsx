@@ -115,7 +115,7 @@ const TokensEmptyContent = ({
         : undefined;
 
   const emptyState = (
-    <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+    <Box className={isFullView ? 'px-4 items-center' : 'items-center'}>
       {cashEmptyDescription !== undefined ? (
         <TokensEmptyState description={cashEmptyDescription} />
       ) : (
@@ -304,7 +304,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       // blank after CashTokensFullView drops its one-tick placeholder.
       if (isTokenListLoading) {
         return (
-          <Box twClassName={isFullView ? 'px-4' : undefined}>
+          <Box className={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
           </Box>
         );
@@ -315,7 +315,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
           return null;
         }
         return (
-          <Box twClassName={isFullView ? 'px-4' : undefined}>
+          <Box className={isFullView ? 'px-4' : undefined}>
             <TokenListSkeleton />
           </Box>
         );
@@ -323,7 +323,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       if (tokenKeysForList.length > 0 && searchedTokenKeys.length === 0) {
         return (
-          <Box twClassName="flex-1 items-center justify-center px-6 py-12">
+          <Box className="flex-1 items-center justify-center px-6 py-12">
             <TabEmptyState
               icon={
                 <Icon
@@ -393,11 +393,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     return (
       <Box
-        twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
+        className={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         {isFullView && !showOnlyMusd && (
-          <Box twClassName="px-4 pt-1 pb-2">
+          <Box className="px-4 pt-1 pb-2">
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}

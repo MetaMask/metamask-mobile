@@ -71,14 +71,14 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         )
       }
     >
-      <Box gap={3} twClassName="justify-start">
-        <Box gap={3} twClassName="pr-4">
+      <Box gap={3} className="justify-start">
+        <Box gap={3} className="pr-4">
           {(item.impact || formattedDate) && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
-              twClassName="w-full"
+              className="w-full"
             >
               {item.impact ? (
                 <Tag severity={getImpactTagSeverity(item.impact)}>

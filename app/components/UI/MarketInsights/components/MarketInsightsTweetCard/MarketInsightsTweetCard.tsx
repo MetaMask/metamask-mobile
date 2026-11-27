@@ -40,7 +40,7 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}
-        twClassName="mb-3"
+        className="mb-3"
       >
         {tweet.contentSummary}
       </Text>
@@ -53,7 +53,7 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="flex-1"
+          className="flex-1"
         >
           <Text
             variant={TextVariant.BodySm}

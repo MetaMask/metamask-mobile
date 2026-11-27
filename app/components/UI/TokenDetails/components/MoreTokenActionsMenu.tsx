@@ -359,7 +359,7 @@ const MoreTokenActionsMenu = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <Box twClassName="py-4">
+      <Box className="py-4">
         {actionDescriptors.map((config) => (
           <ActionListItem
             key={config.kind}

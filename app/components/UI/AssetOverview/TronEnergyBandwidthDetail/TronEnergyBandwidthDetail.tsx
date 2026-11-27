@@ -32,11 +32,11 @@ const TronEnergyBandwidthDetail = () => {
   const formatResourceAmount = (value: number, unknown: boolean) =>
     unknown ? '-' : value.toLocaleString();
   return (
-    <Box twClassName="w-full bg-default p-4 mt-4 mb-4">
+    <Box className="w-full bg-default p-4 mt-4 mb-4">
       <Text variant={TextVariant.BodyLg}>
         {strings('asset_overview.tron.daily_resource')}
       </Text>
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative mt-2">
+      <Text variant={TextVariant.BodyMd} className="text-alternative mt-2">
         {strings('asset_overview.tron.daily_resource_description')}
       </Text>
 
@@ -46,12 +46,12 @@ const TronEnergyBandwidthDetail = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-6"
+            className="mt-6"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-4"
+              className="gap-4"
             >
               <ResourceRing
                 icon={IconName.Flash}
@@ -64,14 +64,14 @@ const TronEnergyBandwidthDetail = () => {
                 {energy.unknown ? (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings('asset_overview.tron.resource_unavailable')}
                   </Text>
                 ) : usdtTransfersCovered === 1 ? (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings(
                       'asset_overview.tron.sufficient_to_cover_usdt_transfer',
@@ -80,7 +80,7 @@ const TronEnergyBandwidthDetail = () => {
                 ) : (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings(
                       'asset_overview.tron.sufficient_to_cover_usdt_transfers',
@@ -106,12 +106,12 @@ const TronEnergyBandwidthDetail = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-6"
+            className="mt-6"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-4"
+              className="gap-4"
             >
               <ResourceRing
                 icon={IconName.Connect}
@@ -124,14 +124,14 @@ const TronEnergyBandwidthDetail = () => {
                 {bandwidth.unknown ? (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings('asset_overview.tron.resource_unavailable')}
                   </Text>
                 ) : trxTxsCovered === 1 ? (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings(
                       'asset_overview.tron.sufficient_to_cover_trx_transfer',
@@ -140,7 +140,7 @@ const TronEnergyBandwidthDetail = () => {
                 ) : (
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    className="text-alternative"
                   >
                     {strings(
                       'asset_overview.tron.sufficient_to_cover_trx_transfers',

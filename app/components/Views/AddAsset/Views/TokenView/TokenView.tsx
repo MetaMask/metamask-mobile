@@ -69,15 +69,15 @@ const TokenView = ({
   }, []);
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="px-4 pt-2"
+        className="px-4 pt-2"
         testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
       >
-        <Box twClassName="h-12 flex-1">
+        <Box className="h-12 flex-1">
           {isSearchActive ? (
             <ExploreSearchBar
               type="interactive"
@@ -96,7 +96,7 @@ const TokenView = ({
         </Box>
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-3">
+      <Box flexDirection={BoxFlexDirection.Row} className="px-4 py-3">
         <SelectButton
           testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
           variant={SelectButtonVariant.Primary}
@@ -112,7 +112,7 @@ const TokenView = ({
             ) : undefined
           }
           textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
-          twClassName="shrink-0"
+          className="shrink-0"
           onPress={openNetworkSelector}
         />
       </Box>

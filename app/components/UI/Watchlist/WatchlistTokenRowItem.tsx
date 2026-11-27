@@ -197,7 +197,7 @@ const WatchlistTokenRowItem = ({
         ) : undefined
       }
       accessoryGap={hasStarAction ? 3 : undefined}
-      twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
+      className={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
     />
   );
 };

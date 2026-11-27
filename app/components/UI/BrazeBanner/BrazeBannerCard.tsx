@@ -65,14 +65,14 @@ const BannerWithTitle = ({
   body: string;
   onDismiss: () => void;
 }) => (
-  <Box twClassName="flex-1">
+  <Box className="flex-1">
     <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
       <Text
         testID={BRAZE_BANNER_TEST_IDS.TITLE}
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="flex-1"
+        className="flex-1"
       >
         {title}
       </Text>
@@ -102,7 +102,7 @@ const BannerWithCta = ({
   onDismiss: () => void;
 }) => (
   <>
-    <Box twClassName="flex-1 pr-6">
+    <Box className="flex-1 pr-6">
       <Text
         testID={BRAZE_BANNER_TEST_IDS.BODY}
         variant={TextVariant.BodySm}
@@ -164,7 +164,7 @@ const BrazeBannerCard = ({
     >
       {imageUrl && (
         <Box
-          twClassName="overflow-hidden rounded-xl"
+          className="overflow-hidden rounded-xl"
           style={{ width: BANNER_IMAGE_SIZE, height: BANNER_IMAGE_SIZE }}
         >
           <RNImage

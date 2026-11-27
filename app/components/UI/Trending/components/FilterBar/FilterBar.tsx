@@ -42,7 +42,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       numberOfLines,
       ellipsizeMode,
     }}
-    twClassName={twClassName ? `shrink-0 ${twClassName}` : 'shrink-0'}
+    className={twClassName ? `shrink-0 ${twClassName}` : 'shrink-0'}
   />
 );
 
