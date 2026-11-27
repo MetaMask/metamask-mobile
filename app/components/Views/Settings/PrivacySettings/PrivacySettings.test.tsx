@@ -6,12 +6,14 @@ import {
   type HostInstance,
 } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { backgroundState } from '#app/util/test/initial-root-state';
 
 import PrivacySettings from './PrivacySettings';
 import { META_METRICS_SECTION } from '../SecuritySettings/SecuritySettings.constants';
+import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '../../../UI/BasicFunctionality/BasicFunctionality.constants';
 
 let mockUseParamsValues: {
   scrollToSection?: 'metametrics' | 'data-collection';
@@ -159,7 +161,7 @@ describe('PrivacySettings', () => {
       expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
     );
     jest.runAllTimers();
-    expect(callbackInvoked).toBe(true);
+    await waitFor(() => expect(callbackInvoked).toBe(true));
     expect(measureLayoutSpy).not.toHaveBeenCalled();
 
     jest.useRealTimers();
@@ -176,5 +178,45 @@ describe('PrivacySettings', () => {
 
     await waitFor(() => expect(measureLayoutSpy).toHaveBeenCalled());
     expect(scrollToSpy).not.toHaveBeenCalled();
+  });
+
+  describe('Basic Functionality switch for a consolidated social wallet', () => {
+    const socialWalletState = (basicFunctionalityEnabled: boolean) => ({
+      privacy: { approvedHosts: {} },
+      browser: { history: [] },
+      settings: {
+        basicFunctionalityEnabled,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+      security: { dataCollectionForMarketing: false },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+          },
+        },
+      },
+    });
+
+    it('locks the switch while Basic Functionality is on', () => {
+      const { getByTestId } = renderWithProvider(<PrivacySettings />, {
+        state: socialWalletState(true),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(true);
+    });
+
+    it('leaves the switch usable when Basic Functionality is off', () => {
+      const { getByTestId } = renderWithProvider(<PrivacySettings />, {
+        state: socialWalletState(false),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(false);
+    });
   });
 });

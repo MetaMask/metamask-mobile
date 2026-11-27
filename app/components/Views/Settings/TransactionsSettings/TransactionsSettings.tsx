@@ -19,11 +19,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AppConstants from '../../../../core/AppConstants';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
-import OldButton, {
-  ButtonVariants,
-  ButtonSize as OldButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text';
 import { setShowHexData } from '../../../../actions/settings';
 import {
   selectSmartTransactionsOptInStatus,
@@ -96,48 +91,6 @@ function TransactionsSettings() {
   function toggleUseTransactionSimulations(value: boolean) {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTransactionSimulations(value);
-  }
-
-  function renderUseTransactionSimulations() {
-    return (
-      <Box className="mt-6">
-        <Box className="flex-row items-center">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            className="flex-1"
-          >
-            {strings('app_settings.simulation_details')}
-          </Text>
-        </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          className="mt-2"
-        >
-          {strings('app_settings.simulation_details_description')}
-          <OldButton
-            variant={ButtonVariants.Link}
-            size={OldButtonSize.Auto}
-            labelTextVariant={LibraryTextVariant.BodySMMedium}
-            onPress={() => {
-              void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
-              trackExternalLinkClicked(
-                analytics.trackEvent,
-                AnalyticsEventBuilder.createEventBuilder,
-                {
-                  location: 'app_settings',
-                  text: strings('app_settings.simulation_details_learn_more'),
-                  url_domain: SIMULATION_DETALS_ARTICLE_URL,
-                },
-              );
-            }}
-            label={strings('app_settings.simulation_details_learn_more')}
-          />
-        </Text>
-      </Box>
-    );
   }
 
   return (
