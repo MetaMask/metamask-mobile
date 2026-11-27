@@ -160,7 +160,7 @@ import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
-import PullToRefresh from './components/PullToRefresh/PullToRefresh';
+import { PullToRefreshScrollView } from '../../../component-library/components-temp/PullToRefresh';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -650,7 +650,9 @@ const Wallet = ({
       actionButtonOnPress: () => {
         storePrivacyPolicyClickedOrClosed();
         toast.dismiss();
-        void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        Linking.openURL(CONSENSYS_PRIVACY_POLICY).catch((error) =>
+          Logger.error(error as Error, 'Error opening privacy policy URL'),
+        );
       },
     });
   }, [
@@ -1079,7 +1081,11 @@ const Wallet = ({
       useSearchHeaderLayout={isSearchHeaderEnabled}
       isSearchReturnTransitionActive={Boolean(homepageSearchReturnTransition)}
       showSearchPastePill={showPastePill}
-      handleSearchPastePress={handlePastePress}
+      handleSearchPastePress={(origin) => {
+        handlePastePress(origin).catch((error) =>
+          Logger.error(error as Error, 'Error handling homepage search paste'),
+        );
+      }}
       handleActivityPress={handleActivityPress}
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
@@ -1186,7 +1192,11 @@ const Wallet = ({
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
     actionButtonsGridVariant.layout === 'eightCircular' ? (
       <HomepageActionButtonsGrid
-        onSend={onSendWithoutTracking}
+        onSend={() => {
+          onSendWithoutTracking().catch((error) =>
+            Logger.error(error as Error, 'Error initiating send flow'),
+          );
+        }}
         onReceive={onReceiveWithoutTracking}
         rowOrder={actionButtonsGridVariant.rowOrder}
       />
@@ -1195,7 +1205,11 @@ const Wallet = ({
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
         onReceive={onReceive}
-        onSend={onSend}
+        onSend={() => {
+          onSend().catch((error) =>
+            Logger.error(error as Error, 'Error initiating send flow'),
+          );
+        }}
         buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
         swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
         sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -1363,7 +1377,14 @@ const Wallet = ({
                     homepageSearchReturnTransition,
                   )}
                   showSearchPastePill={showPastePill}
-                  handleSearchPastePress={handlePastePress}
+                  handleSearchPastePress={() => {
+                    handlePastePress().catch((error) =>
+                      Logger.error(
+                        error as Error,
+                        'Error handling homepage search paste',
+                      ),
+                    );
+                  }}
                   touchAreaSlop={touchAreaSlop}
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
@@ -1401,10 +1422,11 @@ const Wallet = ({
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >
-                  <PullToRefresh
+                  <PullToRefreshScrollView
                     ref={scrollViewRef}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
+                    isActive={isFocused}
                     indicatorTopInset={viewportTopInset}
                     refreshControlTopInset={floatingHeaderInset}
                     indicatorBottomInset={
@@ -1430,7 +1452,7 @@ const Wallet = ({
                         balanceBreakdownSectionProps
                       }
                     />
-                  </PullToRefresh>
+                  </PullToRefreshScrollView>
                 </HomepageScrollContext.Provider>
               </View>
             </>

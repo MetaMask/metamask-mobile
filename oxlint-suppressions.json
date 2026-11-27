@@ -18196,16 +18196,6 @@
       "count": 2
     }
   },
-  "app/components/Views/Wallet/components/PullToRefresh/PullToRefresh.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/Views/Wallet/components/PullToRefresh/usePullToRefreshRive.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
   "app/components/Views/Wallet/components/WalletHeader/WalletHeaderCompact.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -18229,9 +18219,6 @@
   "app/components/Views/Wallet/index.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
-    },
-    "typescript/no-misused-promises": {
-      "count": 4
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

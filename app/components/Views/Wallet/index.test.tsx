@@ -470,7 +470,7 @@ import {
   createMockInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import { PullToRefreshTestIds } from './components/PullToRefresh/PullToRefresh';
+import { PullToRefreshTestIds } from '../../../component-library/components-temp/PullToRefresh';
 import { __fireRiveViewError } from '../../../__mocks__/rive-app-react-native';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';

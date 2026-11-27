@@ -17,7 +17,7 @@ import { PullToRefreshTestIds } from './PullToRefresh.testIds';
 
 type RiveViewProps = React.ComponentProps<typeof RiveView>;
 
-interface PullToRefreshIndicatorProps {
+export interface PullToRefreshIndicatorProps {
   riveFile: NonNullable<RiveViewProps['file']>;
   instance: NonNullable<RiveViewProps['dataBind']>;
   setHybridRef: RiveViewProps['hybridRef'];
