@@ -23,6 +23,8 @@ import {
 import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useOsPushPermissionDenied } from './hooks/useOsPushPermissionDenied';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 
 const mockNavigate = jest.fn();
@@ -77,8 +79,13 @@ jest.mock('../../SocialLeaderboard/NotificationPreferences/hooks', () => ({
   useNotificationPreferences: jest.fn(),
 }));
 
+jest.mock('./hooks/useOsPushPermissionDenied', () => ({
+  useOsPushPermissionDenied: jest.fn(),
+}));
+
 const mockUseFollowedTraders = jest.mocked(useFollowedTraders);
 const mockUseNotificationPreferences = jest.mocked(useNotificationPreferences);
+const mockUseOsPushPermissionDenied = jest.mocked(useOsPushPermissionDenied);
 const mockFireSwitchHaptic = jest.mocked(fireSwitchHaptic);
 const mockPlayImpact = jest.mocked(playImpact);
 
@@ -150,6 +157,7 @@ describe('SocialAINotificationPreferencesContent', () => {
     mockIsSocialLeaderboardEnabled = true;
     mockIsSocialV1Treatment.mockReturnValue(false);
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockUseOsPushPermissionDenied.mockReturnValue(false);
     mockUseFollowedTraders.mockReturnValue(makeFollowedTradersResult());
     mockUseNotificationPreferences.mockReturnValue(
       makeNotificationPreferencesResult(),
@@ -459,5 +467,23 @@ describe('SocialAINotificationPreferencesContent', () => {
         NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION(500),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('does not show the push permission warning while preferences are loading', () => {
+    mockUseOsPushPermissionDenied.mockReturnValue(true);
+    mockUseNotificationPreferences.mockReturnValue(
+      makeNotificationPreferencesResult({
+        isLoading: true,
+        preferences: makePreferences({ pushNotificationsEnabled: true }),
+      }),
+    );
+
+    renderComponent();
+
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeNull();
   });
 });

@@ -18,12 +18,18 @@ import {
   within,
 } from '@testing-library/react-native';
 import type { FollowingResponse } from '@metamask/social-controllers';
+import { AuthorizationStatus } from '@notifee/react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   clearLeaderboardApiMock,
   getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
+import {
+  mockAppResume,
+  mockOpenSystemSettings,
+  setPushPermissionStatus,
+} from '../../../../../tests/component-view/helpers/notificationSettings';
 import { renderSocialAINotificationSettingsSection } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 // eslint-disable-next-line import-x/no-restricted-paths -- test ids live with the social preferences UI this settings section renders
@@ -81,8 +87,13 @@ const renderSection = () => {
 };
 
 describeForPlatforms('Social AI notification settings', () => {
+  beforeEach(() => {
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
+  });
+
   afterEach(() => {
     clearLeaderboardApiMock();
+    jest.restoreAllMocks();
   });
 
   it('lists every followed trader and the saved trade threshold', async () => {
@@ -123,6 +134,111 @@ describeForPlatforms('Social AI notification settings', () => {
     expect(
       screen.queryByTestId(NotificationPreferencesSelectorsIDs.TRADERS_EMPTY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not show the Settings warning while push permission is promptable', async () => {
+    setPushPermissionStatus(AuthorizationStatus.NOT_DETERMINED);
+
+    renderSection();
+
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps in-app notifications enabled and opens system settings from the denied-permission warning', async () => {
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    const expectSystemSettingsOpened = mockOpenSystemSettings();
+
+    renderSection();
+
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+
+    fireEvent.press(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_SETTINGS_BUTTON,
+      ),
+    );
+
+    expectSystemSettingsOpened();
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+  });
+
+  it('hides the warning after push permission is granted and the app resumes', async () => {
+    const resumeApp = mockAppResume();
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    renderSection();
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
+
+    await resumeApp();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(
+          NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('hides the warning when push is turned off for trading signals', async () => {
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    renderSection();
+    const warning =
+      NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING;
+    const pushToggle =
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
+    expect(await screen.findByTestId(warning)).toBeOnTheScreen();
+
+    fireEvent(screen.getByTestId(pushToggle), 'onValueChange', false);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(warning)).not.toBeOnTheScreen();
+    });
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+
+    fireEvent(screen.getByTestId(pushToggle), 'onValueChange', true);
+
+    expect(await screen.findByTestId(warning)).toBeOnTheScreen();
   });
 
   it('persists a lower trade threshold and selects that option', async () => {

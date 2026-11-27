@@ -1,5 +1,7 @@
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -43,6 +45,9 @@ import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLe
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useOsPushPermissionDenied } from './hooks/useOsPushPermissionDenied';
 
 const AVATAR_SIZE = 40;
 
@@ -101,7 +106,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="flex-1"
+          style={tw.style('flex-1')}
         >
           {username}
         </Text>
@@ -144,6 +149,11 @@ const SocialAINotificationPreferencesContent = ({
   const { colors, brandColors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const isOsPushPermissionDenied = useOsPushPermissionDenied();
+
+  const handleOpenOsPushSettings = useCallback(() => {
+    NotificationService.openSystemSettings();
+  }, []);
 
   const {
     traders: followedTraders,
@@ -237,9 +247,35 @@ const SocialAINotificationPreferencesContent = ({
   const separatorStyle = tw.style(
     `h-px bg-muted${withHorizontalPadding ? ' mx-4' : ''}`,
   );
+  const showPushPermissionWarning =
+    !isLoadingPreferences &&
+    isOsPushPermissionDenied &&
+    Boolean(preferences.pushNotificationsEnabled);
 
   return (
     <>
+      {showPushPermissionWarning ? (
+        <Box style={tw.style(horizontalPaddingClassName, 'pt-4')}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Warning}
+            description={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.description',
+            )}
+            actionButtonLabel={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+            )}
+            actionButtonOnPress={handleOpenOsPushSettings}
+            actionButtonProps={{
+              testID:
+                NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_SETTINGS_BUTTON,
+            }}
+            testID={
+              NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING
+            }
+          />
+        </Box>
+      ) : null}
+
       {showPreferencesSkeleton ? (
         <PreferencesSkeleton />
       ) : (
@@ -320,7 +356,7 @@ const SocialAINotificationPreferencesContent = ({
               ? TextColor.TextMuted
               : TextColor.TextAlternative
           }
-          twClassName="mt-0.5"
+          style={tw.style('mt-0.5')}
         >
           {strings(
             'social_leaderboard.notification_preferences.traders_you_follow_desc',
@@ -349,7 +385,7 @@ const SocialAINotificationPreferencesContent = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            style={tw.style('text-center')}
           >
             {strings(
               'social_leaderboard.notification_preferences.traders_you_follow_empty',

@@ -5889,6 +5889,8 @@
     "allow_notifications": "Allow notifications",
     "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
+    "push_permission_denied": "Push notifications are off in your device settings. Turn them on to get alerts outside the app.",
+    "push_permission_open_settings": "Open Settings",
     "notifications_opts": {
       "preferences_title": "Preferences",
       "push_recommended": "Push",

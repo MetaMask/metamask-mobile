@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -36,12 +37,18 @@ import {
   IconName,
   IconColor,
   TextVariant,
+  TextColor,
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
   IconSize,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
+import { useOsPushPermissionDenied } from './hooks/useOsPushPermissionDenied';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 interface NotificationRowProps {
   title: string;
@@ -80,7 +87,10 @@ const NotificationRow = ({
             {title}
           </Text>
           {status ? (
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {status}
             </Text>
           ) : null}
@@ -108,6 +118,7 @@ const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
 };
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
+  const tw = useTailwind();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
@@ -120,7 +131,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const { preferences } = useNotificationStoragePreferences();
+  const isOsPushPermissionDenied = useOsPushPermissionDenied();
   const sectionParam = route.params?.section;
+
+  const handleOpenOsPushSettings = useCallback(() => {
+    NotificationService.openSystemSettings();
+  }, []);
 
   const navigateToSection = useCallback(
     (section: NotificationSettingsSectionConfig) => {
@@ -174,6 +190,26 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.notifications_title')}
         </Text>
         <MainNotificationToggle />
+
+        {isMetamaskNotificationsEnabled && isOsPushPermissionDenied ? (
+          <Box style={tw.style('mt-4')}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('app_settings.push_permission_denied')}
+              actionButtonLabel={strings(
+                'app_settings.push_permission_open_settings',
+              )}
+              actionButtonOnPress={handleOpenOsPushSettings}
+              actionButtonProps={{
+                testID:
+                  NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_SETTINGS_BUTTON,
+              }}
+              testID={
+                NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING
+              }
+            />
+          </Box>
+        ) : null}
 
         {isMetamaskNotificationsEnabled &&
           NOTIFICATION_SETTINGS_SECTIONS.map((section) => {

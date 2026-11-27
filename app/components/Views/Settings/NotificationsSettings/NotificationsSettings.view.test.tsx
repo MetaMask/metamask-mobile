@@ -9,6 +9,12 @@ import {
 } from '../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import { buildNotificationsState } from '../../../../../tests/component-view/presets/notifications';
+import { AuthorizationStatus } from '@notifee/react-native';
+import {
+  mockAppResume,
+  mockOpenSystemSettings,
+  setPushPermissionStatus,
+} from '../../../../../tests/component-view/helpers/notificationSettings';
 import NotificationsSettings from './';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Engine from '../../../../core/Engine';
@@ -83,6 +89,14 @@ function renderSettings(
   );
 }
 
+/** iOS exposes `value`; Android exposes `on`. */
+const isSwitchOn = (switchNode: {
+  props: { on?: boolean; value?: boolean };
+}): boolean =>
+  typeof switchNode.props.on === 'boolean'
+    ? switchNode.props.on
+    : switchNode.props.value === true;
+
 function renderSettingsWithSectionRoute(
   stateOverrides?: Parameters<typeof buildNotificationsState>[0],
   initialParams?: Record<string, unknown>,
@@ -98,6 +112,8 @@ function renderSettingsWithSectionRoute(
 
 describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   beforeEach(() => {
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
+
     const controllerMessengerCall = Engine.controllerMessenger.call.bind(
       Engine.controllerMessenger,
     ) as (action: string, ...args: unknown[]) => unknown;
@@ -184,6 +200,96 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
     expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
+  });
+
+  it('shows the Settings warning when push permission is denied and the master toggle is on', async () => {
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+    const expectSystemSettingsOpened = mockOpenSystemSettings();
+
+    const { findByTestId, getByTestId } = renderSettings();
+
+    expect(
+      await findByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+      ),
+    ).toBe(true);
+
+    fireEvent.press(
+      getByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_SETTINGS_BUTTON,
+      ),
+    );
+
+    expectSystemSettingsOpened();
+  });
+
+  it('hides the Settings warning while push permission is promptable', async () => {
+    setPushPermissionStatus(AuthorizationStatus.NOT_DETERMINED);
+
+    const { findByText, queryByTestId } = renderSettings();
+
+    await findByText(SECTION_TITLES.walletActivity);
+    expect(
+      queryByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the Settings warning when the master toggle is off', async () => {
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+
+    const { getByTestId, queryByText, queryByTestId } = renderSettings({
+      notificationsEnabled: false,
+    });
+
+    await waitFor(() => {
+      expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
+    });
+    expect(
+      isSwitchOn(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+      ),
+    ).toBe(false);
+    expect(
+      queryByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the Settings warning after push permission is granted and the app resumes', async () => {
+    const resumeApp = mockAppResume();
+    setPushPermissionStatus(AuthorizationStatus.DENIED);
+
+    const { findByTestId, getByTestId, queryByTestId } = renderSettings();
+
+    expect(
+      await findByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+
+    setPushPermissionStatus(AuthorizationStatus.AUTHORIZED);
+    await resumeApp();
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      isSwitchOn(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+      ),
+    ).toBe(true);
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
@@ -438,6 +544,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
           'enableMetamaskNotifications',
         )
         .mockResolvedValue(undefined);
+      enableSpy.mockClear();
       const engineWithState = Engine as unknown as {
         state: Record<string, unknown>;
       };
