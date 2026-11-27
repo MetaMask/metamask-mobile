@@ -21,7 +21,6 @@ import {
   teardownNock,
 } from './nockHelpers';
 import { installDefaultApiMocks } from './defaults';
-import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
   assetId: string;
@@ -219,6 +218,5 @@ export function setupTrendingApiFetchMock(
  */
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
-  clearSitesCache();
   teardownNock();
 }
