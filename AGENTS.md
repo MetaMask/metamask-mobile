@@ -124,7 +124,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers (measured latency is the separate `useNetworkLatency()` signal), and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see the `mms-device-capability` skill
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Slow screen open**: Heavy below-the-fold section janking a push transition? Gate it on the existing `useScreenTransitionComplete()` instead of writing a new deferral hook — see [`docs/performance/anti-patterns.md`](docs/performance/anti-patterns.md#deferring-a-heavy-section-until-the-push-transition-ends)
-- **Team review rules**: Before opening a PR, run the pre-PR checklists distilled from a year of Design System and Mobile Core UX reviews — [`docs/review-style-guides/`](docs/review-style-guides/README.md)
+- **Team review rules**: Before opening a PR, run the pre-PR checklist distilled from a year of review comments — [`docs/review-style-guides/review-group/SKILL.md`](docs/review-style-guides/review-group/SKILL.md)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
