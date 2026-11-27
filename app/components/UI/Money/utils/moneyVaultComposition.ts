@@ -1,10 +1,7 @@
-import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
 
 const VERSION_PATTERN = /^v\d+$/i;
-const DECIMAL_PATTERN = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
-const MAX_ALLOCATION_FRACTION = new BigNumber(1);
 
 const formatProtocolName = (protocol: string): string =>
   protocol
@@ -58,32 +55,3 @@ export const formatVaultCompositionLabel = (
   component: VaultCompositionComponent,
 ): string =>
   `${formatVaultCompositionProtocolName(component.protocol)} · ${getVaultCompositionPrimaryAssetSymbol(component)}`;
-
-/**
- * Converts a protocol allocation fraction into a percentage bar width.
- *
- * @param allocationFraction - Decimal fraction between `0` and `1`.
- * @returns Bar width as a percentage number between `0` and `100`.
- */
-export const getVaultCompositionBarWidth = (
-  allocationFraction: string,
-): number => parseProtocolAllocation(allocationFraction).times(100).toNumber();
-
-function parseProtocolAllocation(allocationFraction: string): BigNumber {
-  const parsedAllocation = DECIMAL_PATTERN.test(allocationFraction)
-    ? new BigNumber(allocationFraction)
-    : null;
-
-  if (
-    parsedAllocation === null ||
-    !parsedAllocation.isFinite() ||
-    parsedAllocation.isNegative() ||
-    parsedAllocation.gt(MAX_ALLOCATION_FRACTION)
-  ) {
-    throw new Error(
-      `Cannot calculate vault composition bar width from invalid allocation fraction '${allocationFraction}'`,
-    );
-  }
-
-  return parsedAllocation;
-}

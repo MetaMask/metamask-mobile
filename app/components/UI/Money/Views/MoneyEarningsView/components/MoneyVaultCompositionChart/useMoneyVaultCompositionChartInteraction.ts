@@ -19,7 +19,7 @@ interface UseMoneyVaultCompositionChartInteractionOptions {
   setScrollEnabled?: (enabled: boolean) => void;
 }
 
-export interface UseMoneyVaultCompositionChartInteractionResult {
+interface UseMoneyVaultCompositionChartInteractionResult {
   activeKey: ComponentKey | null;
   isInteracting: boolean;
   panHandlers: ReturnType<typeof PanResponder.create>['panHandlers'];

@@ -463,8 +463,7 @@ describe('MoneyEarningsView', () => {
 
     it('shows allocation error when composition returns no data', async () => {
       setupMoneyAllocationApiMock({ compositionResponse: null });
-      const { findByTestId, getByTestId, getByText } =
-        await renderOnAllocationTab();
+      const { findByTestId, getByText } = await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_ERROR),
@@ -499,8 +498,7 @@ describe('MoneyEarningsView', () => {
           stale_reason: 'snapshot_lag',
         },
       });
-      const { findByTestId, getByTestId, queryByText } =
-        await renderOnAllocationTab();
+      const { findByTestId, queryByText } = await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_DEGRADED),

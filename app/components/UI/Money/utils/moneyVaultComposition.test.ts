@@ -3,7 +3,6 @@ import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
 import {
   formatVaultCompositionLabel,
   formatVaultCompositionProtocolName,
-  getVaultCompositionBarWidth,
   getVaultCompositionPrimaryAssetSymbol,
 } from './moneyVaultComposition';
 
@@ -107,19 +106,4 @@ describe('vault composition label helpers', () => {
       'Cannot format vault composition component without an asset symbol',
     );
   });
-});
-
-describe('getVaultCompositionBarWidth', () => {
-  it('converts a valid allocation fraction to a percentage width', () => {
-    expect(getVaultCompositionBarWidth('0.375')).toBe(37.5);
-  });
-
-  it.each(['not-a-decimal', 'Infinity', '-0.1', '1.1'])(
-    'throws for invalid allocation fraction %s',
-    (allocationFraction) => {
-      expect(() => getVaultCompositionBarWidth(allocationFraction)).toThrow(
-        `Cannot calculate vault composition bar width from invalid allocation fraction '${allocationFraction}'`,
-      );
-    },
-  );
 });

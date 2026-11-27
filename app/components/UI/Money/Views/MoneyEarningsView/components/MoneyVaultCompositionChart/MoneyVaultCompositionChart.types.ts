@@ -1,6 +1,6 @@
 import type { VaultCompositionResponse } from '../../../../types/moneyVaultComposition';
 
-export type VaultComponent = VaultCompositionResponse['components'][number];
+type VaultComponent = VaultCompositionResponse['components'][number];
 export type ComponentKey = VaultComponent['component_key'];
 
 export interface MoneyVaultCompositionChartProps {
@@ -22,7 +22,7 @@ export interface VaultCompositionWedge {
   pressedPath: string;
 }
 
-export type VaultCompositionChartInvalidReason =
+type VaultCompositionChartInvalidReason =
   | 'duplicate_component_key'
   | 'invalid_allocation_fraction'
   | 'infeasible_geometry';

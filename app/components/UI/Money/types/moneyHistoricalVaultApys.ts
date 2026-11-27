@@ -4,8 +4,6 @@ export type VaultApyHistoryStatus = 'available' | 'unavailable';
 
 export type VaultApyHistoryDirection = 'increase' | 'decrease' | 'unchanged';
 
-export type VaultApyHistoryPeriodKey = '7d' | '30d' | '90d' | '180d';
-
 export interface VaultApyHistoryDailyPoint {
   boundary_at: string;
   status: VaultApyHistoryStatus;
