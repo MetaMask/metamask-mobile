@@ -713,8 +713,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setHasEnrolledSocialMfaFactor(false);
         return;
       }
-      // Factors found: leave the blank hold and open WalletRecovery (loader
-      // covers the OS passkey / MFA sheet).
+      // Factors found: open WalletRecovery (loader covers the OS MFA sheet).
       setHasEnrolledSocialMfaFactor(true);
       setFallbackMethods(allowedMethods);
       setWalletRecoveryStep('loading');
@@ -1091,7 +1090,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   // Hardware back matches header back on recovery steps.
   const handleBackPress = useCallback(() => {
+    const isListingLoader =
+      canAttemptSocialMfaVerify && isListingSocialMfaFactors;
+
+    // Listing / social-auth wait shows WalletRecoveryLoading before
+    // canOfferSocialMfaVerify flips. Match 'loading': block while MFA is in
+    // flight (list → verify), else exit via other method so OAuth resets.
     if (!canOfferSocialMfaVerify) {
+      if (isListingLoader) {
+        if (lockedVerifyInFlightRef.current) {
+          return true;
+        }
+        handleUseOtherMethod();
+        return true;
+      }
       navigation.goBack();
       return true;
     }
@@ -1121,7 +1133,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleUseOtherMethod();
     return true;
   }, [
+    canAttemptSocialMfaVerify,
     canOfferSocialMfaVerify,
+    isListingSocialMfaFactors,
     walletRecoveryStep,
     finalLoading,
     verifyBusy,

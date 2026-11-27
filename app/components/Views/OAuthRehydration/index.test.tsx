@@ -2121,6 +2121,88 @@ describe('OAuthRehydration', () => {
       });
     });
 
+    it('ignores hardware back while listing enrolled MFA methods', async () => {
+      enableMfaFlags();
+      let resolveList!: (value: unknown) => void;
+      mockListActiveSocialLoginMethods.mockReturnValue(
+        new Promise((resolve) => {
+          resolveList = resolve;
+        }),
+      );
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+
+      mockGoBack.mockClear();
+      (OAuthService.resetOauthState as jest.Mock).mockClear();
+      act(() => {
+        const handlers = addEventListenerSpy.mock.calls
+          .filter((call) => call[0] === 'hardwareBackPress')
+          .map((call) => call[1] as () => boolean);
+        for (let i = handlers.length - 1; i >= 0; i--) {
+          if (handlers[i]?.()) {
+            break;
+          }
+        }
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveList(['passkey']);
+      });
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('resets OAuth when hardware back is pressed while waiting for social auth', async () => {
+      enableMfaFlags();
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: undefined,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
+
+      mockGoBack.mockClear();
+      (OAuthService.resetOauthState as jest.Mock).mockClear();
+      // RN runs listeners LIFO until one returns true. NavigationContainer may
+      // be registered after us and return false — still reach our handler.
+      act(() => {
+        const handlers = addEventListenerSpy.mock.calls
+          .filter((call) => call[0] === 'hardwareBackPress')
+          .map((call) => call[1] as () => boolean);
+        for (let i = handlers.length - 1; i >= 0; i--) {
+          if (handlers[i]?.()) {
+            break;
+          }
+        }
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      addEventListenerSpy.mockRestore();
+    });
+
     it('ignores hardware back while arrival MFA is in flight', async () => {
       enableMfaFlags();
       let resolveVerify: (value: unknown) => void = () => undefined;
