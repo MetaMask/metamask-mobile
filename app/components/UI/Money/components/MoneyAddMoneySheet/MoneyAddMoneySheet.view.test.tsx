@@ -1,11 +1,31 @@
 import '../../../../../../tests/component-view/mocks';
 import NetInfo from '@react-native-community/netinfo';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { SolAccountType } from '@metamask/keyring-api';
 import type { PaymentMethod } from '@metamask/ramps-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
+import type { PreferredToken } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectMoneyDepositAssetsMeetingMinimumBalance } from '../../selectors/depositTokens';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
+import {
+  COMPONENT_NAMES,
+  REDIRECT_TARGETS_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { MONAD_VAULT } from '../../../../../../tests/component-view/presets/moneyAccount';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import {
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
@@ -815,5 +835,428 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
         expect(getByTestId(VbaRendererTestIds.WALLET_HOME)).toBeOnTheScreen();
       });
     });
+  });
+});
+
+const STABLECOIN_ACCOUNT_ID = 'acc-1';
+const SOLANA_ACCOUNT_ID = 'acc-sol';
+const SOLANA_USDC_ASSET_ID =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const BASE_USDC = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const BASE_USDT = '0xfde4c96c8593536e31f229ea8f37b2ada2699bb2';
+const MAINNET_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const MUSD = MUSD_TOKEN_ADDRESS;
+const BASE_NATIVE_ASSET_ID = 'eip155:8453/slip44:60';
+const MONAD_NATIVE_ASSET_ID = 'eip155:143/slip44:268435779';
+
+interface StablecoinHolding {
+  address: string;
+  chainId: string;
+  symbol: string;
+  name: string;
+  amount: string;
+}
+
+const holding = (
+  address: string,
+  chainId: string,
+  symbol: string,
+  name: string,
+  amount: string,
+): StablecoinHolding => ({ address, chainId, symbol, name, amount });
+
+const SUPPORTED_STABLECOINS: PreferredToken[] = [
+  { address: BASE_USDC, chainId: CHAIN_IDS.BASE, name: 'USDC', successRate: 1 },
+  { address: BASE_USDT, chainId: CHAIN_IDS.BASE, name: 'USDT', successRate: 1 },
+  { address: MUSD, chainId: CHAIN_IDS.MONAD, name: 'mUSD', successRate: 1 },
+];
+
+const LARGEST_STABLECOIN_ROWS: {
+  symbol: 'USDC' | 'USDT' | 'mUSD';
+  formattedBalance: string;
+  holdings: StablecoinHolding[];
+}[] = [
+  {
+    symbol: 'USDC',
+    formattedBalance: '$100.00',
+    holdings: [
+      holding(BASE_USDC, CHAIN_IDS.BASE, 'USDC', 'USD Coin', '100'),
+      holding(BASE_USDT, CHAIN_IDS.BASE, 'USDT', 'Tether USD', '50'),
+      holding(MUSD, CHAIN_IDS.MONAD, 'mUSD', 'MetaMask USD', '25'),
+    ],
+  },
+  {
+    symbol: 'USDT',
+    formattedBalance: '$75.00',
+    holdings: [
+      holding(BASE_USDC, CHAIN_IDS.BASE, 'USDC', 'USD Coin', '10'),
+      holding(BASE_USDT, CHAIN_IDS.BASE, 'USDT', 'Tether USD', '75'),
+      holding(MUSD, CHAIN_IDS.MONAD, 'mUSD', 'MetaMask USD', '25'),
+    ],
+  },
+  {
+    symbol: 'mUSD',
+    formattedBalance: '$30.00',
+    holdings: [
+      holding(BASE_USDC, CHAIN_IDS.BASE, 'USDC', 'USD Coin', '10'),
+      holding(BASE_USDT, CHAIN_IDS.BASE, 'USDT', 'Tether USD', '20'),
+      holding(MUSD, CHAIN_IDS.MONAD, 'mUSD', 'MetaMask USD', '30'),
+    ],
+  },
+];
+
+const stablecoinAssetId = (asset: StablecoinHolding): string =>
+  `eip155:${parseInt(asset.chainId, 16)}/erc20:${toChecksumHexAddress(
+    asset.address,
+  )}`;
+
+/**
+ * Real AssetsController balances plus the Pay tokens flag, so the row is driven
+ * by the same balances -> selectors -> picker chain production uses.
+ */
+const stablecoinState = ({
+  holdings,
+  supportedTokens = SUPPORTED_STABLECOINS,
+  solanaUsdcAmount,
+}: {
+  holdings: StablecoinHolding[];
+  supportedTokens?: PreferredToken[];
+  solanaUsdcAmount?: string;
+}): DeepPartial<RootState> => {
+  const assetsInfo: Record<string, unknown> = {
+    [BASE_NATIVE_ASSET_ID]: {
+      type: 'native',
+      symbol: 'ETH',
+      name: 'Ether',
+      decimals: 18,
+    },
+    [MONAD_NATIVE_ASSET_ID]: {
+      type: 'native',
+      symbol: 'MON',
+      name: 'Mon',
+      decimals: 18,
+    },
+  };
+  const assetsPrice: Record<string, unknown> = {
+    [BASE_NATIVE_ASSET_ID]: {
+      assetPriceType: 'fungible',
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 0,
+    },
+    [MONAD_NATIVE_ASSET_ID]: {
+      assetPriceType: 'fungible',
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 0,
+    },
+  };
+  const assetsBalanceByAccount: Record<
+    string,
+    Record<string, { amount: string }>
+  > = { [STABLECOIN_ACCOUNT_ID]: {} };
+
+  for (const asset of holdings) {
+    const assetId = stablecoinAssetId(asset);
+    assetsInfo[assetId] = {
+      type: 'erc20',
+      symbol: asset.symbol,
+      name: asset.name,
+      decimals: 6,
+    };
+    assetsBalanceByAccount[STABLECOIN_ACCOUNT_ID][assetId] = {
+      amount: asset.amount,
+    };
+    assetsPrice[assetId] = {
+      assetPriceType: 'fungible',
+      id: asset.symbol.toLowerCase(),
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 0,
+    };
+  }
+
+  if (solanaUsdcAmount) {
+    assetsInfo[SOLANA_USDC_ASSET_ID] = {
+      type: 'spl',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    };
+    assetsBalanceByAccount[SOLANA_ACCOUNT_ID] = {
+      [SOLANA_USDC_ASSET_ID]: { amount: solanaUsdcAmount },
+    };
+    assetsPrice[SOLANA_USDC_ASSET_ID] = {
+      assetPriceType: 'fungible',
+      id: 'usd-coin',
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 0,
+    };
+  }
+
+  return {
+    engine: {
+      backgroundState: {
+        AssetsController: {
+          assetsInfo,
+          assetsBalance: assetsBalanceByAccount,
+          assetsPrice,
+        },
+        ...(solanaUsdcAmount
+          ? {
+              AccountsController: {
+                internalAccounts: {
+                  accounts: {
+                    [SOLANA_ACCOUNT_ID]: {
+                      id: SOLANA_ACCOUNT_ID,
+                      address: '4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T',
+                      type: SolAccountType.DataAccount,
+                      methods: [],
+                      options: {},
+                      scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+                      metadata: {
+                        name: 'Solana Account',
+                        importTime: 0,
+                        keyring: { type: 'HD Key Tree' },
+                      },
+                    },
+                  },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:wallet1': {
+                      groups: {
+                        'entropy:wallet1/0': {
+                          accounts: [STABLECOIN_ACCOUNT_ID, SOLANA_ACCOUNT_ID],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            [CHAIN_IDS.BASE]: {
+              chainId: CHAIN_IDS.BASE,
+              name: 'Base',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'base-mainnet',
+                  url: 'https://mainnet.base.org',
+                  type: 'custom',
+                  name: 'Base RPC',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              blockExplorerUrls: [],
+              defaultBlockExplorerUrlIndex: 0,
+            },
+            [CHAIN_IDS.MONAD]: {
+              chainId: CHAIN_IDS.MONAD,
+              name: 'Monad',
+              nativeCurrency: 'MON',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'monad-mainnet',
+                  url: 'https://rpc.monad.xyz',
+                  type: 'custom',
+                  name: 'Monad RPC',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              blockExplorerUrls: [],
+              defaultBlockExplorerUrlIndex: 0,
+            },
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            moneyAccountVaultConfig: MONAD_VAULT,
+            confirmations_pay_tokens: {
+              preferredTokens: {
+                default: [],
+                overrides: {
+                  [TransactionType.moneyAccountDeposit]: supportedTokens,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>;
+};
+
+describeForPlatforms('MoneyAddMoneySheet stablecoin quick deposit', () => {
+  let trackEventSpy: jest.SpyInstance;
+  let findNetworkClientIdSpy: jest.SpyInstance;
+
+  const renderSheet = (
+    holdings: StablecoinHolding[],
+    options: {
+      supportedTokens?: PreferredToken[];
+      solanaUsdcAmount?: string;
+    } = {},
+  ) =>
+    renderVbaMoneyEntry({
+      overrides: stablecoinState({ holdings, ...options }),
+      extraRoutes: [
+        {
+          name: Routes.MONEY.CONFIRMATIONS_ROOT,
+          Component: createRouteParamsProbe(Routes.MONEY.CONFIRMATIONS_ROOT),
+        },
+      ],
+    });
+
+  const openSheet = async (view: ReturnType<typeof renderSheet>) => {
+    fireEvent.press(
+      await view.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
+    );
+    await view.findByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION);
+  };
+
+  beforeEach(() => {
+    trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    findNetworkClientIdSpy = jest
+      .spyOn(Engine.context.NetworkController, 'findNetworkClientIdByChainId')
+      .mockReturnValue('monad-mainnet');
+  });
+
+  afterEach(() => {
+    trackEventSpy.mockRestore();
+    findNetworkClientIdSpy.mockRestore();
+    restoreVbaReduxServiceStore();
+  });
+
+  it.each(LARGEST_STABLECOIN_ROWS)(
+    'shows the largest stablecoin ($symbol) with its formatted balance',
+    async ({ holdings, symbol, formattedBalance }) => {
+      const view = renderSheet(holdings);
+
+      await openSheet(view);
+
+      const row = view.getByTestId(
+        MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
+      );
+      expect(row).toBeOnTheScreen();
+      expect(within(row).getByText(formattedBalance)).toBeOnTheScreen();
+      expect(within(row).getByText(symbol)).toBeOnTheScreen();
+    },
+  );
+
+  it('hides the stablecoin row when the only stablecoin sits on a chain missing from moneyAccountDeposit', async () => {
+    const view = renderSheet([
+      holding(MAINNET_USDC, CHAIN_IDS.MAINNET, 'USDC', 'USD Coin', '250'),
+    ]);
+
+    await openSheet(view);
+
+    // The balance qualifies, so only the missing Pay-token entry hides it.
+    expect(
+      selectMoneyDepositAssetsMeetingMinimumBalance(
+        view.store.getState() as RootState,
+      ).map((asset) => asset.address),
+    ).toContain(toChecksumHexAddress(MAINNET_USDC));
+    expect(
+      view.queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the stablecoin row when the only stablecoin is USDC on Solana', async () => {
+    const view = renderSheet([], { solanaUsdcAmount: '250' });
+
+    await openSheet(view);
+
+    // The balance is in the wallet, so only the EVM-only deposit gate hides it.
+    expect(
+      Object.values(
+        selectAssetsBySelectedAccountGroup(view.store.getState() as RootState),
+      )
+        .flat()
+        .map((asset) => asset.assetId),
+    ).toContain(SOLANA_USDC_ASSET_ID);
+    expect(
+      view.queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the stablecoin row and disables Convert crypto when the only balance is below the minimum', async () => {
+    const view = renderSheet([
+      holding(BASE_USDC, CHAIN_IDS.BASE, 'USDC', 'USD Coin', '0.005'),
+    ]);
+
+    await openSheet(view);
+
+    expect(
+      view.queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+    ).not.toBeOnTheScreen();
+    const convertCryptoRow = view.getByTestId(
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+    );
+    expect(convertCryptoRow).toBeDisabled();
+
+    fireEvent.press(convertCryptoRow);
+
+    expect(
+      view.queryByTestId(
+        getRouteParamsProbeTestId(Routes.MONEY.CONFIRMATIONS_ROOT),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('starts the deposit with the largest stablecoin and tracks the row press', async () => {
+    const view = renderSheet(LARGEST_STABLECOIN_ROWS[0].holdings);
+
+    await openSheet(view);
+
+    fireEvent.press(
+      view.getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+    );
+
+    const paramsElement = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.MONEY.CONFIRMATIONS_ROOT),
+    );
+    expect(JSON.parse(String(paramsElement.props.children))).toEqual({
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
+      params: expect.objectContaining({
+        depositIntent: 'addUsdc',
+        preferredPaymentToken: {
+          // The row uses the checksummed asset address from the token list.
+          address: toChecksumHexAddress(BASE_USDC),
+          chainId: CHAIN_IDS.BASE,
+        },
+      }),
+    });
+
+    const [quickDepositEvent] = trackEventSpy.mock.calls
+      .map(
+        ([event]) =>
+          event as { name?: string; properties?: Record<string, unknown> },
+      )
+      .filter(
+        (event) =>
+          event.name === MetaMetricsEvents.MONEY_SURFACE_CLICKED.category &&
+          event.properties?.component_name ===
+            COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
+      );
+
+    expect(quickDepositEvent?.properties).toEqual(
+      expect.objectContaining({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+        token_symbol: 'USDC',
+        token_position_in_list: 1,
+        token_chain_id: CHAIN_IDS.BASE,
+        tokens_in_list: 1,
+        token_has_balance: true,
+      }),
+    );
   });
 });

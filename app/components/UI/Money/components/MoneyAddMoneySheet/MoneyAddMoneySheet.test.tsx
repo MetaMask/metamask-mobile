@@ -384,40 +384,6 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('disables the Convert crypto option when there is no eligible deposit asset', () => {
-    (
-      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
-    ).mockReturnValue(false);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
-    );
-
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
-  });
-
-  it('enables the Convert crypto option when there is an eligible deposit asset', () => {
-    (
-      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
-    ).mockReturnValue(true);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    fireEvent.press(
-      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
-    );
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({ intent: 'convert' });
-  });
-
   it('shows the Deposit funds option when fiat deposit is enabled', () => {
     (useMMPayFiatConfig as jest.Mock).mockReturnValue({
       enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
@@ -538,84 +504,6 @@ describe('MoneyAddMoneySheet', () => {
         address: tokenAddress,
         chainId: CHAIN_IDS.BASE,
       },
-    });
-
-    const symbols = [
-      ['USDC', 'addUsdc'],
-      ['USDT', 'addUsdt'],
-      ['mUSD', 'addMusd'],
-    ] as const;
-
-    it.each(symbols)('shows %s on the row', (symbol, intent) => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
-        option(symbol, intent),
-      );
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <MoneyAddMoneySheet />,
-      );
-
-      expect(
-        getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
-      ).toBeOnTheScreen();
-      expect(getByText('$65.00')).toBeOnTheScreen();
-      expect(getByText(symbol)).toBeOnTheScreen();
-    });
-
-    it.each(symbols)(
-      'deposits with %s when the row is pressed',
-      (symbol, intent) => {
-        (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
-          option(symbol, intent),
-        );
-
-        const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-        fireEvent.press(
-          getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
-        );
-
-        expect(mockInitiateDeposit).toHaveBeenCalledWith({
-          intent,
-          preferredPaymentToken: {
-            address: tokenAddress,
-            chainId: CHAIN_IDS.BASE,
-          },
-        });
-      },
-    );
-
-    it.each(symbols)('tracks %s when the row is pressed', (symbol, intent) => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
-        option(symbol, intent),
-      );
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(
-        getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
-      );
-
-      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: symbol,
-        token_position_in_list: 1,
-        token_chain_id: CHAIN_IDS.BASE,
-        tokens_in_list: 1,
-        token_has_balance: true,
-      });
-    });
-
-    it('hides the stablecoin row, including Add mUSD, when the account holds none', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(undefined);
-      const { queryByTestId, queryByText } = renderWithProvider(
-        <MoneyAddMoneySheet />,
-      );
-      expect(
-        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
-      ).toBeNull();
-      expect(queryByText('Add mUSD')).toBeNull();
     });
 
     it('renders after the other enabled options', () => {
