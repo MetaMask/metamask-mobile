@@ -15,10 +15,16 @@ jest.mock('@metamask/mpc-react-native', () => ({
 
 const TOKEN = 'profile-token';
 
-const buildKeyring = () => {
+const buildKeyring = (
+  build = buildRealMpcMoneyKeyringBuilder,
+): {
+  options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+  getBearerToken: jest.Mock<Promise<string>>;
+  getPrimaryMnemonic: jest.Mock<Promise<number[]>>;
+} => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
   const getPrimaryMnemonic = jest.fn().mockResolvedValue([109, 110, 101]);
-  const keyring = buildRealMpcMoneyKeyringBuilder({
+  const keyring = build({
     getBearerToken,
     getPrimaryMnemonic,
   })() as unknown as {
@@ -52,6 +58,57 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
         'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     });
   });
+
+  it.each([
+    [
+      'unset',
+      undefined,
+      undefined,
+      'https://mpc-service.dev-api.cx.metamask.io/v2',
+      'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+    ],
+    [
+      'empty',
+      '',
+      '',
+      'https://mpc-service.dev-api.cx.metamask.io/v2',
+      'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+    ],
+    [
+      'custom',
+      'https://mpc.example/v2',
+      'wss://relay.example/websocket',
+      'https://mpc.example/v2',
+      'wss://relay.example/websocket',
+    ],
+  ])(
+    'uses the expected endpoints for %s URL overrides',
+    (_label, cloudURL, relayerURL, expectedCloudURL, expectedRelayerURL) => {
+      const env = { ...process.env };
+      if (cloudURL === undefined) {
+        delete env.MM_MONEY_MPC_CLOUD_URL;
+      } else {
+        env.MM_MONEY_MPC_CLOUD_URL = cloudURL;
+      }
+      if (relayerURL === undefined) {
+        delete env.MM_MONEY_MPC_RELAYER_URL;
+      } else {
+        env.MM_MONEY_MPC_RELAYER_URL = relayerURL;
+      }
+      jest.replaceProperty(process, 'env', env);
+
+      jest.isolateModules(() => {
+        const { buildRealMpcMoneyKeyringBuilder: build } = jest.requireActual<
+          typeof import('./mpc-money-keyring-builder')
+        >('./mpc-money-keyring-builder');
+
+        const { options } = buildKeyring(build);
+
+        expect(options.cloudURL).toBe(expectedCloudURL);
+        expect(options.relayerURL).toBe(expectedRelayerURL);
+      });
+    },
+  );
 
   it('uses the bearer token as the profile token', async () => {
     const { options, getBearerToken } = buildKeyring();
