@@ -110,6 +110,10 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
             {title}
           </Text>
         }
+      /><Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {title}
+          </Text>
+        }
       />
 
       <Box paddingHorizontal={4} gap={2}>
@@ -157,7 +161,7 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="underline"
+              className="underline"
             >
               {strings('perps.market.read_more')}
             </Text>

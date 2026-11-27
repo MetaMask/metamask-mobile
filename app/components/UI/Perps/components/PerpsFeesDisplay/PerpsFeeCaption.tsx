@@ -96,7 +96,7 @@ const promoSentenceNodes = (
             key={ORIGINAL_RATE_KEY}
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="line-through"
+            className="line-through"
           >
             {originalFeePercentage}
           </Text>
@@ -192,7 +192,7 @@ const PerpsFeeCaption = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={2}
-      twClassName={twClassName}
+      className={twClassName}
     >
       <PerpsFeeDiscountLabel
         feeDiscountPercentage={feeDiscountPercentage}
@@ -205,7 +205,7 @@ const PerpsFeeCaption = ({
           color={TextColor.TextAlternative}
           accessibilityLabel={promoAccessibilityLabel}
           testID={testID}
-          twClassName="tabular-nums"
+          className="tabular-nums"
         >
           {promoSentenceNodes(promoCopy, feePercentage, originalFeePercentage)}
         </Text>
@@ -214,7 +214,7 @@ const PerpsFeeCaption = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           testID={testID}
-          twClassName="tabular-nums"
+          className="tabular-nums"
         >
           {standardCopy}
         </Text>

@@ -137,7 +137,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
             })
           : strings('perps.margin_mode.title')}
       </BottomSheetHeaderGlass>
-      <Box gap={2} twClassName="px-4 pb-4">
+      <Box gap={2} className="px-4 pb-4">
         <Box accessibilityRole="radiogroup" gap={2}>
           <PerpsSelectionOptionCard
             option={{
@@ -195,7 +195,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-xl bg-muted px-3 py-2"
+            className="rounded-xl bg-muted px-3 py-2"
             testID={PerpsMarginModeBottomSheetSelectorsIDs.LOCK_NOTICE}
           >
             <Icon
@@ -206,7 +206,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings(
                 lockReason === 'open_order'

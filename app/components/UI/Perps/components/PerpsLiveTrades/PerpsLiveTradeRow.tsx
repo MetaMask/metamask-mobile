@@ -39,10 +39,40 @@ const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({
   return (
     <ListItem
       {...pressProps}
-      twClassName="py-2"
+      className="py-2"
       testID={getPerpsLiveTradeRowSelector(post.id)}
       avatar={
         <TraderAvatar
+          imageUrl={post.authorImageUrl ?? item.author.avatarUri}
+          address={item.author.address ?? item.author.id}
+          size={PERPS_LIVE_TRADES_CONFIG.AvatarSize}
+          recyclingKey={item.author.id}
+        />
+      }
+      title={post.authorHandle}
+      titleEndAccessory={
+        item.author.verified ? (
+          <ProfileVerifiedBadge
+            testID={getPerpsLiveTradeVerifiedBadgeSelector(post.id)}
+          />
+        ) : undefined
+      }
+      description={[item.asset.symbol, getDirectionLabel(item), item.costLabel]
+        .filter(Boolean)
+        .join(' · ')}
+      value={
+        hasWinRate
+          ? formatPercent(winRatePercent, { showSign: false, decimals: 0 })
+          : undefined
+      }
+      valueProps={
+        hasWinRate &&
+        winRatePercent >= PERPS_LIVE_TRADES_CONFIG.HighlightWinRatePercent
+          ? { color: TextColor.SuccessDefault }
+          : undefined
+      }
+      subvalue={hasWinRate ? strings('perps.home.win_rate') : undefined}
+    /><TraderAvatar
           imageUrl={post.authorImageUrl ?? item.author.avatarUri}
           address={item.author.address ?? item.author.id}
           size={PERPS_LIVE_TRADES_CONFIG.AvatarSize}

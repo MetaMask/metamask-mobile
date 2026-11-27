@@ -239,7 +239,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Baseline}
-          twClassName="gap-1"
+          className="gap-1"
         >
           {changeText}
           <Text

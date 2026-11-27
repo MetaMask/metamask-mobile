@@ -210,9 +210,84 @@ const PerpsMarketRowItem = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
           >
-            <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+            <Tag severity={TagSeverity.Neutral} className="self-center">
+              {strings('token_watchlist.perp_tag')}
+            </Tag>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+          </Box>
+        ) : (
+          <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+        )
+      }
+      description={description}
+      descriptionProps={{
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+      }}
+      descriptionEndAccessory={
+        showBadge && badgeType ? (
+          <PerpsBadge
+            type={badgeType}
+            testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
+          />
+        ) : undefined
+      }
+      value={displayMarket.price}
+      subvalue={displayMarket.change24hPercent}
+      subvalueProps={{
+        color: isPositiveChange
+          ? TextColor.SuccessDefault
+          : TextColor.ErrorDefault,
+      }}
+      endAccessory={
+        onWatchlistPress || onAddPress ? (
+          <ButtonIcon
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
+            size={ButtonIconSize.Md}
+            onPress={() => (onWatchlistPress ?? onAddPress)?.(displayMarket)}
+            accessibilityLabel={
+              isWatchlisted
+                ? strings('token_watchlist.remove_from_watchlist')
+                : strings('perps.market_details.add_to_watchlist')
+            }
+            testID={getPerpsMarketRowItemSelector.addButton(
+              displayMarket.symbol,
+            )}
+          />
+        ) : undefined
+      }
+      accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
+      className={
+        [compact ? 'py-2 min-h-0' : undefined, twClassName]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
+    /><PerpsTokenLogo
+          symbol={displayMarket.symbol}
+          size={iconSize}
+          recyclingKey={displayMarket.symbol}
+          testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
+        />
+      }
+      title={assetLabel}
+      titleProps={{
+        testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
+        numberOfLines: 1,
+        // flexShrink lets the title text yield space to the leverage badge so
+        // it doesn't overflow into the price column on long asset names.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flexShrink: 1 },
+      }}
+      titleEndAccessory={
+        showTypeTag ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            className="gap-1"
+          >
+            <Tag severity={TagSeverity.Neutral} className="self-center">
               {strings('token_watchlist.perp_tag')}
             </Tag>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
