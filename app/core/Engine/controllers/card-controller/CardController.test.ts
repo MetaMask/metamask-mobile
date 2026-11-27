@@ -1558,6 +1558,16 @@ describe('CardController — event subscriptions', () => {
         accountTree: { wallets: {} },
       }),
     ).toBe('entropy:wallet1/1|');
+    expect(
+      selector({
+        selectedAccountGroup: 'entropy:wallet1/0',
+        accountTree: {
+          wallets: {
+            w1: { groups: { g1: { accounts: ['b', 'a'] } } },
+          },
+        },
+      }),
+    ).toBe('entropy:wallet1/0|a,b');
   });
 
   it('subscribes to RemoteFeatureFlagController:stateChange on construction', () => {

@@ -12492,6 +12492,23 @@
         "contact_details_description": "Update your email and phone number",
         "add_to_digital_wallet": "Add to digital wallet",
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+      },
+      "cashback_screen": {
+        "title": "mUSD back",
+        "claimable": "Ready to claim",
+        "pending": "Pending",
+        "held": "Held",
+        "blocked": "Blocked",
+        "claimed": "Claimed",
+        "pairing_pending": "Finish pairing your Money account to claim your mUSD back.",
+        "below_minimum": "You'll need at least {{amount}} to claim.",
+        "claim": "Claim",
+        "claim_failed": "Claim failed. Try again.",
+        "mpc_unavailable": "Claims aren't available for this Money account yet.",
+        "unavailable": "mUSD back isn't available yet.",
+        "loading": "Loading mUSD back",
+        "empty_ledger": "No mUSD back yet",
+        "rate": "{{rate}}% back"
       }
     },
     "contact_details": {
