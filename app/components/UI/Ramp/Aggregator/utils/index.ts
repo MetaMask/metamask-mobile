@@ -225,6 +225,12 @@ export function isSellOrder(order: Order): order is SellOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
 }
 
+/**
+ * Sell order as returned by the Ramps API. `memo` isn't in the SDK typings
+ * yet (the generic memo is ours, see the Ramps API sell order).
+ */
+export type SellOrderWithMemo = SellOrder & { memo?: string };
+
 export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
 }

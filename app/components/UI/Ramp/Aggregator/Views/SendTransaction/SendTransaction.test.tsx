@@ -2,6 +2,7 @@ import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
+import { SellOrderWithMemo } from '../../utils';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -399,6 +400,8 @@ const mockStellarOrder = {
     id: 'test-id-stellar',
     providerOrderId: 'test-id-stellar',
     cryptoAmount: '1.5',
+    depositWallet: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+    memo: 'moontagmemo',
     cryptoCurrency: {
       id: '/currencies/crypto/stellar/xlm',
       network: {
@@ -415,7 +418,7 @@ const mockStellarOrder = {
     },
     network: 'stellar:pubnet',
     walletAddress: STELLAR_WALLET_ADDRESS,
-  } as DeepPartial<SellOrder>,
+  } as DeepPartial<SellOrderWithMemo>,
 } as FiatOrder;
 
 const mockedOrders = [
@@ -777,6 +780,19 @@ describe('SendTransaction View', () => {
           order_id: 'test-partial-crypto',
         }),
       );
+    });
+
+    it('shows 0 as the amount when the order has no cryptoAmount', () => {
+      const orderWithoutAmount = {
+        ...mockOrder,
+        id: 'test-no-crypto-amount',
+        cryptoAmount: undefined,
+      } as unknown as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-no-crypto-amount' };
+      render(SendTransaction, [orderWithoutAmount]);
+
+      expect(screen.getByText('0')).toBeOnTheScreen();
     });
 
     it('handles missing cryptoCurrency.network gracefully in analytics and does not invoke send', async () => {
@@ -1279,18 +1295,44 @@ describe('SendTransaction View', () => {
       });
     });
 
-    it('blocks Stellar sends until provider memo support is wired', async () => {
+    it('sends Stellar with the order memo', async () => {
       mockUseParamsValues = { orderId: 'test-id-stellar' };
       mockGetInternalAccountByAddress.mockReturnValue(mockStellarAccount);
 
       render(SendTransaction);
       const nextButton = screen.getByRole('button', { name: 'Next' });
 
-      expect(nextButton).toBeDisabled();
-      fireEvent.press(nextButton);
-      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(nextButton).not.toBeDisabled();
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockStellarAccount,
+        expect.objectContaining({
+          toAddress: 'GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI',
+          assetId: 'stellar:pubnet/slip44:148',
+          amount: '1.5',
+          memo: 'moontagmemo',
+        }),
+      );
+    });
+
+    it('omits the memo key from the Snap request when the order has none', async () => {
+      const orderWithoutMemo = {
+        ...mockStellarOrder,
+        id: 'test-id-stellar-no-memo',
+        data: { ...mockStellarOrder.data, memo: undefined },
+      } as unknown as FiatOrder;
+      mockUseParamsValues = { orderId: orderWithoutMemo.id };
+      mockGetInternalAccountByAddress.mockReturnValue(mockStellarAccount);
+
+      render(SendTransaction, [...mockedOrders, orderWithoutMemo]);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledTimes(1);
+      const params = mockSendMultichainTransactionForReview.mock.calls[0][1];
+      expect(params).not.toHaveProperty('memo');
     });
 
     it('does not call the Snap when the asset id is missing', async () => {

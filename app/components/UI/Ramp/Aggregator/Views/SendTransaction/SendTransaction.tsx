@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
-import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
+import { SellOrderWithMemo } from '../../utils';
 import {
   TransactionParams,
   WalletDevice,
@@ -120,7 +120,7 @@ function SendTransaction() {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = theme;
 
-  const orderData = order?.data as SellOrder;
+  const orderData = order?.data as SellOrderWithMemo;
 
   // Non-EVM (e.g. Solana) assets carry a CAIP-2 chain id (e.g. "solana:...").
   // Legacy EVM orders use a numeric chain id ("1"), so isCaipChainId is false.
@@ -132,14 +132,14 @@ function SendTransaction() {
       !assetChainId.startsWith('eip155:'),
     [assetChainId],
   );
-  const isStellar = assetChainId?.startsWith('stellar:') ?? false;
   const usesSnapValidation = usesSnapAmountValidation(assetChainId);
-
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
       ? getMemoizedInternalAccountByAddress(state, orderData.walletAddress)
       : undefined,
   );
+
+  const memo = orderData?.memo;
 
   const networkClientId = useMemo(() => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
@@ -289,6 +289,9 @@ function SendTransaction() {
           // `confirmSend` expects a human-readable decimal amount (the Snap
           // applies decimals), unlike the EVM path which uses minimal units.
           amount,
+          // Optional - used for chains like Stellar/Ripple. Omitted (not
+          // `undefined`) when absent: the Snap's JSON-RPC params must be JSON.
+          ...(memo ? { memo } : {}),
         })) as { transactionId?: string; valid?: boolean } | undefined;
 
         // Match the existing non-EVM send: only `valid === false` is a
@@ -424,6 +427,7 @@ function SendTransaction() {
     isNonEvm,
     usesSnapValidation,
     fromAccount,
+    memo,
     validateSnapTransfer,
   ]);
 
@@ -475,7 +479,7 @@ function SendTransaction() {
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
                     toTokenMinimalUnit(
-                      order.cryptoAmount || '0',
+                      order.cryptoAmount ?? '0',
                       orderData.cryptoCurrency.decimals,
                     ).toString(),
                     orderData.cryptoCurrency.decimals,
@@ -572,7 +576,6 @@ function SendTransaction() {
               isDisabled={
                 isConfirming ||
                 isValidating ||
-                isStellar ||
                 Boolean(validationError) ||
                 (!isNonEvm && !networkClientId)
               }

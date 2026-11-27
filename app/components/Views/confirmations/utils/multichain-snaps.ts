@@ -29,6 +29,7 @@ export async function sendMultichainTransactionForReview(
     toAddress: string;
     assetId: CaipAssetType;
     amount: string;
+    memo?: string;
   },
 ) {
   return await handleSnapRequest(controllerMessenger, {
