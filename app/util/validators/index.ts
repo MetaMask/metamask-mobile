@@ -10,7 +10,7 @@ export const failedSeedPhraseRequirements = (seed: string): boolean => {
 /**
  * This method validates and decrypts a raw vault. Only works with iOS/Android vaults!
  * The extension uses different cryptography for the vault.
- * @param {string} password - users password related to vault
+ * @param {string} password - the user's password for the vault
  * @param {string} vault - exported from ios/android filesystem
  * @returns seed phrase from vault
  */
