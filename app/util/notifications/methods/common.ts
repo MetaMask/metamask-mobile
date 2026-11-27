@@ -1,5 +1,4 @@
-import dayjs, { Dayjs } from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import dayjs from 'dayjs';
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
@@ -20,7 +19,7 @@ import {
   hexWEIToDecGWEI,
 } from '../../conversions';
 import { calcTokenAmount } from '../../transactions';
-import I18n, { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import { ImageSourcePropType } from 'react-native';
 import { getNetworkImageSource } from '../../networks';
 
@@ -51,19 +50,6 @@ const isYesterday = (currentDate: Date, dateToCheck: Date) => {
 
 // Extend dayjs with the plugins
 dayjs.extend(localeData);
-dayjs.extend(relativeTime);
-
-function formatRelative(
-  date: Dayjs,
-  currentDate: Dayjs,
-  locale: string = 'en',
-): string {
-  dayjs.locale(locale);
-  if (date.from(currentDate) === 'a day ago') {
-    return strings('notifications.yesterday');
-  }
-  return date.from(currentDate);
-}
 
 /**
  * Formats a given date into different formats based on how much time has elapsed since that date.
@@ -89,7 +75,7 @@ export function formatMenuItemDate(date?: Date, locale: string = 'en'): string {
 
   // E.g. Yesterday
   if (isYesterday(currentDate, date)) {
-    return formatRelative(dayjsDate, currentDayjsDate, I18n.locale);
+    return strings('notifications.yesterday');
   }
 
   // E.g. Oct 21
