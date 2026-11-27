@@ -1436,6 +1436,7 @@ const CardHome = () => {
                   card={data?.card}
                   account={data?.account}
                   capabilities={capabilities}
+                  providerId={activeProviderId}
                   isSpendingLimitActive={isSpendingLimitActive}
                   showLimitedSpendingAmounts={showSpendingLimitProgress}
                   spendingLimitRemaining={

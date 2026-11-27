@@ -19,7 +19,7 @@ import {
 } from '../util/redeemDestination';
 import { MONEY_ACCOUNT_DELEGATION_NETWORK } from '../util/vedaToken';
 
-interface RedeemDestination {
+export interface RedeemDestination {
   caipChainId: CaipChainId | undefined;
   symbol: string | undefined;
   isResolved: boolean;

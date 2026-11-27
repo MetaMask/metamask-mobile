@@ -21,8 +21,29 @@ import type {
   RedeemWalletResponse,
   RedeemWithdrawEstimationResponse,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import type { RedeemDestination } from './useRedeemDestination';
 
 export type RedeemableWalletMode = RedeemWalletMode;
+
+/**
+ * What a mUSD back source can add on top of the Baanx wallet shape. The
+ * Baanx source returns none of these, so its screen is unchanged.
+ */
+export interface RedeemWalletExtras {
+  /** Extra rows at the top of the details card, already formatted. */
+  breakdown?: { key: string; label: string; value: string }[];
+  /** One banner above the balance, already translated. */
+  notice?: { severity: 'info' | 'warning'; description: string };
+  /** Overrides for the button and toast copy, already translated. */
+  labels?: {
+    action?: string;
+    actionUnavailable?: string;
+    success?: string;
+    failure?: string;
+  };
+  /** A destination the source already knows, used instead of resolving one. */
+  destination?: RedeemDestination;
+}
 
 interface RedeemQueryConfig {
   queryKey: QueryKey;
@@ -87,7 +108,9 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     mutationFn: async (amount: string) =>
       Engine.context.CardController.withdrawRedeemable({ mode, amount }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      queryClient
+        .invalidateQueries({ queryKey: queries.allKey })
+        .catch(() => undefined);
     },
   });
 
@@ -135,7 +158,9 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   // Invalidate wallet cache when controller reports success (covers unmount case).
   useEffect(() => {
     if (modeWithdrawal?.status === 'success') {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      queryClient
+        .invalidateQueries({ queryKey: queries.allKey })
+        .catch(() => undefined);
     }
   }, [modeWithdrawal?.status, queries.allKey, queryClient]);
 
@@ -165,5 +190,24 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     resetWithdraw,
   };
 };
+
+/** The shape the redeem screen reads, from any provider's source. */
+export type RedeemableWalletState = Pick<
+  ReturnType<typeof useRedeemableWallet>,
+  | 'wallet'
+  | 'isLoading'
+  | 'error'
+  | 'estimation'
+  | 'isEstimating'
+  | 'estimationError'
+  | 'fetchEstimation'
+  | 'withdraw'
+  | 'isWithdrawing'
+  | 'withdrawError'
+  | 'monitoringStatus'
+  | 'monitoringError'
+  | 'resetWithdraw'
+> &
+  RedeemWalletExtras;
 
 export default useRedeemableWallet;

@@ -6,6 +6,8 @@ import type {
   ClaimHistoryPageDto,
   ClaimInitiateDto,
   ClaimProofRequiredDto,
+  CardLedgerPage,
+  CardSummaryResponse,
   ClaimRouteSlug,
   InitiateClaimBody,
   InitiateClaimResult,
@@ -246,6 +248,26 @@ export interface RewardsMoneyDataServiceGetEarningsLedgerAction {
   handler: RewardsMoneyDataService['getEarningsLedger'];
 }
 
+export interface RewardsMoneyDataServiceGetCardSummaryAction {
+  type: `${typeof SERVICE_NAME}:getCardSummary`;
+  handler: RewardsMoneyDataService['getCardSummary'];
+}
+
+export interface RewardsMoneyDataServiceGetCardLedgerAction {
+  type: `${typeof SERVICE_NAME}:getCardLedger`;
+  handler: RewardsMoneyDataService['getCardLedger'];
+}
+
+export interface RewardsMoneyDataServiceGetCardClaimHistoryAction {
+  type: `${typeof SERVICE_NAME}:getCardClaimHistory`;
+  handler: RewardsMoneyDataService['getCardClaimHistory'];
+}
+
+export interface RewardsMoneyDataServiceGetCardClaimAction {
+  type: `${typeof SERVICE_NAME}:getCardClaim`;
+  handler: RewardsMoneyDataService['getCardClaim'];
+}
+
 export interface RewardsMoneyDataServiceGetClaimHistoryAction {
   type: `${typeof SERVICE_NAME}:getClaimHistory`;
   handler: RewardsMoneyDataService['getClaimHistory'];
@@ -319,6 +341,10 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
+  | RewardsMoneyDataServiceGetCardSummaryAction
+  | RewardsMoneyDataServiceGetCardLedgerAction
+  | RewardsMoneyDataServiceGetCardClaimHistoryAction
+  | RewardsMoneyDataServiceGetCardClaimAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
@@ -640,6 +666,22 @@ export class RewardsMoneyDataService {
       this.getEarningsLedger.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCardSummary`,
+      this.getCardSummary.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCardLedger`,
+      this.getCardLedger.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCardClaimHistory`,
+      this.getCardClaimHistory.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCardClaim`,
+      this.getCardClaim.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimHistory`,
       this.getClaimHistory.bind(this),
     );
@@ -889,6 +931,60 @@ export class RewardsMoneyDataService {
     }
 
     return (await response.json()) as EarningsLedgerPageDto;
+  }
+
+  async getCardSummary(): Promise<CardSummaryResponse> {
+    const response = await this.#read('/earnings/card/summary');
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get card summary failed');
+    }
+    return (await response.json()) as CardSummaryResponse;
+  }
+
+  async getCardLedger(
+    cursor?: string | null,
+    limit: number = EARNINGS_LEDGER_PAGE_SIZE,
+  ): Promise<CardLedgerPage> {
+    const params = new URLSearchParams();
+    params.append('limit', String(limit));
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+    const response = await this.#read(
+      `/earnings/card/ledger?${params.toString()}`,
+    );
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get card ledger failed');
+    }
+    return (await response.json()) as CardLedgerPage;
+  }
+
+  async getCardClaimHistory(
+    cursor?: string | null,
+    limit: number = CLAIM_HISTORY_PAGE_SIZE,
+  ): Promise<ClaimHistoryPageDto> {
+    const params = new URLSearchParams();
+    params.append('limit', String(limit));
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+    const response = await this.#read(
+      `/earnings/card/claim/me?${params.toString()}`,
+    );
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get card claim history failed');
+    }
+    return (await response.json()) as ClaimHistoryPageDto;
+  }
+
+  async getCardClaim(id: string): Promise<ClaimDto> {
+    const response = await this.#read(
+      `/earnings/card/claim/${encodeURIComponent(id)}`,
+    );
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get card claim failed');
+    }
+    return (await response.json()) as ClaimDto;
   }
 
   async getCommissions(

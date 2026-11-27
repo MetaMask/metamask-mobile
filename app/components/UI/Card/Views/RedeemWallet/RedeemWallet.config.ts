@@ -17,6 +17,7 @@ interface RedeemTestIds {
   WITHDRAW_BUTTON: string;
   TO_ROW: string;
   REFUND_INFO_BUTTON?: string;
+  NOTICE?: string;
 }
 
 interface RedeemModeConfig {

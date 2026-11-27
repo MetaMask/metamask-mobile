@@ -32,6 +32,32 @@ import {
   type CardProviderCapabilities,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
+function cashbackRateLabel(
+  providerId: string | null | undefined,
+  cardType: CardType | undefined,
+): string {
+  if (providerId === 'immersve' || cardType === CardType.METAL) {
+    return '3';
+  }
+  return '1';
+}
+
+function showCashbackRow(
+  isFullySetUp: boolean,
+  hideManageOptions: boolean,
+  providerId: string | null | undefined,
+  supportsCashback: boolean | undefined,
+  verificationStatus: string | null | undefined,
+): boolean {
+  if (!isFullySetUp || hideManageOptions) {
+    return false;
+  }
+  if (providerId === 'immersve') {
+    return true;
+  }
+  return supportsCashback === true && verificationStatus === 'VERIFIED';
+}
+
 interface ManageCardOptionsProps {
   card: CardDetails | null | undefined;
   account: CardAccountStatus | null | undefined;
@@ -85,6 +111,7 @@ interface ManageCardOptionsProps {
    */
   hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
+  providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
@@ -143,6 +170,7 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   hiddenQuickActionRows,
   onCashback,
+  providerId,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
@@ -295,22 +323,25 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
             />
           )}
-        {isFullySetUp &&
-          !hideManageOptions &&
-          capabilities?.supportsCashback &&
-          account?.verificationStatus === 'VERIFIED' && (
-            <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cashback', {
-                cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
-              })}
-              description={strings(
-                'card.card_home.manage_card_options.cashback_description',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={onCashback}
-              testID={CardHomeSelectors.CASHBACK_ITEM}
-            />
-          )}
+        {showCashbackRow(
+          Boolean(isFullySetUp),
+          hideManageOptions,
+          providerId,
+          capabilities?.supportsCashback,
+          account?.verificationStatus,
+        ) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.cashback', {
+              cashbackPercentage: cashbackRateLabel(providerId, card?.type),
+            })}
+            description={strings(
+              'card.card_home.manage_card_options.cashback_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={onCashback}
+            testID={CardHomeSelectors.CASHBACK_ITEM}
+          />
+        )}
         {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&

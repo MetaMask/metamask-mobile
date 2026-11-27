@@ -55,6 +55,9 @@ const toCardLink = (item: unknown): CardLink | null => {
     migratedToProvider: stringOrNull(row.migratedToProvider),
     linkedAt: row.linkedAt,
     updatedAt: row.updatedAt,
+    ...(typeof row.cardholderVerified === 'boolean'
+      ? { cardholderVerified: row.cardholderVerified }
+      : {}),
   };
 };
 

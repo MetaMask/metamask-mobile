@@ -382,6 +382,8 @@ export class CardController extends BaseController<
   #cardLinkBackfillPromise: Promise<void> | null = null;
   /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
   #cardLinkBackfillAttempted = new Set<CardProviderId>();
+  /** One wallet-proof prompt per provider for this process. Logout clears it. */
+  readonly #cardLinkProofPrompted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -537,7 +539,11 @@ export class CardController extends BaseController<
                 (group) => group.accounts ?? [],
               ),
             )
-            .sort()
+            .sort((left, right) => {
+              if (left < right) return -1;
+              if (left > right) return 1;
+              return 0;
+            })
             .join(','),
         ].join('|'),
     );
@@ -757,6 +763,7 @@ export class CardController extends BaseController<
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
     if (isFresh && !force) {
       await this.#backfillSessionCardLink();
+      this.#reaskUnverifiedImmersveLink();
       return;
     }
 
@@ -776,6 +783,7 @@ export class CardController extends BaseController<
       this.#cardLinksFetchPromise = read;
     }
     await this.#cardLinksFetchPromise;
+    this.#reaskUnverifiedImmersveLink();
   }
 
   async #doFetchCardLinks(attempt = 0): Promise<void> {
@@ -809,6 +817,7 @@ export class CardController extends BaseController<
 
   #clearCardLinkBackfill(): void {
     this.#cardLinkBackfillAttempted.clear();
+    this.#cardLinkProofPrompted.clear();
     this.#cardLinkBackfillPromise = null;
   }
 
@@ -992,7 +1001,14 @@ export class CardController extends BaseController<
     if (!this.#isCardLinkApiEnabled()) return null;
     const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
     if (!ref) return null;
+    return this.#accountForLinkedRef(ref, addresses);
+  }
 
+  /** The account on this phone whose hash matches `ref`. */
+  async #accountForLinkedRef(
+    ref: string,
+    addresses?: string[],
+  ): Promise<string | null> {
     const candidates =
       addresses ??
       Object.values(
@@ -1109,6 +1125,80 @@ export class CardController extends BaseController<
       phase,
       { address: address ?? undefined },
       'recordProviderLogin',
+    );
+  }
+
+  #recordImmersveLoginWithProof(phase: CardLinkWriteStatus): void {
+    this.#writeCardLink(
+      CardProviderIds.Immersve,
+      phase,
+      () => {
+        const address =
+          this.#loginAccountForLinkedRef(CardProviderIds.Immersve) ?? undefined;
+        const prompt =
+          address !== undefined &&
+          !this.#cardLinkProofPrompted.has(CardProviderIds.Immersve);
+        if (prompt) {
+          this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+        }
+        return { address, promptWalletProof: prompt };
+      },
+      'recordProviderLogin',
+    ).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: CardProviderIds.Immersve },
+        context: {
+          name: 'CardController',
+          data: { method: 'recordProviderLogin' },
+        },
+      }),
+    );
+  }
+
+  /**
+   * An Immersve link written without a proof (no address at card creation,
+   * a hardware or MPC account, or a declined signature) stays unverified.
+   * The proof is signed by the account the link already names, or by the
+   * selected account when it names none.
+   */
+  #reaskUnverifiedImmersveLink(): void {
+    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
+    const link = latestByUpdatedAt(
+      (this.state.cardLinks ?? []).filter(
+        (item) => item.provider === CardProviderIds.Immersve,
+      ),
+    );
+    if (
+      !link ||
+      link.status === 'closed' ||
+      link.cardholderVerified !== false
+    ) {
+      return;
+    }
+    this.#promptUnverifiedImmersveProof(link).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: CardProviderIds.Immersve },
+        context: {
+          name: 'CardController',
+          data: { method: 'reaskUnverifiedCardLink' },
+        },
+      }),
+    );
+  }
+
+  async #promptUnverifiedImmersveProof(link: CardLink): Promise<void> {
+    if (link.status === 'closed') return;
+    const address = link.linkedAccountRef
+      ? await this.#accountForLinkedRef(link.linkedAccountRef)
+      : this.#getSelectedEvmAddress();
+    if (!address) return;
+    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
+    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+    await this.#writeCardLink(
+      CardProviderIds.Immersve,
+      link.status,
+      { address, promptWalletProof: true },
+      'reaskUnverifiedCardLink',
     );
   }
 
@@ -2252,12 +2342,16 @@ export class CardController extends BaseController<
       }
       if (pid === CardProviderIds.Baanx) {
         this.#recordProviderLoginWithLogging(pid, 'active');
+      } else if (pid === CardProviderIds.Immersve) {
+        this.#recordImmersveLoginWithProof('active');
       }
 
       this.invalidateFetch();
       this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
     } else if (result.onboardingRequired && pid === CardProviderIds.Baanx) {
       this.#recordProviderLoginWithLogging(pid, 'onboarding');
+    } else if (result.onboardingRequired && pid === CardProviderIds.Immersve) {
+      this.#recordImmersveLoginWithProof('onboarding');
     }
 
     return result;

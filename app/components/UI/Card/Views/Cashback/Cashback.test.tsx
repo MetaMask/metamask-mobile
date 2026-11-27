@@ -122,6 +122,55 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
+const mockImmersveWithdraw = jest.fn();
+let mockImmersveReturn: Record<string, unknown> = {};
+const immersveState = (overrides: Record<string, unknown> = {}) => ({
+  wallet: {
+    id: 'card-cashback',
+    balance: '0',
+    currency: 'musd',
+    isWithdrawable: false,
+    type: 'cashback',
+  },
+  isLoading: false,
+  error: null,
+  estimation: { wei: '0', eth: '0', price: '0', network: 'monad' },
+  isEstimating: false,
+  estimationError: null,
+  fetchEstimation: jest.fn().mockResolvedValue(undefined),
+  withdraw: mockImmersveWithdraw,
+  isWithdrawing: false,
+  withdrawError: null,
+  monitoringStatus: 'idle',
+  monitoringError: null,
+  resetWithdraw: jest.fn(),
+  breakdown: [{ key: 'blocked', label: 'Blocked', value: '0.38 mUSD' }],
+  notice: {
+    severity: 'info',
+    description: "Claiming mUSD back isn't available yet.",
+  },
+  labels: {
+    action: 'Claim',
+    actionUnavailable: 'Claiming not available yet',
+    success: 'mUSD back claimed.',
+  },
+  destination: {
+    caipChainId: 'eip155:143',
+    symbol: 'mUSD',
+    isResolved: true,
+    isMoneyAccountDestination: true,
+    hasApprovedDestination: true,
+    delegationToken: null,
+    receivingAddress: '0xmoney',
+  },
+  ...overrides,
+});
+
+jest.mock('./useImmersveCashbackWallet', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockImmersveReturn),
+}));
+
 const MOCK_LINEA_USDC_TOKEN = {
   symbol: 'USDC',
   name: 'USD Coin',
@@ -196,6 +245,7 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -236,6 +286,48 @@ function render(overrides: RenderOverrides = {}) {
 }
 
 describe('Cashback Component', () => {
+  describe('Immersve card', () => {
+    beforeEach(() => {
+      jest.mocked(selectCardActiveProviderId).mockReturnValue('immersve');
+    });
+
+    it('shows the blocked balance on the standard screen, in words', () => {
+      mockImmersveReturn = immersveState();
+
+      render();
+
+      expect(screen.getByTestId(CashbackSelectors.NOTICE)).toHaveTextContent(
+        "Claiming mUSD back isn't available yet.",
+      );
+      expect(screen.getByText('0.38 mUSD')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON),
+      ).toHaveTextContent('Claiming not available yet');
+      expect(screen.queryByText('MECHANISM_NOT_CLAIMABLE')).toBeNull();
+    });
+
+    it('claims when the balance is claimable', async () => {
+      mockImmersveReturn = immersveState({
+        wallet: {
+          id: 'card-cashback',
+          balance: '0.38',
+          currency: 'musd',
+          isWithdrawable: true,
+          type: 'cashback',
+        },
+        notice: undefined,
+        breakdown: [],
+      });
+
+      render();
+      const button = screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON);
+      expect(button).toHaveTextContent('Claim');
+      fireEvent.press(button);
+
+      await waitFor(() => expect(mockImmersveWithdraw).toHaveBeenCalled());
+    });
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
@@ -246,6 +338,7 @@ describe('Cashback Component', () => {
     };
 
     mockSelectCardHomeDataStatus.mockReturnValue('success');
+    jest.mocked(selectCardActiveProviderId).mockReturnValue('baanx');
     mockDestination = defaultDestination();
 
     mockHookReturn = {
