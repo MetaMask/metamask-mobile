@@ -51,8 +51,8 @@ export const LimitOrderPriceAdjustCard = ({
     testID={LimitOrderPriceAdjustCardSelectorsIDs.CONTAINER}
     className={
       hasVisibleBanner
-        ? 'px-4 flex-grow-0 pb-3 -mt-1'
-        : 'px-4 flex-grow-0 -mt-1'
+        ? '-mt-1 flex-grow-0 px-4 pb-3'
+        : '-mt-1 flex-grow-0 px-4'
     }
     onStartShouldSetResponder={() => true}
     onResponderRelease={onDismissKeypad}

@@ -31,7 +31,7 @@ export const TokenAmountValue = ({
           variant={TextVariant.BodyMd}
           fontWeight={fontWeight}
           color={amountColor}
-          className="-top-[1.5px]"
+          className="top-[-1.5px]"
           testID={TokenAmountValueSelectorsIDs.PREFIX}
         >
           {prefix}

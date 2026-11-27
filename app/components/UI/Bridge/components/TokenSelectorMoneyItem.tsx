@@ -49,7 +49,7 @@ const TokenSelectorMoneyItemInner = ({
         {isSelected ? (
           <Box
             testID="money-token-selected-indicator"
-            className="absolute bottom-1 left-1 top-1 w-1 rounded-lg bg-primary-default"
+            className="absolute inset-y-1 left-1 w-1 rounded-lg bg-primary-default"
           />
         ) : null}
         <TouchableOpacity

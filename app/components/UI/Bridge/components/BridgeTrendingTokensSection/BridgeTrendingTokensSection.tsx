@@ -151,7 +151,7 @@ const BridgeTrendingTokensSection = ({
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          className="mt-1 mb-3"
+          className="mb-3 mt-1"
         >
           {strings('trending.trending_tokens')}
         </Text>

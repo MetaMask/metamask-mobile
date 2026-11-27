@@ -256,22 +256,12 @@ const BridgeTokenSelectorEmptyState = React.memo(
         numberOfLines: 1,
       }}
       style={containerStyle}
-      className="self-center max-w-full"
-    ><Icon width={72} height={78} />}
-      description={title}
-      descriptionProps={{
-        variant: TextVariant.HeadingMd,
-        color: TextColor.TextDefault,
-        twClassName: 'text-center',
-        numberOfLines: 1,
-      }}
-      style={containerStyle}
-      twClassName="self-center max-w-full"
+      className="max-w-full self-center"
     >
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        className="text-center -mt-1"
+        className="-mt-1 text-center"
       >
         {description}
       </Text>
@@ -1153,7 +1143,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box className="px-4 pt-1 pb-3">
+      <Box className="px-4 pb-3 pt-1">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}
@@ -1165,7 +1155,7 @@ export const BridgeTokenSelectorContent: React.FC<
           onPressClearButton={handleClearSearch}
         />
       </Box>
-      <Box className="pt-2 pb-4 pl-4">
+      <Box className="pb-4 pl-4 pt-2">
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}

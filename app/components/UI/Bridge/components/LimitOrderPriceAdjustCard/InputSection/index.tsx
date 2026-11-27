@@ -289,7 +289,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
                   style={amountTextStyle}
-                  className="p-0 leading-none"
+                  // eslint-disable-next-line tailwindcss/no-custom-classname
+                  className="leading-none p-0"
                 >
                   {inputPrefix}
                 </Text>

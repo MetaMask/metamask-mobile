@@ -214,7 +214,7 @@ function NetworkFeeRow({
 
   return (
     <>
-      <Box className="border-t border-muted mx-4" />
+      <Box className="mx-4 border-t border-muted" />
       <Box
         testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}

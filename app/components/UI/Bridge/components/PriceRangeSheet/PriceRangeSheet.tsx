@@ -129,7 +129,7 @@ function PriceRangeAmountField({
         accessibilityLabel: placeholder,
         onPressIn: onPress,
       }}
-      className="w-full bg-default border-default"
+      className="w-full border-default bg-default"
     />
   );
 }

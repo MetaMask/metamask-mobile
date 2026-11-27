@@ -198,7 +198,7 @@ const TokenWarningModalSheet = ({
             />
             <Text
               variant={TextVariant.HeadingMd}
-              className="text-center mt-4"
+              className="mt-4 text-center"
             >
               {title}
             </Text>
@@ -207,7 +207,7 @@ const TokenWarningModalSheet = ({
                 flexDirection={BoxFlexDirection.Row}
                 backgroundColor={BoxBackgroundColor.ErrorMuted}
                 gap={3}
-                className="mt-5 w-full rounded-2xl pl-[25px] pr-4 py-3"
+                className="mt-5 w-full rounded-2xl py-3 pl-[25px] pr-4"
               >
                 <Icon
                   name={IconName.Error}
@@ -227,7 +227,7 @@ const TokenWarningModalSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                className="text-center mt-2"
+                className="mt-2 text-center"
               >
                 {description}
               </Text>

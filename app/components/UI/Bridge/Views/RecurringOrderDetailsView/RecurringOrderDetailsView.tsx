@@ -340,7 +340,7 @@ function RecurringOrderDetailsView() {
           />
         </Box>
 
-        <Box className="mx-4 border-t-[1px] border-muted" />
+        <Box className="mx-4 border-t border-muted" />
 
         <Box
           gap={2}
@@ -406,7 +406,7 @@ function RecurringOrderDetailsView() {
           </DetailRow>
         </Box>
 
-        <Box className="mx-4 border-t-[1px] border-muted" />
+        <Box className="mx-4 border-t border-muted" />
 
         <Box
           paddingHorizontal={4}

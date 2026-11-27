@@ -26,7 +26,7 @@ const TokenCardSkeleton = () => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    className="bg-section rounded-2xl px-3 py-6"
+    className="rounded-2xl bg-section px-3 py-6"
   >
     <Box className="gap-2">
       <StaticSkeleton height={40} width={140} twClassName="rounded-lg" />
@@ -83,7 +83,7 @@ const BridgeTabPageSkeleton = ({ tab }: { tab: BridgeTabKey }) => (
     testID={`${BridgeViewSelectorsIDs.TAB_PAGE_SKELETON}-${tab}`}
     pointerEvents="none"
   >
-    <Box className="px-4 py-3 gap-1">
+    <Box className="gap-1 px-4 py-3">
       <TokenCardSkeleton />
       <TokenCardSkeleton />
     </Box>

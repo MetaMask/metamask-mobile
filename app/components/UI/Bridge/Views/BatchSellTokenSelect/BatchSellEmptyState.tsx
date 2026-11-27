@@ -31,7 +31,7 @@ export function BatchSellEmptyState({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={3}
-      className="flex-1 px-4 py-4"
+      className="flex-1 p-4"
     >
       <Image
         source={emptyStateDefiLight}

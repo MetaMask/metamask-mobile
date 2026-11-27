@@ -40,7 +40,7 @@ export function PriceImpactHeader({
         {iconColor && iconName && (
           <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
         )}
-        <Text variant={TextVariant.HeadingMd} className={'text-center mt-4'}>
+        <Text variant={TextVariant.HeadingMd} className={'mt-4 text-center'}>
           {strings(content)}
         </Text>
       </Box>

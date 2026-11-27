@@ -333,7 +333,7 @@ function OrdersTabs<TOpen, THistory>({
   return (
     <Box testID={OrdersTabsSelectorsIDs.CONTAINER} className="grow">
       <Box gap={2}>
-        <Box className="border-t-[1px] border-muted" />
+        <Box className="border-t border-muted" />
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}

@@ -133,7 +133,7 @@ const PriceRangeRow = ({
     oneLineWidth > availableOneLineWidth;
 
   return (
-    <Box className="w-full px-4 pt-4 pb-4">
+    <Box className="w-full p-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -199,7 +199,7 @@ const PriceRangeRow = ({
                     position={BadgeWrapperPosition.BottomRight}
                     badge={
                       <Box
-                        className="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+                        className="overflow-hidden rounded-[2px] border-2 border-background-default bg-default"
                         style={{
                           width: PRICE_RANGE_NETWORK_BADGE_SIZE,
                           height: PRICE_RANGE_NETWORK_BADGE_SIZE,

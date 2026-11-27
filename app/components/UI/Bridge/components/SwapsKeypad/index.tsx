@@ -88,7 +88,7 @@ export const SwapsKeypad = forwardRef<
         onClose={handleClose}
         onLayout={onLayout}
       >
-        <Box className="content-end px-4 gap-4 pt-4">
+        <Box className="content-end gap-4 px-4 pt-4">
           {children}
           <Keypad
             value={value}

@@ -81,7 +81,7 @@ function OpenOrderRow({
             flexWrap={BoxFlexWrap.Wrap}
             alignItems={BoxAlignItems.Center}
             gap={1}
-            className="flex-1 min-w-0"
+            className="min-w-0 flex-1"
             testID={OpenOrderRowSelectorsIDs.TITLE_ROW}
           >
             <Text
@@ -106,7 +106,7 @@ function OpenOrderRow({
             color={primaryColor}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            className="grow-0 shrink-0"
+            className="shrink-0 grow-0"
             testID={OpenOrderRowSelectorsIDs.PRIMARY}
           >
             {primaryValue}
@@ -133,7 +133,7 @@ function OpenOrderRow({
             color={TextColor.TextAlternative}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            className="grow-0 shrink-0"
+            className="shrink-0 grow-0"
             testID={OpenOrderRowSelectorsIDs.SECONDARY}
           >
             {secondaryValue}

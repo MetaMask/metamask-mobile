@@ -136,7 +136,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       backgroundColor={BoxBackgroundColor.PrimaryMuted}
-      className="h-12 w-12 rounded-full"
+      className="size-12 rounded-full"
     >
       <Spinner
         color={IconColor.PrimaryDefault}

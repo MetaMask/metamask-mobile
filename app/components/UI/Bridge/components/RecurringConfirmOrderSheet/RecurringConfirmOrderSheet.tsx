@@ -89,7 +89,7 @@ function TokenAvatar({
       position={BadgeWrapperPosition.BottomRight}
       badge={
         <Box
-          className="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+          className="overflow-hidden rounded-[2px] border-2 border-background-default bg-default"
           style={{
             width: NETWORK_BADGE_SIZE,
             height: NETWORK_BADGE_SIZE,

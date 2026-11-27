@@ -721,7 +721,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box className="pt-3 pb-4 pl-4">
+            <Box className="pb-4 pl-4 pt-3">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
