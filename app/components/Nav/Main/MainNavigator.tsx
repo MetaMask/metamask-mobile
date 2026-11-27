@@ -180,6 +180,7 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
+import MoneyMfaIntroView from '../../UI/Money/Views/MoneyMfaIntroView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
@@ -1471,6 +1472,11 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
+          <NativeStack.Screen
+            name={Routes.MONEY.MFA_INTRO}
+            component={MoneyMfaIntroView}
+            options={fadeNativeOptions}
+          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}

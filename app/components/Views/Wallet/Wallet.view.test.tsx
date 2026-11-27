@@ -48,6 +48,18 @@ import Wallet from './index';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { setBasicFunctionality } from '../../../actions/settings';
+import Engine from '../../../core/Engine';
+import type { DeepPartial } from '../../../util/test/renderWithProvider';
+import type { RootState } from '../../../reducers';
+import { MoneyModalStack } from '../../UI/Money/routes';
+import { MoneyMfaTestIds } from '../../UI/Money/components/MoneyMfa/MoneyMfa.testIds';
+import { moneyMfaStore } from '../../../lib/Money/mfa/moneyMfaStore';
+import { moneyMfaHomePromptSession } from '../../../lib/Money/mfa/moneyMfaHomePromptSession';
+import {
+  MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME,
+  IS_MONEY_MFA_ENABLED_FLAG_NAME,
+} from '../../../lib/Money/feature-flags';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
 // Kept local so this Wallet view test does not import the Trending route module.
@@ -789,5 +801,110 @@ describeForPlatforms('Wallet', () => {
 
       expect(await findByTestId(gtmProbeTestId)).toBeOnTheScreen();
     });
+  });
+});
+
+describeForPlatforms('Wallet Money 2-step verification prompt', () => {
+  const ENABLED_FLAG = { enabled: true, minimumVersion: '0.0.0' };
+  const refreshEnrolledCredentials = jest.mocked(
+    Engine.context.AuthenticationController.refreshEnrolledCredentials,
+  );
+
+  const promptOverrides = ({
+    isSocialLogin,
+  }: {
+    isSocialLogin: boolean;
+  }): DeepPartial<RootState> =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              [MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME]: ENABLED_FLAG,
+              [IS_MONEY_MFA_ENABLED_FLAG_NAME]: ENABLED_FLAG,
+              [FeatureFlagNames.mfaUiKit]: ENABLED_FLAG,
+            },
+          },
+          SeedlessOnboardingController: {
+            vault: isSocialLogin ? 'encrypted-vault' : undefined,
+          },
+          GeolocationController: { location: 'US' },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x0000000000000000000000000000000000000001': {
+                  address: '0x0000000000000000000000000000000000000001',
+                  balance: '0xde0b6b3a7640000',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            assetsBalance: {
+              'acc-1': { 'eip155:1/slip44:60': { amount: '1' } },
+            },
+          },
+        },
+      },
+    }) as unknown as DeepPartial<RootState>;
+
+  const renderWalletForPrompt = (isSocialLogin: boolean) =>
+    renderWalletViewWithRoutes({
+      deterministicFiat: true,
+      overrides: promptOverrides({ isSocialLogin }),
+      extraRoutes: [
+        {
+          name: Routes.MONEY.MODALS.ROOT,
+          Component: MoneyModalStack as React.ComponentType<unknown>,
+        },
+      ],
+    });
+
+  beforeEach(() => {
+    moneyMfaStore.reset();
+    moneyMfaHomePromptSession.reset();
+    refreshEnrolledCredentials.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    moneyMfaStore.reset();
+    moneyMfaHomePromptSession.reset();
+    refreshEnrolledCredentials.mockResolvedValue([]);
+  });
+
+  it('opens the passkey prompt for a funded social login wallet without a passkey', async () => {
+    const { findByTestId } = renderWalletForPrompt(true);
+
+    expect(await findByTestId(MoneyMfaTestIds.PROMPT_SHEET)).toBeOnTheScreen();
+  });
+
+  it('skips the prompt when the wallet already has a passkey', async () => {
+    refreshEnrolledCredentials.mockResolvedValue([
+      { type: 'passkey', status: 'active' },
+    ] as never);
+    const { findByTestId, queryByTestId } = renderWalletForPrompt(true);
+
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
+    ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(moneyMfaHomePromptSession.hasPrompted()).toBe(true),
+    );
+    expect(queryByTestId(MoneyMfaTestIds.PROMPT_SHEET)).toBeNull();
+  });
+
+  it('skips the prompt for a secret recovery phrase wallet', async () => {
+    const { findByTestId, queryByTestId } = renderWalletForPrompt(false);
+
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
+    ).toBeOnTheScreen();
+    await act(async () => {
+      await Promise.allSettled(
+        refreshEnrolledCredentials.mock.results.map(({ value }) => value),
+      );
+    });
+    expect(moneyMfaHomePromptSession.hasPrompted()).toBe(false);
+    expect(queryByTestId(MoneyMfaTestIds.PROMPT_SHEET)).toBeNull();
   });
 });

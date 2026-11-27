@@ -544,6 +544,7 @@ const Routes = {
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
+    MFA_INTRO: 'MoneyMfaIntro',
     SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -563,6 +564,10 @@ const Routes = {
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
       DEEPLINK_MODAL: 'MoneyDeeplinkModal',
+      MFA_PROMPT_SHEET: 'MoneyMfaPromptSheet',
+      MFA_ENABLED_SHEET: 'MoneyMfaEnabledSheet',
+      MFA_SETTING_UP_SHEET: 'MoneyMfaSettingUpSheet',
+      MFA_TURN_OFF_SHEET: 'MoneyMfaTurnOffSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

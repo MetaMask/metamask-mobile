@@ -10,14 +10,17 @@ import useThunkDispatch from '../../../hooks/useThunkDispatch';
  * the backoff wait and any further attempts are cancelled. Accounts already
  * recorded as upgraded make this a no-op in the controller.
  */
-export const useUpgradeMoneyAccountOnFocus = () => {
+export const useUpgradeMoneyAccountOnFocus = ({ enabled = true } = {}) => {
   const dispatch = useThunkDispatch();
 
   useFocusEffect(
     useCallback(() => {
+      if (!enabled) {
+        return;
+      }
       const abortController = new AbortController();
       dispatch(upgradeMoneyAccount(abortController.signal));
       return () => abortController.abort();
-    }, [dispatch]),
+    }, [dispatch, enabled]),
   );
 };

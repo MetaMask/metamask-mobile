@@ -123,6 +123,10 @@ export type MoneyModalsNavigationParamList = {
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
   MoneyEarnCryptoInfoSheet: { showMoneyHomeCta?: boolean } | undefined;
   MoneyGeoBlockSheet: undefined;
+  MoneyMfaPromptSheet: undefined;
+  MoneyMfaEnabledSheet: undefined;
+  MoneyMfaSettingUpSheet: undefined;
+  MoneyMfaTurnOffSheet: undefined;
 };
 
 interface MoneyPotentialEarningsParams {
@@ -155,6 +159,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyEarnings: MoneyEarningsParams | undefined;
+    MoneyMfaIntro: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;

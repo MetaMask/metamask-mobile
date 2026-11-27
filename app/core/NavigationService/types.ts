@@ -908,6 +908,7 @@ export type RootStackParamList = {
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
   MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
+  MoneyMfaIntro: MoneyNavigationParamList['MoneyMfaIntro'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];

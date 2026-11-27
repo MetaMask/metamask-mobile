@@ -202,6 +202,7 @@ import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
+import { useMoneyMfaHomePrompt } from '../../UI/Money/hooks/useMoneyMfaHomePrompt';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToReceiveAddressList } from '../../Views/MultichainAccounts/AddressList/navigateToReceiveAddressList';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
@@ -359,6 +360,7 @@ const Wallet = ({
   usePrefetchMoneyAccountPlusSubscriptions();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
+  useMoneyMfaHomePrompt();
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
