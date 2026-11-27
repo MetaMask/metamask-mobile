@@ -169,6 +169,55 @@ describe('migrations', () => {
 
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
   });
+
+  describe('persisted KeyringController encryptionKey', () => {
+    const versionBeforeMigration75 = 74;
+    const lastVersion = numberOfMigrations - 1;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it.each([
+      'TokenBalancesController',
+      'TransactionController',
+      'NetworkController',
+    ])(
+      'does not write encryptionKey to persist:KeyringController when %s state is missing',
+      async (missingController) => {
+        const { [missingController]: _missing, ...backgroundState } = {
+          KeyringController: {
+            vault: 'encrypted-vault',
+            encryptionKey: 'vault-encryption-key',
+          },
+          TokenBalancesController: {},
+          TransactionController: {},
+          NetworkController: {},
+        } as Record<string, Record<string, unknown>>;
+        const mockedControllerStorage = jest.mocked(ControllerStorage);
+        mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
+        mockedControllerStorage.setItem.mockResolvedValue();
+        const migrate = createMigrate(
+          asyncifyMigrations(migrationList) as unknown as MigrationManifest,
+        );
+
+        await migrate(
+          {
+            engine: { backgroundState },
+            _persist: { version: versionBeforeMigration75, rehydrated: false },
+          } as PersistedState,
+          lastVersion,
+        );
+
+        const keyringWrite = mockedControllerStorage.setItem.mock.calls.find(
+          ([key]) => key === 'persist:KeyringController',
+        );
+        expect(JSON.parse(keyringWrite?.[1] ?? '{}')).toStrictEqual({
+          vault: 'encrypted-vault',
+        });
+      },
+    );
+  });
 });
 
 describe('Critical Error Handling', () => {
