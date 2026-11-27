@@ -115,6 +115,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { packPartnerDataServiceInit } from '../../components/UI/Collectibles/services/data/collectibles-data-services-init';
 import { collectiblesControllerInit } from './controllers/collectibles-controller';
 import {
   predictLiveDataServiceInit,
@@ -356,6 +357,7 @@ export class Engine {
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        PackPartnerDataService: packPartnerDataServiceInit,
         CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
@@ -644,6 +646,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      PackPartnerDataService: messengerClientsByName.PackPartnerDataService,
       CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
@@ -1351,6 +1354,21 @@ export class Engine {
   };
 
   resetState = async () => {
+    // Fence old-wallet transactions and reads before the first await. Finish all
+    // cleanups before destroying the messengers, even if storage fails.
+    this.context.CollectiblesController.clearState();
+    const [storage, controllers] = await Promise.allSettled([
+      this.context.PackPartnerDataService.clearCache(),
+      this.#resetWalletControllers(),
+    ]);
+    for (const cleanup of [controllers, storage]) {
+      if (cleanup.status === 'rejected') {
+        throw ensureError(cleanup.reason, 'Engine.resetState');
+      }
+    }
+  };
+
+  async #resetWalletControllers(): Promise<void> {
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -1375,7 +1393,6 @@ export class Engine {
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
-      CollectiblesController,
     } = this.context;
 
     // Wait for any in-flight profile metrics poll before clearing its state
@@ -1385,6 +1402,7 @@ export class Engine {
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+
     await SnapController.clearState();
 
     // Clear selected network
@@ -1458,10 +1476,7 @@ export class Engine {
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
-
-    // Collectibles:
-    CollectiblesController.clearState();
-  };
+  }
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
@@ -1473,18 +1488,22 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Object.values(this.context).forEach((controller: any) => {
-      if (controller.destroy) {
-        controller.destroy();
-      }
-    });
-    this.tokenListService.destroy();
-    this.removeAllListeners();
-    await this.resetState();
-
-    Engine.instance = null;
+    // Reset persisted state while service messenger actions are still registered.
+    // DataService.destroy() removes those actions, including storage cleanup.
+    try {
+      await this.resetState();
+    } finally {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Object.values(this.context).forEach((controller: any) => {
+        if (controller.destroy) {
+          controller.destroy();
+        }
+      });
+      this.tokenListService.destroy();
+      this.removeAllListeners();
+      Engine.instance = null;
+    }
   }
 
   rejectPendingApproval(
@@ -1767,8 +1786,11 @@ export default {
   },
 
   destroyEngine: async () => {
-    await instance?.destroyEngineInstance();
-    instance = null;
+    try {
+      await instance?.destroyEngineInstance();
+    } finally {
+      instance = null;
+    }
   },
 
   init(

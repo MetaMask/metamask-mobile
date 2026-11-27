@@ -1,4 +1,5 @@
 import { Messenger } from '@metamask/messenger';
+import { createPackPartnerApi } from '../services/clients/PackPartnerApiClient';
 
 import {
   CollectiblesController,
@@ -6,11 +7,17 @@ import {
   type CollectiblesControllerMessenger,
 } from './CollectiblesController';
 
-const setup = () => {
+const setup = (): {
+  controller: CollectiblesController;
+  messenger: CollectiblesControllerMessenger;
+} => {
   const messenger: CollectiblesControllerMessenger = new Messenger({
     namespace: COLLECTIBLES_CONTROLLER_NAME,
   });
-  const controller = new CollectiblesController({ messenger });
+  const controller = new CollectiblesController({
+    messenger,
+    packPartner: { api: createPackPartnerApi() },
+  });
   return { controller, messenger };
 };
 

@@ -15,9 +15,12 @@ import { Slip44Service } from '@metamask/network-enablement-controller';
 import { SnapController } from '@metamask/snaps-controllers';
 import { captureException } from '@sentry/react-native';
 import { waitFor } from '@testing-library/react-native';
+import { DATA_SERVICES } from '../../constants/data-services';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import { EarnController } from '@metamask/earn-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault, clearAllVaultBackups } from '../BackupVault';
@@ -137,6 +140,8 @@ describe('Engine', () => {
 
   beforeEach(() => {
     ReduxService.store = configureStore({});
+    // Earn startup fetches live lending markets, outside Engine orchestration.
+    jest.spyOn(EarnController.prototype, 'init').mockResolvedValue();
   });
 
   afterEach(async () => {
@@ -144,6 +149,19 @@ describe('Engine', () => {
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
     await EngineClass.instance?.destroyEngineInstance();
+  });
+
+  it('registers the stateless Collectibles services on the Engine messenger', async () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+
+    for (const name of ['PackPartnerDataService'] as const) {
+      expect(engine.context[name].name).toBe(name);
+      expect(DATA_SERVICES).toContain(name);
+      expect(STATELESS_NON_CONTROLLER_NAMES).toContain(name);
+      await expect(
+        engine.controllerMessenger.call(`${name}:invalidateQueries`),
+      ).resolves.toBeUndefined();
+    }
   });
 
   it('exposes an API', () => {
@@ -530,6 +548,48 @@ describe('Engine', () => {
     await engine.destroyEngineInstance();
     const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).not.toStrictEqual(newEngine);
+  });
+
+  it('awaits collection storage cleanup before destroying service messengers', async () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const cleanup = createDeferredPromise<void>();
+    const service = engine.context.PackPartnerDataService;
+    const clearCache = jest
+      .spyOn(service, 'clearCache')
+      .mockReturnValueOnce(cleanup.promise);
+    const destroy = jest.spyOn(service, 'destroy');
+
+    const destroying = Engine.destroyEngine();
+
+    expect(clearCache).toHaveBeenCalledTimes(1);
+    expect(destroy).not.toHaveBeenCalled();
+    cleanup.resolve();
+    await destroying;
+    expect(destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes clearing wallet data and destroys services when collection storage fails', async () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const failure = new Error('Collection storage unavailable');
+    const service = engine.context.PackPartnerDataService;
+    jest.spyOn(service, 'clearCache').mockRejectedValueOnce(failure);
+    const clearCollectibles = jest.spyOn(
+      engine.context.CollectiblesController,
+      'clearState',
+    );
+    const clearTokens = jest.spyOn(
+      engine.context.TokensController,
+      'resetState',
+    );
+    const destroy = jest.spyOn(service, 'destroy');
+
+    const destroying = Engine.destroyEngine();
+
+    await expect(destroying).rejects.toThrow(failure.message);
+    expect(clearCollectibles).toHaveBeenCalledTimes(1);
+    expect(clearTokens).toHaveBeenCalledTimes(1);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(EngineClass.instance).toBeNull();
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date
@@ -1424,6 +1484,35 @@ describe('Engine', () => {
       await reset;
 
       expect(resetCircuitBreakersSpy).toHaveBeenCalledTimes(1);
+    });
+
+    // The CV and domain integration harnesses replace Engine. Exercise the
+    // real Engine reset ordering here, isolating the asynchronous Snap cleanup.
+    it('fences Collectibles while the earlier profile reset is still pending', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const profileReset = createDeferredPromise<void>();
+      jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockReturnValue(profileReset.promise);
+      const clearJournal = jest.spyOn(
+        engine.context.CollectiblesController,
+        'clearState',
+      );
+      const clearReads = [engine.context.PackPartnerDataService].map(
+        (service) => jest.spyOn(service, 'clearCache'),
+      );
+
+      const reset = engine.resetState();
+
+      try {
+        expect(clearJournal).toHaveBeenCalledTimes(1);
+        for (const clearCache of clearReads) {
+          expect(clearCache).toHaveBeenCalledTimes(1);
+        }
+      } finally {
+        profileReset.resolve();
+        await reset;
+      }
     });
 
     it('calls MoneyAccountController.clearState', async () => {

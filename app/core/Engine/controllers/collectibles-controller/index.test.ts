@@ -43,6 +43,9 @@ describe('collectiblesControllerInit', () => {
 
     expect(controllerClassMock).toHaveBeenCalledWith({
       messenger: initRequestMock.controllerMessenger,
+      packPartner: {
+        api: expect.objectContaining({ getMachines: expect.any(Function) }),
+      },
       state: {},
     });
   });
