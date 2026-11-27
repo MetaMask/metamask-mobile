@@ -16,7 +16,7 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,20 +47,8 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
-import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-  type QuickBuyTradeMode,
-} from '../../QuickBuy';
-import {
-  PostTradeShareOwner,
-  usePostTradeShareReopen,
-} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
-import type { SocialV1FeedItem } from '../../SocialFeed/types';
-import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
+import { useTokenDetailsFeedCopyTrade } from '../hooks/useTokenDetailsFeedCopyTrade';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -258,7 +246,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
-  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
 
@@ -513,64 +500,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   );
   const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
 
-  const [copyTrade, setCopyTrade] = useState<{
-    target: QuickBuyTarget;
-    copyTradeOrigin?: CopyTradeOrigin;
-    tradeMode?: QuickBuyTradeMode;
-    traderAddress?: string;
-  } | null>(null);
-  const handleFeedCopyTrade = useCallback(
-    (item: SocialV1FeedItem, commentId?: string) => {
-      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
-        return;
-      }
-      const chain = chainNameToId(item.asset.avatar.chain);
-      const tokenAddress = item.asset.avatar.tokenAddress.trim();
-      if (!chain || !tokenAddress) {
-        return;
-      }
-      setCopyTrade({
-        target: {
-          tokenAddress,
-          tokenSymbol: item.asset.symbol,
-          tokenName: item.asset.name ?? item.asset.symbol,
-          chain,
-        },
-        copyTradeOrigin: commentId
-          ? { commentId, authorId: item.author.id }
-          : undefined,
-        traderAddress: item.author.address,
-      });
-    },
-    [],
-  );
-  const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
-  const copyTradeTraderAddress = copyTrade?.traderAddress;
-  const copyTradeAnalyticsContext = useMemo(
-    () => ({
-      source: 'trader_feed' as const,
-      isCopyTrade: true,
-      ...(copyTradeTraderAddress
-        ? { traderAddress: copyTradeTraderAddress }
-        : {}),
-    }),
-    [copyTradeTraderAddress],
-  );
-  const handlePostTradeShareReopen = useCallback(
-    (
-      target: QuickBuyTarget,
-      copyTradeOrigin?: CopyTradeOrigin,
-      tradeMode?: QuickBuyTradeMode,
-      traderAddress?: string,
-    ) => {
-      setCopyTrade({ target, copyTradeOrigin, tradeMode, traderAddress });
-    },
-    [],
-  );
-  usePostTradeShareReopen(
-    handlePostTradeShareReopen,
-    isFocused ? PostTradeShareOwner.tokenDetails : undefined,
-  );
+  const { handleFeedCopyTrade, feedCopyTradeSheet } =
+    useTokenDetailsFeedCopyTrade();
   // Reads the same query the tab itself renders from: identical key, so
   // react-query serves both from one fetch rather than requesting twice.
   const {
@@ -1031,17 +962,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         )}
 
-        <QuickBuy.Root
-          isVisible={copyTrade !== null}
-          target={copyTrade?.target ?? null}
-          onClose={closeCopyTrade}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          initialTradeMode={copyTrade?.tradeMode ?? 'buy'}
-          analyticsContext={copyTradeAnalyticsContext}
-          copyTradeOrigin={copyTrade?.copyTradeOrigin}
-          postTradeShare
-          postTradeShareOwner={PostTradeShareOwner.tokenDetails}
-        />
+        {feedCopyTradeSheet}
       </View>
     </PriceChartProvider>
   );

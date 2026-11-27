@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
-import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
+import { getNetworkFeeAsset } from '../Bridge/utils/getNetworkFeeAsset';
 import { DiscountType } from '@metamask/bridge-controller';
 import MembershipVipBadge from '../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
@@ -76,11 +76,12 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
   const minReceivedLabel = formattedMinimumReceivedFiat
     ? `~${formattedMinimumReceivedFiat}`
     : '-';
-  // Same fee-token chip as Bridge's gasless quote details: only gasless
-  // quotes pay the fee in a token, so only they get a chip.
-  const gaslessFeeAsset = isGasless
-    ? getGaslessFeeAsset(activeQuote?.quote?.feeData?.txFee)
-    : undefined;
+  // Same fee-token chip as Bridge's quote details
+  const networkFeeAsset = getNetworkFeeAsset(
+    isGasless
+      ? activeQuote?.quote?.feeData?.txFee
+      : activeQuote?.quote?.feeData?.network,
+  );
 
   return (
     <>
@@ -159,7 +160,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 >
                   {formattedNetworkFee}
                 </Text>
-                {gaslessFeeAsset ? (
+                {networkFeeAsset ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
@@ -168,10 +169,10 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                     testID={QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN}
                   >
                     <AvatarToken
-                      name={gaslessFeeAsset.symbol}
+                      name={networkFeeAsset.symbol}
                       src={
-                        gaslessFeeAsset.iconUrl
-                          ? { uri: gaslessFeeAsset.iconUrl }
+                        networkFeeAsset.iconUrl
+                          ? { uri: networkFeeAsset.iconUrl }
                           : undefined
                       }
                       size={AvatarTokenSize.Xs}
@@ -180,7 +181,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                       variant={TextVariant.BodyXs}
                       color={TextColor.TextAlternative}
                     >
-                      {gaslessFeeAsset.symbol}
+                      {networkFeeAsset.symbol}
                     </Text>
                   </Box>
                 ) : null}

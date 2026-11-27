@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 
 const mockExitCardFlow = jest.fn();
 const mockNotifyKycRejected = jest.fn().mockResolvedValue(undefined);
+const mockOpenSupport = jest.fn();
+let mockRouteParams: { reasons?: string[] } | undefined;
 
 jest.mock('../../hooks/useExitCardFlow', () => ({
   useExitCardFlow: () => mockExitCardFlow,
@@ -21,6 +23,11 @@ jest.mock('../../hooks/useImmersveKycOutcome', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (effect: () => void) => effect(),
+  useRoute: () => ({ params: mockRouteParams }),
+}));
+
+jest.mock('../../Views/CardHome/hooks/useCardIntercomSupport', () => ({
+  useCardIntercomSupport: () => mockOpenSupport,
 }));
 
 jest.mock('react-redux', () => ({
@@ -224,6 +231,7 @@ describe('KYCFailed Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
     // First useSelector call is glass header; second is activeProviderId.
     mockUseSelector.mockReturnValueOnce(false).mockReturnValue('baanx');
     mockCreateEventBuilder.mockReturnValue({
@@ -328,12 +336,13 @@ describe('KYCFailed Component', () => {
 
     it('signs out of Immersve when leaving, without a second toast', () => {
       mockUseSelector.mockReturnValue('immersve');
+      mockRouteParams = { reasons: ['INELIGIBLE'] };
       const { getByTestId } = render(<KYCFailed />);
 
       fireEvent.press(getByTestId('kyc-failed-close-button'));
 
       expect(mockNotifyKycRejected).toHaveBeenCalledWith(
-        { type: 'rejected', canRetry: false, reasons: [] },
+        { type: 'rejected', reasons: ['INELIGIBLE'] },
         { source: 'kyc_failed', toast: false },
       );
       expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
@@ -345,6 +354,42 @@ describe('KYCFailed Component', () => {
       const button = getByTestId('kyc-failed-close-button');
 
       expect(button).not.toBeDisabled();
+    });
+  });
+
+  describe('Immersve final copy', () => {
+    it('shows the ineligible copy and Contact support for INELIGIBLE', () => {
+      mockUseSelector.mockReturnValue('immersve');
+      mockRouteParams = { reasons: ['INELIGIBLE'] };
+      const { getByTestId } = render(<KYCFailed />);
+
+      expect(getByTestId('kyc-failed-title')).toHaveTextContent(
+        'card.card_onboarding.kyc_failed.ineligible_title',
+      );
+      fireEvent.press(getByTestId('kyc-failed-contact-support-button'));
+      expect(mockOpenSupport).toHaveBeenCalledTimes(1);
+      expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+    });
+
+    it('sends PROFILE_LIMIT_REACHED to support', () => {
+      mockUseSelector.mockReturnValue('immersve');
+      mockRouteParams = { reasons: ['PROFILE_LIMIT_REACHED'] };
+      const { getByTestId } = render(<KYCFailed />);
+
+      expect(getByTestId('kyc-failed-title')).toHaveTextContent(
+        'card.card_onboarding.kyc_failed.support_title',
+      );
+    });
+
+    it('keeps the Baanx copy and shows no support button', () => {
+      const { getByTestId, queryByTestId } = render(<KYCFailed />);
+
+      expect(getByTestId('kyc-failed-title')).toHaveTextContent(
+        "You're not eligible for MetaMask Card right now",
+      );
+      expect(
+        queryByTestId('kyc-failed-contact-support-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 

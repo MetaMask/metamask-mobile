@@ -26,10 +26,14 @@ export function getSmartTransactionsControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
-      'AuthenticationController:getBearerToken',
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'RemoteFeatureFlagController:getState',
+      'SentinelApiService:cancel',
+      'SentinelApiService:getBatchStatus',
+      'SentinelApiService:getFees',
+      'SentinelApiService:getNetwork',
+      'SentinelApiService:submitTransactions',
       'TransactionController:getNonceLock',
       'TransactionController:getTransactions',
       'TransactionController:failTransaction',

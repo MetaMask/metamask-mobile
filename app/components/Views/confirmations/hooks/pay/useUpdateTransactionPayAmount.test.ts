@@ -29,7 +29,17 @@ jest.mock('@metamask/transaction-controller', () => ({
     dropped: 'dropped',
     failed: 'failed',
   },
-  TransactionType: {},
+  TransactionType: { perpsLighterWithdraw: 'perpsLighterWithdraw' },
+  hasTransactionType: (
+    meta: { type?: string; nestedTransactions?: { type?: string }[] },
+    types: string[],
+  ) =>
+    types.includes(meta?.type as string) ||
+    Boolean(
+      meta?.nestedTransactions?.some((nested) =>
+        types.includes(nested.type as string),
+      ),
+    ),
   updateEIP7702BatchData: jest.fn(),
 }));
 jest.mock('../../../../../core/Engine', () => ({
@@ -140,6 +150,74 @@ describe('useUpdateTransactionPayAmount', () => {
 
       expect(updateTokenAmountMock).toHaveBeenCalledWith(AMOUNT_MOCK);
       expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
+    });
+
+    describe('for a Lighter withdraw', () => {
+      const lighterWithdrawMeta = {
+        type: 'perpsLighterWithdraw',
+        requiredAssets: [requiredAssetMock],
+      } as unknown as Partial<TransactionMeta>;
+
+      it('subtracts the Lighter withdraw fee from the token amount update', async () => {
+        getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
+
+        const { result } = runHook({ transactionMeta: lighterWithdrawMeta });
+        await act(async () => {
+          await result.current.updateTransactionPayAmount('10.5');
+        });
+
+        expect(updateTokenAmountMock).toHaveBeenCalledWith('9.5');
+      });
+
+      it('subtracts the Lighter withdraw fee from the committed required asset', async () => {
+        const { result } = runHook({ transactionMeta: lighterWithdrawMeta });
+        await act(async () => {
+          await result.current.updateTransactionPayAmount('3.23');
+        });
+
+        expect(getTransactionPayAmountCallsMock).toHaveBeenCalledWith(
+          expect.anything(),
+          '2.23',
+          undefined,
+        );
+
+        const meta = applyMetadataCallback({
+          txParams: { from: '0xabc' },
+          requiredAssets: [requiredAssetMock],
+        });
+
+        // 2.23 at 6 decimals -> 2230000 -> 0x2206f0
+        expect(meta.requiredAssets?.[0].amount).toBe('0x2206f0');
+      });
+
+      it.each(['0', '0.5', '1', ''])(
+        'does not go below zero for an amount of "%s"',
+        async (amount) => {
+          getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
+
+          const { result } = runHook({ transactionMeta: lighterWithdrawMeta });
+          await act(async () => {
+            await result.current.updateTransactionPayAmount(amount);
+          });
+
+          expect(updateTokenAmountMock).toHaveBeenCalledWith('0');
+        },
+      );
+    });
+
+    it('does not subtract a fee for other transaction types', async () => {
+      getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: 'perpsWithdraw',
+        } as unknown as Partial<TransactionMeta>,
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount('10.5');
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledWith('10.5');
     });
 
     it('passes the account override to the external module', async () => {

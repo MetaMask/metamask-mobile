@@ -25,8 +25,6 @@ import { PerpsExchangeFilterSheetSelectorsIDs } from '../../components/PerpsExch
 import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../../selectors/featureFlags';
 import { PerpsMarketData, PerpsProviderType } from '@metamask/perps-controller';
 
-const TIMEOUT_MS = 5000;
-
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
 const cryptoMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -433,21 +431,16 @@ describe('PerpsMarketListView', () => {
       });
 
       // Assert – filter-only empty state container appears (no search term active)
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(
-              PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER,
-            ),
-          ).toBeOnTheScreen();
-          expect(
-            screen.queryByTestId(
-              getPerpsMarketRowItemSelector.assetLabel('AAPL'),
-            ),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(
+            getPerpsMarketRowItemSelector.assetLabel('AAPL'),
+          ),
+        ).not.toBeOnTheScreen();
+      });
 
       // Act – press the CTA to clear the active filter
       fireEvent.press(
@@ -455,19 +448,16 @@ describe('PerpsMarketListView', () => {
       );
 
       // Assert – filter resets; the crypto market reappears and the empty state is gone
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
-          ).toBeOnTheScreen();
-          expect(
-            screen.queryByTestId(
-              PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER,
-            ),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(
+            PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER,
+          ),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('markets added by stream while a category filter is active appear only if they match the active category', async () => {
@@ -526,21 +516,14 @@ describe('PerpsMarketListView', () => {
       });
 
       // Assert – the new stock market appears; the extra crypto does not
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(
-              getPerpsMarketRowItemSelector.assetLabel('TSLA'),
-            ),
-          ).toBeOnTheScreen();
-          expect(
-            screen.queryByTestId(
-              getPerpsMarketRowItemSelector.assetLabel('ETH'),
-            ),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('TSLA')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+        ).not.toBeOnTheScreen();
+      });
       // Original stock market remains visible
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('AAPL')),

@@ -17,16 +17,21 @@ import WatchlistAnimatedRow, {
 } from './WatchlistAnimatedRow';
 import type { SuggestedWatchlistRow } from '../../../../../UI/Watchlist/utils';
 import PerpsMarketRowItem from '../../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
+import WatchlistTokenRowItem from '../../../../../UI/Watchlist/WatchlistTokenRowItem';
 
 interface WatchlistSuggestedSectionProps {
   tokens?: WatchlistTokenWithBalance[];
   rows?: SuggestedWatchlistRow[];
   hasWatchlist: boolean;
   onAddPress: (token: WatchlistTokenWithBalance) => void;
+  tokenDetailsSource?: TokenDetailsSource;
+  rowTwClassName?: string;
+  headerTwClassName?: string;
   onPerpPress?: (market: PerpsMarketData) => void;
   onAddPerpPress?: (market: PerpsMarketData) => void;
   canUseLivePerpsPrices?: boolean;
   enableMotion?: boolean;
+  showTypeTag?: boolean;
 }
 
 const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
@@ -34,10 +39,14 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   rows,
   hasWatchlist,
   onAddPress,
+  tokenDetailsSource = TokenDetailsSource.WatchlistHomepage,
+  rowTwClassName = '-mx-4 w-auto px-4',
+  headerTwClassName = 'mb-1',
   onPerpPress,
   onAddPerpPress,
   canUseLivePerpsPrices = false,
   enableMotion = true,
+  showTypeTag = false,
 }) => {
   const suggestedRows: SuggestedWatchlistRow[] =
     rows ??
@@ -47,13 +56,57 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
       token,
     }));
 
+  const renderSuggestionRow = (
+    suggestion: SuggestedWatchlistRow,
+  ): React.JSX.Element => {
+    if (suggestion.kind === 'perp') {
+      return (
+        <PerpsMarketRowItem
+          market={suggestion.market}
+          compact
+          showBadge={false}
+          showTypeTag={showTypeTag}
+          enableLivePrices={canUseLivePerpsPrices}
+          twClassName={rowTwClassName}
+          onPress={onPerpPress}
+          onAddPress={onAddPerpPress}
+        />
+      );
+    }
+
+    const token = mapWatchlistTokenToTrendingAsset(suggestion.token);
+    if (showTypeTag) {
+      return (
+        <WatchlistTokenRowItem
+          token={token}
+          tokenDetailsSource={tokenDetailsSource}
+          twClassName={rowTwClassName}
+          showTypeTag
+          onAddPress={() => onAddPress(suggestion.token)}
+        />
+      );
+    }
+
+    return (
+      <TrendingTokenRowItem
+        token={token}
+        tokenDetailsSource={tokenDetailsSource}
+        twClassName={rowTwClassName}
+        endAction={{
+          type: 'watchlist',
+          onPress: () => onAddPress(suggestion.token),
+        }}
+      />
+    );
+  };
+
   return (
     <Box testID="watchlist-suggested-section">
       {hasWatchlist && (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-1"
+          twClassName={headerTwClassName}
           testID="watchlist-suggested-header"
         >
           {strings('token_watchlist.suggested')}
@@ -67,27 +120,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
             key={suggestion.key}
             enableMotion={enableMotion}
           >
-            {suggestion.kind === 'token' ? (
-              <TrendingTokenRowItem
-                token={mapWatchlistTokenToTrendingAsset(suggestion.token)}
-                tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-                twClassName="-mx-4 w-auto px-4"
-                endAction={{
-                  type: 'watchlist',
-                  onPress: () => onAddPress(suggestion.token),
-                }}
-              />
-            ) : (
-              <PerpsMarketRowItem
-                market={suggestion.market}
-                compact
-                showBadge={false}
-                enableLivePrices={canUseLivePerpsPrices}
-                twClassName="-mx-4 w-auto px-4"
-                onPress={onPerpPress}
-                onAddPress={onAddPerpPress}
-              />
-            )}
+            {renderSuggestionRow(suggestion)}
           </WatchlistAnimatedRow>
         ))}
       </Animated.View>

@@ -32,8 +32,6 @@ import {
   PerpsFeeDiscountLabelSelectorsIDs,
 } from '../../Perps.testIds';
 
-const TIMEOUT_MS = 5000;
-
 const GRANT_FEE_QUOTE = {
   feeRate: 0.0007,
   feeAmount: 1.75,
@@ -128,8 +126,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -143,8 +139,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -158,8 +152,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
 
@@ -195,8 +187,6 @@ describe('PerpsClosePositionRouter', () => {
       expect(
         await screen.findByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -218,8 +208,6 @@ describe('PerpsClosePositionRouter', () => {
     expect(
       await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -283,11 +271,7 @@ describe('PerpsClosePositionRouter', () => {
       });
 
     const findPnlRow = () =>
-      screen.findByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      screen.findByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL);
 
     /** Switches the sheet to limit mode and applies the mid (live) preset. */
     const selectLimitAtMidPrice = async () => {
@@ -512,8 +496,6 @@ describe('PerpsClosePositionRouter', () => {
       renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
       const confirmButton = await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       fireEvent.press(confirmButton);
@@ -534,8 +516,6 @@ describe('PerpsClosePositionRouter', () => {
       renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
       const confirmButton = await screen.findByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       await waitFor(() => {
         expect(confirmButton).not.toBeDisabled();

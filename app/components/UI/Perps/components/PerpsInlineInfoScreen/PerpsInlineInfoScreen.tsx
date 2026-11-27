@@ -21,6 +21,8 @@ import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 export type PerpsInlineInfoContentKey =
   | 'margin'
   | 'liquidation_price'
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
   | 'cross_liquidation_estimate_unavailable'
   | 'liquidation_distance'
   | 'account_ratio'
