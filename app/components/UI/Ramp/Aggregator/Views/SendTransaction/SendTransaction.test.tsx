@@ -29,6 +29,9 @@ import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../../core/AppConstants';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
+const ORDER_WALLET_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+const DEPOSIT_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
+
 const mockOrder = {
   id: 'test-id-1',
   provider: 'AGGREGATOR',
@@ -124,10 +127,10 @@ const mockOrder = {
     network: '1',
     status: 'CREATED',
     orderType: 'SELL',
-    walletAddress: '0x1234',
+    walletAddress: ORDER_WALLET_ADDRESS,
     txHash: undefined,
     excludeFromPurchases: false,
-    depositWallet: '0x34256',
+    depositWallet: DEPOSIT_WALLET_ADDRESS,
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
@@ -226,10 +229,10 @@ const mockOrder2 = {
     network: '1',
     status: 'CREATED',
     orderType: 'SELL',
-    walletAddress: '0x1234',
+    walletAddress: ORDER_WALLET_ADDRESS,
     txHash: undefined,
     excludeFromPurchases: false,
-    depositWallet: '0x34256',
+    depositWallet: DEPOSIT_WALLET_ADDRESS,
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
@@ -466,7 +469,7 @@ const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockAddTransaction = addTransaction as jest.Mock;
-const mockOrderWallet = safeToChecksumAddress('0x1234') as string;
+const mockOrderWallet = safeToChecksumAddress(ORDER_WALLET_ADDRESS) as string;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -637,8 +640,8 @@ describe('SendTransaction View', () => {
         [
           {
             "chainId": "0x1",
-            "from": "0x1234",
-            "to": "0x34256",
+            "from": "0x2990079bcdEe240329a520d2444386FC119da21a",
+            "to": "0x1111111111111111111111111111111111111111",
             "value": "0x2bea80d2171600",
           },
           {
@@ -684,8 +687,8 @@ describe('SendTransaction View', () => {
         [
           {
             "chainId": "0x1",
-            "data": "0xa9059cbb0000000000000000000000000000000000000000000000000000000000034256000000000000000000000000000000000000000000000000002bea80d2171600",
-            "from": "0x1234",
+            "data": "0xa9059cbb0000000000000000000000001111111111111111111111111111111111111111000000000000000000000000000000000000000000000000002bea80d2171600",
+            "from": "0x2990079bcdEe240329a520d2444386FC119da21a",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
           },
@@ -839,15 +842,20 @@ describe('SendTransaction View', () => {
     const feeUnavailableCopy =
       "We couldn't estimate the network fee. You'll review it before you send.";
 
-    it('submits the order transaction on the order network client', () => {
+    it('submits the order transaction on the order network client', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
       render(SendTransaction);
 
-      fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
 
       expect(mockAddTransaction).toHaveBeenCalledWith(
         {
           from: mockOrderWallet,
-          to: safeToChecksumAddress('0x34256'),
+          to: safeToChecksumAddress(DEPOSIT_WALLET_ADDRESS),
           value: bigIntToHex(nativeOrderAmount),
           chainId: '0x1',
         },
@@ -855,7 +863,10 @@ describe('SendTransaction View', () => {
       );
     });
 
-    it('submits the refreshed depositWallet', () => {
+    it('submits the refreshed depositWallet', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
       const { store } = render(SendTransaction);
 
       act(() => {
@@ -870,7 +881,9 @@ describe('SendTransaction View', () => {
         );
       });
 
-      fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
 
       expect(mockAddTransaction).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -981,8 +994,11 @@ describe('SendTransaction View', () => {
       expect(screen.queryByText(feeUnavailableCopy)).not.toBeOnTheScreen();
     });
 
-    it('submits exact transfer calldata for a 6-decimal token', () => {
-      const depositWallet = '0x34256';
+    it('submits exact transfer calldata for a 6-decimal token', async () => {
+      mockAddTransaction.mockImplementationOnce(() => ({
+        result: Promise.resolve('0xhash'),
+      }));
+      const depositWallet = DEPOSIT_WALLET_ADDRESS;
       const tokenAddress = safeToChecksumAddress(
         '0xdac17f958d2ee523a2206206994597c13d831ec7',
       ) as string;
@@ -1009,7 +1025,9 @@ describe('SendTransaction View', () => {
       mockUseParamsValues = { orderId: 'test-id-usdt' };
       render(SendTransaction, [usdtOrder]);
 
-      fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
 
       expect(mockAddTransaction).toHaveBeenCalledWith(
         {

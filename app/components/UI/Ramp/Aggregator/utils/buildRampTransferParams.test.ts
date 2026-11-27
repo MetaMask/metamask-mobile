@@ -76,4 +76,27 @@ describe('buildRampTransferParams', () => {
       undefined,
     );
   });
+
+  it('returns undefined for an invalid address', () => {
+    const complete = {
+      from: FROM,
+      chainId: '0x1' as const,
+      assetAddress: NATIVE_ADDRESS,
+      recipient: RECIPIENT,
+      amount: 1n,
+    };
+
+    expect(
+      buildRampTransferParams({ ...complete, from: 'not-an-address' }),
+    ).toBeUndefined();
+    expect(
+      buildRampTransferParams({ ...complete, recipient: 'not-an-address' }),
+    ).toBeUndefined();
+    expect(
+      buildRampTransferParams({
+        ...complete,
+        assetAddress: 'not-an-address',
+      }),
+    ).toBeUndefined();
+  });
 });

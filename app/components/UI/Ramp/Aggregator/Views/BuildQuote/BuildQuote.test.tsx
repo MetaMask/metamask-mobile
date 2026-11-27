@@ -1659,6 +1659,11 @@ describe('BuildQuote View', () => {
     });
 
     it('estimates ERC-20 transfer calldata with a one-unit amount', () => {
+      const tokenAddress = '0x2222222222222222222222222222222222222222';
+      mockUseRampSDKValues.selectedAsset = {
+        ...mockCryptoCurrenciesData[0],
+        address: tokenAddress,
+      };
       render(BuildQuote);
 
       const expectedData = generateTransferData('transfer', {
@@ -1672,7 +1677,7 @@ describe('BuildQuote View', () => {
           chainId: '0x1',
           level: GasFeeEstimateLevel.High,
           transaction: expect.objectContaining({
-            to: '0xabc',
+            to: tokenAddress,
             value: '0x0',
             data: expectedData,
           }),

@@ -411,22 +411,16 @@ const BuildQuote = () => {
       return undefined;
     }
 
-    try {
-      return buildRampTransferParams({
-        from: selectedAddress ?? undefined,
-        chainId: sellChainId,
-        assetAddress: selectedAsset?.address,
-        recipient: unfundedRecipient,
-        // Magnitude barely changes gas (only calldata bytes for ERC-20), and a
-        // non-zero native value still triggers the new-account charge. A fixed
-        // amount keeps the estimate key stable as the balance changes.
-        amount: 1n,
-      });
-    } catch {
-      // A malformed address must not throw during render. The estimate is
-      // skipped and Max falls back to the balance without a gas reservation.
-      return undefined;
-    }
+    return buildRampTransferParams({
+      from: selectedAddress ?? undefined,
+      chainId: sellChainId,
+      assetAddress: selectedAsset?.address,
+      recipient: unfundedRecipient,
+      // Magnitude barely changes gas (only calldata bytes for ERC-20), and a
+      // non-zero native value still triggers the new-account charge. A fixed
+      // amount keeps the estimate key stable as the balance changes.
+      amount: 1n,
+    });
   }, [
     balanceBN,
     isNonEvmAsset,

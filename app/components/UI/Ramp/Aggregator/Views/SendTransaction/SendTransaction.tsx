@@ -139,24 +139,25 @@ function SendTransaction() {
       return undefined;
     }
 
+    let amount: bigint;
     try {
-      const amount = toTokenMinimalUnit(
+      amount = toTokenMinimalUnit(
         orderData.cryptoAmount || '0',
         orderData.cryptoCurrency.decimals,
       );
-
-      return buildRampTransferParams({
-        from: orderData.walletAddress,
-        chainId: chainIdAsHex,
-        assetAddress: orderData.cryptoCurrency.address,
-        recipient: orderData.depositWallet,
-        amount,
-      });
     } catch {
-      // A malformed amount or address must not throw during render. `handleSend`
-      // tracks the rejection when the order transaction cannot be built.
+      // A malformed amount must not throw during render. `handleSend` tracks the
+      // rejection when the order transaction cannot be built.
       return undefined;
     }
+
+    return buildRampTransferParams({
+      from: orderData.walletAddress,
+      chainId: chainIdAsHex,
+      assetAddress: orderData.cryptoCurrency.address,
+      recipient: orderData.depositWallet,
+      amount,
+    });
   }, [chainIdAsHex, isNonEvm, orderData]);
 
   const headerTitle = strings(
