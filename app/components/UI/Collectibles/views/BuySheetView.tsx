@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useReducer, useRef, useState, type ReactNode } from 'react';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -9,6 +9,8 @@ import {
   ButtonVariant,
   FilterButton,
   FilterButtonGroup,
+  Slider,
+  SliderMarkColor,
   Switch,
   Tag,
   TagSeverity,
@@ -20,12 +22,44 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { useFormatters } from '../../../hooks/useFormatters';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import { View } from '../../primitives/View';
 import { mockMaxPackQuantity, mockPayToken } from '../mocks/buySheet';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
 const quantityOptions = ['1', '5', '10'];
 const maxOption = 'max';
+const minPackQuantity = 1;
+
+const hapticQuantities = new Set([
+  ...quantityOptions.map(Number),
+  mockMaxPackQuantity,
+]);
+
+const toOption = (quantity: number) =>
+  quantity === mockMaxPackQuantity ? maxOption : String(quantity);
+const toQuantity = (option: string) =>
+  option === maxOption ? mockMaxPackQuantity : Number(option);
+const toTrackPercent = (quantity: number) =>
+  ((quantity - minPackQuantity) / (mockMaxPackQuantity - minPackQuantity)) *
+  100;
+const payTokenIcon = { uri: mockPayToken.iconUrl };
+
+const playGrip = () => fireImpact(ImpactMoment.SliderGrip);
+const playTick = () => fireImpact(ImpactMoment.SliderTick);
+
+const sliderMarks = Array.from(
+  { length: mockMaxPackQuantity - minPackQuantity + 1 },
+  (_, index) => {
+    const quantity = minPackQuantity + index;
+
+    return {
+      step: toTrackPercent(quantity),
+      color: SliderMarkColor.IconDefault,
+      haptic: hapticQuantities.has(quantity),
+    };
+  },
+);
 
 interface Props {
   name: string;
@@ -38,13 +72,19 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
 
   const { formatCurrency } = useFormatters();
 
-  const [selectedOption, setSelectedOption] = useState(quantityOptions[0]);
+  const [quantity, setQuantity] = useState(minPackQuantity);
   const { value: isAutoBuyback, setValue: setAutoBuyback } = useBoolean();
   const { value: isSkipReveals, setValue: setSkipReveals } = useBoolean();
 
-  const quantity =
-    selectedOption === maxOption ? mockMaxPackQuantity : Number(selectedOption);
+  const [sliderKey, remountSlider] = useReducer((key: number) => key + 1, 0);
+
+  const selectedOption = toOption(quantity);
   const total = formatCurrency(priceUsd * quantity, 'USD');
+
+  function selectOption(option: string) {
+    setQuantity(toQuantity(option));
+    remountSlider();
+  }
 
   return (
     <BottomSheet ref={sheetRef} goBack={onDismiss}>
@@ -62,9 +102,24 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
           </Text>
         </View>
 
+        <Slider
+          key={sliderKey}
+          value={quantity}
+          onValueChange={setQuantity}
+          minimumValue={minPackQuantity}
+          maximumValue={mockMaxPackQuantity}
+          step={1}
+          marks={sliderMarks}
+          showRangeDots
+          onGrip={playGrip}
+          onMark={playTick}
+          accessible
+          accessibilityLabel={strings('collectibles.buy_sheet.quantity')}
+        />
+
         <FilterButtonGroup
           value={selectedOption}
-          onChange={setSelectedOption}
+          onChange={selectOption}
           twClassName="gap-2"
           accessibilityLabel={strings('collectibles.buy_sheet.quantity')}
         >
@@ -87,31 +142,30 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
           </FilterButton>
         </FilterButtonGroup>
 
-        <View className="gap-4">
-          <Switch
-            label={strings('collectibles.buy_sheet.auto_buyback')}
-            isOn={isAutoBuyback}
-            onValueChange={setAutoBuyback}
-          />
-          <Switch
-            label={strings('collectibles.buy_sheet.skip_reveals')}
-            isOn={isSkipReveals}
-            onValueChange={setSkipReveals}
-          />
-        </View>
-
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('collectibles.buy_sheet.pay_with')}
-            </Text>
+        <View className="gap-2">
+          <BuySheetRow label={strings('collectibles.buy_sheet.auto_buyback')}>
+            <Switch
+              isOn={isAutoBuyback}
+              onValueChange={setAutoBuyback}
+              accessibilityLabel={strings(
+                'collectibles.buy_sheet.auto_buyback',
+              )}
+            />
+          </BuySheetRow>
+          <BuySheetRow label={strings('collectibles.buy_sheet.skip_reveals')}>
+            <Switch
+              isOn={isSkipReveals}
+              onValueChange={setSkipReveals}
+              accessibilityLabel={strings(
+                'collectibles.buy_sheet.skip_reveals',
+              )}
+            />
+          </BuySheetRow>
+          <BuySheetRow label={strings('collectibles.buy_sheet.pay_with')}>
             <View className="flex-row items-center gap-2">
               <AvatarToken
                 name={mockPayToken.symbol}
-                src={{ uri: mockPayToken.iconUrl }}
+                src={payTokenIcon}
                 size={AvatarTokenSize.Xs}
               />
               <Text variant={TextVariant.BodyMd}>
@@ -121,22 +175,15 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
                 })}
               </Text>
             </View>
-          </View>
-
-          <View className="flex-row items-center justify-between">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('collectibles.buy_sheet.total')}
-            </Text>
+          </BuySheetRow>
+          <BuySheetRow label={strings('collectibles.buy_sheet.total')}>
             <View className="flex-row items-center gap-2">
               <Tag severity={TagSeverity.Success}>
                 {strings('collectibles.buy_sheet.no_fees')}
               </Tag>
               <Text variant={TextVariant.BodyMd}>{total}</Text>
             </View>
-          </View>
+          </BuySheetRow>
         </View>
 
         <Button
@@ -148,5 +195,21 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
         </Button>
       </View>
     </BottomSheet>
+  );
+}
+
+interface RowProps {
+  label: string;
+  children: ReactNode;
+}
+
+function BuySheetRow({ label, children }: RowProps) {
+  return (
+    <View className="min-h-11 flex-row items-center justify-between gap-4">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {label}
+      </Text>
+      {children}
+    </View>
   );
 }

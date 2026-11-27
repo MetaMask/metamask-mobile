@@ -4,4 +4,4 @@ export const mockPayToken = {
   iconUrl: 'https://example.com/usdc.png',
 };
 
-export const mockMaxPackQuantity = 20;
+export const mockMaxPackQuantity = 10;

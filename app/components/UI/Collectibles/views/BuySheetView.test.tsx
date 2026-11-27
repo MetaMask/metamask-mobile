@@ -164,4 +164,116 @@ describe('BuySheetView', () => {
       }),
     ).toBeChecked();
   });
+
+  it('updates the total when the slider moves', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent(
+      screen.getByRole('adjustable', {
+        name: strings('collectibles.buy_sheet.quantity'),
+      }),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'increment' } },
+    );
+
+    expect(
+      screen.getAllByText(formatCurrency(pack.priceUsd * 2, 'USD')),
+    ).toHaveLength(2);
+  });
+
+  it('updates the button label when the slider moves', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent(
+      screen.getByRole('adjustable', {
+        name: strings('collectibles.buy_sheet.quantity'),
+      }),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'increment' } },
+    );
+
+    expect(
+      screen.getByText(
+        strings('collectibles.buy_sheet.open_packs', { count: 2 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('moves the slider to the quantity of the pressed chip', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.pack_count', { count: 10 }),
+      }),
+    );
+
+    expect(
+      screen.getByRole('adjustable', {
+        name: strings('collectibles.buy_sheet.quantity'),
+      }),
+    ).toHaveAccessibilityValue({ now: 10 });
+  });
+
+  it('selects the max chip at the cap', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.max'),
+      }),
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.max'),
+      }),
+    ).toBeSelected();
+  });
+
+  it('does not select the 10 packs chip at the cap', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.max'),
+      }),
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.pack_count', { count: 10 }),
+      }),
+    ).not.toBeSelected();
+  });
 });
