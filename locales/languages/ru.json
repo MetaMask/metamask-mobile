@@ -3936,7 +3936,6 @@
       "unavailable": "Сейчас нет доступных рынков."
     },
     "home_categories": {
-      "title": "Категории",
       "politics": "Политика",
       "sports": "Спорт"
     },
@@ -10628,8 +10627,7 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_deposit_header": "Пополнить MetaMask Money",
-      "money_account_send": "Отправить"
+      "money_account_deposit_header": "Пополнить MetaMask Money"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
@@ -10786,7 +10784,6 @@
     "deposit_edit_amount_done": "Внести средства",
     "deposit_edit_amount_convert_token": "Конвертировать {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",
-    "deposit_edit_amount_money_account_send": "Отправить",
     "deposit_edit_amount_musd_conversion": "Конвертировать в mUSD",
     "preparing_order": "Подготовка ордера"
   },

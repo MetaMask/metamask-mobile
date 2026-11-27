@@ -464,7 +464,7 @@ describe('PredictHome layout from the Venue catalog', () => {
   });
 
   describe('section dividers', () => {
-    it('places full-bleed 24px-spaced dividers below PortfolioActions and between adjacent visible sections with no trailing divider', async () => {
+    it('places full-bleed 24px-spaced dividers below PortfolioActions and between adjacent visible sections with no divider below Categories or trailing divider', async () => {
       const view = renderPredictNext();
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
@@ -478,12 +478,11 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.HOME_SPORTS,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
       ]);
 
       const dividers = view.getAllByTestId(PredictHomeTestIds.DIVIDER);
-      expect(dividers).toHaveLength(4);
+      expect(dividers).toHaveLength(3);
       dividers.forEach((divider) => {
         expect(divider).toHaveStyle({
           marginTop: 0,
@@ -495,7 +494,7 @@ describe('PredictHome layout from the Venue catalog', () => {
       });
     });
 
-    it('omits dividers for hidden Trending and Sports rows when games feeds are empty', async () => {
+    it('omits dividers for hidden Trending and Sports rows and directly below Categories when games feeds are empty', async () => {
       configurePredictNextFeeds({ nfl: [], ncaa: [] });
       const view = renderPredictNext();
 
@@ -511,12 +510,11 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.ACTIONS,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
       ]);
     });
 
-    it('omits the Sports divider when only the Sports row is empty', async () => {
+    it('omits the Sports divider and the divider directly below Categories when only the Sports row is empty', async () => {
       configurePredictNextFeeds({ nfl: [], ncaa: ncaaEvents });
       const view = renderPredictNext();
 
@@ -532,8 +530,26 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.HOME_TRENDING,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('omits the divider directly below Categories when the catalog places Categories before another section', async () => {
+      configureHome([POLITICS, CATEGORIES, SPORTS_ROW, TRENDING]);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
       ]);
     });
 
@@ -610,11 +626,16 @@ describe('PredictHome layout from the Venue catalog', () => {
 
       await view.findByTestId(PredictHomeTestIds.CATEGORIES);
 
-      expect(layoutOrder(view)).toEqual([
-        PredictHomeTestIds.ACTIONS,
-        PredictHomeTestIds.DIVIDER,
-        PredictHomeTestIds.CATEGORIES,
-      ]);
+      // The catalog lists Trending and the Sports row, so they mount first
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.CATEGORIES,
+        ]),
+      );
     });
 
     it('renders only Divider 1 above a single visible Feed preview section', async () => {
@@ -627,11 +648,16 @@ describe('PredictHome layout from the Venue catalog', () => {
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
 
-      expect(layoutOrder(view)).toEqual([
-        PredictHomeTestIds.ACTIONS,
-        PredictHomeTestIds.DIVIDER,
-        PredictHomeTestIds.section('politics'),
-      ]);
+      // Trending and the Sports row are listed by the default catalog home
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.section('politics'),
+        ]),
+      );
     });
 
     it('renders zero dividers while capabilities are loading', async () => {
@@ -709,7 +735,6 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.HOME_GAMES_ERROR,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
       ]);
     });
@@ -730,7 +755,6 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.HOME_GAMES_ERROR,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
       ]);
 
@@ -749,7 +773,6 @@ describe('PredictHome layout from the Venue catalog', () => {
         PredictHomeTestIds.HOME_SPORTS,
         PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.CATEGORIES,
-        PredictHomeTestIds.DIVIDER,
         PredictHomeTestIds.section('politics'),
       ]);
     });

@@ -1,44 +1,40 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
+import { strings } from '../../../../../../../locales/i18n';
 import type {
   PredictAmount,
   PredictBuyOrderPreview,
   PredictDecimal,
-  PredictEntityId,
-  PredictSignedAmount,
-  PredictTimestamp,
-  PredictVenueId,
 } from '../../../types';
 import { formatOdds, OrderDetailsRows } from './OrderDetailsRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const price = (value: string) => value as PredictDecimal;
 
-const makeBuyPreview = (
-  overrides: Partial<PredictBuyOrderPreview> = {},
-): PredictBuyOrderPreview => ({
-  previewId: 'preview-1',
-  venueId: 'kalshi' as PredictVenueId,
-  marketId: 'KXTEST-26-A' as PredictEntityId,
-  side: 'yes',
+const basePreview = {
   action: 'buy',
-  requestedAmount: '20.00' as PredictAmount,
-  orderAmount: '19.07' as PredictAmount,
   estimatedContracts: 41,
-  averagePrice: price('0.4651'),
-  limitPrice: price('0.4651'),
-  fee: '0.82' as PredictAmount,
+  averagePrice: '0.4651',
+  limitPrice: '0.4651',
+  orderAmount: '19.07',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.41' as PredictAmount },
-    { source: 'metamask', amount: '0.41' as PredictAmount },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '19.89' as PredictAmount,
-  potentialPayout: '41.00' as PredictAmount,
-  potentialProfit: '21.11' as PredictSignedAmount,
-  expiresAt: '2026-11-26T18:00:00.000Z' as PredictTimestamp,
-  ...overrides,
-});
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
+} as unknown as PredictBuyOrderPreview;
+
+const textOf = (
+  view: ReturnType<typeof render>,
+  testID: string,
+): string | undefined => {
+  const node = view.queryByTestId(testID);
+  return node ? [node.props.children].flat().join('') : undefined;
+};
 
 describe('formatOdds', () => {
   it('formats whole-number odds without decimals', () => {
@@ -68,25 +64,89 @@ describe('formatOdds', () => {
 });
 
 describe('OrderDetailsRows', () => {
-  it('renders formatted odds from preview averagePrice', () => {
-    const preview = makeBuyPreview({ averagePrice: price('0.4651') });
-
-    render(<OrderDetailsRows preview={preview} />);
+  it('renders Prediction order, MetaMask fee, Exchange fee, Total, and the partial-fill note', () => {
+    const view = render(<OrderDetailsRows preview={basePreview} />);
 
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.DETAILS_ODDS),
-    ).toHaveTextContent('46.5%');
+      view.getByText(strings('predict.fee_summary.prediction_order')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(
+        '~41 contracts at 46.5¢ each. Final amount may vary based on order book availability.',
+      ),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT)).toBe(
+      '$19.07',
+    );
+
+    expect(
+      view.getByText(strings('predict.fee_summary.metamask_fee')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('predict.fee_summary.metamask_fee_description')),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_METAMASK_FEE)).toBe(
+      '$0.41',
+    );
+
+    expect(
+      view.getByText(strings('predict.fee_summary.exchange_fee')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('predict.fee_summary.exchange_fee_description')),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE)).toBe(
+      '$0.41',
+    );
+
+    expect(
+      view.getByText(strings('predict.fee_summary.total')),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_TOTAL)).toBe('$19.89');
+    expect(
+      view.getByTestId(PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE),
+    ).toHaveTextContent(strings('predict.fee_summary.fak_partial_fill_note'));
   });
 
-  it('falls back to 0% on the odds row when averagePrice is non-numeric', () => {
-    const preview = makeBuyPreview({
-      averagePrice: 'not-a-price' as PredictDecimal,
-    });
-
-    render(<OrderDetailsRows preview={preview} />);
+  it('falls back to a single Fees row when feeBreakdown is empty', () => {
+    const view = render(
+      <OrderDetailsRows
+        preview={{
+          ...basePreview,
+          feeBreakdown: [],
+        }}
+      />,
+    );
 
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.DETAILS_ODDS),
-    ).toHaveTextContent('0%');
+      view.getByText(strings('predict_next.order_preview.fees')),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_FEES)).toBe('$0.82');
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.DETAILS_METAMASK_FEE),
+    ).toBeNull();
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE),
+    ).toBeNull();
+  });
+
+  it('renders only present fee sources when feeBreakdown carries a single component', () => {
+    const view = render(
+      <OrderDetailsRows
+        preview={{
+          ...basePreview,
+          fee: '0.41' as PredictAmount,
+          feeBreakdown: [{ source: 'venue', amount: '0.41' as PredictAmount }],
+        }}
+      />,
+    );
+
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.DETAILS_METAMASK_FEE),
+    ).toBeNull();
+    expect(textOf(view, PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE)).toBe(
+      '$0.41',
+    );
+    expect(view.queryByTestId(PredictOrderFlowTestIds.DETAILS_FEES)).toBeNull();
   });
 });

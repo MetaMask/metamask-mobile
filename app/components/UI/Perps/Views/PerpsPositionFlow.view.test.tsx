@@ -48,8 +48,6 @@ import {
 import PerpsClosePositionView from './PerpsClosePositionView/PerpsClosePositionView';
 import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
 
-const TIMEOUT_MS = 5000;
-
 const ethMarket = createEthMarketForViews();
 const ethLong = createLongPositionForViews({
   entryPrice: '2400',
@@ -80,8 +78,10 @@ const eligibleOverrides = {
 };
 
 /**
- * Drain microtasks and pending timers so fire-and-forget toast/haptic work
- * finishes before Jest tears down the test environment.
+ * Teardown settle, not an assertion race: fire-and-forget toast/haptic work
+ * must finish before Jest tears down the test environment, and there is no
+ * observable signal for "no more completions pending". Drain a macrotask turn
+ * so those completions cannot surface after teardown.
  */
 const flushAsyncSideEffects = async (delayMs = 50) => {
   await act(async () => {
@@ -94,6 +94,12 @@ const flushAsyncSideEffects = async (delayMs = 50) => {
 
 describeForPlatforms('Position Close Flow', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    // Tests below swap the closePosition implementation; re-establish the
+    // framework default so later cases never inherit an earlier swap.
+    (Engine.context.PerpsController.closePosition as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ success: true, orderId: 'component-view-close' });
     // The close waits for a fee quote before it can be confirmed.
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
@@ -142,8 +148,6 @@ describeForPlatforms('Position Close Flow', () => {
       // ── Arrange: close button visible on market details ──────────────────
       const closeButton = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       expect(closeButton).toBeOnTheScreen();
 
@@ -153,8 +157,6 @@ describeForPlatforms('Position Close Flow', () => {
       // Wait for close position screen to appear
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       // Deliver live price so fee calculation can complete and enable the
@@ -163,16 +165,13 @@ describeForPlatforms('Position Close Flow', () => {
         stream.emitPrices(ethPrices);
       });
 
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-            ),
-          ).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        ).not.toBeDisabled();
+      });
 
       // ── Act 2: confirm close ─────────────────────────────────────────────
       // ClosePositionView calls navigation.goBack() synchronously before
@@ -190,23 +189,18 @@ describeForPlatforms('Position Close Flow', () => {
       expect(
         await screen.findByTestId(
           PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
 
       // closePosition must have been invoked with the correct params
-      await waitFor(
-        () => {
-          expect(closePosition).toHaveBeenCalledWith(
-            expect.objectContaining({
-              orderType: 'market',
-              position: expect.objectContaining({ symbol: 'ETH' }),
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(closePosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderType: 'market',
+            position: expect.objectContaining({ symbol: 'ETH' }),
+          }),
+        );
+      });
 
       // ── Act 3: stream delivers the confirmed closure ──────────────────────
       act(() => {
@@ -214,16 +208,11 @@ describeForPlatforms('Position Close Flow', () => {
       });
 
       // ── Assert 2: close button gone — position is now closed ─────────────
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(
-              PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-            ),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
+        ).not.toBeOnTheScreen();
+      });
     },
   );
 
@@ -258,16 +247,10 @@ describeForPlatforms('Position Close Flow', () => {
       });
 
       // ── Arrange: positions panel with ETH row ────────────────────────────
-      await screen.findByTestId(
-        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      await screen.findByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL);
 
       const ethRow = await screen.findByTestId(
         getPerpsProPositionRowSelector('ETH'),
-        {},
-        { timeout: TIMEOUT_MS },
       );
       expect(ethRow).toBeOnTheScreen();
 
@@ -281,8 +264,6 @@ describeForPlatforms('Position Close Flow', () => {
       // Wait for close position screen
       await screen.findByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       // Prices were seeded via streamOverrides; top-up to trigger fee recalc
@@ -290,16 +271,13 @@ describeForPlatforms('Position Close Flow', () => {
         stream.emitPrices(ethPrices);
       });
 
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-            ),
-          ).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        ).not.toBeDisabled();
+      });
 
       // ── Act 2: confirm close ─────────────────────────────────────────────
       await act(async () => {
@@ -311,17 +289,14 @@ describeForPlatforms('Position Close Flow', () => {
       });
 
       // closePosition invoked with the correct symbol
-      await waitFor(
-        () => {
-          expect(closePosition).toHaveBeenCalledWith(
-            expect.objectContaining({
-              orderType: 'market',
-              position: expect.objectContaining({ symbol: 'ETH' }),
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(closePosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderType: 'market',
+            position: expect.objectContaining({ symbol: 'ETH' }),
+          }),
+        );
+      });
 
       // ── Act 3: stream delivers the confirmed closure ──────────────────────
       act(() => {
@@ -329,14 +304,11 @@ describeForPlatforms('Position Close Flow', () => {
       });
 
       // ── Assert: ETH position row gone from the Pro panel ─────────────────
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(getPerpsProPositionRowSelector('ETH')),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(getPerpsProPositionRowSelector('ETH')),
+        ).not.toBeOnTheScreen();
+      });
     },
   );
 });
