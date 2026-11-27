@@ -6,7 +6,7 @@ import CardHomeActionButtonRow, {
 } from './CardHomeActionButtonRow';
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
-import { SNOWFLAKE_ICON_TEST_ID } from '../../../components/SnowflakeIcon';
+
 import { CardType } from '../../../types';
 import {
   CardStatus,
@@ -183,20 +183,19 @@ describe('CardHomeActionButtonRow', () => {
     expect(onPin).not.toHaveBeenCalled();
   });
 
-  it('uses the temporary snowflake icon for both Freeze and Unfreeze', () => {
+  it('renders the freeze button for both Freeze and Unfreeze states', () => {
     const { getByTestId, rerender } = render(
       <CardHomeActionButtonRow
         freeze={{ onPress: jest.fn(), isFrozen: false }}
       />,
     );
-    expect(getByTestId(SNOWFLAKE_ICON_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON)).toBeOnTheScreen();
 
     rerender(
       <CardHomeActionButtonRow
         freeze={{ onPress: jest.fn(), isFrozen: true }}
       />,
     );
-    expect(getByTestId(SNOWFLAKE_ICON_TEST_ID)).toBeOnTheScreen();
     expect(getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON)).toBeOnTheScreen();
   });
 });
