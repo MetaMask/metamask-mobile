@@ -5064,9 +5064,6 @@
     }
   },
   "app/components/UI/ManageNetworks/ManageNetworks.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/unbound-method": {
       "count": 2
     }

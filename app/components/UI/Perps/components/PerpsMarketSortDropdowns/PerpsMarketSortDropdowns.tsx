@@ -42,7 +42,6 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
       <SelectButton
         testID={`${testID}-sort-field`}
         variant={SelectButtonVariant.Secondary}
-        placeholder={sortLabel}
         value={sortLabel}
         onPress={onSortPress}
         hideEndArrow

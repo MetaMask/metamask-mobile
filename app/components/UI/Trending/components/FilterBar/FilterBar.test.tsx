@@ -50,9 +50,9 @@ describe('FilterButton', () => {
     ).toBeFalsy();
   });
 
-  it('passes numberOfLines and ellipsizeMode to Text', () => {
+  it('renders the label with one-line tail truncation by default', () => {
     const { getByText } = renderWithProvider(
-      <FilterButton {...defaultProps} numberOfLines={1} ellipsizeMode="tail" />,
+      <FilterButton {...defaultProps} />,
     );
     const text = getByText('Test Label');
     expect(text.props.numberOfLines).toBe(1);

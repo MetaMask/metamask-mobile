@@ -13,6 +13,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
+import Logger from '../../../util/Logger';
 import styles from './ManageNetworks.styles';
 import {
   AvatarNetwork,
@@ -42,11 +43,25 @@ export default function ManageNetworksComponent() {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const openPrivacyPolicyLink = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024).catch(
+      (error: Error) => {
+        Logger.error(
+          error,
+          'ManageNetworks: failed to open privacy policy link',
+        );
+      },
+    );
   }, []);
 
   const openAddSolanaAccountPrivacyPolicyLink = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY);
+    Linking.openURL(AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY).catch(
+      (error: Error) => {
+        Logger.error(
+          error,
+          'ManageNetworks: failed to open privacy policy link',
+        );
+      },
+    );
   }, []);
 
   return (
@@ -90,9 +105,6 @@ export default function ManageNetworksComponent() {
             name={networkName}
           />
         }
-        textProps={{
-          numberOfLines: 1,
-        }}
         onPress={switchNetwork}
         twClassName="self-start my-4"
       />

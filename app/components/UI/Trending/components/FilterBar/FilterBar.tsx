@@ -12,8 +12,6 @@ export interface FilterButtonProps {
   label: string;
   onPress: () => void;
   disabled?: boolean;
-  numberOfLines?: number;
-  ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
   /** Optional Tailwind class overrides for layout in custom contexts */
   twClassName?: string;
   /** Optional icon name to show before the label (e.g., for sort direction indicators) */
@@ -25,23 +23,16 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   label,
   onPress,
   disabled = false,
-  numberOfLines,
-  ellipsizeMode,
   twClassName,
   iconName,
 }) => (
   <SelectButton
     testID={testID}
-    placeholder={label}
     value={label}
     onPress={onPress}
     isDisabled={disabled}
     variant={SelectButtonVariant.Primary}
     startIconName={iconName}
-    textProps={{
-      numberOfLines,
-      ellipsizeMode,
-    }}
     twClassName={twClassName ? `shrink-0 ${twClassName}` : 'shrink-0'}
   />
 );
@@ -98,15 +89,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
         onPress={onPriceChangePress}
         disabled={isPriceChangeDisabled}
         iconName={priceChangeIconName}
-        numberOfLines={1}
-        ellipsizeMode="tail"
       />
       <FilterButton
         testID={networkTestID}
         label={networkName}
         onPress={onNetworkPress}
-        numberOfLines={1}
-        ellipsizeMode="tail"
       />
       {extraFilters}
     </ScrollView>

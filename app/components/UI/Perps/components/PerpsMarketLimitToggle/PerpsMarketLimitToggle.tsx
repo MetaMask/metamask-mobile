@@ -33,7 +33,6 @@ const PerpsMarketLimitToggle: React.FC<PerpsMarketLimitToggleProps> = ({
       testID={testID}
       variant={SelectButtonVariant.Primary}
       size={SelectButtonSize.Md}
-      placeholder={label}
       value={label}
       accessibilityLabel={strings(
         'perps.trade_sheet.order_type_accessibility_label',

@@ -377,7 +377,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             : SelectButtonVariant.Primary
         }
         size={SelectButtonSize.Md}
-        placeholder={currentGroupingLabel}
         value={currentGroupingLabel}
         onPress={handleDepthBandPress}
       />

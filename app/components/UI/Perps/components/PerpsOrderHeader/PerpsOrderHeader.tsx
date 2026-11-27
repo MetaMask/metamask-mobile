@@ -155,7 +155,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
             : SelectButtonVariant.Primary
         }
         size={SelectButtonSize.Md}
-        placeholder={orderTypeLabel}
         value={orderTypeLabel}
         onPress={handleOrderTypePress}
         isDisabled={isLoading}

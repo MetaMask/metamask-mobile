@@ -1385,9 +1385,6 @@ const PerpsProPositionsPanel = ({
         ) : null}
         <SelectButton
           size={SelectButtonSize.Sm}
-          placeholder={strings(
-            getProPositionSideFilterButtonLabelKey(activeSideFilter),
-          )}
           value={strings(
             getProPositionSideFilterButtonLabelKey(activeSideFilter),
           )}

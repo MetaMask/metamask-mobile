@@ -192,7 +192,6 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       value={networkLabelValue}
       startAccessory={networkStartAccessory}
       textProps={{
-        numberOfLines: 1,
         testID: `${networkFilterTestId}-${currentNetworkCaipChainId}`,
       }}
       isDisabled={isDisabled}
@@ -211,7 +210,6 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
       accessibilityLabel={`${strings('wallet.sort_by')}, ${sortLabel}, ${sortOrderLabel}`}
       variant={SelectButtonVariant.Secondary}
-      placeholder={sortLabel}
       value={sortLabel}
       onPress={handleSortControls}
       hideEndArrow
