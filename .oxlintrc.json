@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "import"],
+  "plugins": ["react", "typescript", "import", "jest"],
   "options": {
     "typeAware": true
   },
@@ -62,14 +62,25 @@
       }
     ],
     "array-callback-return": "error",
+    "arrow-body-style": ["error", "as-needed"],
     "for-direction": "error",
     "import/no-amd": "error",
+    "import/no-commonjs": "error",
+    "import/no-duplicates": "error",
     "import/no-mutable-exports": "error",
+    "import/no-nodejs-modules": "error",
+    "jest/no-identical-title": "warn",
     "no-async-promise-executor": "error",
     "no-caller": "warn",
     "no-case-declarations": "error",
     "no-compare-neg-zero": "error",
     "no-cond-assign": ["error", "except-parens"],
+    "no-console": [
+      "error",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
     "no-constant-condition": [
       "error",
       {
@@ -79,10 +90,17 @@
     "no-control-regex": "error",
     "no-debugger": "error",
     "no-delete-var": "error",
+    "no-div-regex": "warn",
     "no-dupe-class-members": "error",
     "no-dupe-else-if": "error",
     "no-duplicate-case": "error",
     "no-duplicate-imports": "error",
+    "no-else-return": [
+      "error",
+      {
+        "allowElseIf": true
+      }
+    ],
     "no-empty": "error",
     "no-empty-character-class": "error",
     "no-empty-function": [
@@ -117,6 +135,7 @@
     "no-nonoctal-decimal-escape": "error",
     "no-proto": "error",
     "no-prototype-builtins": "error",
+    "no-regex-spaces": "error",
     "no-return-assign": ["warn", "except-parens"],
     "no-script-url": "error",
     "no-self-assign": "error",
@@ -132,6 +151,7 @@
     "no-unexpected-multiline": "error",
     "no-unmodified-loop-condition": "error",
     "no-unsafe-finally": "error",
+    "no-unused-labels": "error",
     "no-use-before-define": [
       "error",
       {
@@ -141,9 +161,17 @@
     "no-useless-backreference": "error",
     "no-useless-call": "error",
     "no-useless-catch": "error",
+    "no-useless-computed-key": [
+      "error",
+      {
+        "enforceForClassMembers": true
+      }
+    ],
     "no-useless-concat": "error",
     "no-useless-constructor": "error",
     "no-useless-escape": "error",
+    "no-useless-rename": "error",
+    "no-var": "error",
     "no-void": "warn",
     "no-warning-comments": [
       "error",
@@ -152,8 +180,13 @@
         "terms": ["BEGIN:ONLY_INCLUDE_IF", "END:ONLY_INCLUDE_IF"]
       }
     ],
+    "object-shorthand": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-const": "error",
     "prefer-rest-params": "error",
     "prefer-spread": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-boolean-value": "error",
     "react/jsx-key": "warn",
     "react/jsx-no-comment-textnodes": "error",
     "react/jsx-no-duplicate-props": "error",
@@ -178,7 +211,8 @@
     "react/require-render-return": "error",
     "require-yield": "error",
     "use-isnan": "error",
-    "valid-typeof": "error"
+    "valid-typeof": "error",
+    "yoda": ["warn", "never"]
   },
   "overrides": [
     {
@@ -193,19 +227,27 @@
             "allowTernary": true
           }
         ],
+        "no-array-constructor": "error",
         "react/no-unstable-nested-components": "warn",
+        "typescript/array-type": "error",
         "typescript/ban-ts-comment": "error",
+        "typescript/consistent-type-assertions": "error",
         "typescript/no-explicit-any": "error",
+        "typescript/no-extra-non-null-assertion": "error",
         "typescript/no-misused-new": "error",
         "typescript/no-namespace": "error",
         "typescript/no-non-null-asserted-optional-chain": "error",
         "typescript/no-non-null-assertion": "error",
+        "typescript/no-require-imports": "error",
         "typescript/no-this-alias": "error",
         "typescript/no-unnecessary-type-constraint": "error",
         "typescript/no-unsafe-declaration-merging": "error",
         "typescript/no-unsafe-function-type": "error",
         "typescript/parameter-properties": "error",
+        "typescript/prefer-as-const": "error",
         "typescript/prefer-for-of": "error",
+        "typescript/prefer-function-type": "error",
+        "typescript/prefer-namespace-keyword": "error",
         "typescript/triple-slash-reference": "error",
         "typescript/unified-signatures": "error",
         "typescript/await-thenable": "error",
@@ -264,10 +306,197 @@
         "no-unreachable": "error",
         "no-unsafe-negation": "error",
         "no-with": "error",
+        "no-array-constructor": "warn",
         "react/no-unstable-nested-components": [
           "warn",
           {
             "allowAsProps": true
+          }
+        ],
+        "react/self-closing-comp": "warn"
+      }
+    },
+    {
+      "files": ["scripts/**/*.{js,ts}", "tests/**/*.{js,ts}", "app.config.js"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/**/*.{js,ts}",
+        "tests/tools/**/*.{js,ts}",
+        "app.config.js"
+      ],
+      "rules": {
+        "import/no-commonjs": "off",
+        "import/no-nodejs-modules": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/hooks/useAsyncResult.ts",
+        "app/components/hooks/useOTAUpdates.ts",
+        "app/components/Nav/Main/index.js",
+        "app/components/Nav/App/AppShellEffects/AppShellEffects.tsx",
+        "app/components/UI/Card/hooks/useCardCapabilities.ts"
+      ],
+      "rules": {
+        "react/exhaustive-deps": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/Views/QRScanner/index.tsx",
+        "app/components/UI/QRHardware/AnimatedQRScanner.tsx",
+        "app/components/Views/ConnectQRHardware/Instruction/index.tsx"
+      ],
+      "rules": {
+        "typescript/no-require-imports": "off"
+      }
+    },
+    {
+      "files": ["**/*.{test,spec}.{js,jsx,ts,tsx}", "**/__tests__/**"],
+      "rules": {
+        "jest/no-disabled-tests": "warn",
+        "jest/no-focused-tests": "warn"
+      }
+    },
+    {
+      "files": ["**/*.test.{js,ts,tsx,jsx}", "**/*.spec.{js,ts,tsx,jsx}"],
+      "excludeFiles": [
+        "**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}",
+        "**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}"
+      ],
+      "rules": {
+        "jest/no-restricted-matchers": [
+          "error",
+          {
+            "toMatchSnapshot": "Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["app/**/*.{ts,tsx,js,jsx}"],
+      "excludeFiles": ["app/util/haptics/**", "app/util/number/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "expo-haptics",
+                "message": "Import from app/util/haptics instead of expo-haptics directly."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["expo-haptics/*"],
+                "message": "Import from app/util/haptics instead of expo-haptics directly."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["tests/**/specs/**/*.{js,ts}"],
+      "excludeFiles": ["tests/**/specs/**/*.failing.{js,ts}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "../api-mocking/mock-server",
+                "message": "Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead."
+              },
+              {
+                "name": "../../api-mocking/mock-server",
+                "message": "Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["**/api-mocking/mock-server*"],
+                "message": "Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "tests/**/page-objects/**/*.{js,ts}",
+        "tests/**/flows/**/*.{js,ts}",
+        "tests/**/smoke-appium/**/*.{js,ts}"
+      ],
+      "excludeFiles": [
+        "tests/**/page-objects/**/*.test.{js,ts}",
+        "tests/**/flows/**/*.test.{js,ts}",
+        "tests/**/smoke-appium/**/*.test.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/FrameworkDetector",
+                  "**/FrameworkDetector.ts",
+                  "**/FrameworkDetector.js"
+                ],
+                "message": "Do not import FrameworkDetector in POs/specs. Use Gestures/Assertions/Matchers (Appium-only)."
+              },
+              {
+                "group": [
+                  "**/AppiumMatchers",
+                  "**/AppiumMatchers.ts",
+                  "**/AppiumGestures",
+                  "**/AppiumGestures.ts",
+                  "**/AppiumAssertions",
+                  "**/AppiumAssertions.ts",
+                  "**/AppiumWebMatchers",
+                  "**/AppiumWebMatchers.ts"
+                ],
+                "message": "Do not import AppiumMatchers/AppiumGestures/AppiumAssertions backends in POs/specs. Use Gestures/Assertions/Matchers."
+              },
+              {
+                "group": [
+                  "**/framework/index",
+                  "**/framework/index.ts",
+                  "**/framework/index.js"
+                ],
+                "importNames": [
+                  "FrameworkDetector",
+                  "AppiumMatchers",
+                  "AppiumGestures",
+                  "AppiumAssertions",
+                  "AppiumWebMatchers"
+                ],
+                "message": "Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers."
+              },
+              {
+                "group": [
+                  "../../framework",
+                  "../framework",
+                  "../../../framework",
+                  "../../../../framework",
+                  "../../../../../framework"
+                ],
+                "importNames": [
+                  "FrameworkDetector",
+                  "AppiumMatchers",
+                  "AppiumGestures",
+                  "AppiumAssertions",
+                  "AppiumWebMatchers"
+                ],
+                "message": "Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers."
+              }
+            ]
           }
         ]
       }

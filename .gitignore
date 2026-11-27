@@ -167,6 +167,9 @@ ccache
 # eslint cache
 .eslintcache
 
+# scripts/oxlint-fix.mjs temporary config
+.oxlintrc.fix-*.tmp.json
+
 # WDA DerivedData for iOS Appium. CI caches this inside the workspace.
 .cache/
 
