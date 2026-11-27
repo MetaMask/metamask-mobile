@@ -10,29 +10,21 @@ import {
   QrSyncProvisioningStatuses,
 } from '../../core/QrSync/constants';
 import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
-import type {
-  QrSyncImportSummaryAccount as QrSyncImportSummaryAccountWire,
-  QrSyncImportSummaryWallet as QrSyncImportSummaryWalletWire,
-} from '../../core/QrSync/types';
 
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
   state.engine.backgroundState.QrSyncController;
 
-/** Display account: wire `name` may be absent when falling back to tree metadata. */
-export type QrSyncImportSummaryAccount = Omit<
-  QrSyncImportSummaryAccountWire,
-  'name'
-> & {
+/** Display shape for the Sync Summary UI, derived from AccountTreePayload. */
+export interface QrSyncImportSummaryAccount {
+  id: string;
   name: string | null;
-};
+}
 
-export type QrSyncImportSummaryWallet = Omit<
-  QrSyncImportSummaryWalletWire,
-  'name' | 'accounts'
-> & {
+export interface QrSyncImportSummaryWallet {
+  id: string;
   name: string | null;
   accounts: QrSyncImportSummaryAccount[];
-};
+}
 
 export interface QrSyncImportSummary {
   accountCount: number;
@@ -89,13 +81,13 @@ export const selectQrSyncImportMnemonic = createSelector(
   },
 );
 
+/**
+ * Sync Summary display data from the synced AccountTreePayload.
+ * Prefers secrets-stripped provisioning metadata when present.
+ */
 export const selectQrSyncImportSummary = createSelector(
   selectQrSyncControllerState,
   (qrSyncState): QrSyncImportSummary => {
-    if (qrSyncState.importSummary) {
-      return toImportSummary(qrSyncState.importSummary.wallets);
-    }
-
     const payload =
       qrSyncState.provisioningMetadata ?? qrSyncState.pendingSecretImports;
     const wallets =

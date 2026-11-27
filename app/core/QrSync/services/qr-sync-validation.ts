@@ -16,7 +16,6 @@ import { isUUID } from '../../SDKConnect/utils/isUUID';
 import type {
   QrSyncConnectionRequest,
   QrSyncError,
-  QrSyncReadyData,
   QrSyncSyncReadyMessage,
 } from '../types';
 
@@ -288,7 +287,7 @@ export function parseQrSyncSyncReadyMessage(
 ): {
   valid: boolean;
   error?: QrSyncError;
-  pendingPayload?: QrSyncReadyData;
+  pendingPayload?: AccountTreePayload;
 } {
   if (!isRecord(data)) {
     return buildValidationError(

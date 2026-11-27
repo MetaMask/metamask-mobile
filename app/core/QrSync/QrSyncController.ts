@@ -22,7 +22,6 @@ import type {
   QrSyncConnectionStatus,
   QrSyncError,
   QrSyncErrorCode,
-  QrSyncImportSummaryPayload,
   QrSyncPhase,
   QrSyncServiceEvent,
   QrSyncTestSyncReadyPayload,
@@ -137,12 +136,6 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  importSummary: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: true,
-  },
   provisioningStatus: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -157,7 +150,6 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
   syncFlow: null,
   pendingSecretImports: null,
   provisioningMetadata: null,
-  importSummary: null,
   provisioningStatus: null,
   otp: null,
   error: null,
@@ -184,6 +176,9 @@ export class QrSyncController extends BaseController<
   private client: WalletClient | null = null;
 
   private sessionId: string | null = null;
+
+  /** Bumped when a new scan starts so in-flight teardown cannot wipe it. */
+  private sessionGeneration = 0;
 
   constructor({
     messenger,
@@ -227,6 +222,7 @@ export class QrSyncController extends BaseController<
     // Destroy any existing session before starting a new one.
     await this.destroySession();
     this.clearControllerState();
+    this.sessionGeneration += 1;
     // Capture sync flow once from local onboarding status at session start.
     this.update((state) => {
       state.syncFlow = this.getIsOnboardingCompleted()
@@ -539,14 +535,10 @@ export class QrSyncController extends BaseController<
     const isSyncReady =
       routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
     let syncReadySnapshot: AccountTreeSnapshot | null = null;
-    let syncReadyImportSummary: QrSyncImportSummaryPayload | null = null;
     if (isSyncReady) {
       const { pendingPayload: wirePayload } = routedMessage;
       if (wirePayload) {
-        const { qrSyncImportSummary, ...accountTreePayload } = wirePayload;
-        syncReadyImportSummary = qrSyncImportSummary ?? null;
-        syncReadySnapshot =
-          await AccountTreeSnapshot.deserialize(accountTreePayload);
+        syncReadySnapshot = await AccountTreeSnapshot.deserialize(wirePayload);
       }
     }
 
@@ -561,7 +553,6 @@ export class QrSyncController extends BaseController<
           state.provisioningMetadata = syncReadySnapshot
             .stripSecrets()
             .serialize();
-          state.importSummary = syncReadyImportSummary;
           state.provisioningStatus =
             QrSyncProvisioningStatuses.AWAITING_PASSWORD;
         });
@@ -698,6 +689,7 @@ export class QrSyncController extends BaseController<
     error?: QrSyncError,
   ): Promise<void> {
     const endingClient = this.client;
+    const endingGeneration = this.sessionGeneration;
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
       const phaseFrom = this.state.phase;
@@ -754,8 +746,8 @@ export class QrSyncController extends BaseController<
       return;
     }
 
-    // A rescan may have started while peer notification was in flight.
-    if (this.client === null) {
+    // Skip clearing if a newer scan started while peer notification was in flight.
+    if (this.sessionGeneration === endingGeneration && this.client === null) {
       this.clearControllerState();
     }
   }

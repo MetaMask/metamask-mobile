@@ -1,5 +1,4 @@
 import { AccountWalletPayloadType } from '@metamask/account-tree-controller';
-import { qrSyncImportSummaryFixture } from '../../core/QrSync/__fixtures__/importSummary';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
@@ -108,22 +107,6 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncImportSummary', () => {
-    it('uses the extension picker wallet grouping when provided', () => {
-      const result = selectQrSyncImportSummary(
-        buildState({
-          pendingSecretImports,
-          provisioningMetadata,
-          importSummary: qrSyncImportSummaryFixture,
-        }),
-      );
-
-      expect(result).toStrictEqual({
-        accountCount: 3,
-        walletCount: 2,
-        wallets: qrSyncImportSummaryFixture.wallets,
-      });
-    });
-
     it('returns wallet and account metadata from provisioning state', () => {
       const result = selectQrSyncImportSummary(
         buildState({
