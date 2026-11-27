@@ -20,6 +20,9 @@ import { getMethodLabel, maskEmail } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { type StepProps } from './StepLayout';
 
+// Centres a 40px element on the title and first description line (24 + 22).
+const ALIGN_TO_FIRST_LINES = 'self-start mt-[3px]';
+
 const METHOD_ICONS: Record<MfaMethod, IconName> = {
   email_otp: IconName.Mail,
   passkey: IconName.Key,
@@ -82,7 +85,10 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
             key={method}
             variant={ListItemVariant.TwoLines}
             avatar={
-              <Box twClassName="-mr-1">
+              <Box
+                twClassName={`-mr-1 ${ALIGN_TO_FIRST_LINES}`}
+                testID={`${MfaFlowSelectorsIDs.INTRO_METHOD_ICON}-${method}`}
+              >
                 <AvatarIcon
                   iconName={METHOD_ICONS[method]}
                   severity={AvatarIconSeverity.Neutral}
@@ -93,7 +99,15 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
             }
             endAccessory={
               isDone ? (
-                <Icon name={IconName.Check} color={IconColor.SuccessDefault} />
+                <Box
+                  twClassName={`h-10 justify-center ${ALIGN_TO_FIRST_LINES}`}
+                  testID={`${MfaFlowSelectorsIDs.INTRO_METHOD_CHECK}-${method}`}
+                >
+                  <Icon
+                    name={IconName.Check}
+                    color={IconColor.SuccessDefault}
+                  />
+                </Box>
               ) : undefined
             }
             title={getMethodLabel(method)}
