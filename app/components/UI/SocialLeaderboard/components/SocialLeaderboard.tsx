@@ -21,6 +21,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { TopTrader } from '../../../Views/Homepage/Sections/TopTraders/types';
 import {
@@ -144,7 +145,10 @@ export interface SocialLeaderboardProps {
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
-  /** Gates Follow behind a linked social wallet on Social V1 hosts. */
+  /**
+   * Gates Follow behind a linked social wallet. Defaults to Social V1 access,
+   * so embeds outside the Social tab (such as Perps) are gated too.
+   */
   requireSocialProfile?: boolean;
   /**
    * Makes the leaderboard own the vertical scroll with FlashList. Omit when
@@ -180,10 +184,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const hasSocialV1Access = useSelector(selectHasSocialV1Access);
   const { track } = useSocialLeaderboardAnalytics();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
-    requireSocialProfile,
+    requireSocialProfile: requireSocialProfile ?? hasSocialV1Access,
   });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.

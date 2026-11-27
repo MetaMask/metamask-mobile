@@ -93,6 +93,24 @@ const useHiddenAssetRows = (): HiddenAssetRow[] => {
   );
 };
 
+const getHiddenAssetReimportAccountId = (
+  assetsBalance: ReturnType<typeof getAssetsBalance>,
+  internalAccountByScope: ReturnType<
+    typeof selectSelectedInternalAccountByScope
+  >,
+  assetId: CaipAssetType,
+) => {
+  const accountId = internalAccountByScope(
+    getCaipChainIdFromAssetId(assetId) as SupportedCaipChainId,
+  )?.id;
+
+  if (!accountId || Number(assetsBalance[accountId]?.[assetId]?.amount)) {
+    return undefined;
+  }
+
+  return accountId;
+};
+
 const HiddenTokensView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
@@ -110,14 +128,16 @@ const HiddenTokensView = () => {
     async (assetId: CaipAssetType) => {
       try {
         const { AssetsController } = Engine.context;
-        const accountId = internalAccountByScope(
-          getCaipChainIdFromAssetId(assetId) as SupportedCaipChainId,
-        )?.id;
         // Hiding a custom token removes it from customAssets, so unhiding a
         // token without a balance would leave it unlisted. Re-add it instead
         // (this also clears the hidden flag; stored metadata is kept).
-        if (accountId && !Number(assetsBalance[accountId]?.[assetId]?.amount)) {
-          await AssetsController.addCustomAsset(accountId, assetId);
+        const reimportAccountId = getHiddenAssetReimportAccountId(
+          assetsBalance,
+          internalAccountByScope,
+          assetId,
+        );
+        if (reimportAccountId) {
+          await AssetsController.addCustomAsset(reimportAccountId, assetId);
         } else {
           await AssetsController.unhideAsset(assetId);
         }

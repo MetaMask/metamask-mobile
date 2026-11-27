@@ -38,88 +38,50 @@ const CompactGameCard = ({
   game,
   onPress,
   onOrder,
-}: GameCompositionProps) => {
-  const [first, second] = getGameTeamOrder(game);
-
-  return (
-    <GameCard.Provider
-      event={event}
-      game={game}
-      onPress={onPress}
-      onOrder={onOrder}
+}: GameCompositionProps) => (
+  <GameCard.Provider
+    event={event}
+    game={game}
+    onPress={onPress}
+    onOrder={onOrder}
+  >
+    <EventCard.Root
+      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
-      <EventCard.Root
-        twClassName="rounded-2xl bg-section px-4 pb-4 pt-3"
-        testID={`predict-next-event-${event.venueId}-${event.id}`}
-      >
-        <GameCard.Navigation>
-          <GameCard.CompactStatus />
-          <EventCard.Body twClassName="gap-3 py-3">
-            <GameCard.CompactTeamRow selection={first} />
-            <GameCard.CompactTeamRow selection={second} />
-          </EventCard.Body>
-        </GameCard.Navigation>
-
-        <GameCard.Actions />
-
-        <GameCard.Footer>
-          <EventCard.FooterLeading>
-            <GameCard.Competition />
-            <EventCard.Volume value={event.volume} />
-          </EventCard.FooterLeading>
-          <GameCard.MoreMarkets />
-        </GameCard.Footer>
-      </EventCard.Root>
-    </GameCard.Provider>
-  );
-};
+      <GameCard.Navigation>
+        <GameCard.Header />
+      </GameCard.Navigation>
+      <GameCard.OutcomeRows labelVariant={TextVariant.BodyMd} />
+      <GameCard.VolumeFooter />
+    </EventCard.Root>
+  </GameCard.Provider>
+);
 
 const FeaturedGameCard = ({
   event,
   game,
   onPress,
   onOrder,
-}: GameCompositionProps) => {
-  const [first, second] = getGameTeamOrder(game);
-  const competition = event.sports?.competition?.label;
-
-  return (
-    <GameCard.Provider
-      event={event}
-      game={game}
-      onPress={onPress}
-      onOrder={onOrder}
+}: GameCompositionProps) => (
+  <GameCard.Provider
+    event={event}
+    game={game}
+    onPress={onPress}
+    onOrder={onOrder}
+  >
+    <EventCard.Root
+      twClassName="gap-3 rounded-[20px] border border-muted bg-elevated1 p-4"
+      testID={`predict-next-event-${event.venueId}-${event.id}`}
     >
-      <EventCard.Root
-        twClassName="rounded-2xl bg-section py-4"
-        testID={`predict-next-event-${event.venueId}-${event.id}`}
-      >
-        <GameCard.Navigation>
-          <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
-            <EventCard.HeaderRow.Title>{event.title}</EventCard.HeaderRow.Title>
-            {competition ? (
-              <EventCard.HeaderRow.Meta
-                testID={`predict-next-game-header-${event.id}-competition`}
-              >
-                {competition}
-              </EventCard.HeaderRow.Meta>
-            ) : null}
-          </EventCard.HeaderRow>
-          <GameCard.Matchup>
-            <GameCard.FeaturedTeam selection={first} />
-            <GameCard.Score selection={first} />
-            <GameCard.FeaturedStatus />
-            <GameCard.Score selection={second} />
-            <GameCard.FeaturedTeam selection={second} />
-          </GameCard.Matchup>
-          <GameCard.ProbabilityBar />
-        </GameCard.Navigation>
-
-        <GameCard.FeaturedActions />
-      </EventCard.Root>
-    </GameCard.Provider>
-  );
-};
+      <GameCard.Navigation>
+        <GameCard.Header />
+      </GameCard.Navigation>
+      <GameCard.OutcomeRows labelVariant={TextVariant.BodySm} />
+      <GameCard.VolumeFooter />
+    </EventCard.Root>
+  </GameCard.Provider>
+);
 
 /**
  * A 190pt tile for horizontal rows: Competition and start in the header, then

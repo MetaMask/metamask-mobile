@@ -13,7 +13,6 @@ import {
   SensitiveText,
   SensitiveTextLength,
   Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -29,9 +28,11 @@ import PerpsLiquidationPriceValue from '../../../components/PerpsLiquidationPric
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
@@ -39,7 +40,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
-import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
+import {
+  getDisplayedPositionMargin,
+  getPerpsPositionHeaderDisplay,
+} from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
@@ -194,10 +198,7 @@ const PerpsProPositionCard = ({
     pnlColor,
   } = getPerpsPositionHeaderDisplay(position);
 
-  const marginTypeLabel =
-    position.leverage.type === 'isolated'
-      ? strings('perps.pro_positions_panel.card.isolated')
-      : strings('perps.pro_positions_panel.card.cross');
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
@@ -214,7 +215,7 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_UNIVERSAL,
   });
   const isLong = parseFloat(position.size) > 0;
-  const marginDisplay = formatPerpsFiat(position.marginUsed, {
+  const marginDisplay = formatPerpsFiat(getDisplayedPositionMargin(position), {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
@@ -391,24 +392,21 @@ const PerpsProPositionCard = ({
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings(
-                  isCross
-                    ? 'perps.cross_position.margin_used'
-                    : 'perps.pro_positions_panel.card.margin',
-                )}
+                label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag
-                    severity={TagSeverity.Neutral}
+                  <PerpsMarginModeTag
+                    marginMode={position.leverage.type}
                     testID={
-                      isCross
+                      position.leverage.type === 'cross'
                         ? getPerpsCrossMarginTagSelector('pro', position.symbol)
-                        : undefined
+                        : getPerpsIsolatedMarginTagSelector(
+                            'pro',
+                            position.symbol,
+                          )
                     }
-                  >
-                    {marginTypeLabel}
-                  </Tag>
+                  />
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined

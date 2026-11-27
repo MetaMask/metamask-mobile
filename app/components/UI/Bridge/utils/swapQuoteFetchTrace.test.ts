@@ -74,10 +74,21 @@ describe('swapQuoteFetchTrace', () => {
     const traceId = swapQuoteFetchTrace.start({
       srcChainId: sourceToken.chainId,
       destChainId: crossChainDestinationToken.chainId,
+      srcTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      destTokenAddress: '0x0000000000000000000000000000000000001010',
       isRefresh: true,
     });
 
     expect(traceId).toBe('quote-trace-id');
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      expect.objectContaining({
+        src_token: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        dest_token: 'eip155:137/slip44:966',
+        token_pair:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48>eip155:137/slip44:966',
+      }),
+    );
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
       op: TraceOperation.BridgeDataFetch,
@@ -98,7 +109,11 @@ describe('swapQuoteFetchTrace', () => {
 
   it.each([
     [
-      { swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' } },
+      {
+        swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' },
+        swapsSWAPS5347AbtestImmediateFirstQuoteFetch: { name: 'treatment' },
+        swapsSWAPS5348AbtestYieldAfterFirstQuote: { name: 'treatment' },
+      },
       'treatment',
     ],
     [{}, 'control'],
@@ -111,10 +126,33 @@ describe('swapQuoteFetchTrace', () => {
 
       expect(annotateTraceByRequest).toHaveBeenCalledWith(
         { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
-        { first_quote_flush_variant: variant },
+        {
+          first_quote_flush_variant: variant,
+          immediate_first_quote_fetch_variant: variant,
+          yield_after_first_quote_variant: variant,
+        },
       );
     },
   );
+
+  it('keeps variant tags when token asset IDs cannot be built', () => {
+    swapQuoteFetchTrace.start({
+      srcChainId: '0x99999',
+      destChainId: '0x99999',
+      srcTokenAddress: '0x0000000000000000000000000000000000000000',
+      destTokenAddress: '0x0000000000000000000000000000000000000000',
+      isRefresh: false,
+    });
+
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      {
+        first_quote_flush_variant: 'control',
+        immediate_first_quote_fetch_variant: 'control',
+        yield_after_first_quote_variant: 'control',
+      },
+    );
+  });
 
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
@@ -198,6 +236,27 @@ describe('swapQuoteFetchTrace', () => {
       first_quote_in_state_ms: 900,
     });
     expect(mockUnsubscribe).toHaveBeenCalled();
+    now.mockRestore();
+  });
+
+  it('marks the active trace relative to its start, skipping replaced or ended traces', () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    now.mockReturnValue(1300);
+    const traceId = swapQuoteFetchTrace.mark('stream_fetch_start_ms');
+    mockUuid.mockReturnValue('next-trace-id');
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms', traceId);
+    swapQuoteFetchTrace.finish('success');
+    swapQuoteFetchTrace.mark('stream_first_quote_chunk_ms');
+
+    expect(traceId).toBe('quote-trace-id');
+    expect(annotateTraceByRequest).toHaveBeenCalledTimes(3);
+    expect(annotateTraceByRequest).toHaveBeenNthCalledWith(
+      2,
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      { stream_fetch_start_ms: 300 },
+    );
     now.mockRestore();
   });
 

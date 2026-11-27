@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   Text,
@@ -14,12 +13,16 @@ import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PREDICT_MARKET_UNAVAILABLE_TEST_IDS } from './PredictMarketUnavailableModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Shown instead of buy, cash out, or claim on a Protocol V2 market while the
  * `predictDisablePolymarketV2Markets` kill switch is on.
  */
 const PredictMarketUnavailableModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -38,7 +41,8 @@ const PredictMarketUnavailableModal: React.FC = () => {
       isInteractable
       testID={PREDICT_MARKET_UNAVAILABLE_TEST_IDS.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PREDICT_MARKET_UNAVAILABLE_TEST_IDS.CLOSE_BUTTON,
@@ -46,7 +50,7 @@ const PredictMarketUnavailableModal: React.FC = () => {
         textProps={{ testID: PREDICT_MARKET_UNAVAILABLE_TEST_IDS.TITLE }}
       >
         {strings('predict.market_unavailable.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         alignItems={BoxAlignItems.Start}
         paddingHorizontal={4}

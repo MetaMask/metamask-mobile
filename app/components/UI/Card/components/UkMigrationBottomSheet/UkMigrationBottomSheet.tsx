@@ -10,10 +10,8 @@ import {
   ButtonSize,
   FontWeight,
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
@@ -31,12 +29,9 @@ import {
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../util/metrics';
-
-export const createUkMigrationBottomSheetNavigationDetails =
-  createNavigationDetails(
-    Routes.CARD.MODALS.ID,
-    Routes.CARD.MODALS.UK_MIGRATION,
-  );
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MIGRATION_STEP_KEYS = [
   'card.uk_migration_bottom_sheet.steps.reverify_identity',
@@ -52,6 +47,7 @@ const MIGRATION_STEP_KEYS = [
  * via `useCardUkMigrationState` (clock-aware phase).
  */
 const UkMigrationBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedView = useRef(false);
   const navigation = useNavigation<AppNavigationProp>();
@@ -153,7 +149,8 @@ const UkMigrationBottomSheet = () => {
       keyboardAvoidingViewEnabled={false}
       testID={UkMigrationBottomSheetSelectors.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: UkMigrationBottomSheetSelectors.CLOSE_BUTTON,
@@ -165,7 +162,7 @@ const UkMigrationBottomSheet = () => {
         >
           {strings('card.uk_migration_bottom_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-6 gap-6">
         <Text

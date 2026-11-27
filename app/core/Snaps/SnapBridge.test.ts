@@ -37,6 +37,26 @@ jest.mock('../Engine/Engine', () => ({
     call: jest.fn().mockImplementation((action) => {
       if (action === 'PermissionController:hasUnrestrictedMethod') {
         return true;
+      } else if (action === 'NetworkController:getState') {
+        return {
+          selectedNetworkClientId: 'mainnet',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              chainId: '0x1',
+              name: 'Ethereum Mainnet',
+              nativeCurrency: 'ETH',
+              defaultRpcEndpointIndex: 0,
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'infura',
+                  url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                },
+              ],
+              blockExplorerUrls: ['https://etherscan.io'],
+            },
+          },
+        };
       } else if (action === 'AccountsController:listAccounts') {
         return [
           {

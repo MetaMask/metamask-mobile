@@ -109,6 +109,14 @@ const isPerpsControllerOrigin = (context) =>
     .includes('/@metamask/perps-controller/');
 
 module.exports = function (baseConfig) {
+  // Reject a misconfigured bundle before it can reach wallet initialization.
+  const collectiblesEnvironment = process.env.MM_COLLECTIBLES_ENVIRONMENT;
+  if (
+    collectiblesEnvironment &&
+    !['mainnet', 'devnet'].includes(collectiblesEnvironment)
+  ) {
+    throw new Error('MM_COLLECTIBLES_ENVIRONMENT must be devnet or mainnet');
+  }
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
       const defaultConfig = mergeConfig(

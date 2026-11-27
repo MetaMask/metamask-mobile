@@ -5,7 +5,7 @@ import { usePredictionsFeed } from '../../Predict/trending/usePredictionsFeed';
 import { useActiveVenue } from '../implementation/activeVenue';
 import { expectInactiveHookHasNoSideEffects } from '../implementation/inactiveHook.testUtils';
 import type { ActiveVenueResolution } from '../implementation/types';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import { SEARCH_QUERY_MAX_LENGTH } from '../hooks/useSearchEvents';
 import { readPredictEventRef } from '../navigation/entry/eventRef';
 import {

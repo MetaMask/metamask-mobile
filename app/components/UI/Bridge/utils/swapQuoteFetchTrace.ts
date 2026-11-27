@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
   formatChainIdToCaip,
   SwapFeatureTag,
   type GenericQuoteRequest,
@@ -14,7 +16,13 @@ import {
 } from '../../../../util/trace';
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
-import { selectFirstQuoteFlushVariant } from './firstQuoteFlushAbTestConfig';
+import {
+  FIRST_QUOTE_FLUSH_AB_KEY,
+  IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+  YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+  selectFirstQuoteAbTestVariant,
+} from './firstQuoteFlushAbTestConfig';
+import { normalizeTokenAddress } from './tokenUtils';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -25,10 +33,29 @@ export type SwapQuoteFetchTraceResult =
 interface StartSwapQuoteFetchTraceParams {
   srcChainId?: GenericQuoteRequest['srcChainId'];
   destChainId?: GenericQuoteRequest['destChainId'];
+  srcTokenAddress?: GenericQuoteRequest['srcTokenAddress'];
+  destTokenAddress?: GenericQuoteRequest['destTokenAddress'];
   isRefresh: boolean;
 }
 
+const toAssetId = (
+  address?: string,
+  chainId?: GenericQuoteRequest['srcChainId'],
+): ReturnType<typeof formatAddressToAssetId> => {
+  try {
+    return address === undefined
+      ? undefined
+      : formatAddressToAssetId(
+          normalizeTokenAddress(address, chainId as Hex),
+          chainId,
+        );
+  } catch {
+    return undefined;
+  }
+};
+
 let activeTraceId: string | undefined;
+let activeStartTime = 0;
 let stopWatchingQuotes: (() => void) | undefined;
 
 const unwatchQuotes = (): void => {
@@ -103,6 +130,8 @@ export const swapQuoteFetchTrace = {
   start({
     srcChainId,
     destChainId,
+    srcTokenAddress,
+    destTokenAddress,
     isRefresh,
   }: StartSwapQuoteFetchTraceParams): string {
     if (activeTraceId) {
@@ -141,13 +170,30 @@ export const swapQuoteFetchTrace = {
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
+    activeStartTime = startTime;
     try {
+      const state = ReduxService.store.getState();
+      const srcToken = toAssetId(srcTokenAddress, srcChainId);
+      const destToken = toAssetId(destTokenAddress, destChainId);
       annotateTraceByRequest(
         { name: TraceName.SwapQuoteFetch, id },
         {
-          first_quote_flush_variant: selectFirstQuoteFlushVariant(
-            ReduxService.store.getState(),
+          first_quote_flush_variant: selectFirstQuoteAbTestVariant(
+            state,
+            FIRST_QUOTE_FLUSH_AB_KEY,
           ),
+          immediate_first_quote_fetch_variant: selectFirstQuoteAbTestVariant(
+            state,
+            IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+          ),
+          yield_after_first_quote_variant: selectFirstQuoteAbTestVariant(
+            state,
+            YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+          ),
+          ...(srcToken && { src_token: srcToken }),
+          ...(destToken && { dest_token: destToken }),
+          ...(srcToken &&
+            destToken && { token_pair: `${srcToken}>${destToken}` }),
         },
       );
     } catch {
@@ -163,5 +209,16 @@ export const swapQuoteFetchTrace = {
     reason?: QuoteStreamCompleteReason,
   ): void {
     finishTrace(result, id, reason);
+  },
+
+  // Returns the trace id so later marks can skip a replaced span.
+  mark(key: string, id = activeTraceId): string | undefined {
+    if (id && id === activeTraceId) {
+      annotateTraceByRequest(
+        { name: TraceName.SwapQuoteFetch, id },
+        { [key]: Date.now() - activeStartTime },
+      );
+    }
+    return id;
   },
 };

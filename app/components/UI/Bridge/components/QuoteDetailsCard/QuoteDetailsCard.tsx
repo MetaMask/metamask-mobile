@@ -13,7 +13,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -71,7 +70,7 @@ if (
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
-  gaslessFeeAsset,
+  networkFeeAsset,
 }) => {
   const tw = useTailwind();
   const theme = useTheme();
@@ -172,6 +171,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const shouldShowPriceImpactRow =
     activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
+  // Hide recipient row to prevent changing the recipient money account
+  const shouldShowRecipientRow = !destToken?.isMoneyToken;
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -243,8 +245,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.network_fee_info_content_sponsored',
                     { nativeToken: nativeTokenName },
                   )}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Medium}
                 />
               ),
             }}
@@ -267,7 +267,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               ),
             }}
           />
-        ) : isGasless ? (
+        ) : (
           <KeyValueRow
             field={{
               label: (
@@ -275,7 +275,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   label={toSentenceCase(strings('bridge.network_fee'))}
                   tooltipTitle={strings('bridge.network_fee_info_title')}
                   tooltipContent={strings(
-                    'bridge.network_fee_info_content_gasless',
+                    isGasless
+                      ? 'bridge.network_fee_info_content_gasless'
+                      : 'bridge.network_fee_info_content',
                   )}
                 />
               ),
@@ -286,7 +288,11 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
-                  testID={BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE}
+                  testID={
+                    isGasless
+                      ? BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE
+                      : undefined
+                  }
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -294,7 +300,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   >
                     {formattedQuoteData?.networkFee}
                   </Text>
-                  {gaslessFeeAsset ? (
+                  {networkFeeAsset ? (
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
@@ -302,10 +308,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                       twClassName="rounded-md bg-muted px-1.5"
                     >
                       <AvatarToken
-                        name={gaslessFeeAsset.symbol}
+                        name={networkFeeAsset.symbol}
                         src={
-                          gaslessFeeAsset.iconUrl
-                            ? { uri: gaslessFeeAsset.iconUrl }
+                          networkFeeAsset.iconUrl
+                            ? { uri: networkFeeAsset.iconUrl }
                             : undefined
                         }
                         size={AvatarTokenSize.Xs}
@@ -314,31 +320,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                         variant={TextVariant.BodyXs}
                         color={TextColor.TextAlternative}
                       >
-                        {gaslessFeeAsset.symbol}
+                        {networkFeeAsset.symbol}
                       </Text>
                     </Box>
                   ) : null}
                 </Box>
               ),
-            }}
-          />
-        ) : (
-          <KeyValueRow
-            field={{
-              label: (
-                <TooltipLabel
-                  label={toSentenceCase(strings('bridge.network_fee'))}
-                  tooltipTitle={strings('bridge.network_fee_info_title')}
-                  tooltipContent={strings('bridge.network_fee_info_content')}
-                />
-              ),
-            }}
-            value={{
-              label: {
-                text: formattedQuoteData.networkFee,
-                variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Default,
-              },
             }}
           />
         )}
@@ -467,7 +454,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <QuoteDetailsRecipientKeyValueRow />
+        {shouldShowRecipientRow && <QuoteDetailsRecipientKeyValueRow />}
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (

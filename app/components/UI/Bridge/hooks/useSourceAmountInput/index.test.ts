@@ -10,8 +10,11 @@ import { useTokenFiatRate } from '../useTokenFiatRate';
 import {
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
+  formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
+import { Keys } from '../../../../Base/Keypad/constants';
 
 jest.mock('../../components/TokenInputArea', () => ({
   MAX_INPUT_LENGTH: 36,
@@ -26,10 +29,16 @@ jest.mock('../useTokenFiatRate', () => ({
   useTokenFiatRate: jest.fn(),
 }));
 jest.mock('../useSourceAmountCursor', () => ({
-  useSourceAmountCursor: () => ({
+  useSourceAmountCursor: ({
+    onSourceAmountChange,
+  }: {
+    onSourceAmountChange: (value: string | undefined) => void;
+  }) => ({
     sourceSelection: { start: 0, end: 0 },
     handleSourceSelectionChange: jest.fn(),
-    handleKeypadChange: jest.fn(),
+    handleKeypadChange: ({ value }: { value: string }) => {
+      onSourceAmountChange(value || undefined);
+    },
     resetSourceAmountCursorPosition: jest.fn(),
     setSourceAmountCursorPositionToEnd: jest.fn(),
   }),
@@ -137,6 +146,7 @@ describe('useSourceAmountInput token fiat rate', () => {
       result.current.handleToggle();
     });
 
+    expect(result.current.fiatRate).toBe(2500);
     expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2500);
     expect(formatFiatInputAmount).not.toHaveBeenCalledWith('1', 2000);
   });
@@ -155,6 +165,7 @@ describe('useSourceAmountInput token fiat rate', () => {
       result.current.handleToggle();
     });
 
+    expect(result.current.fiatRate).toBe(2000);
     expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2000);
   });
 });
@@ -184,7 +195,10 @@ describe('useSourceAmountInput analytics', () => {
 
     expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
       UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
-      expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
+      expect.objectContaining({
+        feature_id: FeatureId.LIMIT_ORDER,
+        money_account_action: undefined,
+      }),
     );
   });
 });
@@ -236,5 +250,111 @@ describe('useSourceAmountInput max amount', () => {
     const { result } = renderMaxHook();
 
     expect(result.current.amount).toBe('1.234567890123456789');
+  });
+});
+
+describe('useSourceAmountInput money token', () => {
+  const moneySourceToken = {
+    address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    symbol: 'MUSD',
+    chainId: '0x8f' as const,
+    decimals: 6,
+    isMoneyToken: true,
+  };
+
+  const renderMoneyHook = () =>
+    renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '10.25',
+        sourceToken: moneySourceToken,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockUseTokenFiatRate.mockReturnValue(1);
+    jest.mocked(formatTokenInputAmountFromFiat).mockReturnValue('1');
+  });
+
+  it('locks fiat mode and disables the fiat toggle', () => {
+    const { result } = renderMoneyHook();
+
+    expect(result.current.isFiatMode).toBe(true);
+    expect(result.current.canToggle).toBe(false);
+    expect(result.current.inputPrefix).toBe('$');
+  });
+
+  it('uses the money name as the secondary value', () => {
+    const { result } = renderMoneyHook();
+
+    expect(result.current.secondaryValue).toBe(strings('bridge.money_name'));
+  });
+
+  it('does not toggle away from fiat mode', () => {
+    const { result } = renderMoneyHook();
+
+    act(() => {
+      result.current.handleToggle();
+    });
+
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+    expect(result.current.isFiatMode).toBe(true);
+  });
+
+  // Hook-local fiatAmount vs Redux sourceAmount. CV cannot observe this
+  // without rendering BridgeMarketView and driving the keypad.
+  it('shows the converted fiat amount from the redux source amount', () => {
+    const { result } = renderMoneyHook();
+
+    expect(formatFiatInputAmount).toHaveBeenCalledWith('10.25', 1);
+    expect(result.current.amount).toBe('2000');
+  });
+
+  it('writes the token amount when a fiat rate arrives after typing', () => {
+    const onSourceAmountChange = jest.fn();
+    jest
+      .mocked(formatTokenInputAmountFromFiat)
+      .mockImplementation(({ tokenFiatRate, fiatAmount }) => {
+        if (!tokenFiatRate || !fiatAmount) {
+          return undefined;
+        }
+
+        return '10.25';
+      });
+    mockUseTokenFiatRate.mockReturnValue(undefined);
+
+    const { result, rerender } = renderHook(
+      ({ tokenFiatRate, sourceAmount }) =>
+        useSourceAmountInput({
+          isFiatToggleEnabled: true,
+          sourceAmount,
+          sourceToken: moneySourceToken,
+          tokenFiatRate,
+          onSourceAmountChange,
+        }),
+      {
+        initialProps: {
+          tokenFiatRate: undefined as number | undefined,
+          sourceAmount: undefined as string | undefined,
+        },
+      },
+    );
+
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '10.25',
+        valueAsNumber: 10.25,
+        pressedKey: Keys.Digit5,
+      });
+    });
+
+    expect(onSourceAmountChange).toHaveBeenCalledWith(undefined);
+
+    rerender({ tokenFiatRate: 1, sourceAmount: undefined });
+
+    expect(onSourceAmountChange).toHaveBeenCalledWith('10.25');
   });
 });

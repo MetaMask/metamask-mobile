@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLiveAvailableToTrade } from '../../hooks/stream/usePerpsLiveAvailableToTrade';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -34,6 +35,15 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: { spendableBalance: '1000' },
     isInitialLoading: false,
+  })),
+}));
+
+jest.mock('../../hooks/stream/usePerpsLiveAvailableToTrade', () => ({
+  ...jest.requireActual('../../hooks/stream/usePerpsLiveAvailableToTrade'),
+  usePerpsLiveAvailableToTrade: jest.fn(() => ({
+    availableToTrade: null,
+    isInitialLoading: false,
+    isUnavailable: false,
   })),
 }));
 
@@ -93,10 +103,19 @@ describe('PerpsLimitPriceBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { usePerpsLivePrices, usePerpsTopOfBook } =
+    const { usePerpsLivePrices, usePerpsTopOfBook, usePerpsLiveAccount } =
       jest.requireMock('../../hooks/stream');
     usePerpsLivePrices.mockReturnValue({});
     usePerpsTopOfBook.mockReturnValue({ bestBid: '2995', bestAsk: '3005' });
+    usePerpsLiveAccount.mockReturnValue({
+      account: { spendableBalance: '1000' },
+      isInitialLoading: false,
+    });
+    jest.mocked(usePerpsLiveAvailableToTrade).mockReturnValue({
+      availableToTrade: null,
+      isInitialLoading: false,
+      isUnavailable: false,
+    });
   });
 
   describe('Component Rendering', () => {
@@ -492,6 +511,93 @@ describe('PerpsLimitPriceBottomSheet', () => {
       // Assert - the button is disabled and confirm is not called
       expect(confirmButton).toBeDisabled();
       expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Open order price edit', () => {
+    const openOrderProps = {
+      ...defaultProps,
+      limitPrice: '3100',
+      restingOrderSize: '1',
+      leverage: 10,
+    };
+
+    const mockAvailableToTrade = (
+      value: Partial<ReturnType<typeof usePerpsLiveAvailableToTrade>>,
+    ) => {
+      jest.mocked(usePerpsLiveAvailableToTrade).mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: false,
+        isUnavailable: false,
+        ...value,
+      });
+    };
+
+    it('enables Set once the venue reports available to trade', () => {
+      mockAvailableToTrade({
+        availableToTrade: {
+          providerId: 'hyperliquid',
+          symbol: 'ETH',
+          long: '1000',
+          short: '0',
+        },
+      });
+
+      render(<PerpsLimitPriceBottomSheet {...openOrderProps} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeEnabled();
+    });
+
+    it('holds Set while available to trade is loading', () => {
+      mockAvailableToTrade({ isInitialLoading: true });
+
+      render(<PerpsLimitPriceBottomSheet {...openOrderProps} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeDisabled();
+    });
+
+    it('falls back to the account spendable balance when the available-to-trade stream fails', () => {
+      mockAvailableToTrade({ isUnavailable: true });
+      const mockOnConfirm = jest.fn();
+
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...openOrderProps}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+
+      expect(mockOnConfirm).toHaveBeenCalledWith('3100');
+    });
+
+    it('holds Set when the stream fails and the account balance is unknown', () => {
+      mockAvailableToTrade({ isUnavailable: true });
+      const { usePerpsLiveAccount } = jest.requireMock('../../hooks/stream');
+      usePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+      });
+
+      render(<PerpsLimitPriceBottomSheet {...openOrderProps} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeDisabled();
     });
   });
 

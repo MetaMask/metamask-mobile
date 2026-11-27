@@ -11,6 +11,9 @@ import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -69,6 +72,7 @@ describe('GaslessQuickPickOptions', () => {
       ...actualUseAnalytics(),
       trackEvent: jest.fn(),
     }));
+    jest.mocked(playSelection).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -204,6 +208,7 @@ describe('GaslessQuickPickOptions', () => {
       });
 
       expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).not.toHaveBeenCalled();
     });
   });
 
@@ -376,6 +381,7 @@ describe('GaslessQuickPickOptions', () => {
       });
 
       expect(mockOnAmountSelect).toHaveBeenCalledWith('75.375');
+      expect(playSelection).toHaveBeenCalledTimes(3);
 
       act(() => {
         fireEvent.press(getByText('Max'));
@@ -450,6 +456,7 @@ describe('GaslessQuickPickOptions', () => {
       });
 
       expect(mockOnAmountSelect).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
     });
   });
 });

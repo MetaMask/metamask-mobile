@@ -114,6 +114,12 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
+  // The production sync enables card link discovery for the E2E app, but the
+  // card links endpoint is not part of the shared smoke-test API fixtures.
+  cardLinkApi: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
   crossmintApplePayCheckout: {
     enabled: false,
     minimumVersion: '0.0.0',
@@ -143,6 +149,84 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   moneyEnableSplash: {
     enabled: false,
     minimumVersion: '0.0.0',
+  },
+  // The production sync enables this controller, which starts the referral
+  // request during app startup. Keep it disabled until that endpoint is mocked.
+  rewardsMoneyControllerEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  // 2026-11-17 prod sync turned these on at versions the 8.21.0 E2E build
+  // meets. Keep the registry at the prod values; pin the pre-sync UI here so
+  // smoke tests do not pick up the new MFA screen, brand-refresh chrome, or
+  // the floating tab bar / interim header that hides trade-tab-bar-item-icon-container.
+  mfaUiKit: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  perpsBrandRefresh: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  exploreBrandRefresh: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  glassHeaders: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  tokenDetailsBrandRefresh: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  // homeInterimHeaderNavBar: true activates isRefreshedNavBar → floating tab bar,
+  // which omits trade-tab-bar-item-icon-container and breaks every test that
+  // navigates via TabBarComponent.tapActions().
+  homeInterimHeaderNavBar: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  homeBrandRefreshSurfaces: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  moneyMovementNeobankEur: {
+    enabled: false,
+    minimumVersion: '8.22.0',
+    currency: 'EUR',
+    regions: [
+      'AT',
+      'BE',
+      'HR',
+      'CY',
+      'CZ',
+      'DK',
+      'EE',
+      'FI',
+      'FR',
+      'DE',
+      'GR',
+      'HU',
+      'IS',
+      'IE',
+      'IT',
+      'LV',
+      'LI',
+      'LT',
+      'LU',
+      'MT',
+      'NL',
+      'NO',
+      'PL',
+      'PT',
+      'RO',
+      'SK',
+      'SI',
+      'ES',
+      'SE',
+    ],
+    layout: 'Sepa',
   },
 };
 

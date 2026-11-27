@@ -93,7 +93,6 @@ export interface ExploreSearchInteractedProperties {
 
 export type ExploreTabName =
   | 'Now'
-  | 'Macro'
   | 'Perps'
   | 'RWAs'
   | 'Crypto'
@@ -103,8 +102,12 @@ export type ExploreTabName =
 export type ExploreSectionName =
   | 'tokens_movers'
   | 'tokens_trending'
+  | 'tokens_watchlist'
+  | 'tokens_gainers'
+  | 'tokens_losers'
+  | 'tokens_most_traded'
+  | 'tokens_robinhood'
   | 'perps_movers'
-  | 'perps_stocks_commodities'
   | 'perps_markets'
   | 'perps_tab_markets'
   | 'perps_crypto'

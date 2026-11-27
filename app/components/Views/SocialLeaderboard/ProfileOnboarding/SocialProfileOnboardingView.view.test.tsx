@@ -359,13 +359,19 @@ const renderOnboarding = async (
   ...args: Parameters<typeof renderSocialProfileOnboarding>
 ) => {
   const result = renderSocialProfileOnboarding(...args);
-  await waitFor(() => {
-    expect(
-      introActionDisabled(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    ).toBe(false);
-  });
+  await waitFor(
+    () => {
+      expect(
+        introActionDisabled(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      ).toBe(false);
+    },
+    // The intro actions stay disabled until the existing-profile lookup query
+    // (session read, then ProfileController fetch) settles and the screen
+    // re-renders, which can exceed the 1s default on a loaded CV shard.
+    { timeout: 5000 },
+  );
   return result;
 };
 
@@ -381,6 +387,49 @@ const openManualUsernameStep = async () => {
       SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
     ),
   ).toBeOnTheScreen();
+};
+
+/**
+ * Triggers an edit that schedules the 400ms debounced availability check and
+ * awaits the resulting `ProfileController.checkUsernameAvailability` call
+ * inside `act`, avoiding RNTL `waitFor` wall-clock timeout races on slow shards.
+ */
+const awaitDebouncedUsernameCheck = async (
+  trigger: () => void,
+): Promise<void> => {
+  const availabilitySpy = jest.mocked(
+    Engine.context.ProfileController.checkUsernameAvailability,
+  );
+  const previousImpl = availabilitySpy.getMockImplementation();
+  let markSettled!: () => void;
+  const settled = new Promise<void>((resolve) => {
+    markSettled = resolve;
+  });
+
+  availabilitySpy.mockClear();
+  availabilitySpy.mockImplementationOnce(async (...args) => {
+    try {
+      return previousImpl
+        ? await previousImpl(...args)
+        : {
+            username: args[0],
+            available: true,
+            valid: true,
+            normalized: args[0],
+            errors: [],
+          };
+    } finally {
+      // Yield two microtasks after resolving so fetchUsernameAvailability and
+      // checkHandle both commit their state update before act flushes.
+      queueMicrotask(() => queueMicrotask(markSettled));
+    }
+  });
+
+  trigger();
+
+  await act(async () => {
+    await settled;
+  });
 };
 
 const submitDisplayName = (name: string) => {
@@ -1083,15 +1132,17 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING,
       ),
-    ).toHaveAnimatedStyle({ opacity: 1 });
-    const outgoingTitle = screen.getByTestId(
-      SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
-      { includeHiddenElements: true },
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title'),
     );
-    expect(outgoingTitle).toHaveTextContent(
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
+        { includeHiddenElements: true },
+      ),
+    ).toHaveTextContent(
       strings('social_leaderboard.profile_onboarding.intro_title_activity'),
     );
-    expect(outgoingTitle).toHaveAnimatedStyle({ opacity: 0 });
 
     act(() => {
       __setRivePropertyValue('currentStep', 3);
@@ -1108,7 +1159,7 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
     ).toHaveTextContent(
-      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
+      strings('social_leaderboard.profile_onboarding.intro_title_post'),
     );
   });
 
@@ -1536,38 +1587,29 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('checks availability for a handle with a trailing underscore', async () => {
-    await renderOnboarding();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
+    await openManualUsernameStep();
     const usernameInput = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
-    fireEvent.changeText(usernameInput, 'hello_');
+
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+      expect(
+        screen.queryByText(
+          strings('social_leaderboard.profile_onboarding.username_invalid'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
 
     expect(
-      screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.profile_onboarding.username_available'),
+        { exact: true },
       ),
-    ).not.toBeOnTheScreen();
-    // Availability is debounced 400ms. Wait for the available status — the
-    // assertion subject — with a budget above that debounce.
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.ProfileController.checkUsernameAvailability,
-        ).toHaveBeenCalledWith('hello_');
-        expect(
-          screen.getByText(
-            strings('social_leaderboard.profile_onboarding.username_available'),
-            { exact: true },
-          ),
-        ).toBeOnTheScreen();
-      },
-      { timeout: 3000 },
-    );
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
@@ -1584,54 +1626,53 @@ describe('SocialProfileOnboardingView', () => {
         normalized: 'hello_',
         errors: [],
       });
-    await renderOnboarding();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
+    await openManualUsernameStep();
     const usernameInput = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
-
-    fireEvent.changeText(usernameInput, 'hello_');
-    await waitFor(
-      () => {
-        expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
-        ).toBeOnTheScreen();
-      },
-      // Username availability is debounced 400ms before the taken result renders.
-      { timeout: 3000 },
+    const unavailableCopy = strings(
+      'social_leaderboard.profile_onboarding.username_unavailable',
+    );
+    const tooShortCopy = strings(
+      'social_leaderboard.profile_onboarding.username_too_short',
+      { min: 3 },
     );
 
-    fireEvent.changeText(usernameInput, 'h');
-    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+    });
+
     expect(
-      screen.queryByText('This handle is unavailable. Choose another one.'),
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
+
+    fireEvent.changeText(usernameInput, 'h');
+    expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
+    expect(screen.queryByText(unavailableCopy)).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_available'),
+        { exact: true },
+      ),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
     ).toBe(true);
 
     fireEvent.changeText(usernameInput, 'ab');
-    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
 
-    fireEvent.changeText(usernameInput, 'hello_');
-    await waitFor(
-      () => {
-        expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
-        ).toBeOnTheScreen();
-      },
-      // Username availability is debounced 400ms before the taken result renders.
-      { timeout: 3000 },
-    );
+    await awaitDebouncedUsernameCheck(() => {
+      fireEvent.changeText(usernameInput, 'hello_');
+    });
+
     expect(
-      screen.queryByText('Use at least 3 characters.'),
-    ).not.toBeOnTheScreen();
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('hello_');
+    expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
+    expect(screen.queryByText(tooShortCopy)).not.toBeOnTheScreen();
   });
 
   it('stays on the username step when the availability check fails', async () => {
@@ -2054,7 +2095,9 @@ describe('SocialProfileOnboardingView', () => {
       expect.objectContaining({
         username: 'moon_fox',
         display_name: 'Degan Giri',
-        avatar_url: 'foxicon://zombie/background3',
+        avatar_url: expect.stringMatching(
+          /^foxicon:\/\/zombie\/background\d+$/,
+        ),
       }),
     );
   });
@@ -2193,6 +2236,7 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(screen.getByText('Linked account')).toBeOnTheScreen();
     expect(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE,

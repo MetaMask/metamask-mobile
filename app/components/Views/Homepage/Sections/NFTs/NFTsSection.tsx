@@ -67,7 +67,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const { onRefresh } = useNftRefresh();
     const { detectNfts } = useNftDetection();
     const detectNftsRef = useRef(detectNfts);
-    detectNftsRef.current = detectNfts;
 
     const title = strings('homepage.sections.nfts');
 
@@ -83,11 +82,28 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
     const lastDetectionRef = useRef<number | null>(null);
     const prevAddressRef = useRef(selectedAddress);
+    const detectionRequestIdRef = useRef(0);
+    const isMountedRef = useRef(false);
     // Read via refs to avoid making them deps of the detection effect, which would
     // cause the effect to re-run when NFTs load in and reset the throttle prematurely.
     const hasNftsRef = useRef(hasNfts);
-    hasNftsRef.current = hasNfts;
     const [hasDetected, setHasDetected] = useState(hasNfts);
+    const [isDetectionInFlight, setIsDetectionInFlight] = useState(false);
+    const [detectionError, setDetectionError] = useState(false);
+    useEffect(() => {
+      isMountedRef.current = true;
+
+      return () => {
+        isMountedRef.current = false;
+        detectionRequestIdRef.current += 1;
+      };
+    }, []);
+    useEffect(() => {
+      detectNftsRef.current = detectNfts;
+    });
+    useEffect(() => {
+      hasNftsRef.current = hasNfts;
+    });
 
     // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
     // Deferred detection — only runs when the section has scrolled into the viewport.
@@ -97,8 +113,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     useEffect(() => {
       if (prevAddressRef.current !== selectedAddress) {
         prevAddressRef.current = selectedAddress;
+        detectionRequestIdRef.current += 1;
         lastDetectionRef.current = null;
         setHasDetected(hasNftsRef.current);
+        setIsDetectionInFlight(false);
+        setDetectionError(false);
         onViewportLayout();
       }
 
@@ -116,9 +135,28 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
       lastDetectionRef.current = now;
       setHasDetected(true);
-      detectNftsRef.current(true, false).catch(() => {
-        // detection errors are non-fatal
-      });
+      setDetectionError(false);
+      const requestId = detectionRequestIdRef.current + 1;
+      detectionRequestIdRef.current = requestId;
+      setIsDetectionInFlight(true);
+      void detectNftsRef
+        .current(true, false)
+        .catch(() => {
+          if (
+            isMountedRef.current &&
+            detectionRequestIdRef.current === requestId
+          ) {
+            setDetectionError(true);
+          }
+        })
+        .finally(() => {
+          if (
+            isMountedRef.current &&
+            detectionRequestIdRef.current === requestId
+          ) {
+            setIsDetectionInFlight(false);
+          }
+        });
     }, [isVisible, visitId, selectedAddress, onViewportLayout]);
 
     const displayNfts = useMemo(
@@ -127,13 +165,18 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     );
 
     // Split NFTs into rows of NFTS_PER_ROW
-    const nftRows = useMemo(() => {
-      const rows: (typeof displayNfts)[] = [];
-      for (let i = 0; i < displayNfts.length; i += NFTS_PER_ROW) {
-        rows.push(displayNfts.slice(i, i + NFTS_PER_ROW));
-      }
-      return rows;
-    }, [displayNfts]);
+    const nftRows = useMemo(
+      () =>
+        Array.from(
+          { length: Math.ceil(displayNfts.length / NFTS_PER_ROW) },
+          (_, rowIndex) =>
+            displayNfts.slice(
+              rowIndex * NFTS_PER_ROW,
+              rowIndex * NFTS_PER_ROW + NFTS_PER_ROW,
+            ),
+        ),
+      [displayNfts],
+    );
 
     const handleViewAllNfts = useCallback(() => {
       navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
@@ -158,9 +201,22 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.NFTS,
-      contentReady: hasNfts,
+      // Before detection runs, the mounted skeleton is only an idle
+      // placeholder. A completed empty detection is valid TTC content.
+      contentReady:
+        hasNfts ||
+        (hasDetected &&
+          !isDetecting &&
+          !isDetectionInFlight &&
+          !detectionError),
+      demandStarted:
+        isVisible &&
+        (hasNfts || hasDetected || isDetecting || isDetectionInFlight),
+      cacheState: hasNfts ? 'warm' : 'cold',
       isEmpty: !hasNfts,
-      isLoading: isDetecting,
+      contentStateForTrace: detectionError && !hasNfts ? 'error' : undefined,
+      contentError: detectionError && !hasNfts,
+      isLoading: isDetecting || isDetectionInFlight,
       enabled: true,
     });
 
@@ -172,7 +228,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     // Hide only after detection has run and found nothing.
     // Before detection runs, keep the View mounted so useSectionViewportVisible
     // can measure it and trigger detection.
-    if (!hasNfts && hasDetected && !isDetecting) {
+    if (!hasNfts && hasDetected && !isDetecting && !isDetectionInFlight) {
       return null;
     }
 

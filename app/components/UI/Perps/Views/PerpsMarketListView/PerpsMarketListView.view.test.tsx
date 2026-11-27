@@ -5,15 +5,25 @@
  * Run with: yarn jest -c jest.config.view.js PerpsMarketListView.view.test
  */
 import '../../../../../../tests/component-view/mocks';
-import { act, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { withLighterBuildEnabled } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsMarketListViewSelectorsIDs,
   getPerpsMarketRowItemSelector,
+  PerpsProviderLogosSelectorsIDs,
 } from '../../Perps.testIds';
+import { PerpsExchangeFilterSheetSelectorsIDs } from '../../components/PerpsExchangeFilterSheet/PerpsExchangeFilterSheet';
 import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../../selectors/featureFlags';
-import { PerpsMarketData } from '@metamask/perps-controller';
+import { PerpsMarketData, PerpsProviderType } from '@metamask/perps-controller';
 
 const TIMEOUT_MS = 5000;
 
@@ -535,6 +545,271 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('AAPL')),
       ).toBeOnTheScreen();
+    });
+  });
+});
+
+describe('Exchange (venue) filter — TAT-4407', () => {
+  describe('with two venues available', () => {
+    withLighterBuildEnabled();
+
+    interface VenueFilterCase {
+      venues: PerpsProviderType[];
+      label: string;
+      listed: string[];
+      hidden: string[];
+    }
+
+    it.each<VenueFilterCase>([
+      {
+        venues: ['hyperliquid'],
+        label: '1 exchange',
+        listed: ['ETH'],
+        hidden: ['BTC'],
+      },
+      {
+        venues: ['lighter'],
+        label: '1 exchange',
+        listed: ['BTC'],
+        hidden: ['ETH'],
+      },
+      {
+        venues: ['hyperliquid', 'lighter'],
+        label: '2 exchanges',
+        listed: ['ETH', 'BTC'],
+        hidden: [],
+      },
+    ])(
+      'renders $label and lists only the selected venues ($listed)',
+      async ({ venues, listed, hidden }) => {
+        const twoExchange = perpsTwoExchangeState('bothFunded');
+        renderPerpsMarketListView({
+          ...twoExchange,
+          overrides: {
+            ...twoExchange.overrides,
+            settings: {
+              ...twoExchange.overrides.settings,
+              perpsMarketListPreferences: { selectedProviderIds: [...venues] },
+            },
+          },
+        });
+
+        const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+        // TAT-4511: the count itself is the exchange selector.
+        expect(
+          await screen.findAllByTestId(
+            `${sortFiltersId}-secondary-exchange-filter`,
+          ),
+        ).not.toHaveLength(0);
+        expect(
+          await screen.findAllByTestId(
+            `${sortFiltersId}-secondary-exchange-filter-chevron`,
+          ),
+        ).not.toHaveLength(0);
+
+        // The list shows the selected venues' markets only: the preset has
+        // ETH on Hyperliquid and BTC on Lighter.
+        for (const symbol of listed) {
+          expect(
+            await screen.findByTestId(
+              getPerpsMarketRowItemSelector.assetLabel(symbol),
+            ),
+          ).toBeOnTheScreen();
+        }
+        for (const symbol of hidden) {
+          expect(
+            screen.queryByTestId(
+              getPerpsMarketRowItemSelector.assetLabel(symbol),
+            ),
+          ).not.toBeOnTheScreen();
+        }
+      },
+    );
+
+    it('saves a venue selection from the sheet and drops the deselected venue rows', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView(twoExchange);
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+
+      // Both venues are listed before the filter changes.
+      expect(
+        await screen.findByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('ETH'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('BTC'),
+        ),
+      ).toBeOnTheScreen();
+
+      // Act — open the sheet, deselect Lighter, save.
+      const [trigger] = screen.getAllByTestId(
+        `${sortFiltersId}-secondary-exchange-filter`,
+      );
+      fireEvent.press(trigger);
+      fireEvent.press(
+        await screen.findByTestId(
+          `${PerpsExchangeFilterSheetSelectorsIDs.OPTION}-lighter`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsExchangeFilterSheetSelectorsIDs.SAVE_BUTTON),
+      );
+
+      // Assert — the count selector reads the saved selection (TAT-4511:
+      // only the Hyperliquid mark remains next to the count) and the sheet
+      // closes.
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(
+            `${PerpsExchangeFilterSheetSelectorsIDs.OPTION}-lighter`,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+      const [countLogos] = screen.getAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
+      expect(
+        within(countLogos).getByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(countLogos).queryByTestId(
+          PerpsProviderLogosSelectorsIDs.LIGHTER,
+        ),
+      ).not.toBeOnTheScreen();
+
+      // The Lighter-only market left the list; the Hyperliquid one stayed.
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toBeOnTheScreen();
+    });
+
+    it('disables save when every option is deselected, keeping at least one venue', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView(twoExchange);
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      const [trigger] = await screen.findAllByTestId(
+        `${sortFiltersId}-secondary-exchange-filter`,
+      );
+      fireEvent.press(trigger);
+
+      const saveButton = await screen.findByTestId(
+        PerpsExchangeFilterSheetSelectorsIDs.SAVE_BUTTON,
+      );
+      expect(saveButton).not.toBeDisabled();
+
+      // Act — deselect every option.
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsExchangeFilterSheetSelectorsIDs.OPTION}-lighter`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsExchangeFilterSheetSelectorsIDs.OPTION}-hyperliquid`,
+        ),
+      );
+
+      // Assert — the "at least one venue" rule disables the save.
+      expect(
+        screen.getByTestId(PerpsExchangeFilterSheetSelectorsIDs.SAVE_BUTTON),
+      ).toBeDisabled();
+    });
+  });
+
+  describe('with a single venue available', () => {
+    it('hides the exchange filter trigger', async () => {
+      renderPerpsMarketListView();
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      await screen.findByText('Markets');
+      expect(
+        screen.queryByTestId(`${sortFiltersId}-secondary-exchange-filter`),
+      ).not.toBeOnTheScreen();
+    });
+  });
+});
+
+describe('Market-count exchange logos — TAT-4511', () => {
+  describe('with the Lighter flag off', () => {
+    it('renders no exchange logo next to the market count', async () => {
+      renderPerpsMarketListView();
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      await screen.findByText('Markets');
+      expect(
+        screen.queryByTestId(`${sortFiltersId}-secondary-provider-logos`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('with the Lighter flag on in aggregated mode', () => {
+    withLighterBuildEnabled();
+
+    it('shows both exchange logos overlapped next to the count', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView(twoExchange);
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      // Scoped to the count marks: the balance row renders its own pair,
+      // driven by the active provider rather than the venue filter.
+      const [countLogos] = await screen.findAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
+      expect(
+        within(countLogos).getByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(countLogos).getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows only the selected venue logo when one venue is selected', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView({
+        ...twoExchange,
+        overrides: {
+          ...twoExchange.overrides,
+          settings: {
+            ...twoExchange.overrides.settings,
+            perpsMarketListPreferences: { selectedProviderIds: ['lighter'] },
+          },
+        },
+      });
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      const [countLogos] = await screen.findAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
+      expect(
+        within(countLogos).getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+      // The unselected venue's mark must not appear next to the count. The
+      // query must be scoped: the balance row keeps both marks (they follow
+      // the active provider, not the venue filter).
+      expect(
+        within(countLogos).queryByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 });

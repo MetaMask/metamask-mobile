@@ -28,6 +28,7 @@ import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   COMPONENT_NAMES,
@@ -40,6 +41,13 @@ import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+
+jest.mock('../../../../../util/haptics', () => ({
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    SecondaryCTA: 'secondaryCta',
+  },
+}));
 
 const mockNavigate = jest.fn();
 const mockNavigation = { dispatch: jest.fn(), navigate: mockNavigate };
@@ -249,6 +257,10 @@ const VARIANT_EXPECTATIONS: Record<
 describe('MoneyVbaHomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps the last mockReturnValue. The persisted-details
+    // case sets this to true, which would skip hydration on a later
+    // account_is_ready run.
+    mockCanOpenPersistedVbaDetails.mockReturnValue(false);
     mockChooseCurrency = false;
     mockResolve.mockResolvedValue({
       status: 'ready',
@@ -335,6 +347,20 @@ describe('MoneyVbaHomeCard', () => {
     },
   );
 
+  it('names the market currency in the get_started description', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.get_started;
+
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="get_started" sourceCurrency="EUR" />,
+    );
+
+    expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
+      strings('money.vba_home_card.get_started.description_with_currency', {
+        currency: 'EUR',
+      }),
+    );
+  });
+
   it('renders the identity_verified copy from Connor', () => {
     const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified;
 
@@ -361,7 +387,7 @@ describe('MoneyVbaHomeCard', () => {
         snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT, kycStatus: 'approved' },
       });
       const { getByTestId } = render(
-        <MoneyVbaHomeCard variant="identity_verified" />,
+        <MoneyVbaHomeCard variant="identity_verified" sourceCurrency="EUR" />,
       );
 
       fireEvent.press(
@@ -372,6 +398,7 @@ describe('MoneyVbaHomeCard', () => {
         expect(mockOpenVbaAccountSetup).toHaveBeenCalledWith(
           mockNavigation,
           chooseCurrency,
+          'EUR',
         );
       });
       expect(mockNavigateToDestination).not.toHaveBeenCalled();
@@ -407,33 +434,6 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockOpenVbaAccountSetup).not.toHaveBeenCalled();
   });
 
-  it('renders the kyc_pending CTA disabled, with no loader', () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON,
-    );
-
-    expect(cta).toHaveTextContent(
-      strings('money.vba_home_card.kyc_pending.cta'),
-    );
-    expect(cta).toBeDisabled();
-    // ButtonBase only sets `busy` while its loading spinner shows.
-    expect(cta.props.accessibilityState).toEqual({ disabled: true });
-  });
-
-  it('ignores presses on the disabled kyc_pending CTA', () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
-
-    fireEvent.press(
-      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
-    );
-
-    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
-    expect(mockStartVbaCufJourney).not.toHaveBeenCalled();
-    expect(mockResolve).not.toHaveBeenCalled();
-    expect(mockNavigateToDestination).not.toHaveBeenCalled();
-  });
-
   it('tracks the CTA click before starting the VBA journey', () => {
     mockResolve.mockReturnValue(
       new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
@@ -449,6 +449,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackButtonClicked.mock.invocationCallOrder[0]).toBeLessThan(
       mockStartVbaCufJourney.mock.invocationCallOrder[0],
     );
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('opens persisted account details directly and stays tappable afterward', () => {
@@ -790,27 +791,6 @@ describe('MoneyVbaHomeCard', () => {
       ).toBeNull();
     },
   );
-
-  it('disables the CTA only on the kyc_pending card', () => {
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.cta).toEqual({
-      isDisabled: true,
-    });
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.source).toBe(
-      VARIANT_EXPECTATIONS.kyc_pending.source,
-    );
-
-    CTA_VARIANTS.forEach((variant) => {
-      const { cta } = MONEY_VBA_HOME_CARD_CONFIG[variant];
-      expect(cta.isDisabled).toBeFalsy();
-      expect(cta).toEqual(
-        expect.objectContaining({
-          buttonIntent: VARIANT_EXPECTATIONS[variant].buttonIntent,
-          className: expect.any(String),
-          textClassName: expect.any(String),
-        }),
-      );
-    });
-  });
 
   describe('Rive hero', () => {
     it('leaves the first play to autoplay on the initial focus', () => {

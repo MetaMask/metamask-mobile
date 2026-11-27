@@ -29,7 +29,7 @@ import { useCurrentCryptoUpDownMarketData } from '../../../hooks/useCurrentCrypt
 import { selectPredictEnabledFlag } from '../../../selectors/featureFlags';
 import type { PredictMarket, PredictSeries } from '../../../types';
 import useSectionViewportVisible from '../../../../../Views/Homepage/hooks/useSectionViewportVisible';
-import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
+import HomepagePredictDiscoveryRowIcon from './HomepagePredictDiscoveryRowIcon';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
 
 /** Hold the live subscription after the row scrolls off-screen. */
@@ -42,6 +42,7 @@ const formatBtc = (value: number | undefined) =>
 
 interface BtcLiveRowProps {
   series: PredictSeries;
+  iconName?: IconName;
   onPress: (
     series: PredictSeries,
     marketId: string | undefined,
@@ -140,7 +141,7 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
  * stable on countdown ticks, while memoized labels update only when their
  * respective values change.
  */
-const BtcLiveRow = memo(({ series, onPress }: BtcLiveRowProps) => {
+const BtcLiveRow = memo(({ series, iconName, onPress }: BtcLiveRowProps) => {
   const tw = useTailwind();
   const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
   const rowRef = useRef<View>(null);
@@ -182,7 +183,10 @@ const BtcLiveRow = memo(({ series, onPress }: BtcLiveRowProps) => {
       testID="homepage-predict-discovery-btc-row"
     >
       <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
-        <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
+        <HomepagePredictDiscoveryRowIcon
+          iconName={iconName}
+          fallbackGlyph="currencyBitcoin"
+        />
       </Box>
       <BtcLiveValues
         ref={liveValuesRef}

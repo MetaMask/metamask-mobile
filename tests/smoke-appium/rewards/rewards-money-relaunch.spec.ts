@@ -17,8 +17,7 @@ const MONEY_CAMPAIGN_DEEPLINK = 'metamask://rewards?campaign=money';
 async function openClaimedEarnings(): Promise<void> {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
   await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
-  await RewardsMoneyView.expectRefereeHeroVisible();
-  await RewardsMoneyView.tapEarningsTab();
+  await RewardsMoneyView.expectWaysToEarnVisible();
   await RewardsMoneyView.expectClaimedEarnings();
 }
 

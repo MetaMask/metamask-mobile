@@ -119,6 +119,14 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
       const { driver: mobileDriver, state } = await adapter.launch(resolved);
       this.platformDriver = mobileDriver;
+      // Core only keeps the `--metro-port` flag for `cdp`/`hermes-targets`;
+      // pass the resolved port so `MM_METRO_PORT` is kept as well.
+      mobileDriver.setHermesDefaults?.({
+        deviceId: resolved.deviceId,
+        ...(resolved.metroPort === undefined
+          ? {}
+          : { metroPort: resolved.metroPort }),
+      });
 
       const sessionId = generateSessionId();
       const startedAt = new Date().toISOString();
@@ -144,9 +152,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       };
 
       try {
-        // Writes <artifactsDir>/<sessionId>/session.json.
+        // Writes <artifactsDir>/<sessionId>/session.json. Core passes
+        // `artifactsDir` from MM_ARTIFACTS_DIR or the workflow context config.
         await writeSessionMetadata(
-          this.workflowContext?.config?.artifactsDir ?? DEFAULT_ARTIFACTS_DIR,
+          input.artifactsDir ??
+            this.workflowContext?.config?.artifactsDir ??
+            DEFAULT_ARTIFACTS_DIR,
           this.sessionMetadata,
         );
       } catch {

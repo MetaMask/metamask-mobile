@@ -1,7 +1,5 @@
 import BigNumber from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
-import { getIntlNumberFormatter } from '../../../../util/intl';
-import I18n from '../../../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
 
@@ -53,27 +51,49 @@ export const moneyFormatFiat = (
 export const moneyFormatUsd = (value: BigNumber): string =>
   formatMoney(value, 'en-US', 'USD');
 
+interface FormatSignedUsdOptions {
+  preserveSubCent?: boolean;
+}
+
 /**
- * Formats a positive amount as a signed, symbol-suffixed string, e.g.
- * "+1,234.56 mUSD". Returns `''` for a non-finite or non-positive amount so
- * callers can hide the amount line with `showPrimaryAmount`.
+ * Formats a signed US-dollar value.
  *
- * @param amount - Decimal amount string as the provider reports it.
- * @param symbol - Currency code or token symbol to suffix.
- * @returns Signed amount string, or `''` when the amount is unusable.
+ * @param amountUsd - The dollar amount to format.
+ * @param options - Formatting options.
+ * @param options.preserveSubCent - Whether to preserve values below one cent.
+ * @returns The formatted signed dollar amount.
  */
-export const moneyFormatIncomingAmount = (
-  amount: string | undefined,
-  symbol: string,
+export const formatSignedUsd = (
+  amountUsd: number,
+  { preserveSubCent = true }: FormatSignedUsdOptions = {},
 ): string => {
-  const value = new BigNumber(amount ?? 'NaN');
-  if (!value.isFinite() || !value.isGreaterThan(0)) {
-    return '';
+  if (
+    preserveSubCent &&
+    amountUsd !== 0 &&
+    Math.abs(amountUsd) < DUST_THRESHOLD
+  ) {
+    const preciseAmount = amountUsd
+      .toFixed(4)
+      .replace(/0+$/, '')
+      .replace(/\.$/, '');
+    return `${amountUsd > 0 ? '+' : ''}$${preciseAmount}`;
   }
-  const formatted = getIntlNumberFormatter(I18n.locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true,
-  }).format(value.toNumber());
-  return `+${formatted} ${symbol}`;
+
+  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
+  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
+};
+
+/**
+ * Formats a signed US-dollar value with non-zero sub-cent values shown as
+ * less than one cent.
+ *
+ * @param amountUsd - The dollar amount to format.
+ * @returns The formatted signed dollar amount.
+ */
+export const formatSignedUsdWithThreshold = (amountUsd: number): string => {
+  if (amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD) {
+    return `${amountUsd > 0 ? '+' : ''}<$0.01`;
+  }
+
+  return formatSignedUsd(amountUsd, { preserveSubCent: false });
 };

@@ -7,10 +7,7 @@ import { SmokeWalletPlatform } from '../../tags.js';
 import RewardsMoneyView from '../../page-objects/Rewards/RewardsMoneyView.js';
 import { openE2EUrl } from '../../framework/DeepLink.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import {
-  mockRewardsMoneyApi,
-  REFEREE_INVITED_BENEFIT_TITLE,
-} from '../../api-mocking/mock-responses/rewards-money.js';
+import { mockRewardsMoneyApi } from '../../api-mocking/mock-responses/rewards-money.js';
 
 const MONEY_CAMPAIGN_DEEPLINK = 'metamask://rewards?campaign=money';
 
@@ -41,10 +38,7 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
-          await RewardsMoneyView.expectRefereeHeroVisible();
-          await RewardsMoneyView.expectInvitedBenefitTitle(
-            REFEREE_INVITED_BENEFIT_TITLE,
-          );
+          await RewardsMoneyView.expectWaysToEarnVisible();
         },
       );
     },

@@ -9,7 +9,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   Button,
@@ -49,7 +48,8 @@ import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
 } from '../../utils/moneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
@@ -74,15 +74,16 @@ const normalizeInviteCodeInput = (value: string) =>
 /**
  * Invite copy, resolved per key.
  *
- * The server owns this screen's words: it fills every `localized_text` key
- * from its own defaults, so a missing key means there is no referral-me
- * payload at all. Only keys that an existing Mobile string already says have
- * a fallback — this screen adds no locale keys.
+ * The server owns this screen's words when referral-me data is available.
+ * Local strings keep a deeplink invite readable before the user has opted in
+ * or when the eligibility read is unavailable.
  */
 function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
   return useMemo(
     () => ({
-      title: localizedText?.inviteTitle ?? '',
+      title:
+        localizedText?.inviteTitle ??
+        strings('rewards.vip.splash_accept_invite'),
       body: localizedText?.inviteMessageBody ?? '',
       termsLink: resolveInviteTermsLink(localizedText),
       codeLabel:
@@ -120,6 +121,7 @@ export interface AcceptInviteSheetProps {
  * effect runs, and a server GEO refusal when client geo failed open.
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -138,15 +140,13 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const acceptStartedRef = useRef(false);
 
   const profileId = useSelector(selectSessionProfileId);
-  const isProfileResolved = Boolean(profileId);
-  useGeoRewardsMetadata({ enabled: true });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
   const acceptAllowedForGeo = useSelector((state: RootState) =>
     selectMoneyReferralAllowedForGeo(state, profileId),
   );
-  const referralMe = referralMeEntry?.data;
+  const referralMe = referralMeEntry?.data ?? undefined;
 
   // A deeplink's code is answered once: whichever way this sheet closes, the
   // code it was opened for must not prompt again. A newer link that arrived
@@ -181,16 +181,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
-  // A resolved profile with no referral-me row is not a settled invite.
-  // `loading` is only set once the fetch starts, so a missing entry would
-  // otherwise count as on screen. If that payload then arrives already
-  // referred, the sheet closes itself and the funnel would keep a viewed
-  // event with no answer. Hold until the payload exists.
-  const isCopyPending =
-    !isProfileResolved ||
-    referralMeEntry == null ||
-    referralMeEntry.loading ||
-    referralMeEntry.data == null;
 
   const {
     referralCode,
@@ -247,13 +237,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !isRateLimited &&
     acceptAllowedForGeo;
 
-  // An offer is viewed only once this sheet is showing one: never on a
-  // payload still in flight, and never for a stale deeplink, an existing
-  // referee, or a geo-blocked country, which close themselves without the
-  // user seeing an invite. Those closes answer nothing, so a viewed
-  // interaction here would have no answer to pair with — unless geo lands
-  // after the offer was already viewed, which is answered as dismissed.
-  const isOfferOnScreen = !isCopyPending && !shouldAutoDismiss;
+  const isOfferOnScreen = !shouldAutoDismiss;
 
   useEffect(() => {
     if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
@@ -284,7 +268,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
   // second interaction. An answer also requires the matching viewed
-  // interaction, since the sheet can be dismissed while its copy is pending.
+  // interaction.
   // `refused` is not an answer: the sheet stays open, so it does not lock
   // this guard.
   const trackResponded = useCallback(
@@ -424,8 +408,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
-      // Deliberately not `handleGoBack`: no offer was on screen to answer, so
-      // this close is not a response and no viewed was recorded for it.
+      if (hasTrackedOfferViewedRef.current) {
+        trackResponded('dismissed');
+      }
       navigation.goBack();
       return;
     }
@@ -468,12 +453,13 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       isInteractable={!isAccepting}
       testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE }}
       >
         {copy.title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         {Boolean(copy.body) && (
           <Text

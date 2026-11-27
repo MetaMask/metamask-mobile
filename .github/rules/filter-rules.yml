@@ -85,6 +85,13 @@ e2e_test_or_ignorable:
 e2e_spec_files:
   - '**/*.spec.{ts,js}'
 
+# Component view test files — same pattern as e2e_spec_files: kept separate so
+# only this short list flows through workflow outputs. The component view
+# flakiness detection job re-runs added/modified files N times on PRs
+# targeting main.
+cv_test_files:
+  - '**/*.view.test.{ts,tsx}'
+
 # Smart E2E contract tests only run when the mode/action changes. The analyzer
 # pin lives in the action, so analyzer version bumps are included here too.
 smart_e2e_contracts:
@@ -129,6 +136,19 @@ android_or_ignorable:
 ios_or_ignorable:
   - 'ios/**'
   - *e2e_ignorable
+
+# JEST DOCS-ONLY DETECTION
+# Used to skip the unit, component-view and integration Jest jobs on pull
+# requests whose changes are all under docs/. Deliberately stricter than
+# e2e_ignorable: test files, snapshots, configs, .github changes and assets
+# elsewhere in the repo can all affect Jest results, so they never count as
+# docs here. Markdown outside docs/ does not count either.
+# Skip only when jest_skippable_docs matches every changed file.
+# Known edge case, accepted: docs/assets/nft-fallback.png is imported by app
+# code (CollectibleMedia.tsx). Metro reads it, but Jest maps .png to a mock, so
+# a PR that only deletes or renames it still skips Jest.
+jest_skippable_docs:
+  - 'docs/**'
 
 all_changes:
   - '**'

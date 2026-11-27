@@ -1,12 +1,53 @@
 import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { formatCurrency, formatMinimumReceived } from './currencyUtils';
+import {
+  formatCurrency,
+  formatMinimumReceived,
+  getFiatPriceDecimals,
+} from './currencyUtils';
 
 jest.mock('../../../../../locales/i18n', () => ({
   locale: 'en-US',
 }));
 
 jest.mock('../../../../util/intl');
+
+describe('getFiatPriceDecimals', () => {
+  it.each([4321.5, 12.34, 1, 1.0001, '2200.5'])(
+    'returns two decimals for a price of %s',
+    (price) => {
+      const result = getFiatPriceDecimals(price);
+
+      expect(result).toBe(2);
+    },
+  );
+
+  it.each([
+    { price: 0.99, expected: 4 },
+    { price: 0.103, expected: 4 },
+    { price: 0.0196, expected: 5 },
+    { price: 0.004, expected: 6 },
+    { price: 0.00000422, expected: 9 },
+    { price: 0.0000039998, expected: 9 },
+    { price: '0.0000042', expected: 9 },
+  ])(
+    'returns $expected decimals for a sub-dollar price of $price',
+    ({ price, expected }) => {
+      const result = getFiatPriceDecimals(price);
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it.each([undefined, 0, -1, NaN, Infinity])(
+    'returns two decimals for an unusable price of %s',
+    (price) => {
+      const result = getFiatPriceDecimals(price);
+
+      expect(result).toBe(2);
+    },
+  );
+});
 
 describe('formatCurrency', () => {
   const mockFormat = jest.fn();

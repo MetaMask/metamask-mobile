@@ -60,18 +60,25 @@ interface StackController {
 }
 
 /**
- * Leaves KYC for Money home. KYC screens call this through an `onExit`
- * prop so the destination stays with the VBA caller.
+ * Leaves onboarding for the Money home already on the main stack.
+ * KYC screens, the account-create error, and VBA details Done all use this.
  *
- * @param navigation - Navigation from the KYC screen's VBA adapter.
+ * React Navigation 7 pushes another Home when `navigate` omits `{ pop: true }`.
+ * The next entry then keeps that Home and can copy the onboarding route key.
+ *
+ * @param navigation - Navigation from the screen that is leaving.
  */
 export const exitVbaOnboardingToMoneyHome = (
   navigation: AppNavigationProp,
 ): void => {
-  navigation.navigate(Routes.HOME_TABS, {
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
-  });
+  navigation.navigate(
+    Routes.HOME_TABS,
+    {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    },
+    { pop: true },
+  );
 };
 
 type ResetRoute = PartialState<NavigationState>['routes'][number];
@@ -107,13 +114,50 @@ const getRoutesUnderDestination = (state: NavigationState): ResetRoute[] => {
 };
 
 /**
+ * Keys of screens this reset keeps. A key in this set is still on the stack
+ * after the reset, so it cannot also be copied onto the onboarding route.
+ */
+const collectKeptRouteKeys = (routes: readonly ResetRoute[]): Set<string> => {
+  const keptKeys = new Set<string>();
+  for (const keptRoute of routes) {
+    if (keptRoute.key) {
+      keptKeys.add(keptRoute.key);
+    }
+  }
+  return keptKeys;
+};
+
+/**
+ * Key of the onboarding route this reset removes, searched from the top of
+ * the stack. Reusing that key keeps the native screen mounted. A key that
+ * stays under the caller is left alone so it is not on two routes.
+ */
+const findReusableOnboardingRouteKey = (
+  routes: NavigationState['routes'],
+  keptKeys: ReadonlySet<string>,
+): string | undefined => {
+  for (let index = routes.length - 1; index >= 0; index -= 1) {
+    const candidate = routes[index];
+    if (
+      candidate?.name === Routes.RAMP.VBA_ONBOARDING &&
+      candidate.key &&
+      !keptKeys.has(candidate.key)
+    ) {
+      return candidate.key;
+    }
+  }
+  return undefined;
+};
+
+/**
  * Keeps every screen up to and including the one that opened onboarding, then
  * the current onboarding destination. Back returns to the caller, and the
  * caller's own back still has its previous screen.
  *
  * A step change that is already inside onboarding resets that stack in place.
  * Resetting the root route without its existing key destroys the native screen,
- * and the splash shows through that gap.
+ * and the splash shows through that gap. The reused key is one this reset
+ * removes. Copying a key that stays under the caller puts it on two routes.
  */
 export const openAsOnlyOnboardingRoute = (
   navigation: AppNavigationProp,
@@ -138,19 +182,18 @@ export const openAsOnlyOnboardingRoute = (
     }
 
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      const existingOnboardingRoute = state.routes.find(
-        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
-      );
       const routesUnderDestination = getRoutesUnderDestination(state);
+      const onboardingRouteKey = findReusableOnboardingRouteKey(
+        state.routes,
+        collectKeptRouteKeys(routesUnderDestination),
+      );
       current.dispatch(
         CommonActions.reset({
           index: routesUnderDestination.length,
           routes: [
             ...routesUnderDestination,
             {
-              ...(existingOnboardingRoute?.key
-                ? { key: existingOnboardingRoute.key }
-                : {}),
+              ...(onboardingRouteKey ? { key: onboardingRouteKey } : {}),
               name: Routes.RAMP.VBA_ONBOARDING,
               state: { index: 0, routes: [route] },
             },
@@ -208,10 +251,11 @@ export const openCompletedVbaAccount = (
 
 /**
  * Opens the step after Identity verified: Choose Currency when
- * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
- * which creates the account. Shared by the Identity verified screen's
- * Continue and the Money home `identity_verified` card, which skips that
- * screen.
+ * `moneyMovementNeobank.chooseCurrency` is on and the location has no resolved
+ * market, otherwise account details, which creates the account. A resolved
+ * market has exactly one currency, so there is nothing to choose and the
+ * picker is skipped. Shared by the Identity verified screen's Continue and the
+ * Money home `identity_verified` card, which skips that screen.
  *
  * Inside onboarding (Identity verified), Choose Currency is pushed so Back
  * returns there. From outside it opens as the only onboarding route, so
@@ -219,12 +263,15 @@ export const openCompletedVbaAccount = (
  *
  * @param navigation - Navigation from Identity verified or an entry surface.
  * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ * @param sourceCurrency - Currency of the open market serving the user, when
+ * one resolved. Its presence means there is nothing to pick.
  */
 export const openVbaAccountSetup = (
   navigation: AppNavigationProp,
   isChooseCurrencyEnabled: boolean,
+  sourceCurrency?: VbaSourceCurrency,
 ): void => {
-  if (!isChooseCurrencyEnabled) {
+  if (!isChooseCurrencyEnabled || sourceCurrency) {
     openCompletedVbaAccount(navigation);
     return;
   }

@@ -59,6 +59,7 @@ describe('MoneyMetaMaskCard', () => {
     ['verifying', 'money.metamask_card.title'],
     ['loading', 'money.metamask_card.title'],
     ['setup', 'money.metamask_card.title'],
+    ['sign_in', 'money.metamask_card.title'],
   ] as const)('renders the %s mode title', (mode, titleKey) => {
     render(
       <MoneyMetaMaskCard
@@ -632,6 +633,28 @@ describe('MoneyMetaMaskCard', () => {
     expect(onSetupContinuePress).not.toHaveBeenCalled();
   });
 
+  it('does not offer to finish setup after a final rejection', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="setup"
+        setupView={{ kind: 'action_required', step: 'rejected' }}
+        onGetNowPress={jest.fn()}
+        onSetupContinuePress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_TITLE),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.rejected_title'),
+    );
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.descriptions.rejected'),
+    );
+  });
+
   it('uses the generic setup copy for other unfinished steps', () => {
     const onSetupContinuePress = jest.fn();
     render(
@@ -699,6 +722,43 @@ describe('MoneyMetaMaskCard', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         action: CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON,
+      }),
+    );
+  });
+
+  it('renders generic card art and a Log in button without a balance', () => {
+    const onSignInPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="sign_in"
+        onGetNowPress={jest.fn()}
+        onSignInPress={onSignInPress}
+        cardBalance="$2,342.86"
+        {...analyticsProps}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_PROMPT),
+    ).toHaveTextContent(strings('money.metamask_card.sign_in_prompt'));
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_BUTTON),
+    ).toHaveTextContent(strings('money.metamask_card.sign_in_cta'));
+
+    fireEvent.press(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SIGN_IN_BUTTON),
+    );
+
+    expect(onSignInPress).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
       }),
     );
   });

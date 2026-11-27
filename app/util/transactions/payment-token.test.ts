@@ -1,0 +1,208 @@
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type { Hex } from '@metamask/utils';
+import {
+  buildAssetIdIndex,
+  decodeEvmAssetId,
+  decodePaymentTokenAssetId,
+  isSameAssetId,
+  encodeEvmAssetId,
+} from './payment-token';
+
+const NON_EVM_ASSET_ID =
+  'bip122:000000000019d6689c085ae165831e93/slip44:0' as const;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}` as const;
+
+const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: USDC_ASSET_ID,
+  balanceFiat: '1',
+  balanceHuman: '1',
+  balanceRaw: '1000000',
+  balanceUsd: '1',
+  decimals: 6,
+  symbol: 'USDC',
+};
+
+function buildAssetsInfo(
+  entries: Record<string, 'native' | 'erc20'>,
+): AssetsControllerState['assetsInfo'] {
+  return Object.fromEntries(
+    Object.entries(entries).map(([assetId, type]) => [
+      assetId,
+      { type, symbol: '', name: '', decimals: 18 },
+    ]),
+  ) as AssetsControllerState['assetsInfo'];
+}
+
+describe('payment-token', () => {
+  describe('decodeEvmAssetId', () => {
+    it('derives the Hex chain ID and address of an ERC-20 asset', () => {
+      expect(decodeEvmAssetId(USDC_ASSET_ID)).toStrictEqual({
+        address: USDC_ADDRESS,
+        chainId: '0x1',
+      });
+    });
+
+    it('maps a slip44 native asset to the chain native token address', () => {
+      expect(decodeEvmAssetId('eip155:1/slip44:60')).toStrictEqual({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      });
+      expect(decodeEvmAssetId('eip155:137/slip44:966')).toStrictEqual({
+        address: '0x0000000000000000000000000000000000001010',
+        chainId: '0x89',
+      });
+    });
+
+    it('returns undefined for a non-EVM asset', () => {
+      expect(decodeEvmAssetId(NON_EVM_ASSET_ID)).toBeUndefined();
+    });
+  });
+
+  describe('decodePaymentTokenAssetId', () => {
+    it('derives the chain ID and address of an EVM payment token', () => {
+      expect(decodePaymentTokenAssetId(PAYMENT_TOKEN_MOCK)).toStrictEqual({
+        address: USDC_ADDRESS,
+        chainId: '0x1',
+      });
+    });
+
+    it('returns undefined for a non-EVM or missing token', () => {
+      expect(
+        decodePaymentTokenAssetId({
+          ...PAYMENT_TOKEN_MOCK,
+          assetId: NON_EVM_ASSET_ID,
+        }),
+      ).toBeUndefined();
+      expect(decodePaymentTokenAssetId(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('isSameAssetId', () => {
+    it('matches asset IDs case-insensitively', () => {
+      expect(isSameAssetId(USDC_ASSET_ID, USDC_ASSET_ID.toLowerCase())).toBe(
+        true,
+      );
+    });
+
+    it('does not match different or missing asset IDs', () => {
+      expect(isSameAssetId(USDC_ASSET_ID, NON_EVM_ASSET_ID)).toBe(false);
+      expect(isSameAssetId(USDC_ASSET_ID, undefined)).toBe(false);
+      expect(isSameAssetId(undefined, undefined)).toBe(false);
+    });
+  });
+
+  describe('encodeEvmAssetId', () => {
+    it('resolves tokens against an index built once', () => {
+      const index = buildAssetIdIndex(
+        buildAssetsInfo({
+          [USDC_ASSET_ID.toLowerCase()]: 'erc20',
+          [USDC_ASSET_ID]: 'erc20',
+          'eip155:1/slip44:60': 'native',
+        }),
+      );
+
+      expect(
+        encodeEvmAssetId(
+          { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0x1' },
+          index,
+        ),
+      ).toBe(USDC_ASSET_ID);
+      expect(
+        encodeEvmAssetId(
+          {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+          },
+          index,
+        ),
+      ).toBe('eip155:1/slip44:60');
+    });
+  });
+
+  describe('encodeEvmAssetId with state', () => {
+    it('returns the checksummed AssetsController key of an ERC-20 token', () => {
+      const assetsInfo = buildAssetsInfo({
+        [USDC_ASSET_ID.toLowerCase()]: 'erc20',
+        [USDC_ASSET_ID]: 'erc20',
+      });
+
+      expect(
+        encodeEvmAssetId(
+          { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0x1' },
+          buildAssetIdIndex(assetsInfo),
+        ),
+      ).toBe(USDC_ASSET_ID);
+    });
+
+    it('returns a lowercase key when it is the only match', () => {
+      const lowercaseAssetId = USDC_ASSET_ID.toLowerCase();
+
+      expect(
+        encodeEvmAssetId(
+          { address: USDC_ADDRESS, chainId: '0x1' },
+          buildAssetIdIndex(buildAssetsInfo({ [lowercaseAssetId]: 'erc20' })),
+        ),
+      ).toBe(lowercaseAssetId);
+    });
+
+    it('returns the native asset key of the chain for the native token address', () => {
+      const assetsInfo = buildAssetsInfo({
+        'eip155:1/slip44:60': 'native',
+        'eip155:137/slip44:966': 'native',
+      });
+
+      expect(
+        encodeEvmAssetId(
+          {
+            address: '0x0000000000000000000000000000000000001010',
+            chainId: '0x89',
+          },
+          buildAssetIdIndex(assetsInfo),
+        ),
+      ).toBe('eip155:137/slip44:966');
+    });
+
+    it.each([
+      ['Base', '0x2105', ZERO_ADDRESS, 'eip155:8453/slip44:60'],
+      [
+        'Polygon',
+        '0x89',
+        '0x0000000000000000000000000000000000001010',
+        'eip155:137/slip44:966',
+      ],
+      ['BSC', '0x38', ZERO_ADDRESS, 'eip155:56/slip44:714'],
+      ['Monad', '0x8f', ZERO_ADDRESS, 'eip155:143/slip44:268435779'],
+    ] as const)(
+      'falls back to the registered native asset ID on %s when native metadata is missing',
+      (_name, chainId, address, expected) => {
+        expect(
+          encodeEvmAssetId(
+            { address, chainId },
+            buildAssetIdIndex(buildAssetsInfo({})),
+          ),
+        ).toBe(expected);
+      },
+    );
+
+    it('falls back to the zero-address ERC-20 asset ID for the native token of an unregistered chain', () => {
+      expect(
+        encodeEvmAssetId(
+          { address: ZERO_ADDRESS, chainId: '0x64' },
+          buildAssetIdIndex(buildAssetsInfo({})),
+        ),
+      ).toBe(`eip155:100/erc20:${ZERO_ADDRESS}`);
+    });
+
+    it('falls back to the checksummed derived asset ID when the token is not in state', () => {
+      expect(
+        encodeEvmAssetId(
+          { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0xa' },
+          buildAssetIdIndex(buildAssetsInfo({})),
+        ),
+      ).toBe(`eip155:10/erc20:${USDC_ADDRESS}`);
+    });
+  });
+});

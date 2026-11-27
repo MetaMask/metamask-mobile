@@ -8,10 +8,7 @@ import {
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -27,7 +24,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
@@ -87,11 +83,7 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
+  const [headerInset, setHeaderInset] = useState(0);
   const metrics = useAnalytics();
 
   useScreenPerformance({
@@ -231,25 +223,30 @@ const OptinMetrics = () => {
         .build(),
     );
 
-    metrics.trackEvent(
-      metrics
-        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-        .addProperties({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]:
-            Boolean(isMarketingChecked),
-          is_metrics_opted_in: isBasicUsageChecked,
-          location: 'onboarding_metametrics',
-          updated_after_onboarding: false,
-          ...(accountType && { account_type: accountType }),
-        })
-        .build(),
-    );
+    // Marketing consent signals only go out while MetaMetrics is on, the same
+    // way the settings screen gates them. The marketing choice itself is kept
+    // in state above, whatever this toggle says.
+    if (isBasicUsageChecked) {
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+              Boolean(isMarketingChecked),
+            is_metrics_opted_in: isBasicUsageChecked,
+            location: 'onboarding_metametrics',
+            updated_after_onboarding: false,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
 
-    await metrics.identify({
-      ...generateDeviceAnalyticsMetaData(),
-      ...generateUserSettingsAnalyticsMetaData(),
-      [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
-    });
+      await metrics.identify({
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+        [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
+      });
+    }
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
@@ -320,22 +317,12 @@ const OptinMetrics = () => {
   );
 
   const handleBasicUsageToggle = useCallback(() => {
-    setIsBasicUsageChecked((prevValue) => {
-      const newValue = !prevValue;
-      if (!newValue) {
-        setIsMarketingChecked(false);
-      }
-      return newValue;
-    });
+    setIsBasicUsageChecked((prev) => !prev);
   }, []);
 
   const handleMarketingToggle = useCallback(() => {
-    if (isBasicUsageChecked) {
-      setIsMarketingChecked((prev) => !prev);
-    }
-  }, [isBasicUsageChecked]);
-
-  const isMarketingDisabled = !isBasicUsageChecked;
+    setIsMarketingChecked((prev) => !prev);
+  }, []);
 
   /**
    * Content size change event for the ScrollView.
@@ -394,13 +381,15 @@ const OptinMetrics = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title=""
       />
       <ScrollView
-        style={[tw.style('flex-1'), { marginTop: headerInset }]}
+        style={tw.style('flex-1')}
+        contentContainerStyle={{ paddingTop: headerInset }}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}
@@ -461,10 +450,7 @@ const OptinMetrics = () => {
                 variant={ContentVariant.MultiLine}
                 isSelected={isMarketingChecked}
                 onPress={handleMarketingToggle}
-                disabled={isMarketingDisabled}
-                twClassName={`rounded-xl border border-muted ${
-                  isMarketingDisabled ? 'opacity-50' : ''
-                }`}
+                twClassName="rounded-xl border border-muted"
                 title={strings('privacy_policy.checkbox_marketing')}
                 description={strings('privacy_policy.checkbox')}
                 testID={

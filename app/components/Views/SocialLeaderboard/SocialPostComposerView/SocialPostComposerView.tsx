@@ -99,7 +99,10 @@ import {
   withCreateSwapCommentTimeout,
 } from './createSwapCommentTimeout';
 import { resolvePostFailureReason } from './resolvePostFailureReason';
-import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
+import {
+  COMPOSER_COMMENT_MAX_LENGTH,
+  countComposerCharacters,
+} from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -165,6 +168,9 @@ interface ImageInsertEvent {
   };
 }
 
+/** 32px disc plus 6px on each side, so the tap target meets the 44pt minimum. */
+const ATTACHMENT_CLOSE_HIT_SLOP = 6;
+
 const ComposerAttachmentCloseButton = ({
   onPress,
   accessibilityLabel,
@@ -174,15 +180,23 @@ const ComposerAttachmentCloseButton = ({
   accessibilityLabel: string;
   testID: string;
 }) => (
-  <ButtonIcon
-    iconName={IconName.Close}
-    size={ButtonIconSize.Md}
-    iconProps={{ color: IconColor.IconDefault }}
-    twClassName="absolute z-20 -top-3 -right-3 border-2 border-background-default bg-section"
-    onPress={onPress}
-    accessibilityLabel={accessibilityLabel}
-    testID={testID}
-  />
+  // React Native draws a border inside its view, so the ring is a 36px frame
+  // around the unchanged 32px disc. The offset keeps that disc where it was.
+  <Box
+    pointerEvents="box-none"
+    twClassName="absolute z-20 -top-3.5 -right-3.5 h-9 w-9 items-center justify-center rounded-full border-2 border-background-default"
+  >
+    <ButtonIcon
+      iconName={IconName.Close}
+      size={ButtonIconSize.Md}
+      iconProps={{ color: IconColor.IconDefault, size: IconSize.Md }}
+      hitSlop={ATTACHMENT_CLOSE_HIT_SLOP}
+      twClassName="bg-section"
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+    />
+  </Box>
 );
 
 interface ComposerChipProps {
@@ -295,7 +309,7 @@ const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
 // HeaderBase re-renders when its end accessory's width changes, so use
 // equal-width digits to keep the count's width stable while typing.
 const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
-  const count = useComposerText(store, (value) => value.length);
+  const count = useComposerText(store, countComposerCharacters);
 
   return (
     <Text
@@ -330,7 +344,7 @@ const ComposerPostButton = ({
   onBlocked: (reason: SocialBlockedSubmitReason) => void;
 }) => {
   const textBlock = useComposerText(store, (value) =>
-    value.length > COMPOSER_COMMENT_MAX_LENGTH
+    countComposerCharacters(value) > COMPOSER_COMMENT_MAX_LENGTH
       ? 'too_long'
       : value.trim().length === 0
         ? 'empty_caption'
@@ -512,8 +526,9 @@ const SocialPostComposerEditor: React.FC = () => {
       username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
+      verified: profile?.verified === true,
     }),
-    [authorName, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId, profile?.verified],
   );
 
   // The preview maps itself inside ComposerPreview, so the analytics trade
@@ -614,7 +629,7 @@ const SocialPostComposerEditor: React.FC = () => {
     const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      countComposerCharacters(rawText) > COMPOSER_COMMENT_MAX_LENGTH ||
       caption.length === 0 ||
       isSubmitting
     ) {
@@ -657,6 +672,7 @@ const SocialPostComposerEditor: React.FC = () => {
             username: name,
             avatarUri,
             winRatePercent: null,
+            verified: profile?.verified === true,
           };
           const timestampMs = comment.timestamp * 1000;
           let item: SocialV1FeedItem;
@@ -789,6 +805,7 @@ const SocialPostComposerEditor: React.FC = () => {
     navigation,
     profile?.imageUrl,
     profile?.profileId,
+    profile?.verified,
     selectedPosition,
     textStore,
     trackInteraction,
