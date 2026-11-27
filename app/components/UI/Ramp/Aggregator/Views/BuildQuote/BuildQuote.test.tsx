@@ -350,6 +350,7 @@ jest.mock(
 );
 
 jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
   TraceName: {

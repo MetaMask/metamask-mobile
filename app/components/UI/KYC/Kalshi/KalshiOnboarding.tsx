@@ -9,12 +9,7 @@ import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  KycCatalogDocument,
-  KycConsentDocument,
-  KycConsentRecord,
-  OnboardingVendorState,
-} from '@metamask/kyc-controller';
+import type { OnboardingVendorState } from '@metamask/kyc-controller';
 import {
   Box,
   BoxAlignItems,
@@ -31,9 +26,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { useMfa } from '../../../../util/identity/mfa';
+import { resolveGeoCountry } from '../utils/resolveGeoCountry';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
 import { describeKalshiError, shouldRefreshAfter } from './kalshiErrors';
@@ -41,8 +37,29 @@ import { deriveKalshiScreen, type KalshiScreen } from './kalshiScreen';
 import { runKalshiSignedAction } from './kalshiVendorRequestSigner';
 import { nextWaitingPollDelayMs } from './waitingPoll';
 import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
-
+import KycVerifyIdentity from '../Views/SumSub/VerifyIdentity';
+import KycPartnerTerms from '../Views/SumSub/PartnerTerms';
+import type { KycCatalogDisclaimerLink } from '../hooks/useKycSessionDisclaimers';
+import { groupDisclaimers } from '../Views/SumSub/partnerDisclaimers';
 const VENDOR = KALSHI_KYC_VENDOR.id;
+
+/**
+ * TODO: as it has been done with Iron inside app/components/UI/KYC/utils/identityTermsAnalytics.ts,
+ * we also need a handler for the Predict terms tracking.
+ */
+const reportKalshiMetaMaskTerms = () => undefined;
+
+/**
+ * Kalshi consent is three pages: MetaMask, the verification partners, then
+ * Kalshi. VBA stops after the first two.
+ */
+const KALSHI_CONSENT_TOTAL_STEPS = 3;
+
+const KALSHI_TERMS_PAGE = {
+  metamask: 0,
+  partners: 1,
+  kalshi: 2,
+} as const;
 
 export const KalshiOnboardingTestIds = {
   CONTAINER: 'kalshi-onboarding',
@@ -65,22 +82,10 @@ interface TermsDocument {
   url: string;
 }
 
-interface TermsPage {
-  id: 'idos' | 'kycProvider' | 'kalshi';
-  title: string;
+interface KalshiVendorTerms {
   documents: TermsDocument[];
-}
-
-interface TermsCatalog {
-  pages: TermsPage[];
-  idOS: KycConsentRecord[];
-  kycProvider: KycConsentRecord[];
   vendorDisclaimerIds: string[];
 }
-
-const toKeys = (
-  documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
-) => (documents ?? []).map(({ key, version }) => ({ key, version }));
 
 const getKycService = () => {
   const { KycService } = Engine.context;
@@ -89,8 +94,6 @@ const getKycService = () => {
   }
   return KycService;
 };
-
-const getGeoCountry = (): Promise<string> => getKycService().getGeoCountry();
 
 const errorMessage = (error: unknown): string => {
   const kalshiMessage = describeKalshiError(error);
@@ -107,22 +110,9 @@ const errorMessage = (error: unknown): string => {
   return 'Something went wrong.';
 };
 
-const TERMS_PAGE_COPY: Record<
-  TermsPage['id'],
-  { title: string; body: string }
-> = {
-  idos: {
-    title: 'idOS terms',
-    body: 'idOS stores your verified identity and shares it only with your consent.',
-  },
-  kycProvider: {
-    title: 'SumSub terms',
-    body: 'SumSub checks your ID and selfie for idOS.',
-  },
-  kalshi: {
-    title: 'Kalshi terms',
-    body: 'Review Kalshi’s agreements to open a Kalshi account.',
-  },
+const KALSHI_TERMS_COPY = {
+  title: 'Kalshi terms',
+  body: 'Review Kalshi’s agreements to open a Kalshi account.',
 };
 
 const SCREEN_COPY: Record<
@@ -211,9 +201,17 @@ const KalshiOnboarding = () => {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [terms, setTerms] = useState<TermsCatalog>();
-  /** The terms page showing. Nothing is sent until the last one is accepted. */
-  const [termsPage, setTermsPage] = useState(0);
+  const [terms, setTerms] = useState<KalshiVendorTerms>();
+  /**
+   * Which of the three consent pages is showing. Nothing is sent until the
+   * Kalshi page, the last one.
+   */
+  const [termsPage, setTermsPage] = useState<number>(
+    KALSHI_TERMS_PAGE.metamask,
+  );
+  /** idOS and SumSub documents from the MetaMask page, shown on page two. */
+  const [partnerDisclaimers, setPartnerDisclaimers] =
+    useState<KycCatalogDisclaimerLink[]>();
   /**
    * Set when Confirm is pressed and cleared only once the terms page is
    * ready. The step arrives from the controller a moment after the button
@@ -227,13 +225,16 @@ const KalshiOnboarding = () => {
     editingEmail,
     phoneCodeSent,
   });
-  // Hold one screen from the confirm press until the terms page is ready.
-  // The saved step and the terms catalog arrive as later updates, and each
-  // one was painting its own page.
+  // Hold one screen from the confirm press until the step is terms.
+  // The MetaMask page loads its own catalog, so the document list can
+  // arrive after it is already on screen.
   const holding =
     awaitingTerms ||
     (screen === 'confirm' && busy) ||
-    (screen === 'terms' && !terms && !error);
+    (screen === 'terms' &&
+      termsPage === KALSHI_TERMS_PAGE.kalshi &&
+      !terms &&
+      !error);
   const { VendorOnboardingController } = Engine.context;
 
   // Each screen starts with an empty field, except the email, which starts
@@ -287,10 +288,10 @@ const KalshiOnboarding = () => {
     if (!awaitingTerms) {
       return;
     }
-    if (error || (screen === 'terms' && terms)) {
+    if (error || screen === 'terms') {
       setAwaitingTerms(false);
     }
-  }, [awaitingTerms, error, screen, terms]);
+  }, [awaitingTerms, error, screen]);
 
   // Every controller action saves the step it ended on, so there is nothing
   // to read after one.
@@ -319,48 +320,27 @@ const KalshiOnboarding = () => {
     [refresh],
   );
 
-  // Terms catalog: idOS and SumSub documents for the country, and Kalshi's.
-  // The country catalog needs no session, so the terms come before one exists.
+  // Kalshi's own agreements. idOS and SumSub come from the shared pages.
+  // The country catalog needs no session, so this can load before one exists.
   useEffect(() => {
     if (screen !== 'terms' || terms) {
       return;
     }
     run(async () => {
-      const country = await getGeoCountry();
-      const [session, vendorDocuments] = await Promise.all([
-        getKycService().fetchSessionDisclaimersByCountry({ country }),
-        getKycService().fetchVendorDisclaimers({ vendor: VENDOR, country }),
-      ]);
-      const fromCatalog = (
-        documents: (KycCatalogDocument | KycConsentDocument)[],
-      ): TermsDocument[] =>
-        documents.map(({ key, title, url }) => ({ key, title, url }));
-      const pages: TermsPage[] = [
-        {
-          id: 'idos' as const,
-          title: TERMS_PAGE_COPY.idos.title,
-          documents: fromCatalog(session.idOS),
-        },
-        {
-          id: 'kycProvider' as const,
-          title: TERMS_PAGE_COPY.kycProvider.title,
-          documents: fromCatalog(session.kycProvider),
-        },
-        {
-          id: 'kalshi' as const,
-          title: TERMS_PAGE_COPY.kalshi.title,
-          documents: vendorDocuments.map(({ id, display_name, url }) => ({
-            key: id,
-            title: display_name,
-            url,
-          })),
-        },
-      ].filter(({ documents }) => documents.length > 0);
-      setTermsPage(0);
+      // Same country as the shared pages, since one submitTerms sends both.
+      const country = await resolveGeoCountry();
+      const vendorDocuments = await getKycService().fetchVendorDisclaimers({
+        vendor: VENDOR,
+        country,
+      });
       setTerms({
-        pages,
-        idOS: toKeys(session.idOS),
-        kycProvider: toKeys(session.kycProvider),
+        documents: vendorDocuments.map(
+          ({ id, display_name: displayName, url }) => ({
+            key: id,
+            title: displayName,
+            url,
+          }),
+        ),
         vendorDisclaimerIds: vendorDocuments.map(({ id }) => id),
       });
     });
@@ -391,22 +371,18 @@ const KalshiOnboarding = () => {
     };
   }, [refresh, screen]);
 
-  // The user accepts one page at a time on the phone. Nothing is sent until
-  // the last page, then everything goes in one call.
-  const acceptTermsPage = () => {
-    if (!terms) {
-      return undefined;
-    }
-    if (termsPage < terms.pages.length - 1) {
-      setTermsPage(termsPage + 1);
-      return undefined;
-    }
+  // The first two pages only advance. Everything is sent from the last page.
+  const acceptKalshiTerms = (
+    vendorTerms: KalshiVendorTerms,
+    partners: KycCatalogDisclaimerLink[],
+  ) => {
+    const { idos, kycProvider } = groupDisclaimers(partners);
     return run(() =>
       VendorOnboardingController.submitTerms({
         vendor: VENDOR,
-        disclaimerIds: terms.vendorDisclaimerIds,
-        idOS: terms.idOS,
-        kycProvider: terms.kycProvider,
+        disclaimerIds: vendorTerms.vendorDisclaimerIds,
+        idOS: idos.map(({ key, version }) => ({ key, version })),
+        kycProvider: kycProvider.map(({ key, version }) => ({ key, version })),
         // Demo choice. Whether the user is asked is a product decision.
         credentialReusabilityConsentGiven: false,
       }),
@@ -589,13 +565,10 @@ const KalshiOnboarding = () => {
         case 'loading':
           return undefined;
         case 'terms':
-          return terms
+          return terms && partnerDisclaimers
             ? {
-                label:
-                  termsPage < terms.pages.length - 1
-                    ? 'Accept and continue'
-                    : 'Accept and submit',
-                onPress: acceptTermsPage,
+                label: 'Accept and submit',
+                onPress: () => acceptKalshiTerms(terms, partnerDisclaimers),
               }
             : undefined;
         case 'email':
@@ -626,7 +599,7 @@ const KalshiOnboarding = () => {
     }, [
       screen,
       terms,
-      termsPage,
+      partnerDisclaimers,
       input,
       navigation,
       flowState?.mfaCompleted,
@@ -634,8 +607,11 @@ const KalshiOnboarding = () => {
     ]);
 
   const secondary: { label: string; onPress: () => void } | undefined =
-    screen === 'terms' && termsPage > 0
-      ? { label: 'Back', onPress: () => setTermsPage(termsPage - 1) }
+    screen === 'terms' && termsPage === KALSHI_TERMS_PAGE.kalshi
+      ? {
+          label: 'Back',
+          onPress: () => setTermsPage(KALSHI_TERMS_PAGE.partners),
+        }
       : screen === 'email_code'
         ? { label: 'Use another email', onPress: editEmail }
         : screen === 'phone_code'
@@ -645,7 +621,6 @@ const KalshiOnboarding = () => {
             }
           : undefined;
 
-  const currentTermsPage = terms?.pages[termsPage];
   const copy = holding
     ? undefined
     : screen === 'loading'
@@ -655,9 +630,45 @@ const KalshiOnboarding = () => {
             title: 'Confirm with MetaMask',
             body: 'MetaMask confirmed you. Continue to the terms.',
           }
-        : screen === 'terms' && currentTermsPage
-          ? TERMS_PAGE_COPY[currentTermsPage.id]
+        : screen === 'terms'
+          ? KALSHI_TERMS_COPY
           : SCREEN_COPY[screen];
+
+  if (
+    screen === 'terms' &&
+    termsPage === KALSHI_TERMS_PAGE.metamask &&
+    !holding
+  ) {
+    return (
+      <KycVerifyIdentity
+        onContinue={(disclaimers) => {
+          setPartnerDisclaimers(disclaimers);
+          setTermsPage(KALSHI_TERMS_PAGE.partners);
+        }}
+        onExit={() => navigation.goBack()}
+        totalSteps={KALSHI_CONSENT_TOTAL_STEPS}
+        dataRecipient="kalshi"
+        onTermsProgress={reportKalshiMetaMaskTerms}
+      />
+    );
+  }
+
+  if (
+    screen === 'terms' &&
+    termsPage === KALSHI_TERMS_PAGE.partners &&
+    partnerDisclaimers &&
+    !holding
+  ) {
+    return (
+      <KycPartnerTerms
+        disclaimers={partnerDisclaimers}
+        onAgree={() => setTermsPage(KALSHI_TERMS_PAGE.kalshi)}
+        onBack={() => setTermsPage(KALSHI_TERMS_PAGE.metamask)}
+        totalSteps={KALSHI_CONSENT_TOTAL_STEPS}
+        onTermsProgress={reportKalshiMetaMaskTerms}
+      />
+    );
+  }
 
   return (
     <SafeAreaView
@@ -693,6 +704,18 @@ const KalshiOnboarding = () => {
         ) : (
           copy && (
             <>
+              {screen === 'terms' ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="mt-2"
+                >
+                  {strings('kyc.verify_identity.step_indicator', {
+                    current: KALSHI_TERMS_PAGE.kalshi + 1,
+                    total: KALSHI_CONSENT_TOTAL_STEPS,
+                  })}
+                </Text>
+              ) : null}
               <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
                 {copy.title}
               </Text>
@@ -709,7 +732,7 @@ const KalshiOnboarding = () => {
 
         {!holding &&
           screen === 'terms' &&
-          currentTermsPage?.documents.map((document) => (
+          terms?.documents.map((document) => (
             <Button
               key={document.key}
               variant={ButtonVariant.Tertiary}

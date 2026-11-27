@@ -1,4 +1,3 @@
-import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 import { getKalshiBannerState } from './kalshiBannerState';
 
 jest.mock('../../../../core/Engine', () => ({}));

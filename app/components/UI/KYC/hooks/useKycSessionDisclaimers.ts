@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycCatalogDocument } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
+import { resolveGeoCountry } from '../utils/resolveGeoCountry';
 
 export type KycCatalogDisclaimerLink = KycCatalogDocument & {
   /** Stable list key; documents are unique per catalog group + `key`. */
@@ -30,9 +31,9 @@ const toLinks = (
  * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
  * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
- * Loads the catalog for the geoCountry stored on the KYC controller, falling
- * back to {@link Engine.context.KycService.getGeoCountry}
- * (`GET /disclaimers?country=`). A session kept after the detected country
+ * Loads the catalog (`GET /disclaimers?country=`) for the country from
+ * {@link resolveGeoCountry}: the geoCountry stored on the KYC controller,
+ * falling back to the detected one. A session kept after the detected country
  * changed stays on its stored country, so its terms match the consents
  * recorded before Sumsub launches. Session-scoped consents are posted later by
  * {@link Engine.context.KycController.recordSessionDisclaimers}. Vendor T&Cs
@@ -86,14 +87,7 @@ export const useKycSessionDisclaimers = (): UseKycSessionDisclaimersResult => {
 
         const catalog = await Promise.race([
           (async () => {
-            const kycService = Engine.context.KycService;
-            if (!kycService) {
-              throw new Error('KYC service is unavailable');
-            }
-
-            const country =
-              kycController.state?.geoCountry ??
-              (await kycService.getGeoCountry());
+            const country = await resolveGeoCountry();
             return kycController.fetchSessionDisclaimers({ country });
           })(),
           abortedPromise,

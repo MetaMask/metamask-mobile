@@ -16,6 +16,7 @@ import { getVbaOnboardingResumeState } from '../../Ramp/Views/VirtualBankAccount
 import { IRON_KYC_VENDOR } from '../vendors/iron';
 import type { KycIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
+import { resolveGeoCountry } from '../utils/resolveGeoCountry';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 
 export const VBA_KYC_RESUME_OWNER = 'vba-kyc';
@@ -56,13 +57,8 @@ const toAcceptedDisclaimerKeys = (
  * consents is swallowed by the controller.
  */
 async function recordSessionConsents(): Promise<void> {
-  const { KycController, KycService } = Engine.context;
-  if (!KycService) {
-    throw new Error('KYC service is unavailable');
-  }
-
-  const country =
-    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
+  const { KycController } = Engine.context;
+  const country = await resolveGeoCountry();
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });
