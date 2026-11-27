@@ -152,7 +152,7 @@ describe('Pna25BottomSheet', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('navigates to security settings when open settings button is pressed', () => {
+  it('navigates to privacy settings when open settings button is pressed', () => {
     const { getByText } = renderComponent();
 
     const openSettingsButton = getByText(
@@ -162,7 +162,7 @@ describe('Pna25BottomSheet', () => {
     fireEvent.press(openSettingsButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
     });
   });
 

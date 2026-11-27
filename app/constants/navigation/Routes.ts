@@ -243,6 +243,8 @@ const Routes = {
     CONTACTS: 'ContactsSettings',
     COMPANY: 'CompanySettings',
     SECURITY_SETTINGS: 'SecuritySettings',
+    PRIVACY_SETTINGS: 'PrivacySettings',
+    TRANSACTIONS_SETTINGS: 'TransactionsSettings',
     ADVANCED_SETTINGS: 'AdvancedSettings',
     CHANGE_PASSWORD: 'ResetPassword',
     CONTACT_FORM: 'ContactForm',

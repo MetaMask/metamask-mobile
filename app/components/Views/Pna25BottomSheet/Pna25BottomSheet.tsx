@@ -84,7 +84,9 @@ const Pna25BottomSheet = () => {
   };
 
   const handleLearnMore = () => {
-    Linking.openURL('https://metamask.io/news/updating-metamask-analytics');
+    void Linking.openURL(
+      'https://metamask.io/news/updating-metamask-analytics',
+    );
   };
 
   // Track bottom sheet display
@@ -140,7 +142,7 @@ const Pna25BottomSheet = () => {
             onPress: () => {
               handleAction(Pna25BottomSheetAction.OPEN_SETTINGS);
               navigation.navigate(Routes.SETTINGS_VIEW, {
-                screen: Routes.SETTINGS.SECURITY_SETTINGS,
+                screen: Routes.SETTINGS.PRIVACY_SETTINGS,
               });
             },
           },

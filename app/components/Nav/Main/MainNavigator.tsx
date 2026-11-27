@@ -39,6 +39,8 @@ import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import PrivacySettings from '../../Views/Settings/PrivacySettings';
+import TransactionsSettings from '../../Views/Settings/TransactionsSettings';
 import { MfaMethodDetails, MfaPasskeys, MfaSettings } from '../../Views/Mfa';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
@@ -611,6 +613,11 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name="AdvancedSettings"
         component={AdvancedSettings}
+      />
+      <NativeStack.Screen name="PrivacySettings" component={PrivacySettings} />
+      <NativeStack.Screen
+        name="TransactionsSettings"
+        component={TransactionsSettings}
       />
       <NativeStack.Screen
         name="NetworksManagement"

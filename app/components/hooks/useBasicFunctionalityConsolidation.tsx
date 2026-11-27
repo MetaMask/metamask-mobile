@@ -255,7 +255,7 @@ export function useBasicFunctionalityConsolidation(): void {
               }
               toast.dismiss();
               NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
-                screen: Routes.SETTINGS.SECURITY_SETTINGS,
+                screen: Routes.SETTINGS.PRIVACY_SETTINGS,
               });
             }}
           >
@@ -264,7 +264,9 @@ export function useBasicFunctionalityConsolidation(): void {
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
-              Linking.openURL(BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK);
+              void Linking.openURL(
+                BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK,
+              );
             }}
           >
             {strings('basic_functionality_migration.learn_more_link')}

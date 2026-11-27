@@ -1,24 +1,18 @@
 // Third party dependencies.
 import React, { useEffect, useRef, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
+import Engine from '../../../../core/Engine';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 // External dependencies.
-import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
-import {
-  setShowFiatOnTestnets as setShowFiatOnTestnetsAction,
-  setShowHexData as setShowHexDataAction,
-} from '../../../../actions/settings';
+import { setShowFiatOnTestnets as setShowFiatOnTestnetsAction } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import {
-  selectDismissSmartAccountSuggestionEnabled,
-  selectSmartTransactionsOptInStatus,
-} from '../../../../selectors/preferencesController';
+import { selectDismissSmartAccountSuggestionEnabled } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -34,7 +28,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
@@ -57,12 +50,8 @@ type SettingsRootState = Omit<RootState, 'settings'> & {
 };
 
 interface StateProps {
-  showHexData: boolean;
   showFiatOnTestnets: boolean;
   fullState: SettingsRootState;
-  smartTransactionsOptInStatus: ReturnType<
-    typeof selectSmartTransactionsOptInStatus
-  >;
   dismissSmartAccountSuggestionEnabled: ReturnType<
     typeof selectDismissSmartAccountSuggestionEnabled
   >;
@@ -70,7 +59,6 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  setShowHexData: (showHexData: boolean) => void;
   setShowFiatOnTestnets: (showFiatOnTestnets: boolean) => void;
 }
 
@@ -90,13 +78,10 @@ type Props = StateProps & DispatchProps & OwnProps;
  */
 const AdvancedSettings = ({
   navigation,
-  showHexData,
-  setShowHexData,
   showFiatOnTestnets,
   setShowFiatOnTestnets,
   fullState,
   route,
-  smartTransactionsOptInStatus,
   dismissSmartAccountSuggestionEnabled,
   isBasicFunctionalityConsolidationEnabled,
 }: Props) => {
@@ -141,15 +126,6 @@ const AdvancedSettings = ({
     );
   };
 
-  const toggleSmartTransactionsOptInStatus = (optInStatus: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setSmartTransactionsOptInStatus(optInStatus);
-
-    trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
-      stx_opt_in: optInStatus,
-    });
-  };
-
   const toggleDismissSmartAccountSuggestionEnabled = (enabled: boolean) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setDismissSmartAccountSuggestionEnabled(enabled);
@@ -160,10 +136,6 @@ const AdvancedSettings = ({
         dismiss_smart_account_suggestion_enabled: enabled,
       },
     );
-  };
-
-  const openLinkAboutStx = () => {
-    Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
   return (
@@ -221,36 +193,6 @@ const AdvancedSettings = ({
               toggleDismissSmartAccountSuggestionEnabled(!val)
             }
             testID={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
-          />
-
-          <SettingsToggleRow
-            title={strings('app_settings.smart_transactions_opt_in_heading')}
-            description={
-              <>
-                {strings(
-                  'app_settings.smart_transactions_opt_in_desc_supported_networks',
-                )}{' '}
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
-                  accessibilityRole="link"
-                  onPress={openLinkAboutStx}
-                >
-                  {strings('app_settings.smart_transactions_learn_more')}
-                </Text>
-              </>
-            }
-            value={smartTransactionsOptInStatus}
-            onValueChange={toggleSmartTransactionsOptInStatus}
-            testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
-          />
-
-          <SettingsToggleRow
-            title={strings('app_settings.show_hex_data')}
-            description={strings('app_settings.hex_desc')}
-            value={showHexData}
-            onValueChange={setShowHexData}
           />
 
           {!isBasicFunctionalityConsolidationEnabled && (
@@ -328,10 +270,8 @@ const AdvancedSettings = ({
 };
 
 const mapStateToProps = (state: SettingsRootState): StateProps => ({
-  showHexData: state.settings.showHexData,
   showFiatOnTestnets: state.settings.showFiatOnTestnets,
   fullState: state,
-  smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
   isBasicFunctionalityConsolidationEnabled:
@@ -339,8 +279,6 @@ const mapStateToProps = (state: SettingsRootState): StateProps => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  setShowHexData: (showHexData: boolean) =>
-    dispatch(setShowHexDataAction(showHexData)),
   setShowFiatOnTestnets: (showFiatOnTestnets: boolean) =>
     dispatch(setShowFiatOnTestnetsAction(showFiatOnTestnets)),
 });

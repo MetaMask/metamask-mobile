@@ -1,0 +1,193 @@
+import React from 'react';
+import { Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useNavigation } from '@react-navigation/native';
+import {
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+  Box,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Engine from '../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AppConstants from '../../../../core/AppConstants';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { setShowHexData } from '../../../../actions/settings';
+import {
+  selectSmartTransactionsOptInStatus,
+  selectUseTransactionSimulations,
+} from '../../../../selectors/preferencesController';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import type { RootState } from '../../../../reducers';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
+
+import { strings } from '../../../../../locales/i18n';
+
+import { SettingsToggleRow } from '../components/SettingsToggleRow';
+import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
+import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
+
+function TransactionsSettings() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
+  const tw = useTailwind();
+  const dispatch = useDispatch();
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const smartTransactionsOptInStatus = useSelector(
+    selectSmartTransactionsOptInStatus,
+  );
+  const useTransactionSimulations = useSelector(
+    selectUseTransactionSimulations,
+  );
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectIsBasicFunctionalityConsolidationEnabled,
+  );
+
+  const showHexData = useSelector(
+    (state: RootState) => state.settings.showHexData,
+  );
+
+  function trackMetricsEvent(
+    event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
+    properties: Record<string, unknown>,
+  ) {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties({
+          location: 'Transactions Settings',
+          ...properties,
+        })
+        .build(),
+    );
+  }
+
+  function toggleSmartTransactionsOptInStatus(optInStatus: boolean) {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSmartTransactionsOptInStatus(optInStatus);
+
+    trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: optInStatus,
+    });
+  }
+
+  function toggleShowHexData(value: boolean) {
+    dispatch(setShowHexData(value));
+  }
+
+  function openLinkAboutStx() {
+    void Linking.openURL(AppConstants.URLS.SMART_TXS);
+  }
+
+  function toggleUseTransactionSimulations(value: boolean) {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseTransactionSimulations(value);
+  }
+
+  return (
+    <SafeAreaView edges={{ bottom: 'additive' }} style={tw`flex-1 bg-default`}>
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        testID="header"
+        title={strings('app_settings.transactions_title')}
+        onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: TransactionsViewSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+      />
+      <KeyboardAwareScrollView
+        style={tw`flex-1`}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+      >
+        <Box className="px-4 pb-28">
+          <Text variant={TextVariant.HeadingMd} className="mb-4">
+            {strings('app_settings.transactions_subheading')}
+          </Text>
+
+          <SettingsToggleRow
+            title={strings('app_settings.smart_transactions_opt_in_heading')}
+            description={
+              <>
+                {strings(
+                  'app_settings.smart_transactions_opt_in_desc_supported_networks',
+                )}{' '}
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.PrimaryDefault}
+                  accessibilityRole="link"
+                  onPress={openLinkAboutStx}
+                >
+                  {strings('app_settings.smart_transactions_learn_more')}
+                </Text>
+              </>
+            }
+            testID={TransactionsViewSelectorsIDs.STX_OPT_IN_SWITCH}
+            value={smartTransactionsOptInStatus}
+            onValueChange={toggleSmartTransactionsOptInStatus}
+          />
+
+          <SettingsToggleRow
+            title={strings('app_settings.show_hex_data')}
+            description={strings('app_settings.hex_desc')}
+            testID={TransactionsViewSelectorsIDs.SHOW_HEX_DATA_SWITCH}
+            value={showHexData}
+            onValueChange={toggleShowHexData}
+          />
+
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <BatchAccountBalanceSettings />
+              <SettingsToggleRow
+                title={strings('app_settings.simulation_details')}
+                description={
+                  <>
+                    {strings('app_settings.simulation_details_description')}{' '}
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.PrimaryDefault}
+                      accessibilityRole="link"
+                      onPress={() => {
+                        void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+                        trackExternalLinkClicked(
+                          analytics.trackEvent,
+                          AnalyticsEventBuilder.createEventBuilder,
+                          {
+                            location: 'app_settings',
+                            text: strings(
+                              'app_settings.simulation_details_learn_more',
+                            ),
+                            url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                          },
+                        );
+                      }}
+                    >
+                      {strings('app_settings.simulation_details_learn_more')}
+                    </Text>
+                  </>
+                }
+                testID={
+                  TransactionsViewSelectorsIDs.TRANSACTION_SIMULATIONS_SWITCH
+                }
+                value={useTransactionSimulations}
+                onValueChange={toggleUseTransactionSimulations}
+              />
+            </>
+          )}
+        </Box>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
+  );
+}
+
+export default TransactionsSettings;

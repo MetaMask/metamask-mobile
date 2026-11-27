@@ -103,6 +103,19 @@ const Settings = () => {
     navigation.navigate('SecuritySettings');
   };
 
+  const onPressPrivacy = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY,
+      ).build(),
+    );
+    navigation.navigate('PrivacySettings');
+  };
+
+  const onPressTransactions = () => {
+    navigation.navigate('TransactionsSettings');
+  };
+
   const onPressOnRamp = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
@@ -193,6 +206,12 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.SECURITY}
         />
         <SettingsDrawer
+          onPress={onPressPrivacy}
+          title={strings('app_settings.privacy_title')}
+          startAccessory={renderIcon(IconName.Eye)}
+          testID={SettingsViewSelectorsIDs.PRIVACY}
+        />
+        <SettingsDrawer
           onPress={onPressBackupAndSync}
           title={strings('backupAndSync.title')}
           startAccessory={renderIcon(IconName.SecurityTime)}
@@ -208,6 +227,12 @@ const Settings = () => {
             {strings('app_settings.groups.transactions_and_assets')}
           </Text>
         </Box>
+        <SettingsDrawer
+          title={strings('app_settings.transactions_title')}
+          onPress={onPressTransactions}
+          startAccessory={renderIcon(IconName.SwapHorizontal)}
+          testID={SettingsViewSelectorsIDs.TRANSACTIONS}
+        />
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
           onPress={onPressOnRamp}
