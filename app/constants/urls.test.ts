@@ -91,4 +91,34 @@ describe('buildCardSupportUrl', () => {
       `https://support.example.com?provider_user_id=${encodeURIComponent('user&id=1')}&provider_name=${encodeURIComponent('a b')}`,
     );
   });
+
+  it('appends the card region after the provider identity', () => {
+    expect(
+      buildCardSupportUrl(
+        {
+          providerUserId: 'cardholder-1',
+          providerName: 'baanx',
+          cardRegion: 'GB',
+        },
+        'https://support.example.com',
+      ),
+    ).toBe(
+      'https://support.example.com?provider_user_id=cardholder-1&provider_name=baanx&card_region=GB',
+    );
+  });
+
+  it('omits the card region when it is unknown', () => {
+    expect(
+      buildCardSupportUrl(
+        { providerUserId: 'cardholder-1', cardRegion: null },
+        'https://support.example.com',
+      ),
+    ).toBe('https://support.example.com?provider_user_id=cardholder-1');
+  });
+
+  it('URL-encodes the card region', () => {
+    expect(
+      buildCardSupportUrl({ cardRegion: 'A&B' }, 'https://support.example.com'),
+    ).toBe('https://support.example.com?card_region=A%26B');
+  });
 });
