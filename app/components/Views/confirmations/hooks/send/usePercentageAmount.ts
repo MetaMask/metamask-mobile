@@ -6,12 +6,15 @@ import { fromBNWithDecimals } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
 import { useSendType } from './useSendType';
+import { useNonEvmMaxAmount } from './useNonEvmMaxAmount';
 
 /**
  * Returns a percentage of the balance.
  *
- * Max returns the full balance. For native EVM sends, the gas fee is
- * subtracted on the confirmation by `useMaxValueRefresher`, using the gas
+ * Max returns the full balance, except for non-EVM networks that can quote it
+ * through `useNonEvmMaxAmount` (Tron today, where the Snap leaves room for the
+ * fees and the account activation reserve). For native EVM sends, the gas fee
+ * is subtracted on the confirmation by `useMaxValueRefresher`, using the gas
  * estimated by `TransactionController`.
  *
  * @param args - The calculation arguments.
@@ -42,6 +45,7 @@ export const usePercentageAmount = () => {
   const { asset } = useSendContext();
   const { isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
+  const { getNonEvmMaxAmount, isNonEvmMaxSupported } = useNonEvmMaxAmount();
 
   const getPercentageAmount = useCallback(
     (percentage: number) => {
@@ -55,8 +59,22 @@ export const usePercentageAmount = () => {
     [asset, isNonEvmNativeSendType, rawBalanceBN],
   );
 
+  const getMaxAmount = useCallback(async () => {
+    if (isNonEvmMaxSupported) {
+      const nonEvmMaxAmount = await getNonEvmMaxAmount();
+      if (nonEvmMaxAmount) return nonEvmMaxAmount;
+    }
+
+    return getPercentageValueFn({
+      asset: asset as AssetType,
+      percentage: 100,
+      rawBalanceBN,
+    });
+  }, [asset, getNonEvmMaxAmount, isNonEvmMaxSupported, rawBalanceBN]);
+
   return {
     getPercentageAmount,
-    isMaxAmountSupported: !isNonEvmNativeSendType,
+    getMaxAmount,
+    isMaxAmountSupported: !isNonEvmNativeSendType || isNonEvmMaxSupported,
   };
 };

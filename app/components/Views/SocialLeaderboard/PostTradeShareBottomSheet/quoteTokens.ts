@@ -58,6 +58,30 @@ const toPositionAsset = (
 };
 
 /**
+ * Returns whether the quote-token list is cached. Callers that pick the
+ * position side of a trade must not guess while it is missing, since
+ * {@link isUnsupportedPostTradeAsset} treats every token as a position then.
+ *
+ * @returns Whether the quote-token list is loaded.
+ */
+export const isQuoteTokenListLoaded = (): boolean =>
+  Boolean(
+    ReactQueryService.queryClient.getQueryData<QuoteTokensResponse>(
+      QUOTE_TOKENS_QUERY_KEY,
+    ),
+  );
+
+/**
+ * Loads the quote-token list into the cache for screens outside the social
+ * feed. Does nothing while a fresh copy is cached.
+ */
+export const prefetchQuoteTokens = (): void => {
+  ReactQueryService.queryClient
+    .prefetchQuery({ queryKey: QUOTE_TOKENS_QUERY_KEY })
+    .catch(() => undefined);
+};
+
+/**
  * Returns whether the cached quote-token list marks the position token as one
  * social-api never builds a position for. Returns `false` while the list is
  * not loaded.

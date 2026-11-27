@@ -30,6 +30,10 @@ import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
+// The search results render after the request round-trips through the
+// Trending API; the 5s default is not enough on a loaded CV shard.
+const EXPLORE_SEARCH_RESULTS_TIMEOUT_MS = 10000;
+
 const mockAppleSearchResult = {
   assetId: 'eip155:1/erc20:0xa11e000000000000000000000000000000000000',
   name: 'Apple Token',
@@ -103,7 +107,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
     await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
     expect(
-      await findByText('Apple Token', {}, { timeout: 10000 }),
+      // The results render after the search request round-trips through the
+      // Trending API; the 5s default is not enough on a loaded CV shard.
+      await findByText(
+        'Apple Token',
+        {},
+        { timeout: EXPLORE_SEARCH_RESULTS_TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -129,7 +139,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     });
 
     expect(
-      await findByText('Apple Token', {}, { timeout: 10000 }),
+      // The deeplink-entry search round-trips through the Trending API before
+      // the results render; the 5s default is not enough on a loaded CV shard.
+      await findByText(
+        'Apple Token',
+        {},
+        { timeout: EXPLORE_SEARCH_RESULTS_TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
     expect(await findByText('APPLE · $76B cap')).toBeOnTheScreen();
     expect(queryByText('$974.2M vol')).toBeNull();
@@ -453,12 +469,9 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       feedName: strings('trending.search_tabs.predictions'),
       query: 'zzz_no_match',
     });
-    await waitFor(
-      () => {
-        expect(queryByText(expectedMessage)).toBeOnTheScreen();
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(queryByText(expectedMessage)).toBeOnTheScreen();
+    });
   });
 
   it('holds back the keyboard and the results subtree until the screen transition settles', async () => {

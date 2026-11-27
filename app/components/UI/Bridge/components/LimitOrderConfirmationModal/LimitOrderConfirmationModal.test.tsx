@@ -10,6 +10,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 
 const mockNavigate = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -183,6 +188,20 @@ describe('LimitOrderConfirmationModal', () => {
 
     expect(within(networkFeeRow).getByText('$1.69')).toBeOnTheScreen();
     expect(within(networkFeeRow).getByText('ETH')).toBeOnTheScreen();
+  });
+
+  it('omits the network fee row while checking whether an upgrade is required', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          delegationFee: { status: 'checking', retry: jest.fn() },
+        })}
+      />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
+    ).toBeNull();
   });
 
   it('omits the network fee row while the upgrade fee is being estimated', () => {

@@ -29,6 +29,7 @@ import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrder
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
 import type { SwapsLimitOrderActivityPageRouteParams } from '../Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.types';
+import type { RecurringPriceToleranceModalParams } from '../components/SwapsLimitOrderCostToleranceModal/types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -84,6 +85,12 @@ export type BridgeModalsNavigationParamList = {
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
   SwapsLimitOrderDefaultCostToleranceModal: undefined;
   SwapsLimitOrderCustomCostToleranceModal: undefined;
+  RecurringDefaultPriceToleranceModal:
+    | RecurringPriceToleranceModalParams
+    | undefined;
+  RecurringCustomPriceToleranceModal:
+    | RecurringPriceToleranceModalParams
+    | undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
   LimitOrderCostToleranceInfoModal: undefined;
   LimitOrderAccountUpgradeFeeInfoModal: undefined;

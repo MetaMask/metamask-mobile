@@ -87,7 +87,7 @@ const EditAccountName = () => {
   }, [selectedChecksummedAddress, chainId]);
 
   useEffect(() => {
-    lookupEns();
+    void lookupEns();
   }, [lookupEns]);
 
   const updateNavBar = useCallback(() => {

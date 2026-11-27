@@ -71,6 +71,8 @@ import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
+// ponytail: fixed window for the card list to show a new card; raise it if duplicates still appear.
+const CREATED_CARD_TTL_MS = 5 * 60 * 1000;
 
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
@@ -716,7 +718,17 @@ export class ImmersveProvider implements ICardProvider {
   /** Card list requests in flight, by cardholder account. Concurrent callers share one. */
   private readonly currentCardRequests = new Map<
     string,
-    Promise<ImmersveCardListItem | null>
+    Promise<ImmersveCardListItem[]>
+  >();
+  /** Card creates in flight, by cardholder account. Concurrent callers share one POST. */
+  private readonly createCardRequests = new Map<
+    string,
+    Promise<CardCreateResult>
+  >();
+  /** Cards this app just created, by cardholder account, in case the card list has not caught up. */
+  private readonly createdCards = new Map<
+    string,
+    { cardId: string; expiresAt: number }
   >();
 
   constructor({
@@ -1279,17 +1291,58 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Immersve allows several cards per cardholder, so two overlapping creates
+   * would both succeed. Overlapping callers share one request.
+   */
   async createCard(
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {
-    const existing = await this.resolveCurrentCard(tokens);
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'createCard: missing cardholder account id',
+      );
+    }
+
+    let request = this.createCardRequests.get(accountId);
+    if (!request) {
+      request = this.createCardOnce(accountId, fundingSourceId, tokens).finally(
+        () => {
+          this.createCardRequests.delete(accountId);
+        },
+      );
+      this.createCardRequests.set(accountId, request);
+    }
+    return request;
+  }
+
+  private async createCardOnce(
+    accountId: string,
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCreateResult> {
+    const cards = await this.listCards(tokens);
+    const existing = this.pickCurrentCard(cards);
     if (existing) {
       return { cardId: existing.id };
     }
 
+    // Only while the list has not caught up: once it shows the card (even
+    // cancelled), the list is the truth.
+    const created = this.createdCards.get(accountId);
+    if (
+      created &&
+      created.expiresAt > Date.now() &&
+      !cards.some((card) => card.id === created.cardId)
+    ) {
+      return { cardId: created.cardId };
+    }
+
     try {
-      return await this.service.post<CardCreateResult>(
+      const result = await this.service.post<CardCreateResult>(
         '/api/cards',
         {
           cardProgramId: this.requireCardProgramId(),
@@ -1297,6 +1350,11 @@ export class ImmersveProvider implements ICardProvider {
         },
         tokens,
       );
+      this.createdCards.set(accountId, {
+        cardId: result.cardId,
+        expiresAt: Date.now() + CREATED_CARD_TTL_MS,
+      });
+      return result;
     } catch (error) {
       reportAndMap(error, 'createCard', { fundingSourceId });
     }
@@ -1326,6 +1384,12 @@ export class ImmersveProvider implements ICardProvider {
   private async resolveCurrentCard(
     tokens: CardAuthTokens,
   ): Promise<ImmersveCardListItem | null> {
+    return this.pickCurrentCard(await this.listCards(tokens));
+  }
+
+  private async listCards(
+    tokens: CardAuthTokens,
+  ): Promise<ImmersveCardListItem[]> {
     const accountId = tokens.cardholderAccountId;
     if (!accountId) {
       throw new CardProviderError(
@@ -1341,7 +1405,7 @@ export class ImmersveProvider implements ICardProvider {
           `/api/accounts/${accountId}/cards?excludeExpired=true`,
           tokens,
         )
-        .then(({ items }) => this.pickCurrentCard(items ?? []))
+        .then(({ items }) => items ?? [])
         .finally(() => {
           this.currentCardRequests.delete(accountId);
         });

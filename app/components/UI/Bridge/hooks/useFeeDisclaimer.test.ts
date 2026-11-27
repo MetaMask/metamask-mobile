@@ -56,4 +56,26 @@ describe('useFeeDisclaimer', () => {
     expect(result.current.infoSuffix).toBeUndefined();
     expect(result.current.baseFeePercentage).toBeUndefined();
   });
+
+  it('returns a Free badge and base-fee copy when discountType is free, even with a fee cut', () => {
+    const { result } = renderHook(() =>
+      useFeeDisclaimer({
+        activeQuote: quoteWithFee({
+          quoteBpsFee: 0,
+          baseBpsFee: 87.5,
+          discountType: DiscountType.FREE,
+        }),
+      }),
+    );
+
+    expect(result.current.discountBadge).toEqual({
+      type: DiscountType.FREE,
+      label: strings('bridge.discount_badge_free'),
+    });
+    expect(result.current.infoText).toBe(
+      strings('bridge.fee_percentage_meta_mask', { feePercentage: 0.875 }),
+    );
+    expect(result.current.infoSuffix).toBeUndefined();
+    expect(result.current.baseFeePercentage).toBeUndefined();
+  });
 });

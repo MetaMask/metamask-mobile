@@ -25,6 +25,22 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: () => mockIsFocused,
 }));
 
+const mockEnsureSocialTermsAccepted = jest.fn(
+  (_onAccepted?: () => void) => true,
+);
+jest.mock('../../terms/useSocialTermsGate', () => ({
+  useSocialTermsGate: () => ({
+    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  }),
+}));
+
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+jest.mock('../../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
@@ -298,6 +314,69 @@ describe('TraderPositionBuyCta', () => {
       expect(mockGoToSwaps).not.toHaveBeenCalled();
       expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
         expect.objectContaining({ isVisible: false }),
+      );
+    });
+  });
+
+  describe('social profile gate', () => {
+    it('opens profile onboarding instead of buying without a linked wallet', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValueOnce(false);
+      const onBuyCtaClicked = jest.fn();
+      const { getByTestId } = renderCta({
+        onBuyCtaClicked,
+        requireSocialProfile: true,
+      });
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+
+      expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+      expect(onBuyCtaClicked).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: false }),
+      );
+    });
+
+    it('asks for the Social terms before buying', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+      const onBuyCtaClicked = jest.fn();
+      const { getByTestId } = renderCta({
+        onBuyCtaClicked,
+        requireSocialProfile: true,
+      });
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+      expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
+      expect(onBuyCtaClicked).not.toHaveBeenCalled();
+    });
+
+    it('opens QuickBuy once the Social profile is set up', () => {
+      const onBuyCtaClicked = jest.fn();
+      const { getByTestId } = renderCta({
+        onBuyCtaClicked,
+        requireSocialProfile: true,
+      });
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+
+      expect(onBuyCtaClicked).toHaveBeenCalledTimes(1);
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('skips the gates when the profile is not required', () => {
+      const { getByTestId } = renderCta();
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true }),
       );
     });
   });

@@ -32,7 +32,7 @@ export type PerpsModalsNavigationParamList = {
    * The modal stack is transparent, so the sheet opens over the calling page.
    */
   PerpsOrderRedirect: PerpsStackParamList['PerpsOrderRedirect'];
-  RedesignedConfirmations: PerpsStackParamList['RedesignedConfirmations'];
+  Confirmations: PerpsStackParamList['Confirmations'];
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -66,7 +66,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 };
 
 /**
- * Shared order / redesigned-confirmation params for the Perps trade flow.
+ * Shared order / confirmation params for the Perps trade flow.
  *
  * Declared as an object-literal `type` (not `interface`) so it keeps an implicit
  * index signature and stays assignable to `Record<string, unknown>` (e.g. when
@@ -102,7 +102,7 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  /** Resolved bottom-sheet assignment forwarded to confirmation routing. */
   useBottomSheet?: boolean;
   /**
    * Read by the shared `Confirm` screen: while the Trade sheet variant has no
@@ -118,6 +118,7 @@ export type PerpsOrderRouteParams = {
   stayOnCurrentScreen?: boolean;
   /** Social post being copied; a matching order records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  isCopyTrade?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -198,8 +199,8 @@ export type PerpsStackParamList = {
          */
         enableHaptics?: boolean;
         /**
-         * Stamped when Perps Home was removed from this stack (TAT-3786).
-         * Extra params otherwise compile, which is how earlier resets dropped it.
+         * Stamped when Perps Home is removed from this stack. Extra params
+         * otherwise compile, which is how earlier resets dropped it.
          */
         homeDroppedFromHistory?: true;
       }
@@ -218,14 +219,16 @@ export type PerpsStackParamList = {
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
     source_section?: string;
+    /** Venue to preselect for this order; falls back to the saved default. */
+    providerId?: PerpsProviderType;
     /** Telemetry-only reason when the header picker replaces the active market. */
     detailGenerationTrigger?: 'market_switch';
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
     /**
-     * Stamped when Perps Home was removed from this stack (TAT-3786).
-     * Extra params otherwise compile, which is how earlier resets dropped it.
+     * Stamped when Perps Home is removed from this stack. Extra params
+     * otherwise compile, which is how earlier resets dropped it.
      */
     homeDroppedFromHistory?: true;
   };
@@ -249,7 +252,7 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
-    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    /** Resolved bottom-sheet assignment for the amount-entry experience. */
     useBottomSheet?: boolean;
   };
 
@@ -392,10 +395,10 @@ export type PerpsStackParamList = {
   };
 
   /**
-   * Params for RedesignedConfirmations when opened from Perps order flow.
+   * Params for Confirmations when opened from Perps order flow.
    * Partial so header-option helpers can take only `showPerpsHeader`.
    */
-  RedesignedConfirmations: Partial<PerpsOrderRouteParams> | undefined;
+  Confirmations: Partial<PerpsOrderRouteParams> | undefined;
 
   /** Params for PerpsOrderRedirect - handles one-click trade from token details */
   PerpsOrderRedirect: {
@@ -423,6 +426,7 @@ export type PerpsStackParamList = {
     stayOnCurrentScreen?: boolean;
     /** Social post being copied, forwarded to the order view. */
     copyTradeOrigin?: CopyTradeOrigin;
+    isCopyTrade?: boolean;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)
@@ -444,7 +448,7 @@ export type PerpsStackParamList = {
         animation?: NativeStackNavigationOptions['animation'];
         animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
-         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * Stamped when Perps Home is removed from this stack.
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
          */
         homeDroppedFromHistory?: true;

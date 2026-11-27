@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
@@ -577,7 +578,10 @@ export const TokenListItem = React.memo(
         onLongPress={() => {
           const onLongPress =
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
-          onLongPress?.(asset);
+          if (onLongPress) {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onLongPress(asset);
+          }
         }}
         activeOpacity={0.7}
         style={styles.itemWrapper}

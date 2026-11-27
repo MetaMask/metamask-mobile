@@ -84,6 +84,13 @@ const defaultQuoteData: MockBatchSellQuoteData = {
 let mockSelectedTokens = defaultSourceTokens;
 let mockBatchSellQuoteData = defaultQuoteData;
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,

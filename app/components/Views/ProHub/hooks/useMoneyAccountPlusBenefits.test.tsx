@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   SubscriptionControllerErrorMessage,
   type SubscriptionBenefitsState,
@@ -33,6 +34,9 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     SubscriptionController: {
+      getBenefits: jest.fn(),
+    },
+    SubscriptionService: {
       getBenefits: jest.fn(),
     },
   },
@@ -71,9 +75,15 @@ const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
   Engine.context.SubscriptionController.getBenefits,
 );
+const subscriptionService = Engine.context.SubscriptionService;
+if (!subscriptionService) {
+  throw new Error('SubscriptionService mock is missing');
+}
+const mockGetPausedBenefits = jest.mocked(subscriptionService.getBenefits);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',
+  benefitPeriodEnd: '2026-09-15T00:00:00.000Z',
   swaps: {
     feeBips: '0',
     capMicroUsd: 500_000_000,
@@ -94,6 +104,17 @@ const BENEFITS: SubscriptionBenefitsState = {
     consumedTxCount: 0,
     remainingTxCount: 1,
     exhausted: false,
+  },
+};
+
+const PAUSED_BENEFITS_RESPONSE = {
+  eligible: false,
+  billingPeriodId: BENEFITS.billingPeriodId,
+  benefitPeriodEnd: BENEFITS.benefitPeriodEnd,
+  products: {
+    swaps: { ...BENEFITS.swaps, feeBips: null },
+    perps: { ...BENEFITS.perps, builderFeeBips: null },
+    predict: { ...BENEFITS.predict, builderCode: null },
   },
 };
 
@@ -197,6 +218,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     mockGetBenefits.mockResolvedValue({
       eligible: true,
       billingPeriodId: BENEFITS.billingPeriodId,
+      benefitPeriodEnd: BENEFITS.benefitPeriodEnd,
       products: {
         swaps: BENEFITS.swaps,
         perps: BENEFITS.perps,
@@ -253,6 +275,130 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.items).toEqual([]);
   });
 
+  it.each([SUBSCRIPTION_STATUSES.paused, SUBSCRIPTION_STATUSES.unpaid])(
+    'shows paused usage for a %s membership without treating it as a waiver',
+    async (subscriptionStatus) => {
+      mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+      const { result } = renderBenefits(
+        createState({
+          benefits: BENEFITS,
+          subscriptionStatus,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.status).toBe(
+          MoneyAccountPlusBenefitsStatus.Ready,
+        ),
+      );
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+      expect(result.current.benefitsPaused).toBe(true);
+      expect(result.current.items).toHaveLength(3);
+      expect(result.current.items[0]).toEqual(
+        expect.objectContaining({ id: 'swaps', used: 310, allowance: 500 }),
+      );
+    },
+  );
+
+  it('hides member pricing when a paused membership has no benefit window', async () => {
+    mockGetPausedBenefits.mockResolvedValue({
+      eligible: false,
+      billingPeriodId: null,
+      products: {
+        swaps: {
+          feeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        perps: {
+          builderFeeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        predict: {
+          builderCode: null,
+          remainingTxCount: null,
+          exhausted: false,
+        },
+      },
+    });
+
+    const { result } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.benefitsPaused).toBe(false);
+  });
+
+  it('shows paused usage for an unpaid membership that is not a hub subscriber', async () => {
+    mockAccess(MoneyAccountPlusAccess.Eligible);
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.unpaid,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.items).toHaveLength(3);
+    expect(result.current.resetsOn).toBe('Sep 15, 2026');
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.pastDue, SUBSCRIPTION_STATUSES.awaitingFunds])(
+    'hides the section without fetching for a %s plan with no entitlement',
+    (subscriptionStatus) => {
+      mockAccess(MoneyAccountPlusAccess.Eligible);
+
+      const { result } = renderBenefits(createState({ subscriptionStatus }));
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).not.toHaveBeenCalled();
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    },
+  );
+
+  it('fetches paused usage again when the billing period changes but the status stays paused', async () => {
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+    const { result, store } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+    expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+
+    Object.assign(Engine, {
+      state: {
+        SubscriptionController: {
+          subscriptions: [
+            {
+              ...createPlusSubscription(SUBSCRIPTION_STATUSES.paused),
+              currentPeriodEnd: '2026-10-15T12:00:00.000Z',
+            },
+          ],
+          trialedProducts: [],
+        },
+      },
+    });
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'SubscriptionController' }));
+    });
+
+    await waitFor(() => expect(mockGetPausedBenefits).toHaveBeenCalledTimes(2));
+  });
+
   it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {
     mockAccess(MoneyAccountPlusAccess.Subscriber, false);
 
@@ -302,6 +448,45 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
     expect(result.current.resetsOn).toBe('Sep 15, 2026');
+  });
+
+  it('shows the monthly reset day from benefitPeriodEnd when the period ends at midnight UTC', () => {
+    const { result } = renderBenefits(
+      createState({
+        benefits: { ...BENEFITS, benefitPeriodEnd: '2026-10-15T00:00:00.000Z' },
+      }),
+    );
+
+    expect(result.current.resetsOn).toBe('Oct 15, 2026');
+  });
+
+  it('shows the monthly reset day, not the yearly renewal, for an annual membership', () => {
+    const state = createState({
+      benefits: { ...BENEFITS, benefitPeriodEnd: '2026-10-15T00:00:00.000Z' },
+    });
+    state.engine.backgroundState.SubscriptionController.subscriptions = [
+      {
+        ...createPlusSubscription(),
+        interval: RECURRING_INTERVALS.year,
+        currentPeriodStart: '2026-09-15T12:00:00.000Z',
+        currentPeriodEnd: '2027-09-15T12:00:00.000Z',
+      },
+    ];
+
+    const { result } = renderBenefits(state);
+
+    expect(result.current.resetsOn).toBe('Oct 15, 2026');
+  });
+
+  it('hides Resets on when the benefits response has no benefitPeriodEnd, even with a currentPeriodEnd', () => {
+    const { result } = renderBenefits(
+      createState({
+        benefits: { ...BENEFITS, benefitPeriodEnd: undefined },
+      }),
+    );
+
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.resetsOn).toBeUndefined();
   });
 
   it('reports partial when a product cannot be mapped', async () => {

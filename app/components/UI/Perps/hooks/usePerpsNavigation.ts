@@ -167,13 +167,25 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       transactionActiveAbTests?: TransactionActiveAbTestEntry[],
       source_section?: string,
     ) => {
-      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+      const params = {
         market,
         source,
         ...(transactionActiveAbTests?.length
           ? { transactionActiveAbTests }
           : {}),
         ...(source_section ? { source_section } : {}),
+      };
+
+      if (
+        navigation.getState()?.routeNames?.includes(Routes.PERPS.MARKET_DETAILS)
+      ) {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, params);
+        return;
+      }
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params,
       });
     },
     [navigation],
@@ -359,18 +371,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       };
       prepareOrder()
         .then(() => {
-          navigation.navigate(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              ...params,
-              ...(useBottomSheet
-                ? { useBottomSheet: true, forceBottomSheet: true }
-                : {}),
-              showPerpsHeader: useBottomSheet
-                ? false
-                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
-            },
-          );
+          navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+            ...params,
+            ...(useBottomSheet
+              ? { useBottomSheet: true, forceBottomSheet: true }
+              : {}),
+            showPerpsHeader: useBottomSheet
+              ? false
+              : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          });
         })
         .catch((error: unknown) => {
           if (useBottomSheet) {

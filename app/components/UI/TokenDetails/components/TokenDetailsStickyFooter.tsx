@@ -35,7 +35,6 @@ import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTok
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
-import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -147,8 +146,6 @@ interface TokenStickyFooterProps {
   onOpenQuickBuy?: (mode: QuickBuyTradeMode) => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
-  /** Whether the ambient price color A/B test treatment is active. */
-  useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */
   isTokenDetailsV1?: boolean;
   /**
@@ -193,7 +190,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   quickBuyEntrypointLayout = 'lightning_swap_buy',
   onOpenQuickBuy,
   sourcePage,
-  useAmbientColor = false,
   isTokenDetailsV1 = false,
   tdpVersion = 'v2',
   traderPositionPnl,
@@ -208,28 +204,20 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const geolocation = useSelector(getDetectedGeolocation);
-  const useErrorAccent =
-    useAmbientColor && isAsiaGeolocationLocation(geolocation);
 
-  const getAccentClass = (prefix: string, defaultClass: string) => {
-    if (useErrorAccent) {
-      return `${prefix}-error-default`;
-    }
-    if (isLightMode) {
-      return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
-    }
-    return defaultClass;
-  };
+  const successBg = isLightMode
+    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'bg-success-default';
+  const successBorder = isLightMode
+    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'border-success-default';
+  const successText = isLightMode
+    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
+    : 'text-success-default';
 
-  const successBg = getAccentClass('bg', 'bg-success-default');
-  const successBorder = getAccentClass('border', 'border-success-default');
-  const successText = getAccentClass('text', 'text-success-default');
-
-  const successColorHex = useErrorAccent
-    ? colors.error.default
-    : isLightMode
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : colors.success.default;
+  const successColorHex = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : colors.success.default;
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,

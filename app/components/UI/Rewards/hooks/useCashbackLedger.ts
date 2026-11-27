@@ -1,34 +1,35 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import { setCashbackLedger } from '../../../../reducers/rewardsMoney';
 import { selectCashbackLedger } from '../../../../reducers/rewardsMoney/selectors';
 import type { RootState } from '../../../../reducers';
 import type {
   EarningOriginType,
-  EarningsLedgerPageDto,
   LedgerEarningEntryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { createEarningsLedgerFetchPage } from './createEarningsLedgerFetchPage';
 import {
   useCursorPaginatedList,
   type UseCursorPaginatedListResult,
 } from './useCursorPaginatedList';
 
+/**
+ * Cashback the rebates list asks for.
+ *
+ * Predict is the same rebate as swaps and perps. The ledger returns
+ * `PREDICT_FEE_CASHBACK` only when a request names it, and a named list
+ * replaces the default scope, so this list names all three.
+ */
 export const CASHBACK_LEDGER_ORIGIN_TYPES: EarningOriginType[] = [
   'SWAPS_FEE_CASHBACK',
   'PERPS_FEE_CASHBACK',
+  'PREDICT_FEE_CASHBACK',
 ];
 
 export type UseCashbackLedgerResult =
   UseCursorPaginatedListResult<LedgerEarningEntryDto>;
 
-function earningEntriesFromPage(
-  page: EarningsLedgerPageDto,
-): LedgerEarningEntryDto[] {
-  return page.results.filter(
-    (entry): entry is LedgerEarningEntryDto => entry.type === 'earning',
-  );
-}
+const fetchPage = createEarningsLedgerFetchPage(CASHBACK_LEDGER_ORIGIN_TYPES);
 
 export const useCashbackLedger = (
   profileId: string | undefined,
@@ -37,34 +38,6 @@ export const useCashbackLedger = (
   const dispatch = useDispatch();
   const cachedItems = useSelector((state: RootState) =>
     selectCashbackLedger(state, profileId),
-  );
-
-  const fetchPage = useCallback(
-    async ({
-      cursor,
-      isFirstPage,
-      forceFresh,
-    }: {
-      cursor: string | null;
-      isFirstPage: boolean;
-      forceFresh: boolean;
-    }) => {
-      const page: EarningsLedgerPageDto = await Engine.controllerMessenger.call(
-        'RewardsMoneyController:getEarningsLedger',
-        {
-          originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
-          cursor: isFirstPage ? undefined : cursor,
-          includeClaims: false,
-          forceFresh: isFirstPage ? forceFresh : undefined,
-        },
-      );
-      return {
-        results: earningEntriesFromPage(page),
-        cursor: page.cursor,
-        has_more: page.has_more,
-      };
-    },
-    [],
   );
 
   const onFirstPage = useCallback(

@@ -6,6 +6,7 @@ import {
   selectIsAllNetworks,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
+  selectSelectedNetworkClientId,
 } from '../../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -32,6 +33,7 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectIsAllNetworks: jest.fn(),
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
   selectProviderConfig: jest.fn(),
+  selectSelectedNetworkClientId: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -145,6 +147,7 @@ const setupSelectors = (
   overrides: {
     networkConfigurations?: unknown;
     providerConfig?: unknown;
+    selectedNetworkClientId?: unknown;
     isAllNetworks?: unknown;
     tokenNetworkFilter?: unknown;
   } = {},
@@ -154,12 +157,15 @@ const setupSelectors = (
     type: 'rpc',
     rpcUrl: 'https://old.rpc.io',
   };
+  const selectedNetworkClientId = overrides.selectedNetworkClientId;
   const allNetworks = overrides.isAllNetworks ?? true;
   const tokenFilter = overrides.tokenNetworkFilter ?? {};
 
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectEvmNetworkConfigurationsByChainId) return configs;
     if (selector === selectProviderConfig) return provider;
+    if (selector === selectSelectedNetworkClientId)
+      return selectedNetworkClientId;
     if (selector === selectIsAllNetworks) return allNetworks;
     if (selector === selectTokenNetworkFilter) return tokenFilter;
     return undefined;
@@ -242,8 +248,10 @@ describe('useNetworkOperations', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('returns false and skips token filter and enableNetwork when addNetwork rejects', async () => {
-    mockAddNetwork.mockRejectedValueOnce(new Error('persist failed'));
+  it('returns false and skips token filter and enableNetwork when addNetwork throws', async () => {
+    mockAddNetwork.mockImplementationOnce(() => {
+      throw new Error('persist failed');
+    });
 
     const { result } = renderHook(() => useNetworkOperations());
 
@@ -983,8 +991,10 @@ describe('useNetworkOperations', () => {
   });
 
   describe('removeNetwork', () => {
-    it('removes a network and navigates back', async () => {
+    it('removes a network and updates the token network filter', async () => {
       setupSelectors({
+        isAllNetworks: true,
+        tokenNetworkFilter: { '0x1': true, '0x2a': true },
         providerConfig: { type: 'rpc', rpcUrl: 'https://other.rpc.io' },
         networkConfigurations: {
           '0x2a': {
@@ -1002,8 +1012,34 @@ describe('useNetworkOperations', () => {
       });
 
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x2a');
+      expect(mockSetTokenNetworkFilter).toHaveBeenCalledWith({
+        '0x1': true,
+      });
       expect(mockAddTraitsToUser).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('removes a selected network from a single-network token filter', async () => {
+      setupSelectors({
+        isAllNetworks: false,
+        tokenNetworkFilter: { '0x2a': true },
+        providerConfig: { type: 'rpc', rpcUrl: 'https://other.rpc.io' },
+        networkConfigurations: {
+          '0x2a': {
+            chainId: '0x2a',
+            rpcEndpoints: [{ url: 'https://rpc.example.com' }],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.removeNetwork('0x2a');
+      });
+
+      expect(mockSetTokenNetworkFilter).toHaveBeenCalledWith({});
     });
 
     it('throws when network is not found', async () => {
@@ -1052,6 +1088,44 @@ describe('useNetworkOperations', () => {
       expect(mockSetActiveNetwork).toHaveBeenCalledWith('mainnet-client');
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x2a');
       expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('switches to mainnet when removing the selected network client', async () => {
+      setupSelectors({
+        providerConfig: { type: 'mainnet', rpcUrl: undefined },
+        selectedNetworkClientId: 'custom-client',
+        networkConfigurations: {
+          '0x2a': {
+            chainId: '0x2a',
+            rpcEndpoints: [
+              {
+                url: 'https://rpc.example.com',
+                networkClientId: 'custom-client',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                url: 'https://mainnet.infura.io',
+                networkClientId: 'mainnet-client',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.removeNetwork('0x2a');
+      });
+
+      expect(mockSetActiveNetwork).toHaveBeenCalledWith('mainnet-client');
+      expect(mockRemoveNetwork).toHaveBeenCalledWith('0x2a');
     });
 
     it('does not switch to mainnet when provider type is not rpc', async () => {

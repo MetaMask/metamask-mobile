@@ -167,7 +167,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   );
 
   const renderTabBarItems = useCallback(
-    () => state.routes.map(renderTabBarItem),
+    () => state.routes.map((route, index) => renderTabBarItem(route, index)),
     [state, renderTabBarItem],
   );
 

@@ -42,6 +42,12 @@ const perpsHomeExtraRoutes = [
 describe('PerpsCancelAllOrdersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Tests below swap the cancelOrders implementation (pending, failing,
+    // partial-success); re-establish the framework default so later cases
+    // never inherit an earlier swap.
+    (Engine.context.PerpsController.cancelOrders as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ success: true, successCount: 1, failureCount: 0 });
   });
 
   it('confirms cancelling every open order from the bulk cancel sheet', async () => {

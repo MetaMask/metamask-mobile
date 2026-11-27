@@ -5,6 +5,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
@@ -48,9 +49,9 @@ interface LinkedAccountPickerProps {
 }
 
 /**
- * Account step controls: the linked-account dropdown, the trading-activity
- * switch, and the benefit list. The sheet lists accounts with the homepage
- * account cell and wallet title.
+ * Account step controls: a grouped card with the linked account and the
+ * trading-activity switch, then the benefit list. The sheet lists accounts
+ * with the homepage account cell.
  */
 const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   accounts,
@@ -64,14 +65,20 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const selectedAccount =
-    accounts.find((account) => account.id === selectedAccountId) ?? accounts[0];
-  // Design-system Switch copies `label` into accessibilityLabel and ignores a
-  // passed accessibilityLabel. This row keeps its own text so the label can
-  // fill the row, and the native switch carries the accessible name.
+  const selectedAccount = accounts.find(
+    (account) => account.id === selectedAccountId,
+  );
+  // This row keeps its own text so the label can fill the row, and the native
+  // switch carries the accessible name.
   const tradingActivityLabel = strings(
     'social_leaderboard.manage_profile.show_trading_activity',
   );
+  const linkedAccountLabel = strings(
+    'social_leaderboard.profile_onboarding.linked_account',
+  );
+  const selectedAccountName =
+    selectedAccount?.name ??
+    strings('social_leaderboard.profile_onboarding.select_account');
 
   const closeSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -88,78 +95,82 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   return (
     <Box twClassName="flex-1">
       <Box gap={3}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={strings(
-            'social_leaderboard.profile_onboarding.select_account',
-          )}
-          onPress={() => setIsSheetOpen(true)}
-          testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="bg-muted rounded-xl px-4 py-3"
-            gap={3}
+        <Box twClassName="bg-muted rounded-2xl overflow-hidden mb-3">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${linkedAccountLabel}, ${selectedAccountName}`}
+            onPress={() => setIsSheetOpen(true)}
+            testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR}
           >
-            {selectedAccount ? (
-              <AvatarAccount
-                address={selectedAccount.address}
-                size={AvatarAccountSize.Md}
-                variant={avatarVariant}
-              />
-            ) : null}
-            <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="pl-4 pr-3 h-14"
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                numberOfLines={1}
+                twClassName="flex-1 mr-2"
               >
-                {selectedAccount?.name ??
-                  strings(
-                    'social_leaderboard.profile_onboarding.select_account',
-                  )}
+                {linkedAccountLabel}
               </Text>
-              {selectedAccount?.balanceLabel ? (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="flex-shrink min-w-0"
+                gap={2}
+              >
+                {selectedAccount ? (
+                  <AvatarAccount
+                    address={selectedAccount.address}
+                    size={AvatarAccountSize.Sm}
+                    variant={avatarVariant}
+                  />
+                ) : null}
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                  twClassName="flex-shrink"
                 >
-                  {selectedAccount.balanceLabel}
+                  {selectedAccountName}
                 </Text>
-              ) : null}
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </Box>
             </Box>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Box>
-        </Pressable>
+          </Pressable>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="bg-muted rounded-xl pl-4 pr-3 h-14 mb-3"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="flex-1 mr-2"
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="border-t border-muted pl-4 pr-3 h-14"
           >
-            {tradingActivityLabel}
-          </Text>
-          {/* The native switch draws at the top of a stretched frame. A 32px
-              slot matches the control, and the row centers that slot on the label. */}
-          <Box twClassName="h-8 items-center justify-center">
-            <Switch
-              value={shareTradingActivity}
-              onValueChange={onShareTradingActivityChange}
-              accessibilityRole="switch"
-              accessibilityLabel={tradingActivityLabel}
-              accessibilityState={{ checked: shareTradingActivity }}
-              testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
-            />
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="flex-1 mr-2"
+            >
+              {tradingActivityLabel}
+            </Text>
+            {/* The native switch draws at the top of a stretched frame. A 32px
+                slot matches the control, and the row centers that slot on the label. */}
+            <Box twClassName="h-8 items-center justify-center">
+              <Switch
+                value={shareTradingActivity}
+                onValueChange={onShareTradingActivityChange}
+                accessibilityRole="switch"
+                accessibilityLabel={tradingActivityLabel}
+                accessibilityState={{ checked: shareTradingActivity }}
+                testID={
+                  SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH
+                }
+              />
+            </Box>
           </Box>
         </Box>
 

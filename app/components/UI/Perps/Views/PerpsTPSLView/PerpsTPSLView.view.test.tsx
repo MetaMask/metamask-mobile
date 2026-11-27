@@ -31,25 +31,13 @@ describe('PerpsTPSLView', () => {
     renderPerpsTPSLView();
 
     expect(
-      await screen.findByTestId(
-        PerpsTPSLViewSelectorsIDs.BACK_BUTTON,
-        {},
-        { timeout: 10000 },
-      ),
+      await screen.findByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(
-        PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
-        {},
-        { timeout: 5000 },
-      ),
+      await screen.findByTestId(PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(
-        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-        {},
-        { timeout: 5000 },
-      ),
+      await screen.findByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -118,8 +106,6 @@ describe('PerpsTPSLView', () => {
       fireEvent.changeText(
         await screen.findByTestId(
           PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
-          {},
-          { timeout: 5000 },
         ),
         '2700',
       );
@@ -241,8 +227,6 @@ describe('PerpsTPSLView', () => {
     expect(
       await screen.findByTestId(
         PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
-        {},
-        { timeout: 10000 },
       ),
     ).toBeOnTheScreen();
     expect(
@@ -261,8 +245,6 @@ describe('PerpsTPSLView', () => {
 
     const tpBadge = await screen.findByTestId(
       PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
-      {},
-      { timeout: 10000 },
     );
 
     fireEvent.press(tpBadge);
@@ -483,11 +465,7 @@ describe('PerpsTPSLView', () => {
       renderSheet();
 
       expect(
-        await screen.findByTestId(
-          PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-          {},
-          { timeout: 10000 },
-        ),
+        await screen.findByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
@@ -504,8 +482,6 @@ describe('PerpsTPSLView', () => {
       fireEvent.changeText(
         await screen.findByTestId(
           PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-          {},
-          { timeout: 10000 },
         ),
         '2300',
       );
@@ -527,19 +503,13 @@ describe('PerpsTPSLView', () => {
       expect(
         await screen.findByTestId(
           PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE,
-          {},
-          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
 
       cleanup();
       renderPerpsTPSLView({ initialParams: { position } });
 
-      await screen.findByTestId(
-        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-        {},
-        { timeout: 10000 },
-      );
+      await screen.findByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
       expect(
         screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
       ).toBeNull();

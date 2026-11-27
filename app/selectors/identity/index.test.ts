@@ -213,6 +213,17 @@ describe('Notification Selectors', () => {
       ]);
     });
 
+    it('ignores a paired id that is only the local entropy source id', () => {
+      const state = buildState({
+        primary: session('primary-identifier', [
+          { id: 'paired-srp', type: 'SRP' },
+        ]),
+        'paired-srp': session('different-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual(['primary']);
+    });
+
     it('excludes SRPs that share the canonical profile ID but are not paired', () => {
       const state = buildState({
         primary: session('primary-identifier', [

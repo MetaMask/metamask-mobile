@@ -103,6 +103,7 @@ const defaultControllerReturn = {
   selectedProvider: mockProviders[0],
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedProviderForAsset: jest.fn(),
+  selectProviderForAsset: jest.fn(),
   selectedPaymentMethod: {
     id: '/payments/debit-credit-card-1',
     paymentType: 'debit-credit-card',
@@ -121,6 +122,14 @@ const defaultControllerReturn = {
   getQuotes: mockGetQuotes,
   userRegion: { regionCode: 'us', country: { currency: 'USD' } },
 };
+
+const mockUsePreviouslyUsedProviderIds = jest.fn(
+  (_providers?: unknown): string[] => [],
+);
+jest.mock('../../../hooks/useProviderPickerOptions', () => ({
+  usePreviouslyUsedProviderIds: (providers: unknown) =>
+    mockUsePreviouslyUsedProviderIds(providers),
+}));
 
 const mockUseRampsController = jest.fn(() => defaultControllerReturn);
 jest.mock('../../../hooks/useRampsController', () => ({
@@ -201,6 +210,7 @@ describe('ProviderSelectionModal', () => {
     });
     mockUseRampsController.mockImplementation(() => defaultControllerReturn);
     mockUseParams.mockReturnValue({ amount: 100 });
+    mockUsePreviouslyUsedProviderIds.mockReturnValue([]);
   });
 
   it('renders provider selection modal with providers list', () => {
@@ -230,8 +240,43 @@ describe('ProviderSelectionModal', () => {
 
     expect(mockSetSelectedProvider).toHaveBeenCalledWith(
       expect.objectContaining({ id: '/providers/transak' }),
+      { userSelected: true },
     );
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('tags the previously used providers', () => {
+    mockUsePreviouslyUsedProviderIds.mockReturnValue(['/providers/moonpay']);
+    const quote = (provider: string) => ({
+      provider,
+      quote: {
+        amountIn: 100,
+        amountOut: 0.05,
+        paymentMethod: '/payments/debit-credit-card-1',
+        amountOutInFiat: 98,
+      },
+    });
+    mockUseRampsQuotes.mockReturnValue({
+      data: {
+        success: [quote('/providers/transak'), quote('/providers/moonpay')],
+        sorted: [],
+        error: [],
+        customActions: [],
+      },
+      loading: false,
+      status: 'success',
+      isSuccess: true,
+      error: null,
+      getQuotes: mockGetQuotes,
+      getBuyWidgetData: jest.fn(),
+    } as never);
+
+    const { getAllByText } = renderWithProvider(ProviderSelectionModal);
+
+    expect(mockUsePreviouslyUsedProviderIds).toHaveBeenCalledWith(
+      mockProviders,
+    );
+    expect(getAllByText('fiat_on_ramp.previously_used')).toHaveLength(1);
   });
 
   it('calls goBack when back button is pressed', () => {

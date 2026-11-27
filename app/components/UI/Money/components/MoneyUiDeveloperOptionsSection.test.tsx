@@ -4,11 +4,9 @@ import { MoneyUiDeveloperOptionsSection } from './MoneyUiDeveloperOptionsSection
 import { UserActionType } from '../../../../actions/user/types';
 import {
   selectMoneyEarnBannerDismissedTokens,
-  selectMoneyOnboardingSeen,
   selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
   getMoneyHomeCardDevOverride,
   setMoneyHomeCardDevOverride,
@@ -37,10 +35,6 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
-jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
-  selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
-}));
-
 const mockSetString = jest.fn((_str: string) => Promise.resolve());
 
 jest.mock('../../../../core/ClipboardManager', () => ({
@@ -53,9 +47,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
 
 interface SelectorMockOptions {
-  hasSeenMoneyOnboarding?: boolean;
   hasSeenMoneySplash?: boolean;
-  isOnboardingEnabled?: boolean;
   /** Pass `null` to simulate no money account being available. */
   moneyAccount?: { address: string } | null;
   earnBannerDismissedTokens?: Record<string, boolean>;
@@ -65,13 +57,11 @@ interface SelectorMockOptions {
  * Configures the useSelector mock to return appropriate values for each selector
  * used by MoneyUiDeveloperOptionsSection.
  *
- * Default: onboarding not seen, flag enabled, primary money account present with MOCK_ADDRESS.
+ * Default: splash not seen, primary money account present with MOCK_ADDRESS.
  * Pass `moneyAccount: null` to simulate the account being unavailable.
  */
 function setupSelectorMocks(options: SelectorMockOptions = {}) {
-  const hasSeenMoneyOnboarding = options.hasSeenMoneyOnboarding ?? false;
   const hasSeenMoneySplash = options.hasSeenMoneySplash ?? false;
-  const isOnboardingEnabled = options.isOnboardingEnabled ?? true;
   // `null` means "no account", `undefined` (omitted) means use the default.
   const moneyAccount =
     options.moneyAccount === null
@@ -81,10 +71,7 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
   const earnBannerDismissedTokens = options.earnBannerDismissedTokens ?? {};
 
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectMoneyOnboardingSeen) return hasSeenMoneyOnboarding;
     if (selector === selectMoneySplashSeen) return hasSeenMoneySplash;
-    if (selector === selectMoneyOnboardingStepperAnimationEnabled)
-      return isOnboardingEnabled;
     if (selector === selectPrimaryMoneyAccount) return moneyAccount;
     if (selector === selectMoneyEarnBannerDismissedTokens)
       return earnBannerDismissedTokens;
@@ -107,63 +94,6 @@ describe('MoneyUiDeveloperOptionsSection', () => {
     const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
 
     expect(getByText('Money UI')).toBeOnTheScreen();
-  });
-
-  describe('onboarding enabled state', () => {
-    it('displays onboarding enabled as true when flag is on', () => {
-      setupSelectorMocks({ isOnboardingEnabled: true });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Onboarding enabled: true')).toBeOnTheScreen();
-    });
-
-    it('displays onboarding enabled as false when flag is off', () => {
-      setupSelectorMocks({ isOnboardingEnabled: false });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Onboarding enabled: false')).toBeOnTheScreen();
-    });
-  });
-
-  describe('onboarding seen state', () => {
-    it('displays onboarding seen as false when not seen', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: false });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Onboarding seen: false')).toBeOnTheScreen();
-    });
-
-    it('displays onboarding seen as true when seen', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: true });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Onboarding seen: true')).toBeOnTheScreen();
-    });
-
-    it('renders the reset button', () => {
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Reset onboarding screen')).toBeOnTheScreen();
-    });
-
-    it('dispatches setMoneyOnboardingSeen(false) when reset button is pressed', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: true });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      fireEvent.press(getByText('Reset onboarding screen'));
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
-          payload: { seen: false },
-        }),
-      );
-    });
   });
 
   describe('splash seen state', () => {

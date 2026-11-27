@@ -448,6 +448,7 @@ function buildSwapInputsMock() {
       handleFocus: jest.fn(),
       handleSelectionChange: jest.fn(),
       canToggle: false,
+      fiatRate: undefined,
       handleToggle: jest.fn(),
       inputPrefix: undefined,
       secondaryValue: undefined,
@@ -565,6 +566,8 @@ describe('BridgeLimitOrderView', () => {
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
     jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '$50.00',
+      hasError: false,
       minAmountUsd: 50,
       isBelowMinAmount: false,
     });
@@ -776,6 +779,8 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '0.001';
     jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '€40.00',
+      hasError: false,
       minAmountUsd: 50,
       isBelowMinAmount: true,
     });
@@ -789,8 +794,28 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
     ).toHaveTextContent(
-      strings('bridge.limit.min_order_amount', { amount: '50' }),
+      strings('bridge.limit.min_order_amount', { amount: '€40.00' }),
     );
+  });
+
+  it('fails closed when the minimum cannot be validated', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: undefined,
+      hasError: true,
+      minAmountUsd: 50,
+      isBelowMinAmount: false,
+    });
+
+    const { getByTestId } = renderLimitOrderView();
+    const confirmButton = getByTestId(
+      BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+    );
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('checks the source token and amount against the minimum', () => {
@@ -806,6 +831,8 @@ describe('BridgeLimitOrderView', () => {
 
   it('disables the footer confirm button and shows the minimum when the amount is below it', () => {
     jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '£1.00',
+      hasError: false,
       minAmountUsd: 1,
       isBelowMinAmount: true,
     });
@@ -815,7 +842,9 @@ describe('BridgeLimitOrderView', () => {
     expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
       expect.objectContaining({
         ctaDisabled: true,
-        ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+        ctaLabel: strings('bridge.limit.min_order_amount', {
+          amount: '£1.00',
+        }),
       }),
     );
   });

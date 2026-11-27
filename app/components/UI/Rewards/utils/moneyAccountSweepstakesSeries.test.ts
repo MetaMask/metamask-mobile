@@ -139,6 +139,26 @@ describe('moneyAccountSweepstakesSeries', () => {
       });
     });
 
+    it('returns details for the most recently ended week when no week is active', () => {
+      const weekAfterGap = buildCampaign({
+        id: 'week-3-after-gap',
+        startDate: '2026-07-15T00:00:00.000Z',
+        endDate: '2026-07-22T00:00:00.000Z',
+      });
+      const series = getMoneyAccountSweepstakesSeries(
+        [week1, weekAfterGap],
+        new Date('2026-07-12T12:00:00.000Z'),
+      );
+      expect(series.seriesStatus).toBe('active');
+      expect(series.activeCampaign).toBeNull();
+      expect(
+        resolveMoneyAccountSweepstakesEntryRoute({
+          series,
+          now: new Date('2026-07-12T12:00:00.000Z'),
+        }),
+      ).toEqual({ kind: 'details', campaignId: 'week-1' });
+    });
+
     it('returns details for the active campaign without routing to the tour', () => {
       const series = getMoneyAccountSweepstakesSeries(
         [week1, week2, week3],

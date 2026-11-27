@@ -8,7 +8,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_WALLET_ADDRESS,
 } from '../api/recurringOrders.mock';
-import { cancelRecurringOrder } from '../api/recurringOrders';
+import { recurringOrdersApiClient } from '../api/recurringOrders.client';
 import {
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersResponse,
@@ -20,10 +20,22 @@ import {
   RECURRING_ORDERS_QUERY_KEY,
   recurringOrdersQueries,
 } from '../queries/recurringOrders';
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCancelTrace,
+} from '../utils/recurringOrderTrace';
+import { TraceName } from '../../../../util/trace';
 import { useCancelRecurringOrder } from './useCancelRecurringOrder';
 
-jest.mock('../api/recurringOrders', () => ({
-  cancelRecurringOrder: jest.fn(),
+jest.mock('../api/recurringOrders.client', () => ({
+  recurringOrdersApiClient: {
+    cancelRecurringOrder: jest.fn(),
+  },
+}));
+
+jest.mock('../utils/recurringOrderTrace', () => ({
+  finishRecurringOrderTrace: jest.fn(),
+  startRecurringOrderCancelTrace: jest.fn(),
 }));
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -44,6 +56,7 @@ function createInfiniteData(
       {
         orders,
         hasNextPage: Boolean(endCursor),
+        total: orders.length,
         ...(endCursor ? { endCursor } : {}),
       },
     ],
@@ -85,7 +98,9 @@ function getByAssetQueryKey(
 
 describe('useCancelRecurringOrder', () => {
   const messengerCall = Engine.controllerMessenger.call as jest.Mock;
-  const mockCancelRecurringOrder = jest.mocked(cancelRecurringOrder);
+  const mockCancelRecurringOrder = jest.mocked(
+    recurringOrdersApiClient.cancelRecurringOrder,
+  );
   const queryClients = new Set<QueryClient>();
   const cancelledOrder = {
     ...MOCK_RECURRING_OPEN_ORDER,
@@ -98,6 +113,10 @@ describe('useCancelRecurringOrder', () => {
     messengerCall.mockResolvedValue(undefined);
     mockCancelRecurringOrder.mockReset();
     mockCancelRecurringOrder.mockResolvedValue({ order: cancelledOrder });
+    jest.mocked(startRecurringOrderCancelTrace).mockReturnValue({
+      id: 'cancel-trace-id',
+      name: TraceName.RecurringOrderCancel,
+    });
   });
 
   afterEach(() => {
@@ -221,7 +240,7 @@ describe('useCancelRecurringOrder', () => {
     ).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
     expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
       MOCK_RECURRING_OPEN_ORDER.id,
-      { accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress },
+      { accountAddress: MOCK_RECURRING_OPEN_ORDER.account },
     );
     expect(messengerCall).toHaveBeenCalledWith(
       'RecurringOrdersDataService:invalidateQueries',
@@ -242,6 +261,10 @@ describe('useCancelRecurringOrder', () => {
       queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY],
       refetchType: 'active',
     });
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'cancel-trace-id' }),
+      { result: 'success' },
+    );
   });
 
   it('leaves all caches unchanged when cancellation fails', async () => {
@@ -271,6 +294,10 @@ describe('useCancelRecurringOrder', () => {
     expect(messengerCall).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(result.current.error).toHaveProperty('message', 'cancel failed'),
+    );
+    expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'cancel-trace-id' }),
+      { result: 'error' },
     );
   });
 

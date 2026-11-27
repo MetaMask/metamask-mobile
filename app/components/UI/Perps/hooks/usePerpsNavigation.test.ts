@@ -227,7 +227,7 @@ describe('usePerpsNavigation', () => {
   });
 
   describe('Perps-Specific Navigation', () => {
-    it('navigates to market details without source', () => {
+    it('navigates to market details through the Perps root outside the Perps stack', () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const mockMarket = { symbol: 'BTC' } as Partial<
         Parameters<typeof result.current.navigateToMarketDetails>[0]
@@ -239,13 +239,19 @@ describe('usePerpsNavigation', () => {
         >[0],
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
-        market: mockMarket,
-        source: undefined,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: mockMarket,
+          source: undefined,
+        },
       });
     });
 
     it('navigates to market details with source', () => {
+      mockGetState.mockReturnValue({
+        routeNames: [Routes.PERPS.MARKET_DETAILS],
+      });
       const { result } = renderHook(() => usePerpsNavigation());
       const mockMarket = { symbol: 'ETH' } as Partial<
         Parameters<typeof result.current.navigateToMarketDetails>[0]
@@ -265,6 +271,9 @@ describe('usePerpsNavigation', () => {
     });
 
     it('navigates to market details with transaction active A/B tests', () => {
+      mockGetState.mockReturnValue({
+        routeNames: [Routes.PERPS.MARKET_DETAILS],
+      });
       const { result } = renderHook(() => usePerpsNavigation());
       const mockMarket = { symbol: 'SOL' } as Partial<
         Parameters<typeof result.current.navigateToMarketDetails>[0]
@@ -294,6 +303,9 @@ describe('usePerpsNavigation', () => {
     });
 
     it('navigates to market details with source_section', () => {
+      mockGetState.mockReturnValue({
+        routeNames: [Routes.PERPS.MARKET_DETAILS],
+      });
       const { result } = renderHook(() => usePerpsNavigation());
       const mockMarket = { symbol: 'DOGE' } as Partial<
         Parameters<typeof result.current.navigateToMarketDetails>[0]
@@ -447,7 +459,7 @@ describe('usePerpsNavigation', () => {
       await waitFor(() => {
         expect(mockDepositWithOrder).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             showPerpsHeader:
@@ -468,7 +480,7 @@ describe('usePerpsNavigation', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             showPerpsHeader:
@@ -653,7 +665,7 @@ describe('usePerpsNavigation', () => {
       await waitFor(() => {
         expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining(params),
         );
       });
@@ -691,7 +703,7 @@ describe('usePerpsNavigation', () => {
         expect(mockSwitchProvider).toHaveBeenCalledWith('hyperliquid');
         expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining(params),
         );
       });
@@ -768,7 +780,7 @@ describe('usePerpsNavigation', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             useBottomSheet: true,
@@ -806,7 +818,7 @@ describe('usePerpsNavigation', () => {
           mockDepositWithOrder,
         );
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining({
             transactionActiveAbTests,
           }),

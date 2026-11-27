@@ -37,12 +37,18 @@ import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import PredictQuickAmounts from './components/PredictQuickAmounts';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMoneyAccountDepositAndOrder } from '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder';
+import { useIsMoneyAccountPaymentOverride } from '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
+import { POLYGON_PUSD } from '../../../../Views/confirmations/constants/predict';
+import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
 import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
 import { usePredictBuyActions } from './hooks/usePredictBuyActions';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -52,7 +58,8 @@ import {
   selectPredictFakOrdersEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import { Side } from '../../types';
+import { ActiveOrderState, Side } from '../../types';
+import { MINIMUM_BET } from '../../constants/transactions';
 import {
   PredictBuyPreviewProps,
   PredictNavigationParamList,
@@ -141,6 +148,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const [hasOpenedPaymentSelector, setHasOpenedPaymentSelector] =
+    useState(false);
+  const [hasUserPickedPaymentSource, setHasUserPickedPaymentSource] =
+    useState(false);
 
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
@@ -162,10 +173,20 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =
     usePredictBuyAvailableBalance();
+  const { data: predictBalance, isLoading: isPredictBalanceLoading } =
+    usePredictBalance();
+  const { selectedPaymentToken } = usePredictPaymentToken();
+  const [paymentTokenAtSelectorOpen, setPaymentTokenAtSelectorOpen] =
+    useState<typeof selectedPaymentToken>(null);
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
-  // Money Account is not reachable through this view's own pay-token
-  // defaulting, so opt this flow into the shared money-account selection.
-  useMoneyAccountDepositAndOrder();
+  useAddToken({
+    chainId: CHAIN_IDS.POLYGON,
+    decimals: POLYGON_PUSD.decimals,
+    name: POLYGON_PUSD.name,
+    symbol: POLYGON_PUSD.symbol,
+    tokenAddress: POLYGON_PUSD.address,
+  });
 
   const {
     currentValue,
@@ -245,6 +266,74 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isConfirming,
     isPlacingOrder,
   });
+
+  const requiredPredictBalance = Math.max(
+    MINIMUM_BET,
+    currentValue,
+    totalPayForPredictBalance,
+  );
+  const isPredictBalanceCoveringOrder =
+    !isPredictBalanceLoading &&
+    predictBalance !== undefined &&
+    predictBalance >= requiredPredictBalance;
+  const isExplicitTokenSelection =
+    hasOpenedPaymentSelector &&
+    Boolean(selectedPaymentToken) &&
+    selectedPaymentToken !== paymentTokenAtSelectorOpen;
+
+  // Money Account is not reachable through this view's own pay-token
+  // defaulting, so opt this flow into the shared money-account selection.
+  // Hold automatic/flag selection back while the Predict balance is still
+  // loading, already covers the order, or after the user explicitly picked a
+  // payment source in Pay with (manual picks ignore `disable`).
+  useMoneyAccountDepositAndOrder({
+    disable:
+      isPredictBalanceLoading ||
+      predictBalance === undefined ||
+      isPredictBalanceCoveringOrder ||
+      isExplicitTokenSelection ||
+      hasUserPickedPaymentSource,
+  });
+
+  // All three Money Account selection paths (manual row, automatic fallback,
+  // remote-flag default) write `paymentOverride` on TransactionPayController
+  // without notifying PredictController. Move the active order to
+  // PAY_WITH_ANY_TOKEN here so handleConfirm runs onApprovalConfirm and
+  // placeOrder takes the deposit-and-order branch.
+  const wasMoneyAccountSelectedRef = useRef(false);
+  useEffect(() => {
+    const wasMoneyAccountSelected = wasMoneyAccountSelectedRef.current;
+    const didSelectMoneyAccount =
+      isMoneyAccountSelected && !wasMoneyAccountSelected;
+    wasMoneyAccountSelectedRef.current = isMoneyAccountSelected;
+
+    if (
+      isExplicitTokenSelection ||
+      (hasOpenedPaymentSelector &&
+        wasMoneyAccountSelected &&
+        !isMoneyAccountSelected)
+    ) {
+      setHasUserPickedPaymentSource(true);
+    }
+
+    if (!isMoneyAccountSelected) {
+      return;
+    }
+
+    if (
+      didSelectMoneyAccount ||
+      activeOrder?.state === ActiveOrderState.PREVIEW
+    ) {
+      Engine.context.PredictController.enterPayWithAnyToken({
+        clearError: didSelectMoneyAccount,
+      });
+    }
+  }, [
+    isMoneyAccountSelected,
+    activeOrder?.state,
+    isExplicitTokenSelection,
+    hasOpenedPaymentSelector,
+  ]);
   const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
     preview,
     side: Side.BUY,
@@ -307,10 +396,16 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     [isCurrentTokenInsufficient, hasAlternativeBalance],
   );
 
-  const handleChangePaymentMethod = useCallback(() => {
+  const handlePaymentSelectorOpen = useCallback(() => {
+    setHasOpenedPaymentSelector(true);
+    setPaymentTokenAtSelectorOpen(selectedPaymentToken);
     lockPaymentSelectorNavigation();
+  }, [lockPaymentSelectorNavigation, selectedPaymentToken]);
+
+  const handleChangePaymentMethod = useCallback(() => {
+    handlePaymentSelectorOpen();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [lockPaymentSelectorNavigation, navigation]);
+  }, [handlePaymentSelectorOpen, navigation]);
 
   const handleAddFunds = useCallback(() => {
     if (isSheetMode) {
@@ -438,11 +533,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     clearBuyErrorBanner,
   ]);
 
-  // When the banner appears in sheet mode, close the keypad so the Retry CTA
-  // + banner are immediately visible without the user having to dismiss the
-  // keyboard.
+  // When the banner appears in sheet mode, close the keypad once so the Retry
+  // CTA + banner are immediately visible without blocking the user from
+  // tapping the amount field to re-open the keypad and edit the amount.
+  const wasBannerActiveRef = useRef(false);
   useEffect(() => {
-    if (isSheetMode && isBannerActive && isKeypadOpen) {
+    const didBannerAppear = isBannerActive && !wasBannerActiveRef.current;
+    wasBannerActiveRef.current = isBannerActive;
+
+    if (isSheetMode && didBannerAppear && isKeypadOpen) {
       setIsKeypadOpen(false);
     }
   }, [isSheetMode, isBannerActive, isKeypadOpen, setIsKeypadOpen]);
@@ -453,13 +552,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      if (isOrderNotFilled) {
+      if (isOrderNotFilled && (retryOrderState ?? 'unknown') === 'unknown') {
         void handleRetry();
       } else {
-        // Non-fill banners (order_failed, payment_failed) have no retry
-        // episode — the fresh-quote confirm flow is scoped to not-filled
-        // errors. Clear the banner so the action button returns to the
-        // normal confirm path instead of silently doing nothing.
+        // Non-fill banners (order_failed, payment_failed) or blocked retry
+        // states (e.g. PAY_WITH_ANY_TOKEN where a blind CLOB retry without
+        // deposit is unsafe) clear the banner so the action button returns to
+        // the normal confirm path instead of silently doing nothing.
         clearBuyErrorBanner();
       }
       return;
@@ -479,6 +578,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isChangePaymentMode,
     isAddFundsMode,
     isOrderNotFilled,
+    retryOrderState,
     handleRetry,
     clearBuyErrorBanner,
     handleChangePaymentMethod,
@@ -591,7 +691,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             {payWithAnyTokenEnabled && (
               <PredictPayWithRow
                 disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
-                onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+                onPaymentSelectorOpen={handlePaymentSelectorOpen}
               />
             )}
           </Box>
@@ -628,7 +728,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               availableBalance={
                 isAvailableBalanceLoading ? undefined : availableBalanceDisplay
               }
-              onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+              onPaymentSelectorOpen={handlePaymentSelectorOpen}
             />
           )}
           {/* Always enabled when rendered: in legacy mode the parent only

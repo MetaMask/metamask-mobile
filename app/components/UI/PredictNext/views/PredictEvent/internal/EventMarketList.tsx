@@ -38,11 +38,14 @@ import type {
 import { EventPositionCard } from './EventPositionCard';
 import {
   createMarketGroupProjection,
+  refreshMarketGroupProjection,
   type MarketGroupProjection,
 } from './createMarketGroupProjection';
 import {
   createMarketLayoutProjection,
+  refreshMarketLayoutProjection,
   type MarketLayoutCard,
+  type MarketLayoutProjection,
   type MarketLayoutSection,
 } from './createMarketLayoutProjection';
 import {
@@ -93,7 +96,17 @@ const LIVE_ROW_BUFFER = 10;
 /** A row counts as viewable once a tenth of it is on screen, as on the Feed. */
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
 
-const positionCardTestIds = ({ marketId, side }: PredictPosition) => ({
+const positionCardTestIds = ({
+  marketId,
+  side,
+}: PredictPosition): {
+  root: string;
+  value: string;
+  pnl: string;
+  chance: string;
+  buy: string;
+  cashOut: string;
+} => ({
   root: EventMarketListTestIds.positionRow(marketId, side),
   value: EventMarketListTestIds.positionValue(marketId, side),
   pnl: EventMarketListTestIds.positionPnl(marketId, side),
@@ -192,8 +205,10 @@ const countMarkets = (cards: readonly MarketLayoutCard[]): number =>
  * Section rows space themselves: headers bring their divider and cards their
  * gap, so only the rows around them get the list gap.
  */
-const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
-  !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
+const isSeparated = (
+  leadingRow: ContentRow,
+  trailingRow: ContentRow,
+): boolean => !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
 
 interface MarketTab {
   key: string;
@@ -321,12 +336,11 @@ const getLiveMarketIds = (
  * One tab per layout tab, with its sections; Markets without layout follow
  * the first tab's sections. Without layout, one Markets tab of flat rows.
  */
-const toMarketTabs = (event: PredictEvent): MarketTab[] => {
-  const { tabs, remainingMarkets } = createMarketLayoutProjection(
-    event.markets,
-  );
-  const flatRows = createMarketGroupProjection(remainingMarkets);
-
+const toMarketTabs = (
+  event: PredictEvent,
+  { tabs }: MarketLayoutProjection,
+  flatRows: readonly MarketGroupProjection[],
+): MarketTab[] => {
   if (tabs.length === 0) {
     return flatRows.length === 0
       ? []
@@ -356,6 +370,59 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
     })),
     flatRows: tabIndex === 0 ? flatRows : [],
   }));
+};
+
+/**
+ * Layout and line grouping depend on Market identity, not the quote. A live
+ * tick keeps the previous tabs when only prices moved, and reuses every card
+ * the tick did not touch.
+ */
+const useMarketTabs = (event: PredictEvent): MarketTab[] => {
+  const cacheRef = useRef<{
+    markets: readonly PredictMarket[];
+    projection: MarketLayoutProjection;
+    flatRows: readonly MarketGroupProjection[];
+    isGame: boolean;
+    tabs: MarketTab[];
+  } | null>(null);
+
+  return useMemo(() => {
+    const cached = cacheRef.current;
+    const projection = cached
+      ? refreshMarketLayoutProjection(
+          cached.markets,
+          cached.projection,
+          event.markets,
+        )
+      : createMarketLayoutProjection(event.markets);
+    const flatRows =
+      cached === null
+        ? createMarketGroupProjection(projection.remainingMarkets)
+        : cached.projection.remainingMarkets === projection.remainingMarkets
+          ? cached.flatRows
+          : refreshMarketGroupProjection(
+              cached.projection.remainingMarkets,
+              cached.flatRows,
+              projection.remainingMarkets,
+            );
+    const isGame = Boolean(getEventGame(event));
+    const reuseTabs =
+      cached?.projection === projection &&
+      cached?.flatRows === flatRows &&
+      cached?.isGame === isGame;
+    const tabs =
+      reuseTabs && cached
+        ? cached.tabs
+        : toMarketTabs(event, projection, flatRows);
+    cacheRef.current = {
+      markets: event.markets,
+      projection,
+      flatRows,
+      isGame,
+      tabs,
+    };
+    return tabs;
+  }, [event]);
 };
 
 /**
@@ -422,7 +489,7 @@ const EventMarketListContent = ({
   onVisibleMarketIdsChange,
   children,
   testID = EventMarketListTestIds.ROOT,
-}: EventMarketListProps) => {
+}: EventMarketListProps): React.ReactElement => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
   // Unknown transport keeps the default window, including on LOW hardware.
@@ -443,7 +510,7 @@ const EventMarketListContent = ({
   const [expandedSections, setExpandedSections] = useState<
     Record<string, readonly string[]>
   >({});
-  const marketTabs = useMemo(() => toMarketTabs(event), [event]);
+  const marketTabs = useMarketTabs(event);
   let firstTab: string | undefined;
   if (positions.length > 0) {
     firstTab = POSITIONS_TAB;
@@ -573,21 +640,48 @@ const EventMarketListContent = ({
     },
     [],
   );
-  const handleSectionToggle = useCallback((stateKey: string, open: boolean) => {
-    setOpenSections((current) => ({ ...current, [stateKey]: open }));
-    // Closing a section folds it back to its first cards.
-    if (!open) {
-      setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
-    }
-  }, []);
-  const handleViewAll = useCallback((stateKey: string, periodKey: string) => {
-    setExpandedSections((current) => ({
-      ...current,
-      [stateKey]: [...(current[stateKey] ?? []), periodKey],
-    }));
-  }, []);
+  // One callback per group, stable across quotes, so a line picker whose
+  // Markets did not change can skip rendering.
+  const selectMarketByGroupRef = useRef(
+    new Map<string, (marketId: PredictMarket['id']) => void>(),
+  );
+  const handleGroupMarketSelectRef = useRef(handleGroupMarketSelect);
+  handleGroupMarketSelectRef.current = handleGroupMarketSelect;
+  const onSelectMarketInGroup = useCallback(
+    (groupKey: string): ((marketId: PredictMarket['id']) => void) => {
+      const existing = selectMarketByGroupRef.current.get(groupKey);
+      if (existing) {
+        return existing;
+      }
+      const selectMarket = (marketId: PredictMarket['id']): void => {
+        handleGroupMarketSelectRef.current(groupKey, marketId);
+      };
+      selectMarketByGroupRef.current.set(groupKey, selectMarket);
+      return selectMarket;
+    },
+    [],
+  );
+  const handleSectionToggle = useCallback(
+    (stateKey: string, open: boolean): void => {
+      setOpenSections((current) => ({ ...current, [stateKey]: open }));
+      // Closing a section folds it back to its first cards.
+      if (!open) {
+        setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
+      }
+    },
+    [],
+  );
+  const handleViewAll = useCallback(
+    (stateKey: string, periodKey: string): void => {
+      setExpandedSections((current) => ({
+        ...current,
+        [stateKey]: [...(current[stateKey] ?? []), periodKey],
+      }));
+    },
+    [],
+  );
   const handlePeriodSelect = useCallback(
-    (stateKey: string, periodKey: string) => {
+    (stateKey: string, periodKey: string): void => {
       setSelectedPeriods((current) => ({ ...current, [stateKey]: periodKey }));
     },
     [],
@@ -684,8 +778,7 @@ const EventMarketListContent = ({
         groupKey: projection.key,
         markets: projection.markets,
         selectedMarket,
-        onSelectMarket: (marketId: PredictMarket['id']) =>
-          handleGroupMarketSelect(projection.key, marketId),
+        onSelectMarket: onSelectMarketInGroup(projection.key),
         onOrder,
         onRulesPress,
       };
@@ -711,6 +804,7 @@ const EventMarketListContent = ({
       handleViewAll,
       onOrder,
       onRulesPress,
+      onSelectMarketInGroup,
       selectedMarketIds,
     ],
   );
@@ -763,7 +857,9 @@ const EventMarketListContent = ({
 };
 
 /** Owns Event content while leaving charts, navigation, and workflows outside. */
-export const EventMarketList = (props: EventMarketListProps) => (
+export const EventMarketList = (
+  props: EventMarketListProps,
+): React.ReactElement => (
   <EventMarketListContent
     key={JSON.stringify([props.event.venueId, props.event.id])}
     {...props}

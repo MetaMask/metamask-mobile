@@ -77,6 +77,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   // Get current price
   const prices = usePerpsLivePrices({
+    providerId: position.providerId,
     symbols: [position.symbol],
     throttleMs: 1000,
   });
@@ -93,7 +94,10 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   );
 
   // Get top of book for maker/taker fee determination
-  const topOfBook = usePerpsTopOfBook({ symbol: position.symbol });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: position.symbol,
+    providerId: position.providerId,
+  });
 
   // Calculate estimated fees
   const feeResults = usePerpsOrderFees({

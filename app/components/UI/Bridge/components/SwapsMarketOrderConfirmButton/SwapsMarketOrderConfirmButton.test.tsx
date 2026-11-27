@@ -96,6 +96,22 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 
+// The submit path reads the social post-trade prompt and the social flag. Their
+// selectors need the version-gated flag helper, which this suite does not
+// exercise.
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({
+    usePostTradePromptResolver: () => () => ({ kind: 'none' }),
+  }),
+);
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectIsSocialV1Enabled: () => false,
+}));
+
 jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
   useHwConnectionMonitoring: jest.fn(() => ({
     isDisconnectedRef: { current: false },
@@ -528,6 +544,38 @@ describe('SwapsMarketOrderConfirmButton', () => {
         />,
         {
           state: solanaState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('disables button for hardware wallet with a money source token', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+      const moneySourceState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: {
+            address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: '0x1' as Hex,
+            decimals: 6,
+            image: '',
+            name: 'Money',
+            symbol: 'MUSD',
+            isMoneyToken: true,
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: moneySourceState,
         },
       );
 

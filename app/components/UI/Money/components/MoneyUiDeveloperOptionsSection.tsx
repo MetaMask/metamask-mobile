@@ -6,13 +6,11 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { useTheme } from '../../../../util/theme';
 import {
   clearMoneyEarnBannerDismissedTokens,
-  setMoneyOnboardingSeen,
   setMoneySplashSeen,
   setOnboardingStepperStep,
 } from '../../../../actions/user';
 import {
   selectMoneyEarnBannerDismissedTokens,
-  selectMoneyOnboardingSeen,
   selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -30,7 +28,6 @@ import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOption
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
   MONEY_HOME_CARD_DEV_OVERRIDES,
   setMoneyHomeCardDevOverride,
@@ -43,11 +40,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation<AppNavigationProp>();
 
-  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasSeenMoneySplash = useSelector(selectMoneySplashSeen);
-  const isOnboardingEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const moneyAccountAddress = primaryMoneyAccount?.address;
   const earnBannerDismissedTokens = useSelector(
@@ -57,10 +50,6 @@ export const MoneyUiDeveloperOptionsSection = () => {
     earnBannerDismissedTokens,
   ).length;
   const homeCardOverride = useMoneyHomeCardDevOverride();
-
-  const handleResetOnboardingSeenState = useCallback(() => {
-    dispatch(setMoneyOnboardingSeen(false));
-  }, [dispatch]);
 
   const handleResetSplashSeenState = useCallback(() => {
     dispatch(setMoneySplashSeen(false));
@@ -90,29 +79,6 @@ export const MoneyUiDeveloperOptionsSection = () => {
         <Text variant={TextVariant.HeadingLg} style={styles.heading}>
           {'Money UI'}
         </Text>
-        <Text
-          color={TextColor.TextAlternative}
-          variant={TextVariant.BodyMd}
-          style={styles.desc}
-        >
-          {`Onboarding enabled: ${String(isOnboardingEnabled)}`}
-        </Text>
-        <Text
-          color={TextColor.TextAlternative}
-          variant={TextVariant.BodyMd}
-          style={styles.desc}
-        >
-          {`Onboarding seen: ${String(hasSeenMoneyOnboarding)}`}
-        </Text>
-        <Button
-          variant={ButtonVariant.Secondary}
-          style={styles.accessory}
-          size={ButtonSize.Lg}
-          onPress={handleResetOnboardingSeenState}
-          isFullWidth
-        >
-          {'Reset onboarding screen'}
-        </Button>
       </Box>
       <Box>
         <Text

@@ -18,8 +18,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   getRecipientRowTestId,
   getSelectedRecipientTestId,
-  RedesignedSendViewSelectorsIDs,
-} from './RedesignedSendView.testIds';
+  SendViewSelectorsIDs,
+} from './SendView.testIds';
 import { Send } from './send';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
@@ -156,24 +156,23 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: tronAsset } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-    fireEvent.press(
-      getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+    await waitFor(() =>
+      expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
     );
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const recipientItem = await findByTestId(
       getRecipientRowTestId(recipientAddresses[0]),
       {},
+      // The non-EVM recipient resolves through snap account reads that can
+      // outlast the 5s default on a loaded CV shard.
       { timeout: 10000 },
     );
     fireEvent.press(recipientItem);
@@ -182,6 +181,9 @@ describeForPlatforms('Send (Non-EVM)', () => {
       await findByTestId(
         getSelectedRecipientTestId(recipientAddresses[0]),
         {},
+        // The selected-recipient chip renders after the same snap account
+        // reads as the list row; the 5s default is not enough on a loaded
+        // CV shard.
         { timeout: 10000 },
       ),
     ).toBeOnTheScreen();
@@ -215,9 +217,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -249,9 +249,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -274,9 +272,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: SOLANA_NATIVE_ASSET } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
     // Title and/or other copy may repeat "Send" — mirror E2E "text displayed" checks
     expect(screen.getAllByText('Send').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('SOL').length).toBeGreaterThanOrEqual(1);
@@ -301,33 +297,21 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
     const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      {},
-      { timeout: 5000 },
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, VALID_SOLANA_RECIPIENT);
 
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-      {},
-      { timeout: 5000 },
-    );
-    await waitFor(() => expect(reviewButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
+    await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
     await waitFor(() => {
@@ -360,26 +344,18 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance.
     // Non-EVM validation is deferred until the first Continue press.
     fireEvent.press(getByText('1'));
 
     const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
 
     expect(
-      await findByRole(
-        'button',
-        { name: 'Insufficient funds' },
-        { timeout: 5000 },
-      ),
+      await findByRole('button', { name: 'Insufficient funds' }),
     ).toBeOnTheScreen();
   });
 
@@ -402,33 +378,21 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
     const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      {},
-      { timeout: 5000 },
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, VALID_BTC_RECIPIENT);
 
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-      {},
-      { timeout: 5000 },
-    );
-    await waitFor(() => expect(reviewButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
+    await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
     await waitFor(() => {
@@ -459,33 +423,21 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
     const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      {},
-      { timeout: 5000 },
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-      {},
-      { timeout: 5000 },
-    );
-    await waitFor(() => expect(reviewButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
+    await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
     await waitFor(() => {
@@ -572,12 +524,10 @@ describeForPlatforms('Send (Non-EVM)', () => {
     await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-    );
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
     await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
@@ -610,33 +560,21 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
     const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      {},
-      { timeout: 5000 },
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-      {},
-      { timeout: 5000 },
-    );
-    await waitFor(() => expect(reviewButton).toBeEnabled(), {
-      timeout: 5000,
-    });
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
+    await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
     await waitFor(() => {

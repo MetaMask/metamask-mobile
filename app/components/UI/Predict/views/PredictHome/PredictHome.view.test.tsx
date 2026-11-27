@@ -358,18 +358,15 @@ describe('PredictHome', () => {
       });
 
       // After the dwell period the impression fires exactly once.
-      await waitFor(
-        () => {
-          expect(
-            Engine.context.PredictController.trackHomeSectionInteraction,
-          ).toHaveBeenCalledWith({
-            sectionId: PredictEventValues.SECTION_ID.TRENDING,
-            actionType: PredictEventValues.ACTION_TYPE.VIEWED,
-            entryPoint: undefined,
-          });
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackHomeSectionInteraction,
+        ).toHaveBeenCalledWith({
+          sectionId: PredictEventValues.SECTION_ID.TRENDING,
+          actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+          entryPoint: undefined,
+        });
+      });
     });
   });
 
