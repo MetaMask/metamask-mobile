@@ -12,6 +12,7 @@ import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { trackKycEvent } from '../utils/trackKycEvent';
 import KalshiOnboarding, { KalshiOnboardingTestIds } from './KalshiOnboarding';
+import { KalshiTermsSelectorsIDs } from './KalshiTerms.testIds';
 import {
   KycPartnerTermsSelectorsIDs,
   KycVerifyIdentitySelectorsIDs,
@@ -268,7 +269,12 @@ describe('KalshiOnboarding', () => {
       await agreeToMetaMaskTerms(screen);
       await agreeToPartnerTerms(screen);
       await screen.findByText('Kalshi terms');
-      fireEvent.press(primary(screen));
+      fireEvent(
+        screen.getByTestId(KalshiTermsSelectorsIDs.SOCURE_CONSENT_CHECKBOX),
+        'change',
+        true,
+      );
+      fireEvent.press(screen.getByTestId(KalshiTermsSelectorsIDs.AGREE_BUTTON));
     };
 
     it('does not show the confirm page again while terms are still loading', async () => {
@@ -400,6 +406,27 @@ describe('KalshiOnboarding', () => {
       expect(trackKycEvent).not.toHaveBeenCalled();
     });
 
+    it('shows a failed submission on the Kalshi page and lets the user retry', async () => {
+      flow.submitTerms.mockRejectedValueOnce(new Error('Kalshi is down'));
+      const screen = render('terms');
+
+      await acceptAllPages(screen);
+
+      expect(
+        await screen.findByTestId(KalshiTermsSelectorsIDs.ERROR),
+      ).toHaveTextContent(/Kalshi is down/u);
+      expect(screen.getByText('Kalshi terms')).toBeOnTheScreen();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(KalshiTermsSelectorsIDs.AGREE_BUTTON),
+        ).toBeEnabled(),
+      );
+
+      fireEvent.press(screen.getByTestId(KalshiTermsSelectorsIDs.AGREE_BUTTON));
+
+      await waitFor(() => expect(flow.submitTerms).toHaveBeenCalledTimes(2));
+    });
+
     it('goes back a page without sending anything', async () => {
       const screen = render('terms');
       await agreeToMetaMaskTerms(screen);
@@ -414,7 +441,7 @@ describe('KalshiOnboarding', () => {
       await agreeToPartnerTerms(screen);
       await screen.findByText('Kalshi terms');
 
-      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+      fireEvent.press(screen.getByTestId(KalshiTermsSelectorsIDs.BACK_BUTTON));
 
       expect(
         await screen.findByText('Our verification partners'),

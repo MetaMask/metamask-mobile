@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +26,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import I18n, { strings } from '../../../../../locales/i18n';
+import I18n from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { useMfa } from '../../../../util/identity/mfa';
 import { resolveGeoCountry } from '../utils/resolveGeoCountry';
@@ -39,6 +39,7 @@ import { nextWaitingPollDelayMs } from './waitingPoll';
 import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import KycVerifyIdentity from '../Views/SumSub/VerifyIdentity';
 import KycPartnerTerms from '../Views/SumSub/PartnerTerms';
+import KalshiTerms, { type KalshiTermsDocument } from './KalshiTerms';
 import type { KycCatalogDisclaimerLink } from '../hooks/useKycSessionDisclaimers';
 import { groupDisclaimers } from '../Views/SumSub/partnerDisclaimers';
 const VENDOR = KALSHI_KYC_VENDOR.id;
@@ -76,14 +77,8 @@ const selectKalshiFlow = (
 ): OnboardingVendorState | undefined =>
   state.engine.backgroundState.VendorOnboardingController?.vendors?.[VENDOR];
 
-interface TermsDocument {
-  key: string;
-  title: string;
-  url: string;
-}
-
 interface KalshiVendorTerms {
-  documents: TermsDocument[];
+  documents: KalshiTermsDocument[];
   vendorDisclaimerIds: string[];
 }
 
@@ -201,7 +196,7 @@ const KalshiOnboarding = () => {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [terms, setTerms] = useState<KalshiVendorTerms>();
+  const [vendorTerms, setVendorTerms] = useState<KalshiVendorTerms>();
   /**
    * Which of the three consent pages is showing. Nothing is sent until the
    * Kalshi page, the last one.
@@ -233,7 +228,7 @@ const KalshiOnboarding = () => {
     (screen === 'confirm' && busy) ||
     (screen === 'terms' &&
       termsPage === KALSHI_TERMS_PAGE.kalshi &&
-      !terms &&
+      !vendorTerms &&
       !error);
   const { VendorOnboardingController } = Engine.context;
 
@@ -323,7 +318,7 @@ const KalshiOnboarding = () => {
   // Kalshi's own agreements. idOS and SumSub come from the shared pages.
   // The country catalog needs no session, so this can load before one exists.
   useEffect(() => {
-    if (screen !== 'terms' || terms) {
+    if (screen !== 'terms' || vendorTerms) {
       return;
     }
     run(async () => {
@@ -333,7 +328,7 @@ const KalshiOnboarding = () => {
         vendor: VENDOR,
         country,
       });
-      setTerms({
+      setVendorTerms({
         documents: vendorDocuments.map(
           ({ id, display_name: displayName, url }) => ({
             key: id,
@@ -344,7 +339,7 @@ const KalshiOnboarding = () => {
         vendorDisclaimerIds: vendorDocuments.map(({ id }) => id),
       });
     });
-  }, [run, screen, terms]);
+  }, [run, screen, vendorTerms]);
 
   // While the decision is pending, keep asking kyc-api for the step. The pace
   // slows down because every read makes kyc-api read the idOS relay.
@@ -372,11 +367,11 @@ const KalshiOnboarding = () => {
   }, [refresh, screen]);
 
   // The first two pages only advance. Everything is sent from the last page.
-  const acceptKalshiTerms = (
-    vendorTerms: KalshiVendorTerms,
-    partners: KycCatalogDisclaimerLink[],
-  ) => {
-    const { idos, kycProvider } = groupDisclaimers(partners);
+  const acceptKalshiTerms = () => {
+    if (!vendorTerms || !partnerDisclaimers) {
+      return undefined;
+    }
+    const { idos, kycProvider } = groupDisclaimers(partnerDisclaimers);
     return run(() =>
       VendorOnboardingController.submitTerms({
         vendor: VENDOR,
@@ -565,12 +560,8 @@ const KalshiOnboarding = () => {
         case 'loading':
           return undefined;
         case 'terms':
-          return terms && partnerDisclaimers
-            ? {
-                label: 'Accept and submit',
-                onPress: () => acceptKalshiTerms(terms, partnerDisclaimers),
-              }
-            : undefined;
+          // `KalshiTerms` has its own button.
+          return undefined;
         case 'email':
           return { label: 'Continue', onPress: submitEmail };
         case 'confirm':
@@ -594,17 +585,9 @@ const KalshiOnboarding = () => {
         default:
           return { label: 'Close', onPress: () => navigation.goBack() };
       }
-      // The handlers close over the current input and terms.
+      // The handlers close over the current input and vendorTerms.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-      screen,
-      terms,
-      partnerDisclaimers,
-      input,
-      navigation,
-      flowState?.mfaCompleted,
-      emailSent,
-    ]);
+    }, [screen, input, navigation, flowState?.mfaCompleted, emailSent]);
 
   const secondary: { label: string; onPress: () => void } | undefined =
     screen === 'terms' && termsPage === KALSHI_TERMS_PAGE.kalshi
@@ -670,6 +653,25 @@ const KalshiOnboarding = () => {
     );
   }
 
+  if (
+    screen === 'terms' &&
+    termsPage === KALSHI_TERMS_PAGE.kalshi &&
+    vendorTerms &&
+    partnerDisclaimers &&
+    !holding
+  ) {
+    return (
+      <KalshiTerms
+        documents={vendorTerms.documents}
+        onAccept={acceptKalshiTerms}
+        onBack={() => setTermsPage(KALSHI_TERMS_PAGE.partners)}
+        isSubmitting={busy}
+        error={error}
+        totalSteps={KALSHI_CONSENT_TOTAL_STEPS}
+      />
+    );
+  }
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -704,18 +706,6 @@ const KalshiOnboarding = () => {
         ) : (
           copy && (
             <>
-              {screen === 'terms' ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-2"
-                >
-                  {strings('kyc.verify_identity.step_indicator', {
-                    current: KALSHI_TERMS_PAGE.kalshi + 1,
-                    total: KALSHI_CONSENT_TOTAL_STEPS,
-                  })}
-                </Text>
-              ) : null}
               <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
                 {copy.title}
               </Text>
@@ -729,20 +719,6 @@ const KalshiOnboarding = () => {
             </>
           )
         )}
-
-        {!holding &&
-          screen === 'terms' &&
-          terms?.documents.map((document) => (
-            <Button
-              key={document.key}
-              variant={ButtonVariant.Tertiary}
-              size={ButtonSize.Sm}
-              twClassName="mt-3 self-start"
-              onPress={() => Linking.openURL(document.url)}
-            >
-              {document.title}
-            </Button>
-          ))}
 
         {field && (
           <Box twClassName="mt-6">

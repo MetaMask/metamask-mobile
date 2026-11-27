@@ -1,0 +1,16 @@
+export const KalshiTermsSelectorsIDs = {
+  CONTAINER: 'kalshi-terms-container',
+  BACK_BUTTON: 'kalshi-terms-back-button',
+  STEP_INDICATOR: 'kalshi-terms-step-indicator',
+  DOCUMENT_LINK: 'kalshi-terms-document-link',
+  SOCURE_DESCRIPTION: 'kalshi-terms-socure-description',
+  SOCURE_CONSENT_ROW: 'kalshi-terms-socure-consent-row',
+  SOCURE_CONSENT: 'kalshi-terms-socure-consent',
+  SOCURE_CONSENT_CHECKBOX: 'kalshi-terms-socure-consent-checkbox',
+  SOCURE_TERMS_LINK: 'kalshi-terms-socure-terms-link',
+  SOCURE_PRIVACY_LINK: 'kalshi-terms-socure-privacy-link',
+  AGREEMENT: 'kalshi-terms-agreement',
+  AGREEMENT_PRIVACY_LINK: 'kalshi-terms-agreement-privacy-link',
+  ERROR: 'kalshi-terms-error',
+  AGREE_BUTTON: 'kalshi-terms-agree-button',
+} as const;

@@ -1269,6 +1269,19 @@
       "agree_to_consent_above_button": "Agree to consent above",
       "button": "Agree and continue"
     },
+    "kalshi_terms": {
+      "title": "Kalshi terms",
+      "description": "Review and accept Kalshi's terms to open a Kalshi account.",
+      "section_title": "Terms and privacy",
+      "kalshi_group_title": "Kalshi",
+      "socure_group_title": "Socure",
+      "socure_description": "Kalshi receives the ID photos and selfie you take in MetaMask and shares them with Socure, its service provider, to verify you. Kalshi never sells them.",
+      "socure_consent": "I explicitly consent to Socure, Kalshi's service provider, collecting, using and keeping my facial images and the biometric data derived from them for up to 2 years to verify my identity, as described in Socure's {{termsOfUse}} and {{privacyNotice}}.",
+      "socure_terms_of_use": "Terms of Use",
+      "socure_privacy_notice": "Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to Kalshi's Member Agreements and Rulebooks and acknowledge Kalshi's {{privacyPolicy}}.",
+      "agreement_privacy_policy": "Privacy Policy"
+    },
     "kyc_email": {
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
