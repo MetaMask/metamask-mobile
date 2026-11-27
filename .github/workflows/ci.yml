@@ -1193,34 +1193,21 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      # Pull requests that qualify (see get-requirements) run only the tests
-      # related to the changed files, with coverage scoped to those files
-      # (JEST_COVERAGE_ARGS). Everything else runs the full shard below.
+      # Pull requests that qualify (see get-requirements) run only the suites
+      # related to the changed files, through scripts/jest-related.mjs, which
+      # wraps the same package.json script. Coverage is scoped to the changed
+      # files (JEST_COVERAGE_ARGS). Everything else runs the full shard.
       - name: Run unit tests
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
+          runner=(yarn test:unit)
+          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+            runner=(node scripts/jest-related.mjs test:unit)
+          fi
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
-            if [[ "${#changed[@]}" -eq 0 ]]; then
-              echo "jest_related_only is true but no changed files were provided"
-              exit 1
-            fi
-            # Same ignore patterns as the test:unit script. The command line replaces
-            # the config's testPathIgnorePatterns, and the script's positional paths
-            # cannot be reused because --findRelatedTests would treat them as files.
-            ignore="$(node -p "require('./package.json').scripts['test:unit'].match(/--testPathIgnorePatterns='([^']+)'/)[1]")"
-            yarn jest \
-              --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} \
-              --workerIdleMemoryLimit=2GB --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
-              --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json \
-              --testPathIgnorePatterns "$ignore" \
-              --findRelatedTests "${changed[@]}"
-          else
-            yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
-          fi
+          "${runner[@]}" --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
@@ -1395,7 +1382,8 @@ jobs:
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       # Global thresholds need whole-app coverage. Pull requests collect coverage
-      # for changed files only, so the thresholds are enforced on main.
+      # for changed files only, so the thresholds are enforced in the merge queue
+      # and on push, not on pull requests.
       - name: Validate global coverage thresholds
         if: ${{ github.event_name != 'pull_request' }}
         run: yarn test:validate-coverage
@@ -1548,26 +1536,17 @@ jobs:
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
+          runner=(yarn test:view:ci)
+          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+            runner=(node scripts/jest-related.mjs test:view:ci)
+          fi
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
-            if [[ "${#changed[@]}" -eq 0 ]]; then
-              echo "jest_related_only is true but no changed files were provided"
-              exit 1
-            fi
-            TEST_OS=ios yarn jest -c jest.config.view.js --no-watchman \
-              --shard=${{ matrix.shard }}/6 \
-              --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
-              --json --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json \
-              --findRelatedTests "${changed[@]}"
-          else
-            yarn test:view:ci \
-              --shard=${{ matrix.shard }}/6 \
-              $JEST_COVERAGE_ARGS \
-              --json \
-              --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
-          fi
+          "${runner[@]}" \
+            --shard=${{ matrix.shard }}/6 \
+            $JEST_COVERAGE_ARGS \
+            --json \
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
@@ -1753,26 +1732,17 @@ jobs:
         if: ${{ needs.get_requirements.outputs.skip_jest_tests != 'true' }}
         shell: bash
         run: |
+          runner=(yarn test:integration:ci)
+          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+            runner=(node scripts/jest-related.mjs test:integration:ci)
+          fi
           # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
           # shellcheck disable=SC2086
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
-            mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
-            if [[ "${#changed[@]}" -eq 0 ]]; then
-              echo "jest_related_only is true but no changed files were provided"
-              exit 1
-            fi
-            TEST_OS=ios yarn jest -c jest.config.integration.js --no-watchman \
-              --shard=${{ matrix.shard }}/2 \
-              --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
-              --json --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json \
-              --findRelatedTests "${changed[@]}"
-          else
-            yarn test:integration:ci \
-              --shard=${{ matrix.shard }}/2 \
-              $JEST_COVERAGE_ARGS \
-              --json \
-              --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
-          fi
+          "${runner[@]}" \
+            --shard=${{ matrix.shard }}/2 \
+            $JEST_COVERAGE_ARGS \
+            --json \
+            --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
           JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}

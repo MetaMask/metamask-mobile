@@ -93,7 +93,8 @@ cv_test_files:
   - '**/*.view.test.{ts,tsx}'
 
 # Application source files, used to scope Jest coverage to the files a PR
-# touches. Test, spec and story files are dropped in get-requirements.yml.
+# touches. Test, spec, story and test-support files (mocks, fixtures, test
+# utilities) are dropped in get-requirements.yml.
 app_source_files:
   - 'app/**/*.{js,ts,tsx,jsx}'
 
@@ -172,8 +173,14 @@ jest_full_run_triggers:
   - '.yarn/**'
   - 'patches/**'
   - '.nvmrc'
-  # Setup files, mocks, fixtures and shared test utilities
+  - 'scripts/react-compiler.js'
+  - 'scripts/jest-related*'
+  # Setup files, mocks, fixtures and shared test utilities. The setup files
+  # (app/util/test/testSetup*.js) import app/util/theme and app/util/device
+  # directly, outside any test's own import graph.
   - 'app/util/test/**'
+  - 'app/util/theme/**'
+  - 'app/util/device/**'
   - 'app/util/testUtils/**'
   - '**/testUtils/**'
   - '**/__mocks__/**'

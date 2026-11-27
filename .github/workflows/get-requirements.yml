@@ -201,14 +201,29 @@ jobs:
           JEST_RELATED_CANDIDATES_LIST: ${{ steps.filter.outputs.jest_related_candidates_count <= 300 && steps.filter.outputs.jest_related_candidates_files || '' }}
         run: |
           set -f
+          # The changed-file list goes into the command line of every Jest shard
+          # and into a step output. Past 300 files the related set is close to the
+          # whole suite anyway, so the full suite is the simpler, safe fallback.
           MAX_FILES=300
           related=false
           reason=""
           files=()
 
+          head_message=""
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            # HEAD_COMMIT_HASH is the job-level env and the "Fetch HEAD commit"
+            # step above fetched it. Verify it anyway: a missing commit must fail
+            # the step instead of reading as "no [full-jest] tag".
+            if ! git rev-parse --verify --quiet "${HEAD_COMMIT_HASH}^{commit}" > /dev/null; then
+              echo "::error::Head commit ${HEAD_COMMIT_HASH} is not available in the checkout"
+              exit 1
+            fi
+            head_message="$(git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}")"
+          fi
+
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
             reason="${GITHUB_EVENT_NAME} runs always use the full suite"
-          elif git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[full-jest]'; then
+          elif [[ "$head_message" == *'[full-jest]'* ]]; then
             reason="[full-jest] tag in the head commit message"
           elif [[ "${JEST_FULL_RUN_TRIGGERS_COUNT:-0}" -gt 0 ]]; then
             reason="${JEST_FULL_RUN_TRIGGERS_COUNT} changed file(s) can affect every test (Jest config, setup, mocks, fixtures, test utilities, dependencies or .github)"
@@ -303,6 +318,9 @@ jobs:
           APP_SOURCE_FILES_LIST: ${{ steps.filter.outputs.app_source_files_count <= 400 && steps.filter.outputs.app_source_files_files || '' }}
         run: |
           set -f
+          # Only a command-line length guard (one --collectCoverageFrom argument
+          # per file), so it is looser than the 300-file test cap above. Past it
+          # the fallback is whole-app coverage.
           MAX_FILES=400
           if [ "${APP_SOURCE_FILES_COUNT:-0}" -gt "$MAX_FILES" ]; then
             echo "-> ${APP_SOURCE_FILES_COUNT} app source files changed (cap ${MAX_FILES}); collecting whole-app coverage"
@@ -313,7 +331,9 @@ jobs:
           files=0
           for file in $APP_SOURCE_FILES_LIST; do
             case "$file" in
-              *.test.*|*.spec.*|*.stories.*|*/__mocks__/*) continue ;;
+              *.test.*|*.spec.*|*.stories.*) continue ;;
+              */__tests__/*|*/__mocks__/*|*/_mocks_/*|*/mocks/*|*.mock.*|*.mocks.*) continue ;;
+              */__fixtures__/*|*.fixture.*|*/testUtils/*|*.testUtils.*|*/util/test/*) continue ;;
             esac
             if [[ ! "$file" =~ ^app/[A-Za-z0-9_./@+-]+$ ]]; then
               echo "-> Unsafe path '${file}'; collecting whole-app coverage"
