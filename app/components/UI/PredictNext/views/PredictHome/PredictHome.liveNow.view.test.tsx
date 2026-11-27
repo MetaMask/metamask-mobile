@@ -182,7 +182,9 @@ describe('PredictHome Live now carousel', () => {
       expect(liveNowPollMs(queryClient)).toBe(LIVE_NOW_POLL_MS);
 
       serveLiveGames([liveGame(2), liveGame(7)]);
-      await act(() => queryClient.refetchQueries({ predicate: isLiveNowRead }));
+      await act(async () =>
+        queryClient.refetchQueries({ predicate: isLiveNowRead }),
+      );
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'live-7'));
       expect(liveNowReads()).toBe(2);
@@ -195,7 +197,9 @@ describe('PredictHome Live now carousel', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'live-1'));
 
       serveLiveGames([]);
-      await act(() => queryClient.refetchQueries({ predicate: isLiveNowRead }));
+      await act(async () =>
+        queryClient.refetchQueries({ predicate: isLiveNowRead }),
+      );
 
       await waitFor(() =>
         expect(

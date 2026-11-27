@@ -113,7 +113,11 @@ describe('selectHomeSections', () => {
 
     it("fills to the section's limit, keeping two per read first", () => {
       const sections: PredictHomeSection[] = [
-        { ...KALSHI_HOME[0], limit: 3 },
+        {
+          kind: 'trending',
+          sources: ['nfl-games', 'college-football-games'],
+          limit: 3,
+        },
         KALSHI_HOME[1],
       ];
 
