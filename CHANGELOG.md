@@ -65,9 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Money activity rows to show only the dollar amount (#39784)
 - Improved Swaps bridge navigation with native swipe between Market, Limit, and Recurring tabs (#39362)
 - Improved the Explore screen's tab loading performance (#39644)
-- Allowed browsing Social V1 without creating a profile, and required Social terms and profile onboarding for follow, copy trade, reactions, and trade actions (#40539)
-- Refined random username generation word list (#40533)
-- Changed generated social profile usernames to remove underscores and capitalize each word (#40368)
 
 ### Removed
 
@@ -75,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed X account connection failures on Android devices without a Custom Tabs browser by adding an in-app browser fallback (#40553)
 - Fixed a bug that sent users back to the MetaMask Card sign-in screen after they signed in (#40536)
 - Fixed a bug that could create two MetaMask Cards for one card request (#40495)
 - Fixed networks added from the config registry showing a letter fallback instead of their network logo in the network selector, tokens page, and networks management screens (#39669)
@@ -137,7 +135,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Predict withdrawals from Safe accounts failing after confirmation by blocking them before signing when pUSD couldn't be confirmed to pay network fees (#39746)
 - Fixed a gray placeholder shown while token details load by showing price, chart, and action skeletons in the same layout as the loaded page (#39501)
 - Fixed Android skipping the biometric prompt for a few seconds after the phone was unlocked (#39163)
-- Fixed X account connection failing on Android devices without a Custom Tabs browser by adding an in-app WebView fallback (#40553)
 
 ### Security
 
