@@ -16,6 +16,8 @@ import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMoc
 
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
+const mockHandleDepositToProvider = jest.fn();
+const mockHandleWithdrawFromProvider = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 let mockIsEligibilityModalVisible = false;
 let mockIsEligible = true;
@@ -24,6 +26,8 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: jest.fn(() => ({
     handleAddFunds: mockHandleAddFunds,
     handleWithdraw: mockHandleWithdraw,
+    handleDepositToProvider: mockHandleDepositToProvider,
+    handleWithdrawFromProvider: mockHandleWithdrawFromProvider,
     isEligibilityModalVisible: mockIsEligibilityModalVisible,
     closeEligibilityModal: mockCloseEligibilityModal,
     isEligible: mockIsEligible,
@@ -44,9 +48,31 @@ let mockPerpsAccount: {
   returnOnEquity: '5.5',
 };
 
+let mockIsMultiProviderEnabled = false;
+let mockVenues: {
+  providerId: 'hyperliquid' | 'lighter';
+  status: 'available' | 'unavailable' | 'pending';
+  state?: {
+    spendableBalance: string;
+    totalBalance: string;
+  };
+}[] = [];
+
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({
+    isMultiProviderEnabled: mockIsMultiProviderEnabled,
+  })),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: mockPerpsAccount,
+    isInitialLoading: false,
+  })),
+  usePerpsVenueBalances: jest.fn(() => ({
+    venues: mockVenues,
+    total: mockPerpsAccount,
+    aggregate: null,
     isInitialLoading: false,
   })),
 }));
@@ -102,6 +128,8 @@ describe('PerpsBalanceBottomSheet', () => {
     jest.clearAllMocks();
     mockIsEligibilityModalVisible = false;
     mockIsEligible = true;
+    mockIsMultiProviderEnabled = false;
+    mockVenues = [];
     mockPerpsAccount = {
       totalBalance: '1234.56',
       spendableBalance: '1000.00',
@@ -372,5 +400,41 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.BALANCE_VALUE),
     ).toBeOnTheScreen();
+  });
+
+  it('lists each exchange, tags the default, and keeps a failed exchange off zero', () => {
+    mockIsMultiProviderEnabled = true;
+    mockVenues = [
+      {
+        providerId: 'lighter',
+        status: 'available',
+        state: { spendableBalance: '50', totalBalance: '50' },
+      },
+      {
+        providerId: 'hyperliquid',
+        status: 'unavailable',
+      },
+    ];
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId('perps-balance-venue-row-hyperliquid'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('perps-balance-venue-default-hyperliquid'),
+    ).toHaveTextContent('Default');
+    expect(
+      getByTestId('perps-balance-venue-error-hyperliquid'),
+    ).toHaveTextContent("Couldn't load this balance");
+    expect(queryByTestId('perps-balance-venue-balance-hyperliquid')).toBeNull();
+    expect(
+      getByTestId('perps-balance-venue-balance-lighter'),
+    ).toHaveTextContent('$50');
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId('perps-balance-venue-deposit-lighter'));
+    expect(mockHandleDepositToProvider).toHaveBeenCalledWith('lighter');
   });
 });

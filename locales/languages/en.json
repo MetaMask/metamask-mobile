@@ -3900,7 +3900,9 @@
     "balance_bottom_sheet": {
       "close_button": "Close",
       "history_button": "View activity",
-      "available": "Available"
+      "available": "Available",
+      "venue_pending": "Loading",
+      "venue_unavailable": "Couldn't load this balance"
     },
     "price_alerts": {
       "open": "Open price alerts"

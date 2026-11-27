@@ -44,6 +44,7 @@ import {
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
   getPerpsLiveTradeRowSelector,
@@ -94,7 +95,10 @@ import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from '../../../SocialFeed/components/SocialFeedStates.testIds';
-import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  wirePerpsControllerForStore,
+  withLighterBuildEnabled,
+} from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
   acceptSocialTerms,
@@ -497,6 +501,150 @@ describe('PerpsHomeView', () => {
       expect(screen.queryByText(formatPerpsBalance('40'))).toBeNull();
       expect(screen.queryByText(formatPerpsBalance('100'))).toBeNull();
       expect(screen.getByText(strings('perps.available'))).toBeOnTheScreen();
+    });
+  });
+
+  describe('per-exchange balance sheet', () => {
+    withLighterBuildEnabled();
+
+    const openBreakdown = async () => {
+      fireEvent.press(
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.BALANCE_BUTTON),
+      );
+    };
+
+    it('shows one total, both logos, and a default tag on the default exchange', async () => {
+      renderPerpsHomeView(perpsTwoExchangeState('bothFunded'));
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+        ),
+      ).toHaveTextContent(formatPerpsBalance('150'));
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+
+      await openBreakdown();
+
+      expect(
+        await screen.findByTestId('perps-balance-venue-row-hyperliquid'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-balance-venue-default-hyperliquid'),
+      ).toHaveTextContent(strings('perps.trade_on.default_tag'));
+      expect(
+        screen.getByTestId('perps-balance-venue-balance-hyperliquid'),
+      ).toHaveTextContent(formatPerpsBalance('100'));
+      expect(
+        screen.getByTestId('perps-balance-venue-balance-lighter'),
+      ).toHaveTextContent(formatPerpsBalance('50'));
+      expect(
+        screen.getByTestId('perps-balance-venue-withdraw-hyperliquid'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-balance-venue-deposit-lighter'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a zero balance for an exchange that loaded empty', async () => {
+      renderPerpsHomeView(perpsTwoExchangeState('oneFunded'));
+      await openBreakdown();
+
+      expect(
+        await screen.findByTestId('perps-balance-venue-balance-lighter'),
+      ).toHaveTextContent(formatPerpsBalance('0'));
+      expect(
+        screen.queryByTestId('perps-balance-venue-error-lighter'),
+      ).toBeNull();
+    });
+
+    it('keeps the loaded exchange and shows an error for the one that failed', async () => {
+      renderPerpsHomeView(perpsTwoExchangeState('lighterDown'));
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+        ),
+      ).toHaveTextContent(formatPerpsBalance('100'));
+
+      await openBreakdown();
+
+      expect(
+        await screen.findByTestId('perps-balance-venue-balance-hyperliquid'),
+      ).toHaveTextContent(formatPerpsBalance('100'));
+      expect(
+        screen.getByTestId('perps-balance-venue-error-lighter'),
+      ).toHaveTextContent(
+        strings('perps.balance_bottom_sheet.venue_unavailable'),
+      );
+      expect(
+        screen.queryByTestId('perps-balance-venue-balance-lighter'),
+      ).toBeNull();
+    });
+
+    it('shows one position row per exchange, including the same market on both', async () => {
+      const sameMarket = perpsTwoExchangeState('sameMarketOnBoth');
+      renderPerpsHomeView({
+        ...sameMarket,
+        streamOverrides: {
+          ...sameMarket.streamOverrides,
+          positions: [
+            ...(sameMarket.streamOverrides.positions ?? []),
+            createLongPositionForViews({
+              providerId: 'hyperliquid',
+              size: '0.02',
+            }),
+          ],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          'perps-home-position-card-lighter-logo-venue-badge',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          'perps-home-position-card-hyperliquid-logo-venue-badge',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps today home when Lighter is disabled', async () => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [createLongPositionForViews()],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+        ),
+      ).toHaveTextContent(formatPerpsBalance('100'));
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.BALANCE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId('perps-balance-venue-row-hyperliquid'),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          'perps-home-position-card-hyperliquid-logo-venue-badge',
+        ),
+      ).toBeNull();
     });
   });
 

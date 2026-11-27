@@ -100,6 +100,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const symbol = position?.symbol || order?.symbol || '';
+  const venueId = position?.providerId ?? order?.providerId;
 
   const positionDisplay = position
     ? getPerpsPositionHeaderDisplay(position)
@@ -219,7 +220,14 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       variant={ListItemVariant.TwoLines}
       twClassName={rowClassName}
       avatar={
-        symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
+        symbol ? (
+          <PerpsTokenLogo
+            symbol={symbol}
+            size={iconSize}
+            providerId={venueId}
+            testID={testID && venueId ? `${testID}-logo` : undefined}
+          />
+        ) : undefined
       }
       title={title}
       titleEndAccessory={
@@ -260,10 +268,16 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
  */
 const PerpsCardWithMarketLookup: React.FC<PerpsCardProps> = (props) => {
   const symbol = props.position?.symbol || props.order?.symbol || '';
+  const venueId = props.position?.providerId ?? props.order?.providerId;
   const { markets } = usePerpsMarkets();
   const market = useMemo(
-    () => markets.find((m) => m.symbol === symbol),
-    [markets, symbol],
+    () =>
+      markets.find(
+        (candidate) =>
+          candidate.symbol === symbol &&
+          (venueId === undefined || candidate.providerId === venueId),
+      ),
+    [markets, symbol, venueId],
   );
 
   return <PerpsCardContent {...props} market={market} />;
