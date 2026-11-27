@@ -3,13 +3,13 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { View } from '../../UI/primitives/View';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths
@@ -68,6 +68,7 @@ function ActivityDetailsScreen() {
   const waiting = Boolean(
     isPerpsLoading || isPredictLoading || (!item && isActivityFetching),
   );
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -137,55 +138,54 @@ function ActivityDetailsScreen() {
   }, [item, isQRHardwareAccount, navigation, isFocused]);
 
   return (
-    <View className="flex-1 bg-default">
-      <SafeAreaView
-        edges={{ bottom: 'additive' }}
-        testID={ActivityDetailsSelectorsIDs.SCREEN}
-      >
-        <Box className="flex-1 bg-default">
-          <HeaderStandardGlass
-            isGlass={isGlassHeader}
-            isFloating={false}
-            testID={ActivityDetailsSelectorsIDs.HEADER}
-            includesTopInset
-            title={title}
-            onBack={handleBack}
-            backButtonProps={{
-              testID: ActivityDetailsSelectorsIDs.BACK_BUTTON,
-            }}
-          />
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+      testID={ActivityDetailsSelectorsIDs.SCREEN}
+    >
+      <Box className="flex-1 bg-default">
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          testID={ActivityDetailsSelectorsIDs.HEADER}
+          includesTopInset
+          title={title}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: ActivityDetailsSelectorsIDs.BACK_BUTTON,
+          }}
+        />
 
-          {item ? (
-            <View className="flex-1">
-              <View className="grow p-4">
-                <ScrollView>
-                  {pendingTx ? (
-                    <ActivityDetailsPendingBanner
-                      tx={pendingTx}
-                      isQRHardwareAccount={isQRHardwareAccount}
-                      isLedgerAccount={isLedgerAccount}
-                      onSpeedUpAction={onSpeedUpAction}
-                      onCancelAction={onCancelAction}
-                      signQRTransaction={signQRTransaction}
-                      signLedgerTransaction={signLedgerTransaction}
-                      cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
-                    />
-                  ) : null}
-                  <TemplateLoader item={item} />
-                </ScrollView>
-              </View>
-            </View>
-          ) : waiting ? null : (
-            <Box className="flex-1 items-center justify-center p-4">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                testID={ActivityDetailsSelectorsIDs.NOT_FOUND}
-              >
-                {strings('activity_details.not_found')}
-              </Text>
-            </Box>
-          )}
+        {item ? (
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('grow p-4')}
+          >
+            {pendingTx ? (
+              <ActivityDetailsPendingBanner
+                tx={pendingTx}
+                isQRHardwareAccount={isQRHardwareAccount}
+                isLedgerAccount={isLedgerAccount}
+                onSpeedUpAction={onSpeedUpAction}
+                onCancelAction={onCancelAction}
+                signQRTransaction={signQRTransaction}
+                signLedgerTransaction={signLedgerTransaction}
+                cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
+              />
+            ) : null}
+            <TemplateLoader item={item} />
+          </ScrollView>
+        ) : waiting ? null : (
+          <Box className="flex-1 items-center justify-center p-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={ActivityDetailsSelectorsIDs.NOT_FOUND}
+            >
+              {strings('activity_details.not_found')}
+            </Text>
+          </Box>
+        )}
 
         {/*
           The confirmation sheet is driven entirely by the hook's own state
@@ -203,9 +203,8 @@ function ActivityDetailsScreen() {
             confirmDisabled={confirmDisabled}
           />
         ) : null}
-        </Box>
-      </SafeAreaView>
-    </View>
+      </Box>
+    </SafeAreaView>
   );
 }
 
