@@ -65,10 +65,7 @@ export const useNavigateToInternalBrowserPage = (
         fromCard: true,
       };
 
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
+      navigation.navigate(Routes.BROWSER.HOME, params);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
