@@ -41,6 +41,7 @@ import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
 import MoneyMpcQaPresets from './MoneyMpcQaPresets';
 import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
+import { selectMoneyEnableMfaV2Flag } from '../../../UI/Money/selectors/featureFlags';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
@@ -77,6 +78,7 @@ const MfaSettings = () => {
   const { credentials, enroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const methods = useSelector(selectMfaUiKitMethods);
+  const isMoneyMfaV2 = useSelector(selectMoneyEnableMfaV2Flag);
   const passkeyCount = getActivePasskeys(credentials).length;
   const { status: moneyMfaStatus, turnOn: turnOnMoneyMfa } = useMoneyMfa();
   const isMoneyMfaOn = moneyMfaStatus === 'enabled';
@@ -183,7 +185,7 @@ const MfaSettings = () => {
               : 'mfa.settings.notice',
           )}
         </Text>
-        {moneyMfaStatus === 'unavailable' ? null : (
+        {!isMoneyMfaV2 || moneyMfaStatus === 'unavailable' ? null : (
           <Box
             twClassName="flex-row items-center px-4 py-3 gap-4"
             testID={MfaSettingsSelectorsIDs.MONEY_MFA_ROW}
