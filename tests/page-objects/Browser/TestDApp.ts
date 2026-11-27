@@ -317,6 +317,30 @@ class TestDApp {
   }
 
   /**
+   * Waits until the dapp's `#chainId` span shows the expected chain ID. Reads
+   * the DOM text through JS, so it is not affected by the upper-casing the
+   * Android WebView applies to the visible network label.
+   *
+   * @param expectedChainId - Hex chain ID, e.g. `0x539`.
+   */
+  async verifyConnectedChainId(expectedChainId: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const actual = await this.getConnectedChainId();
+        if (actual.toLowerCase() !== expectedChainId.toLowerCase()) {
+          throw new Error(
+            `Expected test dapp chain ID "${expectedChainId}" but got "${actual}"`,
+          );
+        }
+      },
+      {
+        timeout: 30000,
+        description: `Test dapp #chainId should be ${expectedChainId}`,
+      },
+    );
+  }
+
+  /**
    * Wait until the test-dapp element has non-empty textContent.
    * Polls via ChromeCdpHelpers (CDP on Android, WebView execute on iOS).
    */
@@ -594,6 +618,24 @@ class TestDApp {
             : {},
         },
       ],
+    });
+    await ChromeCdpHelpers.evaluateInWebView(
+      testDappPageUrl(),
+      `window.ethereum.request(${request})`,
+    );
+  }
+
+  /**
+   * Calls `wallet_switchEthereumChain` from the dapp. When the chain is not yet
+   * part of the dapp's CAIP-25 permission, the wallet shows a switch-chain
+   * approval that adds it to the existing session.
+   *
+   * @param chainId - Hex chain ID to switch to.
+   */
+  async switchEthereumChain(chainId: string): Promise<void> {
+    const request = JSON.stringify({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId }],
     });
     await ChromeCdpHelpers.evaluateInWebView(
       testDappPageUrl(),
