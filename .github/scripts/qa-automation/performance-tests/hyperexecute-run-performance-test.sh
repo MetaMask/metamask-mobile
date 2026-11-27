@@ -12,23 +12,29 @@ fi
 BUILD_TYPE="${BUILD_TYPE:-imported-wallet}"
 GREP_TAGS="${GREP_TAGS:-}"
 CONFIG="tests/playwright.testmu.config.ts"
+PROJECT_PREFIX="testmu-android"
+if [[ "$TEST_FILE" == *.scenario.spec.ts ]]; then
+  # Scenario projects live in the TestMu config. Their project grep is
+  # @PerformanceShadow, which replaces the config's @Performance grep.
+  PROJECT_PREFIX="scenario-shadow-testmu-android"
+fi
 
 export PLAYWRIGHT_WORKERS="${PLAYWRIGHT_WORKERS:-1}"
 
 select_project_args() {
   case "$BUILD_TYPE" in
     onboarding)
-      if [[ "$TEST_FILE" == *'/seedless-'* ]]; then
-        echo --project testmu-android-onboarding-seedless
+      if [[ "$TEST_FILE" == *'/seedless-'* || "$TEST_FILE" == *'/seedless.scenario.spec.ts' ]]; then
+        echo --project "${PROJECT_PREFIX}-onboarding-seedless"
       else
-        echo --project testmu-android-onboarding
+        echo --project "${PROJECT_PREFIX}-onboarding"
       fi
       ;;
     dev-onboarding)
       echo --project testmu-android-dev-onboarding
       ;;
     imported-wallet)
-      echo --project testmu-android
+      echo --project "$PROJECT_PREFIX"
       ;;
     *)
       echo "Unsupported BUILD_TYPE: $BUILD_TYPE" >&2
@@ -37,8 +43,8 @@ select_project_args() {
   esac
 }
 
-PROJECT_ARGS="$(select_project_args)"
-CMD=(yarn playwright test "$TEST_FILE" $PROJECT_ARGS --config "$CONFIG" --workers="$PLAYWRIGHT_WORKERS")
+read -r -a PROJECT_ARR <<< "$(select_project_args)"
+CMD=(yarn playwright test "$TEST_FILE" "${PROJECT_ARR[@]}" --config "$CONFIG" --workers="$PLAYWRIGHT_WORKERS")
 
 if [[ -n "$GREP_TAGS" ]]; then
   # Discovery is file-based, so a tag-filtered file may contain no selected tests.

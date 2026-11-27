@@ -58,5 +58,24 @@ export default defineConfig({
         },
       },
     },
+    // Agent-driven scenarios. Project grep replaces the top-level @Performance grep.
+    {
+      name: 'scenario-shadow-android-emulator',
+      testMatch: '**/performance/**/scenarios/*.scenario.spec.ts',
+      grep: /@PerformanceShadow\b/,
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.EMULATOR,
+          name: process.env.SCENARIO_EMULATOR_NAME || 'Pixel_5_Pro_API_34',
+          osVersion: process.env.SCENARIO_EMULATOR_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath: process.env.SCENARIO_ANDROID_BUILD_PATH,
+        },
+      },
+    },
   ],
 });

@@ -99,6 +99,7 @@ const PERFORMANCE_AREA_LABELS = {
   'run-performance-perps-tests': '@PerformancePreps',
   'run-performance-money-tests': '@PerformanceMoney',
   'run-performance-rewards-tests': '@PerformanceRewards',
+  'run-performance-shadow-tests': '@PerformanceShadow',
 };
 
 /**

@@ -33,6 +33,7 @@ export default defineConfig({
     {
       name: 'testmu-android',
       testMatch: '**/performance/login/**/*.spec.ts',
+      testIgnore: '**/scenarios/**',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -50,7 +51,10 @@ export default defineConfig({
     {
       name: 'testmu-android-onboarding',
       testMatch: '**/performance/onboarding/**/*.spec.ts',
-      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+      testIgnore: [
+        '**/performance/onboarding/seedless-*.spec.ts',
+        '**/scenarios/**',
+      ],
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -70,6 +74,7 @@ export default defineConfig({
     {
       name: 'testmu-android-dev-onboarding',
       testMatch: '**/performance/dev-onboarding/**/*.spec.ts',
+      testIgnore: '**/scenarios/**',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -89,6 +94,69 @@ export default defineConfig({
     {
       name: 'testmu-android-onboarding-seedless',
       testMatch: '**/performance/onboarding/seedless-*.spec.ts',
+      testIgnore: '**/scenarios/**',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_SEEDLESS_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    // Agent-driven scenarios. Project grep replaces the top-level @Performance
+    // grep, and testMatch keeps each build on its own app URL.
+    {
+      name: 'scenario-shadow-testmu-android',
+      testMatch: '**/performance/login/scenarios/*.scenario.spec.ts',
+      grep: /@PerformanceShadow\b/,
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath: process.env.TESTMU_ANDROID_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'scenario-shadow-testmu-android-onboarding',
+      testMatch:
+        '**/performance/onboarding/scenarios/scenarios.scenario.spec.ts',
+      grep: /@PerformanceShadow\b/,
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'scenario-shadow-testmu-android-onboarding-seedless',
+      testMatch:
+        '**/performance/onboarding/scenarios/seedless.scenario.spec.ts',
+      grep: /@PerformanceShadow\b/,
       use: {
         platform: Platform.ANDROID,
         device: {

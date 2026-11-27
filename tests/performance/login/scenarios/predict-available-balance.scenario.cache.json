@@ -1,0 +1,19 @@
+{
+  "Tap the Predictions section header on the wallet home (testID homepage-section-title-predictions; scroll down to find it)": [
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "homepage-section-title-predictions"
+      }
+    }
+  ]
+}

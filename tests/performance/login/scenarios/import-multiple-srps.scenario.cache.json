@@ -1,0 +1,20 @@
+{
+  "Tap the account picker at the top of the wallet (testID wallet-account-name-button or account-picker)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "account-picker"
+      }
+    }
+  ],
+  "Tap the Add wallet button in the account list (testID account-hub-add-wallet-button or account-list-add-account-button)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "account-list-add-account-button"
+      }
+    }
+  ]
+}

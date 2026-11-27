@@ -106,6 +106,10 @@ BUILD_TYPE="$BUILD_TYPE" bash ./.github/scripts/qa-automation/performance-tests/
   > "$DISCOVERY_LIST"
 DISCOVERY_COUNT="$(wc -l < "$DISCOVERY_LIST" | tr -d ' ')"
 if [[ "$DISCOVERY_COUNT" -lt 1 ]]; then
+  if [[ "${GREP_TAGS:-}" == "@PerformanceShadow" ]]; then
+    echo "No scenarios for BUILD_TYPE=$BUILD_TYPE under a @PerformanceShadow-only selection; skipping HyperExecute."
+    exit 0
+  fi
   echo "Discovery produced no specs for BUILD_TYPE=$BUILD_TYPE" >&2
   exit 1
 fi
@@ -176,6 +180,7 @@ env:
   E2E_PASSWORD: \${{.secrets.E2E_PASSWORD}}
   ANTHROPIC_API_KEY: \${{.secrets.ANTHROPIC_API_KEY}}
   AI_LOCATOR_RECOVERY_ENABLED: "$(yaml_escape "${AI_LOCATOR_RECOVERY_ENABLED:-false}")"
+  ANTHROPIC_MODEL: "$(yaml_escape "${ANTHROPIC_MODEL:-}")"
   E2E_PERFORMANCE_SENTRY_DSN: \${{.secrets.E2E_PERFORMANCE_SENTRY_DSN}}
   E2E_PERFORMANCE_SENTRY_ENVIRONMENT: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_ENVIRONMENT:-github-actions-performance-e2e-testmu-he}")"
   E2E_PERFORMANCE_SENTRY_RELEASE: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_RELEASE:-}")"
@@ -197,6 +202,7 @@ uploadArtefacts:
     path:
       - tests/reporters/reports/**
       - tests/test-reports/**
+      - tests/performance/**/*.scenario.cache.json
 
 testDiscovery:
   type: raw
