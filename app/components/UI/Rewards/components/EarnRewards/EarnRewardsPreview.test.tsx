@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
@@ -54,10 +54,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.earn_rewards.musd_disclaimer_accessibility_label':
         'mUSD APY disclaimer',
       'rewards.earn_rewards.musd_subtitle': 'Money accounts are here',
-      'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
-      'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
-      'rewards.earn_rewards.card_subtitle_cardholder':
-        'Access your MetaMask Card benefits',
     };
     const value = map[key] || key;
     return params
@@ -74,34 +70,22 @@ jest.mock(
   '../../../../../images/rewards/rewards-musd-earn.png',
   () => 'musd-img',
 );
-jest.mock(
-  '../../../../../images/rewards/rewards-card-earn.png',
-  () => 'card-img',
-);
 
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
-import {
-  selectHasCard,
-  selectIsCardAuthenticated,
-} from '../../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 
 interface SetupOptions {
   geoLocation?: string;
   geoStatus?: 'idle' | 'loading' | 'complete';
-  isCardholder?: boolean;
-  isAuthenticatedCard?: boolean;
   isMoneyAccountEnabled?: boolean;
 }
 
 const setupSelectors = ({
   geoLocation,
   geoStatus = 'complete',
-  isCardholder = false,
-  isAuthenticatedCard = false,
   isMoneyAccountEnabled = true,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
@@ -110,8 +94,6 @@ const setupSelectors = ({
     if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectMoneyEnableMoneyAccountFlag)
       return isMoneyAccountEnabled;
-    if (selector === selectHasCard) return isCardholder;
-    if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
   });
 };
@@ -130,17 +112,11 @@ describe('EarnRewardsPreview', () => {
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Earn rewards')).toBeOnTheScreen();
     });
-
-    it('renders the title even while rewards geo is loading', () => {
-      setupSelectors({ geoStatus: 'loading' });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Earn rewards')).toBeOnTheScreen();
-    });
   });
 
   describe('geo loading state', () => {
-    it('shows a header spinner while mUSD geo is loading', () => {
-      setupSelectors({ geoStatus: 'loading' });
+    it('shows a header spinner while a known non-UK location is still loading', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'loading' });
 
       const { UNSAFE_getByType } = render(<EarnRewardsPreview />);
 
@@ -155,35 +131,7 @@ describe('EarnRewardsPreview', () => {
       expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('shows mUSD skeleton and renders MetaMask Card row while mUSD geo is loading', () => {
-      setupSelectors({ geoStatus: 'loading' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows mUSD skeleton and renders MetaMask Card row while mUSD geo is idle (not yet started)', () => {
-      setupSelectors({ geoStatus: 'idle' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows mUSD card (not skeleton) and MetaMask Card when geo is still loading but location is already known (e.g. US)', () => {
+    it('shows the mUSD slide when geo is still loading but the location is already known', () => {
       setupSelectors({
         geoLocation: 'US',
         geoStatus: 'loading',
@@ -195,50 +143,42 @@ describe('EarnRewardsPreview', () => {
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
     });
   });
 
-  describe('after geo loaded — both allowed', () => {
-    it('shows both mUSD and MetaMask Card rows when geo allows mUSD', () => {
+  describe('after geo loaded', () => {
+    it('shows the mUSD slide when the location allows it', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
     });
 
-    it('hides only the mUSD card when geoLocation is undefined, keeps Card card visible', () => {
-      setupSelectors({ geoLocation: undefined });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
+    it('renders the only tile in the section without a horizontal scroller', () => {
+      setupSelectors({ geoLocation: 'US' });
+
+      const { getByTestId, UNSAFE_queryByType } = render(
+        <EarnRewardsPreview />,
+      );
+
+      expect(UNSAFE_queryByType(ScrollView)).toBeNull();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_TILE)).toHaveStyle(
+        {
+          paddingHorizontal: 16,
+        },
+      );
     });
 
-    it('hides only the mUSD card when Money account feature flag is disabled, keeps Card card visible', () => {
-      setupSelectors({ geoLocation: 'US', isMoneyAccountEnabled: false });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
+    it('shows a header spinner while a known non-UK location is still idle', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'idle' });
+
+      const { getByTestId, UNSAFE_getByType } = render(<EarnRewardsPreview />);
+
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
+      expect(UNSAFE_getByType(ActivityIndicator)).toBeDefined();
     });
 
     it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
@@ -265,61 +205,45 @@ describe('EarnRewardsPreview', () => {
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText(/Earn up to 3% APY/)).toBeOnTheScreen();
     });
-
-    it('renders correct text for MetaMask card', () => {
-      setupSelectors({ geoLocation: 'US' });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% back on spend')).toBeOnTheScreen();
-      expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
-    });
   });
 
-  describe('card subtitle — cardholder state', () => {
-    it('shows cardholder subtitle when isCardholder is true', () => {
-      setupSelectors({ geoLocation: 'US', isCardholder: true });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
-    });
+  describe('hidden Earn rewards', () => {
+    it.each<{
+      reason: string;
+      selectors: SetupOptions;
+    }>([
+      {
+        reason: 'the location is unknown and geo is loading',
+        selectors: { geoStatus: 'loading' },
+      },
+      {
+        reason: 'geo is idle and the location is unknown',
+        selectors: { geoStatus: 'idle' },
+      },
+      {
+        reason: 'the location is the UK and geo is still loading',
+        selectors: { geoLocation: 'GB', geoStatus: 'loading' },
+      },
+      {
+        reason: 'the location is unknown',
+        selectors: { geoLocation: undefined },
+      },
+      {
+        reason: 'the Money account is disabled',
+        selectors: { geoLocation: 'US', isMoneyAccountEnabled: false },
+      },
+      {
+        reason: 'the location is the UK',
+        selectors: { geoLocation: 'GB' },
+      },
+    ])('does not render Earn rewards when $reason', ({ selectors }) => {
+      setupSelectors(selectors);
 
-    it('shows cardholder subtitle when isAuthenticatedCard is true', () => {
-      setupSelectors({
-        geoLocation: 'US',
-        isAuthenticatedCard: true,
-      });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
-    });
-
-    it('shows cardholder subtitle when both isCardholder and isAuthenticatedCard are true', () => {
-      setupSelectors({
-        geoLocation: 'US',
-        isCardholder: true,
-        isAuthenticatedCard: true,
-      });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
-    });
-
-    it('shows default subtitle when neither isCardholder nor isAuthenticatedCard', () => {
-      setupSelectors({ geoLocation: 'US' });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
-    });
-  });
-
-  describe('after geo loaded — UK user', () => {
-    it('hides only the mUSD card for UK users, keeps the Card card visible', () => {
-      setupSelectors({ geoLocation: 'GB' });
       const { queryByTestId } = render(<EarnRewardsPreview />);
+
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeOnTheScreen();
     });
   });
 
@@ -351,17 +275,6 @@ describe('EarnRewardsPreview', () => {
         }),
       });
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
-    });
-
-    it('triggers card-home deeplink when card card is pressed', () => {
-      setupSelectors({ geoLocation: 'US' });
-      const { getByTestId } = render(<EarnRewardsPreview />);
-      fireEvent.press(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      );
-      expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://card-home',
-      });
     });
   });
 });

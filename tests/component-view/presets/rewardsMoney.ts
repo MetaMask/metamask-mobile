@@ -655,6 +655,11 @@ export interface RewardsMoneyViewStateOptions {
    */
   socialV1?: boolean;
   /**
+   * Turns on the Money account flag so Earn rewards can render. When
+   * `geoLocation` is omitted, the location defaults to US.
+   */
+  showEarnRewards?: boolean;
+  /**
    * A saved support preference, so Contact support opens the WebView without
    * the consent sheet.
    */
@@ -689,8 +694,9 @@ export function rewardsMoneyViewState({
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
+  showEarnRewards = false,
   subscriptionLookupPending = false,
-  geoLocation = null,
+  geoLocation = showEarnRewards ? 'US' : null,
   geoStatus,
   moneyControllerEnabled = false,
   pendingReferralCode = null,
@@ -727,6 +733,12 @@ export function rewardsMoneyViewState({
     remoteFeatureFlags.glassHeaders = {
       enabled: true,
       minimumVersion: '1.0.0',
+    };
+  }
+  if (showEarnRewards) {
+    remoteFeatureFlags.moneyEnableMoneyAccount = {
+      enabled: true,
+      minimumVersion: '0.0.0',
     };
   }
   if (socialV1) {

@@ -1,13 +1,11 @@
-import React, { ReactNode, useCallback, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import {
   ActivityIndicator,
   GestureResponderEvent,
   Image,
   ImageSourcePropType,
   Pressable,
-  ScrollView,
   StyleSheet,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +14,6 @@ import {
   Box,
   FontWeight,
   SectionHeader,
-  Skeleton,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -28,36 +25,24 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
-import {
-  selectIsCardAuthenticated,
-  selectHasCard,
-} from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
-import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
 
 const AVATAR_SIZE = 78;
 const UK_COUNTRY_CODE = 'GB';
-// Horizontal padding matches px-4 (16 px per side). CARD_GAP is the space
-// between adjacent carousel slides. PEEK_WIDTH is how many pixels of the
-// next card show on the right edge as a swipe affordance.
+// Horizontal padding matches px-4 (16 px per side) used by the other Rewards
+// sections. The single tile fills the space inside that inset.
 const HORIZONTAL_PADDING = 16;
-const CARD_GAP = 12;
-const PEEK_WIDTH = 24;
 const MUSD_MONEY_URL = 'metamask://money';
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
-  cardGap: { marginRight: CARD_GAP },
-  // Symmetric padding so the first card snaps flush to the left edge (peek on
-  // the right) and the last card snaps flush to the right edge (peek on the
-  // left). Snap points are defined explicitly via snapToOffsets.
-  carouselContent: { paddingHorizontal: HORIZONTAL_PADDING },
+  tile: { paddingHorizontal: HORIZONTAL_PADDING },
 });
 
 interface EarnCardProps {
@@ -66,12 +51,6 @@ interface EarnCardProps {
   subtitle: string;
   onPress: () => void;
   testID: string;
-  /**
-   * When true the card cannot be pressed and will not show pressed state.
-   * Used to suppress accidental taps while the user is actively dragging
-   * the carousel.
-   */
-  disabled?: boolean;
 }
 
 const EarnCard: React.FC<EarnCardProps> = ({
@@ -80,14 +59,12 @@ const EarnCard: React.FC<EarnCardProps> = ({
   subtitle,
   onPress,
   testID,
-  disabled,
 }) => {
   const tw = useTailwind();
 
   return (
     <Pressable
       testID={testID}
-      disabled={disabled}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl bg-muted flex-row items-center p-4 gap-4',
@@ -113,32 +90,16 @@ const EarnCard: React.FC<EarnCardProps> = ({
   );
 };
 
-type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
-
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * mUSD calculator card: shown when geoLocation has settled AND is not UK.
- * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined
- * (loading) or 'GB' to prevent flash for UK users.
- * MetaMask Card card: always shown.
- * While geo is loading (status 'idle' or 'loading'): a skeleton occupies the
- * mUSD slot; the Card slot is always present.
- * Cards are displayed in a horizontal peek carousel that scales to any
- * number of items: every card except the last snaps flush-left with the next
- * card peeking on the right; the last card snaps flush-right with the
- * previous card peeking on the left. No pagination dots. If there are no
- * items at all the entire section is not rendered.
+ * The only tile is the mUSD calculator. It is shown when the location is
+ * known and is not the UK. 'UNKNOWN' is treated as non-UK. The section stays
+ * unmounted while the location is unknown or is 'GB', and while Money is off.
  */
 const EarnRewardsPreview: React.FC = () => {
-  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
-  const { width: screenWidth } = useWindowDimensions();
-  // Only the left padding consumes viewport space at scroll position 0.
-  // The right side is filled by CARD_GAP + the next card's peek, so only one
-  // HORIZONTAL_PADDING is subtracted.
-  const cardWidth = screenWidth - HORIZONTAL_PADDING - CARD_GAP - PEEK_WIDTH;
 
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -149,16 +110,10 @@ const EarnRewardsPreview: React.FC = () => {
     isMoneyAccountEnabled &&
     geoLocation !== undefined &&
     geoLocation !== UK_COUNTRY_CODE;
-  const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
+  // Header spinner only when the tile will stay on screen. An unknown or UK
+  // location must not mount the section and then remove it.
+  const showHeaderSpinner = showMusdCard && isMusdGeoLoading;
   const { apyPercent } = useMoneyVaultApy();
-
-  // Card check — subtitle varies by cardholder status; card is always rendered
-  const isCardholder = useSelector(selectHasCard);
-  const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
-  const cardSubtitle =
-    isCardholder || isAuthenticatedCard
-      ? strings('rewards.earn_rewards.card_subtitle_cardholder')
-      : strings('rewards.earn_rewards.card_subtitle');
 
   const handleMusdPress = useCallback(() => {
     handleDeeplink({ uri: MUSD_MONEY_URL });
@@ -178,55 +133,14 @@ const EarnRewardsPreview: React.FC = () => {
     [navigation],
   );
 
-  const handleCardPress = useCallback(() => {
-    handleDeeplink({ uri: 'metamask://card-home' });
-  }, []);
-
-  // Disable presses only while the user is actively dragging the carousel.
-  // We intentionally do NOT include momentum-scroll state here so that taps
-  // during deceleration still register and stop the scroll.
-  const [isDragging, setIsDragging] = useState(false);
-  const handleScrollBeginDrag = useCallback(() => setIsDragging(true), []);
-  const handleScrollEndDrag = useCallback(() => setIsDragging(false), []);
-
-  // Build the ordered list of carousel slots, preserving existing visibility logic.
-  const items: CarouselSlotKey[] = [];
-  if (showMusdSkeleton && !showMusdCard) {
-    items.push('musd-skeleton');
-  } else if (showMusdCard) {
-    items.push('musd');
-  }
-  items.push('card');
-  const itemCount = items.length;
-
-  // Explicit snap offsets give the first card a flush-left snap (peek on right)
-  // and the last card a flush-right snap (peek on left). With symmetric
-  // padding, the trailing edge is at:
-  //   contentWidth = 2 * HORIZONTAL_PADDING
-  //                + itemCount * cardWidth
-  //                + (itemCount - 1) * CARD_GAP
-  // and maxScroll = contentWidth - screenWidth.
-  const snapOffsets = useMemo(() => {
-    const contentWidth =
-      HORIZONTAL_PADDING * 2 +
-      itemCount * cardWidth +
-      Math.max(0, itemCount - 1) * CARD_GAP;
-    const maxScroll = Math.max(0, contentWidth - screenWidth);
-    return Array.from({ length: itemCount }, (_, i) =>
-      i === itemCount - 1 ? maxScroll : i * (cardWidth + CARD_GAP),
-    );
-  }, [itemCount, cardWidth, screenWidth]);
-
-  if (itemCount === 0) return null;
-
-  const cardStyle = { width: cardWidth };
+  if (!showMusdCard) return null;
 
   return (
     <Box testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}>
       <SectionHeader
         title={strings('rewards.earn_rewards.title')}
         startAccessory={
-          showMusdSkeleton ? (
+          showHeaderSpinner ? (
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
@@ -234,75 +148,37 @@ const EarnRewardsPreview: React.FC = () => {
       {/* paddingTop matches CampaignsPreview / BenefitsPreview, where
           sections pair SectionHeader with a pt-3 content box. */}
       <Box paddingTop={3}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToOffsets={snapOffsets}
-          onScrollBeginDrag={handleScrollBeginDrag}
-          onScrollEndDrag={handleScrollEndDrag}
-          contentContainerStyle={styles.carouselContent}
+        <View
+          testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_TILE}
+          style={styles.tile}
         >
-          {items.map((item, index) => (
-            <View
-              key={item}
-              style={[cardStyle, index < items.length - 1 && styles.cardGap]}
-            >
-              {item === 'musd-skeleton' && (
-                <Skeleton style={tw.style('h-28 rounded-xl')} />
-              )}
-              {item === 'musd' && (
-                <EarnCard
-                  testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-                  image={musdImage}
-                  title={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.earn_rewards.musd_money_title', {
-                        percentage: apyPercent ?? 3,
-                      })}
-                      <Text
-                        accessibilityRole="link"
-                        accessibilityLabel={strings(
-                          'rewards.earn_rewards.musd_disclaimer_accessibility_label',
-                        )}
-                        testID={
-                          REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
-                        }
-                        twClassName="text-primary"
-                        onPress={handleMusdDisclaimerPress}
-                      >
-                        *
-                      </Text>
-                    </Text>
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+            image={musdImage}
+            title={
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('rewards.earn_rewards.musd_money_title', {
+                  percentage: apyPercent ?? 3,
+                })}
+                <Text
+                  accessibilityRole="link"
+                  accessibilityLabel={strings(
+                    'rewards.earn_rewards.musd_disclaimer_accessibility_label',
+                  )}
+                  testID={
+                    REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
                   }
-                  subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-                  onPress={handleMusdPress}
-                  disabled={isDragging}
-                />
-              )}
-              {item === 'card' && (
-                <EarnCard
-                  testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-                  image={cardImage}
-                  title={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.earn_rewards.card_title')}
-                    </Text>
-                  }
-                  subtitle={cardSubtitle}
-                  onPress={handleCardPress}
-                  disabled={isDragging}
-                />
-              )}
-            </View>
-          ))}
-        </ScrollView>
+                  twClassName="text-primary"
+                  onPress={handleMusdDisclaimerPress}
+                >
+                  *
+                </Text>
+              </Text>
+            }
+            subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+            onPress={handleMusdPress}
+          />
+        </View>
       </Box>
     </Box>
   );
