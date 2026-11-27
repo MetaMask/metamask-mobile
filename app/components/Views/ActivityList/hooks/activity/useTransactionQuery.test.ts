@@ -3,9 +3,8 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-
-import { apiClient } from '../../../../../core/apiClient';
 import { selectEvmAddress } from '#app/selectors/accountsController';
+import { apiClient } from '../../../../../core/apiClient';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTransactionQuery } from './useTransactionQuery';
 
@@ -97,11 +96,7 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when txHash is missing', () => {
-    useSelectorMock.mockImplementation((selector) =>
-      selector === selectSelectedAccountGroupEvmInternalAccount
-        ? { address: '0x1234' }
-        : undefined,
-    );
+    useSelectorMock.mockReturnValue({ address: '0x1234' });
 
     const { result } = renderHook(
       () =>
@@ -118,11 +113,7 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when chain is not eip155', () => {
-    useSelectorMock.mockImplementation((selector) =>
-      selector === selectSelectedAccountGroupEvmInternalAccount
-        ? { address: '0x1234' }
-        : undefined,
-    );
+    useSelectorMock.mockReturnValue({ address: '0x1234' });
 
     const { result } = renderHook(
       () =>
@@ -139,11 +130,7 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when explicitly disabled', () => {
-    useSelectorMock.mockImplementation((selector) =>
-      selector === selectSelectedAccountGroupEvmInternalAccount
-        ? { address: '0x1234' }
-        : undefined,
-    );
+    useSelectorMock.mockReturnValue({ address: '0x1234' });
 
     const { result } = renderHook(
       () =>
@@ -160,11 +147,9 @@ describe('useTransactionQuery', () => {
   });
 
   it('enables the query and returns data for valid EVM inputs', async () => {
-    useSelectorMock.mockImplementation((selector) =>
-      selector === selectSelectedAccountGroupEvmInternalAccount
-        ? { address: '0x1234567890AbCdEf1234567890AbCdEf12345678' }
-        : undefined,
-    );
+    useSelectorMock.mockReturnValue({
+      address: '0x1234567890AbCdEf1234567890AbCdEf12345678',
+    });
     queryFnMock.mockResolvedValue({ data: mockTransaction });
 
     const { result, waitForNextUpdate } = renderHook(
