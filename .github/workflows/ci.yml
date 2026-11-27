@@ -1219,9 +1219,10 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          # A related-tests shard can select no test files, and Jest then writes no
-          # coverage file; the merge job still expects one per shard. Full runs keep
-          # the strict behaviour: a missing file fails the mv below.
+          # The merge job expects one coverage file per shard. A related-tests shard
+          # that selects no suite normally still gets an empty one from Jest; create
+          # it here if not. Full runs keep the strict behaviour: a missing file
+          # fails the mv below.
           if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
