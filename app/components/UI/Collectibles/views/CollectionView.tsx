@@ -17,6 +17,7 @@ import { collectiblesTestIds } from '../Collectibles.testIds';
 import type { CollectiblesTab } from '../routeNames';
 import type { PackPartnerCard } from '../providers/pack-partner/types/packPartner';
 import { useCollectionCards } from '../hooks/useCollectionCards';
+import { useAnnounce } from '../hooks/useAnnounce';
 import { useNow } from '../hooks/useNow';
 import {
   getBuybackLabel,
@@ -48,6 +49,15 @@ export function CollectionView({ jumpTo }: Props) {
   const value = isError
     ? strings('collectibles.collection.no_value')
     : formatCurrency(getCollectionValue(cards ?? []), 'USD');
+  const emptyMessage = isError
+    ? strings('collectibles.collection.error')
+    : !cards?.length
+      ? strings('collectibles.collection.empty')
+      : visibleCards.length
+        ? ''
+        : strings('collectibles.collection.no_results');
+
+  useAnnounce(!isPending && Boolean(emptyMessage), emptyMessage);
 
   const renderItem = ({ item }: { item: PackPartnerCard }) => (
     <View className="flex-1 px-2 pb-6">
@@ -115,13 +125,13 @@ export function CollectionView({ jumpTo }: Props) {
 
       {isError ? (
         <TabEmptyState
-          description={strings('collectibles.collection.error')}
+          description={emptyMessage}
           twClassName="px-6 py-10"
           testID={collectiblesTestIds.collectionError}
         />
       ) : !cards?.length ? (
         <TabEmptyState
-          description={strings('collectibles.collection.empty')}
+          description={emptyMessage}
           actionButtonText={strings('collectibles.collection.browse_packs')}
           onAction={() => jumpTo?.('packs')}
           twClassName="px-6 py-10"
@@ -139,7 +149,7 @@ export function CollectionView({ jumpTo }: Props) {
         />
       ) : (
         <TabEmptyState
-          description={strings('collectibles.collection.no_results')}
+          description={emptyMessage}
           twClassName="px-6 py-10"
           testID={collectiblesTestIds.collectionNoResults}
         />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
@@ -31,6 +32,8 @@ describe('CollectionView', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('shows the collection value', () => {
@@ -151,5 +154,42 @@ describe('CollectionView', () => {
     expect(
       screen.getByText(strings('collectibles.collection.error')),
     ).toBeOnTheScreen();
+  });
+
+  it('announces when the search has no match', () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(jest.fn());
+    render(<CollectionView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(collectiblesTestIds.collectionSearch),
+      'zzz',
+    );
+
+    expect(announce).toHaveBeenCalledWith(
+      strings('collectibles.collection.no_results'),
+    );
+  });
+
+  it('announces when the cards fail to load', () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(jest.fn());
+    mockResult = { isPending: false, isError: true };
+    render(<CollectionView />);
+
+    expect(announce).toHaveBeenCalledWith(
+      strings('collectibles.collection.error'),
+    );
+  });
+
+  it('stays silent while the cards are shown', () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(jest.fn());
+    render(<CollectionView />);
+
+    expect(announce).not.toHaveBeenCalled();
   });
 });
