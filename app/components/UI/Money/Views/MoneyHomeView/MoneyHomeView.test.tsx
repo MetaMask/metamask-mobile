@@ -2887,15 +2887,62 @@ describe('MoneyHomeView', () => {
         expectSignInStarted(false);
       });
 
-      it('does not start sign-in again after it was started', () => {
+      const refocus = (store: { dispatch: (action: object) => void }) => {
+        mockIsOnboardingRedirectNeeded = true;
+        act(() => {
+          store.dispatch({ type: 'SET_SHOW_HEX_DATA', showHexData: true });
+        });
+        mockIsOnboardingRedirectNeeded = false;
+        act(() => {
+          store.dispatch({ type: 'SET_SHOW_HEX_DATA', showHexData: false });
+        });
+      };
+
+      it('does not start a second sign-in while the prompt is open', async () => {
         mockMfaStatus('sign_in_required');
-        const { rerender } = renderWithProvider(<MoneyHomeView />);
+        mockMfaSignIn.mockReturnValueOnce(new Promise(() => undefined));
+        const { store } = renderWithProvider(<MoneyHomeView />);
         act(() => {
           jest.advanceTimersByTime(0);
         });
         mockMfaSignIn.mockClear();
 
-        rerender(<MoneyHomeView />);
+        refocus(store);
+        act(() => {
+          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
+        });
+
+        expectSignInStarted(false);
+      });
+
+      it('starts sign-in again when Money is focused later', async () => {
+        mockMfaStatus('sign_in_required');
+        const { store } = renderWithProvider(<MoneyHomeView />);
+        await act(async () => {
+          jest.advanceTimersByTime(0);
+        });
+        mockMfaSignIn.mockClear();
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        refocus(store);
+        act(() => {
+          jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
+        });
+
+        expectSignInStarted(true);
+      });
+
+      it('does not start sign-in on the focus that closing the prompt causes', async () => {
+        mockMfaStatus('sign_in_required');
+        const { store } = renderWithProvider(<MoneyHomeView />);
+        await act(async () => {
+          jest.advanceTimersByTime(0);
+        });
+        mockMfaSignIn.mockClear();
+
+        refocus(store);
         act(() => {
           jest.advanceTimersByTime(ONBOARDING_CLOSE_FADE_MS);
         });

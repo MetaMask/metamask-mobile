@@ -180,6 +180,7 @@ const DETAILS_REENTRY_WINDOW_MS = 1000;
 const MONEY_ONBOARDING_CLOSE_FADE_MS = 800;
 const MFA_BADGE_PULSE_DELAY_MS = 3200;
 const MFA_BADGE_PULSE_MS = 3000;
+const MFA_SIGN_IN_REFOCUS_GRACE_MS = 1000;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -367,21 +368,29 @@ const MoneyHomeView = () => {
       wasOnboardingShown.current = true;
     }
   }, [isOnboardingRedirectNeeded]);
-  const hasPromptedMfaSignIn = useRef(false);
-  // Waits for the intro carousel (flagged), then for its close fade.
+  const mfaSignInPrompt = useRef({ isOpen: false, closedAt: 0 });
+  // Prompts on every focus until verified, after the intro carousel (flagged) and its close fade.
   useFocusEffect(
     useCallback(() => {
+      const prompt = mfaSignInPrompt.current;
       if (
         !isMfaSignInRequired ||
         isOnboardingRedirectNeeded ||
-        hasPromptedMfaSignIn.current
+        prompt.isOpen ||
+        // Closing the prompt refocuses Money; only a later visit prompts again.
+        Date.now() - prompt.closedAt < MFA_SIGN_IN_REFOCUS_GRACE_MS
       ) {
         return;
       }
       const timeout = setTimeout(
         () => {
-          hasPromptedMfaSignIn.current = true;
-          signInToMoneyMfa().catch(() => undefined);
+          prompt.isOpen = true;
+          signInToMoneyMfa()
+            .catch(() => undefined)
+            .finally(() => {
+              prompt.isOpen = false;
+              prompt.closedAt = Date.now();
+            });
         },
         wasOnboardingShown.current ? MONEY_ONBOARDING_CLOSE_FADE_MS : 0,
       );
