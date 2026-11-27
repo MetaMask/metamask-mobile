@@ -1177,8 +1177,6 @@ describe('PerpsOrderView', () => {
 
       const rampParams = await screen.findByTestId(
         `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       // No preset asset: Ramp opens its token picker first.
       expect(rampParams).not.toHaveTextContent('assetId', { exact: false });
@@ -1233,8 +1231,6 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(
           `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
