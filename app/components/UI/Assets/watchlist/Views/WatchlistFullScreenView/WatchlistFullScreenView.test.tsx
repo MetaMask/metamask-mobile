@@ -22,8 +22,13 @@ const mockUseTrackWatchlistPageViewed = jest.fn();
 
 const mockUseSelector = jest.fn();
 const mockUseUnifiedWatchlist = jest.fn();
+const mockAddPerpToWatchlist = jest.fn();
 const mockRemovePerpFromWatchlist = jest.fn();
 const mockNavigateToMarketDetails = jest.fn();
+const mockAddTokenMutate = jest.fn();
+const mockRemoveTokenMutate = jest.fn();
+let capturedAddTokenOnSuccess: ((token: unknown) => void) | undefined;
+let capturedRemoveTokenOnSuccess: ((assetId: unknown) => void) | undefined;
 let capturedOnReorder:
   | ((event: { from: number; to: number }) => void)
   | undefined;
@@ -40,7 +45,7 @@ jest.mock('../../../../Watchlist/hooks/useUnifiedWatchlist', () => ({
 
 jest.mock('../../../../Perps/hooks/usePerpsWatchlistActions', () => ({
   usePerpsWatchlistActions: () => ({
-    addToWatchlist: jest.fn(),
+    addToWatchlist: mockAddPerpToWatchlist,
     removeFromWatchlist: mockRemovePerpFromWatchlist,
   }),
 }));
@@ -86,12 +91,22 @@ jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
 }));
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
-  useTokenWatchlistAddItemMutation: () => ({
-    mutate: jest.fn(),
-  }),
-  useTokenWatchlistRemoveItemMutation: () => ({
-    mutate: jest.fn(),
-  }),
+  useTokenWatchlistAddItemMutation: (options?: {
+    onSuccess?: (token: unknown) => void;
+  }) => {
+    capturedAddTokenOnSuccess = options?.onSuccess;
+    return {
+      mutate: mockAddTokenMutate,
+    };
+  },
+  useTokenWatchlistRemoveItemMutation: (options?: {
+    onSuccess?: (assetId: unknown) => void;
+  }) => {
+    capturedRemoveTokenOnSuccess = options?.onSuccess;
+    return {
+      mutate: mockRemoveTokenMutate,
+    };
+  },
   useTokenWatchlistUpdateListMutation: () => ({
     mutate: mockUpdateListMutate,
   }),
@@ -1196,6 +1211,97 @@ describe('WatchlistFullScreenView', () => {
             token_count: 0,
             perps_count: 1,
           },
+        }),
+      );
+    });
+
+    it.each([true, false])(
+      'tracks WATCHLIST_TOKEN_ADDED and respects isOrderReady=%s in addTokenMutation onSuccess',
+      (isOrderReady) => {
+        const mockAppendOrderKey = jest.fn().mockResolvedValue(undefined);
+        mockUseUnifiedWatchlist.mockReturnValue({
+          items: [],
+          tokens: { items: [], error: null },
+          perps: { items: [], error: null },
+          suggestedPerps: [],
+          canUseLivePerpsPrices: false,
+          canUseMotion: false,
+          canRefresh: true,
+          canFetchSuggestions: false,
+          tokenMembershipAssetIds: [],
+          perpsMembershipSymbols: [],
+          tokenCount: 0,
+          perpsCount: 0,
+          isInitialLoading: false,
+          isOrderReady,
+          orderError: null,
+          persistOrder: jest.fn(),
+          appendOrderKey: mockAppendOrderKey,
+          refresh: jest.fn().mockResolvedValue(undefined),
+        });
+
+        render(<WatchlistFullScreenView />);
+
+        act(() => {
+          capturedAddTokenOnSuccess?.({
+            assetId: 'eip155:1/slip44:60',
+            isInWallet: true,
+          });
+        });
+
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.WATCHLIST_TOKEN_ADDED.category,
+            properties: expect.objectContaining({
+              asset_id: 'eip155:1/slip44:60',
+              has_balance: true,
+            }),
+          }),
+        );
+        if (isOrderReady) {
+          expect(mockAppendOrderKey).toHaveBeenCalledWith(
+            'token:eip155:1/slip44:60',
+          );
+        } else {
+          expect(mockAppendOrderKey).not.toHaveBeenCalled();
+        }
+      },
+    );
+
+    it('tracks WATCHLIST_TOKEN_REMOVED in removeTokenMutation onSuccess', () => {
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items: [],
+        tokens: { items: [], error: null },
+        perps: { items: [], error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: [],
+        tokenCount: 0,
+        perpsCount: 0,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      render(<WatchlistFullScreenView />);
+
+      act(() => {
+        capturedRemoveTokenOnSuccess?.('eip155:1/slip44:60');
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED.category,
+          properties: expect.objectContaining({
+            asset_id: 'eip155:1/slip44:60',
+          }),
         }),
       );
     });

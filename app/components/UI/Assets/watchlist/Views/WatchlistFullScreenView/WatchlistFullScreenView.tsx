@@ -184,7 +184,7 @@ const WatchlistFullScreenShell = ({
           }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
-          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
+          className={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
         >
           {strings('token_watchlist.done')}
         </ButtonBase>
@@ -423,16 +423,10 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const { data: suggestedTokenPool, isLoading: isSuggestedTokenLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
   const analytics = useAnalytics();
-  const addTokenMutation = useTokenWatchlistAddItemMutation({
-    onSuccess: (input) => {
-      const entries = Array.isArray(input) ? input : [input];
-      for (const entry of entries) {
-        const assetId =
-          typeof entry === 'string' ? String(entry) : String(entry.assetId);
-        const hasBalance =
-          typeof entry !== 'string' &&
-          'isInWallet' in entry &&
-          Boolean(entry.isInWallet);
+  const addTokenMutation =
+    useTokenWatchlistAddItemMutation<WatchlistTokenWithBalance>({
+      onSuccess: (token) => {
+        const assetId = String(token.assetId);
         analytics.trackEvent(
           analytics
             .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
@@ -440,20 +434,18 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
               source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
               asset_id: assetId,
               asset_type: getWatchlistAssetType(assetId),
-              has_balance: hasBalance,
+              has_balance: token.isInWallet,
             })
             .build(),
         );
         if (isOrderReady) {
           appendOrderKey(getTokenWatchlistKey(assetId)).catch(() => undefined);
         }
-      }
-    },
-  });
-  const removeTokenMutation = useTokenWatchlistRemoveItemMutation({
-    onSuccess: (input) => {
-      const assetIds = Array.isArray(input) ? input : [input];
-      for (const assetId of assetIds) {
+      },
+    });
+  const removeTokenMutation =
+    useTokenWatchlistRemoveItemMutation<CaipAssetType>({
+      onSuccess: (assetId) => {
         const assetIdStr = String(assetId);
         analytics.trackEvent(
           analytics
@@ -465,9 +457,8 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
             })
             .build(),
         );
-      }
-    },
-  });
+      },
+    });
   const {
     addPerpToWatchlist,
     removePerpFromWatchlist,
@@ -810,7 +801,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
             {strings(emptyTitleKey)}
           </Text>
-          <Text twClassName="mt-2 text-center">
+          <Text className="mt-2 text-center">
             {strings(emptyDescriptionKey)}
           </Text>
         </Box>

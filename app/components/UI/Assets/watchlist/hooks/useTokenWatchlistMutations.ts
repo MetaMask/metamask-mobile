@@ -222,7 +222,7 @@ const useWatchlistMutation = <TInput>({
     },
     onSettled: (_data, _error, input) => {
       if (invalidateOnSettled.blob !== false) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.blob,
         });
       }
@@ -230,7 +230,7 @@ const useWatchlistMutation = <TInput>({
         invalidateOnSettled.hydrated !== false &&
         (shouldInvalidateHydrated?.(input) ?? true);
       if (shouldInvalidate) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.hydrated,
         });
       }
@@ -243,12 +243,14 @@ const useWatchlistMutation = <TInput>({
  * optimistic cache updates with rollback and enqueues an `add` op into
  * the shared {@link tokenWatchlistBatcher}.
  */
-export const useTokenWatchlistAddItemMutation = (
-  options?: WatchlistMutationHookOptions<WatchlistAddInput>,
+export const useTokenWatchlistAddItemMutation = <
+  TInput extends WatchlistAddInput = WatchlistAddInput,
+>(
+  options?: WatchlistMutationHookOptions<TInput>,
 ) => {
   const queryClient = useQueryClient();
 
-  return useWatchlistMutation<WatchlistAddInput>({
+  return useWatchlistMutation<TInput>({
     applyOptimistic: (current, input) =>
       mergeAssets(current, toAddedAssetIds(input)),
     optimisticTokens: toAddedTokens,
@@ -277,13 +279,18 @@ export const useTokenWatchlistAddItemMutation = (
  * Remove one or more `CaipAssetType` ids from the watchlist. Mirrors
  * {@link useTokenWatchlistAddItemMutation} but enqueues a `remove` op.
  */
-export const useTokenWatchlistRemoveItemMutation = (
-  options?: WatchlistMutationHookOptions<WatchlistRemoveInput>,
+export const useTokenWatchlistRemoveItemMutation = <
+  TInput extends WatchlistRemoveInput = WatchlistRemoveInput,
+>(
+  options?: WatchlistMutationHookOptions<TInput>,
 ) =>
-  useWatchlistMutation<WatchlistRemoveInput>({
+  useWatchlistMutation<TInput>({
     applyOptimistic: (current, input) =>
-      filterAssets(current, toStrings(asArray(input))),
-    toOp: (input) => ({ kind: 'remove', ids: toStrings(asArray(input)) }),
+      filterAssets(current, toStrings(asArray<CaipAssetType>(input))),
+    toOp: (input) => ({
+      kind: 'remove',
+      ids: toStrings(asArray<CaipAssetType>(input)),
+    }),
     // Optimistic blob + hydrated updates are sufficient; no Token API refetch.
     invalidateOnSettled: { blob: false, hydrated: false },
     onSuccess: options?.onSuccess,

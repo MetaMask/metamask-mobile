@@ -274,6 +274,96 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
+  it('shows an error toast when adding a suggested Perp fails', async () => {
+    setupWatchlistStorageMock({
+      version: 1,
+      assets: [mockWatchlistAssetIds[1]],
+    });
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    const getWatchlistMarkets = Engine.context.PerpsController
+      .getWatchlistMarkets as jest.Mock;
+    getWatchlistMarkets.mockReturnValueOnce([]);
+    toggleWatchlistMarket.mockRejectedValueOnce(new Error('Add failed'));
+
+    const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+      deterministicFiat: true,
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: [],
+      streamOverrides: {
+        marketData: [
+          {
+            ...createEthMarketForViews(),
+            symbol: 'SOL',
+            name: 'Solana Perpetual',
+          },
+        ],
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    );
+
+    await waitFor(() => {
+      expect(toggleWatchlistMarket).toHaveBeenCalledWith('SOL');
+    });
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('perps.watchlist.add_error'),
+          severity: ToastSeverity.Danger,
+        }),
+      );
+    });
+  });
+
+  it('adds a suggested token from the unified watchlist and tracks WATCHLIST_TOKEN_ADDED', async () => {
+    const suggestedAssetId = mockWatchlistAssetIds[0];
+    setupWatchlistStorageMock({
+      version: 1,
+      assets: [mockWatchlistAssetIds[1]],
+    });
+    setupWatchlistTokenApiMock(mockWatchlistTokensResponse);
+    const putScope = setupWatchlistStoragePutMock();
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: [],
+      });
+
+      await findByTestId('watchlist-suggested-section');
+      fireEvent.press(
+        await findByTestId(
+          getTrendingTokenRowAddButtonTestId(suggestedAssetId),
+        ),
+      );
+
+      await waitFor(() => expect(putScope.isDone()).toBe(true));
+
+      await waitFor(() => {
+        expect(
+          findTrackedEvent(
+            trackEventSpy,
+            MetaMetricsEvents.WATCHLIST_TOKEN_ADDED.category,
+          ),
+        ).toMatchObject({
+          properties: {
+            source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
+            asset_id: suggestedAssetId,
+            asset_type: getWatchlistAssetType(suggestedAssetId),
+            has_balance: false,
+          },
+        });
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('removes a token directly via its star button and persists the update to storage', async () => {
     const assetToRemove = mockWatchlistAssetIds[2];
     const putScope = setupWatchlistStoragePutMock();
