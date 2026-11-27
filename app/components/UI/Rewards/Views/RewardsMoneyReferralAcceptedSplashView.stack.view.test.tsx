@@ -70,10 +70,17 @@ function HomeOpeningSplash() {
   return <PushScreen to={SPLASH_ROUTE} marker={HOME_OPEN_REWARDS_MARKER} />;
 }
 
-/** The pre-accept Money dashboard beneath the splash. */
+/**
+ * The pre-accept Money dashboard beneath the splash. A custom component does
+ * not get the framework's automatic route probe, so this stamps its own —
+ * the drop-from-stack assertions below must be able to fail.
+ */
 function PreAcceptScreen() {
   return (
-    <PushScreen to={SPLASH_ROUTE} marker={PRE_ACCEPT_OPEN_SPLASH_MARKER} />
+    <>
+      <Text testID={PRE_ACCEPT_PROBE}>{PRE_ACCEPT_ROUTE}</Text>
+      <PushScreen to={SPLASH_ROUTE} marker={PRE_ACCEPT_OPEN_SPLASH_MARKER} />
+    </>
   );
 }
 
@@ -145,18 +152,23 @@ describe('RewardsMoneyReferralAcceptedSplashView stack', () => {
     fireEvent.press(view.getByTestId(SPLASH_TEST_IDS.VIEW_REWARDS));
 
     // The reset landed on the Money dashboard above Wallet, the splash is
-    // gone, and the pre-accept view was dropped from the stack.
+    // gone, and the pre-accept view no longer fronts the stack. Inactive
+    // stack screens stay mounted but aria-hidden, so the drop check reads
+    // "is the pre-accept view still the visible screen", not "is it
+    // unmounted" — native-stack never detaches popped screens under Jest.
     expect(await view.findByTestId(REWARDS_VIEW_PROBE)).toBeOnTheScreen();
     expect(view.queryByTestId(SPLASH_TEST_IDS.CONTAINER)).not.toBeOnTheScreen();
     expect(view.queryByTestId(PRE_ACCEPT_PROBE)).not.toBeOnTheScreen();
 
     // Back leaves Rewards: Wallet is underneath, and neither the pre-accept
-    // view nor the splash comes back.
+    // view nor the splash comes back. The pre-accept and splash negatives
+    // run before the Wallet getBy so a Back that lands on either of them
+    // fails on its own assertion instead of the Wallet lookup.
     fireEvent.press(view.getByTestId(REWARDS_VIEW_BACK_MARKER));
-    expect(view.getByTestId(HOME_OPEN_REWARDS_MARKER)).toBeOnTheScreen();
     expect(view.queryByTestId(REWARDS_VIEW_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(PRE_ACCEPT_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(SPLASH_TEST_IDS.CONTAINER)).not.toBeOnTheScreen();
+    expect(view.getByTestId(HOME_OPEN_REWARDS_MARKER)).toBeOnTheScreen();
   });
 
   it('lands View rewards on the Money dashboard without a pre-accept view (B12, no Rewards beneath)', async () => {

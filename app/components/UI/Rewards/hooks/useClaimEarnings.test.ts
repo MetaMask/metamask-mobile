@@ -280,6 +280,13 @@ describe('useClaimEarnings', () => {
     storedClaimWait = undefined;
     storedClaimLock = undefined;
     jest.clearAllMocks();
+    // jest.clearAllMocks clears call history but keeps mockReturnValue, so a
+    // per-test override (the mixed-refusal case below) would leak into every
+    // later test. Re-arm the module default each test instead.
+    jest.mocked(useClaimMechanisms).mockReturnValue({
+      followTradeClaimOpen: false,
+      revShareClaimOpen: false,
+    });
     mockDispatch.mockImplementation((action: Action) => {
       if (setClaimWaitingUntil.match(action)) {
         storedClaimWait =
