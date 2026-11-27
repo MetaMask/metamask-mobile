@@ -17,7 +17,7 @@ export function formatMusd(baseUnits: string | undefined): string {
 }
 
 export interface CardCashbackCopy {
-  notice?: RedeemWalletExtras['notice'];
+  notice?: NonNullable<RedeemWalletExtras['notice']>;
   /** Label for the button when the user cannot claim. */
   actionUnavailable: string;
   /** True when no claim can succeed now, whatever the balance. */

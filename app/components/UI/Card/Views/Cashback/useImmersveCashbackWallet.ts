@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
@@ -11,6 +11,7 @@ import { meetsClaimMinimum } from '../../../Rewards/utils/claimEarnings';
 import { strings } from '../../../../../../locales/i18n';
 import type { RedeemableWalletState } from '../../hooks/useRedeemableWallet';
 import type { RedeemWithdrawEstimationResponse } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import type { CardSummaryResponse } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useCardCashbackClaim } from './useCardCashbackClaim';
 import {
   cardCashbackBreakdown,
@@ -32,6 +33,8 @@ const SPONSORED_ESTIMATION: RedeemWithdrawEstimationResponse = {
   price: '0',
   network: 'monad',
 };
+const fetchSponsoredEstimation = async () =>
+  Promise.resolve(SPONSORED_ESTIMATION);
 
 type ClaimOutcome =
   | { status: 'idle' }
@@ -43,6 +46,7 @@ type ClaimOutcome =
  * Money's card summary and claimed through the Rewards claim route.
  */
 const useImmersveCashbackWallet = (): RedeemableWalletState => {
+  const queryClient = useQueryClient();
   const enabled = useSelector(selectRewardsMoneyControllerEnabled);
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
 
@@ -99,12 +103,22 @@ const useImmersveCashbackWallet = (): RedeemableWalletState => {
       .then((result) => {
         if (result.status === 'failed') {
           setOutcome({ status: 'failed', category: result.category });
-        } else if (result.status !== 'skipped') {
-          setOutcome({ status: 'success' });
+          return;
         }
+        if (result.status === 'skipped') return;
+        if (result.status === 'submitted_stale') {
+          // Paid, but the reload failed, so the cache still shows the claimed
+          // amount as claimable. Zero it until a load succeeds, so the screen
+          // never offers the same mUSD back twice.
+          queryClient.setQueryData<CardSummaryResponse>(
+            CARD_CASHBACK_SUMMARY_QUERY_KEY,
+            (cached) => cached && { ...cached, claimable: '0' },
+          );
+        }
+        setOutcome({ status: 'success' });
       })
       .catch(() => setOutcome({ status: 'failed', category: 'retry' }));
-  }, [claim]);
+  }, [claim, queryClient]);
 
   const failureLabel =
     outcome.status === 'failed'
@@ -123,7 +137,6 @@ const useImmersveCashbackWallet = (): RedeemableWalletState => {
     [outcome],
   );
 
-  const fetchEstimation = useCallback(async () => SPONSORED_ESTIMATION, []);
   const resetWithdraw = useCallback(() => setOutcome({ status: 'idle' }), []);
 
   const destination = useMemo(
@@ -154,7 +167,7 @@ const useImmersveCashbackWallet = (): RedeemableWalletState => {
     estimation: SPONSORED_ESTIMATION,
     isEstimating: false,
     estimationError: null,
-    fetchEstimation,
+    fetchEstimation: fetchSponsoredEstimation,
     withdraw,
     isWithdrawing: isClaiming,
     withdrawError: null,

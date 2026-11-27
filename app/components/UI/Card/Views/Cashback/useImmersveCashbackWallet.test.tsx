@@ -166,4 +166,23 @@ describe('useImmersveCashbackWallet', () => {
       expect(result.current.monitoringStatus).toBe('success'),
     );
   });
+
+  it('does not offer a paid claim again when the reload after it fails', async () => {
+    getCardSummary.mockResolvedValue(summary());
+    mockClaim.mockResolvedValue({ status: 'submitted_stale' });
+    const { result } = renderWallet();
+    await waitFor(() =>
+      expect(result.current.wallet?.isWithdrawable).toBe(true),
+    );
+
+    await act(async () => {
+      result.current.withdraw('0.38');
+    });
+
+    await waitFor(() =>
+      expect(result.current.monitoringStatus).toBe('success'),
+    );
+    expect(Number(result.current.wallet?.balance)).toBe(0);
+    expect(result.current.wallet?.isWithdrawable).toBe(false);
+  });
 });

@@ -1364,6 +1364,40 @@ describe('CardController card links', () => {
       );
     });
 
+    it('asks only once when two reads of an unverified link finish together', async () => {
+      const signature = `0x${'cd'.repeat(65)}`;
+      const profileId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const bearer = `e30.${Buffer.from(JSON.stringify({ sub: profileId })).toString('base64url')}.sig`;
+      const signPersonalMessage = jest.fn().mockResolvedValue(signature);
+      const { controller, cardService } = setup({
+        accounts: [SELECTED_ADDRESS, CARDHOLDER_ADDRESS],
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage,
+      });
+      cardService.getCardLinks.mockResolvedValue([
+        link({
+          provider: 'immersve',
+          status: 'active',
+          linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+          cardholderVerified: false,
+        }),
+      ]);
+
+      // Both callers share one read, then both look for an unverified link.
+      await Promise.all([
+        controller.fetchCardLinks(),
+        controller.fetchCardLinks(),
+      ]);
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+      expect(signPersonalMessage).toHaveBeenCalledTimes(1);
+      const proofWrites = (
+        cardService.putCardLink as jest.Mock
+      ).mock.calls.filter((call) => call[1]?.walletProof);
+      expect(proofWrites).toHaveLength(1);
+    });
+
     it('does not ask for a proof when the named account is not on this phone', async () => {
       const signPersonalMessage = jest.fn();
       const { controller, cardService } = setup({

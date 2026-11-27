@@ -108,7 +108,9 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     mutationFn: async (amount: string) =>
       Engine.context.CardController.withdrawRedeemable({ mode, amount }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      queryClient
+        .invalidateQueries({ queryKey: queries.allKey })
+        .catch(() => undefined);
     },
   });
 
@@ -156,7 +158,9 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   // Invalidate wallet cache when controller reports success (covers unmount case).
   useEffect(() => {
     if (modeWithdrawal?.status === 'success') {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      queryClient
+        .invalidateQueries({ queryKey: queries.allKey })
+        .catch(() => undefined);
     }
   }, [modeWithdrawal?.status, queries.allKey, queryClient]);
 
