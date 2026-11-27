@@ -72,7 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed X account connection failures on Android devices without a Custom Tabs browser by adding an in-app browser fallback (#40553)
 - Fixed a bug that sent users back to the MetaMask Card sign-in screen after they signed in (#40536)
 - Fixed a bug that could create two MetaMask Cards for one card request (#40495)
 - Fixed networks added from the config registry showing a letter fallback instead of their network logo in the network selector, tokens page, and networks management screens (#39669)
