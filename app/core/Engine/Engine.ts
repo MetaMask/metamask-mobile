@@ -1356,12 +1356,12 @@ export class Engine {
   resetState = async () => {
     // Fence old-wallet transactions and reads before the first await. Finish all
     // cleanups before destroying the messengers, even if storage fails.
-    this.context.CollectiblesController.clearState();
-    const [storage, controllers] = await Promise.allSettled([
+    const [journal, storage, controllers] = await Promise.allSettled([
+      this.context.CollectiblesController.clearState(),
       this.context.PackPartnerDataService.clearCache(),
       this.#resetWalletControllers(),
     ]);
-    for (const cleanup of [controllers, storage]) {
+    for (const cleanup of [controllers, journal, storage]) {
       if (cleanup.status === 'rejected') {
         throw ensureError(cleanup.reason, 'Engine.resetState');
       }

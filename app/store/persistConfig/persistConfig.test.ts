@@ -35,7 +35,7 @@ jest.mock('../../core/redux', () => ({
 
 jest.mock('lodash', () => ({
   ...jest.requireActual('lodash'),
-  debounce: jest.fn((fn) => fn), // Return the original function for simplicity
+  debounce: jest.fn((fn) => Object.assign(fn, { cancel: jest.fn() })),
 }));
 
 jest.mock('../getPersistentState/getPersistentState', () => ({
@@ -47,6 +47,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 import persistConfig, { ControllerStorage, createPersistController } from '.';
 import { version } from '../migrations';
+import { UNREADABLE_COLLECTIBLES_JOURNAL } from './collectiblesPersistence';
 import { Transform } from 'redux-persist';
 import Logger from '../../util/Logger';
 
@@ -239,22 +240,6 @@ describe('persistConfig', () => {
       jest.clearAllMocks();
     });
 
-    it('discovers Collectibles state through its registered stateChanged event', async () => {
-      jest
-        .mocked(FilesystemStorage.getItem)
-        .mockImplementation(async (key) =>
-          key === 'persist:CollectiblesController'
-            ? JSON.stringify({ _persist: { version } })
-            : undefined,
-        );
-
-      const result = await ControllerStorage.getAllPersistedState();
-
-      expect(result).toEqual({
-        backgroundState: { CollectiblesController: {} },
-      });
-    });
-
     it('returns empty backgroundState for fresh install (no persisted data)', async () => {
       (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -436,6 +421,73 @@ describe('persistConfig', () => {
           message: 'Failed to gather controller states',
         }),
       );
+    });
+  });
+
+  it.each([undefined, '{"packPartner":'])(
+    'recovers the Collectibles backup on startup when the primary is %p',
+    async (primary) => {
+      const journal = {
+        packPartner: {
+          operations: { wallet: { memo: { status: 'submitted' } } },
+        },
+      };
+      jest.mocked(FilesystemStorage.getItem).mockImplementation(async (key) => {
+        if (key === 'persist:CollectiblesController') return primary;
+        if (key === 'persist:CollectiblesController:backup')
+          return JSON.stringify(journal);
+        return undefined;
+      });
+
+      const restored = await ControllerStorage.getAllPersistedState();
+
+      expect(restored).toEqual({
+        backgroundState: { CollectiblesController: journal },
+      });
+    },
+  );
+
+  it('preserves unreadable journal files across startup and migration writeback', async () => {
+    const key = 'persist:CollectiblesController';
+    jest
+      .mocked(FilesystemStorage.getItem)
+      .mockImplementation(async (name) => (name === key ? '' : undefined));
+
+    const restored = await ControllerStorage.getAllPersistedState();
+    await ControllerStorage.setItem(
+      key,
+      JSON.stringify(UNREADABLE_COLLECTIBLES_JOURNAL),
+    );
+
+    expect(restored.backgroundState).toEqual({
+      CollectiblesController: UNREADABLE_COLLECTIBLES_JOURNAL,
+    });
+    expect(FilesystemStorage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('persists and restores Collectibles through the standard controller file', async () => {
+    const files = new Map<string, string>();
+    jest
+      .mocked(FilesystemStorage.getItem)
+      .mockImplementation(async (key) => files.get(key));
+    jest
+      .mocked(FilesystemStorage.setItem)
+      .mockImplementation(async (key, value) => {
+        files.set(key, value);
+      });
+    const state = {
+      hasCompletedOnboarding: true,
+      packPartnerEnvironment: 'devnet',
+      packPartner: { operations: {}, sales: {} },
+    };
+    const persist = createPersistController();
+
+    await persist(state, 'CollectiblesController');
+    const restored = await ControllerStorage.getAllPersistedState();
+
+    expect([...files.keys()]).toEqual(['persist:CollectiblesController']);
+    expect(restored).toEqual({
+      backgroundState: { CollectiblesController: state },
     });
   });
 
