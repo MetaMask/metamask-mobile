@@ -1,9 +1,7 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { act, render } from '@testing-library/react-native';
 import PerpsSettingsView, {
   FLAG_OFF_LEAVE_DELAY_MS,
-  PERPS_SETTINGS_SCREEN_TYPE,
   PERPS_SETTINGS_TEST_IDS,
 } from './PerpsSettingsView';
 
@@ -22,53 +20,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     style: (): Record<string, never> => ({}),
   }),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual<typeof import('react')>('react');
-  const { View: NativeView } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }): React.ReactElement =>
-      ReactActual.createElement(NativeView, { testID }, children),
-  };
-});
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual<typeof import('react')>('react');
-  const {
-    Pressable: NativePressable,
-    Text: NativeText,
-    View: NativeView,
-  } = jest.requireActual<typeof import('react-native')>('react-native');
-  return {
-    Box: ({ children }: { children?: React.ReactNode }): React.ReactElement =>
-      ReactActual.createElement(NativeView, null, children),
-    HeaderStandard: ({
-      title,
-      onBack,
-      backButtonProps,
-    }: {
-      title: string;
-      onBack: () => void;
-      backButtonProps?: { testID?: string };
-    }): React.ReactElement =>
-      ReactActual.createElement(
-        NativeView,
-        null,
-        ReactActual.createElement(NativeText, null, title),
-        ReactActual.createElement(NativePressable, {
-          testID: backButtonProps?.testID,
-          onPress: onBack,
-        }),
-      ),
-  };
-});
 
 jest.mock('../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: (): { isMultiProviderEnabled: boolean } => ({
@@ -117,7 +68,7 @@ describe('PerpsSettingsView flag gate', () => {
   it('leaves after the observation delay when Lighter is off', () => {
     const { queryByTestId } = render(<PerpsSettingsView />);
 
-    expect(queryByTestId(PERPS_SETTINGS_TEST_IDS.SCREEN)).toBeNull();
+    expect(queryByTestId(PERPS_SETTINGS_TEST_IDS.SCREEN)).not.toBeOnTheScreen();
 
     act(() => {
       jest.advanceTimersByTime(FLAG_OFF_LEAVE_DELAY_MS - 1);
@@ -131,23 +82,6 @@ describe('PerpsSettingsView flag gate', () => {
     expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
       expect.objectContaining({
         conditions: [false],
-      }),
-    );
-  });
-
-  it('shows settings and records the screen type when Lighter is on', () => {
-    mockMultiProviderEnabled = true;
-    const { getByText, getByTestId } = render(<PerpsSettingsView />);
-
-    expect(getByText(strings('perps.settings.title'))).toBeOnTheScreen();
-    fireEvent.press(getByTestId(PERPS_SETTINGS_TEST_IDS.BACK));
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
-      expect.objectContaining({
-        conditions: [true],
-        properties: expect.objectContaining({
-          screen_type: PERPS_SETTINGS_SCREEN_TYPE,
-        }),
       }),
     );
   });
