@@ -44,6 +44,61 @@ export const selectAllNftsFlat = createDeepEqualSelector(
   },
 );
 
+const EMPTY_NFT_IDENTITY_INDEX: ReadonlyMap<string, Nft> = new Map();
+
+const getNftIdentityKey = (
+  chainId: Hex,
+  contractAddress: string,
+  tokenId: string | number,
+): string => `${chainId}:${contractAddress.toLowerCase()}:${String(tokenId)}`;
+
+/**
+ * Memoized index of all owned NFTs across every account and chain, keyed by
+ * `${chainId}:${address.toLowerCase()}:${tokenId}`.
+ *
+ * Uses reference equality on `allNfts` so unrelated controller updates reuse
+ * the cached map in O(1), and keeps the first match when multiple accounts
+ * hold the same token (e.g. ERC-1155).
+ */
+export const selectNftsByIdentity = createSelector(
+  selectAllNfts,
+  (
+    allNfts: NftControllerState['allNfts'] | undefined,
+  ): ReadonlyMap<string, Nft> => {
+    if (!allNfts) {
+      return EMPTY_NFT_IDENTITY_INDEX;
+    }
+
+    const index = new Map<string, Nft>();
+
+    for (const accountAddress of Object.keys(allNfts)) {
+      const nftsByChain = allNfts[accountAddress];
+      if (!nftsByChain) {
+        continue;
+      }
+
+      for (const chainId of Object.keys(nftsByChain) as Hex[]) {
+        const chainNfts = nftsByChain[chainId];
+        if (!chainNfts) {
+          continue;
+        }
+
+        for (const nft of chainNfts) {
+          if (!nft.address) {
+            continue;
+          }
+          const key = getNftIdentityKey(chainId, nft.address, nft.tokenId);
+          if (!index.has(key)) {
+            index.set(key, nft);
+          }
+        }
+      }
+    }
+
+    return index.size === 0 ? EMPTY_NFT_IDENTITY_INDEX : index;
+  },
+);
+
 /**
  * Looks up a single owned NFT by contract address + token id on a given chain,
  * searching every account in `allNfts` (the NFT belongs to whichever account
@@ -65,24 +120,10 @@ export const selectNftByIdentity = (
   contractAddress: string,
   tokenId: string,
   chainId: Hex,
-): Nft | undefined => {
-  const { allNfts } = state.engine.backgroundState.NftController;
-  const target = contractAddress.toLowerCase();
-
-  for (const accountAddress of Object.keys(allNfts)) {
-    const chainNfts = allNfts[accountAddress]?.[chainId];
-    const match = chainNfts?.find(
-      (nft) =>
-        nft.address?.toLowerCase() === target &&
-        String(nft.tokenId) === String(tokenId),
-    );
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-};
+): Nft | undefined =>
+  selectNftsByIdentity(state).get(
+    getNftIdentityKey(chainId, contractAddress, tokenId),
+  );
 
 /**
  * Selector that returns NFT contracts for the currently selected EVM account,
