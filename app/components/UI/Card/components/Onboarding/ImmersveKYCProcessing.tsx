@@ -1,30 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Linking,
-  ScrollView,
-  StatusBar,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, Linking, StatusBar, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  IconSize,
-  Spinner,
-  Text,
-  TextColor,
-  TextVariant,
-  TitleStandard,
-} from '@metamask/design-system-react-native';
+import { IconSize, Spinner } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -68,7 +49,7 @@ import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
-import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
+import ImmersveKycIdentityLayout from './ImmersveKycIdentityLayout';
 import CardVerifiedContent from './CardVerifiedContent';
 import KYCFailedContent from './KYCFailedContent';
 
@@ -119,6 +100,7 @@ interface DeriveViewInput {
   error: string | null;
   promptHint: boolean;
   isExpiring: boolean;
+  reopenPending: boolean;
 }
 
 /**
@@ -140,9 +122,15 @@ export const deriveImmersveKycView = ({
   error,
   promptHint,
   isExpiring,
+  reopenPending,
 }: DeriveViewInput): ImmersveKycView => {
   if (webviewPhase === 'open') {
     return 'blank';
+  }
+  // A fresh KYC url is on its way. The result already on screen is the one
+  // from before the webview, so it must not flash as Finish verifying.
+  if (reopenPending) {
+    return 'loading';
   }
   // The minimum only applies to the close that just happened. A result that
   // arrives later replaces the spinner immediately, because the hold has ended.
@@ -246,121 +234,6 @@ const announcementForKycView = ({
   }
 };
 
-interface KycIdentityLayoutProps {
-  title: string;
-  description: string;
-  descriptionTestID?: string;
-  buttonLabel?: string;
-  onButtonPress?: () => void;
-  buttonTestID?: string;
-  reasonLines?: string[];
-  onContactSupport?: () => void;
-}
-
-/** Verifying, Finish verifying, and the two error states share this layout. */
-const KycIdentityLayout = ({
-  title,
-  description,
-  descriptionTestID = 'onboarding-description',
-  buttonLabel,
-  onButtonPress,
-  buttonTestID,
-  reasonLines = [],
-  onContactSupport,
-}: KycIdentityLayoutProps) => {
-  const tw = useTailwind();
-
-  return (
-    <View style={tw.style('flex-1')}>
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
-      >
-        <TitleStandard
-          title={title}
-          bottomLabel={description}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: 'onboarding-title',
-          }}
-          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
-          bottomLabelProps={{
-            twClassName: 'text-center',
-            testID: descriptionTestID,
-          }}
-          bottomLabelWrapperProps={{
-            justifyContent: BoxJustifyContent.Center,
-          }}
-          topAccessory={
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="mb-5 w-full overflow-hidden"
-              testID="immersve-kyc-processing-illustration"
-            >
-              <ImmersveVerifyingIdentityAnimation />
-            </Box>
-          }
-        />
-        {reasonLines.length === 1 ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
-            testID="immersve-kyc-processing-reason"
-          >
-            {reasonLines[0]}
-          </Text>
-        ) : null}
-        {reasonLines.length > 1 ? (
-          <Box twClassName="mt-4 gap-2" testID="immersve-kyc-processing-reason">
-            {reasonLines.map((line) => (
-              <Box key={line} twClassName="flex-row gap-2">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {'\u2022'}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="flex-1"
-                >
-                  {line}
-                </Text>
-              </Box>
-            ))}
-          </Box>
-        ) : null}
-      </ScrollView>
-      {buttonLabel ? (
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={onButtonPress}
-            testID={buttonTestID}
-          >
-            {buttonLabel}
-          </Button>
-          {onContactSupport ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={onContactSupport}
-              testID="immersve-kyc-processing-contact-support-button"
-            >
-              {strings('card.card_home.contact_support')}
-            </Button>
-          ) : null}
-        </Box>
-      ) : null}
-    </View>
-  );
-};
-
 /**
  * Immersve KYC orchestrator (Immersve-conducted, direct integration).
  * One screen for the whole post-webview wait: it opens the hosted KYC webview,
@@ -456,6 +329,10 @@ const ImmersveKYCProcessing = () => {
   const [completionBaseline, setCompletionBaseline] =
     useState<ImmersveNextAction | null>(null);
   const [isRetryingPoll, setIsRetryingPoll] = useState(false);
+  // The webview asked for a new KYC url. Stay on the spinner until the poll
+  // that follows the close settles.
+  const [reopenPending, setReopenPending] = useState(false);
+  const reopenBaselineRef = useRef<ImmersveNextAction | null>(null);
   const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextActionRef = useRef<ImmersveNextAction | null>(null);
@@ -515,6 +392,7 @@ const ImmersveKYCProcessing = () => {
     error,
     promptHint,
     isExpiring,
+    reopenPending,
   });
 
   const finalCopy =
@@ -642,10 +520,14 @@ const ImmersveKYCProcessing = () => {
   // tears this screen down before focus returns, so useFocusEffect cannot be
   // the signal — the webview invokes this callback instead.
   const handleWebviewClosed = useCallback(
-    (completed: boolean) => {
+    (completed: boolean, options?: { reopen?: boolean }) => {
       clearDwellTimer();
       setWebviewPhase('closed');
       setHoldVerifying(true);
+      if (options?.reopen) {
+        reopenBaselineRef.current = nextActionRef.current;
+        setReopenPending(true);
+      }
       dwellTimerRef.current = setTimeout(() => {
         dwellTimerRef.current = null;
         setHoldVerifying(false);
@@ -678,6 +560,22 @@ const ImmersveKYCProcessing = () => {
     setImmersveKycOnClose(handleWebviewClosed);
     return () => clearImmersveKycOnClose();
   }, [handleWebviewClosed]);
+
+  // The action already on screen is not the answer: the close poll has not
+  // settled. A new kyc url is opened. Any other settled result is shown as
+  // usual, including a poll error.
+  useEffect(() => {
+    if (!reopenPending || isLoading) {
+      return;
+    }
+    if (nextAction === reopenBaselineRef.current && !error) {
+      return;
+    }
+    setReopenPending(false);
+    if (!error && nextAction?.type === 'kyc' && nextAction.url) {
+      openKycWebview(nextAction.url);
+    }
+  }, [reopenPending, isLoading, nextAction, error, openKycWebview]);
 
   useEffect(() => clearDwellTimer, [clearDwellTimer]);
   useEffect(() => clearCompletionTimer, [clearCompletionTimer]);
@@ -922,7 +820,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'reopen') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={reopenTitle}
           description={reopenDescription}
           buttonLabel={strings(
@@ -939,7 +837,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'pollError') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={strings(
             'card.card_onboarding.immersve_kyc_processing.error_title',
           )}
@@ -955,7 +853,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'expired') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={strings(
             'card.card_onboarding.immersve_kyc_processing.expired_title',
           )}
@@ -972,7 +870,7 @@ const ImmersveKYCProcessing = () => {
       );
     }
     return (
-      <KycIdentityLayout
+      <ImmersveKycIdentityLayout
         title={strings(
           'card.card_onboarding.immersve_kyc_processing.in_progress_title',
         )}
