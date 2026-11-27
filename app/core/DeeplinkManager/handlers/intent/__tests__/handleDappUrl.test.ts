@@ -121,12 +121,9 @@ describe('handleDappProtocol', () => {
         type: 'home-tab',
         routeName: Routes.BROWSER.HOME,
         params: {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: 'https://example.com/path',
-            linkType: EXTERNAL_LINK_TYPE,
-            timestamp: expect.any(Number),
-          },
+          newTabUrl: 'https://example.com/path',
+          linkType: EXTERNAL_LINK_TYPE,
+          timestamp: expect.any(Number),
         },
       },
     });

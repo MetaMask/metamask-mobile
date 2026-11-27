@@ -34,9 +34,10 @@ export function findRouteNameFromNavigatorState(routes) {
 
   let name = route?.name;
 
-  // For compatibility with the previous way on react navigation 4
+  // Callers match the wallet and browser screens by these names.
   if (name === 'Main' || name === 'WalletTabHome' || name === 'Home')
     name = 'WalletView';
+  if (name === 'BrowserTabHome') name = 'BrowserView';
   if (name === 'TransactionsHome') name = 'TransactionsView';
 
   return name;
