@@ -1,7 +1,9 @@
-import { selectMfaRecoveryEnabled } from './index';
+import { createMfaVersionGatedFlagSelector } from './createMfaVersionGatedFlagSelector';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
 import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
+import { selectMfaUiKitEnabled } from '../mfaUiKit';
+import { selectMfaRecoveryEnabled } from '../mfaRecovery';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -16,7 +18,14 @@ jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
   isMfaDevBuild: jest.fn(),
 }));
 
-describe('selectMfaRecoveryEnabled', () => {
+describe.each([
+  ['selectMfaUiKitEnabled', selectMfaUiKitEnabled, FeatureFlagNames.mfaUiKit],
+  [
+    'selectMfaRecoveryEnabled',
+    selectMfaRecoveryEnabled,
+    FeatureFlagNames.mfaRecovery,
+  ],
+] as const)('%s', (_name, selector, flagName) => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
@@ -27,11 +36,8 @@ describe('selectMfaRecoveryEnabled', () => {
     'follows the remote flag when enabled is %s',
     (enabled) => {
       expect(
-        selectMfaRecoveryEnabled.resultFunc({
-          [FeatureFlagNames.mfaRecovery]: {
-            enabled,
-            minimumVersion: '1.0.0',
-          },
+        selector.resultFunc({
+          [flagName]: { enabled, minimumVersion: '1.0.0' },
         }),
       ).toBe(enabled);
     },
@@ -41,8 +47,8 @@ describe('selectMfaRecoveryEnabled', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(false);
 
     expect(
-      selectMfaRecoveryEnabled.resultFunc({
-        [FeatureFlagNames.mfaRecovery]: {
+      selector.resultFunc({
+        [flagName]: {
           enabled: true,
           minimumVersion: '99.0.0',
         },
@@ -52,16 +58,36 @@ describe('selectMfaRecoveryEnabled', () => {
 
   it.each([
     ['missing', {}],
-    ['invalid', { [FeatureFlagNames.mfaRecovery]: { enabled: true } }],
+    ['invalid', { [flagName]: { enabled: true } }],
   ])('falls back to the build check when the flag is %s', (_case, flags) => {
     jest.mocked(isMfaDevBuild).mockReturnValue(true);
 
-    expect(selectMfaRecoveryEnabled.resultFunc(flags)).toBe(true);
+    expect(selector.resultFunc(flags)).toBe(true);
   });
 
-  it('hides recovery on non-dev builds when the flag is missing', () => {
+  it('hides the surface on non-dev builds when the flag is missing', () => {
     jest.mocked(isMfaDevBuild).mockReturnValue(false);
 
-    expect(selectMfaRecoveryEnabled.resultFunc({})).toBe(false);
+    expect(selector.resultFunc({})).toBe(false);
+  });
+});
+
+describe('createMfaVersionGatedFlagSelector', () => {
+  it('builds a selector for the given flag name', () => {
+    jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
+    jest.mocked(isMfaDevBuild).mockReturnValue(false);
+
+    const selector = createMfaVersionGatedFlagSelector(
+      FeatureFlagNames.mfaRecovery,
+    );
+
+    expect(
+      selector.resultFunc({
+        [FeatureFlagNames.mfaRecovery]: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      }),
+    ).toBe(true);
   });
 });
