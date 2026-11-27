@@ -3212,6 +3212,31 @@ describe('Authentication', () => {
       ).not.toHaveBeenCalled();
     });
 
+    it('skips outdated password check when shouldCreateSocialBackup is false', async () => {
+      // Arrange
+      const checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+
+      // Act
+      const result = await Authentication.importAccountFromPrivateKey(
+        mockPrivateKey,
+        {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+        },
+      );
+
+      // Assert
+      expect(checkIsSeedlessPasswordOutdatedSpy).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+      expect(
+        Engine.context.KeyringController.importAccountWithStrategy,
+      ).toHaveBeenCalledWith(AccountImportStrategy.privateKey, [
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      ]);
+    });
+
     it('import account from private key without seedless flow', async () => {
       // Arrange
       const options = {
@@ -5850,6 +5875,53 @@ describe('Authentication', () => {
         });
 
         // Verify that syncPasswordAndUnlockWallet is called.
+        expect(syncPasswordAndUnlockWalletSpy).toHaveBeenCalledWith(
+          passwordToUse,
+        );
+      });
+
+      it('syncs password when checkIsSeedlessPasswordOutdated returns false but a seedless recovery checkpoint is pending', async () => {
+        const Engine = jest.requireMock('../Engine');
+        const originalState = Engine.context.SeedlessOnboardingController.state;
+        Engine.context.SeedlessOnboardingController.state = {
+          ...originalState,
+          seedlessOperationLifecycle: {
+            operation: 'PASSWORD_CHANGE',
+            checkpoint: 'KEY_SYNC_PENDING',
+          },
+        };
+        const storeSpy = jest
+          .spyOn(ReduxService, 'store', 'get')
+          .mockReturnValue({
+            getState: () => ({
+              user: { existingUser: true },
+              security: { allowLoginWithRememberMe: false },
+              engine: {
+                backgroundState: {
+                  SeedlessOnboardingController: {
+                    vault: 'encrypted-seedless-vault',
+                  },
+                },
+              },
+            }),
+            dispatch: mockDispatch,
+          } as unknown as ReduxStore);
+        const syncPasswordAndUnlockWalletSpy = jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockResolvedValueOnce();
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(false);
+
+        try {
+          await Authentication.unlockWallet({
+            password: passwordToUse,
+          });
+        } finally {
+          Engine.context.SeedlessOnboardingController.state = originalState;
+          storeSpy.mockRestore();
+        }
+
         expect(syncPasswordAndUnlockWalletSpy).toHaveBeenCalledWith(
           passwordToUse,
         );

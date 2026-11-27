@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
+  BackHandler,
   TouchableOpacity,
   TextInput,
 } from 'react-native';
@@ -100,6 +101,7 @@ interface ResetPasswordNavigation {
   goBack(): void;
   navigate(screen: string, params?: Record<string, unknown>): void;
   replace(screen: string, params?: Record<string, unknown>): void;
+  setOptions?(options: { gestureEnabled?: boolean }): void;
 }
 
 interface ResetPasswordRoute {
@@ -227,6 +229,25 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
     initAuth();
   }, [reauthenticate]);
+
+  // Freeze user-initiated back navigation while a password change is in flight
+  // so the user cannot leave with an active seedless operation lifecycle.
+  useEffect(() => {
+    if (!loading) {
+      return undefined;
+    }
+
+    navigation.setOptions?.({ gestureEnabled: false });
+    const backSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true,
+    );
+
+    return (): void => {
+      navigation.setOptions?.({ gestureEnabled: true });
+      backSubscription.remove();
+    };
+  }, [navigation, loading]);
 
   const toggleSelection = useCallback(() => {
     setIsSelected((prev) => !prev);
@@ -851,7 +872,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         isFloating={false}
         testID="header"
         title={strings('password_reset.change_password')}
-        onBack={() => navigation.goBack()}
+        onBack={() => {
+          if (!loading) {
+            navigation.goBack();
+          }
+        }}
         backButtonProps={{ isDisabled: loading }}
         includesTopInset
       />

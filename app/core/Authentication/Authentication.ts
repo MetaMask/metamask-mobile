@@ -990,20 +990,31 @@ class AuthenticationService {
             // the onboarding journey when a parent context is supplied.
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
-          } else if (
-            await this.checkIsSeedlessPasswordOutdated({
-              skipCache: false,
-              captureSentryError: true,
-            })
-          ) {
-            // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-            await this.syncPasswordAndUnlockWallet(passwordToUse);
-            // try to enable biometric/passcode as default
-            authPreference = await this.componentAuthenticationType(
-              true,
-              false,
-            );
-            fallbackToPassword = true;
+          } else {
+            const isSeedlessPasswordOutdated =
+              await this.checkIsSeedlessPasswordOutdated({
+                skipCache: false,
+                captureSentryError: true,
+              });
+            const hasPendingSeedlessLifecycle =
+              selectSeedlessOnboardingLoginFlow(
+                ReduxService.store.getState(),
+              ) &&
+              Engine.context.SeedlessOnboardingController?.state
+                ?.seedlessOperationLifecycle !== undefined;
+
+            if (isSeedlessPasswordOutdated || hasPendingSeedlessLifecycle) {
+              // If seedless flow completed && seedless password is outdated (or a
+              // recovery checkpoint is still pending after a failed check), sync
+              // the password and unlock the wallet
+              await this.syncPasswordAndUnlockWallet(passwordToUse);
+              // try to enable biometric/passcode as default
+              authPreference = await this.componentAuthenticationType(
+                true,
+                false,
+              );
+              fallbackToPassword = true;
+            }
           }
 
           // Unlock keyrings.
@@ -1465,12 +1476,14 @@ class AuthenticationService {
       shouldSelectAccount: true,
     },
   ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
-      skipCache: true,
-      captureSentryError: true,
-    });
-    if (isPasswordOutdated) {
-      return false;
+    if (options.shouldCreateSocialBackup) {
+      const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: true,
+      });
+      if (isPasswordOutdated) {
+        return false;
+      }
     }
 
     trace({

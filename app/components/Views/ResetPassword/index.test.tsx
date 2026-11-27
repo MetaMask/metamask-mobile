@@ -21,7 +21,7 @@ import {
 } from '../../../constants/urls';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
-import { Alert } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 import NotificationManager from '../../../core/NotificationManager';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
@@ -911,6 +911,54 @@ describe('ResetPassword', () => {
       fireEvent.press(backButton);
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('disables swipe-back and Android hardware back during loading and restores them after completion', async () => {
+      let resolveRecreate!: () => void;
+      jest.mocked(recreateVaultsWithNewPassword).mockImplementationOnce(
+        async () =>
+          await new Promise<void>((resolve) => {
+            resolveRecreate = resolve;
+          }),
+      );
+
+      const removeBackListener = jest.fn();
+      const backHandlerSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: removeBackListener });
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(
+          component.getByText(strings('reset_password.changing_password')),
+        ).toBeOnTheScreen();
+      });
+
+      expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: false,
+      });
+
+      const backPressCall = backHandlerSpy.mock.calls.find(
+        ([eventName]) => eventName === 'hardwareBackPress',
+      );
+      expect(backPressCall).toBeDefined();
+      expect(backPressCall?.[1]()).toBe(true);
+
+      await act(async () => {
+        resolveRecreate();
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+          gestureEnabled: true,
+        });
+      });
+      expect(removeBackListener).toHaveBeenCalledTimes(1);
+
+      backHandlerSpy.mockRestore();
     });
 
     it('shows alert when passcode is not set', async () => {

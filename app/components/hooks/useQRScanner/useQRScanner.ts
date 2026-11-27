@@ -39,10 +39,15 @@ export function useQRScanner(): { openQRScanner: () => void } {
               text: strings('wallet.yes'),
               onPress: async () => {
                 try {
-                  await Authentication.importAccountFromPrivateKey(privateKey);
-                  navigation.navigate('ImportPrivateKeyView', {
-                    screen: 'ImportPrivateKeySuccess',
-                  });
+                  const isImported =
+                    await Authentication.importAccountFromPrivateKey(
+                      privateKey,
+                    );
+                  if (isImported) {
+                    navigation.navigate('ImportPrivateKeyView', {
+                      screen: 'ImportPrivateKeySuccess',
+                    });
+                  }
                 } catch {
                   Alert.alert(
                     strings('import_private_key.error_title'),
