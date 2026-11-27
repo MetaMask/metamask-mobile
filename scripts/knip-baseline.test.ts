@@ -1,11 +1,13 @@
 /**
  * Unit tests for the pure logic in knip-baseline.ts. The knip process itself
- * is not spawned here — only report normalization, diffing and formatting are
- * exercised.
+ * is not spawned here — only report normalization, diffing, formatting and
+ * the pass/fail decisions are exercised.
  */
 
 import {
   compareEntries,
+  decideCheck,
+  decideUpdate,
   diffFindings,
   formatEntry,
   normalizeReport,
@@ -154,6 +156,52 @@ describe('diffFindings', () => {
 
     expect(added).toEqual(['files|a.ts']);
     expect(removed).toEqual([]);
+  });
+});
+
+describe('decideCheck', () => {
+  it('fails when the report has findings missing from the baseline', () => {
+    const decision = decideCheck({ added: ['files|a.ts'], removed: [] });
+
+    expect(decision).toBe('fail');
+  });
+
+  it('fails when baselined findings are no longer reported', () => {
+    const decision = decideCheck({ added: [], removed: ['files|a.ts'] });
+
+    expect(decision).toBe('fail');
+  });
+
+  it('passes when the report matches the baseline in both directions', () => {
+    const decision = decideCheck({ added: [], removed: [] });
+
+    expect(decision).toBe('pass');
+  });
+});
+
+describe('decideUpdate', () => {
+  it('refuses to grow the baseline without --allow-grow', () => {
+    const decision = decideUpdate({ added: ['files|a.ts'], removed: [] }, false);
+
+    expect(decision).toBe('refuse');
+  });
+
+  it('writes the baseline when growth is allowed with --allow-grow', () => {
+    const decision = decideUpdate({ added: ['files|a.ts'], removed: [] }, true);
+
+    expect(decision).toBe('write');
+  });
+
+  it('writes the baseline when the report shrinks it', () => {
+    const decision = decideUpdate({ added: [], removed: ['files|a.ts'] }, false);
+
+    expect(decision).toBe('write');
+  });
+
+  it('writes the baseline when the report matches it', () => {
+    const decision = decideUpdate({ added: [], removed: [] }, false);
+
+    expect(decision).toBe('write');
   });
 });
 
