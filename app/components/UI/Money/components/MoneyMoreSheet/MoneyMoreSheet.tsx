@@ -9,8 +9,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  ListItem,
-  Switch,
   Text,
   TextVariant,
   type BottomSheetRef,
@@ -26,19 +24,15 @@ import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
-import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { selectMoneyEnableMfaV2Flag } from '../../selectors/featureFlags';
 
 interface MenuOption {
   label: string;
@@ -49,21 +43,16 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const isMfaV2 = useSelector(selectMoneyEnableMfaV2Flag);
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackBottomSheetViewed, trackSurfaceClicked, trackButtonClicked } =
-    useMoneyAnalytics({
-      bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
-    });
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+  });
   const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
-
-  const { status: mfaStatus, turnOn: turnOnMfa } = useMoneyMfa();
-  const isMfaOn = mfaStatus === 'enabled';
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -112,29 +101,6 @@ const MoneyMoreSheet = () => {
     openSupportWithConsent,
   ]);
 
-  const handleMfaToggle = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: isMfaOn
-        ? MONEY_BUTTON_INTENTS.DISABLE_MFA
-        : MONEY_BUTTON_INTENTS.ENABLE_MFA,
-      label_key: 'money.mfa.more_sheet_title',
-      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_MFA_TOGGLE,
-      ...(isMfaOn && {
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_TURN_OFF_SHEET,
-      }),
-    });
-    sheetRef.current?.onCloseBottomSheet(() => {
-      if (isMfaOn) {
-        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
-        });
-      } else {
-        void turnOnMfa();
-      }
-    });
-  }, [isMfaOn, navigation, trackButtonClicked, turnOnMfa]);
-
   const options: MenuOption[] = [
     {
       label: strings('money.more_sheet.how_it_works'),
@@ -172,30 +138,6 @@ const MoneyMoreSheet = () => {
         </Text>
       </BottomSheetHeaderGlass>
       <View style={styles.list}>
-        {isMfaV2 || mfaStatus === 'unavailable' ? null : (
-          <ListItem
-            accessoryGap={4}
-            startAccessory={
-              <Icon
-                name={IconName.SecurityTick}
-                size={IconSize.Lg}
-                color={IconColor.IconDefault}
-              />
-            }
-            title={strings('money.mfa.more_sheet_title')}
-            description={strings('money.mfa.more_sheet_description')}
-            endAccessory={
-              <Switch
-                isOn={isMfaOn}
-                isDisabled={mfaStatus === 'setting_up'}
-                onValueChange={handleMfaToggle}
-                accessibilityLabel={strings('money.mfa.more_sheet_title')}
-                testID={MoneyMoreSheetTestIds.MFA_SWITCH}
-              />
-            }
-            testID={MoneyMoreSheetTestIds.MFA_OPTION}
-          />
-        )}
         {options.map((item) => (
           <TouchableOpacity
             key={item.testID}
