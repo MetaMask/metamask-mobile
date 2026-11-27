@@ -31,6 +31,7 @@ jest.mock('../constants/eventNames', () => ({
     CLAIM_FAILURE_REASON: {
       PENDING_RESOLUTION: 'pending_resolution',
       INSUFFICIENT_GAS: 'insufficient_gas',
+      GAS_FEE_TOKEN_UNAVAILABLE: 'gas_fee_token_unavailable',
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
       MARKET_UNAVAILABLE: 'market_unavailable',
@@ -576,14 +577,48 @@ describe('parseAnalyticsProperties', () => {
       ['Tried to claim but no positions were won', 'pending_resolution'],
       ['User denied transaction signature', 'user_rejected'],
       ['User rejected the request', 'user_rejected'],
+      [
+        'Gas fee token not found and insufficient native balance',
+        'gas_fee_token_unavailable',
+      ],
       ['insufficient funds for gas', 'insufficient_gas'],
+      [
+        'insufficient funds for gas * price + value: balance 0, tx cost 21000',
+        'insufficient_gas',
+      ],
+      ['insufficient funds for intrinsic transaction cost', 'insufficient_gas'],
+      ['insufficient funds for transfer', 'insufficient_gas'],
+      ['InsufficientFunds', 'insufficient_gas'],
+      ['INSUFFICIENT FUNDS', 'insufficient_gas'],
+      ['Insufficient gas for transaction', 'insufficient_gas'],
       ['out of gas', 'insufficient_gas'],
+      ['gas required exceeds allowance (30000000)', 'insufficient_gas'],
+      ['intrinsic gas too low', 'insufficient_gas'],
+      ['insufficient allowance', 'unknown'],
       ['network request failed', 'network_error'],
       ['Request timed out', 'network_error'],
       ['failed to fetch', 'network_error'],
       ['Something unexpected happened', 'unknown'],
     ])('maps "%s" to "%s"', (message, expected) => {
       expect(mapClaimFailureReason(new Error(message))).toBe(expected);
+    });
+
+    it('maps gas fee token message case-insensitively', () => {
+      const message = 'GAS FEE TOKEN NOT FOUND and insufficient native balance';
+
+      const result = mapClaimFailureReason(message);
+
+      expect(result).toBe('gas_fee_token_unavailable');
+    });
+
+    it('prioritizes user rejection over gas fee token unavailability', () => {
+      const error = new Error(
+        'User rejected the request: Gas fee token not found and insufficient native balance',
+      );
+
+      const result = mapClaimFailureReason(error);
+
+      expect(result).toBe('user_rejected');
     });
 
     it('accepts a raw string message', () => {
@@ -662,6 +697,93 @@ describe('parseAnalyticsProperties', () => {
       expect(result).toBe(
         'Request [redacted] failed for [redacted] token=[redacted]',
       );
+    });
+
+    it('redacts transaction hashes', () => {
+      const txHash = `0x${'ab'.repeat(32)}`;
+
+      const result = sanitizePredictFailureReason(
+        `Transaction ${txHash} reverted`,
+      );
+
+      expect(result).toBe('Transaction [redacted] reverted');
+    });
+
+    it('redacts calldata-padded addresses and long hex blobs case-insensitively', () => {
+      const paddedAddress = `0x${'0'.repeat(24)}${'A1b2C3d4E5'.repeat(4)}`;
+      const calldata = `0X${'DEADBEEF'.repeat(17)}`;
+
+      const result = sanitizePredictFailureReason(
+        `call failed for ${paddedAddress} with data ${calldata}`,
+      );
+
+      expect(result).toBe('call failed for [redacted] with data [redacted]');
+    });
+
+    it('keeps short hex values such as error selectors', () => {
+      const result = sanitizePredictFailureReason(
+        'execution reverted: 0x08c379a0',
+      );
+
+      expect(result).toBe('execution reverted: 0x08c379a0');
+    });
+
+    it('redacts have/want balance amounts and keeps the surrounding words', () => {
+      const result = sanitizePredictFailureReason(
+        'insufficient funds for intrinsic transaction cost: have 1234567 want 7654321',
+      );
+
+      expect(result).toBe(
+        'insufficient funds for intrinsic transaction cost: have [redacted] want [redacted]',
+      );
+    });
+
+    it('redacts decimal and hex have/want amounts case-insensitively', () => {
+      const result = sanitizePredictFailureReason(
+        'Insufficient funds: HAVE 0.0042 Want 0x1bc16d674ec80000',
+      );
+
+      expect(result).toBe(
+        'Insufficient funds: HAVE [redacted] Want [redacted]',
+      );
+    });
+
+    it.each([
+      ['balance: 123456', 'balance: [redacted]'],
+      ['balance 0.0042 ETH', 'balance [redacted]'],
+      ['Balance=1,234.56 USDC.e', 'Balance=[redacted]'],
+      ['required: 1000000000000000000 wei', 'required: [redacted]'],
+      ['available 25.5 USDC', 'available [redacted]'],
+      ['allowance=0x0de0b6b3a7640000', 'allowance=[redacted]'],
+      ['needed 1e18', 'needed [redacted]'],
+      ['balance: 500n', 'balance: [redacted]'],
+    ])('redacts the labeled amount in "%s"', (input, expected) => {
+      const result = sanitizePredictFailureReason(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it('redacts every labeled amount in a single message', () => {
+      const result = sanitizePredictFailureReason(
+        'Not enough USDC: balance 10.5, required 20, available 3 USDC',
+      );
+
+      expect(result).toBe(
+        'Not enough USDC: balance [redacted], required [redacted], available [redacted]',
+      );
+    });
+
+    it.each([
+      'Gas fee token not found and insufficient native balance',
+      'insufficient funds for gas * price + value',
+      'execution reverted: 0x08c379a0',
+      'Request failed with status 500',
+      'RPC error code -32000: header not found',
+      'gas required exceeds allowance (30000000)',
+    ])('leaves non-balance text untouched in "%s"', (input) => {
+      const result = sanitizePredictFailureReason(input);
+
+      expect(result).toBe(input);
     });
   });
 });

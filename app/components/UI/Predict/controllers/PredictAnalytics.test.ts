@@ -361,6 +361,39 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('includes error_message in regular properties when errorMessage is provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        failureReason: 'gas_fee_token_unavailable',
+        errorMessage: 'Gas fee token not found and insufficient native balance',
+        analyticsProperties: {
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties.error_message).toBe(
+        'Gas fee token not found and insufficient native balance',
+      );
+      expect(event.sensitiveProperties).not.toHaveProperty('error_message');
+    });
+
+    it('omits error_message when errorMessage is not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        failureReason: 'unknown',
+        analyticsProperties: {
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('error_message');
+      expect(event.sensitiveProperties).not.toHaveProperty('error_message');
+    });
+
     it('includes order_type when orderType is provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,

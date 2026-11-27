@@ -19,7 +19,10 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import type { PredictTradeAnalyticsProperties } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
-import { mapClaimFailureReason } from '../utils/analytics';
+import {
+  mapClaimFailureReason,
+  sanitizePredictFailureReason,
+} from '../utils/analytics';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -83,10 +86,19 @@ export const usePredictClaim = () => {
         // Synchronous/submission failures occur before any on-chain
         // transaction is created, so the controller's terminal-status handler
         // never runs. Track the failure here so pre-tx failures are measured.
+        const rawErrorMessage =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'string'
+              ? err
+              : '';
         Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.FAILED,
           analyticsProperties,
           failureReason: mapClaimFailureReason(err),
+          ...(rawErrorMessage.length > 0 && {
+            errorMessage: sanitizePredictFailureReason(rawErrorMessage),
+          }),
         });
 
         Logger.error(ensureError(err), {
@@ -137,7 +149,7 @@ export const usePredictClaim = () => {
           linkButtonOptions: {
             label: strings('predict.claim.toasts.error.try_again'),
             onPress: () => {
-              claim(analyticsContext);
+              void claim(analyticsContext);
             },
           },
         });

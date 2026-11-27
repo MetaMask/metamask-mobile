@@ -67,6 +67,12 @@ export function parseAnalyticsProperties(
  * Classifies a claim error into a stable `failure_reason` value for the
  * `mm_predict_claim` analytics event. Resolution-lag is the dominant failure
  * mode (PRED-963), so it is checked first.
+ *
+ * `gas_fee_token_unavailable` covers the transaction controller's
+ * "Gas fee token not found and insufficient native balance" error and is
+ * checked before `insufficient_gas`. Claims send zero value, so any
+ * "insufficient funds" error is a gas shortage; other "insufficient" errors
+ * (e.g. allowance) map to `unknown`.
  */
 export function mapClaimFailureReason(error?: unknown): string {
   const { CLAIM_FAILURE_REASON } = PredictEventValues;
@@ -106,8 +112,14 @@ export function mapClaimFailureReason(error?: unknown): string {
     return CLAIM_FAILURE_REASON.USER_REJECTED;
   }
 
+  if (normalized.includes('gas fee token not found')) {
+    return CLAIM_FAILURE_REASON.GAS_FEE_TOKEN_UNAVAILABLE;
+  }
+
   if (
-    normalized.includes('insufficient') ||
+    normalized.includes('insufficient funds') ||
+    normalized.includes('insufficientfunds') ||
+    normalized.includes('insufficient gas') ||
     normalized.includes('out of gas') ||
     normalized.includes('gas required') ||
     normalized.includes('intrinsic gas')
@@ -166,11 +178,30 @@ function getPredictErrorMessage(error?: unknown): string {
     : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
 }
 
+const AMOUNT_PATTERN =
+  '(?:0x[0-9a-f]+|\\d+(?:,\\d{3})*(?:\\.\\d+)?(?:e[+-]?\\d+)?n?)\\b(?:\\s*(?:eth|wei|gwei|usdc(?:\\.e)?|usdt|pol|matic|usd)\\b)?';
+const HAVE_WANT_AMOUNT_REGEX = new RegExp(
+  `\\b(have\\s+)${AMOUNT_PATTERN}(\\s+want\\s+)${AMOUNT_PATTERN}`,
+  'gi',
+);
+const LABELED_AMOUNT_REGEX = new RegExp(
+  `\\b(balance|required|available|allowance|needed)(\\s*[:=]\\s*|\\s+)${AMOUNT_PATTERN}`,
+  'gi',
+);
+
+/**
+ * Produces a bounded failure reason that is safe to send as a regular
+ * analytics property: strips HTML and redacts URLs, long hex values
+ * (addresses, hashes, calldata), credentials, and wallet amounts such as
+ * `have X want Y` or `balance: X`.
+ */
 export function sanitizePredictFailureReason(error?: unknown): string {
   return getPredictErrorMessage(error)
     .replace(/<[^>]*>/g, ' ')
     .replace(/https?:\/\/\S+/gi, REDACTED_VALUE)
-    .replace(/0x[a-fA-F0-9]{40}\b/g, REDACTED_VALUE)
+    .replace(/0x[a-f0-9]{40,}\b/gi, REDACTED_VALUE)
+    .replace(HAVE_WANT_AMOUNT_REGEX, `$1${REDACTED_VALUE}$2${REDACTED_VALUE}`)
+    .replace(LABELED_AMOUNT_REGEX, `$1$2${REDACTED_VALUE}`)
     .replace(/\bBearer\s+\S+/gi, `Bearer ${REDACTED_VALUE}`)
     .replace(
       /\b(api[_-]?key|token|authorization|password)\s*[:=]\s*[^\s,;]+/gi,

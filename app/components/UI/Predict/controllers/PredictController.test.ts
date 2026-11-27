@@ -6908,6 +6908,79 @@ describe('PredictController', () => {
       });
     });
 
+    it('sanitizes the submission failure_reason when addTransactionBatch fails', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              data: '0x095ea7b3000000000000000000000000',
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(
+          'Submission failed for 0x1234567890abcdef1234567890abcdef12345678 via https://polygon-rpc.example.com/v1/secret',
+        ),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(controller.depositWithConfirmation({})).rejects.toThrow(
+          'Submission failed',
+        );
+
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent.properties.failure_reason).toBe(
+          'Submission failed for [redacted] via [redacted]',
+        );
+      });
+    });
+
+    it('sanitizes the mm_predict_deposit failure_reason when addTransactionBatch fails', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              data: '0x095ea7b3000000000000000000000000',
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(
+          `Submission failed for tx 0x${'ab'.repeat(32)} via https://polygon-rpc.example.com/v1/secret`,
+        ),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(controller.depositWithConfirmation({})).rejects.toThrow(
+          'Submission failed',
+        );
+
+        const depositEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(depositEvent.properties.failure_reason).toBe(
+          'Submission failed for tx [redacted] via [redacted]',
+        );
+      });
+    });
+
     it('use correct network client ID from chain ID', async () => {
       // Given a deposit on a specific chain
       const mockChainId = '0x1'; // Mainnet
@@ -9542,6 +9615,73 @@ describe('PredictController', () => {
       });
     });
 
+    it('includes a sanitized error_message on a failed mm_predict_claim transaction', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.failed,
+          }),
+          error: {
+            message:
+              'Gas fee token not found and insufficient native balance for 0x1234567890abcdef1234567890abcdef12345678',
+          },
+        };
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        const event = findPredictTradeEvent('failed');
+        expect(event.properties.failure_reason).toBe(
+          'gas_fee_token_unavailable',
+        );
+        expect(event.properties.error_message).toBe(
+          'Gas fee token not found and insufficient native balance for [redacted]',
+        );
+        expect(event.sensitiveProperties.error_message).toBeUndefined();
+      });
+    });
+
+    it('omits error_message on a failed mm_predict_claim transaction without an error message', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.failed,
+        });
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        const event = findPredictTradeEvent('failed');
+        expect(event.properties.failure_reason).toBe('unknown');
+        expect(event.properties).not.toHaveProperty('error_message');
+      });
+    });
+
     it('tracks a cancelled mm_predict_claim transaction when rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -9764,6 +9904,36 @@ describe('PredictController', () => {
           );
         expect(event).toBeDefined();
         expect(event.properties.failure_reason).toBe('Withdraw reverted');
+      });
+    });
+
+    it('sanitizes the mm_predict_withdraw failure_reason from the transaction error', () => {
+      withController(({ messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.failed,
+          }),
+          error: {
+            message: `Withdraw reverted for 0x${'0'.repeat(24)}${'1'.repeat(40)} at https://rpc.example.com/key`,
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event.properties.failure_reason).toBe(
+          'Withdraw reverted for [redacted] at [redacted]',
+        );
       });
     });
 

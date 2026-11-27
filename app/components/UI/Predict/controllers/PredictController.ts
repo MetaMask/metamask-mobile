@@ -139,6 +139,7 @@ import { PredictFeatureFlags, PredictHiddenMarketsFlag } from '../types/flags';
 import {
   classifyPredictBuyFailure,
   mapClaimFailureReason,
+  sanitizePredictFailureReason,
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
@@ -1740,7 +1741,7 @@ export class PredictController extends BaseController<
       status: isUserCancelled
         ? PredictTradeStatus.CANCELLED
         : PredictTradeStatus.FAILED,
-      failureReason: ensureError(error).message,
+      failureReason: sanitizePredictFailureReason(ensureError(error)),
     });
 
     return isUserCancelled;
@@ -1794,7 +1795,7 @@ export class PredictController extends BaseController<
         status: isUserCancelled
           ? PredictTradeStatus.CANCELLED
           : PredictTradeStatus.FAILED,
-        failureReason: e.message,
+        failureReason: sanitizePredictFailureReason(e),
       });
 
       throw error;
@@ -2974,11 +2975,16 @@ export class PredictController extends BaseController<
         analyticsProperties,
       });
     } else {
+      const errorMessage = transactionMeta.error?.message;
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.FAILED,
         amountUsd: amount,
         analyticsProperties,
-        failureReason: mapClaimFailureReason(transactionMeta.error?.message),
+        failureReason: mapClaimFailureReason(errorMessage),
+        ...(typeof errorMessage === 'string' &&
+          errorMessage.length > 0 && {
+            errorMessage: sanitizePredictFailureReason(errorMessage),
+          }),
       });
     }
 
@@ -3064,7 +3070,7 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): string {
     if (transactionMeta.error?.message) {
-      return transactionMeta.error.message;
+      return sanitizePredictFailureReason(transactionMeta.error.message);
     }
 
     switch (type) {
