@@ -5,13 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import {
-  TransactionParams,
-  WalletDevice,
-} from '@metamask/transaction-controller';
-import { toHex } from '@metamask/controller-utils';
-import { CaipAssetType, isCaipChainId, toCaipChainId } from '@metamask/utils';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { WalletDevice } from '@metamask/transaction-controller';
+import { CaipAssetType, isCaipChainId } from '@metamask/utils';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -47,7 +42,6 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
-  bigIntToHex,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
 } from '../../../../../../util/number/bigint';
@@ -55,18 +49,21 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 
-import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { safeToChecksumAddress } from '../../../../../../util/address';
-import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
+import { buildRampTransferParams } from '../../utils/buildRampTransferParams';
+import { getEvmHexChainId } from '../../utils';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
-import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import {
-  SnapAmountValidationResult,
-  validateTronTransferAmount,
-} from '../../../../../../core/Multichain/tron';
+  sendMultichainTransactionForReview,
+  validateAmountMultichain,
+  type SnapAmountValidationResult,
+} from '../../../../../Views/confirmations/utils/multichain-snaps';
 
+import {
+  getFeeShortfallMessageKey,
+  usesSnapAmountValidation,
+} from '../../hooks/useSnapAmountValidation';
 import { RAMPS_SEND } from '../../constants';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
@@ -77,8 +74,9 @@ interface SendTransactionParams {
 
 // A missing result means the Snap threw or returned nothing. We fail closed
 // with a retryable message instead of opening the Snap confirmation.
-function getTronValidationErrorMessage(
+function getSnapValidationErrorMessage(
   result: SnapAmountValidationResult | undefined,
+  assetChainId: string,
 ): string {
   if (!result) {
     return strings(
@@ -90,9 +88,7 @@ function getTronValidationErrorMessage(
     return strings('send.insufficient_funds');
   }
   if (errorCode === 'InsufficientBalanceToCoverFee') {
-    return strings(
-      'fiat_on_ramp_aggregator.send_transaction.insufficient_tron_resources',
-    );
+    return strings(getFeeShortfallMessageKey(assetChainId));
   }
   return strings('send.invalid_value');
 }
@@ -106,9 +102,6 @@ function SendTransaction() {
     getOrderById(state, params.orderId),
   );
   const trackEvent = useAnalytics();
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [validationError, setValidationError] = useState<string>();
@@ -130,7 +123,11 @@ function SendTransaction() {
     [assetChainId],
   );
   const isStellar = assetChainId?.startsWith('stellar:') ?? false;
-  const isTron = assetChainId?.startsWith('tron:') ?? false;
+  const usesSnapValidation = usesSnapAmountValidation(assetChainId);
+  const chainIdAsHex = useMemo(
+    () => getEvmHexChainId(assetChainId),
+    [assetChainId],
+  );
 
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
@@ -138,20 +135,33 @@ function SendTransaction() {
       : undefined,
   );
 
-  const networkClientId = useMemo(() => {
-    const chainId = orderData?.cryptoCurrency?.network?.chainId;
-    if (!chainId) return null;
-    const caipChainId = isCaipChainId(chainId)
-      ? chainId
-      : toCaipChainId('eip155', chainId);
-    const networkConfig = networkConfigurations?.[
-      caipChainId
-    ] as NetworkConfiguration;
-    if (!networkConfig) return null;
+  const networkClientId = useRampNetworkClientId(assetChainId);
 
-    const { rpcEndpoints, defaultRpcEndpointIndex } = networkConfig;
-    return rpcEndpoints?.[defaultRpcEndpointIndex]?.networkClientId;
-  }, [networkConfigurations, orderData]);
+  const sellTransactionParams = useMemo(() => {
+    if (isNonEvm || !orderData?.cryptoCurrency) {
+      return undefined;
+    }
+
+    let amount: bigint;
+    try {
+      amount = toTokenMinimalUnit(
+        orderData.cryptoAmount || '0',
+        orderData.cryptoCurrency.decimals,
+      );
+    } catch {
+      // A malformed amount must not throw during render. `handleSend` tracks the
+      // rejection when the order transaction cannot be built.
+      return undefined;
+    }
+
+    return buildRampTransferParams({
+      from: orderData.walletAddress,
+      chainId: chainIdAsHex,
+      assetAddress: orderData.cryptoCurrency.address,
+      recipient: orderData.depositWallet,
+      amount,
+    });
+  }, [chainIdAsHex, isNonEvm, orderData]);
 
   const headerTitle = strings(
     'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
@@ -185,10 +195,11 @@ function SendTransaction() {
     );
   }, [trackEvent, transactionAnalyticsPayload]);
 
-  // Tron resource and fee requirements depend on the destination and the
-  // transaction being built, so validate against the provider deposit address.
+  // Tron resource and fee requirements (and Stellar reserves) depend on the
+  // destination and the transaction being built, so validate against the
+  // provider deposit address.
   // Returns true only when the Snap explicitly reports the transfer as valid.
-  const validateTronTransfer = useCallback(async (): Promise<boolean> => {
+  const validateSnapTransfer = useCallback(async (): Promise<boolean> => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
     const assetReference = orderData?.cryptoCurrency?.assetId;
     if (!orderData || !fromAccount || !chainId || !assetReference) {
@@ -197,12 +208,12 @@ function SendTransaction() {
 
     let result: SnapAmountValidationResult | undefined;
     try {
-      result = await validateTronTransferAmount(fromAccount, {
+      result = (await validateAmountMultichain(fromAccount, {
         accountId: fromAccount.id,
         assetId: `${chainId}/${assetReference}` as CaipAssetType,
         value: String(orderData.cryptoAmount ?? '0'),
         toAddress: orderData.depositWallet,
-      });
+      })) as SnapAmountValidationResult | undefined;
     } catch {
       result = undefined;
     }
@@ -211,7 +222,7 @@ function SendTransaction() {
       setValidationError(undefined);
       return true;
     }
-    const errorMessage = getTronValidationErrorMessage(result);
+    const errorMessage = getSnapValidationErrorMessage(result, chainId);
     setValidationError(errorMessage);
     // Announce on every failed attempt, including a retry that returns the
     // same message, so screen reader users know the check ran again.
@@ -224,11 +235,11 @@ function SendTransaction() {
   const handleRetryValidation = useCallback(async () => {
     setIsValidating(true);
     try {
-      await validateTronTransfer();
+      await validateSnapTransfer();
     } finally {
       setIsValidating(false);
     }
-  }, [validateTronTransfer]);
+  }, [validateSnapTransfer]);
 
   const handleSend = useCallback(async () => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
@@ -259,7 +270,7 @@ function SendTransaction() {
         const assetId = `${chainId}/${assetReference}` as CaipAssetType;
         const amount = String(orderData.cryptoAmount ?? '0');
 
-        if (isTron && !(await validateTronTransfer())) {
+        if (usesSnapValidation && !(await validateSnapTransfer())) {
           trackEvent(
             'OFFRAMP_SEND_TRANSACTION_REJECTED',
             //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
@@ -326,49 +337,25 @@ function SendTransaction() {
       return;
     }
 
-    // Sell orders may carry a CAIP-2 EVM id (`eip155:1`) as well as the legacy
-    // numeric id (`1`). toHex only accepts the reference.
-    const evmChainReference = chainId.startsWith('eip155:')
-      ? chainId.slice('eip155:'.length)
-      : chainId;
-    let chainIdAsHex: `0x${string}`;
-    try {
-      chainIdAsHex = toHex(evmChainReference);
-    } catch {
+    if (!networkClientId) {
       return;
     }
 
-    if (!networkClientId) {
+    const transactionParams = sellTransactionParams;
+    if (!transactionParams) {
+      // The order has no valid amount, deposit wallet or asset to send.
+      trackEvent(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        //@ts-expect-error - Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
+        transactionAnalyticsPayload,
+      );
       return;
     }
 
     try {
       setIsConfirming(true);
-      let transactionParams: TransactionParams;
-      const amount = bigIntToHex(
-        toTokenMinimalUnit(
-          orderData.cryptoAmount || '0',
-          orderData.cryptoCurrency.decimals,
-        ),
-      );
-      if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
-        transactionParams = {
-          from: safeToChecksumAddress(orderData.walletAddress) as string,
-          to: safeToChecksumAddress(orderData.depositWallet),
-          value: amount,
-          chainId: chainIdAsHex,
-        };
-      } else {
-        transactionParams = {
-          from: safeToChecksumAddress(orderData.walletAddress) as string,
-          to: safeToChecksumAddress(orderData.cryptoCurrency.address),
-          value: '0x0',
-          data: generateTransferData('transfer', {
-            toAddress: safeToChecksumAddress(orderData.depositWallet),
-            amount,
-          }),
-        };
-      }
 
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
@@ -418,9 +405,10 @@ function SendTransaction() {
     transactionAnalyticsPayload,
     networkClientId,
     isNonEvm,
-    isTron,
+    usesSnapValidation,
     fromAccount,
-    validateTronTransfer,
+    validateSnapTransfer,
+    sellTransactionParams,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
@@ -594,7 +582,7 @@ function SendTransaction() {
               </Text>
             </Row>
           ) : null}
-          {validationError && isTron ? (
+          {validationError && usesSnapValidation ? (
             <Row>
               <Button
                 variant={ButtonVariants.Secondary}

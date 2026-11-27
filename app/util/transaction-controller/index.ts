@@ -161,18 +161,34 @@ export async function estimateGas(
   return await TransactionController.estimateGas(transaction, networkClientId);
 }
 
+export async function estimateGasBuffered(
+  transaction: TransactionParams,
+  multiplier: number | undefined,
+  networkClientId: NetworkClientId,
+) {
+  const { TransactionController } = Engine.context;
+  return await TransactionController.estimateGasBuffered(
+    transaction,
+    multiplier,
+    networkClientId,
+  );
+}
+
 export async function estimateGasFee({
   transactionParams,
   chainId,
+  networkClientId,
 }: {
   transactionParams: TransactionParams;
   chainId: Hex;
+  networkClientId?: NetworkClientId;
 }) {
   const { TransactionController } = Engine.context;
 
   return await TransactionController.estimateGasFee({
     transactionParams,
     chainId,
+    networkClientId,
   });
 }
 

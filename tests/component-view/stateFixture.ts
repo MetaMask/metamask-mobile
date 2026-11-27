@@ -172,6 +172,11 @@ export interface StateFixtureBuilder {
   build(): DeepPartial<RootState>;
 }
 
+/** Fixed import time for fixture account metadata, so fixture state is
+ * deterministic across runs (importTime has no recency consumers; views
+ * never compare it to the wall clock). */
+export const FIXTURE_IMPORT_TIME_MS = 1_735_689_600_000;
+
 export function createStateFixture(): StateFixtureBuilder {
   const baseState = {
     engine: { backgroundState: {} },
@@ -784,7 +789,7 @@ export function createStateFixture(): StateFixtureBuilder {
                       address: selectedAddress,
                       metadata: {
                         name: 'Account 1',
-                        importTime: Date.now(),
+                        importTime: FIXTURE_IMPORT_TIME_MS,
                         keyring: { type: 'HD Key Tree' },
                       },
                       options: {},

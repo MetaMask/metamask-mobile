@@ -9,6 +9,7 @@ import {
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { BtcAccountType } from '@metamask/keyring-api';
+import { FIXTURE_IMPORT_TIME_MS } from '../stateFixture';
 
 /**
  * Base state overrides for Send view component tests.
@@ -102,7 +103,10 @@ export function buildTronSendFixture(
       {
         id: TRON_SEND_ACCOUNT_IDS[0],
         address: senderAddress,
-        metadata: { name: 'Tron Account 1', importTime: Date.now() },
+        metadata: {
+          name: 'Tron Account 1',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'tron:eoa',
@@ -114,7 +118,10 @@ export function buildTronSendFixture(
       {
         id: TRON_SEND_ACCOUNT_IDS[1],
         address: recipientAddresses[0],
-        metadata: { name: 'Tron Account 2', importTime: Date.now() },
+        metadata: {
+          name: 'Tron Account 2',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'tron:eoa',
@@ -126,7 +133,10 @@ export function buildTronSendFixture(
       {
         id: TRON_SEND_ACCOUNT_IDS[2],
         address: recipientAddresses[1],
-        metadata: { name: 'Tron Account 3', importTime: Date.now() },
+        metadata: {
+          name: 'Tron Account 3',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'tron:eoa',
@@ -226,7 +236,10 @@ export function buildStellarSendFixture(
       {
         id: STELLAR_SEND_ACCOUNT_IDS[0],
         address: senderAddress,
-        metadata: { name: 'Stellar Account 1', importTime: Date.now() },
+        metadata: {
+          name: 'Stellar Account 1',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'stellar:account',
@@ -238,7 +251,10 @@ export function buildStellarSendFixture(
       {
         id: STELLAR_SEND_ACCOUNT_IDS[1],
         address: recipientAddresses[0],
-        metadata: { name: 'Stellar Account 2', importTime: Date.now() },
+        metadata: {
+          name: 'Stellar Account 2',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'stellar:account',
@@ -250,7 +266,10 @@ export function buildStellarSendFixture(
       {
         id: STELLAR_SEND_ACCOUNT_IDS[2],
         address: recipientAddresses[1],
-        metadata: { name: 'Stellar Account 3', importTime: Date.now() },
+        metadata: {
+          name: 'Stellar Account 3',
+          importTime: FIXTURE_IMPORT_TIME_MS,
+        },
         options: {},
         methods: [],
         type: 'stellar:account',

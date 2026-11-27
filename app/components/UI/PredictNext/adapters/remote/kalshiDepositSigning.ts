@@ -4,8 +4,8 @@ import type {
   PredictDepositSignRequest,
 } from '../../types';
 
-/** The networks the `crypto_deposit_address` payload allows. Profile
- * version 3 allows exactly Base. */
+/** The networks the `crypto_deposit_address` payload allows. The profile
+ * allows exactly Base. */
 const DEPOSIT_NETWORKS: readonly string[] = ['base'];
 
 /** The smallest deposit the backend and the profile accept: 1 USD. */

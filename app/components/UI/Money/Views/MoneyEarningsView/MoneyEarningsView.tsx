@@ -19,6 +19,7 @@ import type {
 } from '../../types/navigation';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import EarningsTab from './EarningsTab';
+import AllocationTab from './AllocationTab';
 import MoneyEarningsFooter from './MoneyEarningsFooter';
 
 type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
@@ -28,11 +29,14 @@ type MoneyEarningsTabItem = TabItem & { key: MoneyEarningsTab };
 const getInitialActiveTab = (
   requestedTab: MoneyEarningsTab | undefined,
 ): MoneyEarningsTab =>
-  requestedTab === 'earnings' ? requestedTab : 'earnings';
+  requestedTab === 'allocation' || requestedTab === 'earnings'
+    ? requestedTab
+    : 'earnings';
 
 const isEnabledTab = (
   tab: MoneyEarningsTab,
-): tab is Extract<MoneyEarningsTab, 'earnings'> => tab === 'earnings';
+): tab is Extract<MoneyEarningsTab, 'earnings' | 'allocation'> =>
+  tab === 'earnings' || tab === 'allocation';
 
 const MoneyEarningsView = (): React.ReactElement => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -62,7 +66,6 @@ const MoneyEarningsView = (): React.ReactElement => {
         key: 'allocation',
         label: strings('money.earnings.tab_allocation'),
         content: null,
-        isDisabled: true,
         testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
       },
     ],
@@ -112,6 +115,14 @@ const MoneyEarningsView = (): React.ReactElement => {
           twClassName="flex-1"
         >
           <EarningsTab />
+        </Box>
+      ) : null}
+      {activeTab === 'allocation' ? (
+        <Box
+          testID={MoneyEarningsViewTestIds.ALLOCATION_PANEL}
+          twClassName="flex-1"
+        >
+          <AllocationTab />
         </Box>
       ) : null}
       <MoneyEarningsFooter />

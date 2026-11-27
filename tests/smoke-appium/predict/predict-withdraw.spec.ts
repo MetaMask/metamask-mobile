@@ -19,11 +19,11 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import PredictHome from '../../page-objects/Predict/PredictHome.js';
-import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
-import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
+import {
+  confirmLegacyPredictWithdraw,
+  openPredictHomeFromWallet,
+} from '../../flows/predict.flow.js';
 import {
   loginForPredictTests,
   remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
@@ -89,18 +89,11 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
         async () => {
           await loginForPredictTests();
 
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
-
-          await PredictHome.waitForScreenToDisplay({
-            description: 'Predict home should be visible',
-          });
+          await openPredictHomeFromWallet();
           await PredictHome.expectPrimaryValueVisible();
           await PredictHome.tapWithdraw();
-
-          await TransactionPayConfirmation.tapKeyboardAmount('5');
-          await TransactionPayConfirmation.tapKeyboardContinueButton();
-          await FooterActions.tapConfirmButton();
+          // Safe gas-fee-token preflight can keep confirm disabled >30s under CI load.
+          await confirmLegacyPredictWithdraw('5');
 
           await PredictHome.waitForScreenToDisplay({
             description:

@@ -162,8 +162,8 @@ const renderApp = (venue: PredictConfiguredVenue) => {
   return latestShell;
 };
 
-/** Opens the sheet, quotes $20 and approves it: the Commit is on the wire. */
-const approveOrder = async () => {
+/** Opens the sheet, quotes $20 and submits the buy: the Commit is on the wire. */
+const submitOrder = async () => {
   fireEvent.press(await screen.findByTestId(PROBE_BUTTON));
   await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
@@ -176,7 +176,6 @@ const approveOrder = async () => {
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
   );
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
-  fireEvent.press(await screen.findByTestId(PredictOrderFlowTestIds.APPROVE));
   await screen.findByTestId(PredictOrderFlowTestIds.SUBMITTING);
 };
 
@@ -209,7 +208,7 @@ describe('Predict order notifications across Active Venue changes', () => {
   it('fires the Kalshi completion notification exactly once after a switch to Polymarket mid-commit', async () => {
     const routes = stubOrderRoutes();
     const view = renderApp('kalshi');
-    await approveOrder();
+    await submitOrder();
 
     view.selectVenue('polymarket');
     // The Kalshi branch, and the sheet with it, is gone.
@@ -240,7 +239,7 @@ describe('Predict order notifications across Active Venue changes', () => {
     async (status, title) => {
       const routes = stubOrderRoutes();
       const view = renderApp('kalshi');
-      await approveOrder();
+      await submitOrder();
       view.selectVenue('polymarket');
       expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
 
@@ -276,7 +275,7 @@ describe('Predict order notifications across Active Venue changes', () => {
   it('does not repeat a completion the open Order sheet already shows', async () => {
     const routes = stubOrderRoutes();
     const view = renderApp('kalshi');
-    await approveOrder();
+    await submitOrder();
 
     await act(async () => {
       routes.answerCommit(filledReceipt);

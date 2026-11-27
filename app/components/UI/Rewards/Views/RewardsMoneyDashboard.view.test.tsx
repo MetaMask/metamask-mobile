@@ -116,11 +116,7 @@ describe('RewardsMoneyDashboard', () => {
     );
 
     // The rejected earnings summary renders the error banner.
-    const banner = await findByTestId(
-      WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR,
-      {},
-      { timeout: 3000 },
-    );
+    const banner = await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR);
     const summaryCallsBeforeRetry = callsFor(
       engine,
       'RewardsMoneyController:getEarningsSummary',
@@ -139,11 +135,7 @@ describe('RewardsMoneyDashboard', () => {
 
     // The retried earnings summary replaces the error banner.
     expect(
-      await findByTestId(
-        CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT,
-        {},
-        { timeout: 3000 },
-      ),
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$5.00');
     await waitFor(() => {
       expect(

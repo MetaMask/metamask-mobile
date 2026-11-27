@@ -10,21 +10,21 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictBuyOrderPreview } from '../../../types';
+import type { PredictOrderPreview } from '../../../types';
 
 import { OrderDetailsRows } from './OrderDetailsRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 interface OrderBreakdownSheetProps {
-  preview: PredictBuyOrderPreview;
+  preview: PredictOrderPreview;
   onClose: () => void;
 }
 
 /**
- * The buy price details sheet opened from the "To win" line, stacked above
- * the Order sheet. Matches the Legacy "Price details" sheet layout with a
- * header and close button, and renders backend-owned values verbatim via
- * OrderDetailsRows.
+ * The price details sheet opened from the "To win" line of a buy or the
+ * "Net proceeds" line of a Cash Out, stacked above the Order sheet. Matches
+ * the Legacy "Price details" sheet layout with a header and close button,
+ * and renders backend-owned values verbatim via OrderDetailsRows.
  */
 export const OrderBreakdownSheet = forwardRef<
   React.ComponentRef<typeof BottomSheet>,
