@@ -9532,7 +9532,7 @@
   },
   "app/components/UI/PredictNext/notifications/PredictOrderNotifications.view.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 3
+      "count": 1
     }
   },
   "app/components/UI/PredictNext/notifications/usePredictOrderToastRegistrations.ts": {
@@ -9868,9 +9868,6 @@
   "app/components/UI/PredictNext/views/PredictOrderFlow/PredictOrderFlow.view.test.tsx": {
     "typescript/no-base-to-string": {
       "count": 5
-    },
-    "typescript/promise-function-async": {
-      "count": 7
     }
   },
   "app/components/UI/PredictNext/views/PredictOrderFlow/internal/OrderReceiptOutcome.tsx": {
