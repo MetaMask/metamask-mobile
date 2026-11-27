@@ -1,9 +1,10 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import { getActiveSpan, spanToJSON, startSpan, type Span } from '@sentry/core';
 import NetInfo from '@react-native-community/netinfo';
 import NavigationService from '../../core/NavigationService';
 import {
   OUTGOING_REQUEST_CONNECTION_ATTRIBUTE,
   OUTGOING_REQUEST_ROUTE_ATTRIBUTE,
+  annotateNetworkRequestSpan,
   annotateOutgoingRequestSpan,
   installStandaloneOutgoingFetchSpan,
   registerOutgoingRequestAnnotation,
@@ -12,6 +13,7 @@ import {
 
 jest.mock('@sentry/core', () => ({
   getActiveSpan: jest.fn(),
+  spanToJSON: jest.fn(() => ({ data: {} })),
   startSpan: jest.fn((_options: unknown, callback: (span: Span) => unknown) =>
     callback({ setAttribute: jest.fn() } as unknown as Span),
   ),
@@ -76,6 +78,93 @@ describe('annotateOutgoingRequestSpan', () => {
     const span = createSpan();
 
     annotateOutgoingRequestSpan(span, {});
+
+    expect(span.setAttribute).not.toHaveBeenCalled();
+  });
+});
+
+describe('annotateNetworkRequestSpan', () => {
+  const mockedSpanToJSON = jest.mocked(spanToJSON);
+  const rpcUrl =
+    'https://mainnet.infura.io/v3/0123456789abcdef0123456789abcdef';
+
+  function spanFor(
+    url: string,
+    method = 'POST',
+  ): Span & { setAttribute: jest.Mock } {
+    mockedSpanToJSON.mockReturnValue({
+      data: { url, 'http.method': method },
+    } as unknown as ReturnType<typeof spanToJSON>);
+    return createSpan();
+  }
+
+  beforeEach(() => {
+    resetOutgoingRequestAnnotationForTesting();
+  });
+
+  it('sets the normalized endpoint without the key in the url', () => {
+    const span = spanFor(rpcUrl);
+
+    annotateNetworkRequestSpan(span, { input: [rpcUrl, { method: 'POST' }] });
+
+    expect(span.setAttribute).toHaveBeenCalledWith(
+      'endpoint',
+      'POST mainnet.infura.io/v3/:id',
+    );
+    expect(JSON.stringify(span.setAttribute.mock.calls)).not.toContain(
+      '0123456789abcdef',
+    );
+  });
+
+  it('sets the JSON-RPC method from the fetch body', () => {
+    const span = spanFor(rpcUrl);
+
+    annotateNetworkRequestSpan(span, {
+      input: [rpcUrl, { body: '{"jsonrpc":"2.0","method":"eth_call"}' }],
+    });
+
+    expect(span.setAttribute).toHaveBeenCalledWith('rpc.method', 'eth_call');
+  });
+
+  it('flags a repeat of the same request, and only the repeat', () => {
+    const first = spanFor(rpcUrl);
+    annotateNetworkRequestSpan(first, {
+      input: [rpcUrl, { body: '{"id":1}' }],
+    });
+    const second = spanFor(rpcUrl);
+    annotateNetworkRequestSpan(second, {
+      input: [rpcUrl, { body: '{"id":1}' }],
+    });
+
+    expect(first.setAttribute).not.toHaveBeenCalledWith(
+      'request.redundant',
+      true,
+    );
+    expect(second.setAttribute).toHaveBeenCalledWith('request.redundant', true);
+  });
+
+  it('works for XHR spans, which have no fetch hint, and adds no rpc method', () => {
+    const span = spanFor('https://api.example.com/price', 'GET');
+
+    annotateNetworkRequestSpan(span);
+
+    expect(span.setAttribute).toHaveBeenCalledWith(
+      'endpoint',
+      'GET api.example.com/price',
+    );
+    expect(span.setAttribute).not.toHaveBeenCalledWith(
+      'rpc.method',
+      expect.anything(),
+    );
+  });
+
+  it('does nothing when the span has no url', () => {
+    mockedSpanToJSON.mockReturnValue({ data: {} } as unknown as ReturnType<
+      typeof spanToJSON
+    >);
+    const span = createSpan();
+
+    annotateNetworkRequestSpan(span);
 
     expect(span.setAttribute).not.toHaveBeenCalled();
   });
@@ -220,7 +309,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
     expect(result).toBe(response);
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'POST https://example.com/price',
+        name: 'POST example.com/price',
         op: 'http.request',
       },
       expect.any(Function),
@@ -275,7 +364,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
 
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'GET https://example.com/price',
+        name: 'GET example.com/price',
         op: 'http.request',
       },
       expect.any(Function),
@@ -295,7 +384,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
 
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'PUT https://example.com/quote',
+        name: 'PUT example.com/quote',
         op: 'http.request',
       },
       expect.any(Function),

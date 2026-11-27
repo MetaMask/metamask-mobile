@@ -1511,6 +1511,34 @@ describe('setupSentry', () => {
     });
   });
 
+  it('scrubs request spans before they are sent, so no raw url or address leaves the device', async () => {
+    await setupSentry();
+
+    const { beforeSendSpan } = mockedInit.mock.calls[0][0] as unknown as {
+      beforeSendSpan: (span: {
+        op: string;
+        description: string;
+        data: Record<string, unknown>;
+      }) => { description: string; data: Record<string, unknown> };
+    };
+    const scrubbed = beforeSendSpan({
+      op: 'http.client',
+      description:
+        'GET https://nft.api.cx.metamask.io/users/0xa14f0971474281db04367be2ab9b6a8a5a9d3a21',
+      data: {
+        url: 'https://nft.api.cx.metamask.io/users/0xa14f0971474281db04367be2ab9b6a8a5a9d3a21?account=0xabc',
+        'http.query': '?account=0xabc',
+        'http.method': 'GET',
+      },
+    });
+
+    expect(scrubbed.description).toBe(
+      'GET nft.api.cx.metamask.io/users/:address',
+    );
+    expect(JSON.stringify(scrubbed)).not.toContain('0xa14f');
+    expect(JSON.stringify(scrubbed)).not.toContain('account=');
+  });
+
   describe('Spotlight', () => {
     const originalSpotlight = process.env.SENTRY_SPOTLIGHT;
     const originalDev = (global as { __DEV__?: boolean }).__DEV__;

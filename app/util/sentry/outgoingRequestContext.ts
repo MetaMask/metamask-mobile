@@ -1,5 +1,14 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import { getActiveSpan, spanToJSON, startSpan, type Span } from '@sentry/core';
 import NavigationService from '../../core/NavigationService';
+import {
+  ENDPOINT_ATTRIBUTE,
+  REDUNDANT_ATTRIBUTE,
+  RPC_METHOD_ATTRIBUTE,
+  createRedundancyTracker,
+  fingerprintRequest,
+  getEndpointLabel,
+  getRpcMethod,
+} from './networkSpanAttributes';
 
 /**
  * Attributes added to every `http.client` span when the request starts.
@@ -24,7 +33,8 @@ interface ConnectionSource {
 export interface OutgoingRequestSpanClient {
   on: (
     hook: 'beforeOutgoingRequestSpan',
-    callback: (span: Span) => void,
+    // The SDK passes an XHR or a fetch hint; a fetch hint carries the call arguments.
+    callback: (span: Span, hint?: unknown) => void,
   ) => () => void;
 }
 
@@ -38,6 +48,7 @@ let connectionListenerStarted = false;
 let connectionType: string | undefined;
 let fetchParentInstalled = false;
 let originalFetch: typeof fetch | undefined;
+let isRedundantRequest = createRedundancyTracker();
 
 /**
  * Clears module state. Test-only.
@@ -47,9 +58,51 @@ export function resetOutgoingRequestAnnotationForTesting(): void {
   connectionListenerStarted = false;
   connectionType = undefined;
   fetchParentInstalled = false;
+  isRedundantRequest = createRedundancyTracker();
   if (originalFetch) {
     global.fetch = originalFetch;
     originalFetch = undefined;
+  }
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+/** The body of a fetch call, read from the hint's call arguments. */
+function readFetchBody(hint: unknown): unknown {
+  const input = (hint as { input?: unknown } | undefined)?.input;
+  if (!Array.isArray(input)) return undefined;
+  return (input[1] as { body?: unknown } | undefined)?.body;
+}
+
+/**
+ * Adds what makes a request analysable without exposing it: the normalized
+ * endpoint, the JSON-RPC method, and whether the same call was just made.
+ * The url and method come from the span, so this covers fetch and XHR; the
+ * JSON-RPC method comes from the fetch body when there is one.
+ */
+export function annotateNetworkRequestSpan(span: Span, hint?: unknown): void {
+  const data = spanToJSON(span).data ?? {};
+  const url =
+    readString(data.url) ??
+    readString(data['url.full']) ??
+    readString(data['http.url']);
+  if (!url) return;
+
+  const method =
+    readString(data['http.method']) ??
+    readString(data['http.request.method']) ??
+    'GET';
+  const body = readFetchBody(hint);
+
+  span.setAttribute(ENDPOINT_ATTRIBUTE, getEndpointLabel(method, url));
+  const rpcMethod = getRpcMethod(body);
+  if (rpcMethod) {
+    span.setAttribute(RPC_METHOD_ATTRIBUTE, rpcMethod);
+  }
+  if (isRedundantRequest(fingerprintRequest(method, url, body))) {
+    span.setAttribute(REDUNDANT_ATTRIBUTE, true);
   }
 }
 
@@ -81,12 +134,13 @@ export function registerOutgoingRequestAnnotation(
   annotatedClients.add(client);
   ensureConnectionListener();
 
-  client.on('beforeOutgoingRequestSpan', (span) => {
+  client.on('beforeOutgoingRequestSpan', (span, hint) => {
     try {
       annotateOutgoingRequestSpan(span, {
         routeName: readRouteName(),
         connectionType,
       });
+      annotateNetworkRequestSpan(span, hint);
     } catch {
       // Annotation must not change the request.
     }
@@ -120,7 +174,9 @@ export function installStandaloneOutgoingFetchSpan(): void {
       const { method, url } = describeOutgoingFetch(input, init);
       return startSpan(
         {
-          name: url ? `${method} ${url}` : method,
+          // Normalized, never the raw url: transaction names reach Sentry as-is
+          // and per-name sample rates match on them.
+          name: url ? getEndpointLabel(method, url) : method,
           op: 'http.request',
         },
         (span) => {

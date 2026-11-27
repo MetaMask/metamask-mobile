@@ -12,6 +12,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { isFiatOrderDeclineError } from '../errorHandling/isFiatOrderDeclineError';
 import { regex } from '../regex';
 import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
+import { scrubOutgoingRequestSpan } from './networkSpanAttributes';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
@@ -776,6 +777,9 @@ export async function setupSentry(
         }
         return filtered as typeof event;
       },
+      // The SDK records the full url, query string included, on every request
+      // span. Rewrite it to the normalized endpoint before it leaves the device.
+      beforeSendSpan: (span) => scrubOutgoingRequestSpan(span),
       enabled: forceEnabled || hasConsent,
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
