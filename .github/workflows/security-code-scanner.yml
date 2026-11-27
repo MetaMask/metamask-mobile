@@ -36,13 +36,10 @@ jobs:
         tests/
         docs/
         scripts/money-movement/debug-dashboard/
-        .rnstorybook/
         '**/*.test.js'
         '**/*.test.ts'
         '**/*.test.jsx'
         '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
         '**/*.snap'
       rules-excluded: example
     secrets:

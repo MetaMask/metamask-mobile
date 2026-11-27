@@ -21,8 +21,6 @@ import KeyValueRowRoot from './KeyValueRoot/KeyValueRoot';
  * Prebuilt convenience component to format and render a key/value KeyValueRowLabel pair.
  * The KeyValueRowLabel component has props to display a tooltip and icon.
  *
- * Examples are in the Storybook: [StorybookLink](./KeyValueRow.stories.tsx)
- *
  * @param {Object} props - Component props
  * @param {KeyValueRowField} props.field - Represents the left side of the key value row pair
  * @param {KeyValueRowField} props.value - Represents the right side of the key value row pair

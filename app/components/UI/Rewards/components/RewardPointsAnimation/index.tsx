@@ -21,7 +21,6 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
 
 /**
  * Animated rewards points display with Rive fox mascot
- * Refer to app/components/UI/Rewards/components/RewardPointsAnimation/index.stories.tsx for usage examples
  *
  * @param value - Points value to display
  * @param bonusBips - Bonus multiplier in basis points (100 = 1%)

@@ -21,7 +21,6 @@ asset_files: &asset_files
 # LOW LEVEL TEST FILES
 low_level_test_files: &low_level_test_files
   - '**/*.test.{js,ts,tsx,jsx}'
-  - '**/*.stories.*'
   - '**/*.snap'
 
 # CONFIG FILES

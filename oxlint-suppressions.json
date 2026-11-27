@@ -169,11 +169,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/TabBar/TabBar.stories.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/component-library/components-temp/TabBar/TabBar.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 9
@@ -395,11 +390,6 @@
     }
   },
   "app/component-library/components/Skeleton/Skeleton.styles.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
@@ -11987,11 +11977,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/RewardPointsAnimation/index.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
@@ -15632,11 +15617,6 @@
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect.stories.tsx": {
     "typescript/promise-function-async": {
       "count": 1
     }
