@@ -30,6 +30,11 @@ export interface CreateLoginHandlerOptions {
    * Telegram (independent of the onboarding feature flag).
    */
   telegramLoginEnabled?: boolean;
+  /**
+   * Nonce bound into the provider login (Google and Apple only), to obtain a
+   * provider ID token for a caller-chosen nonce.
+   */
+  nonce?: string;
 }
 
 const getTelegramClientId = (platform: SupportedPlatforms) => {
@@ -82,6 +87,7 @@ export function createLoginHandler(
             redirectUri,
             authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         }
         case AuthConnection.Apple:
@@ -92,6 +98,7 @@ export function createLoginHandler(
             clientId: AppleWebClientId,
             authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
@@ -116,11 +123,13 @@ export function createLoginHandler(
                 redirectUri: GoogleRedirectUri,
                 authServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
+                nonce: options?.nonce,
               })
             : new AndroidGoogleLoginHandler({
                 clientId: GoogleWebGID,
                 authServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
+                nonce: options?.nonce,
               });
         case AuthConnection.Apple:
           if (!AppleWebClientId) {
