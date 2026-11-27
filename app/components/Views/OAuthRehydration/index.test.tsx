@@ -199,18 +199,14 @@ jest.mock('@react-native-community/netinfo', () => ({
 }));
 
 const mockSelectMfaUiKitEnabled = jest.fn().mockReturnValue(false);
-const mockSelectMoneyEnableMfaFlag = jest.fn().mockReturnValue(false);
+const mockSelectMfaRecoveryEnabled = jest.fn().mockReturnValue(false);
 jest.mock('../../../selectors/featureFlagController/mfaUiKit', () => ({
   selectMfaUiKitEnabled: (state: unknown) => mockSelectMfaUiKitEnabled(state),
 }));
-jest.mock('../../UI/Money/selectors/featureFlags', () => {
-  const actual = jest.requireActual('../../UI/Money/selectors/featureFlags');
-  return {
-    ...actual,
-    selectMoneyEnableMfaFlag: (state: unknown) =>
-      mockSelectMoneyEnableMfaFlag(state),
-  };
-});
+jest.mock('../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: (state: unknown) =>
+    mockSelectMfaRecoveryEnabled(state),
+}));
 
 const mockVerifyForSocialLogin = jest.fn();
 const mockListActiveSocialLoginMethods = jest.fn();
@@ -328,7 +324,7 @@ describe('OAuthRehydration', () => {
     });
     mockIsDeletingInProgress.mockReturnValue(false);
     mockSelectMfaUiKitEnabled.mockReturnValue(false);
-    mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+    mockSelectMfaRecoveryEnabled.mockReturnValue(false);
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
@@ -1567,7 +1563,26 @@ describe('OAuthRehydration', () => {
 
     const enableMfaFlags = () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
-      mockSelectMoneyEnableMfaFlag.mockReturnValue(true);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(true);
+    };
+
+    const expectLegacyUnlockOnly = ({
+      getByTestId,
+      queryByTestId,
+    }: {
+      getByTestId: (id: string) => unknown;
+      queryByTestId: (id: string) => unknown;
+    }) => {
+      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeNull();
     };
 
     /** First kit attempt (OS highest factor) cancelled → full-page picker. */
@@ -1605,10 +1620,15 @@ describe('OAuthRehydration', () => {
         }),
       );
 
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-        state: mfaState,
-      });
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
 
+      // Listing in progress: loader, not legacy.
+      expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
       expect(
         getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
       ).toBeOnTheScreen();
@@ -1677,18 +1697,25 @@ describe('OAuthRehydration', () => {
       );
     });
 
-    it('continues to password when no MFA methods are enrolled', async () => {
+    it('keeps legacy unlock when no MFA methods are enrolled', async () => {
       enableMfaFlags();
       mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-        state: mfaState,
-      });
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      // While listing: loader, not legacy.
+      expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expectLegacyUnlockOnly({ getByTestId, queryByTestId });
       });
       expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
     });
@@ -1719,23 +1746,28 @@ describe('OAuthRehydration', () => {
       );
     });
 
-    it('times out the loading gate when social auth never arrives', async () => {
+    it('stays on legacy when social auth never arrives', async () => {
       jest.useFakeTimers();
       enableMfaFlags();
 
       try {
-        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-          state: {
-            engine: {
-              backgroundState: {
-                SeedlessOnboardingController: {
-                  authConnection: undefined,
+        const { getByTestId, queryByTestId } = renderWithProvider(
+          <OAuthRehydration />,
+          {
+            state: {
+              engine: {
+                backgroundState: {
+                  SeedlessOnboardingController: {
+                    authConnection: undefined,
+                  },
                 },
               },
             },
           },
-        });
+        );
 
+        // Waiting for social auth: loader, not legacy.
+        expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
         expect(
           getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
         ).toBeOnTheScreen();
@@ -1745,11 +1777,7 @@ describe('OAuthRehydration', () => {
           jest.advanceTimersByTime(10_000);
         });
 
-        await waitFor(() => {
-          expect(
-            getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-          ).toBeOnTheScreen();
-        });
+        expectLegacyUnlockOnly({ getByTestId, queryByTestId });
       } finally {
         jest.useRealTimers();
       }
@@ -1757,7 +1785,9 @@ describe('OAuthRehydration', () => {
 
     it('unlocks from MFA password step', async () => {
       enableMfaFlags();
-      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
       mockUnlockWallet.mockImplementationOnce(
         async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
           if (options.onBeforeNavigate) {
@@ -1773,7 +1803,7 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
 
@@ -1792,12 +1822,19 @@ describe('OAuthRehydration', () => {
 
     it('exits recovery when hardware back is pressed from password', async () => {
       enableMfaFlags();
-      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      cancelHighestFactorOnce();
       const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
       });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD));
 
       await waitFor(() => {
         expect(
@@ -1812,8 +1849,14 @@ describe('OAuthRehydration', () => {
         backHandlerCallback?.();
       });
 
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      // Picker → password sets passwordFromVerify, so back returns to verify.
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
       addEventListenerSpy.mockRestore();
     });
 
@@ -1826,7 +1869,9 @@ describe('OAuthRehydration', () => {
           isSeedlessPasswordOutdated: true,
         },
       });
-      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
 
       const { getByTestId, getByText } = renderWithProvider(
         <OAuthRehydration />,
@@ -1854,9 +1899,9 @@ describe('OAuthRehydration', () => {
       );
     });
 
-    it('skips MFA when Money MFA is off even if password is outdated', async () => {
+    it('skips MFA when mfaRecovery is off even if password is outdated', async () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
-      mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -1874,17 +1919,34 @@ describe('OAuthRehydration', () => {
       );
 
       await waitFor(() => {
-        expect(
-          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
-        ).toBeOnTheScreen();
+        expectLegacyUnlockOnly({ getByTestId, queryByTestId });
       });
-      expect(
-        queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
-      ).toBeNull();
-      expect(
-        queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-      ).toBeNull();
       expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+    });
+
+    it('keeps legacy unlock for lock/outdated REHYDRATE without oauthLoginSuccess', async () => {
+      enableMfaFlags();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: true,
+          oauthLoginSuccess: false,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      await waitFor(() => {
+        expectLegacyUnlockOnly({ getByTestId, queryByTestId });
+      });
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
     });
 
     it('unlocks with the existing password after picker MFA verify', async () => {
@@ -1987,6 +2049,21 @@ describe('OAuthRehydration', () => {
         .filter((call) => call[0] === 'hardwareBackPress')
         .at(-1)?.[1] as (() => boolean) | undefined;
 
+    // RN runs listeners LIFO until one returns true. NavigationContainer may
+    // be registered after us and return false — still reach our handler.
+    const pressHardwareBack = (
+      spy: jest.SpiedFunction<typeof BackHandler.addEventListener>,
+    ) => {
+      const handlers = spy.mock.calls
+        .filter((call) => call[0] === 'hardwareBackPress')
+        .map((call) => call[1] as () => boolean);
+      for (let i = handlers.length - 1; i >= 0; i--) {
+        if (handlers[i]?.()) {
+          break;
+        }
+      }
+    };
+
     it('does not auto-start email OTP for Google or Apple', async () => {
       enableMfaFlags();
       mockListActiveSocialLoginMethods.mockResolvedValue([
@@ -2043,6 +2120,72 @@ describe('OAuthRehydration', () => {
       });
     });
 
+    it('ignores hardware back while listing enrolled MFA methods', async () => {
+      enableMfaFlags();
+      let resolveList!: (value: unknown) => void;
+      mockListActiveSocialLoginMethods.mockReturnValue(
+        new Promise((resolve) => {
+          resolveList = resolve;
+        }),
+      );
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+
+      mockGoBack.mockClear();
+      (OAuthService.resetOauthState as jest.Mock).mockClear();
+      act(() => {
+        pressHardwareBack(addEventListenerSpy);
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveList(['passkey']);
+      });
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('resets OAuth when hardware back is pressed while waiting for social auth', async () => {
+      enableMfaFlags();
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: undefined,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
+
+      mockGoBack.mockClear();
+      (OAuthService.resetOauthState as jest.Mock).mockClear();
+      act(() => {
+        pressHardwareBack(addEventListenerSpy);
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      addEventListenerSpy.mockRestore();
+    });
+
     it('ignores hardware back while arrival MFA is in flight', async () => {
       enableMfaFlags();
       let resolveVerify: (value: unknown) => void = () => undefined;
@@ -2058,19 +2201,17 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+        ).toBeOnTheScreen();
       });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
 
-      const handled: boolean[] = [];
+      mockGoBack.mockClear();
       act(() => {
-        addEventListenerSpy.mock.calls
-          .filter((call) => call[0] === 'hardwareBackPress')
-          .forEach((call) => {
-            handled.push((call[1] as () => boolean)());
-          });
+        latestHardwareBack(addEventListenerSpy)?.();
       });
 
-      expect(handled).toContain(true);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(OAuthService.resetOauthState).not.toHaveBeenCalled();
       expect(
@@ -2148,7 +2289,9 @@ describe('OAuthRehydration', () => {
 
     it('ignores hardware back while password unlock is in flight', async () => {
       enableMfaFlags();
-      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'passkey',
+      });
       let resolveUnlock: (value: unknown) => void = () => undefined;
       mockUnlockWallet.mockReturnValue(
         new Promise((resolve) => {
@@ -2163,7 +2306,7 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
       fireEvent.changeText(
@@ -2207,24 +2350,28 @@ describe('OAuthRehydration', () => {
       expect(mockVerifyForSocialLogin).toHaveBeenCalled();
     });
 
-    it('opens the password screen when listing fallback methods fails', async () => {
+    it('keeps legacy unlock when listing enrolled methods fails', async () => {
       enableMfaFlags();
       mockListActiveSocialLoginMethods.mockRejectedValueOnce(
         new Error('list failed'),
       );
 
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-        state: mfaState,
-      });
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expectLegacyUnlockOnly({ getByTestId, queryByTestId });
       });
       expect(Logger.log).toHaveBeenCalledWith(
         'OAuthRehydration: locked MFA list failed',
-        expect.objectContaining({ code: undefined }),
+        expect.objectContaining({
+          code: undefined,
+          message: 'list failed',
+        }),
       );
     });
 
