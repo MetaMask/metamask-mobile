@@ -7,6 +7,7 @@ import {
   type KycStepStatus,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { trackKycEvent } from '../utils/trackKycEvent';
@@ -421,6 +422,18 @@ describe('KalshiOnboarding', () => {
       expect(flow.submitTerms).not.toHaveBeenCalled();
     });
 
+    it('leaves the flow from the MetaMask page with the header back button', async () => {
+      const screen = render('terms');
+      await screen.findByText('Verify your identity');
+
+      fireEvent.press(
+        screen.getByTestId(KycVerifyIdentitySelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(flow.submitTerms).not.toHaveBeenCalled();
+    });
+
     it('sends every acceptance in one call after the last page', async () => {
       const screen = render('terms');
 
@@ -578,6 +591,46 @@ describe('KalshiOnboarding', () => {
         }),
       );
       expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops holding the confirm screen once the controller step reaches terms', async () => {
+      const screen = render('mfa');
+      flow.recordMfaCompleted.mockImplementationOnce(async () => {
+        const engine = Engine as unknown as { state?: unknown };
+        engine.state = {
+          VendorOnboardingController: {
+            vendors: {
+              kalshi: { step: 'terms', status: 'none', mfaCompleted: true },
+            },
+          },
+        };
+        act(() => {
+          screen.store.dispatch(
+            updateBgState({ key: 'VendorOnboardingController' }),
+          );
+        });
+        return 'terms';
+      });
+
+      fireEvent.press(primary(screen));
+
+      expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.LOADER)).toBeNull();
+    });
+
+    it('shows the error and the confirm button again when recording MFA fails', async () => {
+      flow.recordMfaCompleted.mockRejectedValueOnce(
+        new Error('kyc-api is unavailable'),
+      );
+      const screen = render('mfa');
+
+      fireEvent.press(primary(screen));
+
+      expect(
+        await screen.findByText('kyc-api is unavailable'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.LOADER)).toBeNull();
+      expect(primary(screen)).toBeOnTheScreen();
     });
 
     it('says so when MetaMask returns no token', async () => {

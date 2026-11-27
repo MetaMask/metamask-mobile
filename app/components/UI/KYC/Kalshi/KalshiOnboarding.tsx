@@ -372,15 +372,15 @@ const KalshiOnboarding = () => {
   }, [refresh, screen]);
 
   // The first two pages only advance. Everything is sent from the last page.
-  const acceptKalshiTerms = () => {
-    if (!terms || !partnerDisclaimers) {
-      return undefined;
-    }
-    const { idos, kycProvider } = groupDisclaimers(partnerDisclaimers);
+  const acceptKalshiTerms = (
+    vendorTerms: KalshiVendorTerms,
+    partners: KycCatalogDisclaimerLink[],
+  ) => {
+    const { idos, kycProvider } = groupDisclaimers(partners);
     return run(() =>
       VendorOnboardingController.submitTerms({
         vendor: VENDOR,
-        disclaimerIds: terms.vendorDisclaimerIds,
+        disclaimerIds: vendorTerms.vendorDisclaimerIds,
         idOS: idos.map(({ key, version }) => ({ key, version })),
         kycProvider: kycProvider.map(({ key, version }) => ({ key, version })),
         // Demo choice. Whether the user is asked is a product decision.
@@ -566,7 +566,10 @@ const KalshiOnboarding = () => {
           return undefined;
         case 'terms':
           return terms && partnerDisclaimers
-            ? { label: 'Accept and submit', onPress: acceptKalshiTerms }
+            ? {
+                label: 'Accept and submit',
+                onPress: () => acceptKalshiTerms(terms, partnerDisclaimers),
+              }
             : undefined;
         case 'email':
           return { label: 'Continue', onPress: submitEmail };
