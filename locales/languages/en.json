@@ -9256,6 +9256,17 @@
       "invalid": "Enter a valid email address.",
       "continue": "Continue"
     },
+    "phone_entry": {
+      "title": "Verify your phone number",
+      "description": "We’ll send a text with a one-time code for verification.",
+      "disclaimer": "We’ll only use this number to send security codes.",
+      "invalid": "Enter a valid phone number.",
+      "continue": "Continue",
+      "country_label": "Country code",
+      "country_picker_title": "Select phone country",
+      "country_search_placeholder": "Search by country",
+      "country_no_results": "No countries found for “{{searchString}}”."
+    },
     "otp": {
       "title": "Enter your verification code",
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
