@@ -24,8 +24,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, type View, type ViewStyle } from 'react-native';
+import type { View, ViewStyle } from 'react-native';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
+import { PullToRefresh } from '../../../../component-library/components-temp/PullToRefresh';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -38,7 +39,6 @@ import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
-import { useTheme } from '../../../../util/theme';
 import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
@@ -268,7 +268,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
 }) => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
-  const { colors } = useTheme();
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
@@ -413,12 +412,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           ? 'empty'
           : null;
 
+  const scrollY = useSharedValue(0);
   const setNearTopFromScroll = useCallback((value: boolean) => {
     setNearTop(value);
   }, []);
   const nearTopHandler = useAnimatedScrollHandler<ScrollContext>(
     {
       onScroll: (event, context) => {
+        scrollY.value = event.contentOffset.y;
         const nextNearTop = event.contentOffset.y <= NEAR_TOP_OFFSET_PX;
         if (context.nearTop !== nextNearTop) {
           context.nearTop = nextNearTop;
@@ -426,7 +427,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         }
       },
     },
-    [setNearTopFromScroll],
+    [scrollY, setNearTopFromScroll],
   );
   const scrollHandler = useComposedEventHandler([
     onScroll ?? null,
@@ -622,61 +623,67 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                 : FEED_ITEM_ENTRY_DURATION_MS
             }
           >
-            <AnimatedFlashList
-              ref={listRef}
-              data={enabled ? listItems : NO_LIST_ITEMS}
-              renderItem={renderItem}
-              keyExtractor={getSocialFeedListItemKey}
-              CellRendererComponent={FeedFlashListCell}
-              getItemType={getSocialFeedListItemType}
-              style={tw.style('flex-1')}
-              contentContainerStyle={listContentStyle}
-              showsVerticalScrollIndicator={false}
-              drawDistance={drawDistance}
-              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
-              onScroll={scrollHandler}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={handleScrollSettled}
-              onScrollEndDrag={handleScrollSettled}
-              onEndReached={enabled ? loadMore : undefined}
-              onEndReachedThreshold={0.5}
-              extraData={gifVisibleIds}
-              onViewableItemsChanged={onGifViewableItemsChanged}
-              viewabilityConfig={GIF_VIEWABILITY_CONFIG}
-              refreshControl={
-                <RefreshControl
-                  colors={[colors.primary.default]}
-                  tintColor={colors.icon.default}
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  progressViewOffset={refreshProgressViewOffset}
+            <PullToRefresh
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              isActive={isFocused && (isActive ?? true)}
+              scrollY={scrollY}
+              indicatorTopInset={refreshProgressViewOffset}
+              refreshControlTopInset={refreshProgressViewOffset}
+            >
+              {({ scrollProps, refreshControl }) => (
+                <AnimatedFlashList
+                  ref={listRef}
+                  data={enabled ? listItems : NO_LIST_ITEMS}
+                  renderItem={renderItem}
+                  keyExtractor={getSocialFeedListItemKey}
+                  CellRendererComponent={FeedFlashListCell}
+                  getItemType={getSocialFeedListItemType}
+                  style={tw.style('flex-1')}
+                  contentContainerStyle={listContentStyle}
+                  showsVerticalScrollIndicator={false}
+                  drawDistance={drawDistance}
+                  maintainVisibleContentPosition={
+                    MAINTAIN_VISIBLE_CONTENT_POSITION
+                  }
+                  {...scrollProps}
+                  onScroll={scrollHandler}
+                  scrollEventThrottle={16}
+                  onMomentumScrollEnd={handleScrollSettled}
+                  onScrollEndDrag={handleScrollSettled}
+                  onEndReached={enabled ? loadMore : undefined}
+                  onEndReachedThreshold={0.5}
+                  extraData={gifVisibleIds}
+                  onViewableItemsChanged={onGifViewableItemsChanged}
+                  viewabilityConfig={GIF_VIEWABILITY_CONFIG}
+                  refreshControl={refreshControl}
+                  ListHeaderComponent={header}
+                  ListEmptyComponent={
+                    enabled ? (
+                      <SocialFeedPlaceholder
+                        state={state}
+                        skeletonCount={
+                          isLowHardware || isOffline
+                            ? CONSTRAINED_SKELETON_COUNT
+                            : undefined
+                        }
+                        emptyState={emptyState}
+                      />
+                    ) : null
+                  }
+                  ListFooterComponent={
+                    enabled ? (
+                      <SocialFeedFooter
+                        state={state}
+                        isFetchingNextPage={isFetchingNextPage}
+                        onRetry={() => refresh()}
+                      />
+                    ) : null
+                  }
+                  testID={scrollTestID}
                 />
-              }
-              ListHeaderComponent={header}
-              ListEmptyComponent={
-                enabled ? (
-                  <SocialFeedPlaceholder
-                    state={state}
-                    skeletonCount={
-                      isLowHardware || isOffline
-                        ? CONSTRAINED_SKELETON_COUNT
-                        : undefined
-                    }
-                    emptyState={emptyState}
-                  />
-                ) : null
-              }
-              ListFooterComponent={
-                enabled ? (
-                  <SocialFeedFooter
-                    state={state}
-                    isFetchingNextPage={isFetchingNextPage}
-                    onRetry={() => refresh()}
-                  />
-                ) : null
-              }
-              testID={scrollTestID}
-            />
+              )}
+            </PullToRefresh>
           </FeedCellSlideDurationContext.Provider>
           <Animated.View
             pointerEvents="box-none"

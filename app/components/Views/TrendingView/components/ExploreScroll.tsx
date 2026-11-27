@@ -6,14 +6,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  RefreshControl,
   ScrollView,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../util/theme';
+import { PullToRefreshScrollView } from '../../../../component-library/components-temp/PullToRefresh';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 
 export interface ExploreViewportBounds {
@@ -41,7 +40,8 @@ export const useExploreScrollContext = () => useContext(ExploreScrollContext);
 
 interface ExploreScrollProps {
   refreshing: boolean;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
+  isActive?: boolean;
   testID?: string;
   children: React.ReactNode;
 }
@@ -53,11 +53,11 @@ interface ExploreScrollProps {
 const ExploreScroll: React.FC<ExploreScrollProps> = ({
   refreshing,
   onRefresh,
+  isActive = true,
   testID,
   children,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const floatingTabBarInset = useFloatingTabBarInset();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollSubscribersRef = useRef(new Set<ExploreScrollSubscriber>());
@@ -112,26 +112,23 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
 
   return (
     <ExploreScrollContext.Provider value={contextValue}>
-      <ScrollView
+      <PullToRefreshScrollView
         ref={scrollViewRef}
-        testID={testID}
-        style={tw.style('flex-1 pt-3')}
-        contentContainerStyle={tw.style(`pb-[${16 + floatingTabBarInset}px]`)}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={50}
-        onLayout={handleLayout}
-        onScroll={handleScroll}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.icon.default}
-            colors={[colors.primary.default]}
-          />
-        }
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        isActive={isActive}
+        scrollViewProps={{
+          testID,
+          style: tw.style('flex-1 pt-3'),
+          contentContainerStyle: tw.style(`pb-[${16 + floatingTabBarInset}px]`),
+          showsVerticalScrollIndicator: false,
+          scrollEventThrottle: 50,
+          onLayout: handleLayout,
+          onScroll: handleScroll,
+        }}
       >
         {children}
-      </ScrollView>
+      </PullToRefreshScrollView>
     </ExploreScrollContext.Provider>
   );
 };

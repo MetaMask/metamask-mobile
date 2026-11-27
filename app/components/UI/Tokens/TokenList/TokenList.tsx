@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useMemo, useEffect } from 'react';
-import { DeviceEventEmitter, RefreshControl } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../../util/theme';
+import { PullToRefresh } from '../../../../component-library/components-temp/PullToRefresh';
 import {
   selectIsTokenNetworkFilterEqualCurrentNetwork,
   selectPrivacyMode,
@@ -77,7 +77,6 @@ const TokenListComponent = ({
   refreshControl,
   hideSecondaryPriceRow = false,
 }: TokenListProps) => {
-  const { colors } = useTheme();
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -231,7 +230,7 @@ const TokenListComponent = ({
       )}
       {listFooterComponent}
     </Box>
-  ) : (
+  ) : refreshControl ? (
     <Box twClassName={'flex-1 bg-default'}>
       <FlashList
         showsVerticalScrollIndicator={false}
@@ -243,16 +242,7 @@ const TokenListComponent = ({
         keyboardDismissMode="on-drag"
         renderItem={renderTokenListItem}
         keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
-        refreshControl={
-          refreshControl ?? (
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          )
-        }
+        refreshControl={refreshControl}
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
         contentContainerStyle={
           isFullView
@@ -262,6 +252,34 @@ const TokenListComponent = ({
         ListHeaderComponent={wrapEdgeNode(listHeaderComponent, isFullView)}
         ListFooterComponent={wrapEdgeNode(listFooterComponent, isFullView)}
       />
+    </Box>
+  ) : (
+    <Box twClassName={'flex-1 bg-default'}>
+      <PullToRefresh refreshing={refreshing} onRefresh={onRefresh}>
+        {({ scrollProps, refreshControl: fallbackRefreshControl }) => (
+          <FlashList
+            showsVerticalScrollIndicator={false}
+            ref={listRef}
+            testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+            data={displayTokenKeys}
+            removeClippedSubviews={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            renderItem={renderTokenListItem}
+            keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
+            {...scrollProps}
+            refreshControl={fallbackRefreshControl}
+            extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+            contentContainerStyle={
+              isFullView
+                ? tw.style('px-4', { paddingBottom: bottomInset })
+                : undefined
+            }
+            ListHeaderComponent={wrapEdgeNode(listHeaderComponent, isFullView)}
+            ListFooterComponent={wrapEdgeNode(listFooterComponent, isFullView)}
+          />
+        )}
+      </PullToRefresh>
     </Box>
   );
 

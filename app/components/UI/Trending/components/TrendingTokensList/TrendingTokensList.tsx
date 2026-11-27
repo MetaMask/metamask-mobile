@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { ActivityIndicator, type RefreshControlProps } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
+import type { PullToRefreshScrollProps } from '../../../../component-library/components-temp/PullToRefresh';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -33,6 +34,10 @@ export interface TrendingTokensListProps {
    * Refresh control for pull-to-refresh functionality
    */
   refreshControl?: React.ReactElement<RefreshControlProps>;
+  /**
+   * Scrollable props injected by `PullToRefresh` when using the Fox Rive gesture.
+   */
+  pullToRefreshScrollProps?: PullToRefreshScrollProps;
   /**
    * Filter context for analytics tracking
    */
@@ -66,6 +71,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
     trendingTokens,
     selectedTimeOption,
     refreshControl,
+    pullToRefreshScrollProps,
     filterContext,
     onLoadMore,
     isLoadingMore,
@@ -101,6 +107,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
+        {...pullToRefreshScrollProps}
         refreshControl={refreshControl}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.5}

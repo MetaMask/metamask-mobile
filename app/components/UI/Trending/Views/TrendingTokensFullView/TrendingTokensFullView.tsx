@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
-import { View, RefreshControl } from 'react-native';
+import { View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PullToRefresh } from '../../../../../component-library/components-temp/PullToRefresh';
 import { strings } from '../../../../../../locales/i18n';
 import TrendingTokensList, {
   TrendingFilterContext,
@@ -86,7 +87,6 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     handleRefresh,
     selectedTimeOption,
     filterContext,
-    theme,
     onLoadMore,
     isLoadingMore,
     onQuickTrade,
@@ -118,23 +118,21 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 
   return (
     <View style={tw`flex-1 px-4`}>
-      <TrendingTokensList
-        trendingTokens={trendingTokens}
-        selectedTimeOption={selectedTimeOption}
-        filterContext={filterContext}
-        onLoadMore={onLoadMore}
-        isLoadingMore={isLoadingMore}
-        onQuickTrade={onQuickTrade}
-        tokenDetailsSource={tokenDetailsSource}
-        refreshControl={
-          <RefreshControl
-            colors={[theme.colors.primary.default]}
-            tintColor={theme.colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+      <PullToRefresh refreshing={refreshing} onRefresh={handleRefresh}>
+        {({ scrollProps, refreshControl }) => (
+          <TrendingTokensList
+            trendingTokens={trendingTokens}
+            selectedTimeOption={selectedTimeOption}
+            filterContext={filterContext}
+            onLoadMore={onLoadMore}
+            isLoadingMore={isLoadingMore}
+            onQuickTrade={onQuickTrade}
+            tokenDetailsSource={tokenDetailsSource}
+            pullToRefreshScrollProps={scrollProps}
+            refreshControl={refreshControl}
           />
-        }
-      />
+        )}
+      </PullToRefresh>
     </View>
   );
 };

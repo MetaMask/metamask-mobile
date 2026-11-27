@@ -318,14 +318,23 @@ describe('TokenList', () => {
     expect(queryByTestId('token-item-0x123')).toBeNull();
   });
 
-  it('calls onRefresh when refresh control is triggered', () => {
+  it('calls onRefresh when refresh control is triggered', async () => {
     const onRefresh = jest.fn();
     const { getByTestId } = renderComponent({ onRefresh, isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
 
-    refreshControl.props.onRefresh();
+    await act(async () => {
+      if (refreshControl) {
+        refreshControl.props.onRefresh();
+      } else {
+        flashList.props.onAccessibilityAction({
+          nativeEvent: { actionName: 'activate' },
+        });
+      }
+      await Promise.resolve();
+    });
 
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });

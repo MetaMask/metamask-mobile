@@ -9,7 +9,8 @@ import { useIsFocused } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { FlashListProps, ViewToken } from '@shopify/flash-list';
 import React from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text } from 'react-native';
+import { FlatList, StyleSheet, Text } from 'react-native';
+import { PullToRefreshTestIds } from '../../../../component-library/components-temp/PullToRefresh';
 import { FloatingTabBarInsetContext } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import {
   makeMutable,
@@ -49,7 +50,9 @@ const RealtimeProbe = () => {
 };
 
 jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
   playSelection: jest.fn(() => Promise.resolve()),
+  fireImpact: jest.fn(),
 }));
 
 let mockViewerProfileId: string | undefined;
@@ -652,13 +655,19 @@ describe('SocialFeedVirtualized', () => {
     });
 
     it('still tells the host about a pull-to-refresh but skips the feed refetch', async () => {
+      jest.useFakeTimers();
       const refresh = jest.fn(async () => undefined);
       const onRefresh = jest.fn();
       mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
       renderFeed({ enabled: false, onRefresh });
 
       await act(async () => {
-        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+        getList().props.onAccessibilityAction({
+          nativeEvent: { actionName: 'activate' },
+        });
+        await Promise.resolve();
+        jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+        await Promise.resolve();
       });
 
       expect(onRefresh).toHaveBeenCalledTimes(1);
@@ -688,8 +697,10 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ refreshProgressViewOffset: 120 });
 
     expect(
-      screen.UNSAFE_getByType(RefreshControl).props.progressViewOffset,
-    ).toBe(120);
+      StyleSheet.flatten(
+        screen.getByTestId(PullToRefreshTestIds.INDICATOR).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ top: 120 }));
   });
 
   it('applies contentTopInset as top padding on the list container', () => {
@@ -725,12 +736,18 @@ describe('SocialFeedVirtualized', () => {
   });
 
   it('refreshes through the refresh control', async () => {
+    jest.useFakeTimers();
     const refresh = jest.fn(async () => undefined);
     mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
     renderFeed();
 
     await act(async () => {
-      await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      getList().props.onAccessibilityAction({
+        nativeEvent: { actionName: 'activate' },
+      });
+      await Promise.resolve();
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+      await Promise.resolve();
     });
 
     expect(refresh).toHaveBeenCalledTimes(1);
@@ -752,12 +769,12 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ prepareRefresh, onRefresh });
 
     await act(async () => {
-      const refreshing = screen
-        .UNSAFE_getByType(RefreshControl)
-        .props.onRefresh();
+      getList().props.onAccessibilityAction({
+        nativeEvent: { actionName: 'activate' },
+      });
       await Promise.resolve();
       jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
-      await refreshing;
+      await Promise.resolve();
     });
 
     expect(order).toEqual(['prepare', 'refetch', 'host']);
@@ -769,50 +786,62 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ onRefresh });
 
     await act(async () => {
-      const refreshing = screen
-        .UNSAFE_getByType(RefreshControl)
-        .props.onRefresh();
+      getList().props.onAccessibilityAction({
+        nativeEvent: { actionName: 'activate' },
+      });
+      await Promise.resolve();
       jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
-      await refreshing;
+      await Promise.resolve();
     });
 
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('clears the refresh spinner when the host callback throws', async () => {
+    jest.useFakeTimers();
     const onRefresh = jest.fn(() => {
       throw new Error('analytics down');
     });
     renderFeed({ onRefresh });
-    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
 
     await act(async () => {
-      await expect(getRefreshControl().props.onRefresh()).rejects.toThrow(
-        'analytics down',
-      );
+      getList().props.onAccessibilityAction({
+        nativeEvent: { actionName: 'activate' },
+      });
+      await Promise.resolve();
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+      await Promise.resolve();
     });
 
-    expect(getRefreshControl().props.refreshing).toBe(false);
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(getList().props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: false }),
+    );
   });
 
   it('holds the refresh spinner for the minimum duration', async () => {
     jest.useFakeTimers();
     renderFeed();
-    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
 
     await act(async () => {
-      getRefreshControl().props.onRefresh();
+      getList().props.onAccessibilityAction({
+        nativeEvent: { actionName: 'activate' },
+      });
+      await Promise.resolve();
     });
     await act(async () => {
       jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS - 1);
     });
-    const refreshingBeforeMinimum = getRefreshControl().props.refreshing;
+    const refreshingBeforeMinimum = getList().props.accessibilityState?.busy;
     await act(async () => {
       jest.advanceTimersByTime(1);
+      await Promise.resolve();
     });
 
     expect(refreshingBeforeMinimum).toBe(true);
-    expect(getRefreshControl().props.refreshing).toBe(false);
+    expect(getList().props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: false }),
+    );
   });
 
   const trackRevealSteps = (
@@ -1072,13 +1101,19 @@ describe('SocialFeedVirtualized', () => {
     });
 
     it('keeps the pending post through a refresh that does not return it', async () => {
+      jest.useFakeTimers();
       arrangePendingPost();
       const refresh = jest.fn(async () => undefined);
       mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
       renderFeed({ pendingPostsSurface: 'trending' });
 
       await act(async () => {
-        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+        getList().props.onAccessibilityAction({
+          nativeEvent: { actionName: 'activate' },
+        });
+        await Promise.resolve();
+        jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+        await Promise.resolve();
       });
 
       expect(refresh).toHaveBeenCalledTimes(1);
