@@ -167,8 +167,22 @@ describe('GetStartedBanner', () => {
     ).toBeNull();
   });
 
-  it('is hidden once kyc-api has approved the user', () => {
+  it('confirms the identity is verified, without an action', () => {
     const screen = render('decision', 'approved');
+
+    expect(screen.getByText(copy('verified', 'title'))).toBeOnTheScreen();
+    expect(screen.getByText(copy('verified', 'description'))).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictHomeTestIds.GET_STARTED_BANNER));
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('offers a close button on the verified card and hides it when closed', () => {
+    const screen = render('decision', 'approved');
+
+    fireEvent.press(
+      screen.getByTestId(PredictHomeTestIds.GET_STARTED_BANNER_DISMISS),
+    );
 
     expect(
       screen.queryByTestId(PredictHomeTestIds.GET_STARTED_BANNER),

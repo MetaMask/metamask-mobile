@@ -4013,6 +4013,10 @@
         "title": "We can’t verify your identity",
         "description": "Prediction markets aren’t available to you right now.",
         "action": "Learn more"
+      },
+      "verified": {
+        "title": "Identity verified",
+        "description": "You’re all set. Start predicting what happens next."
       }
     },
     "event": {
