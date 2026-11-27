@@ -666,7 +666,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.VENUE_CHANGED}
         >
           {strings('predict_next.order_preview.venue_changed')}
@@ -681,7 +681,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.over_sell', {
@@ -695,7 +695,7 @@ export const PredictOrderFlowSheet = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            twClassName="text-center"
+            className="text-center"
             testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
           >
             {strings('predict_next.order_preview.minimum_contracts')}
@@ -707,7 +707,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('predict_next.order_preview.minimum_amount', {
             amount: MINIMUM_AMOUNT,
@@ -723,7 +723,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.ERROR}
         >
           {quoteError.message}
@@ -751,7 +751,7 @@ export const PredictOrderFlowSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PredictOrderFlowTestIds.EXPIRED}
         >
           {strings('predict_next.order_preview.expired')}
@@ -882,7 +882,7 @@ export const PredictOrderFlowSheet = ({
                 color={TextColor.SuccessDefault}
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                twClassName="shrink"
+                className="shrink"
               >
                 {intent.outcomeLabel}
               </Text>
@@ -916,7 +916,7 @@ export const PredictOrderFlowSheet = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
-                  twClassName="text-center"
+                  className="text-center"
                   testID={PredictOrderFlowTestIds.ERROR}
                 >
                   {commitError.message}
@@ -999,7 +999,7 @@ export const PredictOrderFlowSheet = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="text-center"
+                    className="text-center"
                     testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
                   >
                     {strings('predict_next.order_preview.held_contracts', {

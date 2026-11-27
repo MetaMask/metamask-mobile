@@ -142,7 +142,7 @@ export const OrderDetailsRows = ({
         testID={PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE}
         color={TextColor.TextAlternative}
         variant={TextVariant.BodySm}
-        twClassName="pt-2"
+        className="pt-2"
       >
         {strings('predict.fee_summary.fak_partial_fill_note')}
       </Text>

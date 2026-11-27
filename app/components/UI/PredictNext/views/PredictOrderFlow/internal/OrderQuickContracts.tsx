@@ -49,7 +49,7 @@ export const OrderQuickContracts = ({
         size={ButtonSize.Lg}
         isDisabled={isDisabled || Math.floor(maxContracts * fraction) < 1}
         onPress={() => onSetContracts(Math.floor(maxContracts * fraction))}
-        twClassName="h-12 flex-1 min-w-0 rounded-full"
+        className="h-12 min-w-0 flex-1 rounded-full"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {label}
@@ -62,7 +62,7 @@ export const OrderQuickContracts = ({
       size={ButtonSize.Lg}
       isDisabled={isDisabled}
       onPress={() => onSetContracts(maxContracts)}
-      twClassName="h-12 flex-1 min-w-0 rounded-full"
+      className="h-12 min-w-0 flex-1 rounded-full"
     >
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('predict_next.order_preview.max')}
