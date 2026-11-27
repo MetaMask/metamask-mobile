@@ -26,6 +26,7 @@ import { ConfirmationContextProvider } from '../../context/confirmation-context'
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
+import { useTrackSignatureRequested } from '../../hooks/signatures/useSignatureMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -172,6 +173,7 @@ const ConfirmWrapped = ({
         <ConfirmationAssetPollingProvider>
           <ConfirmationAlerts>
             <ConfirmationAlertMetrics />
+            <SignatureRequestedMetrics />
             <QRHardwareContextProvider>
               <Title />
               <ScrollView
@@ -494,6 +496,11 @@ function InfoLoader({
     </SafeAreaView>
   );
 }
+
+const SignatureRequestedMetrics = () => {
+  useTrackSignatureRequested();
+  return null;
+};
 
 function useDisableScroll() {
   const transaction = useTransactionMetadataRequest();

@@ -1,7 +1,7 @@
 import type { Hex } from '@metamask/utils';
 import { DecodingData } from '@metamask/signature-controller';
 import { SecurityAlertResponse } from '@metamask/transaction-controller';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import getDecimalChainId from '../../../../../util/networks/getDecimalChainId';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -123,9 +123,27 @@ export const useSignatureMetrics = () => {
     [analyticsParams, trackEvent, createEventBuilder],
   );
 
-  useEffect(() => {
-    captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REQUESTED);
-  }, [captureSignatureMetrics]);
-
   return { captureSignatureMetrics };
+};
+
+/** Tracks `SIGNATURE_REQUESTED` once per signature request id. */
+export const useTrackSignatureRequested = () => {
+  const signatureRequest = useSignatureRequest();
+  const { captureSignatureMetrics } = useSignatureMetrics();
+  const trackedRequestIdRef = useRef<string | undefined>(undefined);
+  const { id, type } = signatureRequest ?? {};
+
+  useEffect(() => {
+    if (
+      !id ||
+      !type ||
+      !isSignatureRequest(type) ||
+      trackedRequestIdRef.current === id
+    ) {
+      return;
+    }
+
+    trackedRequestIdRef.current = id;
+    captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REQUESTED);
+  }, [captureSignatureMetrics, id, type]);
 };
