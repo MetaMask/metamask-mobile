@@ -76,7 +76,7 @@ const HeaderStandardGlass = ({
       <HeaderStandard
         {...props}
         onLayout={onLayout}
-        className={headerClassName}
+        twClassName={headerClassName}
       />
     );
   }
@@ -91,7 +91,7 @@ const HeaderStandardGlass = ({
     >
       <HeaderStandard
         {...props}
-        className={headerClassName}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

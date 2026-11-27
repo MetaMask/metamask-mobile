@@ -41,7 +41,7 @@ const HeaderStandardAnimatedGlass = ({
       <HeaderStandardAnimated
         {...props}
         onLayout={onLayout}
-        className={headerClassName}
+        twClassName={headerClassName}
       />
     );
   }
@@ -57,7 +57,7 @@ const HeaderStandardAnimatedGlass = ({
     >
       <HeaderStandardAnimated
         {...props}
-        className={headerClassName}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />
