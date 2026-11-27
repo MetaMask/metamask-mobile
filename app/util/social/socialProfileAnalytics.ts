@@ -8,7 +8,8 @@ const SOCIAL_PROFILE_CREATED_AT_KEY = 'socialProfileCreatedAt';
  */
 export const hasSocialProfileFromLinkedAddress = (
   linkedAddress: string | null | undefined,
-): boolean => Boolean(linkedAddress?.trim());
+): boolean =>
+  typeof linkedAddress === 'string' && linkedAddress.trim().length > 0;
 
 /** When the Social profile was first created on this install, if known. */
 export const getSocialProfileCreatedAt = (): string | undefined =>

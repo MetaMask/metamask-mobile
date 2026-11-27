@@ -138,6 +138,11 @@ const renderCta = (
     />,
   );
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => undefined,
+}));
+
 describe('TraderPositionBuyCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -347,6 +352,10 @@ describe('TraderPositionBuyCta', () => {
       fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
 
       expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trigger: 'position_trade',
+          tradeType: 'spot',
+        }),
         expect.any(Function),
       );
       expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();

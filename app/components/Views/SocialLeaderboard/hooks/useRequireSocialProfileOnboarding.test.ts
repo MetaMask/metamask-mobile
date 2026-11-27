@@ -1,6 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { SocialEvent } from '../analytics/socialEvents';
+import { getPendingOnboardingTrigger } from '../ProfileOnboarding/pendingOnboardingTrigger';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
@@ -15,6 +17,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const GATE = { trigger: SocialEvent.OnboardingTrigger.FOLLOW };
 const LINKED_ADDRESS = '0x1111111111111111111111111111111111111111';
 
 const mockLinkedAddress = (linkedAddress: string | null) => {
@@ -37,7 +40,7 @@ describe('useRequireSocialProfileOnboarding', () => {
     mockLinkedAddress(null);
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 
-    const canContinue = result.current.ensureSocialProfileOnboarding();
+    const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(false);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -47,7 +50,7 @@ describe('useRequireSocialProfileOnboarding', () => {
     mockLinkedAddress('  ');
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 
-    const canContinue = result.current.ensureSocialProfileOnboarding();
+    const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(false);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -60,7 +63,7 @@ describe('useRequireSocialProfileOnboarding', () => {
       useRequireSocialProfileOnboarding({ runNavigation }),
     );
 
-    const canContinue = result.current.ensureSocialProfileOnboarding();
+    const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(false);
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -71,9 +74,32 @@ describe('useRequireSocialProfileOnboarding', () => {
   it('returns true without navigation when a linked wallet exists', () => {
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 
-    const canContinue = result.current.ensureSocialProfileOnboarding();
+    const canContinue = result.current.ensureSocialProfileOnboarding(GATE);
 
     expect(canContinue).toBe(true);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('records the gated trigger for onboarding and reports the block before navigating', () => {
+    mockLinkedAddress(null);
+    const onBlocked = jest.fn();
+    const { result } = renderHook(() =>
+      useRequireSocialProfileOnboarding({ onBlocked }),
+    );
+
+    result.current.ensureSocialProfileOnboarding({
+      trigger: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      tradeType: SocialEvent.Trade.SPOT,
+    });
+
+    expect(onBlocked).toHaveBeenCalledWith({
+      blocked_action: SocialEvent.OnboardingTrigger.COPY_TRADE,
+      blocked_reason: SocialEvent.BlockedReason.PROFILE_ONBOARDING,
+      trade_type: SocialEvent.Trade.SPOT,
+    });
+    expect(getPendingOnboardingTrigger()).toBe(
+      SocialEvent.OnboardingTrigger.COPY_TRADE,
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 });

@@ -59,7 +59,7 @@ jest.mock(
 
 const mockEnsureSocialTermsAccepted = jest.fn<
   boolean,
-  [unknown, (() => void)?]
+  [unknown, { onAccepted?: () => void }?]
 >(() => true);
 jest.mock(
   '../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
@@ -67,8 +67,10 @@ jest.mock(
     ...jest.requireActual(
       '../../../Views/SocialLeaderboard/terms/__mocks__/socialTermsAcceptance',
     ),
-    ensureSocialTermsAccepted: (navigate: unknown, onAccepted?: () => void) =>
-      mockEnsureSocialTermsAccepted(navigate, onAccepted),
+    ensureSocialTermsAccepted: (
+      navigate: unknown,
+      options?: { onAccepted?: () => void },
+    ) => mockEnsureSocialTermsAccepted(navigate, options),
   }),
 );
 
@@ -1112,7 +1114,7 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
-      mockEnsureSocialTermsAccepted.mock.calls[0][1]?.();
+      mockEnsureSocialTermsAccepted.mock.calls[0][1]?.onAccepted?.();
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(

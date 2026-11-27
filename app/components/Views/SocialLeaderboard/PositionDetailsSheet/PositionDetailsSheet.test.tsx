@@ -69,9 +69,10 @@ const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
-const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
-  () => true,
-);
+const mockEnsureSocialTermsAccepted = jest.fn<
+  boolean,
+  [unknown, (() => void)?]
+>(() => true);
 let mockParams: PositionDetailsSheetParams;
 let mockSheetData: PositionSheetData;
 let mockProfile: { profileId: string; linkedAccountAddress?: string } | null;
@@ -183,10 +184,16 @@ jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: ({
     runNavigation,
   }: { runNavigation?: RunNavigation } = {}): {
-    ensureSocialTermsAccepted: (onAccepted?: () => void) => boolean;
+    ensureSocialTermsAccepted: (
+      gate: unknown,
+      onAccepted?: () => void,
+    ) => boolean;
   } => ({
-    ensureSocialTermsAccepted: (onAccepted?: () => void): boolean => {
-      const canContinue = mockEnsureSocialTermsAccepted(onAccepted);
+    ensureSocialTermsAccepted: (
+      gate: unknown,
+      onAccepted?: () => void,
+    ): boolean => {
+      const canContinue = mockEnsureSocialTermsAccepted(gate, onAccepted);
       if (!canContinue) {
         runNavigation?.(() => mockNavigate('SocialProfileOnboardingView'));
       }
@@ -1601,7 +1608,7 @@ describe('PositionDetailsSheet', () => {
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
       );
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
-      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][1]?.());
 
       expect(mockOpenPerpsOrder).toHaveBeenCalledTimes(1);
     });
@@ -1722,7 +1729,7 @@ describe('PositionDetailsSheet', () => {
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
       );
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
-      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][1]?.());
 
       expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
         direction: 'long',

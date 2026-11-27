@@ -350,7 +350,7 @@ jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
 }));
 
 const mockEnsureSocialTermsAccepted = jest.fn(
-  (_onAccepted?: () => void) => true,
+  (_gate: unknown, _onAccepted?: () => void) => true,
 );
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
@@ -1053,7 +1053,7 @@ describe('TraderPositionView', () => {
         Routes.PERPS.ROOT,
         expect.anything(),
       );
-      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][1]?.());
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
