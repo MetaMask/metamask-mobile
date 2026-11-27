@@ -40,6 +40,8 @@ const toQuantity = (option: string) =>
 const toTrackPercent = (quantity: number) =>
   ((quantity - minPackQuantity) / (mockMaxPackQuantity - minPackQuantity)) *
   100;
+const payTokenIcon = { uri: mockPayToken.iconUrl };
+
 const playGrip = () => fireImpact(ImpactMoment.SliderGrip);
 const playTick = () => fireImpact(ImpactMoment.SliderTick);
 
@@ -160,7 +162,7 @@ export function BuySheetView({ name, priceUsd, onDismiss }: Props) {
             <View className="flex-row items-center gap-2">
               <AvatarToken
                 name={mockPayToken.symbol}
-                src={{ uri: mockPayToken.iconUrl }}
+                src={payTokenIcon}
                 size={AvatarTokenSize.Xs}
               />
               <Text variant={TextVariant.BodyMd}>
