@@ -13,6 +13,14 @@ import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
 
+import {
+  COLLECTIBLES_STORAGE_KEY,
+  UNREADABLE_COLLECTIBLES_JOURNAL,
+  readCollectiblesJournal,
+  removeCollectiblesJournal,
+  writeCollectiblesJournal,
+} from './collectiblesPersistence';
+
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
 
@@ -24,6 +32,7 @@ const STORAGE_THROTTLE_DELAY = 200;
  */
 const createStorage = (enableAsyncStorageFallback = false) => ({
   async getItem(key: string) {
+    if (key === COLLECTIBLES_STORAGE_KEY) return readCollectiblesJournal();
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
@@ -52,6 +61,8 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 
   async setItem(key: string, value: string) {
+    if (key === COLLECTIBLES_STORAGE_KEY)
+      return writeCollectiblesJournal(value);
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
@@ -64,6 +75,7 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 
   async removeItem(key: string) {
+    if (key === COLLECTIBLES_STORAGE_KEY) return removeCollectiblesJournal();
     try {
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
@@ -104,7 +116,10 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
-            const data = await FilesystemStorage.getItem(key);
+            const data =
+              key === COLLECTIBLES_STORAGE_KEY
+                ? await readCollectiblesJournal()
+                : await FilesystemStorage.getItem(key);
             if (data) {
               const parsedData = JSON.parse(data);
 
@@ -130,7 +145,9 @@ export const ControllerStorage = {
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,
             });
-            // Don't include controllers with errors in backgroundState
+            if (key === COLLECTIBLES_STORAGE_KEY) {
+              backgroundState[controllerName] = UNREADABLE_COLLECTIBLES_JOURNAL;
+            }
           }
         }),
       );

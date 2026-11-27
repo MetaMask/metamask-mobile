@@ -4,11 +4,7 @@ This branch adds Pack Partner to the existing Collectibles module. Tapping the h
 
 ## Review stack
 
-The Pack Partner integration is extracted in four dependent steps, each with its
-own tests: **2.1 client and contracts**, **2.2 data service and Engine registration**,
-**2.3 provider and controller journal**, **2.4 hooks and selectors**. The original
-`collectibles-2-pack-partner-provider` branch is retained for comparison. No product
-screen, Social service or Collectibles API service belongs to these steps.
+Engine registers the Pack Partner, Collectibles API and Social API data services. The existing Pack Partner client is also injected into the controller-owned provider. Their registration does not start requests. The remaining provider, query and hook implementations are staged in `collectibles-rest`.
 
 ## Naming convention
 
@@ -54,24 +50,13 @@ at the client boundary before being returned to a caller.
 Submission responses also require a non-blank signature, even when `success`
 is omitted; `success: false` still rejects the submission.
 
-The controller remains the empty initialization shell. Transaction orchestration
-and its journal arrive in step 2.3; React hooks and balance reads arrive in 2.4.
-The homepage entry and placeholder screen are unchanged.
-
 ## Controller registration and persistence
 
-`CollectiblesController` extends `BaseController` with an empty state. Engine
-creates its messenger and controller, passes `persistedState.CollectiblesController`
-(or the default state), and exposes it through `Engine.context` and `Engine.state`.
-The standard `getState` action and `stateChanged` event connect it to Redux and
-the existing controller storage discovery. Wallet reset calls `clearState`.
-Controller state is excluded from exported state logs.
+Engine injects the workflow client and restores the controller journal for the active network. The journal keeps operations and opening memos separate by account and network. The controller metadata removes transaction bytes from disk and excludes wallet activity from exported diagnostics. Migration 166 preserves the prototype journal if the wallet has no Collectibles state yet.
 
-This preserves the standard persistence and restoration wiring. There are no
-persisted fields yet: `metadata` is empty, so `EngineService` has nothing to write
-to disk. Future state fields must declare their persistence metadata and default
-values. Do not introduce a custom storage implementation, immediate disk flush,
-or migration from the unreleased Gacha prototype.
+EngineService queues background writes. Migration writes and explicit checkpoints use the same serialized filesystem writer. A checkpoint resolves after the native write finishes. When the primary file is invalid, storage tries its backup. EngineService skips background writes for quarantined state. Wallet reset drains journal and service cleanup before destroying the messengers.
+
+The Pack Partner service owns the collection snapshot in its StorageService namespace. The three data-service query caches are cleared at wallet reset. Feature tests reuse the [Pack Partner harness](../../../../tests/integration/harnesses/pack-partner/STRATEGY.md) and the [discovery harness](../../../../tests/integration/harnesses/collectibles-discovery/STRATEGY.md).
 
 Implementation references:
 

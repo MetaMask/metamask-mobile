@@ -183,6 +183,9 @@ export type PackPartnerErrorState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PackPartnerPackOperation = {
   memo: string;
+  signature?: string;
+  /** Confirmed Turbo payout in USDC base units when there is no NFT to reveal. */
+  turboPayoutAmount?: string;
   /** Ordered memos of the purchase; also present for a single reviewed pack. */
   batchMemos?: string[];
   /** PackPartner yoloId, or the single-pack memo. */

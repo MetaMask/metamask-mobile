@@ -1,3 +1,4 @@
+import { scheduleCollectiblesWrite } from '../../store/persistConfig/collectiblesPersistence';
 import { waitFor } from '@testing-library/react-native';
 import { EngineService } from './EngineService';
 import ReduxService, { type ReduxStore } from '../redux';
@@ -79,6 +80,10 @@ jest.mock('../redux', () => ({
 
 jest.mock('../../store/getPersistentState/getPersistentState', () => ({
   getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
+}));
+
+jest.mock('../../store/persistConfig/collectiblesPersistence', () => ({
+  scheduleCollectiblesWrite: jest.fn(),
 }));
 
 // Mock ControllerStorage and createPersistController
@@ -876,6 +881,49 @@ describe('EngineService', () => {
 
       // Should only subscribe to controllers with persistent state
       expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
+    });
+
+    it('preserves an unreadable Collectibles journal until reset releases it', async () => {
+      const constants = jest.requireMock<{
+        BACKGROUND_STATE_CHANGE_EVENT_NAMES: readonly string[];
+      }>('../Engine/constants');
+      const event = 'CollectiblesController:stateChanged';
+      const events = jest.replaceProperty(
+        constants,
+        'BACKGROUND_STATE_CHANGE_EVENT_NAMES',
+        [...constants.BACKGROUND_STATE_CHANGE_EVENT_NAMES, event],
+      );
+      const collectibles = {
+        state: {},
+        metadata: { packPartner: { persist: true } },
+        isJournalQuarantined: true,
+      };
+      Object.defineProperty(Engine, 'context', {
+        value: { ...Engine.context, CollectiblesController: collectibles },
+        configurable: true,
+      });
+
+      try {
+        await engineService.start();
+        const calls = jest.mocked(Engine.controllerMessenger.subscribe).mock
+          .calls;
+        // Redux subscribes first, filesystem persistence subscribes last.
+        const subscription = calls.filter(([name]) => name === event).at(-1);
+        if (!subscription)
+          throw new Error('Missing Collectibles persistence listener');
+        const publish = subscription[1] as (state: unknown) => Promise<void>;
+
+        await publish(collectibles.state);
+
+        expect(scheduleCollectiblesWrite).not.toHaveBeenCalled();
+        collectibles.isJournalQuarantined = false;
+        await publish(collectibles.state);
+        expect(scheduleCollectiblesWrite).toHaveBeenCalledWith({
+          filtered: 'state',
+        });
+      } finally {
+        events.restore();
+      }
     });
 
     it('persists controller state changes to filesystem', async () => {

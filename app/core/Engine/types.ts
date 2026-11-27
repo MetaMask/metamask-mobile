@@ -348,6 +348,21 @@ import {
   type CollectiblesControllerEvents,
   type CollectiblesControllerState,
 } from '../../components/UI/Collectibles/controllers/CollectiblesController';
+import type {
+  PackPartnerDataService,
+  PackPartnerDataServiceActions,
+  PackPartnerDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/PackPartnerDataService';
+import type {
+  CollectiblesApiDataService,
+  CollectiblesApiDataServiceActions,
+  CollectiblesApiDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import type {
+  CollectiblesSocialApiDataService,
+  CollectiblesSocialApiDataServiceActions,
+  CollectiblesSocialApiDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -735,6 +750,9 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | CollectiblesControllerActions
+  | PackPartnerDataServiceActions
+  | CollectiblesApiDataServiceActions
+  | CollectiblesSocialApiDataServiceActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
@@ -854,6 +872,9 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | CollectiblesControllerEvents
+  | PackPartnerDataServiceEvents
+  | CollectiblesApiDataServiceEvents
+  | CollectiblesSocialApiDataServiceEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
@@ -1004,6 +1025,9 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   CollectiblesController: CollectiblesController;
+  PackPartnerDataService: PackPartnerDataService;
+  CollectiblesApiDataService: CollectiblesApiDataService;
+  CollectiblesSocialApiDataService: CollectiblesSocialApiDataService;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
@@ -1201,6 +1225,9 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CollectiblesController'
+  | 'PackPartnerDataService'
+  | 'CollectiblesApiDataService'
+  | 'CollectiblesSocialApiDataService'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'

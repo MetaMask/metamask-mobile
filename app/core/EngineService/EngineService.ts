@@ -2,6 +2,7 @@ import { unstable_batchedUpdates as batchFunc } from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
+import { scheduleCollectiblesWrite } from '../../store/persistConfig/collectiblesPersistence';
 import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
@@ -269,7 +270,17 @@ export class EngineService {
           }
 
           // Create debounced persist function (reused for both initial and ongoing persistence)
-          const persistController = createPersistController(200);
+          const persistController =
+            controllerName === 'CollectiblesController'
+              ? (state: unknown) => {
+                  if (
+                    !UntypedEngine.context.CollectiblesController
+                      .isJournalQuarantined
+                  ) {
+                    scheduleCollectiblesWrite(state);
+                  }
+                }
+              : createPersistController(200);
 
           // Check if state changed during Engine.init()
           // Compare 1 level deep - check if any property of the filtered state differs
