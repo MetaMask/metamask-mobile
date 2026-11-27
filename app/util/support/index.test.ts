@@ -7,6 +7,7 @@ import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import {
   selectCardActiveProviderId,
   selectCardCountryOfResidence,
+  selectCardHomeData,
   selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../selectors/cardController';
@@ -42,6 +43,7 @@ jest.mock('../Logger', () => ({
 jest.mock('../../selectors/cardController', () => ({
   selectCardActiveProviderId: jest.fn(),
   selectCardCountryOfResidence: jest.fn(),
+  selectCardHomeData: jest.fn(),
   selectCardProviderUserId: jest.fn(),
   selectIsCardAuthenticated: jest.fn(),
 }));
@@ -55,14 +57,23 @@ const mockSignedInToCard = (
     flag?: boolean;
     authenticated?: boolean;
     region?: string | null;
+    hasCard?: boolean;
   } = {},
 ) => {
-  const { flag = true, authenticated = true, region = 'GB' } = overrides;
+  const {
+    flag = true,
+    authenticated = true,
+    region = 'GB',
+    hasCard = true,
+  } = overrides;
   jest.mocked(selectIsCardAuthenticated).mockReturnValue(authenticated);
   jest.mocked(selectCardIntercomSupportEnabled).mockReturnValue(flag);
   jest.mocked(selectCardProviderUserId).mockReturnValue('cardholder-1');
   jest.mocked(selectCardActiveProviderId).mockReturnValue('baanx');
   jest.mocked(selectCardCountryOfResidence).mockReturnValue(region);
+  jest
+    .mocked(selectCardHomeData)
+    .mockReturnValue(hasCard ? ({ card: { id: 'card-1' } } as never) : null);
 };
 
 const CARD_PARAMS =
@@ -101,6 +112,14 @@ describe('appendCardSupportParams', () => {
 
     expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
       `${METAMASK_SUPPORT_URL}&${CARD_PARAMS}`,
+    );
+  });
+
+  it('omits card_region when the user has no card', () => {
+    mockSignedInToCard({ hasCard: false });
+
+    expect(appendCardSupportParams(METAMASK_SUPPORT_URL)).toBe(
+      `${METAMASK_SUPPORT_URL}&provider_user_id=cardholder-1&provider_name=baanx`,
     );
   });
 

@@ -11,6 +11,7 @@ import Routes from '../../constants/navigation/Routes';
 import {
   selectCardActiveProviderId,
   selectCardCountryOfResidence,
+  selectCardHomeData,
   selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../selectors/cardController';
@@ -49,8 +50,9 @@ export const buildSupportUrl = (
 /**
  * Appends the Card identity (`provider_user_id`, `provider_name`, `card_region`)
  * to a support URL when the user is signed in to Card and the Card Intercom
- * support flag is on. Returns the URL unchanged otherwise, including when the
- * store is not initialized yet.
+ * support flag is on. `card_region` is left off when home data has no card.
+ * Returns the URL unchanged otherwise, including when the store is not
+ * initialized yet.
  *
  * @param url - Support URL to enrich.
  * @returns Support URL with Card params appended when applicable.
@@ -64,11 +66,12 @@ export const appendCardSupportParams = (url: string): string => {
     ) {
       return url;
     }
+    const hasCard = selectCardHomeData(state)?.card != null;
     return buildCardSupportUrl(
       {
         providerUserId: selectCardProviderUserId(state),
         providerName: selectCardActiveProviderId(state),
-        cardRegion: selectCardCountryOfResidence(state),
+        cardRegion: hasCard ? selectCardCountryOfResidence(state) : null,
       },
       url,
     );
