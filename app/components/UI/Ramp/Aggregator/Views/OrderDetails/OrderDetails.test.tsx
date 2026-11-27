@@ -301,6 +301,31 @@ describe('OrderDetails', () => {
       expect(screen.queryByText('€2.50')).not.toBeOnTheScreen();
       expect(screen.queryAllByText('...')).toHaveLength(ellipsesWithFee + 1);
     });
+
+    it('shows a zero buy fee as €0.00 instead of an ellipsis', () => {
+      render(OrderDetails, [{ ...eurOrder, cryptoFee: 0 }]);
+
+      expect(screen.getByText('€0.00')).toBeOnTheScreen();
+    });
+
+    it('shows the sell fee even when cryptoFee is 0', () => {
+      render(OrderDetails, [
+        {
+          ...eurOrder,
+          orderType: OrderOrderTypeEnum.Sell,
+          cryptoFee: 0,
+          data: { ...eurOrder.data, totalFeesFiat: 2.5 },
+        },
+      ]);
+
+      expect(screen.getByText('€2.50')).toBeOnTheScreen();
+    });
+
+    it('shows an empty-string fee as an ellipsis, not €0.00', () => {
+      render(OrderDetails, [{ ...eurOrder, cryptoFee: '' }]);
+
+      expect(screen.queryByText('€0.00')).not.toBeOnTheScreen();
+    });
   });
 
   it('renders a cancelled order', () => {
