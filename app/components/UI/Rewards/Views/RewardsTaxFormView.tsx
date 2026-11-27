@@ -185,7 +185,7 @@ const RewardsTaxFormView: React.FC = () => {
       style={tw.style('flex-1', { backgroundColor: TAX_FORM_CANVAS })}
       testID={REWARDS_TAX_FORM_VIEW_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="items-end px-4 pt-4">
+      <Box className="items-end px-4 pt-4">
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Md}

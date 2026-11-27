@@ -64,10 +64,10 @@ const VipTransactionRowSkeleton: React.FC = () => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full py-3 gap-3"
+      className="w-full py-3 gap-3"
     >
       <Skeleton style={tw.style('h-10 w-10 rounded-full')} />
-      <Box twClassName="flex-1 gap-2">
+      <Box className="flex-1 gap-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -163,7 +163,7 @@ const RewardsVipTransactionsView: React.FC = () => {
   const renderItem = useCallback(({ item }: { item: TransactionListItem }) => {
     if (item.kind === 'date-header') {
       return (
-        <Box twClassName="px-4 pt-4 pb-1">
+        <Box className="px-4 pt-4 pb-1">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {item.label}
           </Text>
@@ -172,7 +172,7 @@ const RewardsVipTransactionsView: React.FC = () => {
     }
 
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         {item.transaction.type === 'SWAP' ? (
           <VipSwapTransactionRow
             transaction={item.transaction}
@@ -214,7 +214,7 @@ const RewardsVipTransactionsView: React.FC = () => {
       return null;
     }
     return (
-      <Box twClassName="py-4 items-center">
+      <Box className="py-4 items-center">
         <ActivityIndicator />
       </Box>
     );
@@ -225,7 +225,7 @@ const RewardsVipTransactionsView: React.FC = () => {
   const renderEmpty = useCallback(() => {
     if (error) {
       return (
-        <Box twClassName="px-4 pt-2">
+        <Box className="px-4 pt-2">
           <RewardsErrorBanner
             title={strings('rewards.vip_transactions.error_title')}
             description={strings('rewards.vip_transactions.error_description')}
@@ -242,10 +242,10 @@ const RewardsVipTransactionsView: React.FC = () => {
     if (isInitialLoadPending) {
       return (
         <Box
-          twClassName="px-4 pb-2"
+          className="px-4 pb-2"
           testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.SKELETON}
         >
-          <Box twClassName="pt-4 pb-1">
+          <Box className="pt-4 pb-1">
             <Skeleton style={tw.style('h-3 w-24 rounded-lg')} />
           </Box>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -257,11 +257,11 @@ const RewardsVipTransactionsView: React.FC = () => {
 
     // Settled empty list only.
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.EMPTY}
         >
           {strings('rewards.vip_transactions.empty_title')}
@@ -276,11 +276,11 @@ const RewardsVipTransactionsView: React.FC = () => {
         onPress={openTypeSelector}
         testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.TYPE_SELECTOR}
       >
-        <Box twClassName="px-4 py-3">
+        <Box className="px-4 py-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="self-start border border-border-default rounded-full px-3 py-1 gap-1"
+            className="self-start border border-border-default rounded-full px-3 py-1 gap-1"
           >
             <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
               {selectedTypeLabel}

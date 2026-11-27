@@ -68,12 +68,12 @@ const CampaignLeaderboardStatsHeader: React.FC<
   const showSubtextRow = showSubtext || showComputedAt;
 
   return (
-    <Box twClassName="gap-4" testID={testIDs.CONTAINER}>
+    <Box className="gap-4" testID={testIDs.CONTAINER}>
       <Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <Text variant={TextVariant.HeadingMd}>{title}</Text>
           {isPending && !isCampaignComplete && (
@@ -90,7 +90,7 @@ const CampaignLeaderboardStatsHeader: React.FC<
         </Box>
 
         {isLoading ? (
-          <Box twClassName="gap-2 mt-2 mb-1">
+          <Box className="gap-2 mt-2 mb-1">
             <Skeleton style={tw.style('h-14 w-28 rounded')} />
             {showSubtextRow && (
               <Skeleton style={tw.style('h-4 w-full max-w-xs rounded')} />
@@ -109,9 +109,9 @@ const CampaignLeaderboardStatsHeader: React.FC<
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="w-full"
+                className="w-full"
               >
-                <Box twClassName="min-w-0 flex-1">
+                <Box className="min-w-0 flex-1">
                   {showSubtext && (
                     <Text
                       variant={TextVariant.BodySm}

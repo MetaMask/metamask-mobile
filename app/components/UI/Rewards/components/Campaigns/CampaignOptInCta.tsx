@@ -103,7 +103,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
 
   if (!isGeoLoading && isGeoRestricted) {
     return (
-      <Box twClassName="p-4 mb-2">
+      <Box className="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -120,7 +120,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
 
   return (
     <>
-      <Box twClassName="p-4 mb-2">
+      <Box className="p-4 mb-2">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

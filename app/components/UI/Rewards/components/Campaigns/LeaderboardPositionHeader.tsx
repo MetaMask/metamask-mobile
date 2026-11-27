@@ -70,7 +70,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
 
   return (
     <Box
-      twClassName="gap-3"
+      className="gap-3"
       testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.CONTAINER}
     >
       {/* Your rank heading + large rank value */}
@@ -78,7 +78,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.ondo_campaign_stats.label_your_rank')}
@@ -123,9 +123,9 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="mt-1 w-full"
+                className="mt-1 w-full"
               >
-                <Box twClassName="min-w-0 flex-1">
+                <Box className="min-w-0 flex-1">
                   {showReturn && returnValue && (
                     <Text
                       variant={TextVariant.BodySm}
@@ -159,7 +159,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
             testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.PRIZE_POOL_VALUE}
           />
         ) : (
-          <Box twClassName="flex-1" />
+          <Box className="flex-1" />
         )}
       </Box>
     </Box>

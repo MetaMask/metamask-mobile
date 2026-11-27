@@ -328,14 +328,14 @@ const OndoCampaignDetailsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {isCampaignsLoading && !campaign && (
-            <Box twClassName="px-4 pt-4 gap-4">
+            <Box className="px-4 pt-4 gap-4">
               <Skeleton style={tw.style('h-48 rounded-xl')} />
               <Skeleton style={tw.style('h-32 rounded-xl')} />
             </Box>
           )}
 
           {!isCampaignsLoading && hasCampaignsError && !campaign && (
-            <Box twClassName="px-4 pt-4">
+            <Box className="px-4 pt-4">
               <RewardsErrorBanner
                 title={strings('rewards.campaigns_view.error_title')}
                 description={strings(
@@ -356,7 +356,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
-                  <Box twClassName="p-4">
+                  <Box className="p-4">
                     <CampaignHowItWorks
                       howItWorks={
                         campaign.details?.howItWorks as CampaignHowItWorksData
@@ -367,7 +367,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               )}
 
               {showCampaignEndedStats && (
-                <Box twClassName="p-4">
+                <Box className="p-4">
                   <OndoCampaignEndedStats
                     leaderboard={leaderboard}
                     totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
@@ -383,7 +383,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showStatsSummarySection && (
                 <>
-                  <Box twClassName="p-4">
+                  <Box className="p-4">
                     <Pressable
                       testID="ondo-campaign-details-stats-pressable"
                       onPress={() =>
@@ -399,7 +399,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-3"
+                        className="gap-2 mb-3"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_stats.title')}
@@ -441,12 +441,12 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showPortfolioSection && (
                 <>
-                  <Box twClassName="p-4">
+                  <Box className="p-4">
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       justifyContent={BoxJustifyContent.Between}
-                      twClassName="mb-4"
+                      className="mb-4"
                     >
                       <Text variant={TextVariant.HeadingMd}>
                         {strings(
@@ -495,8 +495,8 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showLeaderboardSection && (
                 <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="py-4">
+                  <Box className="my-1 border-b border-border-muted" />
+                  <Box className="py-4">
                     <Pressable
                       onPress={() =>
                         navigation.navigate(
@@ -508,7 +508,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 px-4 mb-1"
+                        className="gap-2 px-4 mb-1"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}

@@ -198,7 +198,7 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
 
   return (
     <>
-      <Box twClassName={inline ? 'pt-1' : 'mb-2 gap-2 px-4 pb-2 pt-4'}>
+      <Box className={inline ? 'pt-1' : 'mb-2 gap-2 px-4 pb-2 pt-4'}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

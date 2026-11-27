@@ -199,31 +199,31 @@ const RewardsVipViewContent: React.FC = () => {
         >
           {showSkeleton ? (
             <Box
-              twClassName="gap-4"
+              className="gap-4"
               testID={REWARDS_VIP_VIEW_TEST_IDS.SKELETON}
             >
-              <Box twClassName="px-4 gap-4">
+              <Box className="px-4 gap-4">
                 <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
 
                 <Box
-                  twClassName="gap-4 rounded-2xl border p-4"
+                  className="gap-4 rounded-2xl border p-4"
                   style={vipTierCardSkeletonStyle}
                 >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
-                    twClassName="items-start justify-between"
+                    className="items-start justify-between"
                   >
                     <Skeleton style={tw.style('h-8 w-8 rounded-lg')} />
-                    <Box twClassName="items-end gap-1">
+                    <Box className="items-end gap-1">
                       <Skeleton style={tw.style('h-4 w-16 rounded-lg')} />
                       <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
                     </Box>
                   </Box>
-                  <Box twClassName="gap-1">
+                  <Box className="gap-1">
                     <Skeleton style={tw.style('h-6 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-4 w-32 rounded-lg')} />
                   </Box>
-                  <Box twClassName="gap-1">
+                  <Box className="gap-1">
                     <Skeleton style={tw.style('h-3 w-full rounded-full')} />
                     <Skeleton style={tw.style('h-4 w-40 rounded-lg')} />
                   </Box>
@@ -232,7 +232,7 @@ const RewardsVipViewContent: React.FC = () => {
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="items-center gap-2 px-4 my-3"
+                className="items-center gap-2 px-4 my-3"
               >
                 <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
                 <Skeleton style={tw.style('h-5 w-5 rounded-full')} />
@@ -240,7 +240,7 @@ const RewardsVipViewContent: React.FC = () => {
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="gap-3 px-4"
+                className="gap-3 px-4"
               >
                 {[0, 1, 2, 3].map((index) => (
                   <Skeleton
@@ -253,55 +253,55 @@ const RewardsVipViewContent: React.FC = () => {
                 ))}
               </Box>
 
-              <Box twClassName="mt-4 border-b border-border-muted" />
+              <Box className="mt-4 border-b border-border-muted" />
 
-              <Box twClassName="gap-3 px-4">
-                <Box twClassName="gap-1">
+              <Box className="gap-3 px-4">
+                <Box className="gap-1">
                   <Skeleton style={tw.style('h-8 w-32 rounded-lg')} />
                   <Skeleton style={tw.style('h-4 w-44 rounded-lg')} />
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-                  <Box twClassName="flex-1 gap-1">
+                <Box flexDirection={BoxFlexDirection.Row} className="gap-6">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
                   </Box>
-                  <Box twClassName="flex-1 gap-1">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
-                  <Box twClassName="flex-1 gap-1">
+                <Box flexDirection={BoxFlexDirection.Row} className="gap-6">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-28 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
                   </Box>
-                  <Box twClassName="flex-1 gap-1">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                     <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
                   </Box>
                 </Box>
 
-                <Box twClassName="gap-1">
+                <Box className="gap-1">
                   <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
                   <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
                 </Box>
               </Box>
 
-              <Box twClassName="px-4 items-end">
+              <Box className="px-4 items-end">
                 <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
               </Box>
 
-              <Box twClassName="mt-4 border-b border-border-muted" />
+              <Box className="mt-4 border-b border-border-muted" />
 
-              <Box twClassName="gap-3 px-4">
+              <Box className="gap-3 px-4">
                 <Skeleton style={tw.style('h-8 w-40 rounded-lg')} />
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="items-center gap-3"
+                  className="items-center gap-3"
                 >
-                  <Box twClassName="flex-1 gap-1">
+                  <Box className="flex-1 gap-1">
                     <Skeleton style={tw.style('h-4 w-full rounded-lg')} />
                     <Skeleton style={tw.style('h-4 w-4/5 rounded-lg')} />
                     <Skeleton style={tw.style('h-4 w-3/4 rounded-lg')} />
@@ -311,7 +311,7 @@ const RewardsVipViewContent: React.FC = () => {
               </Box>
             </Box>
           ) : showError ? (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <RewardsErrorBanner
                 title={strings('rewards.vip.error_title')}
                 description={strings('rewards.vip.error_description')}
@@ -322,7 +322,7 @@ const RewardsVipViewContent: React.FC = () => {
             </Box>
           ) : dashboard ? (
             <>
-              <Box twClassName="px-4 gap-4">
+              <Box className="px-4 gap-4">
                 <Text
                   variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
@@ -409,7 +409,7 @@ const RewardsVipViewContent: React.FC = () => {
               </Box>
 
               {/* Divider */}
-              <Box twClassName="mt-4 border-b border-border-muted" />
+              <Box className="mt-4 border-b border-border-muted" />
               <VipVolumeSection
                 volume={dashboard.volume}
                 title={dashboard.localizedText.statsTitle}
@@ -429,7 +429,7 @@ const RewardsVipViewContent: React.FC = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-left px-4"
+                  className="text-left px-4"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
                 >
                   {strings('rewards.vip.last_updated', {
@@ -439,7 +439,7 @@ const RewardsVipViewContent: React.FC = () => {
               ) : null}
 
               {/* Divider */}
-              <Box twClassName="mt-4 border-b border-border-muted" />
+              <Box className="mt-4 border-b border-border-muted" />
               <VipPointsSection
                 pointsAllocation={dashboard.pointsAllocation}
                 title={dashboard.localizedText.totalPointsTitle}

@@ -77,7 +77,7 @@ const CampaignMechanicsView: React.FC = () => {
         >
           {howItWorks && !isMoneyAccountSweepstakes && (
             <Box
-              twClassName="px-4"
+              className="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
             >
               <CampaignHowItWorks howItWorks={howItWorks} />
@@ -86,7 +86,7 @@ const CampaignMechanicsView: React.FC = () => {
 
           {isDocument(notes) && isMoneyAccountSweepstakes && (
             <Box
-              twClassName="px-4"
+              className="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}
             >
               <MoneyAccountSweepstakesRulesAccordion rulesDocument={notes} />
@@ -95,7 +95,7 @@ const CampaignMechanicsView: React.FC = () => {
 
           {isDocument(notes) && !isMoneyAccountSweepstakes && (
             <Box
-              twClassName="px-4"
+              className="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}
             >
               <ContentfulRichText document={notes} />

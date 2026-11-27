@@ -41,12 +41,12 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
     onClose={onClose}
     testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.CONTAINER}
   >
-    <Box twClassName="px-4 pb-4">
+    <Box className="px-4 pb-4">
       {/* Close button */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="justify-end mb-4"
+        className="justify-end mb-4"
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -57,7 +57,7 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
       </Box>
 
       {/* Warning icon */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+      <Box alignItems={BoxAlignItems.Center} className="mb-4">
         <Icon
           name={IconName.Danger}
           size={IconSize.Xl}
@@ -66,7 +66,7 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
       </Box>
 
       {/* Title */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+      <Box alignItems={BoxAlignItems.Center} className="mb-4">
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
@@ -77,11 +77,11 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
       </Box>
 
       {/* Body */}
-      <Box twClassName="mb-6">
+      <Box className="mb-6">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.BODY}
         >
           {strings('rewards.ondo_campaign_not_eligible.body', {
@@ -91,12 +91,12 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
       </Box>
 
       {/* Buttons */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+      <Box flexDirection={BoxFlexDirection.Row} className="gap-3">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           onPress={onClose}
-          twClassName="flex-1"
+          className="flex-1"
           testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.CANCEL}
         >
           {strings('rewards.ondo_campaign_not_eligible.cancel')}
@@ -105,7 +105,7 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onConfirm}
-          twClassName="flex-1"
+          className="flex-1"
           testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.CONFIRM}
         >
           {strings('rewards.ondo_campaign_not_eligible.confirm')}

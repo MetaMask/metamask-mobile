@@ -97,8 +97,8 @@ const WeekRow: React.FC<WeekRowProps> = ({
     const isOutcomeFinalized = outcome?.outcomeStatus === 'finalized';
 
     return (
-      <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
-        <Box twClassName="flex-1 gap-1">
+      <Box className="flex-row gap-4 py-3" testID={rowTestId}>
+        <Box className="flex-1 gap-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {dateRange}
           </Text>
@@ -106,7 +106,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
             {weekTitle}
           </Text>
         </Box>
-        <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+        <Box alignItems={BoxAlignItems.End} className="flex-1 gap-1">
           {formattedPrizePoolAmount != null && (
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {formattedPrizePoolAmount}
@@ -120,7 +120,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
               onPress={openWinnerDetails}
               testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${campaign.id}`}
             >
-              <Box twClassName="rounded-md bg-success-muted px-2 py-1">
+              <Box className="rounded-md bg-success-muted px-2 py-1">
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.SuccessDefault}
@@ -151,8 +151,8 @@ const WeekRow: React.FC<WeekRowProps> = ({
 
   if (status === 'active') {
     return (
-      <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
-        <Box twClassName="flex-1 gap-1">
+      <Box className="flex-row gap-4 py-3" testID={rowTestId}>
+        <Box className="flex-1 gap-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {dateRange}
           </Text>
@@ -160,7 +160,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
             {weekTitle} · {localizedText.drawScheduleCurrentDraw}
           </Text>
         </Box>
-        <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+        <Box alignItems={BoxAlignItems.End} className="flex-1 gap-1">
           {formattedPrizePoolAmount != null && (
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {formattedPrizePoolAmount}
@@ -187,8 +187,8 @@ const WeekRow: React.FC<WeekRowProps> = ({
   }
 
   return (
-    <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
-      <Box twClassName="flex-1 gap-1">
+    <Box className="flex-row gap-4 py-3" testID={rowTestId}>
+      <Box className="flex-1 gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {dateRange}
         </Text>
@@ -196,7 +196,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
           {weekTitle}
         </Text>
       </Box>
-      <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+      <Box alignItems={BoxAlignItems.End} className="flex-1 gap-1">
         {formattedPrizePoolAmount != null && (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {formattedPrizePoolAmount}
@@ -225,10 +225,10 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
 
   return (
     <Box
-      twClassName="gap-0"
+      className="gap-0"
       testID={MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="gap-1 pb-3">
+      <Box className="gap-1 pb-3">
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {localizedText.drawScheduleTitle}
         </Text>
@@ -250,7 +250,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
         </React.Fragment>
       ))}
 
-      <Box twClassName="border-t border-border-muted pt-3">
+      <Box className="border-t border-border-muted pt-3">
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {localizedText.drawScheduleEntriesReset}
         </Text>

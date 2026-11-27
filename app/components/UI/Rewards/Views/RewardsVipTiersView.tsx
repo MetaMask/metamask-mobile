@@ -85,7 +85,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
         <ScrollView contentContainerStyle={tw.style('py-4 gap-2 pb-8')}>
           {showSkeleton ? (
             <Box
-              twClassName="gap-2 px-4"
+              className="gap-2 px-4"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.SKELETON}
             >
               {[0, 1, 2, 3, 4].map((i) => (
@@ -93,7 +93,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
               ))}
             </Box>
           ) : showError ? (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <RewardsErrorBanner
                 title={strings('rewards.vip.error_title')}
                 description={strings('rewards.vip.error_description')}
@@ -104,7 +104,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
             </Box>
           ) : dashboard ? (
             <Box
-              twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
+              className="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
             >
               {tiers.map((tier) => (
