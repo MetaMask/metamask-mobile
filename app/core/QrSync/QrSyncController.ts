@@ -177,6 +177,9 @@ export class QrSyncController extends BaseController<
 
   private sessionId: string | null = null;
 
+  /** Bumped when a new scan starts so in-flight teardown cannot wipe it. */
+  private sessionGeneration = 0;
+
   constructor({
     messenger,
     state,
@@ -219,6 +222,7 @@ export class QrSyncController extends BaseController<
     // Destroy any existing session before starting a new one.
     await this.destroySession();
     this.clearControllerState();
+    this.sessionGeneration += 1;
     // Capture sync flow once from local onboarding status at session start.
     this.update((state) => {
       state.syncFlow = this.getIsOnboardingCompleted()
@@ -566,7 +570,9 @@ export class QrSyncController extends BaseController<
     });
   };
 
-  private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
+  private readonly handleSessionServiceEvent = (
+    event: QrSyncServiceEvent,
+  ): void => {
     switch (event.type) {
       case QrSyncActionTypes.OTP_DISPLAY_GRANT:
         this.transitionTo(QrSyncPhases.DISPLAYING_OTP, {
@@ -682,26 +688,8 @@ export class QrSyncController extends BaseController<
       | typeof QrSyncActionTypes.SYNC_ERROR,
     error?: QrSyncError,
   ): Promise<void> {
-    if (this.client) {
-      try {
-        if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
-          await this.sendMessage({
-            type: QrSyncActionTypes.SYNC_ERROR,
-            version: QrSyncMessageVersion.V1,
-            data: error,
-          });
-        } else {
-          await this.sendMessage({
-            type: QrSyncActionTypes.SYNC_CANCEL,
-            version: QrSyncMessageVersion.V1,
-          });
-        }
-      } catch {
-        // Best-effort peer notification; still terminate locally.
-      }
-    }
-
-    await this.destroySession();
+    const endingClient = this.client;
+    const endingGeneration = this.sessionGeneration;
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
       const phaseFrom = this.state.phase;
@@ -719,10 +707,49 @@ export class QrSyncController extends BaseController<
           state.error = error;
         },
       });
+    }
+
+    // Detach before any await so a rescan can attach a new client, and so this
+    // teardown cannot disconnect a replacement session.
+    if (endingClient !== null && this.client === endingClient) {
+      this.unbindClientListeners();
+      this.client = null;
+      this.sessionId = null;
+    }
+
+    if (endingClient) {
+      try {
+        if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
+          await endingClient.sendResponse({
+            type: QrSyncActionTypes.SYNC_ERROR,
+            version: QrSyncMessageVersion.V1,
+            data: error,
+          });
+        } else {
+          await endingClient.sendResponse({
+            type: QrSyncActionTypes.SYNC_CANCEL,
+            version: QrSyncMessageVersion.V1,
+          });
+        }
+      } catch {
+        // Best-effort peer notification; still terminate locally.
+      }
+
+      try {
+        await endingClient.disconnect();
+      } catch {
+        // Best-effort teardown.
+      }
+    }
+
+    if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
       return;
     }
 
-    this.clearControllerState();
+    // Skip clearing if a newer scan started while peer notification was in flight.
+    if (this.sessionGeneration === endingGeneration && this.client === null) {
+      this.clearControllerState();
+    }
   }
 
   private async destroySession(): Promise<void> {

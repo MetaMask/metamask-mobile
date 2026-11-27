@@ -96,12 +96,18 @@ export type QrSyncSyncOfferMessage = QrSyncMessage<QrSyncOffer> & {
   data: QrSyncOffer;
 };
 
+/**
+ * Wallet snapshot sent in the `sync-ready` message `data` field.
+ * Matches extension: filtered `AccountTreePayload` from AccountTreeController.
+ */
+export type QrSyncReadyData = AccountTreePayload;
+
 /** Wire message sent by extension with the account tree import payload. */
 export interface QrSyncSyncReadyMessage {
   type: typeof QrSyncActionTypes.SYNC_READY;
   version: QrSyncMessageVersion;
   deadline: number;
-  data: AccountTreePayload;
+  data: QrSyncReadyData;
 }
 
 /** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */

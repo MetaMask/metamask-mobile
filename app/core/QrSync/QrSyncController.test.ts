@@ -100,9 +100,6 @@ const FIXED_NOW = 1_800_000_000_000;
 
 type WalletClientListener = (...args: unknown[]) => void;
 
-const encodeSecret = (plaintext: string): string =>
-  Buffer.from(plaintext, 'utf-8').toString('base64');
-
 const encodeBase64Json = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
 
@@ -479,6 +476,47 @@ describe('QrSyncController', () => {
       expect(controller.state.phase).toBe(QrSyncPhases.IDLE);
       expect(controller.state.connectionStatus).toBe('disconnected');
     });
+
+    it('does not clear a newer scan started during cancel peer notification', async () => {
+      const controller = buildController();
+      const firstClient = buildMockWalletClient();
+      const secondClient = buildMockWalletClient();
+      let resolveFirstSend: (() => void) | undefined;
+
+      mockCreateQrSyncWalletClient
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: firstClient.client,
+        })
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: secondClient.client,
+        });
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      firstClient.client.sendResponse.mockImplementation(
+        async () =>
+          new Promise<void>((resolve) => {
+            resolveFirstSend = resolve;
+          }),
+      );
+      controller.cancelSession();
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
+      expect(controller.state.syncFlow).not.toBeNull();
+
+      resolveFirstSend?.();
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
+      expect(controller.state.syncFlow).not.toBeNull();
+      expect(secondClient.client.disconnect).not.toHaveBeenCalled();
+    });
   });
 
   describe('wallet client events', () => {
@@ -788,6 +826,68 @@ describe('QrSyncController', () => {
         code: 'SYNC_FAILED',
         message: 'Handshake failed',
       });
+    });
+
+    it('marks the session failed without waiting for peer notification', async () => {
+      const controller = buildController();
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.client.sendResponse.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+
+      walletClient.emit('error', new Error('Handshake failed'));
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'SYNC_FAILED',
+        message: 'Handshake failed',
+      });
+    });
+
+    it('does not tear down a replacement session after delayed peer notification', async () => {
+      const controller = buildController();
+      const firstClient = buildMockWalletClient();
+      const secondClient = buildMockWalletClient();
+      let resolveFirstSend: (() => void) | undefined;
+
+      mockCreateQrSyncWalletClient
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: firstClient.client,
+        })
+        .mockResolvedValueOnce({
+          sessionId: VALID_SESSION_ID,
+          client: secondClient.client,
+        });
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      firstClient.client.sendResponse.mockImplementation(
+        async () =>
+          new Promise<void>((resolve) => {
+            resolveFirstSend = resolve;
+          }),
+      );
+      firstClient.emit('error', new Error('Handshake failed'));
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      expect(secondClient.client.connect).toHaveBeenCalledTimes(1);
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
+
+      resolveFirstSend?.();
+      await flushPromises();
+
+      expect(firstClient.client.disconnect).toHaveBeenCalled();
+      expect(secondClient.client.disconnect).not.toHaveBeenCalled();
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
+      expect(controller.state.syncFlow).not.toBeNull();
     });
   });
 

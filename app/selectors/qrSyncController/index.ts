@@ -14,6 +14,35 @@ import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
   state.engine.backgroundState.QrSyncController;
 
+/** Display shape for the Sync Summary UI, derived from AccountTreePayload. */
+export interface QrSyncImportSummaryAccount {
+  id: string;
+  name: string | null;
+}
+
+export interface QrSyncImportSummaryWallet {
+  id: string;
+  name: string | null;
+  accounts: QrSyncImportSummaryAccount[];
+}
+
+export interface QrSyncImportSummary {
+  accountCount: number;
+  walletCount: number;
+  wallets: QrSyncImportSummaryWallet[];
+}
+
+const toImportSummary = (
+  wallets: QrSyncImportSummaryWallet[],
+): QrSyncImportSummary => ({
+  accountCount: wallets.reduce(
+    (total, wallet) => total + wallet.accounts.length,
+    0,
+  ),
+  walletCount: wallets.length,
+  wallets,
+});
+
 export const selectQrSyncPhase = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => qrSyncState.phase,
@@ -22,6 +51,11 @@ export const selectQrSyncPhase = createSelector(
 export const selectQrSyncOtp = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => qrSyncState.otp?.otp ?? null,
+);
+
+export const selectQrSyncOtpDeadline = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) => qrSyncState.otp?.deadline ?? null,
 );
 
 export const selectQrSyncError = createSelector(
@@ -44,6 +78,31 @@ export const selectQrSyncImportMnemonic = createSelector(
     } catch {
       return null;
     }
+  },
+);
+
+/**
+ * Sync Summary display data from the synced AccountTreePayload.
+ * Prefers secrets-stripped provisioning metadata when present.
+ */
+export const selectQrSyncImportSummary = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState): QrSyncImportSummary => {
+    const payload =
+      qrSyncState.provisioningMetadata ?? qrSyncState.pendingSecretImports;
+    const wallets =
+      payload?.wallets
+        .map((wallet) => ({
+          id: wallet.id,
+          name: wallet.metadata?.name ?? null,
+          accounts: wallet.groups.map((group) => ({
+            id: group.id,
+            name: group.metadata?.name ?? null,
+          })),
+        }))
+        .filter((wallet) => wallet.accounts.length > 0) ?? [];
+
+    return toImportSummary(wallets);
   },
 );
 
