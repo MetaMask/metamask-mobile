@@ -4,6 +4,8 @@ import './shim.js';
 // Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
 import './app/core/NitroFetchSetup';
 import './app/core/NitroWebSocketSetup';
+// Dev-only network dashboard hook (no-op outside __DEV__). Must run after the nitro setups.
+import './app/util/networkInspector/setup';
 
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/

@@ -10,6 +10,9 @@ const { getDefaultConfig: getExpoDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+const {
+  createNetworkInspector,
+} = require('./scripts/network-inspector/server');
 
 // eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
@@ -425,6 +428,12 @@ module.exports = function (baseConfig) {
                 getPolyfills,
               },
             ),
+            // Dev-only network dashboard at /__network-inspector (see scripts/network-inspector).
+            server: {
+              enhanceMiddleware: createNetworkInspector({
+                projectRoot: __dirname,
+              }),
+            },
             resetCache: process.env.METRO_RESET_CACHE !== 'false',
             maxWorkers,
           }),
