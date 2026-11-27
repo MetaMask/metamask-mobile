@@ -16,6 +16,7 @@ import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
 import { useLighterWithdrawMinimumAlert } from './useLighterWithdrawMinimumAlert';
+import { useLighterReceiveMinimumAlert } from './useLighterReceiveMinimumAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -53,6 +54,7 @@ function useTransactionAlerts(): Alert[] {
   const depositLimitAlert = useTransactionDepositLimitAlert();
   const lighterDepositMinimumAlert = useLighterDepositMinimumAlert();
   const lighterWithdrawMinimumAlert = useLighterWithdrawMinimumAlert();
+  const lighterReceiveMinimumAlert = useLighterReceiveMinimumAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -80,6 +82,7 @@ function useTransactionAlerts(): Alert[] {
       ...depositLimitAlert,
       ...lighterDepositMinimumAlert,
       ...lighterWithdrawMinimumAlert,
+      ...lighterReceiveMinimumAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -105,6 +108,7 @@ function useTransactionAlerts(): Alert[] {
       depositLimitAlert,
       lighterDepositMinimumAlert,
       lighterWithdrawMinimumAlert,
+      lighterReceiveMinimumAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,

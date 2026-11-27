@@ -16,6 +16,7 @@ import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/u
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
+  AvatarTokenSize,
   Box,
   FontWeight,
   Icon,
@@ -55,6 +56,13 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
 import { decodePaymentTokenAssetId } from '../../../../../../util/transactions/payment-token';
+import {
+  usePerpsTransferBalance,
+  usePerpsTransferTarget,
+} from '../../../hooks/pay/usePerpsTransferTarget';
+import { getPerpsBalanceProvider } from '../../../utils/perps-balance-asset';
+import type { PerpsProviderSelection } from '../../../utils/perps-lighter-transaction-type';
+import { PerpsBalanceAvatar } from '../../perps-confirmations/perps-balance-avatar';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -82,6 +90,11 @@ function PayWithRowComponent({
   // Explicit selection via controller — always honor it.
   if (paymentOverride === PaymentOverride.MoneyAccount) {
     return <PayWithRowMoneyAccount />;
+  }
+
+  const perpsBalanceProvider = getPerpsBalanceProvider(payToken?.assetId);
+  if (perpsBalanceProvider) {
+    return <PayWithRowPerpsAccount provider={perpsBalanceProvider} />;
   }
 
   // Flag default only before a token or fiat method is chosen. Clearing the
@@ -151,6 +164,7 @@ function PayWithRowInteractive() {
   const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
+  const isPerpsTransfer = Boolean(usePerpsTransferTarget());
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -189,7 +203,9 @@ function PayWithRowInteractive() {
   }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
   let label = strings('confirm.label.pay_with');
-  if (isWithdraw) {
+  if (isPerpsTransfer) {
+    label = strings('confirm.label.to');
+  } else if (isWithdraw) {
     label = strings('confirm.label.receive_as');
   } else if (isConvertDeposit) {
     label = strings('confirm.label.convert');
@@ -364,6 +380,7 @@ function PayWithRowEmpty({
 function PayWithRowMoneyAccount() {
   const navigation = useNavigation<AppNavigationProp>();
   const { isWithdraw } = useTransactionPayWithdraw();
+  const isPerpsTransfer = Boolean(usePerpsTransferTarget());
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
@@ -377,16 +394,15 @@ function PayWithRowMoneyAccount() {
     });
   }, [navigation, preferredPaymentToken, setConfirmationMetric]);
 
+  let label = strings('confirm.label.pay_with');
+  if (isPerpsTransfer) {
+    label = strings('confirm.label.to');
+  } else if (isWithdraw) {
+    label = strings('confirm.label.receive_as');
+  }
+
   return (
-    <PayWithRowLayout
-      label={
-        isWithdraw
-          ? strings('confirm.label.receive_as')
-          : strings('confirm.label.pay_with')
-      }
-      showArrow
-      onPress={handleClick}
-    >
+    <PayWithRowLayout label={label} showArrow onPress={handleClick}>
       <Image source={MoneyIcon} style={styles.moneyIcon} />
       <Text
         variant={TextVariant.BodyMd}
@@ -395,6 +411,53 @@ function PayWithRowMoneyAccount() {
         testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
       >
         {strings('confirm.pay_with_bottom_sheet.money_account')}
+      </Text>
+    </PayWithRowLayout>
+  );
+}
+
+function PayWithRowPerpsAccount({
+  provider,
+}: {
+  provider: PerpsProviderSelection;
+}) {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
+  const balance = usePerpsTransferBalance(provider);
+  const isPerpsTransfer = Boolean(usePerpsTransferTarget());
+
+  const handleClick = useCallback(() => {
+    setConfirmationMetric({
+      properties: { mm_pay_token_list_opened: true },
+    });
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+      preferredPaymentToken,
+    });
+  }, [navigation, preferredPaymentToken, setConfirmationMetric]);
+
+  return (
+    <PayWithRowLayout
+      label={strings(
+        isPerpsTransfer ? 'confirm.label.to' : 'confirm.label.pay_with',
+      )}
+      showArrow
+      onPress={handleClick}
+    >
+      <PerpsBalanceAvatar provider={provider} size={AvatarTokenSize.Sm} />
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+      >
+        {strings(`confirm.perps_withdraw_from.${provider}`)}
+        <Text
+          color={TextColor.TextAlternative}
+          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+        >
+          {` (${balance})`}
+        </Text>
       </Text>
     </PayWithRowLayout>
   );

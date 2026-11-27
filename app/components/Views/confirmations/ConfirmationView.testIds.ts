@@ -158,6 +158,8 @@ export const PayWithBottomSheetIDs = {
   MONEY_ACCOUNT_ROW: 'pay-with-money-account-row',
   PERPS_SECTION: 'pay-with-section-perps',
   PERPS_BALANCE_ROW: 'pay-with-perps-section-balance-row',
+  PERPS_ACCOUNT_SECTION: 'pay-with-section-perps-account',
+  PERPS_ACCOUNT_ROW: 'pay-with-perps-account-row',
   PREDICT_SECTION: 'pay-with-section-predict',
   PREDICT_BALANCE_ROW: 'pay-with-predict-section-balance-row',
   BANK_CARD_SECTION: 'pay-with-section-bank-card',

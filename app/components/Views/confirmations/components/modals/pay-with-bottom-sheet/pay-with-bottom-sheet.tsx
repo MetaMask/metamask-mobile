@@ -11,6 +11,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import PayWithSection from '../../UI/pay-with-section';
 import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
+import { usePerpsTransferTarget } from '../../../hooks/pay/usePerpsTransferTarget';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -28,9 +29,13 @@ export function PayWithBottomSheet() {
   const transactionMeta = useTransactionMetadataRequest();
   useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const title = isWithdraw
-    ? strings('confirm.pay_with_bottom_sheet.receive_title')
-    : strings('confirm.pay_with_bottom_sheet.title');
+  const isPerpsTransfer = Boolean(usePerpsTransferTarget());
+  let title = strings('confirm.pay_with_bottom_sheet.title');
+  if (isPerpsTransfer) {
+    title = strings('confirm.label.to');
+  } else if (isWithdraw) {
+    title = strings('confirm.pay_with_bottom_sheet.receive_title');
+  }
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();

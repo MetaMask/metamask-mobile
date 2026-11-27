@@ -5,12 +5,8 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
 import {
-  AvatarToken,
   AvatarTokenSize,
-  BadgeNetwork,
-  BadgeWrapper,
   BottomSheet,
   BottomSheetHeader,
   Box,
@@ -26,60 +22,18 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import images from '../../../../../../images/image-icons';
-import LighterLogo from 'images/lighter.svg';
-import type { SvgProps } from 'react-native-svg';
 import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import { isLighterProviderEnabled } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { PerpsWithdrawFromSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { usePerpsProviderBalance } from '../usePerpsProviderBalance';
+import { PerpsBalanceAvatar } from '../../perps-confirmations/perps-balance-avatar';
 
 export type PerpsWithdrawSource = 'hyperliquid' | 'lighter';
 
 const SOURCES: PerpsWithdrawSource[] = ['hyperliquid', 'lighter'];
 
 export const DEFAULT_PERPS_WITHDRAW_SOURCE: PerpsWithdrawSource = 'hyperliquid';
-
-// Bundled images resolve to a numeric asset id.
-const HYPERLIQUID_BADGE_SRC = images.HYPE as number;
-
-// The SVG import requires a `name` prop; the design-system badge does not pass one.
-const LighterBadgeSrc = (props: SvgProps) => (
-  <LighterLogo {...props} name="Lighter" />
-);
-
-const SOURCE_NAME: Record<PerpsWithdrawSource, string> = {
-  hyperliquid: 'Hyperliquid',
-  lighter: 'Lighter',
-};
-
-function SourceAvatar({
-  source,
-  size = AvatarTokenSize.Md,
-}: {
-  source: PerpsWithdrawSource;
-  size?: AvatarTokenSize;
-}) {
-  return (
-    <BadgeWrapper
-      badge={
-        <BadgeNetwork
-          name={SOURCE_NAME[source]}
-          src={
-            source === 'hyperliquid' ? HYPERLIQUID_BADGE_SRC : LighterBadgeSrc
-          }
-        />
-      }
-    >
-      <AvatarToken
-        name={USDC_SYMBOL}
-        src={{ uri: USDC_TOKEN_ICON_URL }}
-        size={size}
-      />
-    </BadgeWrapper>
-  );
-}
 
 interface PerpsWithdrawFromRowProps {
   source: PerpsWithdrawSource;
@@ -124,7 +78,7 @@ const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
           testID={PerpsWithdrawFromSelectorsIDs.ROW}
           value={selectedLabel}
           valueStartAccessory={
-            <SourceAvatar source={source} size={AvatarTokenSize.Sm} />
+            <PerpsBalanceAvatar provider={source} size={AvatarTokenSize.Sm} />
           }
         />
         <Text
@@ -182,7 +136,7 @@ const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
                         'confirm.perps_withdraw_from.available',
                         { amount: providerBalance[option] },
                       )}
-                      startAccessory={<SourceAvatar source={option} />}
+                      startAccessory={<PerpsBalanceAvatar provider={option} />}
                       endAccessory={
                         <RadioButton
                           isChecked={isSelected}

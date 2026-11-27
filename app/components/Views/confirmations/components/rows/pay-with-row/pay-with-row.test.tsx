@@ -25,10 +25,15 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import {
+  usePerpsTransferBalance,
+  usePerpsTransferTarget,
+} from '../../../hooks/pay/usePerpsTransferTarget';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
+jest.mock('../../../hooks/pay/usePerpsTransferTarget');
 jest.mock('../../../hooks/pay/usePayTokenAccountBalance');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('@react-navigation/native', () => ({
@@ -262,6 +267,100 @@ describe('PayWithRow', () => {
 
       expect(balanceEl).toHaveTextContent('($1,234.99)');
       expect(balanceEl).not.toHaveTextContent('1,235');
+    });
+  });
+
+  describe('perps account transfer', () => {
+    beforeEach(() => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+      jest.mocked(usePerpsTransferTarget).mockReturnValue('lighter');
+      jest.mocked(usePerpsTransferBalance).mockReturnValue('$4,718.18');
+    });
+
+    it('shows the selected Perps balance with the "To" label', () => {
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          assetId: 'lighter:mainnet/perps:usdc',
+          balanceHuman: '0',
+          balanceFiat: '$0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { getByText, getByTestId } = render();
+
+      expect(getByText('To')).toBeDefined();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'Lighter balance ($4,718.18)',
+      );
+    });
+
+    it('opens the bottom sheet on press', () => {
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          assetId: 'hyperliq:mainnet/perps:usdc',
+          balanceHuman: '0',
+          balanceFiat: '$0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { getByText } = render();
+
+      act(() => {
+        fireEvent.press(getByText('Hyperliquid balance', { exact: false }));
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+        expect.any(Object),
+      );
+    });
+
+    it('shows the selected Perps balance with the "Pay with" label on a Perps deposit', () => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: false,
+        canSelectWithdrawToken: false,
+      });
+      jest.mocked(usePerpsTransferTarget).mockReturnValue(undefined);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          assetId: 'hyperliq:mainnet/perps:usdc',
+          balanceHuman: '0',
+          balanceFiat: '$0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByText('Pay with')).toBeDefined();
+      expect(queryByText('To')).toBeNull();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'Hyperliquid balance ($4,718.18)',
+      );
+    });
+
+    it('labels the receive token row "To" while a token is selected', () => {
+      const { getByText, queryByText } = render();
+
+      expect(getByText('To')).toBeDefined();
+      expect(queryByText('Receive')).toBeNull();
     });
   });
 

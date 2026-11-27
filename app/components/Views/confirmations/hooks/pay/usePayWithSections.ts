@@ -4,6 +4,7 @@ import {
   usePayWithCryptoSection,
   usePayWithFiatSection,
   usePayWithMoneyAccountSection,
+  usePayWithPerpsAccountSection,
   usePayWithPerpsSection,
   usePayWithPredictSection,
 } from './sections';
@@ -15,6 +16,7 @@ export interface UsePayWithSectionsResult {
 export function usePayWithSections(): UsePayWithSectionsResult {
   const moneyAccountSection = usePayWithMoneyAccountSection();
   const perpsSection = usePayWithPerpsSection();
+  const perpsAccountSection = usePayWithPerpsAccountSection();
   const predictSection = usePayWithPredictSection();
   const bankCardSection = usePayWithFiatSection();
   const cryptoSection = usePayWithCryptoSection();
@@ -24,6 +26,7 @@ export function usePayWithSections(): UsePayWithSectionsResult {
       sections: [
         moneyAccountSection,
         perpsSection,
+        perpsAccountSection,
         predictSection,
         bankCardSection,
         cryptoSection,
@@ -33,6 +36,7 @@ export function usePayWithSections(): UsePayWithSectionsResult {
       bankCardSection,
       cryptoSection,
       moneyAccountSection,
+      perpsAccountSection,
       perpsSection,
       predictSection,
     ],

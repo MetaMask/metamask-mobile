@@ -18,8 +18,10 @@ import { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
+import { getPerpsBalanceProvider } from '../../utils/perps-balance-asset';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
+import { useTransactionPayToken } from './useTransactionPayToken';
 
 const PERPS_TOKEN_DECIMALS = 8;
 const LIGHTER_TOKEN_DECIMALS = 6;
@@ -48,6 +50,7 @@ export interface TransactionPayBalance {
  * - Money-account withdraw — mUSD + vmUSD redeemable.
  * - Predict withdraw — Polymarket balance (USDC).
  * - MoneyAccount payment override — mUSD + vmUSD redeemable.
+ * - Perps deposit paid from a Perps balance — that provider's withdrawable balance.
  * - Everything else — the selected pay-token wallet balance.
  *
  * This is the read-path counterpart to the atomic `getBalance` callback that
@@ -69,14 +72,17 @@ export function useTransactionPayBalance({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
 
+  const { payToken } = useTransactionPayToken();
   const moneyAccountBalance = useMoneyAccountPayBalance();
   const perpsBalance = usePerpsBalance();
   const isLighterWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsLighterWithdraw,
   ]);
+  // A Perps deposit can be paid from the other Perps account's balance.
+  const perpsSourceProvider = getPerpsBalanceProvider(payToken?.assetId);
   const lighterBalance = useLighterBalance(
     transactionMeta?.txParams?.from,
-    isLighterWithdraw,
+    isLighterWithdraw || perpsSourceProvider === 'lighter',
   );
   const predictBalance = usePredictBalance();
   const tokenBalance = useTokenBalance();
@@ -100,6 +106,14 @@ export function useTransactionPayBalance({
     paymentOverride === PaymentOverride.MoneyAccount
   ) {
     return moneyAccountBalance;
+  }
+
+  if (perpsSourceProvider === 'hyperliquid') {
+    return perpsBalance;
+  }
+
+  if (perpsSourceProvider === 'lighter') {
+    return lighterBalance;
   }
 
   return tokenBalance;
