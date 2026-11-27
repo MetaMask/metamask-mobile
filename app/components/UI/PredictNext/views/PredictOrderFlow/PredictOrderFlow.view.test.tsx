@@ -478,11 +478,15 @@ describe('PredictOrderFlow', () => {
     const details = within(
       screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
     );
-    const fee = shownCents(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
+    const metamaskFee = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_METAMASK_FEE),
     );
+    const exchangeFee = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE),
+    );
+    const fee = metamaskFee + exchangeFee;
     const contracts = shownCents(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT),
     );
     const total = shownCents(
       details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
@@ -608,62 +612,94 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByText('Review order')).toBeNull();
   });
 
-  it('opens the details sheet from To win with the quoted rows and their total', async () => {
+  it('renders To win with the info icon and opens Price details when pressed', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
+    const toWin = screen.getByTestId(PredictOrderFlowTestIds.TO_WIN);
+    expect(toWin).toHaveTextContent('To win $0.00');
+    expect(
+      within(toWin).getByTestId(PredictOrderFlowTestIds.TO_WIN_INFO_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-order-flow-to-win-underline'),
+    ).toBeNull();
+
     typeAmount('20');
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
     expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TO_WIN),
+    ).toHaveTextContent('To win $41.00');
+    expect(
       screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
     ).not.toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    fireEvent.press(
+      screen.getByTestId(PredictOrderFlowTestIds.TO_WIN_INFO_ICON),
+    );
 
     const breakdown = screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN);
     expect(breakdown).toBeOnTheScreen();
     const details = within(breakdown);
     expect(
-      details
-        .getAllByText(
-          /^(Odds|Contracts|Fees|You'll receive|Total debit|Est\. payout)$/u,
-        )
-        .map((label) => label.props.children),
-    ).toEqual([
-      'Odds',
-      'Contracts',
-      'Fees',
-      "You'll receive",
-      'Total debit',
-      'Est. payout',
-    ]);
+      details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_HEADER_BAR),
+    ).toHaveStyle({ minHeight: 64 });
     expect(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_ODDS),
-    ).toHaveTextContent('46.5%');
+      details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_HEADER),
+    ).toHaveTextContent('Price details');
     expect(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_CONTRACTS),
-    ).toHaveTextContent('41');
+      details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_CLOSE),
+    ).toBeOnTheScreen();
+
+    expect(details.getByText('Prediction order')).toBeOnTheScreen();
     expect(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
-    ).toHaveTextContent('$0.82');
+      details.getByText(
+        '~41 contracts at 46.5¢ each. Final amount may vary based on order book availability.',
+      ),
+    ).toBeOnTheScreen();
     expect(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
-    ).toHaveTextContent('$19.07 (46.5¢ avg)');
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT),
+    ).toHaveTextContent('$19.07');
+
+    expect(details.getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(
+      details.getByText('Service fee for processing this prediction'),
+    ).toBeOnTheScreen();
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_METAMASK_FEE),
+    ).toHaveTextContent('$0.41');
+
+    expect(details.getByText('Exchange fee')).toBeOnTheScreen();
+    expect(
+      details.getByText('Fee paid to the exchange or market'),
+    ).toBeOnTheScreen();
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_EXCHANGE_FEE),
+    ).toHaveTextContent('$0.41');
+
+    expect(details.getByText('Total')).toBeOnTheScreen();
     expect(
       details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
     ).toHaveTextContent('$19.89');
     expect(
-      details.getByTestId(PredictOrderFlowTestIds.DETAILS_PAYOUT),
-    ).toHaveTextContent('$41.00');
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_PARTIAL_FILL_NOTE),
+    ).toHaveTextContent(
+      'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
+    );
 
-    // No title, no close button, and none of the approval-only rows.
-    expect(details.queryByText('Price details')).toBeNull();
-    expect(details.queryByLabelText('Close')).toBeNull();
-    expect(details.queryByText('Potential profit')).toBeNull();
-    expect(details.queryByText('Exchange fee')).toBeNull();
-    expect(details.queryByText('MetaMask fee')).toBeNull();
+    expect(details.queryByText('Deposit fee')).toBeNull();
+
+    fireEvent.press(
+      details.getByTestId(PredictOrderFlowTestIds.BREAKDOWN_CLOSE),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(PredictOrderFlowTestIds.SHEET)).toBeOnTheScreen();
   });
 
   it('keeps To win inert until a quote exists', async () => {
@@ -1284,13 +1320,10 @@ describe('PredictOrderFlow', () => {
     await openSheet();
     typeAmount('20');
 
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-        ).toBeOnTheScreen(),
-      // The 500 ms quote debounce, then the quote's own 1.2 s expiry timer.
-      { timeout: 3000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+      ).toBeOnTheScreen(),
     );
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
     expect(

@@ -118,12 +118,10 @@ describe('PerpsBalanceOrderView', () => {
       );
       // Controller acceptance precedes the stream-confirmation/toast promise.
       // Keep the screen mounted until the full submission finishes.
-      await waitFor(
-        () =>
-          expect(
-            screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
-          ).toHaveProp('value', ''),
-        { timeout: 5000 },
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        ).toHaveProp('value', ''),
       );
       expect(
         Engine.context.PerpsController.depositWithOrder,
@@ -272,12 +270,10 @@ describe('PerpsBalanceOrderView', () => {
         }),
       ),
     );
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
-        ).toHaveProp('value', ''),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+      ).toHaveProp('value', ''),
     );
     expect(
       Engine.context.PerpsController.depositWithOrder,

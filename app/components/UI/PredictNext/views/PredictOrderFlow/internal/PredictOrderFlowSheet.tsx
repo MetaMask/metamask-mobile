@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, Image, Linking } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
@@ -33,8 +33,6 @@ import {
 import { PredictFlowSheetHost } from '../../../components/PredictFlowSheetHost';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
-import { useTheme } from '../../../../../../util/theme';
-import DottedUnderline from '../../../../DottedUnderline';
 import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
@@ -141,7 +139,6 @@ export const PredictOrderFlowSheet = ({
   onAddFunds,
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
   const breakdownSheetRef =
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
@@ -1075,26 +1072,32 @@ export const PredictOrderFlowSheet = ({
                   // The only entry point to the details sheet: live
                   // once a quote exists, inert while quoting or without
                   // one.
-                  // The same dotted underline as Money's APY, so it renders
-                  // on Android.
-                  <DottedUnderline color={colors.success.default}>
-                    <Text
-                      variant={TextVariant.BodyLg}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.SuccessDefault}
-                      onPress={
-                        canShowDetails ? handleBreakdownPress : undefined
-                      }
-                      suppressHighlighting
-                      accessibilityRole={canShowDetails ? 'button' : 'text'}
-                      accessibilityState={{ disabled: !canShowDetails }}
-                      testID={PredictOrderFlowTestIds.TO_WIN}
-                    >
-                      {strings('predict_next.order_preview.to_win', {
-                        amount: toWinLabel,
-                      })}
-                    </Text>
-                  </DottedUnderline>
+                  <Pressable
+                    onPress={canShowDetails ? handleBreakdownPress : undefined}
+                    disabled={!canShowDetails}
+                    hitSlop={8}
+                    accessibilityRole={canShowDetails ? 'button' : 'text'}
+                    accessibilityState={{ disabled: !canShowDetails }}
+                    testID={PredictOrderFlowTestIds.TO_WIN}
+                  >
+                    <Box twClassName="flex-row items-center gap-1">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Bold}
+                        color={TextColor.TextDefault}
+                      >
+                        {strings('predict_next.order_preview.to_win', {
+                          amount: toWinLabel,
+                        })}
+                      </Text>
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Md}
+                        color={IconColor.IconDefault}
+                        testID={PredictOrderFlowTestIds.TO_WIN_INFO_ICON}
+                      />
+                    </Box>
+                  </Pressable>
                 )}
                 {intent.action === 'sell' ? (
                   <Text
