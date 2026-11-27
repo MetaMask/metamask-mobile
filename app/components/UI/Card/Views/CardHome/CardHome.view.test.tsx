@@ -1,6 +1,12 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
@@ -11,6 +17,8 @@ import {
   getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
+import { CardHomeStatusViewSelectors } from './components/CardHomeStatusView';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Cashback from '../Cashback/Cashback';
 import ChooseYourCard from '../ChooseYourCard/ChooseYourCard';
@@ -478,27 +486,23 @@ describe('CardHome', () => {
       });
     });
 
-    describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
-          {
-            overrides: {
-              engine: {
-                backgroundState: {
-                  CardController: { isAuthenticated: false },
-                },
+    describe('when unauthenticated', () => {
+      it('sends a logged-out cardholder to Card login', async () => {
+        const { findByTestId, queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: { isAuthenticated: false },
               },
             },
-            extraRoutes: [
-              {
-                name: Routes.CARD.AUTHENTICATION,
-                Component: CardAuthentication,
-              },
-            ],
           },
-        );
-
-        fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+          extraRoutes: [
+            {
+              name: Routes.CARD.AUTHENTICATION,
+              Component: CardAuthentication,
+            },
+          ],
+        });
 
         expect(
           await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
@@ -545,16 +549,466 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show logout on Card home after the footer loads', async () => {
+    it('shows contact support in the More sheet', async () => {
       const { findByTestId, queryByTestId } = renderCardHomeView();
 
       expect(
-        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+        queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      const sheet = await findByTestId(CardHomeSelectors.MORE_SHEET);
+      expect(
+        within(sheet).getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('opens the More sheet outside the scrolling content', async () => {
+      const { findByTestId, getByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      expect(
+        await findByTestId(CardHomeSelectors.MORE_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(CardHomeSelectors.CARD_VIEW_TITLE)).queryByTestId(
+          CardHomeSelectors.MORE_SHEET,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('never shows log out on Card home', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+      await findByTestId(CardHomeSelectors.MORE_SHEET);
 
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Home segments', () => {
+    const listTransactions = Engine.context.CardController
+      .listTransactions as jest.Mock;
+
+    const recentTransaction: CardTransaction = {
+      id: 'view-tx-1',
+      providerId: 'baanx',
+      timestamp: Date.now(),
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '6.45', currency: 'USD' },
+      merchant: { name: 'Pret A Manger' },
+      fundingSources: [],
+    };
+
+    const historyOverrides = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardTransactionHistory: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsTransactionHistory: true,
+      });
+      listTransactions.mockReset();
+      listTransactions.mockResolvedValue({ items: [] });
+    });
+
+    afterEach(() => {
+      mockGetCapabilities.mockReturnValue(defaultCapabilities);
+    });
+
+    const openActivity = async (
+      view: ReturnType<typeof renderCardHomeView>,
+    ) => {
+      fireEvent.press(
+        await view.findByTestId(CardHomeSelectors.ACTIVITY_SEGMENT),
+      );
+    };
+
+    it('shows Manage by default and the latest transactions on Activity', async () => {
+      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+      const view = renderCardHomeView({ overrides: historyOverrides });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY)).toBeNull();
+
+      await openActivity(view);
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY),
+      ).toBeOnTheScreen();
+      expect(await view.findByText('Pret A Manger')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeNull();
+    });
+
+    it('opens Transaction history from See all', async () => {
+      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+      const view = renderCardHomeView({
+        overrides: historyOverrides,
+        extraRoutes: [
+          { name: Routes.CARD.TRANSACTION_HISTORY },
+          { name: Routes.CARD.TRANSACTION_DETAILS },
+        ],
+      });
+
+      await openActivity(view);
+      fireEvent.press(
+        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      );
+      expect(
+        await view.findByTestId(
+          getRouteProbeTestId(Routes.CARD.TRANSACTION_HISTORY),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens transaction details from a recent row', async () => {
+      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+      const view = renderCardHomeView({
+        overrides: historyOverrides,
+        extraRoutes: [{ name: Routes.CARD.TRANSACTION_DETAILS }],
+      });
+
+      await openActivity(view);
+      fireEvent.press(
+        await view.findByTestId(
+          `${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}view-tx-1`,
+        ),
+      );
+
+      expect(
+        await view.findByTestId(
+          getRouteProbeTestId(Routes.CARD.TRANSACTION_DETAILS),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when the feed has no transactions', async () => {
+      const view = renderCardHomeView({ overrides: historyOverrides });
+
+      await openActivity(view);
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_LOADING),
+      ).toBeNull();
+    });
+
+    it('shows a spinner while the first page is loading', async () => {
+      listTransactions.mockReturnValue(new Promise(() => undefined));
+      const view = renderCardHomeView({ overrides: historyOverrides });
+
+      await openActivity(view);
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
+      ).toBeNull();
+    });
+
+    it('shows an error and retries the feed', async () => {
+      listTransactions.mockRejectedValue(new Error('unavailable'));
+      const view = renderCardHomeView({ overrides: historyOverrides });
+
+      await openActivity(view);
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.RECENT_ACTIVITY_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
+      ).toBeNull();
+
+      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+      fireEvent.press(
+        view.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_RETRY),
+      );
+
+      expect(await view.findByText('Pret A Manger')).toBeOnTheScreen();
+    });
+
+    it('refetches activity when the Activity tab is pulled to refresh', async () => {
+      listTransactions.mockResolvedValue({ items: [recentTransaction] });
+      const view = renderCardHomeView({ overrides: historyOverrides });
+
+      await openActivity(view);
+      await view.findByText('Pret A Manger');
+      const callsBeforeRefresh = listTransactions.mock.calls.length;
+
+      const refreshControl = view.UNSAFE_getByType(RefreshControl);
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      await waitFor(() =>
+        expect(listTransactions.mock.calls.length).toBeGreaterThan(
+          callsBeforeRefresh,
+        ),
+      );
+    });
+
+    it('shows the segments when the card is frozen', async () => {
+      const view = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...historyOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  card: { status: 'FROZEN' },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the segments while the card still needs enabling', async () => {
+      const view = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...historyOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  actions: [{ type: 'enable_card' }],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments while identity is in review', async () => {
+      const view = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...historyOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  alerts: [{ type: 'kyc_pending', dismissable: false }],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.CARD_ART),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments when signed out during identity review', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: {
+          engine: {
+            backgroundState: {
+              CardController: { isAuthenticated: false },
+            },
+          },
+        },
+      });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.CARD_ART),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+
+    it('hides the segments during forced UK migration', async () => {
+      const view = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              CardController: {
+                cardHomeData: {
+                  account: { countryOfResidence: 'GB' },
+                },
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  cardTransactionHistory: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  cardUkMigration: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                    startDate: '2020-01-01T00:00:00.000Z',
+                    endDate: '2020-06-01T00:00:00.000Z',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.CARD_ART),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+    });
+  });
+
+  describe('Waiting view', () => {
+    const identityReviewOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          CardController: {
+            // Nothing actionable, so identity review owns the screen.
+            cardHomeData: {
+              actions: [],
+              alerts: [{ type: 'kyc_pending', dismissable: false }],
+            },
+          },
+        },
+      },
+    };
+    const signedOutPendingOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          CardController: { isAuthenticated: false },
+        },
+      },
+    };
+
+    it('shows the identity review copy while identity is in review', async () => {
+      const view = renderCardHomeView({ overrides: identityReviewOverrides });
+
+      expect(
+        await view.findByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CardHomeStatusViewSelectors.TITLE),
+      ).toHaveTextContent(
+        strings('card.card_home.setup_pending.reviewing.title'),
+      );
+    });
+
+    it('refetches card data when the waiting view is pulled to refresh', async () => {
+      const fetchMock = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      const view = renderCardHomeView({ overrides: identityReviewOverrides });
+      const scrollView = await view.findByTestId(
+        CardHomeStatusViewSelectors.SCROLL_VIEW,
+      );
+      const callsBeforeRefresh = fetchMock.mock.calls.length;
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+      await waitFor(() =>
+        expect(
+          view.getByTestId(CardHomeStatusViewSelectors.SCROLL_VIEW).props
+            .refreshControl.props.refreshing,
+        ).toBe(false),
+      );
+
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBeforeRefresh),
+      );
+    });
+
+    it('shows the signed-out pending copy without card actions', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+      });
+
+      expect(
+        await view.findByTestId(CardHomeStatusViewSelectors.TITLE),
+      ).toHaveTextContent(
+        strings('card.card_home.setup_pending.signed_out_pending.title'),
+      );
+      expect(
+        view.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dims the card art while signed out during identity review', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+      });
+
+      expect(await view.findByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
+        opacity: 0.5,
+      });
+    });
+
+    it('opens Card login from the signed-out waiting view', async () => {
+      const view = renderCardHomeView({
+        initialParams: { fromKycPending: true },
+        overrides: signedOutPendingOverrides,
+        extraRoutes: [
+          {
+            name: Routes.CARD.AUTHENTICATION,
+            Component: CardAuthentication,
+          },
+        ],
+      });
+
+      const logIn = await view.findByTestId(
+        CardHomeSelectors.SETUP_PENDING_LOG_IN_BUTTON,
+      );
+      // The button takes presses once its entrance step has played.
+      await waitFor(() => expect(logIn).toBeEnabled());
+      fireEvent.press(logIn);
+
+      expect(
+        await view.findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      ).toBeOnTheScreen();
     });
   });
 

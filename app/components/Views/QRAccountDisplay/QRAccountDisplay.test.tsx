@@ -1,6 +1,6 @@
 import React from 'react';
 import QRAccountDisplay from './index';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -66,6 +66,7 @@ const TestWrapper = ({
   description,
   descriptionProps,
   analyticsLocation,
+  analyticsSource,
   chainId,
 }: {
   accountAddress: string;
@@ -74,6 +75,7 @@ const TestWrapper = ({
   description?: string | React.ReactNode;
   descriptionProps?: Partial<TextProps>;
   analyticsLocation?: string;
+  analyticsSource?: string;
   chainId?: string;
 }) => (
   <QRAccountDisplay
@@ -83,6 +85,7 @@ const TestWrapper = ({
     description={description}
     descriptionProps={descriptionProps}
     analyticsLocation={analyticsLocation}
+    analyticsSource={analyticsSource}
     chainId={chainId}
   />
 );
@@ -380,6 +383,33 @@ describe('QRAccountDisplay', () => {
       });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({});
+    });
+
+    it('includes source in analytics when analyticsSource is provided', async () => {
+      // Arrange
+      const { getByTestId } = renderScreen(
+        () => (
+          <TestWrapper
+            accountAddress={ACCOUNT}
+            analyticsLocation="test_screen"
+            analyticsSource="onboarding_checklist"
+          />
+        ),
+        { name: 'QRAccountDisplay' },
+        // @ts-expect-error initialBackgroundState throws error
+        { state: initialState },
+      );
+
+      // Act
+      fireEvent.press(getByTestId('qr-account-display-copy-button'));
+
+      // Assert
+      await waitFor(() =>
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          location: 'test_screen',
+          source: 'onboarding_checklist',
+        }),
+      );
     });
 
     it('does not include chain_id in analytics when chainId is not provided', async () => {

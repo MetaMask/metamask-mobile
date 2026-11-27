@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Provider } from 'react-redux';
 import {
   Text as DSText,
@@ -109,10 +110,13 @@ let mockLivePriceHeaderProps:
 let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
 let mockPerpsSliderProps: React.ComponentProps<typeof PerpsSlider> | undefined;
 
+const mockClose = jest.fn();
+
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
   usePerpsTradeSheet: () => ({
     navigateTo: mockNavigateTo,
+    close: mockClose,
     title: undefined,
     banner: undefined,
   }),
@@ -177,6 +181,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   autoCloseText: 'TP Off, SL Off',
   showAutoClose: true,
   margin: '$3.41',
+  marginMode: 'isolated',
   liquidationPrice: '$68.29',
   liquidationDistance: '30.05%',
   amount: '10',
@@ -231,6 +236,53 @@ describe('PerpsTradeScreen errors', () => {
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
     mockPerpsSliderProps = undefined;
+  });
+
+  it('closes the sheet after submit only when closesSheetOnSubmit is set', () => {
+    const onSubmit = jest.fn();
+    const { unmount } = render(
+      <PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(mockClose).not.toHaveBeenCalled();
+    unmount();
+
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        onSubmit={onSubmit}
+        closesSheetOnSubmit
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('dims the amount section only when the amount warning is shown', () => {
+    const { unmount } = render(<PerpsTradeScreen {...defaultProps} />);
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED),
+    ).toBeNull();
+    unmount();
+
+    render(<PerpsTradeScreen {...defaultProps} showAmountWarning />);
+
+    // Hidden from the accessibility tree on purpose, so query past it.
+    const amountSection = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+      { includeHiddenElements: true },
+    );
+    expect(amountSection).toBeOnTheScreen();
+    expect(amountSection.props.accessibilityElementsHidden).toBe(true);
+    expect(amountSection.props.importantForAccessibility).toBe(
+      'no-hide-descendants',
+    );
   });
 
   it('propagates every form error to an accessible alert', () => {
@@ -305,6 +357,36 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Isolated');
+  });
+
+  it('names cross margin on the margin row', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode="cross" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent('Cross');
+    expect(
+      screen.getByLabelText('Margin, Cross, $3.41. About margin'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+  });
+
+  it('holds the margin label until the position stream resolves', () => {
+    render(<PerpsTradeScreen {...defaultProps} marginMode={undefined} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByLabelText(
+        `Margin, ${PERPS_CONSTANTS.FallbackDataDisplay}, $3.41. About margin`,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
   });
 
   it('shows the payment asset icon beside the pay with value', () => {

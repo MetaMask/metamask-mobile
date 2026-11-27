@@ -101,6 +101,17 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
+    it('does NOT subscribe to positions when enabled is false', () => {
+      // Arrange
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+
+      // Act
+      renderHook(() => usePerpsLivePositions({ enabled: false }));
+
+      // Assert
+      expect(mockPositionsSubscribe).not.toHaveBeenCalled();
+    });
+
     it('does NOT subscribe to prices by default (useLivePnl: false)', () => {
       // Arrange - even with positions present, no price subscription by default
       mockChannelPositionsSnapshot = [{ ...mockPosition, symbol: 'BTC-PERP' }];
@@ -496,7 +507,7 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('uses price over mark price when available', async () => {
+    it('uses the venue mark price over the mid for unrealized PnL', async () => {
       let positionsCallback: (positions: Position[]) => void = jest.fn();
       let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
         jest.fn();
@@ -542,7 +553,9 @@ describe('usePerpsLivePositions', () => {
 
       await waitFor(() => {
         const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1000');
+        // (51500 mark - 50000 entry) x 1, not the 51000 mid.
+        expect(updatedPosition.unrealizedPnl).toBe('1500');
+        expect(updatedPosition.positionValue).toBe('51500');
       });
     });
 

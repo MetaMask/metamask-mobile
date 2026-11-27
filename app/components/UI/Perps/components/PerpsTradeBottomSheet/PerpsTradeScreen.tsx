@@ -21,7 +21,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
+import type {
+  MarginMode,
+  OrderType,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,6 +33,9 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarginModeTag, {
+  getPerpsMarginModeLabel,
+} from '../PerpsMarginModeTag';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
@@ -65,6 +72,8 @@ import {
 interface PerpsTradeScreenProps {
   asset: string;
   oiCapSymbol: string;
+  /** Venue whose open-interest cap the banner reflects. */
+  oiCapProviderId?: PerpsProviderType;
   direction: 'long' | 'short';
   leverage: number;
   /** Market maximum, shown as a header tag; `null` while market data loads. */
@@ -77,6 +86,11 @@ interface PerpsTradeScreenProps {
   autoCloseText: string;
   showAutoClose: boolean;
   margin: string;
+  /**
+   * Margin mode of the order this sheet is placing. An open position locks
+   * the venue to that position's mode; a new lite order stays isolated.
+   */
+  marginMode: MarginMode | undefined;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */
   liquidationPrice: string;
   /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
@@ -99,7 +113,6 @@ interface PerpsTradeScreenProps {
   areLimitPricePresetsDisabled: boolean;
   hasAmountError: boolean;
   showAmountWarning: boolean;
-  amountWarningMessage?: string;
   isInputFocused: boolean;
   isLimitPriceFocused: boolean;
   payWithName: string;
@@ -153,6 +166,8 @@ interface PerpsTradeScreenProps {
    */
   onPayWithPress: () => void;
   onSubmit: () => void;
+  /** Closes the sheet right after `onSubmit`. */
+  closesSheetOnSubmit?: boolean;
 }
 
 export interface PerpsTradeError {
@@ -278,6 +293,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
 const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   asset,
   oiCapSymbol,
+  oiCapProviderId,
   direction,
   leverage,
   maxLeverage,
@@ -289,6 +305,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   autoCloseText,
   showAutoClose,
   margin,
+  marginMode,
   liquidationPrice,
   liquidationDistance,
   amount,
@@ -307,7 +324,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   areLimitPricePresetsDisabled,
   hasAmountError,
   showAmountWarning,
-  amountWarningMessage,
   isInputFocused,
   isLimitPriceFocused,
   payWithName,
@@ -340,8 +356,16 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onLimitPriceDonePress,
   onPayWithPress,
   onSubmit,
+  closesSheetOnSubmit = false,
 }) => {
-  const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { navigateTo, close, title, banner } = usePerpsTradeSheet();
+  const marginModeLabel = getPerpsMarginModeLabel(marginMode);
+  const handleSubmitPress = () => {
+    onSubmit();
+    if (closesSheetOnSubmit) {
+      close();
+    }
+  };
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
@@ -501,7 +525,24 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />
 
       <Box accessible={false} paddingVertical={3} gap={4}>
-        <Box accessible={false} paddingHorizontal={4} gap={4}>
+        <Box
+          accessible={false}
+          paddingHorizontal={4}
+          gap={4}
+          // Nothing to size without funds: dim and block the amount input,
+          // leaving the Add funds CTA as the way forward. Hide it from
+          // screen readers too so they do not land on controls that cannot
+          // respond.
+          {...(showAmountWarning
+            ? {
+                twClassName: 'opacity-50',
+                pointerEvents: 'none' as const,
+                accessibilityElementsHidden: true,
+                importantForAccessibility: 'no-hide-descendants' as const,
+                testID: PerpsTradeSheetSelectorsIDs.AMOUNT_SECTION_DISABLED,
+              }
+            : {})}
+        >
           <PerpsAmountDisplay
             amount={amount}
             tokenAmount={
@@ -527,8 +568,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             isActive={isInputFocused}
             isLoading={isAmountLoading}
             hasError={hasAmountError}
-            showWarning={showAmountWarning}
-            warningMessage={amountWarningMessage}
           />
           {isInputFocused ? (
             <Box accessible={false} gap={2}>
@@ -723,14 +762,15 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   label={strings('perps.order.margin')}
                   accessibilityLabel={`${strings(
                     'perps.order.margin',
-                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}. ${strings(
+                  )}, ${marginModeLabel}, ${margin}. ${strings(
                     'perps.trade_sheet.margin_info_accessibility_label',
                   )}`}
                   labelEndAccessory={
                     <>
-                      <Tag severity={TagSeverity.Neutral}>
-                        {strings('perps.margin_mode.isolated_title')}
-                      </Tag>
+                      <PerpsMarginModeTag
+                        marginMode={marginMode}
+                        testID={PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG}
+                      />
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
@@ -897,7 +937,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       {!isEditing && (isAtOICap || showServiceInterruptionBanner) ? (
         <Box accessible={false} paddingHorizontal={4} paddingBottom={3} gap={2}>
           {isAtOICap ? (
-            <PerpsOICapWarning symbol={oiCapSymbol} variant="banner" />
+            <PerpsOICapWarning
+              symbol={oiCapSymbol}
+              providerId={oiCapProviderId}
+              variant="banner"
+            />
           ) : null}
           {showServiceInterruptionBanner ? (
             <PerpsServiceInterruptionBanner />
@@ -927,17 +971,31 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
-            <PerpsDirectionButton
-              direction={direction}
-              size={ButtonBaseSize.Lg}
-              isFullWidth
-              isDisabled={isSubmitDisabled}
-              isLoading={isSubmitting}
-              onPress={onSubmit}
-              testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {submitLabel ?? directionLabel}
-            </PerpsDirectionButton>
+            {closesSheetOnSubmit ? (
+              // Add funds is not a trade, so it skips the Long/Short colors.
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled={isSubmitDisabled}
+                onPress={handleSubmitPress}
+                testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
+              >
+                {submitLabel ?? directionLabel}
+              </Button>
+            ) : (
+              <PerpsDirectionButton
+                direction={direction}
+                size={ButtonBaseSize.Lg}
+                isFullWidth
+                isDisabled={isSubmitDisabled}
+                isLoading={isSubmitting}
+                onPress={handleSubmitPress}
+                testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
+              >
+                {submitLabel ?? directionLabel}
+              </PerpsDirectionButton>
+            )}
             {isFeeLoading ? (
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}

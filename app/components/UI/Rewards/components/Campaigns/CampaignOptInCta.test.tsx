@@ -1,6 +1,34 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
+
+const mockNavigate = jest.fn();
+const mockOpenComposer = jest.fn();
+let mockIsSocialV1Enabled = false;
+let mockProfile: { profileId?: string } | undefined;
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => mockIsSocialV1Enabled,
+}));
+
+jest.mock('../../../../../selectors/profileController', () => ({
+  selectProfileControllerProfile: () => mockProfile,
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+  }),
+);
 import {
   type CampaignDto,
   CampaignType,
@@ -74,6 +102,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
+      'rewards.campaign.create_username': 'Create a username',
       'rewards.campaign.geo_loading': 'Checking region...',
       'rewards.campaign.geo_locked_cta': 'Check eligibility',
       'rewards.campaign.geo_locked_toast_title': 'Not available in your region',
@@ -117,6 +146,8 @@ describe('CampaignOptInCta', () => {
     jest.clearAllMocks();
     mockIsGeoRestricted = false;
     mockIsGeoLoading = false;
+    mockIsSocialV1Enabled = false;
+    mockProfile = undefined;
   });
 
   afterEach(() => {
@@ -278,6 +309,113 @@ describe('CampaignOptInCta', () => {
         />,
       );
       expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+    });
+  });
+
+  describe('social profile requirement', () => {
+    beforeEach(() => {
+      mockIsSocialV1Enabled = true;
+    });
+
+    it('keeps the geo lock ahead of a required social profile', () => {
+      mockIsGeoRestricted = true;
+      const { getByTestId, queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockOpenComposer).not.toHaveBeenCalled();
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
+
+    it('opens the sheet when Social V1 is off even if the campaign requires a profile', () => {
+      mockIsSocialV1Enabled = false;
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
+    });
+
+    it('opens the Social tab and skips the sheet when a profile is required and missing', () => {
+      const { getByTestId, queryByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
+
+    it('opens the sheet when Social V1 is on, a profile is required, and the user has one', () => {
+      mockProfile = { profileId: 'profile-1' };
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
+    });
+
+    it('labels the button Create a username when it opens Social onboarding', () => {
+      const { getByTestId, queryByText } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: true })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toHaveTextContent(
+        'Create a username',
+      );
+      expect(queryByText('Join Campaign')).toBeNull();
+    });
+
+    it('keeps the Join Campaign label when the sheet opens instead', () => {
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: false })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toHaveTextContent(
+        'Join Campaign',
+      );
+    });
+
+    it('opens the sheet when Social V1 is on and the campaign does not require a profile', () => {
+      const { getByTestId } = render(
+        <CampaignOptInCta
+          campaign={buildCampaign({ socialProfileRequired: false })}
+          participantStatus={notOptedIn}
+        />,
+      );
+
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+      expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+      expect(mockOpenComposer).not.toHaveBeenCalled();
     });
   });
 

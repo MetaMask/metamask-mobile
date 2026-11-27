@@ -31,11 +31,8 @@ import BottomSheetHeaderGlass from '../../../../../component-library/components-
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
-type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
-
 interface MoneyEarnCryptoInfoSheetParams {
   showMoneyHomeCta?: boolean;
-  variant?: MoneyEarnCryptoInfoSheetVariant;
 }
 
 const MoneyEarnCryptoInfoSheet = () => {
@@ -43,7 +40,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { showMoneyHomeCta = false, variant = 'default' } =
+  const { showMoneyHomeCta = false } =
     useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyVaultApy();
   const { navigateToMoneyHome } = useMoneyHomeNavigation();
@@ -75,10 +72,7 @@ const MoneyEarnCryptoInfoSheet = () => {
     });
   }, [navigateToMoneyHome, trackButtonClicked]);
 
-  const title =
-    variant === 'deposit'
-      ? strings('money.earn_crypto_info_sheet.deposit_title')
-      : strings('money.earn_crypto_info_sheet.title');
+  const title = strings('money.earn_crypto_info_sheet.title');
 
   return (
     <BottomSheet

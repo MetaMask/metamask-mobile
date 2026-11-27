@@ -9,9 +9,6 @@ import rewardsReducer, {
   setReferralDetailsError,
   resetRewardsState,
   setCandidateSubscriptionId,
-  setGeoRewardsMetadata,
-  setGeoRewardsMetadataLoading,
-  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
   setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
@@ -492,158 +489,6 @@ describe('rewardsReducer', () => {
         }),
       );
       expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.loading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadata', () => {
-    it('should update geo metadata when payload is provided', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('US');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should update geo metadata with different location', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'CA',
-        optinAllowedForGeo: false,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('CA');
-      expect(state.optinAllowedForGeo).toBe(false);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should clear geo metadata when payload is null', () => {
-      // Arrange
-      const stateWithGeoData = {
-        ...initialState,
-        geoLocation: 'EU',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadata(null);
-
-      // Act
-      const state = rewardsReducer(stateWithGeoData, action);
-
-      // Assert
-      expect(state.geoLocation).toBe(null);
-      expect(state.optinAllowedForGeo).toBe(null);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should reset loading state when metadata is set', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const geoMetadata = {
-        geoLocation: 'UK',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('UK');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadataLoading', () => {
-    it('should set geo rewards metadata loading to true', () => {
-      // Arrange
-      const action = setGeoRewardsMetadataLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(true);
-    });
-
-    it('should set geo rewards metadata loading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadataLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadataError', () => {
-    it('should set geo rewards metadata error to true', () => {
-      // Arrange
-      const action = setGeoRewardsMetadataError(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(true);
-    });
-
-    it('should set geo rewards metadata error to false', () => {
-      // Arrange
-      const stateWithError = {
-        ...initialState,
-        optinAllowedForGeoError: true,
-      };
-      const action = setGeoRewardsMetadataError(false);
-
-      // Act
-      const state = rewardsReducer(stateWithError, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(false);
-    });
-
-    it('should not affect other geo metadata properties', () => {
-      // Arrange
-      const stateWithGeoData = {
-        ...initialState,
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadataError(true);
-
-      // Act
-      const state = rewardsReducer(stateWithGeoData, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(true);
-      expect(state.geoLocation).toBe('US');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(true);
     });
   });
 
@@ -2416,6 +2261,38 @@ describe('rewardsReducer', () => {
         mockBenefitsPayload.benefits,
       );
     });
+
+    it('clears an earlier error when a read succeeds', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefits({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          benefits: mockBenefitsPayload,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(false);
+    });
+
+    it('marks the subscription as loaded, including for an empty list', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefits({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          benefits: { ...mockBenefitsPayload, benefits: [] },
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(true);
+    });
   });
 
   describe('setBenefitsLoading', () => {
@@ -2429,6 +2306,38 @@ describe('rewardsReducer', () => {
       );
       expect(state.benefits[TEST_SUBSCRIPTION_ID]?.loading).toBe(true);
     });
+
+    it('keeps a stored error while the next read is in flight', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefitsLoading({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          loading: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(true);
+    });
+
+    it('leaves the subscription not loaded while the first read is in flight', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsLoading({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          loading: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(false);
+    });
   });
 
   describe('setBenefitsError', () => {
@@ -2441,6 +2350,30 @@ describe('rewardsReducer', () => {
         }),
       );
       expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(true);
+    });
+
+    it('marks the subscription as loaded when the read fails', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(true);
+    });
+
+    it('does not mark the subscription as loaded when the error is cleared', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: false,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(false);
     });
   });
 

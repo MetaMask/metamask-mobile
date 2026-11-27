@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './PerpsTradingCampaignLeaderboard';
@@ -89,6 +90,25 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(getByTestId(TEST_IDS.LIST)).toBeDefined();
     expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
     expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
+  });
+
+  it('uses the alternative text color for the Powered by prefix', () => {
+    const { UNSAFE_getByProps } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+
+    expect(
+      UNSAFE_getByProps({ testID: TEST_IDS.POWERED_BY_PREFIX }).props.color,
+    ).toBe(TextColor.TextAlternative);
+  });
+
+  it('keeps the HyperTracker logo visible next to the muted prefix', () => {
+    const { getByTestId } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+
+    expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
+    expect(getByTestId(TEST_IDS.HYPERTRACKER_LOGO)).toBeDefined();
   });
 
   it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {

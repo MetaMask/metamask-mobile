@@ -1,7 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
 import { openSharedPositionOnProfile } from '../../../../core/DeeplinkManager/handlers/legacy/socialPositionSheetDeeplink';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
+import { releaseAnsweredReferralCode } from '../../../../reducers/rewardsMoney';
+import type { RegisterMoneyRefereeResult } from '../../../UI/Rewards/hooks/useRegisterMoneyReferee';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   getPendingSocialPreviewTarget,
@@ -11,6 +13,16 @@ import { useOpenPendingSocialPreviewTarget } from './useOpenPendingSocialPreview
 
 const mockShowToast = jest.fn();
 const mockAddProperties = jest.fn();
+const mockDispatch = jest.fn();
+const mockRegisterReferee = jest.fn<
+  Promise<RegisterMoneyRefereeResult>,
+  [string]
+>();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('../../../../component-library/components/Toast', () => {
   const ReactActual = jest.requireActual('react');
@@ -29,8 +41,8 @@ jest.mock('../../../../component-library/components/Toast', () => {
   };
 });
 
-jest.mock('../../../../core/Engine', () => ({
-  controllerMessenger: { call: jest.fn() },
+jest.mock('../../../UI/Rewards/hooks/useRegisterMoneyReferee', () => ({
+  useRegisterMoneyReferee: () => mockRegisterReferee,
 }));
 
 jest.mock(
@@ -62,7 +74,30 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 describe('useOpenPendingSocialPreviewTarget', () => {
   const navigation = { navigate: jest.fn(), goBack: jest.fn() };
-  const mockCall = jest.mocked(Engine.controllerMessenger.call);
+
+  const startOnboardingWithReferral = (referralCode = 'CODE1234') =>
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+      referralCode,
+    });
+
+  const expectFailureToast = (description: string) =>
+    waitFor(() =>
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            expect.objectContaining({
+              label: strings(
+                'social_leaderboard.trader_preview.referral_failed',
+              ),
+            }),
+          ],
+          descriptionOptions: { description },
+        }),
+      ),
+    );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,7 +144,7 @@ describe('useOpenPendingSocialPreviewTarget', () => {
       traderId: 'trader-1',
       source: 'deep_link',
     });
-    expect(mockCall).not.toHaveBeenCalled();
+    expect(mockRegisterReferee).not.toHaveBeenCalled();
     expect(getPendingSocialPreviewTarget()).toBeNull();
   });
 
@@ -131,22 +166,14 @@ describe('useOpenPendingSocialPreviewTarget', () => {
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
   });
 
-  it('registers the accepted referral and confirms it with a toast', async () => {
-    mockCall.mockResolvedValue(undefined as never);
-    setPendingSocialPreviewTarget({
-      kind: 'trader',
-      traderId: 'trader-1',
-      stage: 'onboarding',
-      referralCode: 'code1234',
-    });
+  it('registers the accepted referral through the shared core and confirms it with a toast', async () => {
+    mockRegisterReferee.mockResolvedValue({ status: 'accepted' });
+    startOnboardingWithReferral('code1234');
     const { result } = renderHook(() => useOpenPendingSocialPreviewTarget());
 
     result.current(navigation);
 
-    expect(mockCall).toHaveBeenCalledWith(
-      'RewardsMoneyController:registerReferee',
-      { code: 'CODE1234' },
-    );
+    expect(mockRegisterReferee).toHaveBeenCalledWith('code1234');
     await waitFor(() =>
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -163,36 +190,83 @@ describe('useOpenPendingSocialPreviewTarget', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({ interaction_type: 'accepted' }),
     );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('still opens the profile and shows an error toast when the referral is refused', async () => {
-    mockCall.mockRejectedValue(new Error('refused') as never);
-    setPendingSocialPreviewTarget({
-      kind: 'trader',
-      traderId: 'trader-1',
-      stage: 'onboarding',
-      referralCode: 'CODE1234',
+  it('still opens the profile, explains the failure and frees the code for a retry when registration fails', async () => {
+    mockRegisterReferee.mockResolvedValue({
+      status: 'refused',
+      error: new Error('network'),
     });
+    startOnboardingWithReferral();
     const { result } = renderHook(() => useOpenPendingSocialPreviewTarget());
 
     result.current(navigation);
 
     expect(navigateToSocialV1Profile).toHaveBeenCalled();
-    await waitFor(() =>
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: [
-            expect.objectContaining({
-              label: strings(
-                'social_leaderboard.trader_preview.referral_failed',
-              ),
-            }),
-          ],
-        }),
-      ),
+    await expectFailureToast(
+      strings('rewards.error_messages.something_went_wrong'),
     );
     expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ interaction_type: 'refused' }),
+      expect.objectContaining({
+        interaction_type: 'refused',
+        refusal_reason: 'registration_failed',
+      }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      releaseAnsweredReferralCode('CODE1234'),
+    );
+  });
+
+  it('frees the code for a retry when rate limited', async () => {
+    mockRegisterReferee.mockResolvedValue({
+      status: 'refused',
+      error: new RewardsMoneyHttpError('slow down', 429),
+    });
+    startOnboardingWithReferral();
+    const { result } = renderHook(() => useOpenPendingSocialPreviewTarget());
+
+    result.current(navigation);
+
+    await expectFailureToast(strings('rewards.error_messages.rate_limited'));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      releaseAnsweredReferralCode('CODE1234'),
+    );
+  });
+
+  it('keeps the code answered when the refusal is final', async () => {
+    mockRegisterReferee.mockResolvedValue({
+      status: 'refused',
+      error: new RewardsMoneyHttpError('conflict', 409),
+    });
+    startOnboardingWithReferral();
+    const { result } = renderHook(() => useOpenPendingSocialPreviewTarget());
+
+    result.current(navigation);
+
+    await expectFailureToast(
+      strings('rewards.error_messages.already_referred'),
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ refusal_reason: 'already_referred' }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('shows the validation message for an invalid code', async () => {
+    mockRegisterReferee.mockResolvedValue({
+      status: 'invalid',
+      message: 'Invalid referral code',
+    });
+    startOnboardingWithReferral();
+    const { result } = renderHook(() => useOpenPendingSocialPreviewTarget());
+
+    result.current(navigation);
+
+    await expectFailureToast('Invalid referral code');
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ refusal_reason: 'invalid_code' }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });

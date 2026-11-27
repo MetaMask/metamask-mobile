@@ -19,6 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
@@ -38,6 +39,11 @@ export interface PositionSheetHeaderProps {
   onShare?: () => void;
   /** Shows a spinner in place of the share button while the link is made. */
   isSharing?: boolean;
+  /**
+   * Runs Follow's onboarding navigation, so the sheet can close first and
+   * onboarding opens full screen.
+   */
+  runNavigation?: (navigate: () => void) => void;
 }
 
 const PositionSheetHeader = ({
@@ -46,12 +52,14 @@ const PositionSheetHeader = ({
   onPressTrader,
   onShare,
   isSharing = false,
+  runNavigation,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
     requireSocialProfile: true,
+    runNavigation,
   });
 
   const handleFollowPress = useCallback(
@@ -102,6 +110,11 @@ const PositionSheetHeader = ({
           >
             {author.username}
           </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={PositionDetailsSheetSelectorsIDs.VERIFIED_BADGE}
+            />
+          ) : null}
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}

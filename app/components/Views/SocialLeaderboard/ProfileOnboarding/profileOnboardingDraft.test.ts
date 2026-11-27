@@ -1,4 +1,8 @@
 import {
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
+} from '../MyProfileView/avatarPresets';
+import {
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -10,6 +14,7 @@ import {
   isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
+  withEligibleLinkedAccount,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
 
@@ -40,12 +45,79 @@ describe('profileOnboardingDraft', () => {
 
     const draft = createInitialOnboardingDraft();
 
-    expect(draft.username).toBe('bonk_turbo_queen');
+    expect(draft.username).toBe('BonkTurboQueen');
     expect(draft.displayName).toBe('Bonk Turbo Queen');
+  });
+
+  it('starts the draft on the first avatar and the first middle backdrop when the random draw is zero', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[0].id);
+    expect(draft.avatarBackgroundId).toBe(PROFILE_AVATAR_BACKGROUNDS[2].id);
+  });
+
+  it('starts the draft on a later avatar and the last middle backdrop when the random draw moves on', () => {
+    const avatarIndex = 2;
+    const backgroundIndex = 4;
+    let call = 0;
+    jest.spyOn(Math, 'random').mockImplementation(() => {
+      call += 1;
+      if (call <= 3) {
+        return 0;
+      }
+      if (call === 4) {
+        return avatarIndex / PROFILE_AVATAR_PRESETS.length;
+      }
+      return 0.999;
+    });
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[avatarIndex].id);
+    expect(draft.avatarBackgroundId).toBe(
+      PROFILE_AVATAR_BACKGROUNDS[backgroundIndex].id,
+    );
   });
 
   it('builds a display name from an underscored handle', () => {
     expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
+  });
+
+  it('builds a display name from a CamelCase handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen')).toBe('Bonk Turbo Queen');
+    expect(displayNameFromUsername('GmZenWolf')).toBe('Gm Zen Wolf');
+    expect(displayNameFromUsername('ETHMaxi')).toBe('Eth Maxi');
+  });
+
+  it('puts a space before the number in a numbered handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('WenMoon343')).toBe('Wen Moon 343');
+    expect(displayNameFromUsername('bonk_turbo_queen_343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('CryptoKing99')).toBe('Crypto King 99');
+    expect(displayNameFromUsername('ETHMaxi343')).toBe('Eth Maxi 343');
+  });
+
+  it('keeps digits inside typed handles attached as before', () => {
+    expect(displayNameFromUsername('wen_cat2')).toBe('Wen Cat2');
+    expect(displayNameFromUsername('web3dev')).toBe('Web3dev');
+    expect(displayNameFromUsername('crypto24')).toBe('Crypto24');
+  });
+
+  it('does not split a single leading letter off a CamelCase word', () => {
+    expect(displayNameFromUsername('iPhone')).toBe('Iphone');
+    expect(displayNameFromUsername('eBay')).toBe('Ebay');
+  });
+
+  it('keeps a trailing number attached when the handle has no CamelCase', () => {
+    expect(displayNameFromUsername('BTC202')).toBe('Btc202');
+    expect(displayNameFromUsername('bitcoin100')).toBe('Bitcoin100');
+    expect(displayNameFromUsername('iPhone100')).toBe('Iphone100');
   });
 
   it('keeps display name generation unchanged for mixed-case usernames', () => {
@@ -137,6 +209,79 @@ describe('profileOnboardingDraft', () => {
     ).toBeNull();
   });
 
+  it('drops a linked account that is no longer eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+    ]);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('leaves a cleared selection empty when another account is eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+    const accounts = [{ id: 'kept', address: '0xkept' }];
+
+    const cleared = withEligibleLinkedAccount(draft, accounts);
+    const again = withEligibleLinkedAccount(cleared, accounts);
+
+    expect(again.linkedAccountId).toBeNull();
+    expect(again.linkedAccountAddress).toBeNull();
+    expect(again).toBe(cleared);
+  });
+
+  it('clears the linked account when the eligible list is empty', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, []);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('keeps a linked account that is still eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'kept',
+      linkedAccountAddress: '0xkept',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+      { id: 'other', address: '0xother' },
+    ]);
+
+    expect(next).toBe(draft);
+  });
+
+  it('selects the first account when the draft has none', () => {
+    const draft = createInitialOnboardingDraft();
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'first', address: '0xfirst' },
+      { id: 'second', address: '0xsecond' },
+    ]);
+
+    expect(next.linkedAccountId).toBe('first');
+    expect(next.linkedAccountAddress).toBe('0xfirst');
+  });
+
   it('blocks continue until the handle and display name are filled', () => {
     const draft = createInitialOnboardingDraft();
 
@@ -220,7 +365,7 @@ describe('profileOnboardingDraft', () => {
     expect(manual.path).toBe('manual');
     expect(manual.useXAvatar).toBe(false);
     expect(manual.xUsername).toBeNull();
-    expect(manual.username).toBe('bonk_turbo_queen');
+    expect(manual.username).toBe('BonkTurboQueen');
     expect(manual.linkedAccountId).toBe('acc-1');
     expect(buildOnboardedSocialProfile(manual).connectedToX).toBe(false);
     expect(buildOnboardedSocialProfile(manual).xHandle).toBeNull();
@@ -241,6 +386,8 @@ describe('profileOnboardingDraft', () => {
       ...createInitialOnboardingDraft(),
       username: ' @Wen_Cat ',
       displayName: 'Wen Cat',
+      avatarPresetId: 'vr',
+      avatarBackgroundId: 'background3',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
     };

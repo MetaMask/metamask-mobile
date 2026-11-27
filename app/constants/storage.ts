@@ -59,8 +59,6 @@ export const DEBUG = `[${mm} DEBUG]:`;
 export const LAST_APP_VERSION = `${prefix}LastAppVersion`;
 export const CURRENT_APP_VERSION = `${prefix}CurrentAppVersion`;
 
-export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
-
 export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
@@ -88,6 +86,8 @@ export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDi
 
 export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
 
+export const SLOW_NETWORK_BANNER_DISMISSED_AT = `${prefix}slowNetworkBannerDismissedAt`;
+
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
 
 export const SOCIAL_TERMS_ACCEPTED = `${prefix}socialTermsAccepted`;
@@ -95,6 +95,9 @@ export const SOCIAL_TERMS_ACCEPTED = `${prefix}socialTermsAccepted`;
 export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;
 
 export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;
+
+/** Whether the Money home Details discovery dot has been dismissed. */
+export const VBA_DETAILS_NEW_DOT_SEEN = `${prefix}vbaDetailsNewDotSeen`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

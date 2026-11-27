@@ -100,6 +100,8 @@ MM_METRO_PORT=8081 yarn mm launch --platform ios
 MM_METRO_PORT=8081 yarn mm launch --platform android
 ```
 
+`yarn mm cdp` and `yarn mm hermes-targets` use the Metro port of the launch, so no `--metro-port` is needed on each call. The session keeps one Hermes connection open and reuses it. A per-call `--metro-port` or `--app-id` overrides the session values for that call only.
+
 On Node 20, Hermes/CDP WebSocket access may require the experimental WebSocket flag:
 
 ```bash
@@ -144,8 +146,9 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - `yarn mm describe-screen`
 - `yarn mm list-testids`
-- `yarn mm click <a11yRef>` or `--testid <id>`. The click fails with `MM_TARGET_OBSCURED` when another element (for example the keyboard) covers the target, and nothing is tapped. `--dismiss-keyboard` closes a covering keyboard and taps again.
-- `yarn mm type <a11yRef> <text>` or `--testid <id>`
+- `yarn mm click <a11yRef>` or `--testid <id>`. On iOS and Android the click fails with `MM_TARGET_OBSCURED` when another element (for example the keyboard, or the Expo dev "Tools" button in a dev build) covers the target, and nothing is tapped. `--dismiss-keyboard` closes a covering keyboard and taps again.
+- `yarn mm type <a11yRef> <text>` or `--testid <id>`. The field is cleared first; `""` clears it.
+- `yarn mm dismiss-keyboard`. On Android it fails with `MM_DEVICE_ACTION_FAILED` when the keyboard is still shown.
 - `yarn mm scroll-to-element <a11yRef>` or `--testid <id>`. `--direction` is the content direction (`down` reveals content below) and defaults to `auto`. The result has `swipes`, `inViewport` and `bounds`. A target that is found but not brought into view fails with `MM_TARGET_NOT_VISIBLE`.
 - `yarn mm wait-for`
 - `yarn mm get-text`
@@ -155,7 +158,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 ### Failures and exit codes
 
-A failed command prints one JSON line on stdout, `{"ok":false,"error":{"code","message","hint"?,"retryable"},"meta"?}`, and exits with a code per error class: 2 usage or validation, 3 no session or daemon down, 4 target not found or not actionable, 5 timeout, 6 platform or device unavailable, 1 anything else. A successful response has no `ok` field. See the `@metamask/client-mcp-core` README for the full table.
+A failed command prints one JSON line on stdout, `{"ok":false,"error":{"code","message","hint"?,"retryable"},"meta"?}`, and exits with a code per error class: 2 usage or validation, 3 no session or daemon down, 4 target not found or not actionable, 5 timeout (including `MM_QUEUE_TIMEOUT` when the daemon stops a request), 6 platform or device unavailable, 1 anything else. A successful response has no `ok` field. See the `@metamask/client-mcp-core` README for the full table.
 
 Set `MM_ARTIFACTS_DIR` before the daemon starts to write session artifacts (`<dir>/<sessionId>/session.json`) to another directory. The default is `test-artifacts`.
 
@@ -173,7 +176,7 @@ Set `MM_ARTIFACTS_DIR` before the daemon starts to write session artifacts (`<di
 
 ## Operational Notes
 
-- The daemon binds only to `127.0.0.1`, records worktree-local state in `.mm-server`, and allows up to 180 seconds for requests. Android readiness uses up to 90 seconds, kept below the CLI's 120s request timeout so a real failure surfaces as `MM_LAUNCH_FAILED` rather than a bare timeout.
+- The daemon binds only to `127.0.0.1`, records worktree-local state in `.mm-server`, and allows up to 180 seconds for requests. It publishes that limit in `.mm-server` (`requestTimeoutMs`), and the CLI waits longer than it. Android readiness uses up to 90 seconds, kept below the CLI's 120s request timeout so a real failure surfaces as `MM_LAUNCH_FAILED` rather than a bare timeout.
 - The daemon shuts down after 30 minutes of inactivity and writes `.mm-daemon.log`.
 - Browser-only navigation and tab APIs are unavailable on mobile sessions.
 - Accessibility references are ephemeral; call `describe-screen` again after navigation or major UI changes.
@@ -192,4 +195,4 @@ Launch errors use the core `ErrorCode` set, because the `mm` CLI maps each known
 | `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
 | `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
-The workflow uses `@metamask/client-mcp-core` 0.14.0 (mobile platform support since 0.8.0); `@metamask/device-mcp` 0.8.0 supplies the device backends. The device-mcp snapshot helper and its `helper-first` default ship since `@metamask/device-mcp` 0.6.0. When a device-mcp build does not ship the helper APK, the backend default is `dump`. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).
+The workflow uses `@metamask/client-mcp-core` 0.15.0 (mobile platform support since 0.8.0); `@metamask/device-mcp` 0.9.0 supplies the device backends. Core and this workflow must resolve the same device-mcp copy: the workflow creates the backend, so device-mcp fixes (such as the Android tap occlusion check) only apply through it. The device-mcp snapshot helper and its `helper-first` default ship since `@metamask/device-mcp` 0.6.0. When a device-mcp build does not ship the helper APK, the backend default is `dump`. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).

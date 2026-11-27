@@ -1,11 +1,13 @@
 import '../../../../../../tests/component-view/mocks';
 
 import type React from 'react';
+import { type CrossLiquidationEstimate } from '@metamask/perps-controller';
 import {
   cleanup,
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -14,12 +16,12 @@ import { wirePerpsControllerForStore } from '../../../../../../tests/component-v
 import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
+  selectCrossMarginMode,
 } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
-  PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
   PerpsTPSLViewSelectorsIDs as tpslIds,
 } from '../../Perps.testIds';
@@ -43,10 +45,7 @@ const selectCross = async () => {
   });
   unwire = wirePerpsControllerForStore(store);
   await openMarginModeSheet();
-  await waitFor(() =>
-    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-  );
-  fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+  await selectCrossMarginMode();
   await waitFor(() =>
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),
@@ -54,8 +53,25 @@ const selectCross = async () => {
   );
 };
 
+const mockCrossLiquidationEstimate = (estimate: CrossLiquidationEstimate) => {
+  jest
+    .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+    .mockResolvedValue(estimate);
+};
+
+const enterCrossOrderSize = async () => {
+  fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+  fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+};
+
 describeForPlatforms('Pro Cross margin risk editors', () => {
-  beforeEach(resetMarginModeControllerMocks);
+  beforeEach(() => {
+    resetMarginModeControllerMocks();
+    jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockReset()
+      .mockResolvedValue({ status: 'unavailable', reason: 'provider' });
+  });
   afterEach(() => {
     cleanup();
     unwire?.();
@@ -87,6 +103,41 @@ describeForPlatforms('Pro Cross margin risk editors', () => {
         'value',
         '1900',
       ),
+    );
+  });
+
+  it('shows the controller cross liquidation price on the summary row', async () => {
+    mockCrossLiquidationEstimate({
+      status: 'price',
+      price: '2183.6007130124776',
+    });
+    await selectCross();
+    await enterCrossOrderSize();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+        /\$2,183\.6/,
+      ),
+    );
+    expect(
+      Engine.context.PerpsController.estimateCrossLiquidation,
+    ).toHaveBeenCalled();
+  });
+
+  it('shows no liquidation price when a cross order cannot be liquidated', async () => {
+    mockCrossLiquidationEstimate({
+      status: 'none',
+      reason: 'covered_by_account',
+    });
+    await selectCross();
+    await enterCrossOrderSize();
+
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).getByText(
+          strings('perps.cross_position.no_liquidation_price'),
+        ),
+      ).toBeOnTheScreen(),
     );
   });
 });

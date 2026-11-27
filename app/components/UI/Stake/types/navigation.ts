@@ -2,7 +2,7 @@ import type { ConfirmationParams } from '../../../Views/confirmations/components
 import type { TokenI } from '../../Tokens/types';
 
 // Superset of ConfirmationParams; staking/claim also forward amountWei/amountFiat.
-export type StakeRedesignedConfirmationsParams =
+export type StakeConfirmationsParams =
   | (ConfirmationParams & { amountWei?: string; amountFiat?: string })
   | undefined;
 
@@ -26,7 +26,7 @@ export type StakeScreensStackParamList = {
     | undefined;
   UnstakeConfirmation: { amountWei?: string; amountFiat?: string } | undefined;
   EarningsHistory: { asset: TokenI };
-  RedesignedConfirmations: StakeRedesignedConfirmationsParams;
+  Confirmations: StakeConfirmationsParams;
 };
 
 /** Earn token list sheet params (WalletActions / StakeModals). */

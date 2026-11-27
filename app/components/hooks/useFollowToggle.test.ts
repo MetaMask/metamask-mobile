@@ -6,11 +6,12 @@ import Logger from '../../util/Logger';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
+import { selectIsSocialV1Enabled } from '../../selectors/featureFlagController/socialV1';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   resetFollowingSyncForTests,
   syncFollowingState,
 } from '../../util/social/followingSync';
-import { FOLLOWING_FEED_QUERY_KEY_PREFIXES } from '../UI/SocialFeed/data/socialFeedQueries';
 import {
   resetFollowToggleSharedStateForTests,
   useFollowToggle,
@@ -27,6 +28,7 @@ jest.mock('../../selectors/socialController', () => ({
 
 jest.mock('../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+  selectPrimaryHDKeyring: jest.fn(),
 }));
 
 jest.mock('../../selectors/accountsController', () => ({
@@ -79,12 +81,16 @@ const selectorState = {
   followingProfileIds: [] as string[],
   isUnlocked: true,
   selectedAddress: DEFAULT_SELECTED_ADDRESS as string | undefined,
+  isSocialV1Enabled: false,
 };
 
 const mockFollowToggleSelectors = (): void => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectFollowingProfileIds) {
       return selectorState.followingProfileIds;
+    }
+    if (selector === selectIsSocialV1Enabled) {
+      return selectorState.isSocialV1Enabled;
     }
     if (selector === selectIsUnlocked) {
       return selectorState.isUnlocked;
@@ -104,6 +110,7 @@ describe('useFollowToggle', () => {
     selectorState.followingProfileIds = [];
     selectorState.isUnlocked = true;
     selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    selectorState.isSocialV1Enabled = false;
     mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
@@ -202,54 +209,40 @@ describe('useFollowToggle', () => {
       });
     });
 
-    it('invalidates the following feed after a successful follow', async () => {
+    it('records the follow while the feed reload is still in flight', async () => {
+      mockInvalidateQueries.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
-        await result.current.toggleFollow();
+        await result.current.toggleFollow({
+          source: 'leaderboard',
+          traderAddress: '0xabc',
+          traderUsername: 'alice',
+          traderRank: 3,
+          traderAvatarUri: 'https://example.com/avatar.png',
+        });
       });
 
-      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
-      );
+      expect(mockTrack).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates the following feed after a successful unfollow', async () => {
-      selectorState.followingProfileIds = ['trader-1'];
+    it('refreshes the older following feed and leaves the v1 feed cached', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
         await result.current.toggleFollow();
       });
 
-      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
-      );
-    });
-
-    it('keeps the follow and reports the failure when the following feed invalidation rejects', async () => {
-      mockInvalidateQueries.mockImplementation(({ queryKey }) =>
-        FOLLOWING_FEED_QUERY_KEY_PREFIXES.includes(queryKey)
-          ? Promise.reject(new Error('feed boom'))
-          : Promise.resolve(),
-      );
-      const { result } = renderHook(() => useFollowToggle('trader-1'));
-
-      await act(async () => {
-        await result.current.toggleFollow();
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
       });
-
-      expect(result.current.isFollowing).toBe(true);
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            surface: 'follow',
-            operation: 'invalidate_following_feed',
-            endpoint: 'feed',
-          }),
-        }),
+      const v1FeedInvalidated = mockInvalidateQueries.mock.calls.some(
+        ([query]) => query?.queryKey?.[1]?.scope === 'following_v1',
       );
+      expect(v1FeedInvalidated).toBe(false);
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {
@@ -338,6 +331,40 @@ describe('useFollowToggle', () => {
           source: 'leaderboard',
           trader_has_profile_picture_set: true,
         }),
+      );
+    });
+
+    it('fires Social Trader Followed on the Social V1 treatment only', async () => {
+      selectorState.isSocialV1Enabled = true;
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_FOLLOWED,
+        { source: 'trader_profile' },
+      );
+    });
+
+    it('does not fire the Social milestone outside the Social V1 treatment', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_FOLLOWED,
+        expect.anything(),
       );
     });
 
@@ -450,11 +477,13 @@ describe('useFollowToggleMany', () => {
     selectorState.followingProfileIds = [];
     selectorState.isUnlocked = true;
     selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    selectorState.isSocialV1Enabled = false;
     mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
   });
 
   it('tracks follow state independently per trader id', async () => {

@@ -684,7 +684,6 @@
     "gas_education_3": "MetaMask はガス費から利益を得ません。",
     "gas_education_4": "ガス費は、ネットワーク トラフィックやトランザクションの複雑さに応じて変動します。",
     "gas_education_learn_more": "ガス費の詳細を表示",
-    "confusable_title": "受信者のアドレスを確認する",
     "confusable_msg": "ENS の名称の中に混乱しやすい文字を発見しました。詐欺を防ぐためにENSの名称を確認して下さい。"
   },
   "custom_gas": {
@@ -831,8 +830,6 @@
     "hash_copied_to_clipboard": "トランザクション ハッシュがクリップボードにコピーされました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
     "transaction_error": "トランザクション エラー",
-    "address_to_placeholder": "検索、パブリック アドレス (0x)、または ENS",
-    "address_from_balance": "残高:",
     "status": "ステータス",
     "date": "日付",
     "nonce": "ナンス",
@@ -847,11 +844,8 @@
     "delete_contact": "連絡先の削除",
     "delete": "削除",
     "cancel": "キャンセル",
-    "add_to_address_book": "アドレス帳への追加",
-    "enter_an_alias": "エイリアスの入力",
     "add_this_address": "このアドレスをアドレス帳に追加",
     "next": "次へ",
-    "enter_an_alias_placeholder": "例: Vitalik B",
     "add_contact_title": "連絡先の追加",
     "add_contact": "連絡先の追加",
     "edit_contact_title": "連絡先の編集",

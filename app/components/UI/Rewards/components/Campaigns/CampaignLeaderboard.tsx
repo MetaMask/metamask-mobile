@@ -35,8 +35,14 @@ export const CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS = {
 export interface CampaignLeaderboardRowEntry {
   rank: number;
   referralCode: string;
+  profileUsername?: string | null;
   qualified: boolean;
 }
+
+export const campaignLeaderboardRowLabel = (entry: {
+  referralCode: string;
+  profileUsername?: string | null;
+}): string => entry.profileUsername?.trim() || entry.referralCode;
 
 export interface CampaignLeaderboardEntryRowProps<
   T extends CampaignLeaderboardRowEntry,
@@ -112,7 +118,7 @@ export function CampaignLeaderboardEntryRow<
           numberOfLines={1}
           twClassName="shrink"
         >
-          {entry.referralCode}
+          {campaignLeaderboardRowLabel(entry)}
         </Text>
         {showCrown && <CrownIcon name="crown" width={14} height={14} />}
         {showPendingTag && (

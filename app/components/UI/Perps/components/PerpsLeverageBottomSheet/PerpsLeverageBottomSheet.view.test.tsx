@@ -12,6 +12,7 @@ import { createLongPositionForViews } from '../../../../../../tests/component-vi
 import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
+  selectCrossMarginMode,
 } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -29,12 +30,10 @@ describeForPlatforms('PerpsLeverageBottomSheet Cross margin', () => {
     renderPerpsCrossMarginOrderFormPanel();
     await screen.findByTestId(formIds.LEVERAGE_BUTTON);
     fireEvent.press(screen.getByTestId(formIds.LEVERAGE_BUTTON));
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
-        ).not.toHaveTextContent('--'),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
+      ).not.toHaveTextContent('--'),
     );
     expect(
       screen.getByTestId(leverageIds.LIQUIDATION_DISTANCE_VALUE),
@@ -44,13 +43,7 @@ describeForPlatforms('PerpsLeverageBottomSheet Cross margin', () => {
       expect(screen.queryByTestId(leverageIds.PICKER)).not.toBeOnTheScreen(),
     );
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
 
     fireEvent.press(screen.getByTestId(formIds.LEVERAGE_BUTTON));
     fireEvent.press(

@@ -6,20 +6,33 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
+import ReactQueryService from '../../../../../core/ReactQueryService';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
+import useMoneyPremiumVaultRate from '../../../../UI/Money/hooks/useMoneyPremiumVaultRate';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import { clearMoneyAccountPlusTrialEligibilityCache } from '../../../../hooks/moneyAccountPlusTrialEligibility';
 import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
+  buildPostCancellationHomeResetState,
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
   getCancellationTiming,
   shuffleCancelReasons,
   toCancellationReason,
 } from './CancelMembership.utils';
+import CancelPostCancelSheet, {
+  type CancelPostCancelSheetContent,
+} from './components/CancelPostCancelSheet';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
+
+/** Cashback stays fixed until the membership API exposes the rate. */
+const POST_CANCEL_CASHBACK_RATE = '3%';
+/** Shown when the premium vault rate is not in the cache yet. */
+const MISSING_PREMIUM_APY = '—';
 
 const CANCEL_STEPS = {
   REASON: 'reason',
@@ -31,16 +44,24 @@ type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  // Pro Hub already observes this query. Reuse the cache and skip a second poll.
+  const { ratePercentFormatted } = useMoneyPremiumVaultRate({
+    refetchInterval: false,
+  });
+  const postCancelApy = ratePercentFormatted ?? MISSING_PREMIUM_APY;
   const [orderedReasons] = useState(() => shuffleCancelReasons(CANCEL_REASONS));
   const [step, setStep] = useState<CancelStep>(CANCEL_STEPS.REASON);
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelOutcome, setCancelOutcome] =
+    useState<CancelPostCancelSheetContent | null>(null);
+  const isSubmittingRef = useRef(false);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmittingRef.current || isSubmitting) return;
     if (step === CANCEL_STEPS.STAY) {
       setStep(CANCEL_STEPS.REASON);
       return;
@@ -49,25 +70,29 @@ const CancelMembership = () => {
   }, [isSubmitting, step, navigation]);
 
   const handleKeepMembership = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmittingRef.current || isSubmitting) return;
     // Mark as intentionally leaving so the stay-step beforeRemove interception
     // does not redirect this back to the reason step.
     isNavigatingRef.current = true;
     navigation.goBack();
   }, [isSubmitting, navigation]);
 
-  const navigateToProHub = useCallback(() => {
-    if (isNavigatingRef.current) return;
+  const handleCancelOutcomeConfirm = useCallback(() => {
+    if (!cancelOutcome || isNavigatingRef.current) return;
     isNavigatingRef.current = true;
     // Reset instead of navigate so the stale cancel and membership screens are
-    // removed and Pro Hub sits directly above the origin screen.
+    // removed. Period-end lands on Pro Hub; immediate lands on Wallet home.
     navigation.dispatch((state) =>
-      CommonActions.reset(buildPostCancellationResetState(state)),
+      CommonActions.reset(
+        cancelOutcome.timing === CANCELLATION_TIMINGS.IMMEDIATE
+          ? buildPostCancellationHomeResetState()
+          : buildPostCancellationResetState(state),
+      ),
     );
-  }, [navigation]);
+  }, [cancelOutcome, navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
-    if (isSubmitting || isNavigatingRef.current) return;
+    if (isSubmittingRef.current || isNavigatingRef.current) return;
 
     const controller = Engine.context.SubscriptionController;
     const subscription = controller.getSubscriptionByProduct(
@@ -75,6 +100,7 @@ const CancelMembership = () => {
     );
     const currentPeriodEnd = subscription?.currentPeriodEnd;
     const timing = getCancellationTiming(subscription?.cancelType);
+    const periodEndDate = formatSubscriptionPeriodEnd(currentPeriodEnd);
 
     if (!subscription || !timing || !currentPeriodEnd) {
       setErrorMessage(
@@ -83,6 +109,21 @@ const CancelMembership = () => {
       return;
     }
 
+    // Period-end copy always names the renewal date, so don't cancel when it
+    // can't be formatted.
+    const periodEndOutcome: CancelPostCancelSheetContent | undefined =
+      periodEndDate ? { timing, periodEndDate } : undefined;
+    const outcome: CancelPostCancelSheetContent | undefined =
+      timing === CANCELLATION_TIMINGS.IMMEDIATE ? { timing } : periodEndOutcome;
+
+    if (!outcome) {
+      setErrorMessage(
+        strings('pro_hub.cancel_membership.cancellation_unavailable'),
+      );
+      return;
+    }
+
+    isSubmittingRef.current = true;
     setErrorMessage(null);
     setIsSubmitting(true);
 
@@ -97,7 +138,12 @@ const CancelMembership = () => {
         ...(cancellationFeedback ? { cancellationFeedback } : {}),
       });
 
-      navigateToProHub();
+      // A cached "eligible" answer would offer the trial again on the next open.
+      clearMoneyAccountPlusTrialEligibilityCache(ReactQueryService.queryClient);
+
+      // Stay on this screen with the post-cancel sheet. isSubmitting stays true,
+      // so the screen cannot be left until "Got it" is pressed.
+      setCancelOutcome(outcome);
     } catch (error) {
       Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
         tags: {
@@ -106,9 +152,10 @@ const CancelMembership = () => {
         },
       });
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [isSubmitting, selectedReasonId, stayFeedback, navigateToProHub]);
+  }, [selectedReasonId, stayFeedback]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
@@ -119,8 +166,9 @@ const CancelMembership = () => {
     setStayFeedback(value);
   }, []);
 
-  // Leaving is blocked while the cancel request is in flight: it would still
-  // cancel the membership but skip the redirect to Pro Hub.
+  // Leaving is blocked while the cancel request is in flight (it would still
+  // cancel the membership but skip the redirect) and while the post-cancel
+  // sheet is shown. isSubmitting stays true after success, so this covers both.
   const isLeaveBlocked = isSubmitting;
 
   // On the stay step, leaving via back gesture / hardware back should return
@@ -194,6 +242,14 @@ const CancelMembership = () => {
           onCancelConfirm={handleCancelConfirm}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
+        />
+      )}
+      {cancelOutcome && (
+        <CancelPostCancelSheet
+          {...cancelOutcome}
+          apy={postCancelApy}
+          rate={POST_CANCEL_CASHBACK_RATE}
+          onConfirm={handleCancelOutcomeConfirm}
         />
       )}
     </SafeAreaView>

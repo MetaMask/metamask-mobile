@@ -17,6 +17,7 @@ import {
   selectIsAllNetworks,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
+  selectSelectedNetworkClientId,
 } from '../../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../../selectors/preferencesController';
 import { isPrivateConnection } from '../../../../../util/networks';
@@ -26,6 +27,7 @@ import { isPublicEndpointUrl } from '../../../../../core/Engine/controllers/netw
 import { RPC } from '../../../../../constants/network';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { getTokenNetworkFilterAfterNetworkDelete } from '../../../../../util/networks/getTokenNetworkFilterAfterNetworkDelete';
 import {
   addItemToChainIdList,
   removeItemFromChainIdList,
@@ -81,6 +83,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
     selectEvmNetworkConfigurationsByChainId,
   );
   const providerConfig = useSelector(selectProviderConfig);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const { trackEvent, identify, createEventBuilder } = useAnalytics();
@@ -159,9 +162,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       };
 
       const updateOptions =
-        existingNetwork != null &&
-        existingNetwork.chainId === hexChainId &&
-        indexRpc >= 0
+        existingNetwork?.chainId === hexChainId && indexRpc >= 0
           ? { replacementSelectedRpcEndpointIndex: indexRpc }
           : undefined;
 
@@ -200,7 +201,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           );
         }
       } else {
-        await NetworkController.addNetwork({
+        NetworkController.addNetwork({
           ...networkConfig,
         } as unknown as AddNetworkFields);
         identify(addItemToChainIdList(networkConfig.chainId));
@@ -210,7 +211,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         if (isCustomMainnet) {
           navigation.navigate('OptinMetrics');
         } else if (shouldNetworkSwitchPopToWallet) {
-          navigation.navigate('WalletView');
+          navigation.navigate(Routes.WALLET.HOME);
         } else {
           navigation.goBack();
         }
@@ -375,10 +376,18 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
           networkConfiguration.defaultRpcEndpointIndex
         ]?.url;
 
+      const isSelectedNetwork =
+        selectedNetworkClientId !== undefined &&
+        networkConfiguration.rpcEndpoints.some(
+          (rpcEndpoint) =>
+            rpcEndpoint.networkClientId === selectedNetworkClientId,
+        );
+
       if (
-        defaultRpcUrl &&
-        compareSanitizedUrl(defaultRpcUrl, providerConfig.rpcUrl ?? '') &&
-        providerConfig.type === RPC
+        isSelectedNetwork ||
+        (defaultRpcUrl &&
+          compareSanitizedUrl(defaultRpcUrl, providerConfig.rpcUrl ?? '') &&
+          providerConfig.type === RPC)
       ) {
         const { MultichainNetworkController } = Engine.context;
         const mainnetConfig = networkConfigurations['0x1' as Hex];
@@ -389,14 +398,27 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         await MultichainNetworkController.setActiveNetwork(networkClientId);
       }
 
-      const { NetworkController } = Engine.context;
+      const { NetworkController, PreferencesController } = Engine.context;
       NetworkController.removeNetwork(hexChainId);
+      PreferencesController.setTokenNetworkFilter(
+        getTokenNetworkFilterAfterNetworkDelete(
+          tokenNetworkFilter,
+          hexChainId,
+        ) as Record<string, boolean>,
+      );
 
       identify(removeItemFromChainIdList(hexChainId));
 
       navigation.goBack();
     },
-    [navigation, networkConfigurations, providerConfig, identify],
+    [
+      navigation,
+      networkConfigurations,
+      providerConfig,
+      selectedNetworkClientId,
+      tokenNetworkFilter,
+      identify,
+    ],
   );
 
   // ---- Navigate to edit ---------------------------------------------------

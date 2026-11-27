@@ -165,7 +165,7 @@ describe('handleMoney', () => {
     setMoneyAccountFlags();
     jest.mocked(selectMoneyEntryContext).mockReturnValue({
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: false,
     });
     jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
     jest
@@ -257,7 +257,7 @@ describe('handleMoney', () => {
   it('navigates to geo block modal when user is not geo eligible', () => {
     jest.mocked(selectMoneyEntryContext).mockReturnValue({
       accessBlockReason: 'geo_blocked',
-      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: false,
     });
 
     handleMoney();
@@ -267,36 +267,18 @@ describe('handleMoney', () => {
     });
   });
 
-  it('navigates to MONEY.ONBOARDING when user has not seen onboarding', () => {
+  it('navigates to MONEY.SPLASH when the user has not seen the splash', () => {
     jest.mocked(selectMoneyEntryContext).mockReturnValue({
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
     });
 
     handleMoney();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
   });
 
-  it('navigates to MONEY.HOME when onboarding has not been seen and onboarding is disabled', () => {
-    jest.mocked(selectMoneyEntryContext).mockReturnValue({
-      accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
-    });
-
-    handleMoney();
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
-  });
-
-  it('navigates to MONEY.HOME when user has already seen onboarding', () => {
+  it('navigates to MONEY.HOME when the user has already seen the splash', () => {
     handleMoney();
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -386,15 +368,15 @@ describe('handleMoney', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the money onboarding first when the user has not seen it', () => {
+    it('shows the Money splash first when the user has not seen it', () => {
       jest.mocked(selectMoneyEntryContext).mockReturnValue({
         accessBlockReason: undefined,
-        isOnboardingRedirectNeeded: true,
+        isSplashRedirectNeeded: true,
       });
 
       handleMoney({ moneyPath: '?screen=account' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 

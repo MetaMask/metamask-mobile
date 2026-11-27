@@ -8,7 +8,12 @@ import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import { JsonRpcParams, Json, JsonRpcRequest } from '@metamask/utils';
+import {
+  JsonRpcParams,
+  Json,
+  JsonRpcRequest,
+  CaipChainId,
+} from '@metamask/utils';
 import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
@@ -148,6 +153,16 @@ export default class SnapBridge {
     if (isSnapPreinstalled(this.#snapId)) {
       engine.push(
         createPreinstalledSnapsMiddleware({
+          getEvmScopes: () => {
+            const chainIds = Object.keys(
+              controllerMessenger.call('NetworkController:getState')
+                .networkConfigurationsByChainId,
+            );
+            return chainIds.map(
+              (chainId): CaipChainId =>
+                `eip155:${BigInt(chainId).toString(10)}`,
+            );
+          },
           getPermissions: PermissionController.getPermissions.bind(
             PermissionController,
             this.#snapId,

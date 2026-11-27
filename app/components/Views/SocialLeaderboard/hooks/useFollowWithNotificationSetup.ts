@@ -13,6 +13,12 @@ export interface UseFollowWithNotificationSetupOptions {
    * Social V0 and other embeds leave it off.
    */
   requireSocialProfile?: boolean;
+  /**
+   * Runs a gate's onboarding navigation. A bottom sheet passes one that closes
+   * the sheet first, so onboarding opens full screen. Defaults to navigating
+   * immediately.
+   */
+  runNavigation?: (navigate: () => void) => void;
 }
 
 export interface UseFollowWithNotificationSetupResult {
@@ -48,10 +54,13 @@ export interface UseFollowWithNotificationSetupResult {
 export const useFollowWithNotificationSetup = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
+  runNavigation,
 }: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
-  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate({ runNavigation });
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding({
+    runNavigation,
+  });
 
   const followWithSetup = useCallback(
     async function follow(

@@ -38,6 +38,9 @@ jest.mock('../../../../Engine', () => ({
       TokenBalancesController: {
         updateBalances: jest.fn(),
       },
+      BridgeStatusController: {
+        state: { txHistory: {} },
+      },
     },
   },
 }));
@@ -70,6 +73,7 @@ jest.mock('../../../../Assets/accountGroupAssetLoader', () => ({
 
 const TRANSACTION_ID_MOCK = 'tx-1';
 const EVM_ADDRESS_MOCK = '0xabc0000000000000000000000000000000000001';
+const EVM_ACCOUNT_ID_MOCK = 'evm-account-id';
 
 const buildTransactionMeta = (
   overrides: Partial<TransactionMeta> = {},
@@ -82,6 +86,7 @@ const buildTransactionMeta = (
   }) as TransactionMeta;
 
 const evmAccountMock = {
+  id: EVM_ACCOUNT_ID_MOCK,
   address: EVM_ADDRESS_MOCK,
   type: EthAccountType.Eoa,
 } as unknown as InternalAccount;
@@ -111,6 +116,10 @@ describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
+    Engine.context.BridgeStatusController.state = {
+      txHistory: {},
+      quoteUpdateStatusStore: {},
+    };
     Engine.context.NetworkController.state = {
       networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
     } as never;
@@ -138,10 +147,9 @@ describe('money-account-override', () => {
         const callback = setTransactionConfigMock.mock.calls[0][1];
         const config: { accountOverride?: string; isQuoteRequired?: boolean } =
           {};
-        callback(config as never);
+        callback(config);
 
-        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
-        expect(config.accountOverride).not.toBe(transactionMeta.txParams.from);
+        expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
         expect(config.isQuoteRequired).toBe(true);
         expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
         expect(loadAssetsForAddressesMock).toHaveBeenCalledWith([
@@ -160,9 +168,9 @@ describe('money-account-override', () => {
       const callback = setTransactionConfigMock.mock.calls[0][1];
       const config: { accountOverride?: string; isQuoteRequired?: boolean } =
         {};
-      callback(config as never);
+      callback(config);
 
-      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
       expect(config.isQuoteRequired).toBeUndefined();
     });
 
@@ -177,13 +185,46 @@ describe('money-account-override', () => {
             { type: TransactionType.tokenMethodApprove },
             { type },
           ],
-        } as never),
+        }),
       );
 
       expect(setTransactionConfigMock).toHaveBeenCalledWith(
         TRANSACTION_ID_MOCK,
         expect.any(Function),
       );
+    });
+
+    it('does nothing for a money deposit that is part of a bridge', () => {
+      Engine.context.BridgeStatusController.state = {
+        txHistory: {
+          'bridge-1': { depositTxMeta: { batchId: '0xbatch' } } as never,
+        },
+        quoteUpdateStatusStore: {},
+      };
+
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({ batchId: '0xbatch' }),
+      );
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for a money withdraw that is part of a bridge', () => {
+      Engine.context.BridgeStatusController.state = {
+        txHistory: {
+          'bridge-1': { withdrawTxMeta: { batchId: '0xbatch' } } as never,
+        },
+        quoteUpdateStatusStore: {},
+      };
+
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          batchId: '0xbatch',
+        }),
+      );
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
     it('does nothing for non-money-account transactions', () => {
@@ -209,10 +250,10 @@ describe('money-account-override', () => {
       Engine.context.TransactionPayController.state = {
         transactionData: {
           [TRANSACTION_ID_MOCK]: {
-            accountOverride: '0xexisting',
-          },
+            accountOverride: 'existing-account-id',
+          } as never,
         },
-      } as never;
+      };
 
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type }),
@@ -263,7 +304,7 @@ describe('money-account-override', () => {
             { type: TransactionType.tokenMethodApprove },
             { type: TransactionType.moneyAccountDeposit },
           ],
-        } as never),
+        }),
       );
 
       expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
@@ -280,7 +321,7 @@ describe('money-account-override', () => {
     describe('balance refresh on override', () => {
       it('loads assets for the override account', () => {
         handleUnapprovedTransactionAddedForMoneyAccount(
-          buildTransactionMeta({ chainId: '0x1' as never }),
+          buildTransactionMeta({ chainId: '0x1' }),
         );
 
         // Must target the override account explicitly: the balance controllers
@@ -302,12 +343,14 @@ describe('money-account-override', () => {
       it('does not load assets when an override is already set', () => {
         Engine.context.TransactionPayController.state = {
           transactionData: {
-            [TRANSACTION_ID_MOCK]: { accountOverride: '0xExistingOverride' },
+            [TRANSACTION_ID_MOCK]: {
+              accountOverride: 'existing-account-id',
+            } as never,
           },
-        } as never;
+        };
 
         handleUnapprovedTransactionAddedForMoneyAccount(
-          buildTransactionMeta({ chainId: '0x1' as never }),
+          buildTransactionMeta({ chainId: '0x1' }),
         );
 
         expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
@@ -318,7 +361,7 @@ describe('money-account-override', () => {
 
         expect(() =>
           handleUnapprovedTransactionAddedForMoneyAccount(
-            buildTransactionMeta({ chainId: '0x1' as never }),
+            buildTransactionMeta({ chainId: '0x1' }),
           ),
         ).not.toThrow();
       });
@@ -332,7 +375,7 @@ describe('money-account-override', () => {
           buildTransactionMeta({
             type: TransactionType.tokenMethodApprove,
             origin: 'MetaMask Mobile Card',
-            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS },
           }),
         );
 
@@ -344,8 +387,8 @@ describe('money-account-override', () => {
         const callback = setTransactionConfigMock.mock.calls[0][1];
         const config: { accountOverride?: string; isQuoteRequired?: boolean } =
           {};
-        callback(config as never);
-        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+        callback(config);
+        expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
         expect(config.isQuoteRequired).toBe(true);
       });
 
@@ -356,7 +399,7 @@ describe('money-account-override', () => {
           buildTransactionMeta({
             type: TransactionType.tokenMethodApprove,
             origin: 'MetaMask Mobile Card',
-            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS },
           }),
         );
 
@@ -370,7 +413,7 @@ describe('money-account-override', () => {
           buildTransactionMeta({
             type: TransactionType.tokenMethodApprove,
             origin: 'MetaMask Mobile Card',
-            txParams: { from: '0xdeadbeef' } as never,
+            txParams: { from: '0xdeadbeef' },
           }),
         );
 
@@ -384,7 +427,7 @@ describe('money-account-override', () => {
           buildTransactionMeta({
             type: TransactionType.tokenMethodApprove,
             origin: 'some-other-dapp',
-            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS },
           }),
         );
 
@@ -402,7 +445,7 @@ describe('money-account-override', () => {
             origin: 'MetaMask Mobile Card',
             txParams: {
               from: PRIMARY_MONEY_ACCOUNT_ADDRESS.toLowerCase(),
-            } as never,
+            },
           }),
         );
 
@@ -416,7 +459,7 @@ describe('money-account-override', () => {
           buildTransactionMeta({
             type: TransactionType.tokenMethodApprove,
             origin: 'MetaMask Mobile Card',
-            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS },
           }),
         );
 

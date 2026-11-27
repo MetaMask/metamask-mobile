@@ -50,6 +50,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   }));
   const isLoading = hero.status === 'loading';
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
+  // A zero subtotal is not proof that every venue is empty.
   const shouldShowEmptyState =
     hero.status === 'ready' &&
     hero.totalFiat === 0 &&

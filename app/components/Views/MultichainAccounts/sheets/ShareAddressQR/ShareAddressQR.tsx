@@ -12,7 +12,6 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxFlexDirection,
@@ -42,6 +41,8 @@ import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
 import Routes from '../../../../../constants/navigation/Routes';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ShareAddressQRParams {
   address: string;
@@ -49,6 +50,8 @@ export interface ShareAddressQRParams {
   chainId: string;
   groupId: AccountGroupId;
   location: string;
+  /** Address list entry point (`Address List Viewed` source), when known. */
+  source?: string;
   account: InternalAccount;
 }
 
@@ -62,10 +65,11 @@ type ShareAddressQRRouteProp = RouteProp<
 >;
 
 export const ShareAddressQR = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId, location, account } =
+  const { address, networkName, chainId, groupId, location, source, account } =
     route.params;
   const accountGroup = useSelector((state: RootState) =>
     selectAccountGroupById(state, groupId),
@@ -89,8 +93,9 @@ export const ShareAddressQR = () => {
       location,
       account_type: getQrCodeViewedAccountType(account),
       chain_id_caip: formatChainIdToCaip(chainId),
+      ...(source && { source }),
     });
-  }, [account, chainId, createEventBuilder, location, trackEvent]);
+  }, [account, chainId, createEventBuilder, location, source, trackEvent]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -125,12 +130,13 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleOnBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
       >
         {`${accountGroupName} / ${networkName}`}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
@@ -149,6 +155,7 @@ export const ShareAddressQR = () => {
           <QRAccountDisplay
             accountAddress={address}
             analyticsLocation="qr-code"
+            analyticsSource={source}
             chainId={chainId}
             label={strings('multichain_accounts.share_address_qr.title', {
               networkName,
@@ -197,5 +204,3 @@ export const ShareAddressQR = () => {
     </BottomSheet>
   );
 };
-
-export default ShareAddressQR;

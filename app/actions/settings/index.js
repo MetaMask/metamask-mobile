@@ -325,6 +325,13 @@ export function setPerpsMarketListPreferences(preferences) {
   };
 }
 
+export function setPerpsCrossMarginConfirmed(address) {
+  return {
+    type: 'SET_PERPS_CROSS_MARGIN_CONFIRMED',
+    address,
+  };
+}
+
 export function setShowAccountOnLeaderboard(showAccountOnLeaderboard) {
   return {
     type: 'SET_SHOW_ACCOUNT_ON_LEADERBOARD',

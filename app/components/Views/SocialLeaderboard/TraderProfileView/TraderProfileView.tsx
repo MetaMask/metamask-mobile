@@ -56,7 +56,7 @@ import {
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
-import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip, {
@@ -81,6 +81,7 @@ import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
 } from '../../../UI/SocialFeed/utils/perp';
+import { isProfileVerified } from '../../../UI/SocialFeed/utils/profileVerified';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -126,7 +127,7 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
-const PROFILE_TABS = ['posts', 'open', 'closed'] as const;
+const PROFILE_TABS = ['open', 'closed', 'posts'] as const;
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
@@ -150,7 +151,7 @@ const TraderProfileView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
-  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const hasSocialV1Access = useSelector(selectHasSocialV1Access);
   const isFocused = useIsFocused();
 
   const {
@@ -172,7 +173,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, {
     refetchInterval: isFocused ? 30_000 : undefined,
   });
-  const [activeTab, setActiveTab] = useState<TraderProfileTab>('posts');
+  const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -219,7 +220,8 @@ const TraderProfileView = () => {
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const { followWithSetup } = useFollowWithNotificationSetup({
-    requireSocialProfile: isSocialV1Enabled,
+    requireSocialTerms: hasSocialV1Access,
+    requireSocialProfile: hasSocialV1Access,
   });
   const handleMutePress = useCallback(
     () => onMutePress(traderId),
@@ -447,6 +449,7 @@ const TraderProfileView = () => {
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
               traderProfileId={profile.profile.profileId}
+              isVerified={isProfileVerified(profile.profile)}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />

@@ -1,4 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { tokenSecurityQueryOptions } from '../../Tokens/queries/tokenSecurityQueryOptions';
+import { tokenListSecurityBadgeKeys } from '../../Tokens/queries/tokenSecurityBadgeKeys';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   fetchTokenAssets,
@@ -16,6 +19,7 @@ interface UseTokenSecurityDataResult {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
   error: Error | null;
+  fetchedAt?: number;
 }
 
 const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
@@ -24,67 +28,43 @@ const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
   typeof (data as TokenSecurityData).resultType === 'string' &&
   Array.isArray((data as TokenSecurityData).features);
 
-const securityDataFromAssets = (
-  assets: Awaited<ReturnType<typeof fetchTokenAssets>>,
-): TokenSecurityData | null => {
-  const asset = assets?.[0];
-  return asset?.securityData ?? null;
-};
-
 export const useTokenSecurityData = ({
   assetId,
-  prefetchedData: rawPrefetchedData,
+  prefetchedData,
 }: UseTokenSecurityDataOpts): UseTokenSecurityDataResult => {
-  const prefetchedData = isValidTokenSecurityData(rawPrefetchedData)
-    ? rawPrefetchedData
+  const client = useQueryClient();
+  const initialData = isValidTokenSecurityData(prefetchedData)
+    ? prefetchedData
     : undefined;
-
-  const [securityData, setSecurityData] = useState<TokenSecurityData | null>(
-    prefetchedData ?? null,
-  );
-  const [isLoading, setIsLoading] = useState(!prefetchedData && !!assetId);
-  const [error, setError] = useState<Error | null>(null);
-  const isMountedRef = useRef(true);
-
-  const fetchData = useCallback(async () => {
-    if (!assetId) return;
-    try {
+  const query = useQuery({
+    ...(assetId
+      ? tokenSecurityQueryOptions(assetId)
+      : { queryKey: tokenListSecurityBadgeKeys.all() }),
+    enabled: Boolean(assetId) && !initialData,
+    initialData: assetId ? initialData : undefined,
+    retry: false,
+    queryFn: async () => {
+      if (!assetId) return null;
       const assets = await fetchTokenAssets([assetId], {
         includeTokenSecurityData: true,
       });
-      if (!isMountedRef.current) return;
-      setSecurityData(securityDataFromAssets(assets));
-      setError(null);
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      setError(err as Error);
-    }
-    if (isMountedRef.current) {
-      setIsLoading(false);
-    }
-  }, [assetId]);
+      return assets?.[0]?.securityData ?? null;
+    },
+  });
 
   useEffect(() => {
-    isMountedRef.current = true;
-
-    if (prefetchedData) {
-      setSecurityData(prefetchedData);
-      setIsLoading(false);
-      return;
+    if (assetId && initialData && query.data == null) {
+      client.setQueryData<TokenSecurityData | null>(
+        tokenListSecurityBadgeKeys.byAsset(assetId),
+        (cached) => cached ?? initialData,
+      );
     }
+  }, [assetId, client, initialData, query.data]);
 
-    if (!assetId) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    fetchData();
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [assetId, prefetchedData, fetchData]);
-
-  return { securityData, isLoading, error };
+  return {
+    securityData: query.data ?? initialData ?? null,
+    isLoading: !initialData && query.isLoading,
+    error: initialData ? null : query.error,
+    fetchedAt: query.dataUpdatedAt || undefined,
+  };
 };

@@ -12,7 +12,6 @@ import {
   BottomSheet,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
@@ -33,12 +32,6 @@ import {
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-
-export const createUkMigrationBottomSheetNavigationDetails =
-  createNavigationDetails(
-    Routes.CARD.MODALS.ID,
-    Routes.CARD.MODALS.UK_MIGRATION,
-  );
 
 const MIGRATION_STEP_KEYS = [
   'card.uk_migration_bottom_sheet.steps.reverify_identity',

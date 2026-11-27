@@ -52,8 +52,9 @@ export function augmentArcExcludedAssets(
 
 /**
  * Checks whether an asset id is the Arc ERC-20 representation of native USDC.
- * This representation is tracked by the assets controller but hidden from
- * token lists to avoid displaying the shared balance twice.
+ * The app no longer imports this representation as a custom asset (migration
+ * 165 removes it). Bridge token lists still filter it out so the shared
+ * balance is never shown twice.
  *
  * @param assetId - CAIP-19 asset id to inspect.
  * @returns Whether the asset is Arc ERC-20 USDC.

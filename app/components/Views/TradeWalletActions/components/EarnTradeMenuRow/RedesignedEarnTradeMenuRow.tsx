@@ -17,14 +17,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectIsEarnSectionEligible } from '../../../../../components/UI/Earn/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../../../../components/UI/Money/selectors/visibility';
 import useEarnHighestRate from '../../../../../components/UI/Earn/hooks/useEarnHighestRate';
+import useMoneyVaultApy from '../../../../../components/UI/Money/hooks/useMoneyVaultApy';
 import { useEarnAnalytics } from '../../../../../components/UI/Earn/hooks/useEarnAnalytics';
 import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_REDIRECT_TARGETS,
 } from '../../../../../components/UI/Earn/constants/earnModuleEvents';
-import { EarnRate } from '../../../../../components/UI/Earn/types/earnAssets';
+import type { EarnRate } from '../../../../../components/UI/Earn/types/earnAssets';
 import {
   formatEarnRatePercentage,
   getEarnRateCopy,
@@ -39,23 +41,47 @@ const RedesignedEarnTradeMenuRow = ({
 }: EarnTradeMenuRowProps) => {
   const navigation = useNavigation();
   const isEarnWalletActionEnabled = useSelector(selectIsEarnSectionEligible);
-  const { highestRate } = useEarnHighestRate();
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const { highestRate } = useEarnHighestRate({
+    enabled: !isMoneyAccountVisible,
+  });
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy({
+    enabled: isMoneyAccountVisible,
+  });
   const { trackSurfaceClicked: trackEarnSurfaceClicked } = useEarnAnalytics({
     entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
   });
+
+  const displayedRate: EarnRate | undefined = isMoneyAccountVisible
+    ? moneyAccountApyPercent !== undefined
+      ? {
+          type: 'APY',
+          percentage: moneyAccountApyPercent,
+          status: 'ready',
+        }
+      : undefined
+    : highestRate;
+
+  const analyticsRateType: Lowercase<EarnRate['type']> | undefined =
+    isMoneyAccountVisible
+      ? 'apy'
+      : (highestRate?.type.toLowerCase() as
+          | Lowercase<EarnRate['type']>
+          | undefined);
+
+  const displayedRatePercentage =
+    displayedRate?.status === 'ready' ? displayedRate.percentage : undefined;
 
   const onEarn = useCallback(() => {
     trackEarnSurfaceClicked({
       component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
       redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
-      ...(highestRate?.type && {
-        rate_type: highestRate.type.toLowerCase() as Lowercase<
-          EarnRate['type']
-        >,
+      ...(analyticsRateType && {
+        rate_type: analyticsRateType,
       }),
-      ...(highestRate?.status === 'ready' && {
+      ...(displayedRatePercentage !== undefined && {
         rate_percentage: Number(
-          formatEarnRatePercentage(highestRate.percentage),
+          formatEarnRatePercentage(displayedRatePercentage),
         ),
       }),
     });
@@ -70,7 +96,13 @@ const RedesignedEarnTradeMenuRow = ({
         },
       });
     });
-  }, [highestRate, navigation, onActionSelected, trackEarnSurfaceClicked]);
+  }, [
+    analyticsRateType,
+    displayedRatePercentage,
+    navigation,
+    onActionSelected,
+    trackEarnSurfaceClicked,
+  ]);
 
   if (!isEarnWalletActionEnabled) {
     return null;
@@ -87,7 +119,7 @@ const RedesignedEarnTradeMenuRow = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('asset_overview.earn_button')}
           </Text>
-          {highestRate?.status === 'ready' && (
+          {displayedRate?.status === 'ready' && (
             <Tag
               startIconName={IconName.Sparkle}
               startIconProps={{
@@ -97,8 +129,8 @@ const RedesignedEarnTradeMenuRow = ({
               testID={WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG}
             >
               {getEarnRateCopy({
-                percentage: highestRate.percentage,
-                rateType: highestRate.type,
+                percentage: displayedRate.percentage,
+                rateType: displayedRate.type,
               })}
             </Tag>
           )}

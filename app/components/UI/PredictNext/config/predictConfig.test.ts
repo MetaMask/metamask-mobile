@@ -63,6 +63,21 @@ describe('parsePredictConfig', () => {
     expect(result.venues.kalshi.authProfileId).toBe('server-defined-profile');
   });
 
+  it('drops a leftover kalshiWithdrawalsEnabled', () => {
+    const result = parsePredictConfig({
+      enabled: true,
+      venues: {
+        polymarket: { enabled: false },
+        kalshi: { enabled: true },
+      },
+      venueSelection: { enabled: false },
+      kalshiWithdrawalsEnabled: true,
+    });
+
+    expect(result).not.toHaveProperty('kalshiWithdrawalsEnabled');
+    expect(result.venues.kalshi.enabled).toBe(true);
+  });
+
   it.each([undefined, {}, { enabled: true }, { enabled: 'true' }])(
     'returns the safe config for an unusable value',
     (value) => {

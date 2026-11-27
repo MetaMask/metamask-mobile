@@ -151,7 +151,20 @@ describe('mapHoldersToRankedTraders', () => {
         avatarUri: undefined,
         followerCount: 12,
         isFollowing: true,
+        verified: false,
       }),
     );
+  });
+
+  it('marks a verified holder', () => {
+    const holder = buildHolder('a');
+    const actor = { ...holder.actor, verified: true };
+
+    const [row] = mapHoldersToRankedTraders(
+      [{ ...holder, actor }],
+      notFollowing,
+    );
+
+    expect(row.verified).toBe(true);
   });
 });

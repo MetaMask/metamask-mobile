@@ -98,7 +98,11 @@ const renderLighter = (leverage?: number) => {
             initializationState: InitializationState.Initialized,
             ...(leverage === undefined
               ? {}
-              : { tradeConfigurations: { testnet: { ETH: { leverage } } } }),
+              : {
+                  tradeConfigurations: {
+                    testnet: { lighter: { ETH: { leverage } } },
+                  },
+                }),
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -179,6 +183,11 @@ describe('Lighter Scale through the Pro market screen', () => {
     cleanup();
     unwirePerpsControllerForStore?.();
     unwirePerpsControllerForStore = undefined;
+    // Teardown settle, not an assertion race: the unwired tree still has
+    // in-flight async completions landing in the CUF trace window, and there
+    // is no observable signal for "no more completions pending". Drain one
+    // macrotask turn so those completions are cleared with this test instead
+    // of surfacing as the next test's stale observations.
     await act(async () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50));
     });
@@ -440,7 +449,12 @@ describe('Lighter Scale through the Pro market screen', () => {
         }),
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '');
+    // Order-form reset propagates through usePerpsProSizeInput and
+    // usePerpsProInputDisplay effects after the toast commits, so wait for the
+    // cleared input value itself rather than treating the toast as proof.
+    await waitFor(() =>
+      expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', ''),
+    );
   });
 
   it.each(['complete', 'partial'] as const)(

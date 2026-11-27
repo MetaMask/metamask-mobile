@@ -13,15 +13,16 @@ export interface PredictFundingInput {
   /** `selectPredictAvailability`: D1's availability for the Active Venue. */
   available: boolean;
   activeVenue: ActiveVenueResolution;
-  /** The Venue's resolved capabilities: A3's descriptor. */
+  /** The Venue's resolved capabilities, including its catalog `actions`. */
   getCapabilities: (venue: PredictConfiguredVenue) => PredictVenueCapabilities;
 }
 
 /**
  * Resolves which implementation runs a funding action for the Active Venue.
  * Ready only when Predict is available, the Active Venue's implementation has
- * a client flow for the action, and the Venue's descriptor lists it. Every
- * other case is unavailable, and a surface renders no entry point for it.
+ * a client flow for the action, and the Venue catalog's `actions` list it.
+ * Every other case is unavailable, and a surface renders no entry point for
+ * it.
  */
 export const resolvePredictFunding = (
   action: PredictFundingAction,

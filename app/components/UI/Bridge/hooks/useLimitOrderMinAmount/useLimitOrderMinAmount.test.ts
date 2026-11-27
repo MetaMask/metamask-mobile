@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import type { BridgeToken } from '../../types';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { useFiatToUsdRate } from '../useFiatToUsdRate';
@@ -8,6 +9,10 @@ import { useLimitOrderMinAmount } from '.';
 
 jest.mock('../useLiveTokenFiatRate', () => ({
   useLiveTokenFiatRate: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../useFiatToUsdRate', () => ({
@@ -36,13 +41,46 @@ describe('useLimitOrderMinAmount', () => {
     jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50);
     jest.mocked(useLiveTokenFiatRate).mockReturnValue(2000);
     jest.mocked(useFiatToUsdRate).mockReturnValue(1);
+    jest.mocked(useSelector).mockReturnValue('usd');
   });
 
   it('resolves the minimum for the source token chain', () => {
-    const { minAmountUsd } = renderMinAmount('1');
+    const { formattedMinAmountInSelectedCurrency, minAmountUsd } =
+      renderMinAmount('1');
 
     expect(getLimitOrderMinAmountUsd).toHaveBeenCalledWith('0x1');
     expect(minAmountUsd).toBe(50);
+    expect(formattedMinAmountInSelectedCurrency).toBe('$50');
+  });
+
+  it('keeps two decimals for a fractional minimum in the selected currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('eur');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toBe('€40.50');
+  });
+
+  it('uses zero decimal places for a zero-decimal currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('jpy');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toBe('¥41');
+  });
+
+  it('uses three decimal places for a three-decimal currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('kwd');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toContain('40.500');
   });
 
   it('values the amount at the live rate of the source token', () => {
@@ -65,9 +103,12 @@ describe('useLimitOrderMinAmount', () => {
   it('does not report the amount as below the minimum without a fiat to USD rate', () => {
     jest.mocked(useFiatToUsdRate).mockReturnValue(undefined);
 
-    const { isBelowMinAmount } = renderMinAmount('0.0001');
+    const { formattedMinAmountInSelectedCurrency, hasError, isBelowMinAmount } =
+      renderMinAmount('0.0001');
 
     expect(isBelowMinAmount).toBe(false);
+    expect(formattedMinAmountInSelectedCurrency).toBeUndefined();
+    expect(hasError).toBe(true);
   });
 
   it('reports an amount worth less than the minimum as below it', () => {
@@ -127,17 +168,20 @@ describe('useLimitOrderMinAmount', () => {
   it('does not report the amount as below the minimum without a USD price', () => {
     jest.mocked(useLiveTokenFiatRate).mockReturnValue(undefined);
 
-    const { isBelowMinAmount } = renderMinAmount('0.0001');
+    const { hasError, isBelowMinAmount } = renderMinAmount('0.0001');
 
     expect(isBelowMinAmount).toBe(false);
+    expect(hasError).toBe(true);
   });
 
   it('does not report the amount as below the minimum when none is configured', () => {
     jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(undefined);
 
-    const { isBelowMinAmount, minAmountUsd } = renderMinAmount('0.0001');
+    const { hasError, isBelowMinAmount, minAmountUsd } =
+      renderMinAmount('0.0001');
 
     expect(isBelowMinAmount).toBe(false);
+    expect(hasError).toBe(false);
     expect(minAmountUsd).toBeUndefined();
   });
 

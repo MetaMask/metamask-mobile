@@ -85,6 +85,29 @@ export function caipChainIdFromAssetId(
 }
 
 /**
+ * Resolves CAIP-2 for a legacy FiatOrder. Falls through an unparseable
+ * network name string (e.g. `"ethereum"`) to cryptoCurrency metadata.
+ */
+export function toFiatOrderCaipChainId(order: FiatOrder): CaipChainId | null {
+  const fromNetwork = toRampOrderCaipChainId(order.network);
+  if (fromNetwork) {
+    return fromNetwork;
+  }
+
+  const cryptoCurrency = asRecord(asRecord(order.data)?.cryptoCurrency);
+  const chainId = cryptoCurrency?.chainId;
+  if (typeof chainId === 'string') {
+    const fromChain = toRampOrderCaipChainId(chainId);
+    if (fromChain) {
+      return fromChain;
+    }
+  }
+
+  const assetId = cryptoCurrency?.assetId;
+  return typeof assetId === 'string' ? caipChainIdFromAssetId(assetId) : null;
+}
+
+/**
  * Returns true when `txHash` looks like a real on-chain hash. Provider
  * placeholders such as `""`, `"0x"`, and all-zero hashes must not be used as
  * Activity row keys — they collide across orders in `mergeActivityItems`.
@@ -109,8 +132,11 @@ export function getRampOrderTransactionHash(
   order: FiatOrder,
   kind: RampActivityKind,
 ): string | undefined {
-  const txHash = kind === 'sell' ? order.sellTxHash : order.txHash;
-  return isPlausibleRampTxHash(txHash) ? txHash : undefined;
+  // 'sell' prefer the hash of the user's own send (`sellTxHash`) and fall back
+  // to the provider-reported `txHash`. 'buy' only have the provider's.
+  const candidates =
+    kind === 'sell' ? [order.sellTxHash, order.txHash] : [order.txHash];
+  return candidates.find((hash): hash is string => isPlausibleRampTxHash(hash));
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {

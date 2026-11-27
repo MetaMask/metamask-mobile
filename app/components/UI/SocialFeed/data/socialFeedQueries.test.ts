@@ -8,9 +8,10 @@ import {
   buildSocialFeedQueryKey,
   fetchSocialFeedPage,
   getSocialFeedNextPageParam,
+  getSocialFeedPreviousPageParam,
   invalidateFollowingFeed,
 } from './socialFeedQueries';
-import { mockFeedResponse } from '../mocks/coreFeed.mock';
+import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import {
   toSocialFeedRequest,
   type FeedScope,
@@ -135,6 +136,19 @@ describe('socialFeedQueries', () => {
         queryKey: ['SocialService:fetchFeed', { scope: 'following_v1' }],
       });
     });
+
+    it('marks both following feeds stale without refetching', async () => {
+      await invalidateFollowingFeed({ refetchType: 'none' });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+        refetchType: 'none',
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following_v1' }],
+        refetchType: 'none',
+      });
+    });
   });
 
   describe('fetchSocialFeedPage', () => {
@@ -156,6 +170,17 @@ describe('socialFeedQueries', () => {
         commentedOnly: true,
         limit: 30,
         olderThan: 'cursor-1',
+      });
+    });
+
+    it('passes the newerThan cursor when paging back up', async () => {
+      await fetchSocialFeedPage(traderRequest, 30, 'cursor-1', 'newer');
+
+      expect(mockCall).toHaveBeenCalledWith('SocialService:fetchTraderFeed', {
+        addressOrId: '0xab/cd',
+        commentedOnly: true,
+        limit: 30,
+        newerThan: 'cursor-1',
       });
     });
 
@@ -199,6 +224,37 @@ describe('socialFeedQueries', () => {
         'cursor-1',
       );
       expect(getSocialFeedNextPageParam(mockFeedResponse([]))).toBeUndefined();
+    });
+  });
+
+  describe('getSocialFeedPreviousPageParam', () => {
+    const pageWithNewer = {
+      items: [mockSpotFeedItem()],
+      pagination: { olderCursor: 'older-2', newerCursor: 'newer-1' },
+    };
+
+    it('returns the newer cursor of a first page that was not the newest', () => {
+      expect(
+        getSocialFeedPreviousPageParam(pageWithNewer, [pageWithNewer], 'c-1'),
+      ).toBe('newer-1');
+    });
+
+    it('stops at the newest page, an empty page, or a missing cursor', () => {
+      expect(
+        getSocialFeedPreviousPageParam(
+          pageWithNewer,
+          [pageWithNewer],
+          undefined,
+        ),
+      ).toBeUndefined();
+      const emptyPage = { ...pageWithNewer, items: [] };
+      expect(
+        getSocialFeedPreviousPageParam(emptyPage, [emptyPage], 'c-1'),
+      ).toBeUndefined();
+      const noCursor = mockFeedResponse([mockSpotFeedItem()]);
+      expect(
+        getSocialFeedPreviousPageParam(noCursor, [noCursor], 'c-1'),
+      ).toBeUndefined();
     });
   });
 });

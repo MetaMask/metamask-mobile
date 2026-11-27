@@ -8,13 +8,6 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../reducers';
 
-export const DIAMETERS: Record<string, number> = {
-  xs: 16,
-  sm: 24,
-  md: 32,
-  lg: 40,
-};
-
 export const SNAP_UI_AVATAR_TEST_ID = 'snap-ui-avatar';
 
 export interface SnapUIAvatarProps {

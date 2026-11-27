@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -16,6 +17,7 @@ import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeT
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import {
   MetaMetricsSwapsEventSource,
+  MoneyAccountAction,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -28,6 +30,12 @@ import {
 } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
+import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { resolveSwapSocialPostTrade } from '../../components/PostTradeBottomSheet/resolveSwapPostTradeShare';
+import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
+import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
 
 interface Params {
   activeQuote?: QuoteResponse | null;
@@ -50,6 +58,18 @@ export const useBridgeConfirm = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const linkedEvmAddress = useSelector(selectProfileControllerLinkedEvmAddress);
+  const canOfferSocialShare = isSocialV1Enabled && Boolean(linkedEvmAddress);
+
+  // Only the social feed loads the quote-token list, and the share check needs
+  // it. Load it here so a swap made without visiting the feed can still share.
+  useEffect(() => {
+    if (canOfferSocialShare) {
+      prefetchQuoteTokens();
+    }
+  }, [canOfferSocialShare]);
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {
@@ -99,6 +119,16 @@ export const useBridgeConfirm = ({
       ...modalTokenParams,
       status: PostTradeStatus.InProgress,
     };
+    // Decided at submit, like Quick Buy, so the count is read before the swap.
+    const socialPostTrade = resolveSwapSocialPostTrade({
+      prompt: resolvePostTradePrompt('swaps'),
+      sourceToken,
+      destToken,
+      sourceUsd: activeQuote.quote.src.usd,
+      sourceAmount: activeQuote.quote.src.normalizedAmount,
+      destUsd: activeQuote.quote.dest.usd,
+      destAmount: activeQuote.quote.dest.normalizedAmount,
+    });
 
     try {
       dispatch(setIsSubmittingTx(true));
@@ -123,6 +153,7 @@ export const useBridgeConfirm = ({
         status: PostTradeStatus.InProgress,
         transactionMetaId: submittedTransaction?.id,
         transactionHash,
+        socialPostTrade,
       };
 
       dispatch(resetBridgeTokenInputs());
@@ -136,10 +167,25 @@ export const useBridgeConfirm = ({
       };
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-        params: modalParams,
-      });
+      const isFailed = modalParams.status === PostTradeStatus.Failed;
+      const moneyOp = resolveMoneyAccountOperation(sourceToken, destToken);
+      const isPreDepositSwapFail =
+        isFailed && moneyOp === MoneyAccountAction.Deposit;
+      if (moneyOp && !isPreDepositSwapFail) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+          params: modalParams,
+        });
+      }
     }
   };
 

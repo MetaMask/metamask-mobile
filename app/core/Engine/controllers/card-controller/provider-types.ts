@@ -579,8 +579,7 @@ export type CardPrerequisiteStatus =
   | 'action-required'
   | 'pending'
   | 'ok'
-  | 'blocked'
-  | 'kyc_check_failed';
+  | 'blocked';
 
 export type CardKycCtaHint =
   | 'KYC_NOT_STARTED'
@@ -879,6 +878,4 @@ export interface ICardProvider {
     id: string,
     tokens: CardAuthTokens,
   ): Promise<CardTransactionDetails>;
-
-  getOnChainAssets?(address: string): Promise<CardHomeData>;
 }

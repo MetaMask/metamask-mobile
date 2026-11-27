@@ -266,4 +266,19 @@ describe('LeaderboardShellTabPage', () => {
 
     expect(mockScrollToOffset).toHaveBeenCalledWith(24, true);
   });
+
+  it('adds contentTopInset to list padding and refresh offset', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage
+        containerTestID="leaderboard-page"
+        contentTopInset={132}
+      />,
+    );
+    const scroll = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    expect(StyleSheet.flatten(scroll.props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingTop: 148 }),
+    );
+    expect(scroll.props.refreshControl.props.progressViewOffset).toBe(148);
+  });
 });

@@ -32,6 +32,7 @@ import {
 } from '../../../../../../tests/component-view/platform';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
@@ -85,7 +86,6 @@ import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const orderBookValueHeaderId = `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-column-header-value`;
-const TIMEOUT_MS = 5000;
 const activeChase: ChaseOrder = {
   handle: 'chase-view-1',
   symbol: 'ETH',
@@ -552,32 +552,19 @@ const renderProMarketWithScaleFlag = (
   });
 };
 
-const findSizeInput = () =>
-  screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
+const findSizeInput = () => screen.findByTestId(ids.SIZE_INPUT);
 
 const findPriceInput = (testID: string) =>
-  screen.findByTestId(
-    testID,
-    { includeHiddenElements: true },
-    { timeout: TIMEOUT_MS },
-  );
+  screen.findByTestId(testID, { includeHiddenElements: true });
 
 const openTwapOrderForm = async () => {
   const sizeInput = await findSizeInput();
   fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-  await screen.findByTestId(
-    PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-    {},
-    { timeout: TIMEOUT_MS },
-  );
+  await screen.findByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB);
   fireEvent.press(
     screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
   );
-  await screen.findByTestId(
-    PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
-    {},
-    { timeout: TIMEOUT_MS },
-  );
+  await screen.findByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION);
   fireEvent.press(
     screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
   );
@@ -596,14 +583,10 @@ const openScaleOrderForm = async () => {
   fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
   const advancedTab = await screen.findByTestId(
     PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-    {},
-    { timeout: TIMEOUT_MS },
   );
   fireEvent.press(advancedTab);
   const scaleOption = await screen.findByTestId(
     PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
-    {},
-    { timeout: TIMEOUT_MS },
   );
   fireEvent.press(scaleOption);
 
@@ -612,11 +595,7 @@ const openScaleOrderForm = async () => {
 
 const openTwapDurationSheet = async () => {
   fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_BUTTON));
-  await screen.findByTestId(
-    ids.TWAP_DURATION_SHEET,
-    {},
-    { timeout: TIMEOUT_MS },
-  );
+  await screen.findByTestId(ids.TWAP_DURATION_SHEET);
 
   return screen.getByTestId(ids.TWAP_DURATION_PICKER);
 };
@@ -668,8 +647,6 @@ const deliverProOrderBook = (bidPrice: string) => {
 const pressTopBid = () =>
   screen.findByTestId(
     `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
-    {},
-    { timeout: TIMEOUT_MS },
   );
 
 const renderChaseProMarket = () => {
@@ -715,18 +692,14 @@ const openChaseOrderForm = async () => {
   fireEvent.press(
     await screen.findByTestId(
       PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-      {},
-      { timeout: TIMEOUT_MS },
     ),
   );
   fireEvent.press(
     await screen.findByTestId(
       PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
-      {},
-      { timeout: TIMEOUT_MS },
     ),
   );
-  await screen.findByTestId(ids.CHASE_FORM, {}, { timeout: TIMEOUT_MS });
+  await screen.findByTestId(ids.CHASE_FORM);
 };
 
 const selectTriggeredOrderType = async (
@@ -736,13 +709,9 @@ const selectTriggeredOrderType = async (
   fireEvent.press(
     await screen.findByTestId(
       PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
-      {},
-      { timeout: TIMEOUT_MS },
     ),
   );
-  fireEvent.press(
-    await screen.findByTestId(optionTestID, {}, { timeout: TIMEOUT_MS }),
-  );
+  fireEvent.press(await screen.findByTestId(optionTestID));
 };
 
 const emitEthPrice = (
@@ -2359,9 +2328,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ),
       );
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).toBeEnabled());
 
       fireEvent.press(placeOrderButton);
 
@@ -2749,8 +2716,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const limitPriceInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
@@ -2771,8 +2736,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -3015,8 +2978,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
       await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       expect(
@@ -3108,16 +3069,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     fireEvent.changeText(sizeInput, '100');
     fireEvent.press(randomize);
 
-    await waitFor(
-      () => {
-        expect(randomize).toBeChecked();
-        expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
-          '0h 30m',
-        );
-        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(randomize).toBeChecked();
+      expect(screen.getByTestId(ids.TWAP_DURATION_VALUE)).toHaveTextContent(
+        '0h 30m',
+      );
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+    });
   });
 
   itForPlatforms(
@@ -3129,8 +3087,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
       await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       expect(
@@ -3171,8 +3127,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
       const advancedTab = await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       fireEvent.press(advancedTab);
 
@@ -3185,8 +3139,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -3202,11 +3154,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await findSizeInput();
 
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      await screen.findByTestId(
-        PerpsOrderTypeBottomSheetSelectorsIDs.TABS,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      await screen.findByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TABS);
 
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
@@ -3237,8 +3185,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
     await screen.findByTestId(
       PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     expect(
@@ -3258,8 +3204,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
       await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       expect(
@@ -3354,8 +3298,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
     const btcRow = await screen.findByTestId(
       getPerpsProPositionRowSelector('BTC'),
-      {},
-      { timeout: TIMEOUT_MS },
     );
     fireEvent.press(within(btcRow).getByText('BTC'));
 
@@ -3394,11 +3336,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         },
       });
       await findSizeInput();
-      await screen.findByTestId(
-        orderBookValueHeaderId,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      await screen.findByTestId(orderBookValueHeaderId);
 
       expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
         'Size (ETH)',
@@ -3430,11 +3368,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       try {
         const sizeInput = await findSizeInput();
-        await screen.findByTestId(
-          orderBookValueHeaderId,
-          {},
-          { timeout: TIMEOUT_MS },
-        );
+        await screen.findByTestId(orderBookValueHeaderId);
 
         expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
           'Size (USD)',
@@ -3566,25 +3500,21 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
       fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
-      await waitFor(
-        () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
       );
 
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledTimes(1);
-          expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
-          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
-            'value',
-            '',
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
+        expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+          'value',
+          '',
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      });
     },
   );
 
@@ -3639,13 +3569,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(sizeInput, 'blur');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).toBeEnabled());
 
       validateOrder.mockReturnValue(pendingValidation);
-      await new Promise<void>((resolve) => setTimeout(resolve, 1100));
       emitEthPrice(stream);
+
+      // The emitted price re-runs validation through the form's debounce;
+      // wait until the pending read is genuinely in flight on the new price
+      // before asserting the CTA state, so this case exercises the
+      // live-price path and not the already-settled first validation.
+      await waitFor(() => expect(validateOrder).toHaveBeenCalledTimes(2));
 
       await waitFor(() => {
         expect(placeOrderButton).toBeOnTheScreen();
@@ -3828,28 +3761,22 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(triggerInput, '1000');
 
       // Mid-typing, the form stays quiet rather than judging a half-entered price.
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+        ).not.toBeOnTheScreen();
+      });
 
       fireEvent(triggerInput, 'blur');
 
       // A stop on the wrong side of mid is advice, not a blocker: the user is
       // told about it and can still place the order.
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.trigger_must_be_above_mid'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.trigger_must_be_above_mid'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+      });
     },
   );
 
@@ -3868,15 +3795,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(triggerInput, '3000');
       fireEvent(triggerInput, 'blur');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.trigger_must_be_below_mid'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.trigger_must_be_below_mid'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+      });
     },
   );
 
@@ -3904,15 +3828,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       fireEvent(triggerInput, 'blur');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.trigger_must_be_below_mid'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.trigger_must_be_below_mid'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+      });
     },
   );
 
@@ -3940,15 +3861,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       fireEvent(triggerInput, 'blur');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.trigger_must_be_above_mid'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.trigger_must_be_above_mid'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+      });
     },
   );
 
@@ -3964,27 +3882,21 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
     const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
 
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
-        ).not.toBeOnTheScreen();
-        expect(placeOrderButton).toBeDisabled();
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+      ).not.toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+    });
 
     fireEvent(triggerInput, 'blur');
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-          strings('perps.order.validation.please_set_a_trigger_price'),
-        );
-        expect(placeOrderButton).toBeDisabled();
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+        strings('perps.order.validation.please_set_a_trigger_price'),
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
   });
 
   itForPlatforms(
@@ -3998,8 +3910,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
@@ -4012,15 +3922,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       fireEvent(limitInput, 'blur');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.limit_price_required'),
-          );
-          expect(placeOrderButton).toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+          strings('perps.order.validation.limit_price_required'),
+        );
+        expect(placeOrderButton).toBeDisabled();
+      });
     },
   );
 
@@ -4038,27 +3945,21 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
     fireEvent.changeText(triggerInput, '2600');
 
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
-        ).not.toBeOnTheScreen();
-        expect(placeOrderButton).toBeDisabled();
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
+      ).not.toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+    });
 
     fireEvent(limitInput, 'blur');
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-          strings('perps.order.validation.limit_price_required'),
-        );
-        expect(placeOrderButton).toBeDisabled();
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+        strings('perps.order.validation.limit_price_required'),
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
   });
 
   itForPlatforms(
@@ -4087,44 +3988,35 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       let finalValidation: Promise<unknown> | undefined;
-      await waitFor(
-        () => {
-          const validationCallIndex = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'stop_limit' &&
-              params.triggerPrice === '2600' &&
-              params.price === '2650',
-          );
-          expect(validationCallIndex).toBeGreaterThanOrEqual(0);
-          finalValidation = validateOrder.mock.results[validationCallIndex]
-            ?.value as Promise<unknown>;
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const validationCallIndex = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'stop_limit' &&
+            params.triggerPrice === '2600' &&
+            params.price === '2650',
+        );
+        expect(validationCallIndex).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[validationCallIndex]
+          ?.value as Promise<unknown>;
+      });
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(
-        () => {
-          expect(placeOrderButton).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrderButton).not.toBeDisabled();
+      });
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'stop_limit',
-              triggerPrice: '2600',
-              price: '2650',
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'stop_limit',
+            triggerPrice: '2600',
+            price: '2650',
+          }),
+        );
+      });
       expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('takeProfitPrice');
     },
   );
@@ -4156,22 +4048,17 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(limitInput, 'blur');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).toBeEnabled());
 
-      await waitFor(
-        () => {
-          const validationCallIndex = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'stop_limit' &&
-              params.triggerPrice === '2600' &&
-              params.price === '2650',
-          );
-          expect(validationCallIndex).toBeGreaterThanOrEqual(0);
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const validationCallIndex = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'stop_limit' &&
+            params.triggerPrice === '2600' &&
+            params.price === '2650',
+        );
+        expect(validationCallIndex).toBeGreaterThanOrEqual(0);
+      });
       const validationCallIndex = validateOrder.mock.calls.findIndex(
         ([params]) =>
           params.orderType === 'stop_limit' &&
@@ -4182,22 +4069,21 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await validateOrder.mock.results[validationCallIndex]?.value;
       });
 
+      const unclassifiedValidationError = 'Final validation failed';
       validateOrder.mockResolvedValueOnce({
         isValid: false,
-        error: 'Final validation failed',
+        error: unclassifiedValidationError,
       });
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(`${ids.NOTICE}-validation-0`),
-          ).toHaveTextContent('Final validation failed');
-          expect(placeOrder).not.toHaveBeenCalled();
-          expect(placeOrderButton).toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-validation-0`),
+        ).toHaveTextContent(strings('perps.order.validation.failed'));
+        expect(screen.queryByText(unclassifiedValidationError)).toBeNull();
+        expect(placeOrder).not.toHaveBeenCalled();
+        expect(placeOrderButton).toBeDisabled();
+      });
     },
   );
 
@@ -4222,39 +4108,30 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
     const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
     let finalValidation: Promise<unknown> | undefined;
-    await waitFor(
-      () => {
-        const idx = validateOrder.mock.calls.findIndex(
-          ([params]) =>
-            params.orderType === 'stop_market' &&
-            params.triggerPrice === '2600',
-        );
-        expect(idx).toBeGreaterThanOrEqual(0);
-        finalValidation = validateOrder.mock.results[idx]
-          ?.value as Promise<unknown>;
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      const idx = validateOrder.mock.calls.findIndex(
+        ([params]) =>
+          params.orderType === 'stop_market' && params.triggerPrice === '2600',
+      );
+      expect(idx).toBeGreaterThanOrEqual(0);
+      finalValidation = validateOrder.mock.results[idx]
+        ?.value as Promise<unknown>;
+    });
     await act(async () => {
       await finalValidation;
     });
-    await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
-      timeout: TIMEOUT_MS,
-    });
+    await waitFor(() => expect(placeOrderButton).not.toBeDisabled());
     fireEvent.press(placeOrderButton);
 
-    await waitFor(
-      () => {
-        expect(placeOrder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            symbol: 'ETH',
-            orderType: 'stop_market',
-            triggerPrice: '2600',
-          }),
-        );
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          orderType: 'stop_market',
+          triggerPrice: '2600',
+        }),
+      );
+    });
     expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
   });
 
@@ -4285,41 +4162,33 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       let finalValidation: Promise<unknown> | undefined;
-      await waitFor(
-        () => {
-          const idx = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'take_profit_limit' &&
-              params.triggerPrice === '2600' &&
-              params.price === '2650',
-          );
-          expect(idx).toBeGreaterThanOrEqual(0);
-          finalValidation = validateOrder.mock.results[idx]
-            ?.value as Promise<unknown>;
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const idx = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'take_profit_limit' &&
+            params.triggerPrice === '2600' &&
+            params.price === '2650',
+        );
+        expect(idx).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[idx]
+          ?.value as Promise<unknown>;
+      });
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled());
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'take_profit_limit',
-              triggerPrice: '2600',
-              price: '2650',
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'take_profit_limit',
+            triggerPrice: '2600',
+            price: '2650',
+          }),
+        );
+      });
     },
   );
 
@@ -4346,39 +4215,31 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       let finalValidation: Promise<unknown> | undefined;
-      await waitFor(
-        () => {
-          const idx = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'take_profit_market' &&
-              params.triggerPrice === '2000',
-          );
-          expect(idx).toBeGreaterThanOrEqual(0);
-          finalValidation = validateOrder.mock.results[idx]
-            ?.value as Promise<unknown>;
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const idx = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'take_profit_market' &&
+            params.triggerPrice === '2000',
+        );
+        expect(idx).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[idx]
+          ?.value as Promise<unknown>;
+      });
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled());
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'take_profit_market',
-              triggerPrice: '2000',
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'take_profit_market',
+            triggerPrice: '2000',
+          }),
+        );
+      });
       expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
     },
   );
@@ -4394,24 +4255,19 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(sizeInput, '100');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled());
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'twap',
-              twapDuration: 30,
-              twapRandomize: false,
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'twap',
+            twapDuration: 30,
+            twapRandomize: false,
+          }),
+        );
+      });
     },
   );
 
@@ -4436,15 +4292,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(`${ids.NOTICE}-scale`)).toHaveTextContent(
-            strings('perps.pro_order_form.scale.validation.invalid_range'),
-          );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(screen.getByTestId(`${ids.NOTICE}-scale`)).toHaveTextContent(
+          strings('perps.pro_order_form.scale.validation.invalid_range'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      });
     },
   );
 
@@ -4473,26 +4326,21 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled());
       fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'scale',
-              scaleMinPrice: '2200',
-              scaleMaxPrice: '2600',
-              scaleNumOrders: 3,
-              scaleSkew: 1,
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'scale',
+            scaleMinPrice: '2200',
+            scaleMaxPrice: '2600',
+            scaleNumOrders: 3,
+            scaleSkew: 1,
+          }),
+        );
+      });
     },
   );
 
@@ -4547,15 +4395,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       fireEvent.press(
         await screen.findByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
@@ -4569,15 +4413,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         '0',
       );
 
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(`${ids.NOTICE}-chase-max-distance`),
-          ).toBeOnTheScreen();
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-chase-max-distance`),
+        ).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      });
     },
   );
 
@@ -4692,6 +4533,42 @@ describe('PerpsProMarketView header actions', () => {
     fireEvent.press(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
     );
+
+    expect(
+      await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('badges the wallet button from a critical cross margin ratio and opens the balance sheet', async () => {
+    renderPerpsProMarketView({
+      crossMarginEnabled: true,
+      streamOverrides: {
+        account: createCrossMarginAccountForViews({
+          maintenanceMargin: '800',
+          marginUsed: '800',
+          notional: '2000',
+        }),
+      },
+    });
+
+    const walletButton = await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+    );
+
+    expect(walletButton).toHaveProp(
+      'accessibilityLabel',
+      `${strings('perps.market_details.wallet')}, ${strings(
+        'perps.crossMarginSummary.account_ratio',
+      )}`,
+    );
+    expect(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON}-risk-badge`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(walletButton);
 
     expect(
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
@@ -4866,9 +4743,7 @@ describe('Pro market order liquidity', () => {
           ? 'perps.slippage.insufficient_depth'
           : 'perps.slippage.cannot_fill',
       );
-      expect(
-        await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
-      ).toBeOnTheScreen();
+      expect(await screen.findByText(message)).toBeOnTheScreen();
       const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       expect(submit).toBeDisabled();
       fireEvent.press(submit);
@@ -4877,26 +4752,22 @@ describe('Pro market order liquidity', () => {
       await act(async () => {
         deliver?.(makeBook([level(2500, 1)]));
       });
-      await waitFor(
-        () =>
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
       );
       expect(screen.queryByText(message)).not.toBeOnTheScreen();
       await act(async () => {
         fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
       });
-      await waitFor(
-        () =>
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              isBuy: true,
-              orderType: 'market',
-              usdAmount: '100',
-            }),
-          ),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            isBuy: true,
+            orderType: 'market',
+            usdAmount: '100',
+          }),
+        ),
       );
     },
   );
@@ -4912,41 +4783,33 @@ describe('Pro market order liquidity', () => {
     renderFundedProMarket();
     fireEvent.changeText(await findSizeInput(), '100');
     const message = strings('perps.slippage.insufficient_depth');
-    expect(
-      await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(message)).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
     fireEvent.press(
       await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
     fireEvent.changeText(limitInput, '2500');
     fireEvent(limitInput, 'blur');
 
-    await waitFor(
-      () =>
-        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
-      { timeout: TIMEOUT_MS },
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
     );
     expect(screen.queryByText(message)).not.toBeOnTheScreen();
     await act(async () => {
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
     });
-    await waitFor(
-      () =>
-        expect(placeOrder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            symbol: 'ETH',
-            orderType: 'limit',
-            price: '2500',
-          }),
-        ),
-      { timeout: TIMEOUT_MS },
+    await waitFor(() =>
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          orderType: 'limit',
+          price: '2500',
+        }),
+      ),
     );
   });
 
@@ -4954,10 +4817,8 @@ describe('Pro market order liquidity', () => {
     renderFundedProMarket();
     fireEvent.changeText(await findSizeInput(), '100');
 
-    await waitFor(
-      () =>
-        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
-      { timeout: TIMEOUT_MS },
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
     );
     expect(
       Engine.context.PerpsController.subscribeToOrderBook,
@@ -5021,18 +4882,10 @@ describe('Pro order book size on click', () => {
     });
 
   const turnOnSizeOnClick = async () => {
-    fireEvent.press(
-      await screen.findByTestId(
-        `${panelId}-grouping-trigger`,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
-    );
+    fireEvent.press(await screen.findByTestId(`${panelId}-grouping-trigger`));
     fireEvent(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
       'valueChange',
       true,
@@ -5044,22 +4897,17 @@ describe('Pro order book size on click', () => {
   };
 
   const tapBid = async () =>
-    fireEvent.press(
-      await screen.findByTestId(bidRowId, {}, { timeout: TIMEOUT_MS }),
-    );
+    fireEvent.press(await screen.findByTestId(bidRowId));
 
   const placeAndReadOrder = async () => {
     const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
-    await waitFor(
-      () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
-      { timeout: TIMEOUT_MS },
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
     );
     await act(async () => {
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
     });
-    await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1), {
-      timeout: TIMEOUT_MS,
-    });
+    await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1));
     return placeOrder.mock.calls[0][0];
   };
 
@@ -5137,8 +4985,6 @@ describe('Pro order book size on click', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     await turnOnSizeOnClick();
@@ -5171,8 +5017,6 @@ describe('Pro order book size on click', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     await turnOnSizeOnClick();
@@ -5210,8 +5054,6 @@ describe('Pro order book size on click', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     await turnOnSizeOnClick();
@@ -5275,8 +5117,6 @@ describe('Pro order book size on click', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     await turnOnSizeOnClick();
@@ -5316,8 +5156,6 @@ describe('Pro order book size on click', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     await turnOnSizeOnClick();
@@ -5601,8 +5439,6 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
     fireEvent.press(
       await screen.findByTestId(
         PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     );
     fireEvent.changeText(await findPriceInput(ids.LIMIT_PRICE_INPUT), '2600');

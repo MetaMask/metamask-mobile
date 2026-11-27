@@ -8,7 +8,6 @@ import {
   isSocialV1Treatment,
   popToSocialTab,
 } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
-import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { waitFor } from '@testing-library/react-native';
 import { openSocialTraderPreviewIfNotJoined } from '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
@@ -18,10 +17,6 @@ jest.mock(
   () => ({ openSocialTraderPreviewIfNotJoined: jest.fn(() => false) }),
 );
 
-jest.mock(
-  '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
-  () => ({ ensureSocialTermsAccepted: jest.fn(() => true) }),
-);
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -87,7 +82,6 @@ describe('handleSocialTraderPositionUrl', () => {
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockIsSocialV1Treatment.mockReturnValue(false);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(true);
     jest.mocked(openSocialTraderPreviewIfNotJoined).mockReturnValue(false);
   });
 
@@ -103,13 +97,11 @@ describe('handleSocialTraderPositionUrl', () => {
       NavigationService.navigation,
       { kind: 'position', traderId: 'trader-1', positionId: 'position-1' },
     );
-    expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
     expect(mockNavigateToSocialV1Profile).not.toHaveBeenCalled();
   });
 
-  it('keeps the terms gate for a notification instead of the trader preview', () => {
+  it('opens a notification position directly instead of the trader preview', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
 
     handleSocialTraderPositionUrl({
       actionPath:
@@ -117,43 +109,6 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(openSocialTraderPreviewIfNotJoined).not.toHaveBeenCalled();
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
-      mockNavigate,
-      expect.any(Function),
-    );
-  });
-
-  it('tracks the notification click but does not open the position when the Social terms are not accepted', () => {
-    mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
-
-    handleSocialTraderPositionUrl({
-      actionPath:
-        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
-    });
-
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
-      mockNavigate,
-      expect.any(Function),
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockBuild).toHaveBeenCalled();
-  });
-
-  it('opens the position once the Social terms are accepted', () => {
-    mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
-
-    handleSocialTraderPositionUrl({
-      actionPath:
-        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
-    });
-    expect(mockNavigate).not.toHaveBeenCalled();
-    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
-      .calls[0]?.[1];
-    expect(onAccepted).toEqual(expect.any(Function));
-    onAccepted?.();
-
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.POSITION,
       expect.objectContaining({
@@ -166,30 +121,19 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockBuild).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to Social home when the position fails to open after Accept', () => {
+  it('falls back to Social home when the position fails to open', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
-    handleSocialTraderPositionUrl({
-      actionPath:
-        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
-    });
     mockNavigate.mockImplementationOnce(() => {
       throw new Error('Navigator not ready');
     });
-    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
-      .calls[0]?.[1];
 
-    expect(() => onAccepted?.()).not.toThrow();
+    expect(() =>
+      handleSocialTraderPositionUrl({
+        actionPath:
+          '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
+      }),
+    ).not.toThrow();
     expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
-  });
-
-  it('does not open the fallback when the Social terms are not accepted', () => {
-    mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
-
-    handleSocialTraderPositionUrl({ actionPath: '?traderId=trader-1' });
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to TraderPositionView with positionId and forwards notificationSubtype', () => {
@@ -309,23 +253,6 @@ describe('handleSocialTraderPositionUrl', () => {
       expect(
         mockNavigateToSocialV1Profile.mock.invocationCallOrder[0],
       ).toBeLessThan(mockNavigate.mock.invocationCallOrder[0]);
-    });
-
-    it('opens the trader profile once the Social terms are accepted', () => {
-      mockQueries();
-      jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
-      handleSocialTraderPositionUrl({
-        actionPath: '?positionId=position-1&traderId=trader-1',
-      });
-      const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
-        .calls[0]?.[1];
-
-      onAccepted?.();
-
-      expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
-        NavigationService.navigation,
-        { traderId: 'trader-1', source: 'deep_link' },
-      );
     });
 
     it('stays on the profile when the position cannot be fetched', async () => {
@@ -696,16 +623,6 @@ describe('handleSocialTraderPositionUrl', () => {
     handleSocialTraderPositionUrl({ actionPath: '' });
 
     expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('does not fall back to the Social tab when the Social V1 terms are not accepted', () => {
-    mockIsSocialV1Treatment.mockReturnValue(true);
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
-
-    handleSocialTraderPositionUrl({ actionPath: '' });
-
-    expect(popToSocialTab).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
