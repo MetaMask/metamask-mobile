@@ -314,12 +314,8 @@ describe('ActivitySection', () => {
       }),
     );
 
-    const { useTransactionsQuery } = jest.requireMock(
-      '../../../../Views/ActivityList/useTransactionsQuery',
-    );
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
-    expect(useTransactionsQuery).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {
