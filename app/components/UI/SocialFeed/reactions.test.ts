@@ -49,7 +49,7 @@ describe('feed reactions helpers', () => {
 
   it('includes trading reactions beyond the original eight', () => {
     expect(FEED_REACTION_EMOJIS).toEqual(
-      expect.arrayContaining(['🐐', '😡', '👎', '🚀', '💎', '📈', '💀']),
+      expect.arrayContaining(['🐐', '😡', '👎', '🚀', '💎', '📈', '💀', '🦊']),
     );
   });
 });

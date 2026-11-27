@@ -14,6 +14,7 @@ export const FEED_REACTION_EMOJIS = [
   '💎',
   '📈',
   '💀',
+  '🦊',
 ] as const;
 
 export interface FeedReaction {
