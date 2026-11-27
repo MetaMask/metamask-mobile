@@ -244,9 +244,6 @@ export const TokenListItem = React.memo(
       [caipAssetId],
     );
     const [liveQuote] = useMarketStats(selectLiveQuote);
-    // A zero or negative tick is bad data. Keep the polled price and fiat.
-    const livePrice =
-      liveQuote && liveQuote.price > 0 ? liveQuote.price : undefined;
 
     const chainId = asset?.chainId as Hex;
 
@@ -294,11 +291,8 @@ export const TokenListItem = React.memo(
         return undefined;
       }
 
-      if (
-        livePrice !== undefined &&
-        !(isTestNet(asset.chainId) && !showFiatOnTestnets)
-      ) {
-        return livePrice;
+      if (liveQuote && !(isTestNet(asset.chainId) && !showFiatOnTestnets)) {
+        return liveQuote.price;
       }
 
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
@@ -350,7 +344,7 @@ export const TokenListItem = React.memo(
       nativeCurrency,
       showFiatOnTestnets,
       multichainAssetsRates,
-      livePrice,
+      liveQuote,
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -484,7 +478,7 @@ export const TokenListItem = React.memo(
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
-    const liveHolding = liveHoldingFiat(asset.balanceAmount, livePrice);
+    const liveHolding = liveHoldingFiat(asset.balanceAmount, liveQuote?.price);
     const liveFiatBalance =
       liveHolding !== undefined && !hideFiatForTestnet && currentCurrency
         ? formatWithThreshold(liveHolding, 0.01, getLocaleLanguageCode(), {

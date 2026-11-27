@@ -36,8 +36,9 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+const mockUseMarketStats = jest.fn();
 jest.mock('../../../../hooks/assets/market-stats', () => ({
-  useMarketStats: () => [],
+  useMarketStats: (select: unknown) => mockUseMarketStats(select),
   useMarketStatsSubscription: () => undefined,
   readLiveQuotes: () => [],
 }));
@@ -111,6 +112,7 @@ const renderTokenMarketData = (assetId: CaipAssetType | null = ASSET_ID) => {
 describe('useTokenMarketData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMarketStats.mockReturnValue([]);
   });
 
   it('returns cached market data without fetching', () => {
@@ -287,5 +289,15 @@ describe('useTokenMarketData', () => {
 
     await waitFor(() => expect(mockHandleFetch).toHaveBeenCalledTimes(2));
     expect(mockHandleFetch.mock.calls[1][0]).toContain('vsCurrency=gbp');
+  });
+
+  it('overlays the streamed price and percent on the cached market data', () => {
+    mockState({ assetsPrice: { [ASSET_ID]: buildPrice({ price: 2 }) } });
+    mockUseMarketStats.mockReturnValue([{ price: 3, pricePercentChange1d: 4 }]);
+
+    const { result } = renderTokenMarketData();
+
+    expect(result.current.marketData?.price).toBe(3);
+    expect(result.current.marketData?.pricePercentChange1d).toBe(4);
   });
 });

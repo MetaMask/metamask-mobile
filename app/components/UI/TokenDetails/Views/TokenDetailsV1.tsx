@@ -429,13 +429,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const [liveQuote] = useMarketStats((quotes) =>
     readLiveQuotes(quotes, [caip19AssetId ?? undefined]),
   );
-  // A zero or negative tick is bad data. Keep the polled price.
-  const livePrice =
-    liveQuote && liveQuote.price > 0 ? liveQuote.price : undefined;
-  const currentPrice = livePrice ?? quotedPrice.currentPrice;
+  const currentPrice = liveQuote?.price ?? quotedPrice.currentPrice;
   let { priceDiff, comparePrice } = quotedPrice;
   if (
-    livePrice !== undefined &&
     liveQuote?.pricePercentChange1d !== undefined &&
     quotedPrice.timePeriod === '1d' &&
     currentPrice > 0

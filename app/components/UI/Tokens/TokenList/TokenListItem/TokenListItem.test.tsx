@@ -492,31 +492,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
     });
 
-    it('keeps the polled price and fiat balance when the streamed price is zero', () => {
-      mockUseMarketStats.mockReturnValue([{ price: 0 }]);
-      prepareMocks({
-        asset: { ...defaultAsset, balanceAmount: 4 },
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      const { getByText, queryByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(getByText('$123.00')).toBeOnTheScreen();
-      expect(queryByText(/\$0\.00/)).not.toBeOnTheScreen();
-    });
-
     it('reads the streamed quote by CAIP-19, not the hex address', () => {
       const caipId = 'eip155:1/erc20:0x456';
       (useQuery as jest.Mock).mockReturnValue({ data: caipId });
