@@ -42,6 +42,7 @@ import {
 import { selectStablecoins } from '../../../../../selectors/featureFlagController/stableTokens';
 import { mockedEmptyFlagsState } from '../../../../../selectors/featureFlagController/mocks';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import { isPremiumDepositCandidate } from '../../../../UI/Money/utils/moneyAccountPremiumDeposit';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
 import {
@@ -70,6 +71,7 @@ jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
 jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
 }));
+jest.mock('../../../../UI/Money/utils/moneyAccountPremiumDeposit');
 
 jest.mock('./useTransactionMetadataRequest', () => {
   const actual = jest.requireActual('./useTransactionMetadataRequest');
@@ -2175,6 +2177,24 @@ describe('useTransactionCustomAmount', () => {
       });
       expect(atomicCall).toBeDefined();
       expect(isUndefined).toBe(true);
+    });
+
+    it('premium candidate keeps atomic: false', async () => {
+      jest.mocked(isPremiumDepositCandidate).mockReturnValue(true);
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+      setTransactionConfigMock.mockClear();
+
+      await act(async () => {
+        result.current.updatePendingAmount('5');
+      });
+
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+      expect(config.isMaxAmount).toBe(false);
+      expect(config.atomic).toBe(false);
     });
 
     it('does not flip atomic when Max is pressed on non-deposit types', async () => {

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../../../core/Engine';
+import { isPremiumDepositCandidate } from '../../../../../UI/Money/utils/moneyAccountPremiumDeposit';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
 import type { RootState } from '../../../../../../reducers';
@@ -11,6 +12,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+jest.mock('../../../../../UI/Money/utils/moneyAccountPremiumDeposit');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -60,6 +62,7 @@ describe('useClearPaymentOverride', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isPremiumDepositCandidate).mockReturnValue(false);
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID,
     } as never);
@@ -139,6 +142,30 @@ describe('useClearPaymentOverride', () => {
     setTransactionConfigMock.mock.calls[0][1](config as never);
 
     expect(config.atomic).toBeUndefined();
+  });
+
+  it('premium candidate keeps atomic: false', () => {
+    jest.mocked(isPremiumDepositCandidate).mockReturnValue(true);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID,
+      chainId: '0x1',
+      type: TransactionType.moneyAccountDeposit,
+    } as never);
+    mockSelectors({
+      paymentOverride: PaymentOverride.MoneyAccount,
+      isMaxAmount: false,
+    });
+
+    const { result } = renderHook(() => useClearPaymentOverride());
+
+    act(() => {
+      result.current();
+    });
+
+    const config = { atomic: false } as Record<string, unknown>;
+    setTransactionConfigMock.mock.calls[0][1](config);
+
+    expect(config.atomic).toBe(false);
   });
 
   it('clears atomic for a max-amount non-deposit transaction', () => {
