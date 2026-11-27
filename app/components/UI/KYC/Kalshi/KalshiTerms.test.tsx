@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -53,15 +53,26 @@ const tickSocureConsent = (screen: ReturnType<typeof renderPage>) =>
 
 describe('KalshiTerms', () => {
   let openUrlSpy: jest.SpyInstance;
+  let announceSpy: jest.SpyInstance;
 
   beforeEach(() => {
     openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined as never);
+    announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     openUrlSpy.mockRestore();
+    announceSpy.mockRestore();
+  });
+
+  it('labels the Socure checkbox with the consent sentence', () => {
+    const { getByLabelText } = renderPage();
+
+    expect(getByLabelText(/I explicitly consent to Socure/u)).toBeOnTheScreen();
   });
 
   it('shows the step indicator, title and description', () => {
@@ -161,6 +172,18 @@ describe('KalshiTerms', () => {
     expect(getByTestId(KalshiTermsSelectorsIDs.ERROR)).toHaveTextContent(
       'Kalshi is unavailable',
     );
+  });
+
+  it('announces the error to screen readers', () => {
+    renderPage({ error: 'Kalshi is unavailable' });
+
+    expect(announceSpy).toHaveBeenCalledWith('Kalshi is unavailable');
+  });
+
+  it('does not announce when there is no error', () => {
+    renderPage();
+
+    expect(announceSpy).not.toHaveBeenCalled();
   });
 
   it('keeps the button off while submitting', () => {

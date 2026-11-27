@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   Linking,
   ScrollView,
   type LayoutChangeEvent,
@@ -138,6 +139,14 @@ const KalshiTerms = ({
     [],
   );
 
+  // The error sits above the button and is not announced on its own. Announce
+  // it so screen reader users hear that the submit failed (WCAG 4.1.3).
+  useEffect(() => {
+    if (error) {
+      AccessibilityInfo.announceForAccessibility(error);
+    }
+  }, [error]);
+
   const handleAccept = useCallback(() => {
     fireImpact(ImpactMoment.PrimaryCTA);
     return onAccept();
@@ -264,6 +273,12 @@ const KalshiTerms = ({
               ref={checkboxRef}
               isSelected={hasSocureConsent}
               onChange={setHasSocureConsent}
+              accessibilityLabel={strings('kyc.kalshi_terms.socure_consent', {
+                termsOfUse: strings('kyc.kalshi_terms.socure_terms_of_use'),
+                privacyNotice: strings(
+                  'kyc.kalshi_terms.socure_privacy_notice',
+                ),
+              })}
               testID={KalshiTermsSelectorsIDs.SOCURE_CONSENT_CHECKBOX}
             />
             <Box twClassName="flex-1">
