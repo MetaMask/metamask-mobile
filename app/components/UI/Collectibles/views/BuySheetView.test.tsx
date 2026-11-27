@@ -233,7 +233,7 @@ describe('BuySheetView', () => {
     ).toHaveAccessibilityValue({ now: 10 });
   });
 
-  it('deselects the max chip when the slider moves below max', () => {
+  it('selects the 10 packs chip when max is pressed', () => {
     render(
       <BuySheetView
         name={pack.name}
@@ -247,18 +247,11 @@ describe('BuySheetView', () => {
         name: strings('collectibles.buy_sheet.max'),
       }),
     );
-    fireEvent(
-      screen.getByRole('adjustable', {
-        name: strings('collectibles.buy_sheet.quantity'),
-      }),
-      'accessibilityAction',
-      { nativeEvent: { actionName: 'decrement' } },
-    );
 
     expect(
       screen.getByRole('button', {
-        name: strings('collectibles.buy_sheet.max'),
+        name: strings('collectibles.buy_sheet.pack_count', { count: 10 }),
       }),
-    ).not.toBeSelected();
+    ).toBeSelected();
   });
 });

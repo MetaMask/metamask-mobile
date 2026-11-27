@@ -10,6 +10,7 @@ import {
   FilterButton,
   FilterButtonGroup,
   Slider,
+  SliderMarkColor,
   Switch,
   Tag,
   TagSeverity,
@@ -30,8 +31,13 @@ const quantityOptions = ['1', '5', '10'];
 const maxOption = 'max';
 const minPackQuantity = 1;
 
+const hapticQuantities = [...quantityOptions.map(Number), mockMaxPackQuantity];
+
 const toOption = (quantity: number) =>
-  quantity === mockMaxPackQuantity ? maxOption : String(quantity);
+  quantity === mockMaxPackQuantity &&
+  !quantityOptions.includes(String(quantity))
+    ? maxOption
+    : String(quantity);
 const toQuantity = (option: string) =>
   option === maxOption ? mockMaxPackQuantity : Number(option);
 const toTrackPercent = (quantity: number) =>
@@ -40,10 +46,18 @@ const toTrackPercent = (quantity: number) =>
 const playGrip = () => fireImpact(ImpactMoment.SliderGrip);
 const playTick = () => fireImpact(ImpactMoment.SliderTick);
 
-const sliderMarks = [...quantityOptions, maxOption].map((option) => ({
-  step: toTrackPercent(toQuantity(option)),
-  haptic: true,
-}));
+const sliderMarks = Array.from(
+  { length: mockMaxPackQuantity - minPackQuantity + 1 },
+  (_, index) => {
+    const quantity = minPackQuantity + index;
+
+    return {
+      step: toTrackPercent(quantity),
+      color: SliderMarkColor.IconDefault,
+      haptic: hapticQuantities.includes(quantity),
+    };
+  },
+);
 
 interface Props {
   name: string;
@@ -189,7 +203,7 @@ interface RowProps {
 
 function BuySheetRow({ label, children }: RowProps) {
   return (
-    <View className="h-10 flex-row items-center justify-between gap-4">
+    <View className="min-h-11 flex-row items-center justify-between gap-4">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {label}
       </Text>
