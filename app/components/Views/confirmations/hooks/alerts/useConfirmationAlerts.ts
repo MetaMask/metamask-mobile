@@ -27,6 +27,7 @@ import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
+import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 import { useLighterAccountLookupAlert } from './useLighterAccountLookupAlert';
 
 function useSignatureAlerts(): Alert[] {
@@ -124,9 +125,11 @@ export default function useConfirmationAlerts(): Alert[] {
   const accountTypeUpgrade = useAccountTypeUpgrade();
   const urlTrustSignalAlerts = useOriginTrustSignalAlerts();
   const addressTrustSignalAlerts = useAddressTrustSignalAlerts();
+  const watchOnlyAccountAlert = useWatchOnlyAccountAlert();
 
   return useMemo(
     () => [
+      ...watchOnlyAccountAlert,
       ...blockaidAlerts,
       ...signatureAlerts,
       ...transactionAlerts,
@@ -135,6 +138,7 @@ export default function useConfirmationAlerts(): Alert[] {
       ...addressTrustSignalAlerts,
     ],
     [
+      watchOnlyAccountAlert,
       blockaidAlerts,
       signatureAlerts,
       transactionAlerts,

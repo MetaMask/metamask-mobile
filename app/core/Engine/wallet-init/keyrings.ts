@@ -26,6 +26,8 @@ import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
+import Logger from '../../../util/Logger';
+import { ensureError } from '../../../util/errorUtils';
 import {
   scanCompleted,
   scanRequested,
@@ -39,7 +41,14 @@ import {
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import {
+  isMpcMoneyKeyringBuildEnabled,
+  isWatchOnlyAccountsBuildEnabled,
+} from '../../../constants/featureFlags';
+import {
+  buildWatchOnlyKeyringBuilder,
+  buildWatchOnlyKeyringV2Builder,
+} from '../../WatchOnly/watch-only-keyring-builder';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -74,7 +83,9 @@ export function getKeyringBuilders(
     const keyring = new QrKeyring({ bridge: qrKeyringBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
-    keyring.forgetDevice();
+    keyring.forgetDevice().catch((error) => {
+      Logger.error(ensureError(error, 'getKeyringBuilders.forgetDevice'));
+    });
     return keyring;
   };
 
@@ -142,6 +153,12 @@ export function getKeyringBuilders(
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     keyrings.push(buildMpcMoneyKeyringBuilder());
+  }
+
+  // Dev-only; the controller keeps an unrecognised keyring in the vault as is.
+  if (isWatchOnlyAccountsBuildEnabled()) {
+    // @ts-expect-error: `addAccounts` is missing in `WatchOnlyKeyringV1Adapter`.
+    keyrings.push(buildWatchOnlyKeyringBuilder());
   }
 
   return keyrings;
@@ -222,6 +239,10 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
   // in `getKeyringBuilders` above. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     builders.push(buildMpcMoneyKeyringV2Builder());
+  }
+
+  if (isWatchOnlyAccountsBuildEnabled()) {
+    builders.push(buildWatchOnlyKeyringV2Builder());
   }
 
   return builders;

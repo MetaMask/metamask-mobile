@@ -34,6 +34,7 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
+import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -62,6 +63,7 @@ jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
 jest.mock('./useMMPayHardwareAccountAlert');
 jest.mock('./useSuggestedGasFeeHighAlert');
+jest.mock('./useWatchOnlyAccountAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -238,6 +240,7 @@ describe('useConfirmationAlerts', () => {
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
     (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
     (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue([]);
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -380,6 +383,17 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockDepositLimitAlert);
+  });
+
+  it('includes the watch-only account alert for signatures', () => {
+    const watchOnlyAlert = { key: AlertKeys.WatchOnlyAccount } as Alert;
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue([watchOnlyAlert]);
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
+      state: siweSignatureConfirmationState,
+    });
+
+    expect(result.current).toContain(watchOnlyAlert);
   });
 
   it('returns the Lighter deposit minimum alert', () => {

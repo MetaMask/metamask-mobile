@@ -179,6 +179,7 @@ import { complianceControllerInit } from './controllers/compliance/compliance-co
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
 import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { watchOnlyAccountServiceInit } from './controllers/watch-only-account-service/watch-only-account-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { moneyAccountLifecycleControllerInit } from './controllers/money-account-lifecycle-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -396,6 +397,7 @@ export class Engine {
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
         MoneyAccountLifecycleController: moneyAccountLifecycleControllerInit,
+        WatchOnlyAccountService: watchOnlyAccountServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -576,7 +578,9 @@ export class Engine {
       captureException(error);
     });
 
-    snapController.init();
+    snapController.init().catch((error) => {
+      captureException(error);
+    });
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
@@ -701,6 +705,13 @@ export class Engine {
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
       MoneyAccountLifecycleController:
         messengerClientsByName.MoneyAccountLifecycleController,
+      // Only constructed in dev builds with the watch-only gate on.
+      ...(messengerClientsByName.WatchOnlyAccountService
+        ? {
+            WatchOnlyAccountService:
+              messengerClientsByName.WatchOnlyAccountService,
+          }
+        : {}),
     };
 
     const childControllers = Object.assign({}, this.context);

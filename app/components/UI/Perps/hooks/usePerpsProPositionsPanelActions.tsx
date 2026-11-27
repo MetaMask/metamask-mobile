@@ -1,5 +1,6 @@
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type Order,
@@ -14,7 +15,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { ensureError } from '../../../../util/errorUtils';
 import { ImpactMoment, useHaptics } from '../../../../util/haptics';
+import Logger from '../../../../util/Logger';
 import { useComplianceGate } from '../../Compliance';
 import PerpsBottomSheetTooltip from '../components/PerpsBottomSheetTooltip';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
@@ -38,6 +41,7 @@ import { usePerpsSharePosition } from './usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 const PRO_MARKET_SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
 const PRO_MARKET_BUTTON_LOCATION =
@@ -97,6 +101,7 @@ export const usePerpsProPositionsPanelActions =
     const { cancelOrder } = usePerpsTrading();
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
+    const { guard: guardWatchOnly } = useWatchOnlyGuard();
     const { playImpact } = useHaptics();
     const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
@@ -142,6 +147,20 @@ export const usePerpsProPositionsPanelActions =
           }
 
           await action();
+        }).catch((error) => {
+          Logger.error(
+            ensureError(
+              error,
+              'usePerpsProPositionsPanelActions.runGatedEligibleAction',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'usePerpsProPositionsPanelActions.runGatedEligibleAction',
+                data: { source },
+              },
+            },
+          );
         });
       },
       [gate, isEligible, showGeoBlockForSource],
@@ -335,7 +354,12 @@ export const usePerpsProPositionsPanelActions =
         onOrderCanceled?: (order: Order) => void | Promise<void>,
       ) => {
         // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
-        if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
+        if (
+          !isOrderCancelable(order) ||
+          cancelingOrderId ||
+          editingOrderId ||
+          guardWatchOnly()
+        ) {
           return;
         }
 
@@ -398,6 +422,7 @@ export const usePerpsProPositionsPanelActions =
         cancelOrder,
         cancelingOrderId,
         editingOrderId,
+        guardWatchOnly,
         isOrderCancelable,
         playImpact,
         showToast,

@@ -610,6 +610,10 @@ import type {
   MoneyAccountLifecycleControllerEvents,
   MoneyAccountLifecycleControllerState,
 } from '@metamask/money-account-lifecycle-controller';
+import type {
+  WatchOnlyAccountService,
+  WatchOnlyAccountServiceActions,
+} from '@metamask/watch-only-account-service';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -629,6 +633,7 @@ type RequiredControllers = Omit<
   | 'ComplianceService'
   | 'KycService'
   | 'ChompApiService'
+  | 'WatchOnlyAccountService'
 >;
 
 /**
@@ -647,6 +652,7 @@ type OptionalControllers = Pick<
   | 'ComplianceService'
   | 'KycService'
   | 'ChompApiService'
+  | 'WatchOnlyAccountService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -792,7 +798,8 @@ export type GlobalActions =
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
   | MoneyAccountLifecycleControllerActions
-  | SentinelApiServiceActions;
+  | SentinelApiServiceActions
+  | WatchOnlyAccountServiceActions;
 
 export type GlobalEvents =
   | SamplePetnamesControllerEvents
@@ -1046,6 +1053,7 @@ export type MessengerClients = {
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
   MoneyAccountLifecycleController: MoneyAccountLifecycleController;
+  WatchOnlyAccountService: WatchOnlyAccountService;
 };
 
 /**
@@ -1244,7 +1252,8 @@ export type MessengerClientsToInitialize =
   | 'KycController'
   | 'ChompApiService'
   | 'MoneyAccountUpgradeController'
-  | 'MoneyAccountLifecycleController';
+  | 'MoneyAccountLifecycleController'
+  | 'WatchOnlyAccountService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -1352,7 +1361,7 @@ export type MessengerClientInitRequest<
  * Function to initialize a controller instance and return associated data.
  */
 export type MessengerClientInitFunction<
-  MessengerClientType extends MessengerClient,
+  MessengerClientType extends MessengerClient | undefined,
   ControllerMessengerType extends ControllerMessenger,
   InitMessengerType extends void | ControllerMessenger = void,
 > = (
@@ -1368,8 +1377,11 @@ export type MessengerClientInitFunction<
  * Map of messenger client init functions by messenger client name.
  */
 export type MessengerClientInitFunctionsByMessengerClientName = {
+  // Optional clients may be left uninitialized (see `EngineContext`).
   [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
-    MessengerClientsByName[Name],
+    Name extends keyof OptionalControllers
+      ? MessengerClientsByName[Name] | undefined
+      : MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;

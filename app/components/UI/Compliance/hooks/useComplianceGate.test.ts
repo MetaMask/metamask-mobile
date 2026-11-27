@@ -42,6 +42,11 @@ jest.mock('../contexts/AccessRestrictedContext', () => ({
   }),
 }));
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: mockGuardWatchOnly }),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const BLOCKED_ADDRESS = '0xBLOCKED';
@@ -62,6 +67,25 @@ describe('useComplianceGate', () => {
     // Default: API returns no blocked wallets — drives the compliance check
     // result read inside gate().
     mockCheckWalletsCompliance.mockResolvedValue([]);
+  });
+
+  it('refuses the action for a watch-only account without running it', async () => {
+    mockGuardWatchOnly.mockReturnValueOnce(true);
+    mockUseSelector
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+    const action = jest.fn().mockResolvedValue('done');
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.gate(action);
+    });
+
+    expect(action).not.toHaveBeenCalled();
   });
 
   it('returns isBlocked=false when compliance is disabled even if address is blocked', () => {

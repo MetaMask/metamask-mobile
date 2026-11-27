@@ -22,6 +22,17 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for development-only watch-only accounts. Always false
+ * outside dev builds. Inlined from `.js.env`; restart Metro after changing.
+ */
+export function isWatchOnlyAccountsBuildEnabled(): boolean {
+  return (
+    process.env.METAMASK_ENVIRONMENT === 'dev' &&
+    process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED === 'true'
+  );
+}
+
+/**
  * Build-time gate for the Collectibles development fallback. A valid remote
  * `collectiblesEnabled` flag always wins; this flag only decides what a
  * development build does when the remote flag is missing or invalid.

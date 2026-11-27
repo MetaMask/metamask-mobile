@@ -148,6 +148,13 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
+// Never refuses here; the close-form CV test covers the watch-only refusal.
+// One guard instance keeps `handleClosePosition` stable across renders.
+jest.mock('../../../hooks/useWatchOnlyGuard', () => {
+  const guard = () => false;
+  return { useWatchOnlyGuard: () => ({ guard }) };
+});
+
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {

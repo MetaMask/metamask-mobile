@@ -3994,11 +3994,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Compliance/hooks/useComplianceGate.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/ComponentErrorBoundary/index.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
@@ -7692,11 +7687,6 @@
     },
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsProPositionsPanelActions.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsProvider.test.ts": {
@@ -20916,9 +20906,6 @@
     "typescript/await-thenable": {
       "count": 1
     },
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -21641,11 +21628,6 @@
       "count": 5
     },
     "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/core/Engine/wallet-init/keyrings.ts": {
-    "typescript/no-floating-promises": {
       "count": 1
     }
   },
