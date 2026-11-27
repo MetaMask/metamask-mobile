@@ -25,18 +25,10 @@ interface BrazeBannerProps {
 /**
  * Orchestrates the Braze banner lifecycle for a given placement ID.
  *
- * Subscribes to `bannerCardsUpdated`, manages loading/visible/empty/dismissed
- * state via `useBrazeBanner`, logs impressions, clicks, and selects, and
- * delegates all visual rendering to `BrazeBannerCard` (swap out for another
- * renderer if needed).
+ * Uses `useBrazeBanner` to resolve the placement and `BrazeBannerCard` to
+ * render a visible banner. Logs impressions and clicks for the placement.
  * MetaMask deeplinks use the shared deeplink pipeline; external web links open
  * with the OS browser.
- *
- * State machine (managed by `useBrazeBanner`):
- * - `loading`   → nothing rendered, waits for a valid banner
- * - `visible`   → BrazeBannerCard rendered
- * - `empty`     → returns null (no campaign / timeout reached)
- * - `dismissed` → returns null immediately; Braze owns re-eligibility
  */
 const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   const tw = useTailwind();
@@ -52,8 +44,11 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   } = useBrazeBanner(placementId);
 
   useEffect(() => {
-    if (status === 'visible') {
-      logBrazeBannerImpression(placementId, eventProperties);
+    if (status === 'visible' || status === 'control') {
+      logBrazeBannerImpression(
+        placementId,
+        status === 'control' ? null : eventProperties,
+      );
     }
   }, [status, placementId, eventProperties]);
 
@@ -99,10 +94,9 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
       });
   }, [deeplink, eventProperties, placementId]);
 
-  if (status === 'empty' || status === 'dismissed' || status === 'loading')
-    return null;
+  if (status !== 'visible') return null;
 
-  return status === 'visible' && body ? (
+  return body ? (
     <Box testID={BRAZE_BANNER_TEST_IDS.CONTAINER} style={tw.style('mx-4')}>
       <Pressable testID={BRAZE_BANNER_TEST_IDS.PRESSABLE} onPress={handlePress}>
         <BrazeBannerCard

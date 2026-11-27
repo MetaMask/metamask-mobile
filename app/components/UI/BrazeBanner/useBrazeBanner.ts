@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Braze, { Banner } from '@braze/react-native-sdk';
+import {
+  addListener,
+  Banner,
+  BannerCardsUpdatedEvent,
+  Events,
+} from '@braze/react-native-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { dismissBrazeBanner, getBannerForPlacement } from '../../../core/Braze';
 import Logger from '../../../util/Logger';
@@ -16,7 +21,12 @@ import {
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
-export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
+export type BrazeBannerStatus =
+  | 'loading'
+  | 'visible'
+  | 'control'
+  | 'empty'
+  | 'dismissed';
 type BrazeBannerSource = 'warm-cache' | 'event';
 
 export interface UseBrazeBannerResult {
@@ -56,7 +66,7 @@ function logBrazeBannerDebug(
   placementId: string,
   banner: Banner | null,
   extra: Record<string, unknown> = {},
-) {
+): void {
   if (isProduction()) return;
 
   Logger.log(`[BrazeBanner] ${message}`, {
@@ -73,13 +83,6 @@ function logBrazeBannerDebug(
 
 /**
  * Drives the BrazeBanner state machine.
- *
- * States: `loading → visible`, `loading → empty`, `visible → dismissed`.
- *
- * - `loading`   Skeleton shown; waiting for the first valid banner event.
- * - `visible`   A banner is ready to render.
- * - `empty`     No banner arrived within the timeout (or SDK returned empty).
- * - `dismissed` User dismissed this mount; renders nothing until next mount.
  *
  * Dismissal behaviour:
  * - Hides immediately for this mount (in-memory).
@@ -105,7 +108,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // still be replaced without changing the reserved layout slot.
   const initialBannerWindowOpenRef = useRef(true);
 
-  // Timeout to stop showing the loading skeleton and render nothing if no banner is available.
   const noResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -129,21 +131,30 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     }
   }, []);
 
-  /**
-   * Evaluate a banner from any source (warm-cache probe or listener event).
-   * Returns `true` if the banner was accepted and state updated.
-   */
   const handleBanner = useCallback(
     (candidate: Banner | null, source: BrazeBannerSource) => {
       if (dismissedRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
-      // wait for a bannerCardsUpdated event or the skeleton timeout.
+      // wait for a bannerCardsUpdated event or the startup timeout.
       if (candidate === null) {
         logBrazeBannerDebug(
           'No candidate banner available yet',
           placementId,
           null,
+        );
+        return;
+      }
+
+      if (
+        source === 'event' &&
+        currentBannerTrackingIdRef.current === null &&
+        !initialBannerWindowOpenRef.current
+      ) {
+        logBrazeBannerDebug(
+          'Ignoring late initial banner after startup window',
+          placementId,
+          candidate,
         );
         return;
       }
@@ -159,17 +170,16 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         }
 
         logBrazeBannerDebug(
-          'Ignoring control or mismatched placement banner',
+          'Control or mismatched placement banner resolves without rendering',
           placementId,
           candidate,
         );
-        // Control-group assignment or no banner for this placement.
-        clearNoResponseTimeout();
-        currentBannerTrackingIdRef.current = null;
-        setBanner(null);
-        setStatus('empty');
-        // Content determination is finished: no banner will be shown. Settle
-        // the span now instead of letting it run until unmount.
+        // Keep the timeout armed until the window closes or a variant fills the slot.
+        if (candidate.placementId === placementId) {
+          setStatus('control');
+        } else {
+          setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
+        }
         endBrazeTrace({
           success: false,
           reason: 'empty',
@@ -187,19 +197,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
           candidate,
         );
         return; // wait for a meaningful banner
-      }
-
-      if (
-        source === 'event' &&
-        currentBannerTrackingIdRef.current === null &&
-        !initialBannerWindowOpenRef.current
-      ) {
-        logBrazeBannerDebug(
-          'Ignoring late initial banner after startup window',
-          placementId,
-          candidate,
-        );
-        return;
       }
 
       if (candidate.trackingId === currentBannerTrackingIdRef.current) {
@@ -251,14 +248,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       handleBanner(result, 'warm-cache');
     });
 
-    const subscription = Braze.addListener(
-      'bannerCardsUpdated',
-      (event: { banners: Banner[] }) => {
+    const subscription = addListener(
+      Events.BANNER_CARDS_UPDATED,
+      (event: BannerCardsUpdatedEvent) => {
         if (dismissedRef.current) return;
 
         const match = event.banners.find(
           (b) =>
-            b.placementId === placementId && getRawStringProp(b, PROP_BODY),
+            b.placementId === placementId &&
+            (b.isControl || getRawStringProp(b, PROP_BODY)),
         );
 
         logBrazeBannerDebug(
@@ -277,8 +275,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       },
     );
 
-    // Fallback: if neither the warm-cache probe nor the SDK event resolves
-    // within the window, stop showing the loading skeleton and render nothing.
     noResponseTimeoutRef.current = setTimeout(() => {
       if (!dismissedRef.current) {
         initialBannerWindowOpenRef.current = false;
@@ -292,7 +288,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       }
     }, SKELETON_TIMEOUT_MS);
 
-    return () => {
+    return (): void => {
       subscription.remove();
       clearNoResponseTimeout();
 
