@@ -19731,17 +19731,11 @@
     }
   },
   "app/components/Views/confirmations/hooks/useConfirmActions.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 7
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
   "app/components/Views/confirmations/hooks/useConfirmActions.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -21825,9 +21819,6 @@
   },
   "app/core/HardwareWallet/hooks/useDeviceConnectionFlow.ts": {
     "typescript/no-floating-promises": {
-      "count": 1
-    },
-    "typescript/prefer-optional-chain": {
       "count": 1
     },
     "typescript/promise-function-async": {

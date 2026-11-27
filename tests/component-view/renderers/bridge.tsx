@@ -29,11 +29,14 @@ import type { Transaction } from '@metamask/keyring-api';
 import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
 import { BridgeQuoteDataProvider } from '../../../app/components/UI/Bridge/hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { BridgeTokenSelector } from '../../../app/components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
+import { HardwareWalletProvider } from '../../../app/core/HardwareWallet/HardwareWalletProvider';
 
 const BridgeSessionTree = ({ children }: { children: React.ReactNode }) => (
-  <BridgeSessionProvider>
-    <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
-  </BridgeSessionProvider>
+  <HardwareWalletProvider>
+    <BridgeSessionProvider>
+      <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
+    </BridgeSessionProvider>
+  </HardwareWalletProvider>
 );
 
 const RecurringOrderDetailsWithSession = () => (

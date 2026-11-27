@@ -104,6 +104,17 @@ export const getLedgerDmkPublicKey = async (hdPath: string) => {
 };
 
 /**
+ * Read Ethereum app configuration through the bridge's active DMK session.
+ *
+ * Used to check whether the user has enabled blind signing (arbitrary data)
+ * before contract interactions.
+ */
+export const getLedgerDmkAppConfiguration = async () => {
+  const bridge = await getLedgerDmkBridge();
+  return bridge.getAppConfiguration();
+};
+
+/**
  * Listen for available Ledger devices via the keyring bridge's shared DMK.
  *
  * Uses `listenToAvailableDevices` (lists paired/known devices, including

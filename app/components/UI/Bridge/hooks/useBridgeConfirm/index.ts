@@ -30,6 +30,11 @@ import {
 } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
+import {
+  useHardwareWallet,
+  isUserCancellation,
+} from '../../../../../core/HardwareWallet';
+import { getDeviceIdForAddress } from '../../../../../core/HardwareWallet/helpers';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { resolveSwapSocialPostTrade } from '../../components/PostTradeBottomSheet/resolveSwapPostTradeShare';
 import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
@@ -50,6 +55,11 @@ export const useBridgeConfirm = ({
 }: Params) => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
+  const {
+    ensureDeviceReady,
+    setPendingOperationAddress,
+    showHardwareWalletError,
+  } = useHardwareWallet();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
   const isHardwareWalletAccount = walletAddress
@@ -78,7 +88,21 @@ export const useBridgeConfirm = ({
 
     if (isHardwareWalletAccount) {
       dispatch(setIsSubmittingTx(true));
+      setPendingOperationAddress(walletAddress);
       try {
+        // Pre-navigation gate: connect the device and verify blind signing is
+        // enabled before routing to the HW signing screen. Bridge is always a
+        // contract interaction, so blind signing is always required. If the
+        // device isn't ready or blind signing is disabled, the HardwareWallet
+        // bottom sheet surfaces the error and we abort navigation.
+        const deviceId = await getDeviceIdForAddress(walletAddress);
+        const isReady = await ensureDeviceReady(deviceId, {
+          requireBlindSigning: true,
+        });
+        if (!isReady) {
+          return;
+        }
+
         dispatch(resetHardwareWalletsSwaps());
         const isSwap = isSameChainSwap(sourceToken, destToken);
         dispatch(
@@ -103,7 +127,12 @@ export const useBridgeConfirm = ({
             },
           },
         });
+      } catch (err) {
+        if (!isUserCancellation(err)) {
+          showHardwareWalletError(err);
+        }
       } finally {
+        setPendingOperationAddress(null);
         dispatch(setIsSubmittingTx(false));
       }
       return;

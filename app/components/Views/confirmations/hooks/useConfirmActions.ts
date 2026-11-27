@@ -22,6 +22,7 @@ import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedge
 import { useTransactionPayingAccount } from './transactions/useTransactionPayingAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
@@ -44,6 +45,16 @@ export const useConfirmActions = () => {
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
   const payingAccount = useTransactionPayingAccount();
+
+  const ensureDeviceReadyOptions = useMemo<EnsureDeviceReadyOptions>(
+    () => ({
+      requireBlindSigning:
+        Boolean(isTransactionReq) &&
+        transactionMetadata?.type !== TransactionType.simpleSend,
+    }),
+    [isTransactionReq, transactionMetadata?.type],
+  );
+
   const batchSigningTransactionId =
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [
@@ -67,7 +78,7 @@ export const useConfirmActions = () => {
     }
 
     if (isSignatureReq && approvalRequest?.id) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      void captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
     }
   }, [
@@ -88,6 +99,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
+      ensureDeviceReadyOptions,
       transactionId: batchSigningTransactionId,
     }),
     [
@@ -98,6 +110,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq,
+      ensureDeviceReadyOptions,
       batchSigningTransactionId,
     ],
   );

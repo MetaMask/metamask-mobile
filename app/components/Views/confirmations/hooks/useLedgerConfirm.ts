@@ -4,6 +4,7 @@ import {
   useHardwareWallet,
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 import Engine from '../../../../core/Engine';
 import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
 import { type TransactionMeta } from '@metamask/transaction-controller';
@@ -49,6 +50,7 @@ interface UseLedgerConfirmOptions {
   onSigningComplete?: () => void;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
+  ensureDeviceReadyOptions?: EnsureDeviceReadyOptions;
   /** Parent transaction whose `requiredTransactionIds` are batch funding legs. */
   transactionId?: string;
 }
@@ -65,6 +67,7 @@ export function useLedgerConfirm({
   onSigningComplete,
   executeApproval,
   isTransactionReq,
+  ensureDeviceReadyOptions,
   transactionId,
 }: UseLedgerConfirmOptions) {
   const {
@@ -118,7 +121,10 @@ export function useLedgerConfirm({
 
     try {
       const deviceId = await getDeviceIdForAddress(fromAddress);
-      const isReady = await ensureDeviceReady(deviceId);
+      const isReady = await ensureDeviceReady(
+        deviceId,
+        ensureDeviceReadyOptions,
+      );
 
       if (!isReady) {
         rejectOnce();
@@ -204,6 +210,7 @@ export function useLedgerConfirm({
     onTransactionConfirm,
     onSigningComplete,
     executeApproval,
+    ensureDeviceReadyOptions,
     ensureDeviceReady,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,

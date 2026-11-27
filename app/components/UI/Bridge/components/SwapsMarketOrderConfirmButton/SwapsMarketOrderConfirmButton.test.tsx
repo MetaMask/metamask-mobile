@@ -12,6 +12,7 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
+import { getDeviceIdForAddress } from '../../../../../core/HardwareWallet/helpers';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -128,6 +129,24 @@ jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
     handleQrSignatureCancel: jest.fn(),
     pendingScanRequest: undefined,
   })),
+}));
+
+const mockEnsureDeviceReady = jest.fn();
+const mockSetPendingOperationAddress = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    ensureDeviceReady: mockEnsureDeviceReady,
+    setPendingOperationAddress: mockSetPendingOperationAddress,
+    showHardwareWalletError: mockShowHardwareWalletError,
+  }),
+  isUserCancellation: jest.fn(
+    (err: unknown) => err instanceof Error && err.name === 'UserCancellation',
+  ),
+}));
+
+jest.mock('../../../../../core/HardwareWallet/helpers', () => ({
+  getDeviceIdForAddress: jest.fn(),
 }));
 
 // Mock navigation
@@ -354,6 +373,8 @@ describe('SwapsMarketOrderConfirmButton', () => {
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    jest.mocked(getDeviceIdForAddress).mockResolvedValue('mock-device-id');
     jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
@@ -1706,8 +1727,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
           );
         });
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('does not submit when activeQuote is null', async () => {

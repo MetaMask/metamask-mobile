@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { waitFor } from '@testing-library/react-native';
 
 import Engine from '../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -81,8 +82,6 @@ jest.mock('./signatures/useSignatureMetrics', () => ({
   }),
 }));
 
-const flushPromises = async () => await new Promise(process.nextTick);
-
 describe('useConfirmAction', () => {
   const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
   const useNavigationMock = jest.mocked(useNavigation);
@@ -101,6 +100,10 @@ describe('useConfirmAction', () => {
       navigateOnConfirm: navigateOnConfirmMock,
       onConfirm: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('passes the confirmation from address to hardware wallet confirmation hooks', () => {
@@ -153,12 +156,11 @@ describe('useConfirmAction', () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
-    result?.current?.onConfirm();
+    await result?.current?.onConfirm();
     expect(mockSetSigningConfirmed).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenLastCalledWith(true);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(0);
-    await flushPromises();
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(0);
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(0);
   });
@@ -205,10 +207,9 @@ describe('useConfirmAction', () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
-    result?.current?.onConfirm();
+    await result?.current?.onConfirm();
     expect(mockSetSigningConfirmed).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-    await flushPromises();
   });
 
   it('calls setSigningConfirmed before confirming a transaction', async () => {
@@ -255,6 +256,30 @@ describe('useConfirmAction', () => {
     useIsConfirmationFromLedgerAccount.mockReturnValue(false);
   });
 
+  it('passes requireBlindSigning true for non-simpleSend transactions', () => {
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ensureDeviceReadyOptions: { requireBlindSigning: true },
+      }),
+    );
+  });
+
+  it('passes requireBlindSigning false for signature requests without transaction metadata', () => {
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ensureDeviceReadyOptions: { requireBlindSigning: false },
+      }),
+    );
+  });
+
   it('does not call signature related methods when onConfirm is called if confirmation is not of type signature', async () => {
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
@@ -263,8 +288,7 @@ describe('useConfirmAction', () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
-    result?.current?.onConfirm();
-    await flushPromises();
+    await result?.current?.onConfirm();
     expect(mockCaptureSignatureMetrics).not.toHaveBeenCalled();
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
   });
@@ -277,9 +301,8 @@ describe('useConfirmAction', () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
-    result?.current?.onConfirm();
+    await result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-    await flushPromises();
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
@@ -312,7 +335,7 @@ describe('useConfirmAction', () => {
       state: transactionBatchState,
     });
 
-    result?.current?.onConfirm();
+    await result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
     expect(callArgs[0]).toBe('batch-approval-id');
@@ -321,7 +344,6 @@ describe('useConfirmAction', () => {
       deleteAfterResult: true,
       handleErrors: false,
     });
-    await flushPromises();
   });
 
   it('sets waitForResult to true when approvalType is not TransactionBatch', async () => {
@@ -329,7 +351,7 @@ describe('useConfirmAction', () => {
       state: personalSignatureConfirmationState,
     });
 
-    result?.current?.onConfirm();
+    await result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
     expect(callArgs[0]).toBe('76b33b40-7b5c-11ef-bc0a-25bce29dbc09');
@@ -338,7 +360,6 @@ describe('useConfirmAction', () => {
       deleteAfterResult: true,
       handleErrors: false,
     });
-    await flushPromises();
   });
 
   it('navigates to transactions view when confirming batch transaction', async () => {
@@ -385,10 +406,11 @@ describe('useConfirmAction', () => {
       state: lendingDepositBatchState,
     });
 
-    result?.current?.onConfirm();
-    await flushPromises();
+    await result?.current?.onConfirm();
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledTimes(1);
+    });
 
-    expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith('TransactionsView');
   });
 });
